@@ -7,7 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Signup from "./pages/Signup";
+import InviteGatekeeper from "./pages/InviteGatekeeper";
 import AdminBranding from "./pages/AdminBranding";
 import NotFound from "./pages/NotFound";
 
@@ -21,8 +22,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/invite" element={<InviteGatekeeper />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/register" element={<Navigate to="/invite" replace />} />
             <Route
               path="/"
               element={
