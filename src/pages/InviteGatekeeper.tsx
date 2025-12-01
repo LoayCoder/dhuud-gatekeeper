@@ -170,6 +170,18 @@ export default function InviteGatekeeper() {
           </Button>
         </form>
 
+        {/* Login Link */}
+        <div className="text-center">
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => navigate('/login')}
+            className="text-sm"
+          >
+            Already have an account? Log in
+          </Button>
+        </div>
+
         {/* Security Footer */}
         <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Shield className="h-4 w-4" />
