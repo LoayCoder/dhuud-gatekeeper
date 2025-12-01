@@ -169,10 +169,7 @@ export default function Login() {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => {
-                  clearInvitationData();
-                  navigate('/invite');
-                }}
+                onClick={() => navigate('/invite')}
                 className="text-sm"
               >
                 Back to invitation code
