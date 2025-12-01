@@ -10,28 +10,27 @@ import { toast } from '@/hooks/use-toast';
 import industrialImage from '@/assets/industrial-safety.jpg';
 import { z } from 'zod';
 
-const loginSchema = z.object({
+const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
 });
 
-export default function Login() {
-  const [email, setEmail] = useState('');
+export default function Signup() {
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, isCodeValidated, invitationEmail, clearInvitationData } = useTheme();
+  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
 
   useEffect(() => {
     // Redirect to invite if code not validated
-    if (!isCodeValidated) {
+    if (!isCodeValidated || !invitationEmail || !invitationCode) {
       navigate('/invite');
       return;
-    }
-
-    // Pre-fill email if coming from invitation
-    if (invitationEmail) {
-      setEmail(invitationEmail);
     }
 
     // Check if already logged in
@@ -51,31 +50,59 @@ export default function Login() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, isCodeValidated, invitationEmail]);
+  }, [navigate, isCodeValidated, invitationEmail, invitationCode]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!invitationEmail || !invitationCode) {
+      toast({
+        title: 'Error',
+        description: 'Invalid invitation data. Please start over.',
+        variant: 'destructive',
+      });
+      navigate('/invite');
+      return;
+    }
+
     try {
       // Validate input
-      loginSchema.parse({ email, password });
-      
+      signupSchema.parse({ email: invitationEmail, password, confirmPassword });
+
       setLoading(true);
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      // Sign up user
+      const redirectUrl = `${window.location.origin}/`;
+      const { error: signupError } = await supabase.auth.signUp({
+        email: invitationEmail,
         password,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
       });
 
-      if (error) throw error;
+      if (signupError) throw signupError;
 
-      // Clear invitation data after successful login
+      // Mark invitation as used
+      const { error: updateError } = await supabase
+        .from('invitations')
+        .update({ used: true })
+        .eq('code', invitationCode);
+
+      if (updateError) {
+        console.error('Failed to mark invitation as used:', updateError);
+      }
+
+      // Clear invitation data
       clearInvitationData();
 
       toast({
-        title: 'Welcome Back',
-        description: 'You have been logged in successfully.',
+        title: 'Account Created',
+        description: 'Your account has been created successfully. You can now sign in.',
       });
+
+      // Redirect to login
+      navigate('/login');
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
@@ -86,7 +113,7 @@ export default function Login() {
       } else {
         toast({
           title: 'Error',
-          description: err instanceof Error ? err.message : 'Failed to log in',
+          description: err instanceof Error ? err.message : 'Failed to create account',
           variant: 'destructive',
         });
       }
@@ -113,7 +140,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Signup Form */}
       <div className="flex w-full items-center justify-center bg-background p-8 lg:w-1/2">
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
@@ -126,23 +153,20 @@ export default function Login() {
               </div>
             )}
             <h2 className="text-3xl font-bold">{tenantName}</h2>
-            <p className="mt-2 text-muted-foreground">Sign in to your account</p>
+            <p className="mt-2 text-muted-foreground">Create your account</p>
           </div>
 
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
+          {/* Signup Form */}
+          <form onSubmit={handleSignup} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="h-12"
+                  value={invitationEmail || ''}
+                  disabled
+                  className="h-12 bg-muted"
                 />
               </div>
 
@@ -151,9 +175,23 @@ export default function Login() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Minimum 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={loading}
                   className="h-12"
@@ -162,7 +200,7 @@ export default function Login() {
             </div>
 
             <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
 
             <div className="text-center">
