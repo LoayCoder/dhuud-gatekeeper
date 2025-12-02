@@ -226,7 +226,7 @@ export default function AdminBranding() {
       </div>;
   }
   return <div className="p-6 space-y-6 max-w-7xl mx-auto text-start">
-      <div className="flex justify-between items-center rtl:flex-row-reverse">
+      <div className="justify-between items-center flex flex-row">
         <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
           <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
