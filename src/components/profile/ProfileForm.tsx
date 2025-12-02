@@ -51,7 +51,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: t('auth.error'),
-        description: "Only JPG, PNG, and GIF files are allowed",
+        description: t('profile.fileTypeError'),
         variant: "destructive",
       });
       return;
@@ -60,7 +60,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: t('auth.error'),
-        description: "Please select an image under 10MB",
+        description: t('profile.fileSizeError'),
         variant: "destructive",
       });
       return;
@@ -99,7 +99,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
       if (updateError) {
         toast({
           title: t('auth.error'),
-          description: "Failed to save avatar URL",
+          description: t('profile.avatarSaveError'),
           variant: "destructive",
         });
         return;
@@ -125,7 +125,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
     if (!validation.success) {
       toast({
         title: t('auth.validationError'),
-        description: validation.error.errors[0]?.message || "Invalid input",
+        description: validation.error.errors[0]?.message || t('profile.invalidInput'),
         variant: "destructive",
       });
       return;
@@ -172,9 +172,9 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
           </AvatarFallback>
         </Avatar>
         <div className="space-y-1">
-          <h3 className="font-medium">{t('profile.profilePicture') || 'Profile Picture'}</h3>
+          <h3 className="font-medium">{t('profile.profilePicture')}</h3>
           <p className="text-sm text-muted-foreground">
-            JPG, GIF or PNG. Max size of 2MB.
+            {t('profile.avatarHint')}
           </p>
           <input
             ref={fileInputRef}
@@ -198,7 +198,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
             ) : (
               <>
                 <Upload className="me-2 h-4 w-4" />
-                {t('profile.changeAvatar') || 'Change Avatar'}
+                {t('profile.changeAvatar')}
               </>
             )}
           </Button>
@@ -264,9 +264,9 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <Separator />
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('profile.emergencyContact') || 'Emergency Contact'}</Label>
+          <Label className="text-sm font-medium">{t('profile.emergencyContact')}</Label>
           <p className="text-sm text-muted-foreground mb-3">
-            {t('profile.emergencyContactDescription') || 'Person to contact in case of emergency at the workplace.'}
+            {t('profile.emergencyContactDescription')}
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">
