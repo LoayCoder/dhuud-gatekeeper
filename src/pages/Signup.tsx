@@ -69,16 +69,15 @@ export default function Signup() {
       signupSchema.parse({ email: invitationEmail, password, confirmPassword });
       setLoading(true);
 
-      // 1. Get Tenant ID from Invitation FIRST to ensure we have it
-      const { data: inviteData, error: inviteFetchError } = await supabase
-        .from('invitations')
-        .select('tenant_id')
-        .eq('code', invitationCode)
-        .single();
+      // 1. Get Tenant ID from Invitation using secure function
+      const { data: inviteResult, error: inviteFetchError } = await supabase
+        .rpc('lookup_invitation', { lookup_code: invitationCode });
 
-      if (inviteFetchError || !inviteData) {
+      if (inviteFetchError || !inviteResult) {
         throw new Error("Invalid or expired invitation code.");
       }
+
+      const inviteData = inviteResult as { email: string; tenant_id: string; role: string };
 
       // 2. Sign up user
       const redirectUrl = `${window.location.origin}/`;
