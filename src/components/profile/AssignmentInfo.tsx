@@ -25,7 +25,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
               <Building2 className="h-4 w-4 text-primary" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.branch')}</p>
               {profile?.branches ? (
                 <>
@@ -47,7 +47,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
               <MapPin className="h-4 w-4 text-primary" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.site')}</p>
               {profile?.sites ? (
                 <>
