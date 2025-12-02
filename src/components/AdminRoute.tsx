@@ -83,7 +83,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
             You do not have permission to access this page.
           </p>
           <p className="text-sm text-muted-foreground">
-            Only Dhuud administrators can access the Brand Management Console.
+            Only organization administrators can access the Brand Management Console.
           </p>
         </div>
       </div>
