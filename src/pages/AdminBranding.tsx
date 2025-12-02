@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2 } from 'lucide-react';
+import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -113,7 +114,7 @@ export default function AdminBranding() {
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Brand Management Console</h1>
@@ -125,7 +126,8 @@ export default function AdminBranding() {
         </Button>
       </div>
 
-      <Tabs defaultValue="visuals" className="w-full">
+      <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+        <Tabs defaultValue="visuals" className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4"/> Visuals</TabsTrigger>
           <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4"/> Assets</TabsTrigger>
@@ -290,7 +292,17 @@ export default function AdminBranding() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+
+        {/* Live Preview Panel - Hidden on mobile */}
+        <div className="hidden lg:block">
+          <BrandingPreviewPanel
+            primaryColor={brandColor}
+            logoUrl={logoPreview}
+            tenantName={tenant?.name || ''}
+          />
+        </div>
+      </div>
     </div>
   );
 }
