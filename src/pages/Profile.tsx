@@ -79,8 +79,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="container max-w-5xl py-8 space-y-8">
-      <div>
+    <div className="container max-w-5xl py-8 space-y-8 text-start">
+      <div className="text-start">
         <h1 className="text-3xl font-bold tracking-tight">{t('profile.title')}</h1>
         <p className="text-muted-foreground">
           {t('profile.description')}
@@ -91,7 +91,7 @@ export default function Profile() {
         {/* Left Column - Main Content */}
         <div className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="text-start">
               <CardTitle>{t('profile.personalInfo')}</CardTitle>
               <CardDescription>
                 {t('profile.updatePersonalInfo')}

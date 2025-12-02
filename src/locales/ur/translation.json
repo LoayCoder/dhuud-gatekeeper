@@ -23,7 +23,11 @@
     "status": "حیثیت",
     "active": "فعال",
     "continue": "جاری رکھیں",
-    "verify": "تصدیق کریں"
+    "verify": "تصدیق کریں",
+    "toggleTheme": "تھیم تبدیل کریں",
+    "light": "ہلکا",
+    "dark": "گہرا",
+    "system": "سسٹم"
   },
   "auth": {
     "signIn": "سائن ان",

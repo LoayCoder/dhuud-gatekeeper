@@ -23,7 +23,11 @@
     "status": "Katayuan",
     "active": "Aktibo",
     "continue": "Magpatuloy",
-    "verify": "I-verify"
+    "verify": "I-verify",
+    "toggleTheme": "Palitan ang tema",
+    "light": "Maliwanag",
+    "dark": "Madilim",
+    "system": "Sistema"
   },
   "auth": {
     "signIn": "Mag-sign In",
