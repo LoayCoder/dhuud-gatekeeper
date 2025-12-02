@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -130,7 +131,7 @@ export default function InviteGatekeeper() {
     <div className="flex min-h-screen items-center justify-center bg-background p-8">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
-        <div className="text-center">
+        <div className="text-center animate-fade-in">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             <Shield className="h-10 w-10 text-primary" />
           </div>
@@ -140,35 +141,44 @@ export default function InviteGatekeeper() {
           </p>
         </div>
 
-        {/* Invitation Code Form */}
-        <form onSubmit={handleInviteValidation} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="code" className="text-base">
-              Invitation Code
-            </Label>
-            <Input
-              id="code"
-              type="text"
-              placeholder="Enter your code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-              disabled={loading}
-              className="h-14 text-lg"
-            />
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+            <Skeleton className="h-14 w-full" />
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-3/4 mx-auto" />
+              <Skeleton className="h-4 w-2/3 mx-auto" />
+            </div>
           </div>
+        )}
 
-          <Button type="submit" className="h-14 w-full text-lg" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Validating...
-              </>
-            ) : (
-              'Continue'
-            )}
-          </Button>
-        </form>
+        {/* Invitation Code Form */}
+        {!loading && (
+          <form onSubmit={handleInviteValidation} className="space-y-6 animate-fade-in">
+            <div className="space-y-2">
+              <Label htmlFor="code" className="text-base">
+                Invitation Code
+              </Label>
+              <Input
+                id="code"
+                type="text"
+                placeholder="Enter your code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+                className="h-14 text-lg"
+              />
+            </div>
+
+            <Button type="submit" className="h-14 w-full text-lg">
+              Continue
+            </Button>
+          </form>
+        )}
 
         {/* Login Link */}
         <div className="text-center">
