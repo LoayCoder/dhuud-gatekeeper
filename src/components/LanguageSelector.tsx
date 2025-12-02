@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', nativeLabel: 'English' },
@@ -18,9 +20,29 @@ const LANGUAGES = [
 
 export function LanguageSelector() {
   const { i18n } = useTranslation();
+  const { user, refreshProfile } = useAuth();
 
-  const handleLanguageChange = (langCode: string) => {
+  const handleLanguageChange = async (langCode: string) => {
+    // Change language immediately
     i18n.changeLanguage(langCode);
+    
+    // Save to localStorage for persistence
+    localStorage.setItem('i18nextLng', langCode);
+    
+    // If user is authenticated, save to database
+    if (user?.id) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ preferred_language: langCode })
+          .eq('id', user.id);
+        
+        // Refresh profile to sync state
+        await refreshProfile();
+      } catch (error) {
+        console.error('Failed to save language preference:', error);
+      }
+    }
   };
 
   const currentLanguage = LANGUAGES.find(lang => lang.code === i18n.language) || LANGUAGES[0];

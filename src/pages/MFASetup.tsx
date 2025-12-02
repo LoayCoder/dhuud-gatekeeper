@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useMFA } from '@/hooks/useMFA';
@@ -20,6 +21,7 @@ interface EnrollData {
 }
 
 export default function MFASetup() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('intro');
   const [loading, setLoading] = useState(false);
   const [enrollData, setEnrollData] = useState<EnrollData | null>(null);
@@ -91,8 +93,8 @@ export default function MFASetup() {
       setStep('success');
       await logUserActivity({ eventType: 'mfa_enabled' });
       toast({
-        title: '2FA Enabled',
-        description: 'Two-factor authentication has been enabled for your account.',
+        title: t('mfaSetup.twoFactorEnabled'),
+        description: t('mfaSetup.twoFactorEnabledMessage'),
       });
     }
   };
@@ -103,8 +105,8 @@ export default function MFASetup() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: 'Secret Copied',
-        description: 'The setup key has been copied to your clipboard.',
+        title: t('mfaSetup.secretCopied'),
+        description: t('mfaSetup.secretCopiedMessage'),
       });
     }
   };
@@ -132,9 +134,9 @@ export default function MFASetup() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
         <div className="absolute bottom-8 left-8 right-8 text-white">
-          <h1 className="mb-2 text-4xl font-bold">Secure Your Account</h1>
+          <h1 className="mb-2 text-4xl font-bold">{t('mfaSetup.secureYourAccount')}</h1>
           <p className="text-lg text-white/90">
-            Two-factor authentication is required for all users
+            {t('mfaSetup.twoFactorRequired')}
           </p>
         </div>
       </div>
@@ -152,7 +154,7 @@ export default function MFASetup() {
               </div>
             )}
             <h2 className="text-3xl font-bold">{tenantName}</h2>
-            <p className="mt-2 text-muted-foreground">Set up two-factor authentication</p>
+            <p className="mt-2 text-muted-foreground">{t('mfaSetup.setupDescription')}</p>
           </div>
 
           {/* Step Content */}
@@ -162,18 +164,18 @@ export default function MFASetup() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5 text-primary" />
-                    Two-Factor Authentication Required
+                    {t('mfaSetup.twoFactorRequiredTitle')}
                   </CardTitle>
                   <CardDescription>
-                    For security purposes, you must enable two-factor authentication to access your account.
+                    {t('mfaSetup.twoFactorRequiredDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="rounded-lg bg-muted p-4 text-sm">
-                    <p className="font-medium mb-2">You will need:</p>
+                    <p className="font-medium mb-2">{t('mfaSetup.youWillNeed')}</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      <li>A smartphone with an authenticator app</li>
-                      <li>Google Authenticator, Microsoft Authenticator, or Authy</li>
+                      <li>{t('mfaSetup.smartphone')}</li>
+                      <li>{t('mfaSetup.authenticatorApps')}</li>
                     </ul>
                   </div>
                   <Button 
@@ -182,12 +184,12 @@ export default function MFASetup() {
                     disabled={loading}
                   >
                     {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-4 w-4 animate-spin me-2" />
                     ) : (
-                      <Smartphone className="h-4 w-4 mr-2" />
+                      <Smartphone className="h-4 w-4 me-2" />
                     )}
-                    Begin Setup
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    {t('mfaSetup.beginSetup')}
+                    <ChevronRight className="h-4 w-4 ms-2" />
                   </Button>
                 </CardContent>
               </>
@@ -196,9 +198,9 @@ export default function MFASetup() {
             {step === 'qrcode' && enrollData && (
               <>
                 <CardHeader>
-                  <CardTitle>Scan QR Code</CardTitle>
+                  <CardTitle>{t('mfaSetup.scanQrCode')}</CardTitle>
                   <CardDescription>
-                    Scan this QR code with your authenticator app
+                    {t('mfaSetup.scanQrDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -211,7 +213,7 @@ export default function MFASetup() {
                   </div>
                   
                   <div className="text-center text-sm text-muted-foreground">
-                    <p className="mb-2">Can't scan? Enter this code manually:</p>
+                    <p className="mb-2">{t('mfaSetup.cantScan')}</p>
                     <div className="flex items-center justify-center gap-2">
                       <code className="bg-muted px-3 py-1 rounded text-xs font-mono">
                         {enrollData.secret}
@@ -236,15 +238,15 @@ export default function MFASetup() {
                       onClick={() => setStep('intro')}
                       className="flex-1"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Back
+                      <ChevronLeft className="h-4 w-4 me-2" />
+                      {t('common.back')}
                     </Button>
                     <Button
                       onClick={() => setStep('verify')}
                       className="flex-1"
                     >
-                      Continue
-                      <ChevronRight className="h-4 w-4 ml-2" />
+                      {t('common.continue')}
+                      <ChevronRight className="h-4 w-4 ms-2" />
                     </Button>
                   </div>
                 </CardContent>
@@ -254,9 +256,9 @@ export default function MFASetup() {
             {step === 'verify' && (
               <>
                 <CardHeader>
-                  <CardTitle>Verify Setup</CardTitle>
+                  <CardTitle>{t('mfaSetup.verifySetup')}</CardTitle>
                   <CardDescription>
-                    Enter the 6-digit code from your authenticator app
+                    {t('mfaSetup.verifyDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -286,8 +288,8 @@ export default function MFASetup() {
                       }}
                       className="flex-1"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Back
+                      <ChevronLeft className="h-4 w-4 me-2" />
+                      {t('common.back')}
                     </Button>
                     <Button
                       onClick={handleVerify}
@@ -295,9 +297,9 @@ export default function MFASetup() {
                       className="flex-1"
                     >
                       {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <Loader2 className="h-4 w-4 animate-spin me-2" />
                       ) : null}
-                      Verify
+                      {t('common.verify')}
                     </Button>
                   </div>
                 </CardContent>
@@ -309,16 +311,16 @@ export default function MFASetup() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-600">
                     <Check className="h-5 w-5" />
-                    Setup Complete!
+                    {t('mfaSetup.setupComplete')}
                   </CardTitle>
                   <CardDescription>
-                    Two-factor authentication is now enabled on your account.
+                    {t('mfaSetup.setupCompleteMessage')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button onClick={handleComplete} className="w-full">
-                    Continue to Dashboard
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    {t('mfaSetup.continueToDashboard')}
+                    <ChevronRight className="h-4 w-4 ms-2" />
                   </Button>
                 </CardContent>
               </>
@@ -328,7 +330,7 @@ export default function MFASetup() {
           {/* Footer */}
           <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4" />
-            <span>Protected by Zero Trust Security</span>
+            <span>{t('security.protectedByZeroTrust')}</span>
           </div>
         </div>
       </div>

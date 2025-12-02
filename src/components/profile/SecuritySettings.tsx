@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,35 +10,36 @@ import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
 
-const passwordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
 interface PasswordRequirement {
   label: string;
   met: boolean;
 }
 
 export function SecuritySettings() {
+  const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const passwordSchema = z.object({
+    password: z
+      .string()
+      .min(8, t('securitySettings.atLeast8Chars'))
+      .regex(/[A-Z]/, t('securitySettings.oneUppercase'))
+      .regex(/[a-z]/, t('securitySettings.oneLowercase'))
+      .regex(/[0-9]/, t('securitySettings.oneNumber')),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('securitySettings.passwordsDoNotMatch'),
+    path: ["confirmPassword"],
+  });
+
   // Check requirements in real-time
   const requirements: PasswordRequirement[] = [
-    { label: "At least 8 characters", met: password.length >= 8 },
-    { label: "One uppercase letter (A-Z)", met: /[A-Z]/.test(password) },
-    { label: "One lowercase letter (a-z)", met: /[a-z]/.test(password) },
-    { label: "One number (0-9)", met: /[0-9]/.test(password) },
+    { label: t('securitySettings.atLeast8Chars'), met: password.length >= 8 },
+    { label: t('securitySettings.oneUppercase'), met: /[A-Z]/.test(password) },
+    { label: t('securitySettings.oneLowercase'), met: /[a-z]/.test(password) },
+    { label: t('securitySettings.oneNumber'), met: /[0-9]/.test(password) },
   ];
 
   const passwordsMatch = password.length > 0 && password === confirmPassword;
@@ -51,8 +53,8 @@ export function SecuritySettings() {
     
     if (!validation.success) {
       toast({
-        title: "Validation Error",
-        description: validation.error.errors[0]?.message || "Invalid password",
+        title: t('auth.validationError'),
+        description: validation.error.errors[0]?.message || t('securitySettings.invalidPassword'),
         variant: "destructive",
       });
       return;
@@ -65,8 +67,8 @@ export function SecuritySettings() {
       if (error) throw error;
 
       toast({
-        title: "Password Updated",
-        description: "Your password has been changed successfully.",
+        title: t('securitySettings.passwordUpdated'),
+        description: t('securitySettings.passwordUpdatedMessage'),
       });
       
       // Clear form after successful update
@@ -74,8 +76,8 @@ export function SecuritySettings() {
       setConfirmPassword("");
     } catch (error: any) {
       toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update password",
+        title: t('securitySettings.updateFailed'),
+        description: error.message || t('securitySettings.updateFailed'),
         variant: "destructive",
       });
     } finally {
@@ -88,9 +90,9 @@ export function SecuritySettings() {
       {/* Two-Factor Authentication Section */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
+          <h3 className="text-lg font-medium">{t('securitySettings.twoFactorAuth')}</h3>
           <p className="text-sm text-muted-foreground">
-            Secure your account with an additional verification step
+            {t('securitySettings.twoFactorDescription')}
           </p>
         </div>
         <TwoFactorSetup />
@@ -101,15 +103,15 @@ export function SecuritySettings() {
       {/* Password Section */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-medium">Change Password</h3>
+          <h3 className="text-lg font-medium">{t('securitySettings.changePassword')}</h3>
           <p className="text-sm text-muted-foreground">
-            Update your password to keep your account secure
+            {t('securitySettings.changePasswordDescription')}
           </p>
         </div>
 
         {/* Password Requirements */}
         <div className="rounded-lg border p-4 bg-muted/5">
-          <h4 className="text-sm font-medium mb-3">Password Requirements</h4>
+          <h4 className="text-sm font-medium mb-3">{t('securitySettings.passwordRequirements')}</h4>
           <ul className="space-y-2">
             {requirements.map((req, index) => (
               <li key={index} className="flex items-center gap-2 text-sm">
@@ -128,32 +130,32 @@ export function SecuritySettings() {
 
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="new-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-9"
-                placeholder="Enter new password"
+                className="ps-9"
+                placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-9"
-                placeholder="Confirm new password"
+                className="ps-9"
+                placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
             </div>
@@ -162,12 +164,12 @@ export function SecuritySettings() {
                 {passwordsMatch ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">Passwords match</span>
+                    <span className="text-green-600">{t('securitySettings.passwordsMatch')}</span>
                   </>
                 ) : (
                   <>
                     <XCircle className="h-4 w-4 text-destructive" />
-                    <span className="text-destructive">Passwords do not match</span>
+                    <span className="text-destructive">{t('securitySettings.passwordsDoNotMatch')}</span>
                   </>
                 )}
               </div>
@@ -179,8 +181,8 @@ export function SecuritySettings() {
               type="submit" 
               disabled={loading || !allRequirementsMet || !passwordsMatch}
             >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Password
+              {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {t('securitySettings.updatePassword')}
             </Button>
           </div>
         </form>
