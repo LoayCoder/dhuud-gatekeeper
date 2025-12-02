@@ -204,47 +204,75 @@
   },
   "adminBranding": {
     "title": "Brand Management Console",
-    "description": "Customize the visual identity for",
+    "subtitle": "Customize the visual identity for",
     "saveChanges": "Save Changes",
-    "colorsTab": "Colors",
-    "assetsTab": "Assets",
-    "themeTab": "Theme",
-    "colorPalette": "Color Palette",
-    "colorPaletteDescription": "Define separate colors for light and dark modes to ensure proper contrast.",
-    "lightMode": "Light Mode",
-    "darkMode": "Dark Mode",
-    "primaryColor": "Primary Color",
-    "secondaryColor": "Secondary Color",
-    "loginPageLogos": "Login Page Logos",
-    "loginPageLogosDescription": "Full brand logos displayed on the login page. PNG/SVG, Min 200x50px",
-    "lightModeDarkLogo": "Light Mode (dark logo)",
-    "darkModeLightLogo": "Dark Mode (light logo)",
-    "noLogo": "No logo",
-    "sidebarIcons": "Sidebar Icons",
-    "sidebarIconsDescription": "Small icons for sidebar header. PNG/SVG, Square, Min 64x64px",
-    "noIcon": "No icon",
-    "appIconsPwa": "App Icons (PWA)",
-    "appIconsDescription": "Mobile home screen icons. PNG only, exactly 512x512px",
-    "favicon": "Favicon",
-    "faviconDescription": "Browser tab icon. ICO/PNG, 32x32px or 64x64px",
-    "backgroundCustomization": "Background Customization",
-    "backgroundDescription": "Choose a solid color or upload a custom background image for the login page.",
-    "solidColor": "Solid Color",
-    "customImage": "Custom Image",
-    "backgroundColor": "Background Color",
-    "backgroundImage": "Background Image",
-    "backgroundImageDescription": "Recommended: 1920x1080px, JPG/PNG, max 2MB",
-    "assetUploaded": "Asset Uploaded",
-    "dontForgetToSave": "Don't forget to save your changes.",
-    "brandingUpdated": "Branding Updated",
-    "changesApplied": "Your changes have been applied live.",
-    "configurationError": "Configuration Error",
-    "notAuthenticated": "Not authenticated",
-    "noTenantLinked": "Your account is not linked to any organization. Please contact support.",
-    "error": "Error",
-    "noTenantConfigured": "No tenant configured",
-    "failedToSave": "Failed to save changes",
-    "failedToLoad": "Failed to load branding data"
+    "saving": "Saving...",
+    "tabs": {
+      "colors": "Colors",
+      "assets": "Assets",
+      "theme": "Theme"
+    },
+    "colors": {
+      "title": "Color Palette",
+      "description": "Define separate colors for light and dark modes to ensure proper contrast.",
+      "lightMode": "Light Mode",
+      "darkMode": "Dark Mode",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color"
+    },
+    "assets": {
+      "loginLogos": {
+        "title": "Login Page Logos",
+        "description": "Full brand logos displayed on the login page. PNG/SVG, Min 200x50px",
+        "lightMode": "Light Mode (dark logo)",
+        "darkMode": "Dark Mode (light logo)",
+        "noLogo": "No logo"
+      },
+      "sidebarIcons": {
+        "title": "Sidebar Icons",
+        "description": "Small icons for sidebar header. PNG/SVG, Square, Min 64x64px",
+        "noIcon": "No icon"
+      },
+      "appIcons": {
+        "title": "App Icons (PWA)",
+        "description": "Mobile home screen icons. PNG only, exactly 512x512px"
+      },
+      "favicon": {
+        "title": "Favicon",
+        "description": "Browser tab icon. ICO/PNG, 32x32px or 64x64px",
+        "noFavicon": "No favicon"
+      }
+    },
+    "theme": {
+      "title": "Login Page Background",
+      "description": "Choose how the login page background appears.",
+      "solidColor": "Solid Color",
+      "customImage": "Custom Image",
+      "backgroundColor": "Background Color",
+      "backgroundImage": "Background Image",
+      "hslPlaceholder": "HSL Value (e.g. 0 0% 98%)",
+      "imageDescription": "JPG or PNG, recommended 1920x1080px",
+      "noImage": "No image uploaded"
+    },
+    "preview": {
+      "title": "Live Preview",
+      "loginPreview": "Login Preview",
+      "sidebarPreview": "Sidebar Preview"
+    },
+    "toast": {
+      "assetUploaded": "Asset Uploaded",
+      "dontForgetSave": "Don't forget to save your changes.",
+      "brandingUpdated": "Branding Updated",
+      "changesApplied": "Your changes have been applied live.",
+      "saveFailed": "Failed to save changes"
+    },
+    "errors": {
+      "notAuthenticated": "Not authenticated",
+      "noTenant": "Your account is not linked to any organization. Please contact support.",
+      "loadFailed": "Failed to load branding data",
+      "noTenantConfigured": "No tenant configured",
+      "configError": "Configuration Error"
+    }
   },
   "securitySettings": {
     "twoFactorAuth": "Two-Factor Authentication",

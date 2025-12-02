@@ -145,7 +145,8 @@
       "backgroundColor": "पृष्ठभूमि रंग",
       "backgroundImage": "पृष्ठभूमि छवि",
       "imageDescription": "JPG या PNG, अनुशंसित 1920x1080px",
-      "noImage": "कोई छवि अपलोड नहीं की गई"
+      "noImage": "कोई छवि अपलोड नहीं की गई",
+      "hslPlaceholder": "HSL मान (जैसे 0 0% 98%)"
     },
     "preview": {
       "title": "लाइव पूर्वावलोकन",

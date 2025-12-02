@@ -145,7 +145,8 @@
       "backgroundColor": "پس منظر کا رنگ",
       "backgroundImage": "پس منظر کی تصویر",
       "imageDescription": "JPG یا PNG، تجویز کردہ 1920x1080px",
-      "noImage": "کوئی تصویر اپ لوڈ نہیں کی گئی"
+      "noImage": "کوئی تصویر اپ لوڈ نہیں کی گئی",
+      "hslPlaceholder": "HSL ویلیو (مثال: 0 0% 98%)"
     },
     "preview": {
       "title": "براہ راست پیش نظارہ",
