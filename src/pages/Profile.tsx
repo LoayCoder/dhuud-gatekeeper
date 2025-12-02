@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, User, Building2, Mail, Shield, Phone, UserCheck, MapPin, Upload } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+import { AvatarCropDialog } from "@/components/profile/AvatarCropDialog";
 
 interface ProfileData {
   id: string;
@@ -42,6 +43,10 @@ export default function Profile() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  
+  // Crop dialog state
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     getProfile();
@@ -99,11 +104,53 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Only JPG, PNG, and GIF files are allowed",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB for cropping, will be compressed after)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image under 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create object URL for cropping
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(imageUrl);
+    setCropDialogOpen(true);
+    
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    if (!user) return;
+
+    // Convert blob to file for upload
+    const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+    
     const { url, error } = await uploadAvatar(file, user.id);
+    
+    // Clean up object URL
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc(null);
+    }
     
     if (error) {
       toast({
@@ -216,7 +263,7 @@ export default function Profile() {
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/gif"
-                    onChange={handleAvatarChange}
+                    onChange={handleFileSelect}
                     className="hidden"
                   />
                   <Button 
@@ -482,9 +529,25 @@ export default function Profile() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+            </Card>
         </div>
       </div>
+
+      {/* Avatar Crop Dialog */}
+      {selectedImageSrc && (
+        <AvatarCropDialog
+          open={cropDialogOpen}
+          onOpenChange={(open) => {
+            setCropDialogOpen(open);
+            if (!open && selectedImageSrc) {
+              URL.revokeObjectURL(selectedImageSrc);
+              setSelectedImageSrc(null);
+            }
+          }}
+          imageSrc={selectedImageSrc}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }
