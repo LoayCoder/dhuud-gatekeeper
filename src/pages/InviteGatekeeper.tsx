@@ -9,53 +9,60 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
-
 const inviteSchema = z.object({
-  code: z.string().min(1, 'Invitation code is required'),
+  code: z.string().min(1, 'Invitation code is required')
 });
-
 export default function InviteGatekeeper() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { applyTenantBranding, setInvitationData, tenantName, activeLogoUrl, isLoading: themeLoading } = useTheme();
-
+  const {
+    applyTenantBranding,
+    setInvitationData,
+    tenantName,
+    activeLogoUrl,
+    isLoading: themeLoading
+  } = useTheme();
   useEffect(() => {
     // Check if already logged in, redirect to dashboard
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
         navigate('/');
       }
     });
   }, [navigate]);
-
   const handleInviteValidation = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       // Validate input
-      inviteSchema.parse({ code });
-
+      inviteSchema.parse({
+        code
+      });
       setLoading(true);
 
       // Fetch invitation securely via RPC (works for anonymous users)
-      const { data: result, error: inviteError } = await supabase
-        .rpc('lookup_invitation', { lookup_code: code.trim() });
-
+      const {
+        data: result,
+        error: inviteError
+      } = await supabase.rpc('lookup_invitation', {
+        lookup_code: code.trim()
+      });
       if (inviteError) {
         throw new Error('Failed to validate invitation code');
       }
-
       if (!result) {
         toast({
           title: 'Invalid Code',
           description: 'This invitation code is invalid, expired, or has already been used.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         setLoading(false);
         return;
       }
-
       const inviteData = result as unknown as TenantBrandingData & {
         email: string;
         tenant_id: string;
@@ -68,13 +75,14 @@ export default function InviteGatekeeper() {
       setInvitationData(inviteData.email, code.trim(), inviteData.tenant_id);
 
       // Check if user already exists
-      const { data: checkData, error: checkError } = await supabase.functions.invoke(
-        'check-user-exists',
-        {
-          body: { email: inviteData.email },
+      const {
+        data: checkData,
+        error: checkError
+      } = await supabase.functions.invoke('check-user-exists', {
+        body: {
+          email: inviteData.email
         }
-      );
-
+      });
       if (checkError) {
         console.error('Error checking user existence:', checkError);
         throw new Error('Failed to verify user status');
@@ -84,13 +92,13 @@ export default function InviteGatekeeper() {
       if (checkData.exists) {
         toast({
           title: 'Welcome Back',
-          description: 'Please sign in with your existing account.',
+          description: 'Please sign in with your existing account.'
         });
         navigate('/login');
       } else {
         toast({
           title: 'Welcome',
-          description: 'Please complete your registration.',
+          description: 'Please complete your registration.'
         });
         navigate('/signup');
       }
@@ -99,36 +107,24 @@ export default function InviteGatekeeper() {
         toast({
           title: 'Validation Error',
           description: err.errors[0].message,
-          variant: 'destructive',
+          variant: 'destructive'
         });
       } else {
         toast({
           title: 'Error',
           description: err instanceof Error ? err.message : 'Failed to validate invitation code',
-          variant: 'destructive',
+          variant: 'destructive'
         });
       }
       setLoading(false);
     }
   };
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-8">
+  return <div className="flex min-h-screen items-center justify-center bg-background p-8">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
         <div className="text-center animate-fade-in">
           <div className="mx-auto mb-6 flex items-center justify-center">
-            {themeLoading ? (
-              <Skeleton className="h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56" />
-            ) : activeLogoUrl ? (
-              <img 
-                src={activeLogoUrl} 
-                alt={tenantName} 
-                className="h-16 w-auto max-w-[200px] sm:h-20 sm:max-w-[240px] md:h-24 md:max-w-[280px] object-contain"
-              />
-            ) : (
-              <Shield className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
-            )}
+            {themeLoading ? <Skeleton className="h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56" /> : activeLogoUrl ? <img src={activeLogoUrl} alt={tenantName} className="h-16 w-auto max-w-[200px] sm:h-20 sm:max-w-[240px] md:h-24 md:max-w-[280px] object-fill" /> : <Shield className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />}
           </div>
           <h1 className="text-4xl font-bold">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
@@ -137,8 +133,7 @@ export default function InviteGatekeeper() {
         </div>
 
         {/* Loading Skeleton */}
-        {loading && (
-          <div className="space-y-6 animate-fade-in">
+        {loading && <div className="space-y-6 animate-fade-in">
             <div className="space-y-2">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-14 w-full" />
@@ -148,41 +143,25 @@ export default function InviteGatekeeper() {
               <Skeleton className="h-4 w-3/4 mx-auto" />
               <Skeleton className="h-4 w-2/3 mx-auto" />
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Invitation Code Form */}
-        {!loading && (
-          <form onSubmit={handleInviteValidation} className="space-y-6 animate-fade-in">
+        {!loading && <form onSubmit={handleInviteValidation} className="space-y-6 animate-fade-in">
             <div className="space-y-2">
               <Label htmlFor="code" className="text-base">
                 Invitation Code
               </Label>
-              <Input
-                id="code"
-                type="text"
-                placeholder="Enter your code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                required
-                className="h-14 text-lg"
-              />
+              <Input id="code" type="text" placeholder="Enter your code" value={code} onChange={e => setCode(e.target.value)} required className="h-14 text-lg" />
             </div>
 
             <Button type="submit" className="h-14 w-full text-lg">
               Continue
             </Button>
-          </form>
-        )}
+          </form>}
 
         {/* Login Link */}
         <div className="text-center">
-          <Button
-            type="button"
-            variant="link"
-            onClick={() => navigate('/login')}
-            className="text-sm"
-          >
+          <Button type="button" variant="link" onClick={() => navigate('/login')} className="text-sm">
             Already have an account? Log in
           </Button>
         </div>
@@ -193,6 +172,5 @@ export default function InviteGatekeeper() {
           <span>Protected by Zero Trust Security</span>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
