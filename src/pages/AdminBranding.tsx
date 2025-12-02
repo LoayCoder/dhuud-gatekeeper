@@ -248,8 +248,8 @@ export default function AdminBranding() {
         <TabsContent value="visuals">
           <Card>
             <CardHeader>
-              <CardTitle className="text-left">{t('adminBranding.colors.title')}</CardTitle>
-              <CardDescription className="text-left">{t('adminBranding.colors.description')}</CardDescription>
+              <CardTitle className="text-start">{t('adminBranding.colors.title')}</CardTitle>
+              <CardDescription className="text-start">{t('adminBranding.colors.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Light Mode Colors */}
