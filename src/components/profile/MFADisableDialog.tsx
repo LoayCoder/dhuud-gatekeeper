@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldOff, Loader2, AlertTriangle } from "lucide-react";
 import { useMFA } from "@/hooks/useMFA";
 import { toast } from "@/hooks/use-toast";
+import { logUserActivity } from "@/lib/activity-logger";
 
 interface MFADisableDialogProps {
   open: boolean;
@@ -59,6 +60,9 @@ export function MFADisableDialog({
     setLoading(false);
 
     if (success) {
+      // Log MFA disabled event
+      await logUserActivity({ eventType: 'mfa_disabled' });
+      
       toast({
         title: "2FA Disabled",
         description: "Two-factor authentication has been disabled for your account.",

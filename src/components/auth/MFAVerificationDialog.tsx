@@ -11,6 +11,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { logUserActivity } from "@/lib/activity-logger";
 
 interface MFAVerificationDialogProps {
   open: boolean;
@@ -59,6 +60,12 @@ export function MFAVerificationDialog({
       });
 
       if (verifyError) {
+        // Log failed verification attempt
+        await logUserActivity({ 
+          eventType: 'mfa_verification_failed',
+          metadata: { reason: verifyError.message }
+        });
+        
         toast({
           title: "Invalid Code",
           description: "Please check your authenticator app and try again.",
