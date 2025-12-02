@@ -80,7 +80,7 @@ export default function InviteGatekeeper() {
       }
 
       // Store invitation data in context
-      setInvitationData(invitation.email, code.trim());
+      setInvitationData(invitation.email, code.trim(), invitation.tenant_id);
 
       // Check if user already exists
       const { data: checkData, error: checkError } = await supabase.functions.invoke(

@@ -24,7 +24,7 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
+  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData, tenantId } = useTheme();
 
   useEffect(() => {
     // Redirect to invite if code not validated
@@ -73,7 +73,7 @@ export default function Signup() {
 
       // Sign up user
       const redirectUrl = `${window.location.origin}/`;
-      const { error: signupError } = await supabase.auth.signUp({
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: invitationEmail,
         password,
         options: {
@@ -82,6 +82,20 @@ export default function Signup() {
       });
 
       if (signupError) throw signupError;
+
+      // Create profile with tenant_id
+      if (signupData.user && tenantId) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: signupData.user.id,
+            tenant_id: tenantId,
+          });
+
+        if (profileError) {
+          console.error('Failed to create profile:', profileError);
+        }
+      }
 
       // Mark invitation as used
       const { error: updateError } = await supabase

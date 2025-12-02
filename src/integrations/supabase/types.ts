@@ -84,6 +84,58 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          assigned_branch_id: string | null
+          assigned_site_id: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_branch_id?: string | null
+          assigned_site_id?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_branch_id?: string | null
+          assigned_site_id?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_branch_id_fkey"
+            columns: ["assigned_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_site_id_fkey"
+            columns: ["assigned_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_blacklist: {
         Row: {
           full_name: string | null
