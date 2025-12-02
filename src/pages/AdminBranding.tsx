@@ -248,13 +248,13 @@ export default function AdminBranding() {
         <TabsContent value="visuals">
           <Card>
             <CardHeader>
-              <CardTitle className="text-right">{t('adminBranding.colors.title')}</CardTitle>
-              <CardDescription className="text-right">{t('adminBranding.colors.description')}</CardDescription>
+              <CardTitle className="text-left">{t('adminBranding.colors.title')}</CardTitle>
+              <CardDescription className="text-left">{t('adminBranding.colors.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Light Mode Colors */}
               <div className="space-y-4">
-                <div className="gap-2 text-lg font-semibold flex items-center justify-end">
+                <div className="gap-2 text-lg font-semibold flex items-center justify-start">
                   <Sun className="h-5 w-5 text-amber-500" />
                   <span>{t('adminBranding.colors.lightMode')}</span>
                 </div>
@@ -268,7 +268,7 @@ export default function AdminBranding() {
 
               {/* Dark Mode Colors */}
               <div className="space-y-4">
-                <div className="gap-2 text-lg font-semibold flex items-center justify-end">
+                <div className="gap-2 text-lg font-semibold flex items-center justify-start">
                   <Moon className="h-5 w-5 text-blue-400" />
                   <span>{t('adminBranding.colors.darkMode')}</span>
                 </div>
