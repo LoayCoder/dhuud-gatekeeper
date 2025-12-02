@@ -49,11 +49,29 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setUserEmail(data.user.email);
-    });
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || "");
+        
+        // Fetch profile for name and avatar
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.full_name || "");
+          setUserAvatar(profile.avatar_url || "");
+        }
+      }
+    };
+    fetchUserData();
   }, []);
 
   const handleLogout = async () => {
@@ -232,13 +250,13 @@ export function AppSidebar() {
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex-1"
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src="" alt={userEmail} />
+                      <AvatarImage src={userAvatar} alt={userName || userEmail} />
                       <AvatarFallback className="rounded-lg">
                         <UserCircle className="h-5 w-5" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">My Account</span>
+                      <span className="truncate font-semibold">{userName || "My Account"}</span>
                       <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
                     </div>
                     <ChevronRight className="ml-auto size-4" />
