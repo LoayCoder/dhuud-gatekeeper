@@ -21,6 +21,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminBranding from "./pages/AdminBranding";
 import Profile from "./pages/Profile";
+import MFASetup from "./pages/MFASetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/register" element={<Navigate to="/invite" replace />} />
+                <Route path="/mfa-setup" element={<MFASetup />} />
 
                 {/* Protected Routes with MainLayout */}
                 <Route
