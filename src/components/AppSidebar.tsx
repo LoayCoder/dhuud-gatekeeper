@@ -127,11 +127,11 @@ export function AppSidebar() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <Skeleton className="size-8 rounded-lg" />
-                  <div className="space-y-1">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-16" />
+                <div className="flex items-center gap-2 w-full">
+                  <Skeleton className="size-8 rounded-lg shrink-0" />
+                  <div className="space-y-1 flex-1 overflow-hidden">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-12" />
                   </div>
                 </div>
               ) : (
