@@ -422,6 +422,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
     }
     Enums: {
       activity_event_type:
