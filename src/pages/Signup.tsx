@@ -114,10 +114,22 @@ export default function Signup() {
 
         toast({
           title: 'Account Created',
-          description: 'Success! You are now linked to your organization.',
+          description: 'Success! Please set up two-factor authentication.',
         });
 
-        navigate('/login');
+        // Auto-login the user and redirect to MFA setup
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: invitationEmail,
+          password,
+        });
+
+        if (signInError) {
+          // If auto-login fails, redirect to login
+          navigate('/login');
+        } else {
+          // Redirect to mandatory MFA setup
+          navigate('/mfa-setup');
+        }
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
