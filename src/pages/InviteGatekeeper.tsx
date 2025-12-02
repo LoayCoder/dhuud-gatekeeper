@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, TenantBrandingData } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ export default function InviteGatekeeper() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setPrimaryColor, setTenantName, setLogoUrl, setInvitationData } = useTheme();
+  const { applyTenantBranding, setInvitationData, tenantName, activeLogoUrl, isLoading: themeLoading } = useTheme();
 
   useEffect(() => {
     // Check if already logged in, redirect to dashboard
@@ -56,18 +56,13 @@ export default function InviteGatekeeper() {
         return;
       }
 
-      const inviteData = result as {
+      const inviteData = result as unknown as TenantBrandingData & {
         email: string;
         tenant_id: string;
-        tenant_name: string;
-        brand_color: string;
-        logo_url: string | null;
       };
 
-      // Apply tenant branding from the RPC result
-      setPrimaryColor(inviteData.brand_color);
-      setTenantName(inviteData.tenant_name);
-      setLogoUrl(inviteData.logo_url);
+      // Apply full tenant branding from the RPC result
+      applyTenantBranding(inviteData);
 
       // Store invitation data in context
       setInvitationData(inviteData.email, code.trim(), inviteData.tenant_id);
@@ -123,9 +118,19 @@ export default function InviteGatekeeper() {
         {/* Logo and Header */}
         <div className="text-center animate-fade-in">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <Shield className="h-10 w-10 text-primary" />
+            {themeLoading ? (
+              <Skeleton className="h-10 w-10 rounded-full" />
+            ) : activeLogoUrl ? (
+              <img 
+                src={activeLogoUrl} 
+                alt={tenantName} 
+                className="h-12 w-12 object-contain"
+              />
+            ) : (
+              <Shield className="h-10 w-10 text-primary" />
+            )}
           </div>
-          <h1 className="text-4xl font-bold">Dhuud Platform</h1>
+          <h1 className="text-4xl font-bold">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
             Enter your invitation code to continue
           </p>
