@@ -14,15 +14,20 @@ import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
 import { useTheme } from '@/contexts/ThemeContext';
-
 export default function AdminBranding() {
-  const { t } = useTranslation();
-  const { refreshTenantData } = useTheme();
-  const { uploadAsset, uploading } = useBrandAssets();
+  const {
+    t
+  } = useTranslation();
+  const {
+    refreshTenantData
+  } = useTheme();
+  const {
+    uploadAsset,
+    uploading
+  } = useBrandAssets();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
   const [tenant, setTenant] = useState<any>(null);
 
   // Light mode colors
@@ -31,11 +36,11 @@ export default function AdminBranding() {
   // Dark mode colors
   const [brandColorDark, setBrandColorDark] = useState('');
   const [secondaryColorDark, setSecondaryColorDark] = useState('');
-  
+
   // Background settings
   const [bgTheme, setBgTheme] = useState<'color' | 'image'>('color');
   const [bgColor, setBgColor] = useState('');
-  
+
   // Light mode assets
   const [logoLightPreview, setLogoLightPreview] = useState<string | null>(null);
   const [logoDarkPreview, setLogoDarkPreview] = useState<string | null>(null);
@@ -43,68 +48,66 @@ export default function AdminBranding() {
   const [sidebarIconDarkPreview, setSidebarIconDarkPreview] = useState<string | null>(null);
   const [iconLightPreview, setIconLightPreview] = useState<string | null>(null);
   const [iconDarkPreview, setIconDarkPreview] = useState<string | null>(null);
-  
+
   // Shared assets
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [bgPreview, setBgPreview] = useState<string | null>(null);
 
   // Preview mode toggle
   const [previewMode, setPreviewMode] = useState<'light' | 'dark'>('light');
-
   useEffect(() => {
     loadTenantData();
   }, []);
-
   const loadTenantData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) {
         setError(t('adminBranding.errors.notAuthenticated'));
         setLoading(false);
         return;
       }
-
-      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
       if (!profile?.tenant_id) {
         setError(t('adminBranding.errors.noTenant'));
         setLoading(false);
         return;
       }
-
-      const { data: tenantData, error: tenantError } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('id', profile.tenant_id)
-        .single();
-
+      const {
+        data: tenantData,
+        error: tenantError
+      } = await supabase.from('tenants').select('*').eq('id', profile.tenant_id).single();
       if (tenantError) throw tenantError;
-
       setTenant(tenantData);
-      
+
       // Colors
       setBrandColorLight(tenantData.brand_color || '');
       setSecondaryColorLight(tenantData.secondary_color || '');
       setBrandColorDark(tenantData.brand_color_dark || '');
       setSecondaryColorDark(tenantData.secondary_color_dark || '');
-      
+
       // Background
       setBgTheme(tenantData.background_theme as any || 'color');
       setBgColor(tenantData.background_color || '');
       setBgPreview(tenantData.background_image_url);
-      
+
       // Light mode assets
       setLogoLightPreview(tenantData.logo_light_url);
       setSidebarIconLightPreview(tenantData.sidebar_icon_light_url);
       setIconLightPreview(tenantData.app_icon_light_url);
-      
+
       // Dark mode assets
       setLogoDarkPreview(tenantData.logo_dark_url);
       setSidebarIconDarkPreview(tenantData.sidebar_icon_dark_url);
       setIconDarkPreview(tenantData.app_icon_dark_url);
-      
+
       // Favicon
       setFaviconPreview(tenantData.favicon_url);
-
     } catch (err) {
       console.error(err);
       setError(t('adminBranding.errors.loadFailed'));
@@ -112,17 +115,18 @@ export default function AdminBranding() {
       setLoading(false);
     }
   };
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: AssetType) => {
     if (!e.target.files || e.target.files.length === 0) return;
     if (!tenant?.id) {
-      toast({ title: t('auth.error'), description: t('adminBranding.errors.noTenantConfigured'), variant: 'destructive' });
+      toast({
+        title: t('auth.error'),
+        description: t('adminBranding.errors.noTenantConfigured'),
+        variant: 'destructive'
+      });
       return;
     }
     const file = e.target.files[0];
-    
     const url = await uploadAsset(file, type, tenant.id);
-    
     if (url) {
       switch (type) {
         case 'logo-light':
@@ -150,14 +154,19 @@ export default function AdminBranding() {
           setBgPreview(url);
           break;
       }
-      
-      toast({ title: t('adminBranding.toast.assetUploaded'), description: t('adminBranding.toast.dontForgetSave') });
+      toast({
+        title: t('adminBranding.toast.assetUploaded'),
+        description: t('adminBranding.toast.dontForgetSave')
+      });
     }
   };
-
   const handleSave = async () => {
     if (!tenant?.id) {
-      toast({ title: t('auth.error'), description: t('adminBranding.errors.noTenantConfigured'), variant: 'destructive' });
+      toast({
+        title: t('auth.error'),
+        description: t('adminBranding.errors.noTenantConfigured'),
+        variant: 'destructive'
+      });
       return;
     }
     setSaving(true);
@@ -182,31 +191,30 @@ export default function AdminBranding() {
         sidebar_icon_dark_url: sidebarIconDarkPreview,
         app_icon_dark_url: iconDarkPreview,
         // Favicon
-        favicon_url: faviconPreview,
+        favicon_url: faviconPreview
       };
-
-      const { error: saveError } = await supabase
-        .from('tenants')
-        .update(updates)
-        .eq('id', tenant.id);
-
+      const {
+        error: saveError
+      } = await supabase.from('tenants').update(updates).eq('id', tenant.id);
       if (saveError) throw saveError;
-
-      await refreshTenantData(); 
-      
-      toast({ title: t('adminBranding.toast.brandingUpdated'), description: t('adminBranding.toast.changesApplied') });
+      await refreshTenantData();
+      toast({
+        title: t('adminBranding.toast.brandingUpdated'),
+        description: t('adminBranding.toast.changesApplied')
+      });
     } catch (err) {
-      toast({ title: t('auth.error'), description: t('adminBranding.toast.saveFailed'), variant: 'destructive' });
+      toast({
+        title: t('auth.error'),
+        description: t('adminBranding.toast.saveFailed'),
+        variant: 'destructive'
+      });
     } finally {
       setSaving(false);
     }
   };
-
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
-
   if (error) {
-    return (
-      <div className="flex h-screen items-center justify-center p-6">
+    return <div className="flex h-screen items-center justify-center p-6">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>{t('adminBranding.errors.configError')}</CardTitle>
@@ -215,12 +223,9 @@ export default function AdminBranding() {
             <p className="text-muted-foreground">{error}</p>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+  return <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
@@ -235,35 +240,27 @@ export default function AdminBranding() {
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <Tabs defaultValue="visuals" className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4"/> {t('adminBranding.tabs.colors')}</TabsTrigger>
-          <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4"/> {t('adminBranding.tabs.assets')}</TabsTrigger>
-          <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4"/> {t('adminBranding.tabs.theme')}</TabsTrigger>
+          <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
+          <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
+          <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4" /> {t('adminBranding.tabs.theme')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="visuals">
           <Card>
             <CardHeader>
-              <CardTitle>{t('adminBranding.colors.title')}</CardTitle>
-              <CardDescription>{t('adminBranding.colors.description')}</CardDescription>
+              <CardTitle className="text-right">{t('adminBranding.colors.title')}</CardTitle>
+              <CardDescription className="text-right">{t('adminBranding.colors.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Light Mode Colors */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-semibold">
+                <div className="gap-2 text-lg font-semibold flex items-center justify-end">
                   <Sun className="h-5 w-5 text-amber-500" />
                   <span>{t('adminBranding.colors.lightMode')}</span>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6 ps-7">
-                  <HslColorPicker
-                    label={t('adminBranding.colors.primaryColor')}
-                    value={brandColorLight}
-                    onChange={setBrandColorLight}
-                  />
-                  <HslColorPicker
-                    label={t('adminBranding.colors.secondaryColor')}
-                    value={secondaryColorLight}
-                    onChange={setSecondaryColorLight}
-                  />
+                  <HslColorPicker label={t('adminBranding.colors.primaryColor')} value={brandColorLight} onChange={setBrandColorLight} />
+                  <HslColorPicker label={t('adminBranding.colors.secondaryColor')} value={secondaryColorLight} onChange={setSecondaryColorLight} />
                 </div>
               </div>
 
@@ -271,21 +268,13 @@ export default function AdminBranding() {
 
               {/* Dark Mode Colors */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-semibold">
+                <div className="gap-2 text-lg font-semibold flex items-center justify-end">
                   <Moon className="h-5 w-5 text-blue-400" />
                   <span>{t('adminBranding.colors.darkMode')}</span>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6 ps-7">
-                  <HslColorPicker
-                    label={t('adminBranding.colors.primaryColor')}
-                    value={brandColorDark}
-                    onChange={setBrandColorDark}
-                  />
-                  <HslColorPicker
-                    label={t('adminBranding.colors.secondaryColor')}
-                    value={secondaryColorDark}
-                    onChange={setSecondaryColorDark}
-                  />
+                  <HslColorPicker label={t('adminBranding.colors.primaryColor')} value={brandColorDark} onChange={setBrandColorDark} />
+                  <HslColorPicker label={t('adminBranding.colors.secondaryColor')} value={secondaryColorDark} onChange={setSecondaryColorDark} />
                 </div>
               </div>
             </CardContent>
@@ -308,18 +297,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.assets.loginLogos.lightMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
-                      {logoLightPreview ? (
-                        <img src={logoLightPreview} alt="Logo Light" className="h-10 object-contain" />
-                      ) : (
-                        <span className="text-muted-foreground text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>
-                      )}
+                      {logoLightPreview ? <img src={logoLightPreview} alt="Logo Light" className="h-10 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png,.svg" 
-                      onChange={(e) => handleFileUpload(e, 'logo-light')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -327,18 +307,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.assets.loginLogos.darkMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
-                      {logoDarkPreview ? (
-                        <img src={logoDarkPreview} alt="Logo Dark" className="h-10 object-contain" />
-                      ) : (
-                        <span className="text-slate-400 text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>
-                      )}
+                      {logoDarkPreview ? <img src={logoDarkPreview} alt="Logo Dark" className="h-10 object-contain" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png,.svg" 
-                      onChange={(e) => handleFileUpload(e, 'logo-dark')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-dark')} disabled={uploading} />
                   </div>
                 </div>
               </CardContent>
@@ -358,18 +329,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.colors.lightMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
-                      {sidebarIconLightPreview ? (
-                        <img src={sidebarIconLightPreview} alt="Sidebar Icon Light" className="h-12 w-12 object-contain" />
-                      ) : (
-                        <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>
-                      )}
+                      {sidebarIconLightPreview ? <img src={sidebarIconLightPreview} alt="Sidebar Icon Light" className="h-12 w-12 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png,.svg" 
-                      onChange={(e) => handleFileUpload(e, 'sidebar-icon-light')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -377,18 +339,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.colors.darkMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
-                      {sidebarIconDarkPreview ? (
-                        <img src={sidebarIconDarkPreview} alt="Sidebar Icon Dark" className="h-12 w-12 object-contain" />
-                      ) : (
-                        <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>
-                      )}
+                      {sidebarIconDarkPreview ? <img src={sidebarIconDarkPreview} alt="Sidebar Icon Dark" className="h-12 w-12 object-contain" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png,.svg" 
-                      onChange={(e) => handleFileUpload(e, 'sidebar-icon-dark')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-dark')} disabled={uploading} />
                   </div>
                 </div>
               </CardContent>
@@ -408,18 +361,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.colors.lightMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
-                      {iconLightPreview ? (
-                        <img src={iconLightPreview} alt="App Icon Light" className="h-16 w-16 object-contain rounded-xl" />
-                      ) : (
-                        <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>
-                      )}
+                      {iconLightPreview ? <img src={iconLightPreview} alt="App Icon Light" className="h-16 w-16 object-contain rounded-xl" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png" 
-                      onChange={(e) => handleFileUpload(e, 'icon-light')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png" onChange={e => handleFileUpload(e, 'icon-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -427,18 +371,9 @@ export default function AdminBranding() {
                       <span>{t('adminBranding.colors.darkMode')}</span>
                     </div>
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
-                      {iconDarkPreview ? (
-                        <img src={iconDarkPreview} alt="App Icon Dark" className="h-16 w-16 object-contain rounded-xl" />
-                      ) : (
-                        <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>
-                      )}
+                      {iconDarkPreview ? <img src={iconDarkPreview} alt="App Icon Dark" className="h-16 w-16 object-contain rounded-xl" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input 
-                      type="file" 
-                      accept=".png" 
-                      onChange={(e) => handleFileUpload(e, 'icon-dark')}
-                      disabled={uploading}
-                    />
+                    <Input type="file" accept=".png" onChange={e => handleFileUpload(e, 'icon-dark')} disabled={uploading} />
                   </div>
                 </div>
               </CardContent>
@@ -454,18 +389,9 @@ export default function AdminBranding() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[120px]">
-                  {faviconPreview ? (
-                    <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-contain" />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">{t('adminBranding.assets.favicon.noFavicon')}</span>
-                  )}
+                  {faviconPreview ? <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.favicon.noFavicon')}</span>}
                 </div>
-                <Input 
-                  type="file" 
-                  accept=".png,.ico" 
-                  onChange={(e) => handleFileUpload(e, 'favicon')}
-                  disabled={uploading}
-                />
+                <Input type="file" accept=".png,.ico" onChange={e => handleFileUpload(e, 'favicon')} disabled={uploading} />
               </CardContent>
             </Card>
           </div>
@@ -478,7 +404,7 @@ export default function AdminBranding() {
               <CardDescription>{t('adminBranding.theme.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <RadioGroup value={bgTheme} onValueChange={(v) => setBgTheme(v as 'color' | 'image')} className="flex gap-6">
+              <RadioGroup value={bgTheme} onValueChange={v => setBgTheme(v as 'color' | 'image')} className="flex gap-6">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="color" id="r-color" />
                   <Label htmlFor="r-color">{t('adminBranding.theme.solidColor')}</Label>
@@ -491,43 +417,29 @@ export default function AdminBranding() {
 
               <Separator />
 
-              {bgTheme === 'color' ? (
-                <div className="space-y-4">
+              {bgTheme === 'color' ? <div className="space-y-4">
                   <Label>{t('adminBranding.theme.backgroundColor')}</Label>
                   <div className="flex gap-4 items-center">
-                    <div 
-                      className="h-12 w-12 rounded-lg border shadow-sm" 
-                      style={{ backgroundColor: `hsl(${bgColor})` }} 
-                    />
-                    <Input 
-                      value={bgColor} 
-                      onChange={(e) => setBgColor(e.target.value)}
-                      placeholder={t('adminBranding.theme.hslPlaceholder')}
-                    />
+                    <div className="h-12 w-12 rounded-lg border shadow-sm" style={{
+                    backgroundColor: `hsl(${bgColor})`
+                  }} />
+                    <Input value={bgColor} onChange={e => setBgColor(e.target.value)} placeholder={t('adminBranding.theme.hslPlaceholder')} />
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
+                </div> : <div className="space-y-4">
                   <Label>{t('adminBranding.theme.backgroundImage')}</Label>
-                  <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group" style={{ backgroundImage: bgPreview ? `url(${bgPreview})` : 'none' }}>
+                  <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group" style={{
+                  backgroundImage: bgPreview ? `url(${bgPreview})` : 'none'
+                }}>
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                       <Upload className="h-8 w-8 text-white" />
                     </div>
-                    <Input 
-                      type="file" 
-                      className="absolute inset-0 opacity-0 cursor-pointer" 
-                      onChange={(e) => handleFileUpload(e, 'background')}
-                      disabled={uploading}
-                    />
-                    {!bgPreview && (
-                      <div className="flex items-center justify-center h-full">
+                    <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileUpload(e, 'background')} disabled={uploading} />
+                    {!bgPreview && <div className="flex items-center justify-center h-full">
                         <span className="text-muted-foreground text-sm">{t('adminBranding.theme.noImage')}</span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <p className="text-xs text-muted-foreground">{t('adminBranding.theme.imageDescription')}</p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -535,19 +447,8 @@ export default function AdminBranding() {
 
         {/* Live Preview Panel */}
         <div className="hidden lg:block">
-          <BrandingPreviewPanel
-            primaryColorLight={brandColorLight}
-            primaryColorDark={brandColorDark}
-            logoLightUrl={logoLightPreview}
-            logoDarkUrl={logoDarkPreview}
-            sidebarIconLightUrl={sidebarIconLightPreview}
-            sidebarIconDarkUrl={sidebarIconDarkPreview}
-            tenantName={tenant?.name || ''}
-            previewMode={previewMode}
-            onPreviewModeChange={setPreviewMode}
-          />
+          <BrandingPreviewPanel primaryColorLight={brandColorLight} primaryColorDark={brandColorDark} logoLightUrl={logoLightPreview} logoDarkUrl={logoDarkPreview} sidebarIconLightUrl={sidebarIconLightPreview} sidebarIconDarkUrl={sidebarIconDarkPreview} tenantName={tenant?.name || ''} previewMode={previewMode} onPreviewModeChange={setPreviewMode} />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
