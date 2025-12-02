@@ -122,11 +122,11 @@ export default function InviteGatekeeper() {
   return <div className="flex min-h-screen items-center justify-center bg-background p-8">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
-        <div className="text-center animate-fade-in">
+        <div className="text-center animate-fade-in mx-0 my-0">
           <div className="mx-auto mb-6 flex items-center justify-center">
             {themeLoading ? <Skeleton className="h-20 w-48 sm:h-28 sm:w-64 md:h-32 md:w-72" /> : activeLogoUrl ? <img src={activeLogoUrl} alt={tenantName} className="h-20 w-auto max-w-[280px] sm:h-28 sm:max-w-[360px] md:h-32 md:max-w-[420px] object-contain" /> : <Shield className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />}
           </div>
-          <h1 className="text-4xl font-bold">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
+          <h1 className="text-4xl font-bold py-[14px]">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
             Enter your invitation code to continue
           </p>
