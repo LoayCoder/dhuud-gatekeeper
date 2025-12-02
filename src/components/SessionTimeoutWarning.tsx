@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Clock } from 'lucide-react';
+import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from '@/lib/activity-logger';
 
 export function SessionTimeoutWarning() {
   const { isWarning, remainingTime, resetTimer } = useSessionTimeout();
@@ -24,8 +25,19 @@ export function SessionTimeoutWarning() {
   };
 
   const handleLogout = async () => {
+    const duration = getSessionDurationSeconds();
+    await logUserActivity({ 
+      eventType: 'logout',
+      sessionDurationSeconds: duration ?? undefined,
+    });
+    clearSessionTracking();
     await supabase.auth.signOut();
     navigate('/login');
+  };
+
+  const handleStayLoggedIn = async () => {
+    await logUserActivity({ eventType: 'session_extended' });
+    resetTimer();
   };
 
   return (
@@ -48,7 +60,7 @@ export function SessionTimeoutWarning() {
           <Button variant="outline" onClick={handleLogout}>
             Log Out Now
           </Button>
-          <AlertDialogAction onClick={resetTimer}>
+          <AlertDialogAction onClick={handleStayLoggedIn}>
             Stay Logged In
           </AlertDialogAction>
         </AlertDialogFooter>
