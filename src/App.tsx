@@ -8,6 +8,10 @@ import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
 import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import MainLayout from "./components/layout/MainLayout";
+import { PlaceholderPage } from "./components/PlaceholderPage";
+
+// Pages
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -29,29 +33,49 @@ const App = () => (
           <SessionTimeoutProvider>
             <SessionTimeoutWarning />
             <Routes>
+              {/* Public Routes */}
               <Route path="/invite" element={<InviteGatekeeper />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/register" element={<Navigate to="/invite" replace />} />
+
+              {/* Protected Routes with MainLayout */}
               <Route
-                path="/"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <MainLayout />
                   </ProtectedRoute>
                 }
-              />
-              <Route
-                path="/admin/branding"
-                element={
-                  <AdminRoute>
-                    <AdminBranding />
-                  </AdminRoute>
-                }
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              >
+                <Route path="/" element={<Dashboard />} />
+                
+                {/* HSSE Management Routes */}
+                <Route path="/incidents" element={<PlaceholderPage title="Incidents" description="Report and track safety incidents." />} />
+                <Route path="/audits" element={<PlaceholderPage title="Audits & Inspections" description="Manage compliance audits and site inspections." />} />
+                <Route path="/visitors" element={<PlaceholderPage title="Visitor Gatekeeper" description="Manage visitor access and pre-registration." />} />
+
+                {/* Admin Routes */}
+                <Route
+                  path="/admin/branding"
+                  element={
+                    <AdminRoute>
+                      <AdminBranding />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <AdminRoute>
+                      <PlaceholderPage title="User Management" description="Manage users and their permissions." />
+                    </AdminRoute>
+                  }
+                />
+              </Route>
+
+              {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SessionTimeoutProvider>
