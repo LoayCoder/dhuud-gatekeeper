@@ -2,6 +2,29 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useTheme as useNextTheme } from 'next-themes';
 import { supabase } from '@/integrations/supabase/client';
 
+// Dhuud Platform tenant ID - used for default branding on public pages
+const PLATFORM_TENANT_ID = '9290e913-c735-405c-91c6-141e966011ae';
+
+// Type for tenant branding data (from DB or invitation)
+export interface TenantBrandingData {
+  name?: string;
+  tenant_name?: string;
+  brand_color?: string;
+  secondary_color?: string | null;
+  brand_color_dark?: string | null;
+  secondary_color_dark?: string | null;
+  logo_light_url?: string | null;
+  logo_dark_url?: string | null;
+  sidebar_icon_light_url?: string | null;
+  sidebar_icon_dark_url?: string | null;
+  app_icon_light_url?: string | null;
+  app_icon_dark_url?: string | null;
+  background_color?: string | null;
+  background_theme?: string | null;
+  background_image_url?: string | null;
+  favicon_url?: string | null;
+}
+
 interface ThemeContextType {
   // Light mode colors
   primaryColorLight: string;
@@ -60,6 +83,7 @@ interface ThemeContextType {
   setInvitationData: (email: string, code: string, tenantId: string) => void;
   clearInvitationData: () => void;
   refreshTenantData: () => Promise<void>;
+  applyTenantBranding: (branding: TenantBrandingData) => void;
   isLoading: boolean;
   // Legacy compatibility (maps to light mode)
   primaryColor: string;
@@ -146,6 +170,71 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [isDark, appIconDarkUrl, appIconLightUrl]
   );
 
+  // Helper function to update favicon in DOM
+  const updateFavicon = useCallback((faviconSrc: string | null | undefined) => {
+    if (faviconSrc) {
+      const existingLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+      const link = existingLink || document.createElement('link');
+      link.type = faviconSrc.endsWith('.ico') ? 'image/x-icon' : 'image/png';
+      link.rel = 'icon';
+      link.href = faviconSrc;
+      if (!existingLink) {
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+    }
+  }, []);
+
+  // Apply full tenant branding from any data source (DB tenant or invitation data)
+  const applyTenantBranding = useCallback((branding: TenantBrandingData) => {
+    setTenantName(branding.tenant_name || branding.name || DEFAULT_TENANT_NAME);
+    
+    // Light mode
+    setPrimaryColorLight(branding.brand_color || DEFAULT_PRIMARY_COLOR_LIGHT);
+    setSecondaryColorLight(branding.secondary_color || '');
+    setLogoLightUrl(branding.logo_light_url || null);
+    setSidebarIconLightUrl(branding.sidebar_icon_light_url || null);
+    setAppIconLightUrl(branding.app_icon_light_url || null);
+    
+    // Dark mode
+    setPrimaryColorDark(branding.brand_color_dark || DEFAULT_PRIMARY_COLOR_DARK);
+    setSecondaryColorDark(branding.secondary_color_dark || '');
+    setLogoDarkUrl(branding.logo_dark_url || null);
+    setSidebarIconDarkUrl(branding.sidebar_icon_dark_url || null);
+    setAppIconDarkUrl(branding.app_icon_dark_url || null);
+    
+    // Background & favicon
+    setBackgroundColor(branding.background_color || '');
+    setBackgroundTheme((branding.background_theme as 'color' | 'image') || 'color');
+    setBackgroundImageUrl(branding.background_image_url || null);
+    setFaviconUrl(branding.favicon_url || null);
+    
+    // Update favicon in DOM
+    updateFavicon(branding.favicon_url || branding.app_icon_light_url);
+  }, [updateFavicon]);
+
+  // Load Dhuud Platform branding (for public pages when no user is logged in)
+  const loadPlatformBranding = useCallback(async () => {
+    try {
+      const { data: tenant, error } = await supabase
+        .from('tenants')
+        .select('name, brand_color, secondary_color, brand_color_dark, secondary_color_dark, background_theme, background_color, logo_light_url, logo_dark_url, sidebar_icon_light_url, sidebar_icon_dark_url, app_icon_light_url, app_icon_dark_url, background_image_url, favicon_url')
+        .eq('id', PLATFORM_TENANT_ID)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Failed to fetch platform branding:', error);
+        return;
+      }
+
+      if (tenant) {
+        applyTenantBranding(tenant);
+        setTenantId(PLATFORM_TENANT_ID);
+      }
+    } catch (error) {
+      console.error('Error loading platform branding:', error);
+    }
+  }, [applyTenantBranding]);
+
   const setInvitationData = (email: string, code: string, tenantIdValue: string) => {
     setInvitationEmail(email);
     setInvitationCode(code);
@@ -159,31 +248,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setIsCodeValidated(false);
   };
 
-  const resetToDefaults = useCallback(() => {
-    setPrimaryColorLight(DEFAULT_PRIMARY_COLOR_LIGHT);
-    setPrimaryColorDark(DEFAULT_PRIMARY_COLOR_DARK);
-    setSecondaryColorLight('');
-    setSecondaryColorDark('');
-    setBackgroundColor('');
-    setBackgroundTheme('color');
-    setBackgroundImageUrl(null);
-    setTenantName(DEFAULT_TENANT_NAME);
-    setLogoLightUrl(null);
-    setLogoDarkUrl(null);
-    setSidebarIconLightUrl(null);
-    setSidebarIconDarkUrl(null);
-    setAppIconLightUrl(null);
-    setAppIconDarkUrl(null);
-    setTenantId(null);
-  }, []);
-
   const refreshTenantData = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      // If no session, load Dhuud Platform branding for public pages
       if (!session?.user) {
-        resetToDefaults();
+        await loadPlatformBranding();
         return;
       }
 
@@ -195,6 +267,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError || !profile?.tenant_id) {
         console.error('Failed to fetch profile:', profileError);
+        await loadPlatformBranding();
         return;
       }
 
@@ -209,48 +282,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Update state with tenant branding
+      // Apply tenant branding and set tenant ID
       setTenantId(profile.tenant_id);
-      setTenantName(tenant.name || DEFAULT_TENANT_NAME);
-      
-      // Light mode
-      setPrimaryColorLight(tenant.brand_color || DEFAULT_PRIMARY_COLOR_LIGHT);
-      setSecondaryColorLight(tenant.secondary_color || '');
-      setLogoLightUrl(tenant.logo_light_url);
-      setSidebarIconLightUrl(tenant.sidebar_icon_light_url);
-      setAppIconLightUrl(tenant.app_icon_light_url);
-      
-      // Dark mode
-      setPrimaryColorDark(tenant.brand_color_dark || DEFAULT_PRIMARY_COLOR_DARK);
-      setSecondaryColorDark(tenant.secondary_color_dark || '');
-      setLogoDarkUrl(tenant.logo_dark_url);
-      setSidebarIconDarkUrl(tenant.sidebar_icon_dark_url);
-      setAppIconDarkUrl(tenant.app_icon_dark_url);
-      
-      // Background & favicon
-      setBackgroundColor(tenant.background_color || '');
-      setBackgroundTheme((tenant.background_theme as 'color' | 'image') || 'color');
-      setBackgroundImageUrl(tenant.background_image_url);
-      setFaviconUrl(tenant.favicon_url);
-
-      // Update Favicon dynamically
-      const faviconSrc = tenant.favicon_url || tenant.app_icon_light_url;
-      if (faviconSrc) {
-        const existingLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
-        const link = existingLink || document.createElement('link');
-        link.type = faviconSrc.endsWith('.ico') ? 'image/x-icon' : 'image/png';
-        link.rel = 'icon';
-        link.href = faviconSrc;
-        if (!existingLink) {
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-      }
+      applyTenantBranding(tenant);
     } catch (error) {
       console.error('Error refreshing tenant data:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [resetToDefaults]);
+  }, [applyTenantBranding, loadPlatformBranding]);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -262,13 +302,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           refreshTenantData();
         }, 0);
       } else if (event === 'SIGNED_OUT') {
-        resetToDefaults();
+        // Load Dhuud branding on logout
+        loadPlatformBranding();
         clearInvitationData();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [refreshTenantData, resetToDefaults]);
+  }, [refreshTenantData, loadPlatformBranding]);
 
   // Apply the primary color to CSS variable based on resolved theme
   useEffect(() => {
@@ -338,6 +379,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setInvitationData,
         clearInvitationData,
         refreshTenantData,
+        applyTenantBranding,
         isLoading,
         // Legacy compatibility (maps to light mode)
         primaryColor: primaryColorLight,
