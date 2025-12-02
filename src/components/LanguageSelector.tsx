@@ -19,7 +19,7 @@ const LANGUAGES = [
 ];
 
 export function LanguageSelector() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, refreshProfile } = useAuth();
 
   const handleLanguageChange = async (langCode: string) => {
@@ -50,9 +50,9 @@ export function LanguageSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" title="Change Language" className="h-8 w-8">
+        <Button variant="ghost" size="icon" title={t('common.changeLanguage')} className="h-8 w-8">
           <Globe className="h-4 w-4" />
-          <span className="sr-only">Change Language</span>
+          <span className="sr-only">{t('common.changeLanguage')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-popover">
