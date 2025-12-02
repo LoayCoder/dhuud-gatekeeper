@@ -19,6 +19,7 @@ export default function AdminBranding() {
   const { uploadAsset, uploading } = useBrandAssets();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const [tenant, setTenant] = useState<any>(null);
 
@@ -55,18 +56,26 @@ export default function AdminBranding() {
   const loadTenantData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setError('Not authenticated');
+        setLoading(false);
+        return;
+      }
 
       const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
-      if (!profile) return;
+      if (!profile?.tenant_id) {
+        setError('Your account is not linked to any organization. Please contact support.');
+        setLoading(false);
+        return;
+      }
 
-      const { data: tenantData, error } = await supabase
+      const { data: tenantData, error: tenantError } = await supabase
         .from('tenants')
         .select('*')
         .eq('id', profile.tenant_id)
         .single();
 
-      if (error) throw error;
+      if (tenantError) throw tenantError;
 
       setTenant(tenantData);
       
@@ -94,8 +103,9 @@ export default function AdminBranding() {
       // Favicon
       setFaviconPreview(tenantData.favicon_url);
 
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load branding data');
     } finally {
       setLoading(false);
     }
@@ -103,6 +113,10 @@ export default function AdminBranding() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: AssetType) => {
     if (!e.target.files || e.target.files.length === 0) return;
+    if (!tenant?.id) {
+      toast({ title: 'Error', description: 'No tenant configured', variant: 'destructive' });
+      return;
+    }
     const file = e.target.files[0];
     
     const url = await uploadAsset(file, type, tenant.id);
@@ -140,6 +154,10 @@ export default function AdminBranding() {
   };
 
   const handleSave = async () => {
+    if (!tenant?.id) {
+      toast({ title: 'Error', description: 'No tenant configured', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     try {
       const updates = {
@@ -165,17 +183,17 @@ export default function AdminBranding() {
         favicon_url: faviconPreview,
       };
 
-      const { error } = await supabase
+      const { error: saveError } = await supabase
         .from('tenants')
         .update(updates)
         .eq('id', tenant.id);
 
-      if (error) throw error;
+      if (saveError) throw saveError;
 
       await refreshTenantData(); 
       
       toast({ title: 'Branding Updated', description: 'Your changes have been applied live.' });
-    } catch (error) {
+    } catch (err) {
       toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
     } finally {
       setSaving(false);
@@ -183,6 +201,21 @@ export default function AdminBranding() {
   };
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center p-6">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Configuration Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
