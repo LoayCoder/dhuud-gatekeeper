@@ -117,17 +117,17 @@ export default function InviteGatekeeper() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
         <div className="text-center animate-fade-in">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+          <div className="mx-auto mb-6 flex items-center justify-center">
             {themeLoading ? (
-              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-16 w-40 sm:h-20 sm:w-48 md:h-24 md:w-56" />
             ) : activeLogoUrl ? (
               <img 
                 src={activeLogoUrl} 
                 alt={tenantName} 
-                className="h-12 w-12 object-contain"
+                className="h-16 w-auto max-w-[200px] sm:h-20 sm:max-w-[240px] md:h-24 md:max-w-[280px] object-contain"
               />
             ) : (
-              <Shield className="h-10 w-10 text-primary" />
+              <Shield className="h-16 w-16 sm:h-20 sm:w-20 text-primary" />
             )}
           </div>
           <h1 className="text-4xl font-bold">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
