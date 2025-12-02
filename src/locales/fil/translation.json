@@ -42,6 +42,176 @@
     "error": "Error",
     "failedToLogin": "Nabigo ang pag-log in"
   },
+  "forgotPassword": {
+    "title": "Nakalimutan ang Password",
+    "description": "Ilagay ang iyong email address at magpapadala kami ng link para i-reset ang password.",
+    "sendResetLink": "Ipadala ang Reset Link",
+    "sending": "Nagpapadala...",
+    "success": "Na-send na ang Reset Link",
+    "successMessage": "Suriin ang iyong email para sa link na magre-reset ng password.",
+    "backToLogin": "Bumalik sa Login"
+  },
+  "resetPassword": {
+    "title": "I-reset ang Password",
+    "description": "Ilagay ang iyong bagong password sa ibaba.",
+    "newPassword": "Bagong Password",
+    "confirmNewPassword": "Kumpirmahin ang Bagong Password",
+    "resetPassword": "I-reset ang Password",
+    "resetting": "Nagre-reset...",
+    "success": "Na-update na ang Password",
+    "successMessage": "Matagumpay na na-update ang iyong password. Maaari ka nang mag-log in.",
+    "goToLogin": "Pumunta sa Login"
+  },
+  "mfaSetup": {
+    "title": "I-setup ang Two-Factor Authentication",
+    "description": "Para sa seguridad ng iyong account, kinakailangan na i-setup ang two-factor authentication.",
+    "scanQrCode": "I-scan ang QR Code",
+    "scanInstructions": "I-scan ang QR code na ito gamit ang iyong authenticator app (Google Authenticator, Microsoft Authenticator, Authy).",
+    "manualEntry": "Manu-manong Entry",
+    "manualInstructions": "Kung hindi mo ma-scan ang QR code, manu-manong ilagay ang key na ito:",
+    "copySecret": "Kopyahin ang Secret",
+    "secretCopied": "Nakopya na ang secret key sa clipboard",
+    "verifySetup": "I-verify ang Setup",
+    "verifyInstructions": "Ilagay ang 6-digit code mula sa iyong authenticator app para i-verify ang setup.",
+    "verifyCode": "I-verify at Kumpletuhin ang Setup",
+    "verifying": "Nagve-verify...",
+    "setupComplete": "Kumpleto na ang 2FA Setup",
+    "setupCompleteMessage": "Matagumpay na naka-enable ang two-factor authentication para sa iyong account.",
+    "continueToApp": "Magpatuloy sa App",
+    "setupFailed": "Nabigo ang 2FA Setup"
+  },
+  "invite": {
+    "title": "Ilagay ang Iyong Invitation Code",
+    "description": "Ilagay ang invitation code na ibinigay ng iyong organisasyon para mag-access.",
+    "codePlaceholder": "Ilagay ang invitation code",
+    "verifyCode": "I-verify ang Code",
+    "verifying": "Nagve-verify...",
+    "invalidCode": "Hindi Valid na Invitation Code",
+    "invalidCodeMessage": "Ang code na inilagay mo ay hindi valid o expired na. Makipag-ugnayan sa iyong administrator.",
+    "welcomeBack": "Maligayang Pagbabalik",
+    "existingUserMessage": "May umiiral na account na nauugnay sa invitation na ito.",
+    "proceedToLogin": "Magpatuloy sa Login",
+    "createAccount": "Gumawa ng Account",
+    "newUserMessage": "Pinapa-invite ka na sumali sa"
+  },
+  "adminBranding": {
+    "title": "Brand Management Console",
+    "subtitle": "I-customize ang visual identity para sa",
+    "saveChanges": "I-save ang mga Pagbabago",
+    "saving": "Nagse-save...",
+    "tabs": {
+      "colors": "Mga Kulay",
+      "assets": "Mga Asset",
+      "theme": "Tema"
+    },
+    "colors": {
+      "title": "Color Palette",
+      "description": "Tukuyin ang magkahiwalay na kulay para sa light at dark modes para sa tamang contrast.",
+      "lightMode": "Light Mode",
+      "darkMode": "Dark Mode",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color"
+    },
+    "assets": {
+      "loginLogos": {
+        "title": "Mga Logo sa Login Page",
+        "description": "Buong brand logos na ipinapakita sa login page. PNG/SVG, Min 200x50px",
+        "lightMode": "Light Mode (dark logo)",
+        "darkMode": "Dark Mode (light logo)",
+        "noLogo": "Walang logo"
+      },
+      "sidebarIcons": {
+        "title": "Mga Sidebar Icon",
+        "description": "Maliliit na icon para sa sidebar header. PNG/SVG, Square, Min 64x64px",
+        "noIcon": "Walang icon"
+      },
+      "appIcons": {
+        "title": "Mga App Icon (PWA)",
+        "description": "Mga icon sa mobile home screen. PNG lang, eksaktong 512x512px"
+      },
+      "favicon": {
+        "title": "Favicon",
+        "description": "Maliit na icon sa browser tab. PNG/ICO, 32x32px o 64x64px",
+        "noFavicon": "Walang favicon"
+      }
+    },
+    "theme": {
+      "title": "Background ng Login Page",
+      "description": "Piliin kung paano lumilitaw ang background ng login page.",
+      "solidColor": "Solid na Kulay",
+      "customImage": "Custom na Larawan",
+      "backgroundColor": "Kulay ng Background",
+      "backgroundImage": "Larawan ng Background",
+      "imageDescription": "JPG o PNG, Recommended 1920x1080px",
+      "noImage": "Walang larawan na na-upload"
+    },
+    "preview": {
+      "title": "Live Preview",
+      "loginPreview": "Preview ng Login",
+      "sidebarPreview": "Preview ng Sidebar"
+    },
+    "toast": {
+      "assetUploaded": "Na-upload na ang Asset",
+      "dontForgetSave": "Huwag kalimutan na i-save ang iyong mga pagbabago.",
+      "brandingUpdated": "Na-update na ang Branding",
+      "changesApplied": "Na-apply na live ang iyong mga pagbabago.",
+      "saveFailed": "Nabigo ang pag-save ng mga pagbabago"
+    },
+    "errors": {
+      "notAuthenticated": "Hindi naka-authenticate",
+      "noTenant": "Ang iyong account ay hindi nauugnay sa anumang organisasyon. Makipag-ugnayan sa support.",
+      "loadFailed": "Nabigo ang pag-load ng branding data",
+      "noTenantConfigured": "Walang tenant na naka-configure",
+      "configError": "Configuration Error"
+    }
+  },
+  "securitySettings": {
+    "twoFactorAuth": "Two-Factor Authentication",
+    "twoFactorDescription": "Magdagdag ng karagdagang layer ng seguridad sa iyong account.",
+    "changePassword": "Palitan ang Password",
+    "changePasswordDescription": "I-update ang password ng iyong account.",
+    "newPassword": "Bagong Password",
+    "confirmNewPassword": "Kumpirmahin ang Bagong Password",
+    "updatePassword": "I-update ang Password",
+    "updating": "Nag-a-update...",
+    "passwordUpdated": "Na-update na ang Password",
+    "passwordUpdateSuccess": "Matagumpay na na-update ang iyong password.",
+    "passwordsDoNotMatch": "Hindi tugma ang mga password",
+    "requirements": {
+      "title": "Mga Kinakailangan sa Password",
+      "minLength": "Hindi bababa sa 8 na karakter",
+      "uppercase": "Isang uppercase na letra",
+      "lowercase": "Isang lowercase na letra",
+      "number": "Isang numero"
+    }
+  },
+  "twoFactorSetup": {
+    "enabled": "Naka-enable na ang 2FA",
+    "enabledDescription": "Protektado ang iyong account ng two-factor authentication.",
+    "disable": "I-disable ang 2FA",
+    "notEnabled": "Hindi Naka-enable ang 2FA",
+    "notEnabledDescription": "Dagdagan ang seguridad ng iyong account sa pamamagitan ng pag-enable ng two-factor authentication.",
+    "enable": "I-enable ang 2FA",
+    "disableDialog": {
+      "title": "I-disable ang Two-Factor Authentication",
+      "warning": "Babala: Gagawing mas vulnerable ang iyong account sa unauthorized access kung i-disable ang 2FA.",
+      "enterCode": "Ilagay ang iyong kasalukuyang 2FA code para kumpirmahin:",
+      "confirm": "I-disable ang 2FA",
+      "disabling": "Nagdi-disable..."
+    },
+    "toast": {
+      "disabled": "Na-disable na ang 2FA",
+      "disabledMessage": "Na-disable na ang two-factor authentication sa iyong account."
+    }
+  },
+  "mfaVerification": {
+    "title": "Two-Factor Authentication",
+    "description": "Ilagay ang 6-digit code mula sa iyong authenticator app para magpatuloy.",
+    "verify": "I-verify",
+    "verifying": "Nagve-verify...",
+    "invalidCode": "Hindi valid na verification code",
+    "loginCancelled": "Kinansela ang Login"
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "hsseManagement": "Pamamahala ng HSSE",
