@@ -284,6 +284,12 @@
       "loadFailed": "Failed to load branding data",
       "noTenantConfigured": "No tenant configured",
       "configError": "Configuration Error"
+    },
+    "colorPicker": {
+      "title": "Color Picker",
+      "pickColor": "Pick color",
+      "hslValue": "HSL Value",
+      "hslPlaceholder": "H S% L%"
     }
   },
   "securitySettings": {
