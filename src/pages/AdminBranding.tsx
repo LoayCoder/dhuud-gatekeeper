@@ -4,286 +4,293 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Building2, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-interface Tenant {
-  id: string;
-  name: string;
-  slug: string;
-  brand_color: string;
-  logo_url: string | null;
-}
+import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2 } from 'lucide-react';
+import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AdminBranding() {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const { refreshTenantData } = useTheme();
+  const { uploadAsset, uploading } = useBrandAssets();
   const [loading, setLoading] = useState(true);
-  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [previewColor, setPreviewColor] = useState('221.2 83.2% 53.3%');
-  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  
+  const [tenant, setTenant] = useState<any>(null);
+
+  const [brandColor, setBrandColor] = useState('');
+  const [secondaryColor, setSecondaryColor] = useState('');
+  const [bgTheme, setBgTheme] = useState<'color' | 'image'>('color');
+  const [bgColor, setBgColor] = useState('');
+  
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTenants();
+    loadTenantData();
   }, []);
 
-  const fetchTenants = async () => {
+  const loadTenantData = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      if (!profile) return;
+
+      const { data: tenantData, error } = await supabase
         .from('tenants')
         .select('*')
-        .order('name');
+        .eq('id', profile.tenant_id)
+        .single();
 
       if (error) throw error;
-      setTenants(data || []);
-      if (data && data.length > 0) {
-        setSelectedTenant(data[0]);
-        setPreviewColor(data[0].brand_color);
-      }
+
+      setTenant(tenantData);
+      setBrandColor(tenantData.brand_color || '');
+      setSecondaryColor(tenantData.secondary_color || '');
+      setBgTheme(tenantData.background_theme as any || 'color');
+      setBgColor(tenantData.background_color || '');
+      setLogoPreview(tenantData.logo_url);
+      setIconPreview(tenantData.app_icon_url);
+      setBgPreview(tenantData.background_image_url);
+
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load tenants',
-        variant: 'destructive',
-      });
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleColorChange = (color: string) => {
-    setPreviewColor(color);
-    if (selectedTenant) {
-      setSelectedTenant({ ...selectedTenant, brand_color: color });
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: AssetType) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    const url = await uploadAsset(file, type, tenant.id);
+    
+    if (url) {
+      if (type === 'logo') setLogoPreview(url);
+      if (type === 'icon') setIconPreview(url);
+      if (type === 'background') setBgPreview(url);
+      
+      toast({ title: 'Asset Uploaded', description: 'Don\'t forget to save your changes.' });
     }
   };
 
   const handleSave = async () => {
-    if (!selectedTenant) return;
-
+    setSaving(true);
     try {
+      const updates = {
+        brand_color: brandColor,
+        secondary_color: secondaryColor,
+        background_theme: bgTheme,
+        background_color: bgColor,
+        logo_url: logoPreview,
+        app_icon_url: iconPreview,
+        background_image_url: bgPreview
+      };
+
       const { error } = await supabase
         .from('tenants')
-        .update({ brand_color: selectedTenant.brand_color, name: selectedTenant.name })
-        .eq('id', selectedTenant.id);
+        .update(updates)
+        .eq('id', tenant.id);
 
       if (error) throw error;
 
-      toast({
-        title: 'Success',
-        description: 'Tenant branding updated successfully',
-      });
-
-      fetchTenants();
+      await refreshTenantData(); 
+      
+      toast({ title: 'Branding Updated', description: 'Your changes have been applied live.' });
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update tenant',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
-
-  // Convert HSL string to hex for color picker
-  const hslToHex = (hsl: string) => {
-    const [h, s, l] = hsl.split(' ').map((v) => parseFloat(v));
-    const lightness = l / 100;
-    const saturation = s / 100;
-    const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
-    const hue = h / 60;
-    const x = chroma * (1 - Math.abs((hue % 2) - 1));
-    const m = lightness - chroma / 2;
-    let r = 0,
-      g = 0,
-      b = 0;
-
-    if (hue >= 0 && hue < 1) {
-      r = chroma;
-      g = x;
-    } else if (hue >= 1 && hue < 2) {
-      r = x;
-      g = chroma;
-    } else if (hue >= 2 && hue < 3) {
-      g = chroma;
-      b = x;
-    } else if (hue >= 3 && hue < 4) {
-      g = x;
-      b = chroma;
-    } else if (hue >= 4 && hue < 5) {
-      r = x;
-      b = chroma;
-    } else {
-      r = chroma;
-      b = x;
-    }
-
-    const toHex = (n: number) =>
-      Math.round((n + m) * 255)
-        .toString(16)
-        .padStart(2, '0');
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-
-  // Convert hex to HSL string
-  const hexToHsl = (hex: string): string => {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0;
-    let s = 0;
-    const l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-      switch (max) {
-        case r:
-          h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-          break;
-        case g:
-          h = ((b - r) / d + 2) / 6;
-          break;
-        case b:
-          h = ((r - g) / d + 4) / 6;
-          break;
-      }
-    }
-
-    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background p-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">Brand Management Console</h1>
-            <p className="mt-2 text-muted-foreground">
-              Manage tenant branding and visual identity
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Brand Management Console</h1>
+          <p className="text-muted-foreground">Customize the visual identity for {tenant?.name}</p>
         </div>
+        <Button onClick={handleSave} disabled={saving} size="lg">
+          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+          Save Changes
+        </Button>
+      </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Tenant Selection */}
+      <Tabs defaultValue="visuals" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4"/> Visuals</TabsTrigger>
+          <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4"/> Assets</TabsTrigger>
+          <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4"/> Theme</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="visuals">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Select Tenant
-              </CardTitle>
-              <CardDescription>Choose a tenant to edit their branding</CardDescription>
+              <CardTitle>Color Palette</CardTitle>
+              <CardDescription>Define the primary and secondary colors for your workspace.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {tenants.map((tenant) => (
-                <Button
-                  key={tenant.id}
-                  variant={selectedTenant?.id === tenant.id ? 'default' : 'outline'}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setSelectedTenant(tenant);
-                    setPreviewColor(tenant.brand_color);
-                  }}
-                >
-                  <div
-                    className="mr-3 h-4 w-4 rounded-full"
-                    style={{ backgroundColor: `hsl(${tenant.brand_color})` }}
-                  />
-                  {tenant.name}
-                </Button>
-              ))}
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <Label>Primary Color (Buttons, Links, Active States)</Label>
+                  <div className="flex gap-4 items-center">
+                    <div 
+                      className="h-12 w-12 rounded-lg border shadow-sm" 
+                      style={{ backgroundColor: `hsl(${brandColor})` }} 
+                    />
+                    <Input 
+                      value={brandColor} 
+                      onChange={(e) => setBrandColor(e.target.value)}
+                      placeholder="HSL Value (e.g., 221 83% 53%)"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <Label>Secondary Color (Accents, Highlights)</Label>
+                  <div className="flex gap-4 items-center">
+                    <div 
+                      className="h-12 w-12 rounded-lg border shadow-sm" 
+                      style={{ backgroundColor: `hsl(${secondaryColor})` }} 
+                    />
+                    <Input 
+                      value={secondaryColor} 
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      placeholder="HSL Value"
+                    />
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Brand Editor */}
-          {selectedTenant && (
+        <TabsContent value="assets">
+          <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Edit Branding
+                  <Layout className="h-5 w-5" /> Desktop Logo
                 </CardTitle>
-                <CardDescription>Customize the tenant's visual identity</CardDescription>
+                <CardDescription>
+                  Displayed on the sidebar and dashboard header.<br/>
+                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/SVG, Min 200x50px</span>
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="tenant-name">Tenant Name</Label>
-                  <Input
-                    id="tenant-name"
-                    value={selectedTenant.name}
-                    onChange={(e) =>
-                      setSelectedTenant({ ...selectedTenant, name: e.target.value })
-                    }
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo" className="h-12 object-contain" />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No logo uploaded</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Input 
+                    type="file" 
+                    accept=".png,.svg" 
+                    onChange={(e) => handleFileUpload(e, 'logo')}
+                    disabled={uploading}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="brand-color">Brand Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="brand-color"
-                      type="color"
-                      value={hslToHex(previewColor)}
-                      onChange={(e) => handleColorChange(hexToHsl(e.target.value))}
-                      className="h-12 w-20"
-                    />
-                    <Input
-                      value={previewColor}
-                      onChange={(e) => handleColorChange(e.target.value)}
-                      placeholder="HSL format: 221.2 83.2% 53.3%"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Live Preview */}
-                <div className="space-y-2">
-                  <Label>Live Preview</Label>
-                  <div className="rounded-lg border p-6">
-                    <Button
-                      style={
-                        {
-                          '--primary': previewColor,
-                          backgroundColor: `hsl(${previewColor})`,
-                          color: 'white',
-                        } as React.CSSProperties
-                      }
-                      className="w-full"
-                    >
-                      Preview Button
-                    </Button>
-                  </div>
-                </div>
-
-                <Button onClick={handleSave} className="w-full">
-                  Save Changes
-                </Button>
               </CardContent>
             </Card>
-          )}
-        </div>
-      </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5" /> App Icon (PWA)
+                </CardTitle>
+                <CardDescription>
+                  Used for mobile home screen installation.<br/>
+                  <span className="text-xs font-mono text-muted-foreground">Req: PNG only, Exactly 512x512px</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
+                  {iconPreview ? (
+                    <img src={iconPreview} alt="Icon" className="h-20 w-20 object-contain rounded-xl shadow-sm" />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No icon uploaded</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Input 
+                    type="file" 
+                    accept=".png" 
+                    onChange={(e) => handleFileUpload(e, 'icon')}
+                    disabled={uploading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="theme">
+          <Card>
+            <CardHeader>
+              <CardTitle>Background Customization</CardTitle>
+              <CardDescription>Choose between a solid color or a custom image for special occasions.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <RadioGroup value={bgTheme} onValueChange={(v) => setBgTheme(v as 'color' | 'image')} className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="color" id="r-color" />
+                  <Label htmlFor="r-color">Solid Color</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="image" id="r-image" />
+                  <Label htmlFor="r-image">Custom Image</Label>
+                </div>
+              </RadioGroup>
+
+              <Separator />
+
+              {bgTheme === 'color' ? (
+                <div className="space-y-4">
+                  <Label>Background Color</Label>
+                  <div className="flex gap-4 items-center">
+                    <div 
+                      className="h-12 w-12 rounded-lg border shadow-sm" 
+                      style={{ backgroundColor: `hsl(${bgColor})` }} 
+                    />
+                    <Input 
+                      value={bgColor} 
+                      onChange={(e) => setBgColor(e.target.value)}
+                      placeholder="HSL Value (e.g. 0 0% 98%)"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Label>Upload Background Image (HD)</Label>
+                  <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group" style={{ backgroundImage: bgPreview ? `url(${bgPreview})` : 'none' }}>
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                      <Upload className="h-8 w-8 text-white" />
+                    </div>
+                    <Input 
+                      type="file" 
+                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                      onChange={(e) => handleFileUpload(e, 'background')}
+                      disabled={uploading}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Recommended: 1920x1080px, JPG/PNG</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
