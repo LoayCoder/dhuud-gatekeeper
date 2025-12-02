@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      branches: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: string | null
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           code: string
@@ -93,26 +125,39 @@ export type Database = {
       sites: {
         Row: {
           address: string | null
+          branch_id: string | null
           created_at: string | null
           id: string
+          is_active: boolean | null
           name: string
           tenant_id: string
         }
         Insert: {
           address?: string | null
+          branch_id?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           name: string
           tenant_id: string
         }
         Update: {
           address?: string | null
+          branch_id?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           name?: string
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sites_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sites_tenant_id_fkey"
             columns: ["tenant_id"]
