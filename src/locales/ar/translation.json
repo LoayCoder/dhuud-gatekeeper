@@ -182,8 +182,11 @@
     },
     "preview": {
       "title": "معاينة مباشرة",
+      "livePreview": "معاينة مباشرة",
       "loginPreview": "معاينة تسجيل الدخول",
-      "sidebarPreview": "معاينة الشريط الجانبي"
+      "sidebarPreview": "معاينة الشريط الجانبي",
+      "sidebar": "الشريط الجانبي",
+      "loginPage": "صفحة تسجيل الدخول"
     },
     "toast": {
       "assetUploaded": "تم رفع الأصل",

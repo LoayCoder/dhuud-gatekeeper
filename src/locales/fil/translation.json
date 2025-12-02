@@ -182,8 +182,11 @@
     },
     "preview": {
       "title": "Live Preview",
+      "livePreview": "Live Preview",
       "loginPreview": "Preview ng Login",
-      "sidebarPreview": "Preview ng Sidebar"
+      "sidebarPreview": "Preview ng Sidebar",
+      "sidebar": "Sidebar",
+      "loginPage": "Login Page"
     },
     "toast": {
       "assetUploaded": "Na-upload na ang Asset",

@@ -273,8 +273,11 @@
     },
     "preview": {
       "title": "Live Preview",
+      "livePreview": "Live Preview",
       "loginPreview": "Login Preview",
-      "sidebarPreview": "Sidebar Preview"
+      "sidebarPreview": "Sidebar Preview",
+      "sidebar": "Sidebar",
+      "loginPage": "Login Page"
     },
     "toast": {
       "assetUploaded": "Asset Uploaded",

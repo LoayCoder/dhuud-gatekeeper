@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -28,6 +29,7 @@ export function BrandingPreviewPanel({
   previewMode,
   onPreviewModeChange
 }: BrandingPreviewPanelProps) {
+  const { t } = useTranslation();
   const isDark = previewMode === 'dark';
   const activePrimaryColor = isDark ? primaryColorDark : primaryColorLight;
   const activeLogoUrl = isDark ? (logoDarkUrl || logoLightUrl) : logoLightUrl;
@@ -42,7 +44,7 @@ export function BrandingPreviewPanel({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            Live Preview
+            {t('adminBranding.preview.livePreview')}
           </CardTitle>
           <ToggleGroup 
             type="single" 
@@ -50,10 +52,10 @@ export function BrandingPreviewPanel({
             onValueChange={(v) => v && onPreviewModeChange(v as 'light' | 'dark')}
             className="h-8"
           >
-            <ToggleGroupItem value="light" aria-label="Light mode" className="h-8 w-8 p-0">
+            <ToggleGroupItem value="light" aria-label={t('common.light')} className="h-8 w-8 p-0">
               <Sun className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="dark" aria-label="Dark mode" className="h-8 w-8 p-0">
+            <ToggleGroupItem value="dark" aria-label={t('common.dark')} className="h-8 w-8 p-0">
               <Moon className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -62,8 +64,8 @@ export function BrandingPreviewPanel({
       <CardContent>
         <Tabs defaultValue="sidebar" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="sidebar" className="text-xs">Sidebar</TabsTrigger>
-            <TabsTrigger value="login" className="text-xs">Login Page</TabsTrigger>
+            <TabsTrigger value="sidebar" className="text-xs">{t('adminBranding.preview.sidebar')}</TabsTrigger>
+            <TabsTrigger value="login" className="text-xs">{t('adminBranding.preview.loginPage')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sidebar" className="mt-0">
