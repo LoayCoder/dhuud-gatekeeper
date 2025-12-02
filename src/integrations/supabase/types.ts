@@ -232,6 +232,7 @@ export type Database = {
           logo_url: string | null
           name: string
           secondary_color: string | null
+          sidebar_icon_url: string | null
           slug: string
         }
         Insert: {
@@ -246,6 +247,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           secondary_color?: string | null
+          sidebar_icon_url?: string | null
           slug: string
         }
         Update: {
@@ -260,6 +262,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           secondary_color?: string | null
+          sidebar_icon_url?: string | null
           slug?: string
         }
         Relationships: []

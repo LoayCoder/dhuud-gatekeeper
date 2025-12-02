@@ -16,6 +16,8 @@ interface ThemeContextType {
   setTenantName: (name: string) => void;
   logoUrl: string | null;
   setLogoUrl: (url: string | null) => void;
+  sidebarIconUrl: string | null;
+  setSidebarIconUrl: (url: string | null) => void;
   appIconUrl: string | null;
   setAppIconUrl: (url: string | null) => void;
   faviconUrl: string | null;
@@ -44,6 +46,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(null);
   const [tenantName, setTenantName] = useState(DEFAULT_TENANT_NAME);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [sidebarIconUrl, setSidebarIconUrl] = useState<string | null>(null);
   const [appIconUrl, setAppIconUrl] = useState<string | null>(null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -73,6 +76,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setBackgroundImageUrl(null);
     setTenantName(DEFAULT_TENANT_NAME);
     setLogoUrl(null);
+    setSidebarIconUrl(null);
     setAppIconUrl(null);
     setTenantId(null);
   }, []);
@@ -102,7 +106,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // Fetch tenant details with new branding fields
       const { data: tenant, error: tenantError } = await supabase
         .from('tenants')
-        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, app_icon_url, background_image_url, favicon_url')
+        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, sidebar_icon_url, app_icon_url, background_image_url, favicon_url')
         .eq('id', profile.tenant_id)
         .maybeSingle();
 
@@ -119,6 +123,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setBackgroundColor(tenant.background_color || '');
       setBackgroundTheme((tenant.background_theme as 'color' | 'image') || 'color');
       setLogoUrl(tenant.logo_url);
+      setSidebarIconUrl(tenant.sidebar_icon_url);
       setAppIconUrl(tenant.app_icon_url);
       setBackgroundImageUrl(tenant.background_image_url);
       setFaviconUrl(tenant.favicon_url);
@@ -184,6 +189,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTenantName,
         logoUrl,
         setLogoUrl,
+        sidebarIconUrl,
+        setSidebarIconUrl,
         appIconUrl,
         setAppIconUrl,
         faviconUrl,

@@ -1,12 +1,12 @@
 import { Shield } from 'lucide-react';
 
 interface SidebarPreviewProps {
-  logoUrl: string | null;
+  sidebarIconUrl: string | null;
   primaryColor: string;
   tenantName: string;
 }
 
-export function SidebarPreview({ logoUrl, primaryColor, tenantName }: SidebarPreviewProps) {
+export function SidebarPreview({ sidebarIconUrl, primaryColor, tenantName }: SidebarPreviewProps) {
   return (
     <div className="border rounded-lg p-4 bg-sidebar">
       <div className="flex items-center gap-3">
@@ -14,8 +14,8 @@ export function SidebarPreview({ logoUrl, primaryColor, tenantName }: SidebarPre
           className="size-10 rounded-lg flex items-center justify-center text-primary-foreground"
           style={{ backgroundColor: primaryColor ? `hsl(${primaryColor})` : 'hsl(var(--primary))' }}
         >
-          {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="size-7 object-contain" />
+          {sidebarIconUrl ? (
+            <img src={sidebarIconUrl} alt="Icon" className="size-7 object-contain" />
           ) : (
             <Shield className="size-5" />
           )}
