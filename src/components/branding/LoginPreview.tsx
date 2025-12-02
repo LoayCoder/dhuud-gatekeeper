@@ -1,4 +1,5 @@
 import { Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface LoginPreviewProps {
@@ -9,6 +10,8 @@ interface LoginPreviewProps {
 }
 
 export function LoginPreview({ logoUrl, primaryColor, tenantName, isDark = false }: LoginPreviewProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className={cn(
       "border rounded-lg p-4 space-y-4 transition-colors",
@@ -33,13 +36,13 @@ export function LoginPreview({ logoUrl, primaryColor, tenantName, isDark = false
           "font-semibold text-sm",
           isDark ? "text-white" : "text-foreground"
         )}>
-          {tenantName || 'Your Company'}
+          {tenantName || t('adminBranding.preview.defaultCompany')}
         </span>
         <span className={cn(
           "text-xs",
           isDark ? "text-slate-400" : "text-muted-foreground"
         )}>
-          Sign in to your account
+          {t('adminBranding.preview.signInPrompt')}
         </span>
       </div>
 
@@ -49,7 +52,7 @@ export function LoginPreview({ logoUrl, primaryColor, tenantName, isDark = false
           "h-8 rounded border text-xs flex items-center px-2",
           isDark ? "bg-slate-800 border-slate-600 text-slate-500" : "bg-muted/30 border-input text-muted-foreground"
         )}>
-          email@example.com
+          {t('adminBranding.preview.emailPlaceholder')}
         </div>
         <div className={cn(
           "h-8 rounded border text-xs flex items-center px-2",
@@ -61,7 +64,7 @@ export function LoginPreview({ logoUrl, primaryColor, tenantName, isDark = false
           className="h-8 rounded flex items-center justify-center text-xs font-medium text-white"
           style={{ backgroundColor: primaryColor ? `hsl(${primaryColor})` : 'hsl(var(--primary))' }}
         >
-          Sign In
+          {t('adminBranding.preview.signInButton')}
         </div>
       </div>
     </div>

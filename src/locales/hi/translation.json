@@ -1,4 +1,9 @@
 {
+  "admin": {
+    "accessDenied": "पहुँच अस्वीकृत",
+    "noPermission": "आपको इस पृष्ठ तक पहुँचने की अनुमति नहीं है।",
+    "adminOnlyAccess": "केवल संगठन प्रशासक ब्रांड प्रबंधन कंसोल तक पहुँच सकते हैं।"
+  },
   "notFound": {
     "pageNotFound": "उफ़! पृष्ठ नहीं मिला",
     "returnHome": "होम पर वापस जाएं"
@@ -186,7 +191,12 @@
       "loginPreview": "लॉगिन पूर्वावलोकन",
       "sidebarPreview": "साइडबार पूर्वावलोकन",
       "sidebar": "साइडबार",
-      "loginPage": "लॉगिन पेज"
+      "loginPage": "लॉगिन पेज",
+      "defaultCompany": "आपकी कंपनी",
+      "enterpriseHsse": "एंटरप्राइज़ स्वास्थ्य और सुरक्षा",
+      "signInPrompt": "अपने खाते में साइन इन करें",
+      "emailPlaceholder": "email@example.com",
+      "signInButton": "साइन इन"
     },
     "toast": {
       "assetUploaded": "संपत्ति अपलोड हो गई",

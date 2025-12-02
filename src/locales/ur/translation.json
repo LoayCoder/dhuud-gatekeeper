@@ -1,4 +1,9 @@
 {
+  "admin": {
+    "accessDenied": "رسائی مسترد",
+    "noPermission": "آپ کو اس صفحے تک رسائی کی اجازت نہیں ہے۔",
+    "adminOnlyAccess": "صرف تنظیم کے منتظمین برانڈ مینجمنٹ کنسول تک رسائی حاصل کر سکتے ہیں۔"
+  },
   "notFound": {
     "pageNotFound": "افسوس! صفحہ نہیں ملا",
     "returnHome": "ہوم پر واپس جائیں"
@@ -186,7 +191,12 @@
       "loginPreview": "لاگ ان کا پیش نظارہ",
       "sidebarPreview": "سائیڈبار کا پیش نظارہ",
       "sidebar": "سائیڈبار",
-      "loginPage": "لاگ ان صفحہ"
+      "loginPage": "لاگ ان صفحہ",
+      "defaultCompany": "آپ کی کمپنی",
+      "enterpriseHsse": "انٹرپرائز صحت و حفاظت",
+      "signInPrompt": "اپنے اکاؤنٹ میں سائن ان کریں",
+      "emailPlaceholder": "email@example.com",
+      "signInButton": "سائن ان"
     },
     "toast": {
       "assetUploaded": "اثاثہ اپ لوڈ ہو گیا",
