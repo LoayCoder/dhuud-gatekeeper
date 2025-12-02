@@ -1,25 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, User, Building2, Mail, Shield } from "lucide-react";
+import { Loader2, User, Building2, Mail, Shield, Phone, UserCheck, MapPin, Upload } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+
+interface ProfileData {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  phone_number: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  tenant_id: string;
+  assigned_branch_id: string | null;
+  assigned_site_id: string | null;
+  created_at: string | null;
+  branches?: { name: string; location: string | null } | null;
+  sites?: { name: string; address: string | null } | null;
+}
 
 export default function Profile() {
   const { tenantName, activeSidebarIconUrl, activePrimaryColor } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string>("user");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadAvatar, uploading } = useAvatarUpload();
   
   // Form states
   const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [emergencyContactName, setEmergencyContactName] = useState("");
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
 
   useEffect(() => {
     getProfile();
@@ -36,10 +58,14 @@ export default function Profile() {
 
       setUser(user);
 
-      // Fetch profile
+      // Fetch profile with branch and site joins
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          branches:assigned_branch_id(name, location),
+          sites:assigned_site_id(name, address)
+        `)
         .eq('id', user.id)
         .maybeSingle();
 
@@ -48,8 +74,12 @@ export default function Profile() {
       }
 
       if (profileData) {
-        setProfile(profileData);
+        setProfile(profileData as ProfileData);
         setFullName(profileData.full_name || "");
+        setAvatarUrl(profileData.avatar_url);
+        setPhoneNumber(profileData.phone_number || "");
+        setEmergencyContactName(profileData.emergency_contact_name || "");
+        setEmergencyContactPhone(profileData.emergency_contact_phone || "");
       }
 
       // Fetch user role from user_roles table
@@ -69,6 +99,45 @@ export default function Profile() {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const { url, error } = await uploadAvatar(file, user.id);
+    
+    if (error) {
+      toast({
+        title: "Upload failed",
+        description: error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (url) {
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: url, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (updateError) {
+        toast({
+          title: "Error",
+          description: "Failed to save avatar URL",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAvatarUrl(url);
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been updated.",
+      });
+    }
+  };
+
   const updateProfile = async () => {
     if (!user) return;
     
@@ -78,6 +147,9 @@ export default function Profile() {
         .from('profiles')
         .update({ 
           full_name: fullName,
+          phone_number: phoneNumber || null,
+          emergency_contact_name: emergencyContactName || null,
+          emergency_contact_phone: emergencyContactPhone || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -107,7 +179,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="container max-w-4xl py-8 space-y-8">
+    <div className="container max-w-5xl py-8 space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
         <p className="text-muted-foreground">
@@ -115,19 +187,22 @@ export default function Profile() {
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-[1fr_250px]">
+      <div className="grid gap-8 lg:grid-cols-2">
+        {/* Left Column */}
         <div className="space-y-6">
           {/* Personal Information Card */}
           <Card>
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>
               <CardDescription>
-                Update your personal details and profile information.
+                Update your personal details and profile picture.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Avatar Upload */}
               <div className="flex items-center gap-6 pb-6">
                 <Avatar className="h-24 w-24">
+                  <AvatarImage src={avatarUrl || undefined} alt={fullName} />
                   <AvatarFallback className="text-lg bg-primary/10 text-primary">
                     {fullName ? fullName.substring(0, 2).toUpperCase() : <User className="h-8 w-8" />}
                   </AvatarFallback>
@@ -137,8 +212,31 @@ export default function Profile() {
                   <p className="text-sm text-muted-foreground">
                     JPG, GIF or PNG. Max size of 2MB.
                   </p>
-                  <Button variant="outline" size="sm" className="mt-2" disabled>
-                    Change Avatar (Coming Soon)
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Change Avatar
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -175,47 +273,86 @@ export default function Profile() {
                     />
                   </div>
                 </div>
-
-                <div className="flex justify-end pt-4">
-                  <Button onClick={updateProfile} disabled={saving}>
-                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Changes
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Security & Role Card */}
+          {/* Contact Information Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Security & Role</CardTitle>
+              <CardTitle>Contact Information</CardTitle>
               <CardDescription>
-                View your current role and access level within the organization.
+                Add your phone number and emergency contact details.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-md border p-4 bg-muted/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-primary/10 rounded-full">
-                      <Shield className="h-5 w-5 text-primary" />
+              <div className="grid gap-2">
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="phoneNumber" 
+                    type="tel"
+                    value={phoneNumber} 
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="pl-9"
+                    placeholder="+966 5XX XXX XXXX"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Emergency Contact</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Person to contact in case of emergency at the workplace.
+                </p>
+                
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">Contact Name</Label>
+                    <div className="relative">
+                      <UserCheck className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="emergencyName" 
+                        value={emergencyContactName} 
+                        onChange={(e) => setEmergencyContactName(e.target.value)}
+                        className="pl-9"
+                        placeholder="Emergency contact name"
+                      />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium leading-none">Current Role</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        You are logged in as a <span className="font-semibold text-foreground capitalize">{userRole}</span>
-                      </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">Contact Phone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="emergencyPhone" 
+                        type="tel"
+                        value={emergencyContactPhone} 
+                        onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                        className="pl-9"
+                        placeholder="+966 5XX XXX XXXX"
+                      />
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={updateProfile} disabled={saving}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tenant Information Sidebar */}
+        {/* Right Column */}
         <div className="space-y-6">
+          {/* Organization Card */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Organization</CardTitle>
@@ -256,6 +393,92 @@ export default function Profile() {
                       <span>{new Date(profile.created_at).toLocaleDateString()}</span>
                     </div>
                   )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Assignment Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Assignment</CardTitle>
+              <CardDescription>
+                Your assigned branch and site location.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Branch Info */}
+              <div className="rounded-md border p-4 bg-muted/10">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Branch</p>
+                    {profile?.branches ? (
+                      <>
+                        <p className="font-medium">{profile.branches.name}</p>
+                        {profile.branches.location && (
+                          <p className="text-sm text-muted-foreground">{profile.branches.location}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground italic">Not Assigned</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Site Info */}
+              <div className="rounded-md border p-4 bg-muted/10">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Site</p>
+                    {profile?.sites ? (
+                      <>
+                        <p className="font-medium">{profile.sites.name}</p>
+                        {profile.sites.address && (
+                          <p className="text-sm text-muted-foreground">{profile.sites.address}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground italic">Not Assigned</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Branch and site assignments are managed by your administrator.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Security & Role Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Security & Role</CardTitle>
+              <CardDescription>
+                Your current access level within the organization.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border p-4 bg-muted/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary/10 rounded-full">
+                      <Shield className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium leading-none">Current Role</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <span className="font-semibold text-foreground capitalize">{userRole}</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
