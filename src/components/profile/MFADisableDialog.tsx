@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ export function MFADisableDialog({
   factorId,
   onSuccess,
 }: MFADisableDialogProps) {
+  const { t } = useTranslation();
   const { unenroll, challenge, verify } = useMFA();
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState("");
@@ -64,8 +66,8 @@ export function MFADisableDialog({
       await logUserActivity({ eventType: 'mfa_disabled' });
       
       toast({
-        title: "2FA Disabled",
-        description: "Two-factor authentication has been disabled for your account.",
+        title: t('mfaDisable.toastTitle'),
+        description: t('mfaDisable.toastDescription'),
       });
       onSuccess();
       handleClose();
@@ -76,9 +78,9 @@ export function MFADisableDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
+          <DialogTitle>{t('mfaDisable.title')}</DialogTitle>
           <DialogDescription>
-            Enter your current 2FA code to disable two-factor authentication
+            {t('mfaDisable.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -87,7 +89,7 @@ export function MFADisableDialog({
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Disabling 2FA will make your account less secure. You'll only need your password to sign in.
+              {t('mfaDisable.warning')}
             </AlertDescription>
           </Alert>
 
@@ -101,7 +103,7 @@ export function MFADisableDialog({
           {/* OTP Input */}
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground text-center">
-              Enter the 6-digit code from your authenticator app
+              {t('mfaDisable.enterCode')}
             </p>
             <div className="flex justify-center">
               <InputOTP
@@ -125,7 +127,7 @@ export function MFADisableDialog({
 
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={handleClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="destructive"
@@ -133,9 +135,9 @@ export function MFADisableDialog({
             disabled={loading || code.length !== 6}
           >
             {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="me-2 h-4 w-4 animate-spin" />
             ) : null}
-            Disable 2FA
+            {t('twoFactorSetup.disable2FA')}
           </Button>
         </div>
       </DialogContent>

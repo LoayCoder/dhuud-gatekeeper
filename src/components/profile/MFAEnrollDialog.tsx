@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ interface MFAEnrollDialogProps {
 type Step = "intro" | "qrcode" | "verify" | "success";
 
 export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDialogProps) {
+  const { t } = useTranslation();
   const { enroll, verify, challenge } = useMFA();
   const [step, setStep] = useState<Step>("intro");
   const [loading, setLoading] = useState(false);
@@ -80,8 +82,8 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
       await logUserActivity({ eventType: 'mfa_enabled' });
       
       toast({
-        title: "2FA Enabled",
-        description: "Two-factor authentication has been enabled for your account.",
+        title: t('mfaEnroll.toastTitle'),
+        description: t('mfaEnroll.toastDescription'),
       });
     } else {
       setCode("");
@@ -102,43 +104,43 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
         {step === "intro" && (
           <>
             <DialogHeader>
-              <DialogTitle>Enable Two-Factor Authentication</DialogTitle>
+              <DialogTitle>{t('mfaEnroll.title')}</DialogTitle>
               <DialogDescription>
-                Add an extra layer of security to your account
+                {t('mfaEnroll.description')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="flex items-start gap-3">
                 <Smartphone className="h-5 w-5 mt-0.5 text-primary" />
                 <div>
-                  <p className="font-medium">Step 1: Get an authenticator app</p>
+                  <p className="font-medium">{t('mfaEnroll.step1Title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Download an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy.
+                    {t('mfaEnroll.step1Description')}
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 mt-0.5 text-primary" />
                 <div>
-                  <p className="font-medium">Step 2: Scan the QR code</p>
+                  <p className="font-medium">{t('mfaEnroll.step2Title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Use your authenticator app to scan the QR code we'll show you.
+                    {t('mfaEnroll.step2Description')}
                   </p>
                 </div>
               </div>
               <Alert>
                 <AlertDescription>
-                  You'll need your phone nearby to complete this setup.
+                  {t('mfaEnroll.phoneNearby')}
                 </AlertDescription>
               </Alert>
             </div>
             <div className="flex justify-end">
               <Button onClick={handleStartEnrollment} disabled={loading}>
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Continue
-                <ChevronRight className="ml-2 h-4 w-4" />
+                {t('common.continue')}
+                <ChevronRight className="ms-2 h-4 w-4 rtl:rotate-180" />
               </Button>
             </div>
           </>
@@ -147,9 +149,9 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
         {step === "qrcode" && enrollData && (
           <>
             <DialogHeader>
-              <DialogTitle>Scan QR Code</DialogTitle>
+              <DialogTitle>{t('mfaEnroll.scanTitle')}</DialogTitle>
               <DialogDescription>
-                Open your authenticator app and scan this QR code
+                {t('mfaEnroll.scanDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -167,7 +169,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
               {/* Manual Setup Key */}
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-center">
-                  Can't scan? Enter this code manually:
+                  {t('mfaEnroll.cantScan')}
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono break-all">
@@ -189,12 +191,12 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep("intro")}>
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Back
+                <ChevronLeft className="me-2 h-4 w-4 rtl:rotate-180" />
+                {t('common.back')}
               </Button>
               <Button onClick={() => setStep("verify")}>
-                Continue
-                <ChevronRight className="ml-2 h-4 w-4" />
+                {t('common.continue')}
+                <ChevronRight className="ms-2 h-4 w-4 rtl:rotate-180" />
               </Button>
             </div>
           </>
@@ -203,9 +205,9 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
         {step === "verify" && (
           <>
             <DialogHeader>
-              <DialogTitle>Verify Setup</DialogTitle>
+              <DialogTitle>{t('mfaEnroll.verifyTitle')}</DialogTitle>
               <DialogDescription>
-                Enter the 6-digit code from your authenticator app
+                {t('mfaEnroll.verifyDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -227,22 +229,22 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
                 </InputOTP>
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                The code refreshes every 30 seconds
+                {t('mfaEnroll.codeRefreshes')}
               </p>
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep("qrcode")}>
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Back
+                <ChevronLeft className="me-2 h-4 w-4 rtl:rotate-180" />
+                {t('common.back')}
               </Button>
               <Button
                 onClick={handleVerify}
                 disabled={loading || code.length !== 6}
               >
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Verify
+                {t('common.verify')}
               </Button>
             </div>
           </>
@@ -251,9 +253,9 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
         {step === "success" && (
           <>
             <DialogHeader>
-              <DialogTitle>2FA Enabled Successfully</DialogTitle>
+              <DialogTitle>{t('mfaEnroll.successTitle')}</DialogTitle>
               <DialogDescription>
-                Your account is now protected with two-factor authentication
+                {t('mfaEnroll.successDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -264,12 +266,12 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
               </div>
               <Alert>
                 <AlertDescription>
-                  You'll need to enter a code from your authenticator app each time you sign in.
+                  {t('mfaEnroll.successAlert')}
                 </AlertDescription>
               </Alert>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleClose}>Done</Button>
+              <Button onClick={handleClose}>{t('common.done')}</Button>
             </div>
           </>
         )}

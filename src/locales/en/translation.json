@@ -19,7 +19,8 @@
     "status": "Status",
     "active": "Active",
     "continue": "Continue",
-    "verify": "Verify"
+    "verify": "Verify",
+    "done": "Done"
   },
   "auth": {
     "signIn": "Sign In",
@@ -78,7 +79,12 @@
     "profileUpdateSuccess": "Your profile has been updated successfully.",
     "profileUpdateError": "Failed to update profile",
     "profilePicture": "Profile Picture",
-    "changeAvatar": "Change Avatar"
+    "changeAvatar": "Change Avatar",
+    "avatarHint": "JPG, GIF or PNG. Max size of 2MB.",
+    "fileTypeError": "Only JPG, PNG, and GIF files are allowed",
+    "fileSizeError": "Please select an image under 10MB",
+    "avatarSaveError": "Failed to save avatar URL",
+    "invalidInput": "Invalid input"
   },
   "sidebar": {
     "myAccount": "My Account",
@@ -281,5 +287,33 @@
     "invalidCode": "Invalid Code",
     "invalidCodeMessage": "Please check your authenticator app and try again.",
     "unexpectedError": "An unexpected error occurred"
+  },
+  "mfaEnroll": {
+    "title": "Enable Two-Factor Authentication",
+    "description": "Add an extra layer of security to your account",
+    "step1Title": "Step 1: Get an authenticator app",
+    "step1Description": "Download an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy.",
+    "step2Title": "Step 2: Scan the QR code",
+    "step2Description": "Use your authenticator app to scan the QR code we'll show you.",
+    "phoneNearby": "You'll need your phone nearby to complete this setup.",
+    "scanTitle": "Scan QR Code",
+    "scanDescription": "Open your authenticator app and scan this QR code",
+    "cantScan": "Can't scan? Enter this code manually:",
+    "verifyTitle": "Verify Setup",
+    "verifyDescription": "Enter the 6-digit code from your authenticator app",
+    "codeRefreshes": "The code refreshes every 30 seconds",
+    "successTitle": "2FA Enabled Successfully",
+    "successDescription": "Your account is now protected with two-factor authentication",
+    "successAlert": "You'll need to enter a code from your authenticator app each time you sign in.",
+    "toastTitle": "2FA Enabled",
+    "toastDescription": "Two-factor authentication has been enabled for your account."
+  },
+  "mfaDisable": {
+    "title": "Disable Two-Factor Authentication",
+    "description": "Enter your current 2FA code to disable two-factor authentication",
+    "warning": "Disabling 2FA will make your account less secure. You'll only need your password to sign in.",
+    "enterCode": "Enter the 6-digit code from your authenticator app",
+    "toastTitle": "2FA Disabled",
+    "toastDescription": "Two-factor authentication has been disabled for your account."
   }
 }
