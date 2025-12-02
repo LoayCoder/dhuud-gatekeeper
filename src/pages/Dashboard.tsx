@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogOut, Shield, Settings } from 'lucide-react';
+import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from '@/lib/activity-logger';
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +27,12 @@ export default function Dashboard() {
   }, []);
 
   const handleLogout = async () => {
+    const duration = getSessionDurationSeconds();
+    await logUserActivity({ 
+      eventType: 'logout',
+      sessionDurationSeconds: duration ?? undefined,
+    });
+    clearSessionTracking();
     await supabase.auth.signOut();
     navigate('/login');
   };

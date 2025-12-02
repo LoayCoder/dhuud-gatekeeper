@@ -9,6 +9,7 @@ import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import industrialImage from '@/assets/industrial-safety.jpg';
 import { z } from 'zod';
+import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -62,6 +63,10 @@ export default function Login() {
       });
 
       if (error) throw error;
+
+      // Start session tracking and log login event
+      startSessionTracking();
+      await logUserActivity({ eventType: 'login' });
 
       // Clear invitation data after successful login
       clearInvitationData();

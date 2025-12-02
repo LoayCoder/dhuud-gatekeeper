@@ -79,6 +79,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_logs: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["activity_event_type"]
+          id: string
+          metadata: Json | null
+          session_duration_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["activity_event_type"]
+          id?: string
+          metadata?: Json | null
+          session_duration_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["activity_event_type"]
+          id?: string
+          metadata?: Json | null
+          session_duration_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -118,6 +145,11 @@ export type Database = {
       }
     }
     Enums: {
+      activity_event_type:
+        | "login"
+        | "logout"
+        | "session_timeout"
+        | "session_extended"
       app_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -246,6 +278,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_event_type: [
+        "login",
+        "logout",
+        "session_timeout",
+        "session_extended",
+      ],
       app_role: ["admin", "user"],
     },
   },

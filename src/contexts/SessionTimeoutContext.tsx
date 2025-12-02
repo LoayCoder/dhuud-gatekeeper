@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIdleTimeout } from '@/hooks/use-idle-timeout';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from '@/lib/activity-logger';
 
 interface SessionTimeoutContextType {
   isWarning: boolean;
@@ -33,6 +34,12 @@ export function SessionTimeoutProvider({ children }: { children: React.ReactNode
   }, []);
 
   const handleTimeout = async () => {
+    const duration = getSessionDurationSeconds();
+    await logUserActivity({ 
+      eventType: 'session_timeout',
+      sessionDurationSeconds: duration ?? undefined,
+    });
+    clearSessionTracking();
     await supabase.auth.signOut();
     toast({
       title: 'Session Expired',
