@@ -63,7 +63,7 @@ export function BrandingPreviewPanel({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="sidebar" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="mb-4 ms-auto">
             <TabsTrigger value="sidebar" className="text-xs">{t('adminBranding.preview.sidebar')}</TabsTrigger>
             <TabsTrigger value="login" className="text-xs">{t('adminBranding.preview.loginPage')}</TabsTrigger>
           </TabsList>
