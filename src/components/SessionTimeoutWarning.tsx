@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useSessionTimeout } from '@/contexts/SessionTimeoutContext';
 import {
   AlertDialog,
@@ -15,6 +16,7 @@ import { Clock } from 'lucide-react';
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from '@/lib/activity-logger';
 
 export function SessionTimeoutWarning() {
+  const { t } = useTranslation();
   const { isWarning, remainingTime, resetTimer } = useSessionTimeout();
   const navigate = useNavigate();
 
@@ -46,22 +48,18 @@ export function SessionTimeoutWarning() {
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-warning" />
-            Session Timeout Warning
+            {t('sessionTimeout.warningTitle')}
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
-            <p>Your session will expire due to inactivity.</p>
-            <p className="text-lg font-semibold text-foreground">
-              Time remaining: {formatTime(remainingTime)}
-            </p>
-            <p className="text-sm">Click "Stay Logged In" to continue your session.</p>
+            <p>{t('sessionTimeout.warningDescription', { time: formatTime(remainingTime) })}</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="outline" onClick={handleLogout}>
-            Log Out Now
+            {t('sessionTimeout.logOutNow')}
           </Button>
           <AlertDialogAction onClick={handleStayLoggedIn}>
-            Stay Logged In
+            {t('sessionTimeout.stayLoggedIn')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

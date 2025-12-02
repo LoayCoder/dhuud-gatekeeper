@@ -15,7 +15,9 @@
     "close": "Close",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "status": "Status",
+    "active": "Active"
   },
   "auth": {
     "signIn": "Sign In",
@@ -64,13 +66,17 @@
     "emailAddress": "Email Address",
     "emailManagedByOrg": "Email address is managed by your organization administrator.",
     "phoneNumber": "Phone Number",
+    "emergencyContact": "Emergency Contact",
+    "emergencyContactDescription": "Person to contact in case of emergency at the workplace.",
     "emergencyContactName": "Emergency Contact Name",
     "emergencyContactPhone": "Emergency Contact Phone",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "profileUpdated": "Profile Updated",
     "profileUpdateSuccess": "Your profile has been updated successfully.",
-    "profileUpdateError": "Failed to update profile"
+    "profileUpdateError": "Failed to update profile",
+    "profilePicture": "Profile Picture",
+    "changeAvatar": "Change Avatar"
   },
   "sidebar": {
     "myAccount": "My Account",
@@ -99,14 +105,16 @@
   },
   "assignment": {
     "title": "Assignment Information",
+    "description": "Your assigned branch and site location.",
     "branch": "Branch",
     "site": "Site",
-    "notAssigned": "Not Assigned"
+    "notAssigned": "Not Assigned",
+    "managedByAdmin": "Branch and site assignments are managed by your administrator."
   },
   "role": {
     "title": "Role Information",
     "currentRole": "Current Role",
-    "roleDescription": "View your current role and access level within the organization.",
+    "roleDescription": "Your current access level within the organization.",
     "loggedInAs": "You are logged in as a"
   },
   "placeholder": {
