@@ -27,7 +27,8 @@
     "toggleTheme": "تبديل المظهر",
     "light": "فاتح",
     "dark": "داكن",
-    "system": "النظام"
+    "system": "النظام",
+    "changeLanguage": "تغيير اللغة"
   },
   "auth": {
     "signIn": "تسجيل الدخول",

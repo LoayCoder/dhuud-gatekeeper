@@ -27,7 +27,8 @@
     "toggleTheme": "تھیم تبدیل کریں",
     "light": "ہلکا",
     "dark": "گہرا",
-    "system": "سسٹم"
+    "system": "سسٹم",
+    "changeLanguage": "زبان تبدیل کریں"
   },
   "auth": {
     "signIn": "سائن ان",

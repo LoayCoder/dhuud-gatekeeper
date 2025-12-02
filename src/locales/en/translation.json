@@ -28,7 +28,8 @@
     "toggleTheme": "Toggle theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "changeLanguage": "Change language"
   },
   "auth": {
     "signIn": "Sign In",

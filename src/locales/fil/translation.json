@@ -27,7 +27,8 @@
     "toggleTheme": "Palitan ang tema",
     "light": "Maliwanag",
     "dark": "Madilim",
-    "system": "Sistema"
+    "system": "Sistema",
+    "changeLanguage": "Palitan ang wika"
   },
   "auth": {
     "signIn": "Mag-sign In",
