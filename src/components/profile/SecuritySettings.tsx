@@ -86,10 +86,10 @@ export function SecuritySettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-start">
       {/* Two-Factor Authentication Section */}
       <div className="space-y-4">
-        <div>
+        <div className="text-start">
           <h3 className="text-lg font-medium">{t('securitySettings.twoFactorAuth')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('securitySettings.twoFactorDescription')}
@@ -102,7 +102,7 @@ export function SecuritySettings() {
 
       {/* Password Section */}
       <div className="space-y-4">
-        <div>
+        <div className="text-start">
           <h3 className="text-lg font-medium">{t('securitySettings.changePassword')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('securitySettings.changePasswordDescription')}
@@ -114,11 +114,11 @@ export function SecuritySettings() {
           <h4 className="text-sm font-medium mb-3">{t('securitySettings.passwordRequirements')}</h4>
           <ul className="space-y-2">
             {requirements.map((req, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm">
+              <li key={index} className="flex items-center gap-2 text-sm rtl:flex-row-reverse rtl:justify-end">
                 {req.met ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                  <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 )}
                 <span className={req.met ? "text-green-600" : "text-muted-foreground"}>
                   {req.label}
@@ -129,7 +129,7 @@ export function SecuritySettings() {
         </div>
 
         <form onSubmit={handlePasswordChange} className="space-y-4">
-          <div className="grid gap-2">
+          <div className="grid gap-2 text-start">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
               <Lock className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -138,14 +138,14 @@ export function SecuritySettings() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="ps-9"
+                className="ps-9 text-start"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
             </div>
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-2 text-start">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
               <Lock className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -154,21 +154,21 @@ export function SecuritySettings() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ps-9"
+                className="ps-9 text-start"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
             </div>
             {confirmPassword.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm rtl:flex-row-reverse rtl:justify-end">
                 {passwordsMatch ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span className="text-green-600">{t('securitySettings.passwordsMatch')}</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-4 w-4 text-destructive" />
+                    <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
                     <span className="text-destructive">{t('securitySettings.passwordsDoNotMatch')}</span>
                   </>
                 )}
@@ -176,7 +176,7 @@ export function SecuritySettings() {
             )}
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-2 rtl:justify-start">
             <Button 
               type="submit" 
               disabled={loading || !allRequirementsMet || !passwordsMatch}

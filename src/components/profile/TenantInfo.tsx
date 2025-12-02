@@ -14,7 +14,7 @@ export function TenantInfo({ memberSince }: TenantInfoProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{t('tenant.organization')}</CardTitle>
+        <CardTitle className="text-lg text-start">{t('tenant.organization')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col items-center text-center p-4 border rounded-lg bg-muted/10">
@@ -36,17 +36,17 @@ export function TenantInfo({ memberSince }: TenantInfoProps) {
           <p className="text-xs text-muted-foreground mt-1">{t('navigation.enterpriseHsse')}</p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 text-start">
           <div className="text-sm grid gap-2">
-            <div className="flex justify-between py-2 border-b">
+            <div className="flex justify-between py-2 border-b rtl:flex-row-reverse">
               <span className="text-muted-foreground">{t('common.status') || 'Status'}</span>
-              <span className="text-green-600 font-medium flex items-center gap-1">
+              <span className="text-green-600 font-medium flex items-center gap-1 rtl:flex-row-reverse">
                 <span className="h-2 w-2 rounded-full bg-green-600 inline-block" />
                 {t('common.active') || 'Active'}
               </span>
             </div>
             {memberSince && (
-              <div className="flex justify-between py-2 border-b">
+              <div className="flex justify-between py-2 border-b rtl:flex-row-reverse">
                 <span className="text-muted-foreground">{t('tenant.memberSince')}</span>
                 <span>{new Date(memberSince).toLocaleDateString()}</span>
               </div>

@@ -11,7 +11,7 @@ export function RoleInfo({ role }: RoleInfoProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="text-start">
         <CardTitle className="text-lg">{t('role.title')}</CardTitle>
         <CardDescription>
           {t('role.roleDescription')}
@@ -19,17 +19,15 @@ export function RoleInfo({ role }: RoleInfoProps) {
       </CardHeader>
       <CardContent>
         <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium leading-none">{t('role.currentRole')}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  <span className="font-semibold text-foreground capitalize">{role}</span>
-                </p>
-              </div>
+          <div className="flex items-center gap-4 rtl:flex-row-reverse text-start">
+            <div className="p-2 bg-primary/10 rounded-full flex-shrink-0">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium leading-none">{t('role.currentRole')}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                <span className="font-semibold text-foreground capitalize">{role}</span>
+              </p>
             </div>
           </div>
         </div>
