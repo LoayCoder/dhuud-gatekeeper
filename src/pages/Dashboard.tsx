@@ -1,29 +1,31 @@
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Welcome to Dhuud HSSE Platform</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('dashboard.welcomeTitle')}</h2>
         <p className="text-muted-foreground">
-          Health, Safety, Security & Environment Management System
+          {t('dashboard.welcomeSubtitle')}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>User Profile</CardTitle>
-            <CardDescription>Your account information</CardDescription>
+            <CardTitle>{t('dashboard.userProfile')}</CardTitle>
+            <CardDescription>{t('dashboard.accountInfo')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div>
-                <span className="text-sm font-medium">Email:</span>
+                <span className="text-sm font-medium">{t('auth.email')}:</span>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
@@ -32,13 +34,13 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Security Status</CardTitle>
-            <CardDescription>Zero Trust authentication active</CardDescription>
+            <CardTitle>{t('security.securityStatus')}</CardTitle>
+            <CardDescription>{t('security.zeroTrustActive')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 text-green-600">
               <Shield className="h-5 w-5" />
-              <span className="font-medium">Protected</span>
+              <span className="font-medium">{t('security.protected')}</span>
             </div>
           </CardContent>
         </Card>

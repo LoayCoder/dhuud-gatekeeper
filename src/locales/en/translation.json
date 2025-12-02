@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Log out",
+    "signUp": "Create Account",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating Account...",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot password?",
+    "backToInvite": "Back to invitation code",
+    "signInToAccount": "Sign in to your account",
+    "createYourAccount": "Create your account",
+    "welcomeBack": "Welcome Back",
+    "loginSuccess": "You have been logged in successfully.",
+    "invalidEmail": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordsDoNotMatch": "Passwords don't match",
+    "validationError": "Validation Error",
+    "error": "Error",
+    "failedToLogin": "Failed to log in"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "hsseManagement": "HSSE Management",
+    "incidents": "Incidents",
+    "auditsInspections": "Audits & Inspections",
+    "visitorGatekeeper": "Visitor Gatekeeper",
+    "administration": "Administration",
+    "brandManagement": "Brand Management",
+    "userManagement": "User Management",
+    "platform": "Platform",
+    "enterpriseHsse": "Enterprise HSSE"
+  },
+  "profile": {
+    "title": "Account Settings",
+    "description": "Manage your personal information and security preferences.",
+    "profileTab": "Profile",
+    "securityTab": "Security",
+    "personalInfo": "Personal Information",
+    "updatePersonalInfo": "Update your personal information.",
+    "fullName": "Full Name",
+    "enterFullName": "Enter your full name",
+    "emailAddress": "Email Address",
+    "emailManagedByOrg": "Email address is managed by your organization administrator.",
+    "phoneNumber": "Phone Number",
+    "emergencyContactName": "Emergency Contact Name",
+    "emergencyContactPhone": "Emergency Contact Phone",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "profileUpdated": "Profile Updated",
+    "profileUpdateSuccess": "Your profile has been updated successfully.",
+    "profileUpdateError": "Failed to update profile"
+  },
+  "sidebar": {
+    "myAccount": "My Account",
+    "profileSettings": "Profile Settings"
+  },
+  "security": {
+    "protectedByZeroTrust": "Protected by Zero Trust Security",
+    "securityStatus": "Security Status",
+    "zeroTrustActive": "Zero Trust authentication active",
+    "protected": "Protected"
+  },
+  "dashboard": {
+    "welcomeTitle": "Welcome to Dhuud HSSE Platform",
+    "welcomeSubtitle": "Health, Safety, Security & Environment Management System",
+    "userProfile": "User Profile",
+    "accountInfo": "Your account information"
+  },
+  "branding": {
+    "title": "Dhuud HSSE Platform",
+    "subtitle": "Health, Safety, Security & Environment Management"
+  },
+  "tenant": {
+    "tenantInfo": "Tenant Information",
+    "organization": "Organization",
+    "memberSince": "Member Since"
+  },
+  "assignment": {
+    "title": "Assignment Information",
+    "branch": "Branch",
+    "site": "Site",
+    "notAssigned": "Not Assigned"
+  },
+  "role": {
+    "title": "Role Information",
+    "currentRole": "Current Role",
+    "roleDescription": "View your current role and access level within the organization.",
+    "loggedInAs": "You are logged in as a"
+  },
+  "placeholder": {
+    "comingSoon": "This feature is coming soon.",
+    "checkBackLater": "Check back later for updates."
+  },
+  "sessionTimeout": {
+    "warningTitle": "Session Expiring Soon",
+    "warningDescription": "Your session will expire in {{time}} due to inactivity. Would you like to stay logged in?",
+    "logOutNow": "Log Out Now",
+    "stayLoggedIn": "Stay Logged In"
+  },
+  "mfa": {
+    "verificationTitle": "Two-Factor Authentication",
+    "verificationDescription": "Enter the 6-digit code from your authenticator app to continue.",
+    "verifyCode": "Verify Code",
+    "verifying": "Verifying...",
+    "invalidCode": "Invalid verification code"
+  }
+}

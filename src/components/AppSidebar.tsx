@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Sidebar,
   SidebarContent,
@@ -45,6 +46,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppSidebar() {
+  const { t } = useTranslation();
   const { tenantName, activeSidebarIconUrl, isLoading: themeLoading } = useTheme();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -65,49 +67,49 @@ export function AppSidebar() {
     navigate("/login");
   };
 
-  // Menu Configuration
+  // Menu Configuration with translations
   const menuItems = [
     {
-      title: "Dashboard",
+      title: t('navigation.dashboard'),
       url: "/",
       icon: LayoutDashboard,
     },
     {
-      title: "HSSE Management",
+      title: t('navigation.hsseManagement'),
       icon: Shield,
       isActive: location.pathname.startsWith("/incidents") || 
                 location.pathname.startsWith("/audits") || 
                 location.pathname.startsWith("/visitors"),
       items: [
         {
-          title: "Incidents",
+          title: t('navigation.incidents'),
           url: "/incidents",
           icon: FileWarning,
         },
         {
-          title: "Audits & Inspections",
+          title: t('navigation.auditsInspections'),
           url: "/audits",
           icon: ClipboardCheck,
         },
         {
-          title: "Visitor Gatekeeper",
+          title: t('navigation.visitorGatekeeper'),
           url: "/visitors",
           icon: Users,
         },
       ],
     },
     {
-      title: "Administration",
+      title: t('navigation.administration'),
       icon: Settings,
       isActive: location.pathname.startsWith("/admin"),
       items: [
         {
-          title: "Brand Management",
+          title: t('navigation.brandManagement'),
           url: "/admin/branding",
           icon: Building2,
         },
         {
-          title: "User Management",
+          title: t('navigation.userManagement'),
           url: "/admin/users",
           icon: Users,
         },
@@ -142,9 +144,9 @@ export function AppSidebar() {
                       <Shield className="size-6 text-primary" />
                     )}
                   </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
+                  <div className="grid flex-1 text-start text-sm leading-tight">
                     <span className="truncate font-semibold">{tenantName}</span>
-                    <span className="truncate text-xs text-muted-foreground">Enterprise HSSE</span>
+                    <span className="truncate text-xs text-muted-foreground">{t('navigation.enterpriseHsse')}</span>
                   </div>
                 </>
               )}
@@ -156,7 +158,7 @@ export function AppSidebar() {
       {/* CONTENT: Navigation */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('navigation.platform')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) =>
@@ -173,7 +175,7 @@ export function AppSidebar() {
                         <SidebarMenuButton tooltip={item.title}>
                           {item.icon && <item.icon />}
                           <span>{item.title}</span>
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRight className="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -186,7 +188,7 @@ export function AppSidebar() {
                               >
                                 <NavLink to={subItem.url}>
                                   {subItem.icon && (
-                                    <subItem.icon className="mr-2 h-4 w-4 opacity-70" />
+                                    <subItem.icon className="me-2 h-4 w-4 opacity-70" />
                                   )}
                                   <span>{subItem.title}</span>
                                 </NavLink>
@@ -235,11 +237,11 @@ export function AppSidebar() {
                         <UserCircle className="h-5 w-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">My Account</span>
+                    <div className="grid flex-1 text-start text-sm leading-tight">
+                      <span className="truncate font-semibold">{t('sidebar.myAccount')}</span>
                       <span className="truncate text-xs text-muted-foreground">{userName || userEmail}</span>
                     </div>
-                    <ChevronRight className="ml-auto size-4" />
+                    <ChevronRight className="ms-auto size-4 rtl:rotate-180" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -249,15 +251,15 @@ export function AppSidebar() {
                   sideOffset={4}
                 >
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile Settings
+                    <User className="me-2 h-4 w-4" />
+                    {t('sidebar.profileSettings')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive"
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    <LogOut className="me-2 h-4 w-4" />
+                    {t('auth.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

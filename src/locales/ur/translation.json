@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "لوڈ ہو رہا ہے...",
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ کریں",
+    "delete": "حذف کریں",
+    "edit": "ترمیم کریں",
+    "submit": "جمع کرائیں",
+    "back": "واپس",
+    "next": "اگلا",
+    "search": "تلاش",
+    "filter": "فلٹر",
+    "export": "برآمد",
+    "import": "درآمد",
+    "close": "بند کریں",
+    "confirm": "تصدیق کریں",
+    "yes": "ہاں",
+    "no": "نہیں"
+  },
+  "auth": {
+    "signIn": "سائن ان",
+    "signOut": "لاگ آؤٹ",
+    "signUp": "اکاؤنٹ بنائیں",
+    "signingIn": "سائن ان ہو رہا ہے...",
+    "creatingAccount": "اکاؤنٹ بنایا جا رہا ہے...",
+    "email": "ای میل",
+    "password": "پاس ورڈ",
+    "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+    "forgotPassword": "پاس ورڈ بھول گئے؟",
+    "backToInvite": "دعوت کوڈ پر واپس جائیں",
+    "signInToAccount": "اپنے اکاؤنٹ میں سائن ان کریں",
+    "createYourAccount": "اپنا اکاؤنٹ بنائیں",
+    "welcomeBack": "خوش آمدید",
+    "loginSuccess": "آپ کامیابی سے لاگ ان ہو گئے ہیں۔",
+    "invalidEmail": "غلط ای میل پتہ",
+    "passwordRequired": "پاس ورڈ ضروری ہے",
+    "passwordMinLength": "پاس ورڈ کم از کم 8 حروف کا ہونا چاہیے",
+    "passwordsDoNotMatch": "پاس ورڈ مماثل نہیں ہیں",
+    "validationError": "توثیق کی خرابی",
+    "error": "خرابی",
+    "failedToLogin": "لاگ ان ناکام"
+  },
+  "navigation": {
+    "dashboard": "ڈیش بورڈ",
+    "hsseManagement": "صحت و حفاظت کا انتظام",
+    "incidents": "واقعات",
+    "auditsInspections": "آڈٹ اور معائنہ",
+    "visitorGatekeeper": "مہمانوں کا گیٹ کیپر",
+    "administration": "انتظامیہ",
+    "brandManagement": "برانڈ مینجمنٹ",
+    "userManagement": "صارف کا انتظام",
+    "platform": "پلیٹ فارم",
+    "enterpriseHsse": "انٹرپرائز صحت و حفاظت"
+  },
+  "profile": {
+    "title": "اکاؤنٹ کی ترتیبات",
+    "description": "اپنی ذاتی معلومات اور سیکیورٹی ترجیحات کا انتظام کریں۔",
+    "profileTab": "پروفائل",
+    "securityTab": "سیکیورٹی",
+    "personalInfo": "ذاتی معلومات",
+    "updatePersonalInfo": "اپنی ذاتی معلومات کو اپ ڈیٹ کریں۔",
+    "fullName": "پورا نام",
+    "enterFullName": "اپنا پورا نام درج کریں",
+    "emailAddress": "ای میل پتہ",
+    "emailManagedByOrg": "ای میل پتہ آپ کی تنظیم کے منتظم کے ذریعے منظم ہے۔",
+    "phoneNumber": "فون نمبر",
+    "emergencyContactName": "ہنگامی رابطے کا نام",
+    "emergencyContactPhone": "ہنگامی رابطے کا فون",
+    "saveChanges": "تبدیلیاں محفوظ کریں",
+    "saving": "محفوظ ہو رہا ہے...",
+    "profileUpdated": "پروفائل اپ ڈیٹ ہو گیا",
+    "profileUpdateSuccess": "آپ کا پروفائل کامیابی سے اپ ڈیٹ ہو گیا۔",
+    "profileUpdateError": "پروفائل اپ ڈیٹ کرنے میں ناکام"
+  },
+  "sidebar": {
+    "myAccount": "میرا اکاؤنٹ",
+    "profileSettings": "پروفائل کی ترتیبات"
+  },
+  "security": {
+    "protectedByZeroTrust": "زیرو ٹرسٹ سیکیورٹی سے محفوظ",
+    "securityStatus": "سیکیورٹی کی حیثیت",
+    "zeroTrustActive": "زیرو ٹرسٹ تصدیق فعال",
+    "protected": "محفوظ"
+  },
+  "dashboard": {
+    "welcomeTitle": "ذود صحت و حفاظت پلیٹ فارم میں خوش آمدید",
+    "welcomeSubtitle": "صحت، حفاظت، سیکیورٹی اور ماحولیات کا انتظامی نظام",
+    "userProfile": "صارف پروفائل",
+    "accountInfo": "آپ کے اکاؤنٹ کی معلومات"
+  },
+  "branding": {
+    "title": "ذود صحت و حفاظت پلیٹ فارم",
+    "subtitle": "صحت، حفاظت، سیکیورٹی اور ماحولیات کا انتظام"
+  },
+  "tenant": {
+    "tenantInfo": "کرایہ دار کی معلومات",
+    "organization": "تنظیم",
+    "memberSince": "ممبر بنے"
+  },
+  "assignment": {
+    "title": "تفویض کی معلومات",
+    "branch": "شاخ",
+    "site": "سائٹ",
+    "notAssigned": "تفویض نہیں"
+  },
+  "role": {
+    "title": "کردار کی معلومات",
+    "currentRole": "موجودہ کردار",
+    "roleDescription": "تنظیم کے اندر اپنا موجودہ کردار اور رسائی کی سطح دیکھیں۔",
+    "loggedInAs": "آپ بطور لاگ ان ہیں"
+  },
+  "placeholder": {
+    "comingSoon": "یہ فیچر جلد آ رہا ہے۔",
+    "checkBackLater": "اپ ڈیٹس کے لیے بعد میں چیک کریں۔"
+  },
+  "sessionTimeout": {
+    "warningTitle": "سیشن جلد ختم ہو رہا ہے",
+    "warningDescription": "غیر فعالیت کی وجہ سے آپ کا سیشن {{time}} میں ختم ہو جائے گا۔ کیا آپ لاگ ان رہنا چاہتے ہیں؟",
+    "logOutNow": "ابھی لاگ آؤٹ کریں",
+    "stayLoggedIn": "لاگ ان رہیں"
+  },
+  "mfa": {
+    "verificationTitle": "دو عنصری تصدیق",
+    "verificationDescription": "جاری رکھنے کے لیے اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "verifyCode": "کوڈ کی تصدیق کریں",
+    "verifying": "تصدیق ہو رہی ہے...",
+    "invalidCode": "غلط تصدیقی کوڈ"
+  }
+}

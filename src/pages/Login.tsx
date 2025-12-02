@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
@@ -12,12 +13,8 @@ import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
 export default function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +22,11 @@ export default function Login() {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
+
+  const loginSchema = z.object({
+    email: z.string().email(t('auth.invalidEmail')),
+    password: z.string().min(1, t('auth.passwordRequired')),
+  });
 
   useEffect(() => {
     // Pre-fill email if coming from invitation
@@ -87,8 +89,8 @@ export default function Login() {
     clearInvitationData();
 
     toast({
-      title: 'Welcome Back',
-      description: 'You have been logged in successfully.',
+      title: t('auth.welcomeBack'),
+      description: t('auth.loginSuccess'),
     });
 
     navigate('/');
@@ -138,20 +140,20 @@ export default function Login() {
       clearInvitationData();
 
       toast({
-        title: 'Welcome Back',
-        description: 'You have been logged in successfully.',
+        title: t('auth.welcomeBack'),
+        description: t('auth.loginSuccess'),
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth.validationError'),
           description: err.errors[0].message,
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Error',
-          description: err instanceof Error ? err.message : 'Failed to log in',
+          title: t('auth.error'),
+          description: err instanceof Error ? err.message : t('auth.failedToLogin'),
           variant: 'destructive',
         });
       }
@@ -171,9 +173,9 @@ export default function Login() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
         <div className="absolute bottom-8 left-8 right-8 text-white">
-          <h1 className="mb-2 text-4xl font-bold">Dhuud HSSE Platform</h1>
+          <h1 className="mb-2 text-4xl font-bold">{t('branding.title')}</h1>
           <p className="text-lg text-white/90">
-            Health, Safety, Security & Environment Management
+            {t('branding.subtitle')}
           </p>
         </div>
       </div>
@@ -197,14 +199,14 @@ export default function Login() {
               </div>
             )}
             <h2 className="text-3xl font-bold">{tenantName}</h2>
-            <p className="mt-2 text-muted-foreground">Sign in to your account</p>
+            <p className="mt-2 text-muted-foreground">{t('auth.signInToAccount')}</p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -218,7 +220,7 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('auth.password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -233,7 +235,7 @@ export default function Login() {
             </div>
 
             <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
 
             <div className="flex flex-col items-center gap-2">
@@ -243,7 +245,7 @@ export default function Login() {
                 onClick={() => navigate('/forgot-password')}
                 className="text-sm"
               >
-                Forgot password?
+                {t('auth.forgotPassword')}
               </Button>
               <Button
                 type="button"
@@ -251,7 +253,7 @@ export default function Login() {
                 onClick={() => navigate('/invite')}
                 className="text-sm"
               >
-                Back to invitation code
+                {t('auth.backToInvite')}
               </Button>
             </div>
           </form>
@@ -259,7 +261,7 @@ export default function Login() {
           {/* Footer */}
           <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4" />
-            <span>Protected by Zero Trust Security</span>
+            <span>{t('security.protectedByZeroTrust')}</span>
           </div>
         </div>
       </div>

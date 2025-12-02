@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Naglo-load...",
+    "save": "I-save",
+    "cancel": "Kanselahin",
+    "delete": "Tanggalin",
+    "edit": "I-edit",
+    "submit": "Isumite",
+    "back": "Bumalik",
+    "next": "Susunod",
+    "search": "Maghanap",
+    "filter": "I-filter",
+    "export": "I-export",
+    "import": "I-import",
+    "close": "Isara",
+    "confirm": "Kumpirmahin",
+    "yes": "Oo",
+    "no": "Hindi"
+  },
+  "auth": {
+    "signIn": "Mag-sign In",
+    "signOut": "Mag-log out",
+    "signUp": "Gumawa ng Account",
+    "signingIn": "Nagsa-sign in...",
+    "creatingAccount": "Gumagawa ng Account...",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Kumpirmahin ang Password",
+    "forgotPassword": "Nakalimutan ang password?",
+    "backToInvite": "Bumalik sa invitation code",
+    "signInToAccount": "Mag-sign in sa iyong account",
+    "createYourAccount": "Gumawa ng iyong account",
+    "welcomeBack": "Maligayang Pagbabalik",
+    "loginSuccess": "Matagumpay kang naka-log in.",
+    "invalidEmail": "Hindi valid na email address",
+    "passwordRequired": "Kinakailangan ang password",
+    "passwordMinLength": "Ang password ay dapat na hindi bababa sa 8 karakter",
+    "passwordsDoNotMatch": "Hindi tugma ang mga password",
+    "validationError": "Error sa Validation",
+    "error": "Error",
+    "failedToLogin": "Nabigo ang pag-log in"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "hsseManagement": "Pamamahala ng HSSE",
+    "incidents": "Mga Insidente",
+    "auditsInspections": "Mga Audit at Inspeksyon",
+    "visitorGatekeeper": "Visitor Gatekeeper",
+    "administration": "Administrasyon",
+    "brandManagement": "Pamamahala ng Brand",
+    "userManagement": "Pamamahala ng User",
+    "platform": "Platform",
+    "enterpriseHsse": "Enterprise HSSE"
+  },
+  "profile": {
+    "title": "Mga Setting ng Account",
+    "description": "Pamahalaan ang iyong personal na impormasyon at mga kagustuhan sa seguridad.",
+    "profileTab": "Profile",
+    "securityTab": "Seguridad",
+    "personalInfo": "Personal na Impormasyon",
+    "updatePersonalInfo": "I-update ang iyong personal na impormasyon.",
+    "fullName": "Buong Pangalan",
+    "enterFullName": "Ilagay ang iyong buong pangalan",
+    "emailAddress": "Email Address",
+    "emailManagedByOrg": "Ang email address ay pinamamahalaan ng administrator ng iyong organisasyon.",
+    "phoneNumber": "Numero ng Telepono",
+    "emergencyContactName": "Pangalan ng Emergency Contact",
+    "emergencyContactPhone": "Telepono ng Emergency Contact",
+    "saveChanges": "I-save ang mga Pagbabago",
+    "saving": "Nagse-save...",
+    "profileUpdated": "Na-update ang Profile",
+    "profileUpdateSuccess": "Matagumpay na na-update ang iyong profile.",
+    "profileUpdateError": "Nabigo ang pag-update ng profile"
+  },
+  "sidebar": {
+    "myAccount": "Aking Account",
+    "profileSettings": "Mga Setting ng Profile"
+  },
+  "security": {
+    "protectedByZeroTrust": "Protektado ng Zero Trust Security",
+    "securityStatus": "Katayuan ng Seguridad",
+    "zeroTrustActive": "Zero Trust authentication aktibo",
+    "protected": "Protektado"
+  },
+  "dashboard": {
+    "welcomeTitle": "Maligayang Pagdating sa Dhuud HSSE Platform",
+    "welcomeSubtitle": "Sistema ng Pamamahala ng Kalusugan, Kaligtasan, Seguridad at Kapaligiran",
+    "userProfile": "Profile ng User",
+    "accountInfo": "Impormasyon ng iyong account"
+  },
+  "branding": {
+    "title": "Dhuud HSSE Platform",
+    "subtitle": "Pamamahala ng Kalusugan, Kaligtasan, Seguridad at Kapaligiran"
+  },
+  "tenant": {
+    "tenantInfo": "Impormasyon ng Tenant",
+    "organization": "Organisasyon",
+    "memberSince": "Miyembro Mula"
+  },
+  "assignment": {
+    "title": "Impormasyon ng Assignment",
+    "branch": "Branch",
+    "site": "Site",
+    "notAssigned": "Hindi Naka-assign"
+  },
+  "role": {
+    "title": "Impormasyon ng Role",
+    "currentRole": "Kasalukuyang Role",
+    "roleDescription": "Tingnan ang iyong kasalukuyang role at antas ng access sa loob ng organisasyon.",
+    "loggedInAs": "Naka-log in ka bilang"
+  },
+  "placeholder": {
+    "comingSoon": "Paparating na ang feature na ito.",
+    "checkBackLater": "Bumalik mamaya para sa mga update."
+  },
+  "sessionTimeout": {
+    "warningTitle": "Malapit nang Mag-expire ang Session",
+    "warningDescription": "Mag-e-expire ang iyong session sa {{time}} dahil sa kawalang aktibidad. Gusto mo bang manatiling naka-log in?",
+    "logOutNow": "Mag-log Out Ngayon",
+    "stayLoggedIn": "Manatiling Naka-log In"
+  },
+  "mfa": {
+    "verificationTitle": "Two-Factor Authentication",
+    "verificationDescription": "Ilagay ang 6-digit code mula sa iyong authenticator app para magpatuloy.",
+    "verifyCode": "I-verify ang Code",
+    "verifying": "Nagve-verify...",
+    "invalidCode": "Hindi valid na verification code"
+  }
+}
