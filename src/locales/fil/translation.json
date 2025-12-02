@@ -145,7 +145,8 @@
       "backgroundColor": "Kulay ng Background",
       "backgroundImage": "Larawan ng Background",
       "imageDescription": "JPG o PNG, Recommended 1920x1080px",
-      "noImage": "Walang larawan na na-upload"
+      "noImage": "Walang larawan na na-upload",
+      "hslPlaceholder": "HSL Value (hal. 0 0% 98%)"
     },
     "preview": {
       "title": "Live Preview",

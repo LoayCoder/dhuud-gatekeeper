@@ -145,7 +145,8 @@
       "backgroundColor": "لون الخلفية",
       "backgroundImage": "صورة الخلفية",
       "imageDescription": "JPG أو PNG، يُوصى بـ 1920×1080 بكسل",
-      "noImage": "لم يتم رفع صورة"
+      "noImage": "لم يتم رفع صورة",
+      "hslPlaceholder": "قيمة HSL (مثال: 0 0% 98%)"
     },
     "preview": {
       "title": "معاينة مباشرة",

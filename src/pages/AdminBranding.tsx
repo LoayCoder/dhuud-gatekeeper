@@ -502,7 +502,7 @@ export default function AdminBranding() {
                     <Input 
                       value={bgColor} 
                       onChange={(e) => setBgColor(e.target.value)}
-                      placeholder="HSL Value (e.g. 0 0% 98%)"
+                      placeholder={t('adminBranding.theme.hslPlaceholder')}
                     />
                   </div>
                 </div>
