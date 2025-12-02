@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -44,6 +45,7 @@ function hsvToHsl(h: number, s: number, v: number): { h: number; s: number; l: n
 }
 
 export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) {
+  const { t } = useTranslation();
   const [hsl, setHsl] = useState(() => parseHsl(value));
   const [open, setOpen] = useState(false);
   const planeRef = useRef<HTMLDivElement>(null);
@@ -120,14 +122,14 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               className="h-12 w-12 p-0 border-2 rounded-lg shadow-sm"
               style={{ backgroundColor: colorPreview }}
             >
-              <span className="sr-only">Pick color</span>
+              <span className="sr-only">{t('adminBranding.colorPicker.pickColor')}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-4" align="start">
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Pipette className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium text-sm">Color Picker</span>
+                <span className="font-medium text-sm">{t('adminBranding.colorPicker.title')}</span>
               </div>
 
               {/* Color Plane (Saturation x Value/Brightness) */}
@@ -196,11 +198,11 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
 
               {/* Manual Input */}
               <div className="pt-2 border-t">
-                <Label className="text-xs text-muted-foreground">HSL Value</Label>
+                <Label className="text-xs text-muted-foreground">{t('adminBranding.colorPicker.hslValue')}</Label>
                 <Input
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
-                  placeholder="H S% L%"
+                  placeholder={t('adminBranding.colorPicker.hslPlaceholder')}
                   className="mt-1 font-mono text-xs h-8"
                 />
               </div>

@@ -193,6 +193,12 @@
       "loadFailed": "ब्रांडिंग डेटा लोड करने में विफल",
       "noTenantConfigured": "कोई किरायेदार कॉन्फ़िगर नहीं किया गया",
       "configError": "कॉन्फ़िगरेशन त्रुटि"
+    },
+    "colorPicker": {
+      "title": "रंग चयनकर्ता",
+      "pickColor": "रंग चुनें",
+      "hslValue": "HSL मान",
+      "hslPlaceholder": "H S% L%"
     }
   },
   "securitySettings": {

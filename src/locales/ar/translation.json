@@ -193,6 +193,12 @@
       "loadFailed": "فشل تحميل بيانات الهوية البصرية",
       "noTenantConfigured": "لم يتم تكوين مستأجر",
       "configError": "خطأ في التكوين"
+    },
+    "colorPicker": {
+      "title": "منتقي الألوان",
+      "pickColor": "اختر لونًا",
+      "hslValue": "قيمة HSL",
+      "hslPlaceholder": "H S% L%"
     }
   },
   "securitySettings": {

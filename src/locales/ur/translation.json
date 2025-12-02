@@ -193,6 +193,12 @@
       "loadFailed": "برانڈنگ ڈیٹا لوڈ کرنے میں ناکام",
       "noTenantConfigured": "کوئی کرایہ دار ترتیب نہیں دیا گیا",
       "configError": "ترتیب کی خرابی"
+    },
+    "colorPicker": {
+      "title": "رنگ منتخب کریں",
+      "pickColor": "رنگ چنیں",
+      "hslValue": "HSL قدر",
+      "hslPlaceholder": "H S% L%"
     }
   },
   "securitySettings": {

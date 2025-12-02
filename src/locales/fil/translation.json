@@ -193,6 +193,12 @@
       "loadFailed": "Nabigo ang pag-load ng branding data",
       "noTenantConfigured": "Walang tenant na naka-configure",
       "configError": "Configuration Error"
+    },
+    "colorPicker": {
+      "title": "Tagapili ng Kulay",
+      "pickColor": "Pumili ng kulay",
+      "hslValue": "HSL Value",
+      "hslPlaceholder": "H S% L%"
     }
   },
   "securitySettings": {
