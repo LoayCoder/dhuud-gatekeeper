@@ -1,29 +1,59 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import { useTheme as useNextTheme } from 'next-themes';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ThemeContextType {
-  primaryColor: string;
-  setPrimaryColor: (color: string) => void;
-  secondaryColor: string;
-  setSecondaryColor: (color: string) => void;
+  // Light mode colors
+  primaryColorLight: string;
+  setPrimaryColorLight: (color: string) => void;
+  secondaryColorLight: string;
+  setSecondaryColorLight: (color: string) => void;
+  // Dark mode colors
+  primaryColorDark: string;
+  setPrimaryColorDark: (color: string) => void;
+  secondaryColorDark: string;
+  setSecondaryColorDark: (color: string) => void;
+  // Active colors (based on current theme)
+  activePrimaryColor: string;
+  activeSecondaryColor: string;
+  // Background settings
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
   backgroundTheme: 'color' | 'image';
   setBackgroundTheme: (theme: 'color' | 'image') => void;
   backgroundImageUrl: string | null;
   setBackgroundImageUrl: (url: string | null) => void;
+  // Tenant info
   tenantName: string;
   setTenantName: (name: string) => void;
-  logoUrl: string | null;
-  setLogoUrl: (url: string | null) => void;
-  sidebarIconUrl: string | null;
-  setSidebarIconUrl: (url: string | null) => void;
-  appIconUrl: string | null;
-  setAppIconUrl: (url: string | null) => void;
-  faviconUrl: string | null;
-  setFaviconUrl: (url: string | null) => void;
   tenantId: string | null;
   setTenantId: (id: string | null) => void;
+  // Light mode assets
+  logoLightUrl: string | null;
+  setLogoLightUrl: (url: string | null) => void;
+  sidebarIconLightUrl: string | null;
+  setSidebarIconLightUrl: (url: string | null) => void;
+  appIconLightUrl: string | null;
+  setAppIconLightUrl: (url: string | null) => void;
+  // Dark mode assets
+  logoDarkUrl: string | null;
+  setLogoDarkUrl: (url: string | null) => void;
+  sidebarIconDarkUrl: string | null;
+  setSidebarIconDarkUrl: (url: string | null) => void;
+  appIconDarkUrl: string | null;
+  setAppIconDarkUrl: (url: string | null) => void;
+  // Active assets (based on current theme)
+  activeLogoUrl: string | null;
+  activeSidebarIconUrl: string | null;
+  activeAppIconUrl: string | null;
+  // Favicon (same for both modes)
+  faviconUrl: string | null;
+  setFaviconUrl: (url: string | null) => void;
+  // Theme mode
+  colorMode: string | undefined;
+  setColorMode: (mode: string) => void;
+  resolvedMode: string | undefined;
+  // Invitation data
   invitationEmail: string | null;
   invitationCode: string | null;
   isCodeValidated: boolean;
@@ -31,29 +61,90 @@ interface ThemeContextType {
   clearInvitationData: () => void;
   refreshTenantData: () => Promise<void>;
   isLoading: boolean;
+  // Legacy compatibility (maps to light mode)
+  primaryColor: string;
+  setPrimaryColor: (color: string) => void;
+  secondaryColor: string;
+  setSecondaryColor: (color: string) => void;
+  logoUrl: string | null;
+  setLogoUrl: (url: string | null) => void;
+  sidebarIconUrl: string | null;
+  setSidebarIconUrl: (url: string | null) => void;
+  appIconUrl: string | null;
+  setAppIconUrl: (url: string | null) => void;
 }
 
-const DEFAULT_PRIMARY_COLOR = '221.2 83.2% 53.3%';
+const DEFAULT_PRIMARY_COLOR_LIGHT = '221.2 83.2% 53.3%';
+const DEFAULT_PRIMARY_COLOR_DARK = '217 91% 60%';
 const DEFAULT_TENANT_NAME = 'Dhuud Platform';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY_COLOR);
-  const [secondaryColor, setSecondaryColor] = useState('');
+  const { theme, setTheme, resolvedTheme } = useNextTheme();
+  
+  // Light mode colors
+  const [primaryColorLight, setPrimaryColorLight] = useState(DEFAULT_PRIMARY_COLOR_LIGHT);
+  const [secondaryColorLight, setSecondaryColorLight] = useState('');
+  // Dark mode colors
+  const [primaryColorDark, setPrimaryColorDark] = useState(DEFAULT_PRIMARY_COLOR_DARK);
+  const [secondaryColorDark, setSecondaryColorDark] = useState('');
+  
+  // Background settings
   const [backgroundColor, setBackgroundColor] = useState('');
   const [backgroundTheme, setBackgroundTheme] = useState<'color' | 'image'>('color');
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(null);
+  
+  // Tenant info
   const [tenantName, setTenantName] = useState(DEFAULT_TENANT_NAME);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [sidebarIconUrl, setSidebarIconUrl] = useState<string | null>(null);
-  const [appIconUrl, setAppIconUrl] = useState<string | null>(null);
-  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
+  
+  // Light mode assets
+  const [logoLightUrl, setLogoLightUrl] = useState<string | null>(null);
+  const [sidebarIconLightUrl, setSidebarIconLightUrl] = useState<string | null>(null);
+  const [appIconLightUrl, setAppIconLightUrl] = useState<string | null>(null);
+  
+  // Dark mode assets
+  const [logoDarkUrl, setLogoDarkUrl] = useState<string | null>(null);
+  const [sidebarIconDarkUrl, setSidebarIconDarkUrl] = useState<string | null>(null);
+  const [appIconDarkUrl, setAppIconDarkUrl] = useState<string | null>(null);
+  
+  // Favicon (same for both modes)
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+  
+  // Invitation state
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
   const [isCodeValidated, setIsCodeValidated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Computed active values based on resolved theme
+  const isDark = resolvedTheme === 'dark';
+  
+  const activePrimaryColor = useMemo(() => 
+    isDark ? primaryColorDark : primaryColorLight, 
+    [isDark, primaryColorDark, primaryColorLight]
+  );
+  
+  const activeSecondaryColor = useMemo(() => 
+    isDark ? secondaryColorDark : secondaryColorLight, 
+    [isDark, secondaryColorDark, secondaryColorLight]
+  );
+  
+  const activeLogoUrl = useMemo(() => 
+    isDark ? (logoDarkUrl || logoLightUrl) : logoLightUrl, 
+    [isDark, logoDarkUrl, logoLightUrl]
+  );
+  
+  const activeSidebarIconUrl = useMemo(() => 
+    isDark ? (sidebarIconDarkUrl || sidebarIconLightUrl) : sidebarIconLightUrl, 
+    [isDark, sidebarIconDarkUrl, sidebarIconLightUrl]
+  );
+  
+  const activeAppIconUrl = useMemo(() => 
+    isDark ? (appIconDarkUrl || appIconLightUrl) : appIconLightUrl, 
+    [isDark, appIconDarkUrl, appIconLightUrl]
+  );
 
   const setInvitationData = (email: string, code: string, tenantIdValue: string) => {
     setInvitationEmail(email);
@@ -69,15 +160,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetToDefaults = useCallback(() => {
-    setPrimaryColor(DEFAULT_PRIMARY_COLOR);
-    setSecondaryColor('');
+    setPrimaryColorLight(DEFAULT_PRIMARY_COLOR_LIGHT);
+    setPrimaryColorDark(DEFAULT_PRIMARY_COLOR_DARK);
+    setSecondaryColorLight('');
+    setSecondaryColorDark('');
     setBackgroundColor('');
     setBackgroundTheme('color');
     setBackgroundImageUrl(null);
     setTenantName(DEFAULT_TENANT_NAME);
-    setLogoUrl(null);
-    setSidebarIconUrl(null);
-    setAppIconUrl(null);
+    setLogoLightUrl(null);
+    setLogoDarkUrl(null);
+    setSidebarIconLightUrl(null);
+    setSidebarIconDarkUrl(null);
+    setAppIconLightUrl(null);
+    setAppIconDarkUrl(null);
     setTenantId(null);
   }, []);
 
@@ -91,7 +187,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch user's profile to get tenant_id
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('tenant_id')
@@ -103,10 +198,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch tenant details with new branding fields
       const { data: tenant, error: tenantError } = await supabase
         .from('tenants')
-        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, sidebar_icon_url, app_icon_url, background_image_url, favicon_url')
+        .select('name, brand_color, secondary_color, brand_color_dark, secondary_color_dark, background_theme, background_color, logo_light_url, logo_dark_url, sidebar_icon_light_url, sidebar_icon_dark_url, app_icon_light_url, app_icon_dark_url, background_image_url, favicon_url')
         .eq('id', profile.tenant_id)
         .maybeSingle();
 
@@ -118,18 +212,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // Update state with tenant branding
       setTenantId(profile.tenant_id);
       setTenantName(tenant.name || DEFAULT_TENANT_NAME);
-      setPrimaryColor(tenant.brand_color || DEFAULT_PRIMARY_COLOR);
-      setSecondaryColor(tenant.secondary_color || '');
+      
+      // Light mode
+      setPrimaryColorLight(tenant.brand_color || DEFAULT_PRIMARY_COLOR_LIGHT);
+      setSecondaryColorLight(tenant.secondary_color || '');
+      setLogoLightUrl(tenant.logo_light_url);
+      setSidebarIconLightUrl(tenant.sidebar_icon_light_url);
+      setAppIconLightUrl(tenant.app_icon_light_url);
+      
+      // Dark mode
+      setPrimaryColorDark(tenant.brand_color_dark || DEFAULT_PRIMARY_COLOR_DARK);
+      setSecondaryColorDark(tenant.secondary_color_dark || '');
+      setLogoDarkUrl(tenant.logo_dark_url);
+      setSidebarIconDarkUrl(tenant.sidebar_icon_dark_url);
+      setAppIconDarkUrl(tenant.app_icon_dark_url);
+      
+      // Background & favicon
       setBackgroundColor(tenant.background_color || '');
       setBackgroundTheme((tenant.background_theme as 'color' | 'image') || 'color');
-      setLogoUrl(tenant.logo_url);
-      setSidebarIconUrl(tenant.sidebar_icon_url);
-      setAppIconUrl(tenant.app_icon_url);
       setBackgroundImageUrl(tenant.background_image_url);
       setFaviconUrl(tenant.favicon_url);
 
-      // Update Favicon dynamically (prefer favicon_url, fallback to app_icon_url)
-      const faviconSrc = tenant.favicon_url || tenant.app_icon_url;
+      // Update Favicon dynamically
+      const faviconSrc = tenant.favicon_url || tenant.app_icon_light_url;
       if (faviconSrc) {
         const existingLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
         const link = existingLink || document.createElement('link');
@@ -149,12 +254,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for auth state changes
   useEffect(() => {
-    // Refresh tenant data on mount
     refreshTenantData();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
-        // Use setTimeout to avoid Supabase deadlock
         setTimeout(() => {
           refreshTenantData();
         }, 0);
@@ -167,36 +270,68 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [refreshTenantData, resetToDefaults]);
 
-  // Apply the primary color to CSS variable
+  // Apply the primary color to CSS variable based on resolved theme
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary', primaryColor);
-  }, [primaryColor]);
+    document.documentElement.style.setProperty('--primary', activePrimaryColor);
+    if (activeSecondaryColor) {
+      document.documentElement.style.setProperty('--secondary', activeSecondaryColor);
+    }
+  }, [activePrimaryColor, activeSecondaryColor]);
 
   return (
     <ThemeContext.Provider
       value={{
-        primaryColor,
-        setPrimaryColor,
-        secondaryColor,
-        setSecondaryColor,
+        // Light mode colors
+        primaryColorLight,
+        setPrimaryColorLight,
+        secondaryColorLight,
+        setSecondaryColorLight,
+        // Dark mode colors
+        primaryColorDark,
+        setPrimaryColorDark,
+        secondaryColorDark,
+        setSecondaryColorDark,
+        // Active colors
+        activePrimaryColor,
+        activeSecondaryColor,
+        // Background
         backgroundColor,
         setBackgroundColor,
         backgroundTheme,
         setBackgroundTheme,
         backgroundImageUrl,
         setBackgroundImageUrl,
+        // Tenant
         tenantName,
         setTenantName,
-        logoUrl,
-        setLogoUrl,
-        sidebarIconUrl,
-        setSidebarIconUrl,
-        appIconUrl,
-        setAppIconUrl,
-        faviconUrl,
-        setFaviconUrl,
         tenantId,
         setTenantId,
+        // Light mode assets
+        logoLightUrl,
+        setLogoLightUrl,
+        sidebarIconLightUrl,
+        setSidebarIconLightUrl,
+        appIconLightUrl,
+        setAppIconLightUrl,
+        // Dark mode assets
+        logoDarkUrl,
+        setLogoDarkUrl,
+        sidebarIconDarkUrl,
+        setSidebarIconDarkUrl,
+        appIconDarkUrl,
+        setAppIconDarkUrl,
+        // Active assets
+        activeLogoUrl,
+        activeSidebarIconUrl,
+        activeAppIconUrl,
+        // Favicon
+        faviconUrl,
+        setFaviconUrl,
+        // Theme mode
+        colorMode: theme,
+        setColorMode: setTheme,
+        resolvedMode: resolvedTheme,
+        // Invitation
         invitationEmail,
         invitationCode,
         isCodeValidated,
@@ -204,6 +339,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         clearInvitationData,
         refreshTenantData,
         isLoading,
+        // Legacy compatibility (maps to light mode)
+        primaryColor: primaryColorLight,
+        setPrimaryColor: setPrimaryColorLight,
+        secondaryColor: secondaryColorLight,
+        setSecondaryColor: setSecondaryColorLight,
+        logoUrl: logoLightUrl,
+        setLogoUrl: setLogoLightUrl,
+        sidebarIconUrl: sidebarIconLightUrl,
+        setSidebarIconUrl: setSidebarIconLightUrl,
+        appIconUrl: appIconLightUrl,
+        setAppIconUrl: setAppIconLightUrl,
       }}
     >
       {children}

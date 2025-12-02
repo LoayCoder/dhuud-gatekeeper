@@ -21,7 +21,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
+  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
 
   useEffect(() => {
     // Pre-fill email if coming from invitation
@@ -120,11 +120,17 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
           <div className="text-center">
-            {logoUrl ? (
-              <img src={logoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
+            {activeLogoUrl ? (
+              <img src={activeLogoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
             ) : (
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Shield className="h-8 w-8 text-primary" />
+              <div 
+                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+                style={{ backgroundColor: activePrimaryColor ? `hsl(${activePrimaryColor} / 0.1)` : 'hsl(var(--primary) / 0.1)' }}
+              >
+                <Shield 
+                  className="h-8 w-8" 
+                  style={{ color: activePrimaryColor ? `hsl(${activePrimaryColor})` : 'hsl(var(--primary))' }}
+                />
               </div>
             )}
             <h2 className="text-3xl font-bold">{tenantName}</h2>

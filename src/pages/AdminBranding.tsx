@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2, Globe, Shield } from 'lucide-react';
+import { Palette, Image as ImageIcon, Layout, Upload, Save, Loader2, Globe, Sun, Moon } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
@@ -22,16 +22,31 @@ export default function AdminBranding() {
   
   const [tenant, setTenant] = useState<any>(null);
 
-  const [brandColor, setBrandColor] = useState('');
-  const [secondaryColor, setSecondaryColor] = useState('');
+  // Light mode colors
+  const [brandColorLight, setBrandColorLight] = useState('');
+  const [secondaryColorLight, setSecondaryColorLight] = useState('');
+  // Dark mode colors
+  const [brandColorDark, setBrandColorDark] = useState('');
+  const [secondaryColorDark, setSecondaryColorDark] = useState('');
+  
+  // Background settings
   const [bgTheme, setBgTheme] = useState<'color' | 'image'>('color');
   const [bgColor, setBgColor] = useState('');
   
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [sidebarIconPreview, setSidebarIconPreview] = useState<string | null>(null);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  // Light mode assets
+  const [logoLightPreview, setLogoLightPreview] = useState<string | null>(null);
+  const [logoDarkPreview, setLogoDarkPreview] = useState<string | null>(null);
+  const [sidebarIconLightPreview, setSidebarIconLightPreview] = useState<string | null>(null);
+  const [sidebarIconDarkPreview, setSidebarIconDarkPreview] = useState<string | null>(null);
+  const [iconLightPreview, setIconLightPreview] = useState<string | null>(null);
+  const [iconDarkPreview, setIconDarkPreview] = useState<string | null>(null);
+  
+  // Shared assets
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [bgPreview, setBgPreview] = useState<string | null>(null);
+
+  // Preview mode toggle
+  const [previewMode, setPreviewMode] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     loadTenantData();
@@ -54,15 +69,30 @@ export default function AdminBranding() {
       if (error) throw error;
 
       setTenant(tenantData);
-      setBrandColor(tenantData.brand_color || '');
-      setSecondaryColor(tenantData.secondary_color || '');
+      
+      // Colors
+      setBrandColorLight(tenantData.brand_color || '');
+      setSecondaryColorLight(tenantData.secondary_color || '');
+      setBrandColorDark(tenantData.brand_color_dark || '');
+      setSecondaryColorDark(tenantData.secondary_color_dark || '');
+      
+      // Background
       setBgTheme(tenantData.background_theme as any || 'color');
       setBgColor(tenantData.background_color || '');
-      setLogoPreview(tenantData.logo_url);
-      setSidebarIconPreview(tenantData.sidebar_icon_url);
-      setIconPreview(tenantData.app_icon_url);
-      setFaviconPreview(tenantData.favicon_url);
       setBgPreview(tenantData.background_image_url);
+      
+      // Light mode assets
+      setLogoLightPreview(tenantData.logo_light_url);
+      setSidebarIconLightPreview(tenantData.sidebar_icon_light_url);
+      setIconLightPreview(tenantData.app_icon_light_url);
+      
+      // Dark mode assets
+      setLogoDarkPreview(tenantData.logo_dark_url);
+      setSidebarIconDarkPreview(tenantData.sidebar_icon_dark_url);
+      setIconDarkPreview(tenantData.app_icon_dark_url);
+      
+      // Favicon
+      setFaviconPreview(tenantData.favicon_url);
 
     } catch (error) {
       console.error(error);
@@ -78,11 +108,32 @@ export default function AdminBranding() {
     const url = await uploadAsset(file, type, tenant.id);
     
     if (url) {
-      if (type === 'logo') setLogoPreview(url);
-      if (type === 'sidebar-icon') setSidebarIconPreview(url);
-      if (type === 'icon') setIconPreview(url);
-      if (type === 'favicon') setFaviconPreview(url);
-      if (type === 'background') setBgPreview(url);
+      switch (type) {
+        case 'logo-light':
+          setLogoLightPreview(url);
+          break;
+        case 'logo-dark':
+          setLogoDarkPreview(url);
+          break;
+        case 'sidebar-icon-light':
+          setSidebarIconLightPreview(url);
+          break;
+        case 'sidebar-icon-dark':
+          setSidebarIconDarkPreview(url);
+          break;
+        case 'icon-light':
+          setIconLightPreview(url);
+          break;
+        case 'icon-dark':
+          setIconDarkPreview(url);
+          break;
+        case 'favicon':
+          setFaviconPreview(url);
+          break;
+        case 'background':
+          setBgPreview(url);
+          break;
+      }
       
       toast({ title: 'Asset Uploaded', description: 'Don\'t forget to save your changes.' });
     }
@@ -92,15 +143,26 @@ export default function AdminBranding() {
     setSaving(true);
     try {
       const updates = {
-        brand_color: brandColor,
-        secondary_color: secondaryColor,
+        // Light mode colors
+        brand_color: brandColorLight,
+        secondary_color: secondaryColorLight,
+        // Dark mode colors
+        brand_color_dark: brandColorDark,
+        secondary_color_dark: secondaryColorDark,
+        // Background
         background_theme: bgTheme,
         background_color: bgColor,
-        logo_url: logoPreview,
-        sidebar_icon_url: sidebarIconPreview,
-        app_icon_url: iconPreview,
+        background_image_url: bgPreview,
+        // Light mode assets
+        logo_light_url: logoLightPreview,
+        sidebar_icon_light_url: sidebarIconLightPreview,
+        app_icon_light_url: iconLightPreview,
+        // Dark mode assets
+        logo_dark_url: logoDarkPreview,
+        sidebar_icon_dark_url: sidebarIconDarkPreview,
+        app_icon_dark_url: iconDarkPreview,
+        // Favicon
         favicon_url: faviconPreview,
-        background_image_url: bgPreview
       };
 
       const { error } = await supabase
@@ -135,10 +197,10 @@ export default function AdminBranding() {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <Tabs defaultValue="visuals" className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4"/> Visuals</TabsTrigger>
+          <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4"/> Colors</TabsTrigger>
           <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4"/> Assets</TabsTrigger>
           <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4"/> Theme</TabsTrigger>
         </TabsList>
@@ -147,140 +209,228 @@ export default function AdminBranding() {
           <Card>
             <CardHeader>
               <CardTitle>Color Palette</CardTitle>
-              <CardDescription>Define the primary and secondary colors for your workspace.</CardDescription>
+              <CardDescription>Define separate colors for light and dark modes to ensure proper contrast.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-8">
-                <HslColorPicker
-                  label="Primary Color (Buttons, Links, Active States)"
-                  value={brandColor}
-                  onChange={setBrandColor}
-                />
-                <HslColorPicker
-                  label="Secondary Color (Accents, Highlights)"
-                  value={secondaryColor}
-                  onChange={setSecondaryColor}
-                />
+            <CardContent className="space-y-8">
+              {/* Light Mode Colors */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <Sun className="h-5 w-5 text-amber-500" />
+                  <span>Light Mode</span>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6 pl-7">
+                  <HslColorPicker
+                    label="Primary Color"
+                    value={brandColorLight}
+                    onChange={setBrandColorLight}
+                  />
+                  <HslColorPicker
+                    label="Secondary Color"
+                    value={secondaryColorLight}
+                    onChange={setSecondaryColorLight}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Dark Mode Colors */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <Moon className="h-5 w-5 text-blue-400" />
+                  <span>Dark Mode</span>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6 pl-7">
+                  <HslColorPicker
+                    label="Primary Color"
+                    value={brandColorDark}
+                    onChange={setBrandColorDark}
+                  />
+                  <HslColorPicker
+                    label="Secondary Color"
+                    value={secondaryColorDark}
+                    onChange={setSecondaryColorDark}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="assets">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* Login Page Logos */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Layout className="h-5 w-5" /> Login Page Logo
-                </CardTitle>
-                <CardDescription>
-                  Full brand logo displayed on the login page.<br/>
-                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/SVG, Min 200x50px</span>
-                </CardDescription>
+                <CardTitle>Login Page Logos</CardTitle>
+                <CardDescription>Full brand logos displayed on the login page. PNG/SVG, Min 200x50px</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Logo" className="h-12 object-contain" />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No logo uploaded</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="file" 
-                    accept=".png,.svg" 
-                    onChange={(e) => handleFileUpload(e, 'logo')}
-                    disabled={uploading}
-                  />
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Sun className="h-4 w-4 text-amber-500" />
+                      <span>Light Mode (dark logo)</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
+                      {logoLightPreview ? (
+                        <img src={logoLightPreview} alt="Logo Light" className="h-10 object-contain" />
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No logo</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png,.svg" 
+                      onChange={(e) => handleFileUpload(e, 'logo-light')}
+                      disabled={uploading}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Moon className="h-4 w-4 text-blue-400" />
+                      <span>Dark Mode (light logo)</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
+                      {logoDarkPreview ? (
+                        <img src={logoDarkPreview} alt="Logo Dark" className="h-10 object-contain" />
+                      ) : (
+                        <span className="text-slate-400 text-sm">No logo</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png,.svg" 
+                      onChange={(e) => handleFileUpload(e, 'logo-dark')}
+                      disabled={uploading}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Sidebar Icons */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" /> Sidebar Icon
-                </CardTitle>
-                <CardDescription>
-                  Small icon for sidebar header (icon only, no text).<br/>
-                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/SVG, Square, Min 64x64px</span>
-                </CardDescription>
+                <CardTitle>Sidebar Icons</CardTitle>
+                <CardDescription>Small icons for sidebar header. PNG/SVG, Square, Min 64x64px</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
-                  {sidebarIconPreview ? (
-                    <img src={sidebarIconPreview} alt="Sidebar Icon" className="h-16 w-16 object-contain" />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No icon uploaded</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="file" 
-                    accept=".png,.svg" 
-                    onChange={(e) => handleFileUpload(e, 'sidebar-icon')}
-                    disabled={uploading}
-                  />
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Sun className="h-4 w-4 text-amber-500" />
+                      <span>Light Mode</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
+                      {sidebarIconLightPreview ? (
+                        <img src={sidebarIconLightPreview} alt="Sidebar Icon Light" className="h-12 w-12 object-contain" />
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No icon</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png,.svg" 
+                      onChange={(e) => handleFileUpload(e, 'sidebar-icon-light')}
+                      disabled={uploading}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Moon className="h-4 w-4 text-blue-400" />
+                      <span>Dark Mode</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
+                      {sidebarIconDarkPreview ? (
+                        <img src={sidebarIconDarkPreview} alt="Sidebar Icon Dark" className="h-12 w-12 object-contain" />
+                      ) : (
+                        <span className="text-slate-400 text-sm">No icon</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png,.svg" 
+                      onChange={(e) => handleFileUpload(e, 'sidebar-icon-dark')}
+                      disabled={uploading}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* App Icons (PWA) */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Smartphone className="h-5 w-5" /> App Icon (PWA)
-                </CardTitle>
-                <CardDescription>
-                  Used for mobile home screen installation.<br/>
-                  <span className="text-xs font-mono text-muted-foreground">Req: PNG only, Exactly 512x512px</span>
-                </CardDescription>
+                <CardTitle>App Icons (PWA)</CardTitle>
+                <CardDescription>Mobile home screen icons. PNG only, exactly 512x512px</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
-                  {iconPreview ? (
-                    <img src={iconPreview} alt="Icon" className="h-20 w-20 object-contain rounded-xl shadow-sm" />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No icon uploaded</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="file" 
-                    accept=".png" 
-                    onChange={(e) => handleFileUpload(e, 'icon')}
-                    disabled={uploading}
-                  />
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Sun className="h-4 w-4 text-amber-500" />
+                      <span>Light Mode</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px]">
+                      {iconLightPreview ? (
+                        <img src={iconLightPreview} alt="App Icon Light" className="h-16 w-16 object-contain rounded-xl" />
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No icon</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png" 
+                      onChange={(e) => handleFileUpload(e, 'icon-light')}
+                      disabled={uploading}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Moon className="h-4 w-4 text-blue-400" />
+                      <span>Dark Mode</span>
+                    </div>
+                    <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px]">
+                      {iconDarkPreview ? (
+                        <img src={iconDarkPreview} alt="App Icon Dark" className="h-16 w-16 object-contain rounded-xl" />
+                      ) : (
+                        <span className="text-slate-400 text-sm">No icon</span>
+                      )}
+                    </div>
+                    <Input 
+                      type="file" 
+                      accept=".png" 
+                      onChange={(e) => handleFileUpload(e, 'icon-dark')}
+                      disabled={uploading}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Favicon */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5" /> Browser Favicon
                 </CardTitle>
-                <CardDescription>
-                  Displayed in browser tabs and bookmarks.<br/>
-                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/ICO, Max 128x128px</span>
-                </CardDescription>
+                <CardDescription>Displayed in browser tabs. PNG/ICO, Max 128x128px</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[120px]">
                   {faviconPreview ? (
                     <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-contain" />
                   ) : (
                     <span className="text-muted-foreground text-sm">No favicon uploaded</span>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="file" 
-                    accept=".png,.ico" 
-                    onChange={(e) => handleFileUpload(e, 'favicon')}
-                    disabled={uploading}
-                  />
-                </div>
+                <Input 
+                  type="file" 
+                  accept=".png,.ico" 
+                  onChange={(e) => handleFileUpload(e, 'favicon')}
+                  disabled={uploading}
+                />
               </CardContent>
             </Card>
           </div>
@@ -343,13 +493,18 @@ export default function AdminBranding() {
         </TabsContent>
         </Tabs>
 
-        {/* Live Preview Panel - Hidden on mobile */}
+        {/* Live Preview Panel */}
         <div className="hidden lg:block">
           <BrandingPreviewPanel
-            primaryColor={brandColor}
-            logoUrl={logoPreview}
-            sidebarIconUrl={sidebarIconPreview}
+            primaryColorLight={brandColorLight}
+            primaryColorDark={brandColorDark}
+            logoLightUrl={logoLightPreview}
+            logoDarkUrl={logoDarkPreview}
+            sidebarIconLightUrl={sidebarIconLightPreview}
+            sidebarIconDarkUrl={sidebarIconDarkPreview}
             tenantName={tenant?.name || ''}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
           />
         </div>
       </div>

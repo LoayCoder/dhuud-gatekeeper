@@ -41,9 +41,10 @@ import {
 import { useEffect, useState } from "react";
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from "@/lib/activity-logger";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppSidebar() {
-  const { tenantName, sidebarIconUrl, isLoading } = useTheme();
+  const { tenantName, activeSidebarIconUrl, activePrimaryColor, isLoading } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState("");
@@ -135,9 +136,12 @@ export function AppSidebar() {
                 </div>
               ) : (
                 <>
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    {sidebarIconUrl ? (
-                      <img src={sidebarIconUrl} alt="Icon" className="size-6 object-contain" />
+                  <div 
+                    className="flex aspect-square size-8 items-center justify-center rounded-lg text-primary-foreground"
+                    style={{ backgroundColor: activePrimaryColor ? `hsl(${activePrimaryColor})` : 'hsl(var(--primary))' }}
+                  >
+                    {activeSidebarIconUrl ? (
+                      <img src={activeSidebarIconUrl} alt="Icon" className="size-6 object-contain" />
                     ) : (
                       <Shield className="size-4" />
                     )}
@@ -222,40 +226,43 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            <div className="flex items-center justify-between px-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex-1"
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src="" alt={userEmail} />
+                      <AvatarFallback className="rounded-lg">
+                        <UserCircle className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">My Account</span>
+                      <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+                    </div>
+                    <ChevronRight className="ml-auto size-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-popover"
+                  side="bottom"
+                  align="end"
+                  sideOffset={4}
                 >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="" alt={userEmail} />
-                    <AvatarFallback className="rounded-lg">
-                      <UserCircle className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">My Account</span>
-                    <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
-                  </div>
-                  <ChevronRight className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-popover"
-                side="bottom"
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <ThemeToggle />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

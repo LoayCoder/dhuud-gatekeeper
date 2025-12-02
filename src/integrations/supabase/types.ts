@@ -221,48 +221,63 @@ export type Database = {
       }
       tenants: {
         Row: {
-          app_icon_url: string | null
+          app_icon_dark_url: string | null
+          app_icon_light_url: string | null
           background_color: string | null
           background_image_url: string | null
           background_theme: string | null
           brand_color: string
+          brand_color_dark: string | null
           created_at: string | null
           favicon_url: string | null
           id: string
-          logo_url: string | null
+          logo_dark_url: string | null
+          logo_light_url: string | null
           name: string
           secondary_color: string | null
-          sidebar_icon_url: string | null
+          secondary_color_dark: string | null
+          sidebar_icon_dark_url: string | null
+          sidebar_icon_light_url: string | null
           slug: string
         }
         Insert: {
-          app_icon_url?: string | null
+          app_icon_dark_url?: string | null
+          app_icon_light_url?: string | null
           background_color?: string | null
           background_image_url?: string | null
           background_theme?: string | null
           brand_color?: string
+          brand_color_dark?: string | null
           created_at?: string | null
           favicon_url?: string | null
           id?: string
-          logo_url?: string | null
+          logo_dark_url?: string | null
+          logo_light_url?: string | null
           name: string
           secondary_color?: string | null
-          sidebar_icon_url?: string | null
+          secondary_color_dark?: string | null
+          sidebar_icon_dark_url?: string | null
+          sidebar_icon_light_url?: string | null
           slug: string
         }
         Update: {
-          app_icon_url?: string | null
+          app_icon_dark_url?: string | null
+          app_icon_light_url?: string | null
           background_color?: string | null
           background_image_url?: string | null
           background_theme?: string | null
           brand_color?: string
+          brand_color_dark?: string | null
           created_at?: string | null
           favicon_url?: string | null
           id?: string
-          logo_url?: string | null
+          logo_dark_url?: string | null
+          logo_light_url?: string | null
           name?: string
           secondary_color?: string | null
-          sidebar_icon_url?: string | null
+          secondary_color_dark?: string | null
+          sidebar_icon_dark_url?: string | null
+          sidebar_icon_light_url?: string | null
           slug?: string
         }
         Relationships: []
