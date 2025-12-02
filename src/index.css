@@ -187,8 +187,111 @@ All colors MUST be HSL.
     direction: ltr;
   }
 
+  /* RTL-aware text alignment */
+  .text-start {
+    text-align: start;
+  }
+  
+  .text-end {
+    text-align: end;
+  }
+
+  /* RTL Icon Flipping - Icons that should mirror in RTL */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* RTL Chevron handling */
+  [dir="rtl"] .chevron-start {
+    transform: rotate(180deg);
+  }
+  
+  [dir="rtl"] [data-state="open"] .chevron-start {
+    transform: rotate(90deg);
+  }
+
+  /* RTL-aware positioning for fixed/absolute elements */
+  [dir="rtl"] .fixed-start {
+    left: auto;
+    right: 0;
+  }
+
+  [dir="rtl"] .fixed-end {
+    right: auto;
+    left: 0;
+  }
+
+  /* Calendar RTL fixes */
+  [dir="rtl"] .rdp-nav_button_previous {
+    left: auto;
+    right: 0.25rem;
+  }
+
+  [dir="rtl"] .rdp-nav_button_next {
+    right: auto;
+    left: 0.25rem;
+  }
+
+  /* Sheet/Dialog RTL positioning */
+  [dir="rtl"] [data-side="left"] {
+    left: auto;
+    right: 0;
+  }
+
+  [dir="rtl"] [data-side="right"] {
+    right: auto;
+    left: 0;
+  }
+
+  /* Dropdown menu RTL alignment */
+  [dir="rtl"] [data-align="start"] {
+    --radix-popper-anchor-alignment: end;
+  }
+
+  [dir="rtl"] [data-align="end"] {
+    --radix-popper-anchor-alignment: start;
+  }
+
+  /* Input icons positioning for RTL */
+  [dir="rtl"] .input-icon-start {
+    left: auto;
+    right: 0.75rem;
+  }
+
+  [dir="rtl"] .input-icon-end {
+    right: auto;
+    left: 0.75rem;
+  }
+
+  [dir="rtl"] .has-icon-start {
+    padding-left: 0.75rem;
+    padding-right: 2.5rem;
+  }
+
+  [dir="rtl"] .has-icon-end {
+    padding-right: 0.75rem;
+    padding-left: 2.5rem;
+  }
+
   /* Smooth transitions */
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Border RTL utilities */
+  [dir="rtl"] .border-s {
+    border-left-width: 0;
+    border-right-width: 1px;
+  }
+
+  [dir="rtl"] .border-e {
+    border-right-width: 0;
+    border-left-width: 1px;
+  }
+
+  /* Scroll area RTL */
+  [dir="rtl"] [data-orientation="vertical"] > [data-radix-scroll-area-thumb] {
+    left: 0;
+    right: auto;
   }
 }
