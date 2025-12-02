@@ -6,10 +6,11 @@ import { LoginPreview } from './LoginPreview';
 interface BrandingPreviewPanelProps {
   primaryColor: string;
   logoUrl: string | null;
+  sidebarIconUrl: string | null;
   tenantName: string;
 }
 
-export function BrandingPreviewPanel({ primaryColor, logoUrl, tenantName }: BrandingPreviewPanelProps) {
+export function BrandingPreviewPanel({ primaryColor, logoUrl, sidebarIconUrl, tenantName }: BrandingPreviewPanelProps) {
   return (
     <Card className="sticky top-6">
       <CardHeader className="pb-3">
@@ -30,7 +31,7 @@ export function BrandingPreviewPanel({ primaryColor, logoUrl, tenantName }: Bran
 
           <TabsContent value="sidebar" className="mt-0">
             <SidebarPreview 
-              logoUrl={logoUrl} 
+              sidebarIconUrl={sidebarIconUrl} 
               primaryColor={primaryColor} 
               tenantName={tenantName} 
             />

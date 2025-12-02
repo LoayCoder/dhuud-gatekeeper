@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-export type AssetType = 'logo' | 'icon' | 'background' | 'favicon';
+export type AssetType = 'logo' | 'sidebar-icon' | 'icon' | 'background' | 'favicon';
 
 interface ValidationResult {
   valid: boolean;
@@ -13,6 +13,7 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
   // Validate file type
   const allowedTypes: Record<AssetType, string[]> = {
     logo: ['image/png', 'image/svg+xml'],
+    'sidebar-icon': ['image/png', 'image/svg+xml'],
     icon: ['image/png'],
     background: ['image/png', 'image/jpeg', 'image/jpg'],
     favicon: ['image/png', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'],
@@ -21,6 +22,7 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
   if (!allowedTypes[type].includes(file.type)) {
     const formatMap: Record<AssetType, string> = {
       logo: 'PNG or SVG',
+      'sidebar-icon': 'PNG or SVG',
       icon: 'PNG',
       background: 'PNG or JPG',
       favicon: 'PNG or ICO',
@@ -45,6 +47,13 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
         if (type === 'logo') {
           if (img.width < 200 || img.height < 50) {
             resolve({ valid: false, error: 'Logo must be at least 200x50 pixels.' });
+            return;
+          }
+        }
+
+        if (type === 'sidebar-icon') {
+          if (img.width < 64 || img.height < 64) {
+            resolve({ valid: false, error: 'Sidebar icon must be at least 64x64 pixels.' });
             return;
           }
         }

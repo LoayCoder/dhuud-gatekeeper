@@ -43,7 +43,7 @@ import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppSidebar() {
-  const { tenantName, logoUrl, isLoading } = useTheme();
+  const { tenantName, sidebarIconUrl, isLoading } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState("");
@@ -136,8 +136,8 @@ export function AppSidebar() {
               ) : (
                 <>
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="size-6 object-contain" />
+                    {sidebarIconUrl ? (
+                      <img src={sidebarIconUrl} alt="Icon" className="size-6 object-contain" />
                     ) : (
                       <Shield className="size-4" />
                     )}

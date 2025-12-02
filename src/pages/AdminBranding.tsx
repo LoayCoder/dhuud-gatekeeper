@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2, Globe } from 'lucide-react';
+import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2, Globe, Shield } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
@@ -28,6 +28,7 @@ export default function AdminBranding() {
   const [bgColor, setBgColor] = useState('');
   
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [sidebarIconPreview, setSidebarIconPreview] = useState<string | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [bgPreview, setBgPreview] = useState<string | null>(null);
@@ -58,6 +59,7 @@ export default function AdminBranding() {
       setBgTheme(tenantData.background_theme as any || 'color');
       setBgColor(tenantData.background_color || '');
       setLogoPreview(tenantData.logo_url);
+      setSidebarIconPreview(tenantData.sidebar_icon_url);
       setIconPreview(tenantData.app_icon_url);
       setFaviconPreview(tenantData.favicon_url);
       setBgPreview(tenantData.background_image_url);
@@ -77,6 +79,7 @@ export default function AdminBranding() {
     
     if (url) {
       if (type === 'logo') setLogoPreview(url);
+      if (type === 'sidebar-icon') setSidebarIconPreview(url);
       if (type === 'icon') setIconPreview(url);
       if (type === 'favicon') setFaviconPreview(url);
       if (type === 'background') setBgPreview(url);
@@ -94,6 +97,7 @@ export default function AdminBranding() {
         background_theme: bgTheme,
         background_color: bgColor,
         logo_url: logoPreview,
+        sidebar_icon_url: sidebarIconPreview,
         app_icon_url: iconPreview,
         favicon_url: faviconPreview,
         background_image_url: bgPreview
@@ -167,10 +171,10 @@ export default function AdminBranding() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Layout className="h-5 w-5" /> Desktop Logo
+                  <Layout className="h-5 w-5" /> Login Page Logo
                 </CardTitle>
                 <CardDescription>
-                  Displayed on the sidebar and dashboard header.<br/>
+                  Full brand logo displayed on the login page.<br/>
                   <span className="text-xs font-mono text-muted-foreground">Req: PNG/SVG, Min 200x50px</span>
                 </CardDescription>
               </CardHeader>
@@ -187,6 +191,35 @@ export default function AdminBranding() {
                     type="file" 
                     accept=".png,.svg" 
                     onChange={(e) => handleFileUpload(e, 'logo')}
+                    disabled={uploading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" /> Sidebar Icon
+                </CardTitle>
+                <CardDescription>
+                  Small icon for sidebar header (icon only, no text).<br/>
+                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/SVG, Square, Min 64x64px</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
+                  {sidebarIconPreview ? (
+                    <img src={sidebarIconPreview} alt="Sidebar Icon" className="h-16 w-16 object-contain" />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No icon uploaded</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Input 
+                    type="file" 
+                    accept=".png,.svg" 
+                    onChange={(e) => handleFileUpload(e, 'sidebar-icon')}
                     disabled={uploading}
                   />
                 </div>
@@ -315,6 +348,7 @@ export default function AdminBranding() {
           <BrandingPreviewPanel
             primaryColor={brandColor}
             logoUrl={logoPreview}
+            sidebarIconUrl={sidebarIconPreview}
             tenantName={tenant?.name || ''}
           />
         </div>
