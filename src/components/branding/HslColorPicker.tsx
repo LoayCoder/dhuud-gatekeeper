@@ -114,12 +114,12 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center rtl:flex-row-reverse">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-12 w-12 p-0 border-2 rounded-lg shadow-sm"
+              className="h-12 w-12 p-0 border-2 rounded-lg shadow-sm flex-shrink-0"
               style={{ backgroundColor: colorPreview }}
             >
               <span className="sr-only">{t('adminBranding.colorPicker.pickColor')}</span>
