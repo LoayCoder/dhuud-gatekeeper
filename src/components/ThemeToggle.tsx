@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +10,7 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 
 export function ThemeToggle() {
+  const { t } = useTranslation();
   const { colorMode, setColorMode, resolvedMode } = useTheme();
 
   return (
@@ -20,21 +22,21 @@ export function ThemeToggle() {
           ) : (
             <Sun className="h-4 w-4" />
           )}
-          <span className="sr-only">Toggle theme</span>
+          <span className="sr-only">{t('common.toggleTheme')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setColorMode('light')}>
-          <Sun className="mr-2 h-4 w-4" />
-          Light
+          <Sun className="me-2 h-4 w-4" />
+          {t('common.light')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setColorMode('dark')}>
-          <Moon className="mr-2 h-4 w-4" />
-          Dark
+          <Moon className="me-2 h-4 w-4" />
+          {t('common.dark')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setColorMode('system')}>
-          <Monitor className="mr-2 h-4 w-4" />
-          System
+          <Monitor className="me-2 h-4 w-4" />
+          {t('common.system')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

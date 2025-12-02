@@ -24,7 +24,11 @@
     "active": "Active",
     "continue": "Continue",
     "verify": "Verify",
-    "done": "Done"
+    "done": "Done",
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "auth": {
     "signIn": "Sign In",

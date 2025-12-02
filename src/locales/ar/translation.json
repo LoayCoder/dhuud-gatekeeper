@@ -23,7 +23,11 @@
     "status": "الحالة",
     "active": "نشط",
     "continue": "متابعة",
-    "verify": "تحقق"
+    "verify": "تحقق",
+    "toggleTheme": "تبديل المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "النظام"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
