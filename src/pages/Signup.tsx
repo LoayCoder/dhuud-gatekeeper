@@ -24,7 +24,7 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData, tenantId } = useTheme();
+  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
 
   useEffect(() => {
     // Redirect to invite if code not validated
@@ -66,57 +66,60 @@ export default function Signup() {
     }
 
     try {
-      // Validate input
       signupSchema.parse({ email: invitationEmail, password, confirmPassword });
-
       setLoading(true);
 
-      // Sign up user
+      // 1. Get Tenant ID from Invitation FIRST to ensure we have it
+      const { data: inviteData, error: inviteFetchError } = await supabase
+        .from('invitations')
+        .select('tenant_id')
+        .eq('code', invitationCode)
+        .single();
+
+      if (inviteFetchError || !inviteData) {
+        throw new Error("Invalid or expired invitation code.");
+      }
+
+      // 2. Sign up user
       const redirectUrl = `${window.location.origin}/`;
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: invitationEmail,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
+        options: { emailRedirectTo: redirectUrl },
       });
 
       if (signupError) throw signupError;
 
-      // Create profile with tenant_id
-      if (signupData.user && tenantId) {
+      if (authData.user) {
+        // 3. CRITICAL: Create the Profile Link (roles are in user_roles table, not profiles)
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
-            id: signupData.user.id,
-            tenant_id: tenantId,
+            id: authData.user.id,
+            tenant_id: inviteData.tenant_id,
           });
 
         if (profileError) {
-          console.error('Failed to create profile:', profileError);
+          console.error('Profile creation failed:', profileError);
+          throw new Error('Failed to create user profile. Please try again.');
         }
+
+        // 4. Mark invitation as used
+        await supabase
+          .from('invitations')
+          .update({ used: true })
+          .eq('code', invitationCode);
+          
+        // 5. Clear local storage
+        clearInvitationData();
+
+        toast({
+          title: 'Account Created',
+          description: 'Success! You are now linked to your organization.',
+        });
+
+        navigate('/login');
       }
-
-      // Mark invitation as used
-      const { error: updateError } = await supabase
-        .from('invitations')
-        .update({ used: true })
-        .eq('code', invitationCode);
-
-      if (updateError) {
-        console.error('Failed to mark invitation as used:', updateError);
-      }
-
-      // Clear invitation data
-      clearInvitationData();
-
-      toast({
-        title: 'Account Created',
-        description: 'Your account has been created successfully. You can now sign in.',
-      });
-
-      // Redirect to login
-      navigate('/login');
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
