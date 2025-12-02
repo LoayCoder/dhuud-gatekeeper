@@ -182,8 +182,11 @@
     },
     "preview": {
       "title": "براہ راست پیش نظارہ",
+      "livePreview": "براہ راست پیش نظارہ",
       "loginPreview": "لاگ ان کا پیش نظارہ",
-      "sidebarPreview": "سائیڈبار کا پیش نظارہ"
+      "sidebarPreview": "سائیڈبار کا پیش نظارہ",
+      "sidebar": "سائیڈبار",
+      "loginPage": "لاگ ان صفحہ"
     },
     "toast": {
       "assetUploaded": "اثاثہ اپ لوڈ ہو گیا",

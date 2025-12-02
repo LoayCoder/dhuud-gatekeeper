@@ -182,8 +182,11 @@
     },
     "preview": {
       "title": "लाइव पूर्वावलोकन",
+      "livePreview": "लाइव पूर्वावलोकन",
       "loginPreview": "लॉगिन पूर्वावलोकन",
-      "sidebarPreview": "साइडबार पूर्वावलोकन"
+      "sidebarPreview": "साइडबार पूर्वावलोकन",
+      "sidebar": "साइडबार",
+      "loginPage": "लॉगिन पेज"
     },
     "toast": {
       "assetUploaded": "संपत्ति अपलोड हो गई",
