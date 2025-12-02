@@ -15,14 +15,11 @@ export function SidebarPreview({ sidebarIconUrl, primaryColor, tenantName, isDar
       isDark ? "bg-slate-900 border-slate-700" : "bg-sidebar"
     )}>
       <div className="flex items-center gap-3">
-        <div 
-          className="size-10 rounded-lg flex items-center justify-center text-primary-foreground"
-          style={{ backgroundColor: primaryColor ? `hsl(${primaryColor})` : 'hsl(var(--primary))' }}
-        >
+        <div className="size-10 flex items-center justify-center">
           {sidebarIconUrl ? (
-            <img src={sidebarIconUrl} alt="Icon" className="size-7 object-contain" />
+            <img src={sidebarIconUrl} alt="Icon" className="size-10 object-contain" />
           ) : (
-            <Shield className="size-5" />
+            <Shield className="size-7 text-primary" style={{ color: primaryColor ? `hsl(${primaryColor})` : undefined }} />
           )}
         </div>
         <div className="text-left leading-tight">
