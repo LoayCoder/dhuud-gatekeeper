@@ -21,7 +21,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, isCodeValidated, invitationEmail, clearInvitationData } = useTheme();
+  const { tenantName, logoUrl, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
 
   useEffect(() => {
     // Pre-fill email if coming from invitation
@@ -63,6 +63,9 @@ export default function Login() {
       });
 
       if (error) throw error;
+
+      // Fetch tenant branding immediately after login
+      await refreshTenantData();
 
       // Start session tracking and log login event
       startSessionTracking();
@@ -118,7 +121,7 @@ export default function Login() {
           {/* Logo and Header */}
           <div className="text-center">
             {logoUrl ? (
-              <img src={logoUrl} alt={tenantName} className="mx-auto mb-4 h-16" />
+              <img src={logoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
             ) : (
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <Shield className="h-8 w-8 text-primary" />
