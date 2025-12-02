@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "submit": "إرسال",
+    "back": "رجوع",
+    "next": "التالي",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "signUp": "إنشاء حساب",
+    "signingIn": "جاري تسجيل الدخول...",
+    "creatingAccount": "جاري إنشاء الحساب...",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "backToInvite": "العودة إلى رمز الدعوة",
+    "signInToAccount": "سجل الدخول إلى حسابك",
+    "createYourAccount": "أنشئ حسابك",
+    "welcomeBack": "مرحبًا بعودتك",
+    "loginSuccess": "تم تسجيل الدخول بنجاح.",
+    "invalidEmail": "عنوان بريد إلكتروني غير صالح",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "passwordMinLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+    "validationError": "خطأ في التحقق",
+    "error": "خطأ",
+    "failedToLogin": "فشل تسجيل الدخول"
+  },
+  "navigation": {
+    "dashboard": "لوحة المعلومات",
+    "hsseManagement": "إدارة الصحة والسلامة",
+    "incidents": "الحوادث",
+    "auditsInspections": "التدقيق والتفتيش",
+    "visitorGatekeeper": "بوابة الزوار",
+    "administration": "الإدارة",
+    "brandManagement": "إدارة الهوية البصرية",
+    "userManagement": "إدارة المستخدمين",
+    "platform": "المنصة",
+    "enterpriseHsse": "الصحة والسلامة للمؤسسات"
+  },
+  "profile": {
+    "title": "إعدادات الحساب",
+    "description": "إدارة معلوماتك الشخصية وتفضيلات الأمان.",
+    "profileTab": "الملف الشخصي",
+    "securityTab": "الأمان",
+    "personalInfo": "المعلومات الشخصية",
+    "updatePersonalInfo": "تحديث معلوماتك الشخصية.",
+    "fullName": "الاسم الكامل",
+    "enterFullName": "أدخل اسمك الكامل",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "emailManagedByOrg": "عنوان البريد الإلكتروني مدار بواسطة مسؤول مؤسستك.",
+    "phoneNumber": "رقم الهاتف",
+    "emergencyContactName": "اسم جهة الاتصال للطوارئ",
+    "emergencyContactPhone": "هاتف جهة الاتصال للطوارئ",
+    "saveChanges": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "profileUpdated": "تم تحديث الملف الشخصي",
+    "profileUpdateSuccess": "تم تحديث ملفك الشخصي بنجاح.",
+    "profileUpdateError": "فشل في تحديث الملف الشخصي"
+  },
+  "sidebar": {
+    "myAccount": "حسابي",
+    "profileSettings": "إعدادات الملف الشخصي"
+  },
+  "security": {
+    "protectedByZeroTrust": "محمي بواسطة أمان انعدام الثقة",
+    "securityStatus": "حالة الأمان",
+    "zeroTrustActive": "مصادقة انعدام الثقة نشطة",
+    "protected": "محمي"
+  },
+  "dashboard": {
+    "welcomeTitle": "مرحبًا بك في منصة ذود للصحة والسلامة",
+    "welcomeSubtitle": "نظام إدارة الصحة والسلامة والأمن والبيئة",
+    "userProfile": "ملف المستخدم",
+    "accountInfo": "معلومات حسابك"
+  },
+  "branding": {
+    "title": "منصة ذود للصحة والسلامة",
+    "subtitle": "إدارة الصحة والسلامة والأمن والبيئة"
+  },
+  "tenant": {
+    "tenantInfo": "معلومات المستأجر",
+    "organization": "المؤسسة",
+    "memberSince": "عضو منذ"
+  },
+  "assignment": {
+    "title": "معلومات التعيين",
+    "branch": "الفرع",
+    "site": "الموقع",
+    "notAssigned": "غير معين"
+  },
+  "role": {
+    "title": "معلومات الدور",
+    "currentRole": "الدور الحالي",
+    "roleDescription": "عرض دورك الحالي ومستوى الوصول داخل المؤسسة.",
+    "loggedInAs": "أنت مسجل الدخول كـ"
+  },
+  "placeholder": {
+    "comingSoon": "هذه الميزة قادمة قريبًا.",
+    "checkBackLater": "تحقق مرة أخرى لاحقًا للحصول على التحديثات."
+  },
+  "sessionTimeout": {
+    "warningTitle": "انتهاء الجلسة قريبًا",
+    "warningDescription": "ستنتهي جلستك في {{time}} بسبب عدم النشاط. هل تريد البقاء مسجلاً؟",
+    "logOutNow": "تسجيل الخروج الآن",
+    "stayLoggedIn": "البقاء مسجلاً"
+  },
+  "mfa": {
+    "verificationTitle": "المصادقة الثنائية",
+    "verificationDescription": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة للمتابعة.",
+    "verifyCode": "التحقق من الرمز",
+    "verifying": "جاري التحقق...",
+    "invalidCode": "رمز التحقق غير صالح"
+  }
+}

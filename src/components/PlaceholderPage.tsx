@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Construction } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -6,7 +7,9 @@ interface PlaceholderPageProps {
   description?: string;
 }
 
-export function PlaceholderPage({ title, description = "This feature is coming soon." }: PlaceholderPageProps) {
+export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className="flex flex-1 items-center justify-center p-4">
       <Card className="max-w-md text-center">
@@ -15,11 +18,11 @@ export function PlaceholderPage({ title, description = "This feature is coming s
             <Construction className="h-8 w-8 text-muted-foreground" />
           </div>
           <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription>{description || t('placeholder.comingSoon')}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Check back later for updates.
+            {t('placeholder.checkBackLater')}
           </p>
         </CardContent>
       </Card>

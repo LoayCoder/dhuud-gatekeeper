@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "submit": "जमा करें",
+    "back": "वापस",
+    "next": "अगला",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "export": "निर्यात",
+    "import": "आयात",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "yes": "हां",
+    "no": "नहीं"
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "signOut": "लॉग आउट",
+    "signUp": "खाता बनाएं",
+    "signingIn": "साइन इन हो रहा है...",
+    "creatingAccount": "खाता बनाया जा रहा है...",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "backToInvite": "आमंत्रण कोड पर वापस जाएं",
+    "signInToAccount": "अपने खाते में साइन इन करें",
+    "createYourAccount": "अपना खाता बनाएं",
+    "welcomeBack": "वापसी पर स्वागत है",
+    "loginSuccess": "आप सफलतापूर्वक लॉग इन हो गए हैं।",
+    "invalidEmail": "अमान्य ईमेल पता",
+    "passwordRequired": "पासवर्ड आवश्यक है",
+    "passwordMinLength": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए",
+    "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
+    "validationError": "सत्यापन त्रुटि",
+    "error": "त्रुटि",
+    "failedToLogin": "लॉग इन विफल"
+  },
+  "navigation": {
+    "dashboard": "डैशबोर्ड",
+    "hsseManagement": "स्वास्थ्य और सुरक्षा प्रबंधन",
+    "incidents": "घटनाएं",
+    "auditsInspections": "ऑडिट और निरीक्षण",
+    "visitorGatekeeper": "आगंतुक गेटकीपर",
+    "administration": "प्रशासन",
+    "brandManagement": "ब्रांड प्रबंधन",
+    "userManagement": "उपयोगकर्ता प्रबंधन",
+    "platform": "प्लेटफ़ॉर्म",
+    "enterpriseHsse": "एंटरप्राइज़ स्वास्थ्य और सुरक्षा"
+  },
+  "profile": {
+    "title": "खाता सेटिंग्स",
+    "description": "अपनी व्यक्तिगत जानकारी और सुरक्षा प्राथमिकताएं प्रबंधित करें।",
+    "profileTab": "प्रोफ़ाइल",
+    "securityTab": "सुरक्षा",
+    "personalInfo": "व्यक्तिगत जानकारी",
+    "updatePersonalInfo": "अपनी व्यक्तिगत जानकारी अपडेट करें।",
+    "fullName": "पूरा नाम",
+    "enterFullName": "अपना पूरा नाम दर्ज करें",
+    "emailAddress": "ईमेल पता",
+    "emailManagedByOrg": "ईमेल पता आपके संगठन के व्यवस्थापक द्वारा प्रबंधित है।",
+    "phoneNumber": "फ़ोन नंबर",
+    "emergencyContactName": "आपातकालीन संपर्क का नाम",
+    "emergencyContactPhone": "आपातकालीन संपर्क का फ़ोन",
+    "saveChanges": "परिवर्तन सहेजें",
+    "saving": "सहेजा जा रहा है...",
+    "profileUpdated": "प्रोफ़ाइल अपडेट हो गई",
+    "profileUpdateSuccess": "आपकी प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई है।",
+    "profileUpdateError": "प्रोफ़ाइल अपडेट करने में विफल"
+  },
+  "sidebar": {
+    "myAccount": "मेरा खाता",
+    "profileSettings": "प्रोफ़ाइल सेटिंग्स"
+  },
+  "security": {
+    "protectedByZeroTrust": "ज़ीरो ट्रस्ट सुरक्षा द्वारा संरक्षित",
+    "securityStatus": "सुरक्षा स्थिति",
+    "zeroTrustActive": "ज़ीरो ट्रस्ट प्रमाणीकरण सक्रिय",
+    "protected": "संरक्षित"
+  },
+  "dashboard": {
+    "welcomeTitle": "ढूड स्वास्थ्य और सुरक्षा प्लेटफ़ॉर्म में आपका स्वागत है",
+    "welcomeSubtitle": "स्वास्थ्य, सुरक्षा और पर्यावरण प्रबंधन प्रणाली",
+    "userProfile": "उपयोगकर्ता प्रोफ़ाइल",
+    "accountInfo": "आपके खाते की जानकारी"
+  },
+  "branding": {
+    "title": "ढूड स्वास्थ्य और सुरक्षा प्लेटफ़ॉर्म",
+    "subtitle": "स्वास्थ्य, सुरक्षा और पर्यावरण प्रबंधन"
+  },
+  "tenant": {
+    "tenantInfo": "किरायेदार जानकारी",
+    "organization": "संगठन",
+    "memberSince": "सदस्य बने"
+  },
+  "assignment": {
+    "title": "असाइनमेंट जानकारी",
+    "branch": "शाखा",
+    "site": "साइट",
+    "notAssigned": "असाइन नहीं किया गया"
+  },
+  "role": {
+    "title": "भूमिका जानकारी",
+    "currentRole": "वर्तमान भूमिका",
+    "roleDescription": "संगठन के भीतर अपनी वर्तमान भूमिका और पहुंच स्तर देखें।",
+    "loggedInAs": "आप इस रूप में लॉग इन हैं"
+  },
+  "placeholder": {
+    "comingSoon": "यह सुविधा जल्द आ रही है।",
+    "checkBackLater": "अपडेट के लिए बाद में जांचें।"
+  },
+  "sessionTimeout": {
+    "warningTitle": "सत्र जल्द समाप्त हो रहा है",
+    "warningDescription": "निष्क्रियता के कारण आपका सत्र {{time}} में समाप्त हो जाएगा। क्या आप लॉग इन रहना चाहते हैं?",
+    "logOutNow": "अभी लॉग आउट करें",
+    "stayLoggedIn": "लॉग इन रहें"
+  },
+  "mfa": {
+    "verificationTitle": "दो-कारक प्रमाणीकरण",
+    "verificationDescription": "जारी रखने के लिए अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।",
+    "verifyCode": "कोड सत्यापित करें",
+    "verifying": "सत्यापित हो रहा है...",
+    "invalidCode": "अमान्य सत्यापन कोड"
+  }
+}
