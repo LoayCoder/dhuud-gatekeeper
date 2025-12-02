@@ -236,8 +236,8 @@ export function AppSidebar() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{userName || "My Account"}</span>
-                      <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+                      <span className="truncate font-semibold">My Account</span>
+                      <span className="truncate text-xs text-muted-foreground">{userName || userEmail}</span>
                     </div>
                     <ChevronRight className="ml-auto size-4" />
                   </SidebarMenuButton>
