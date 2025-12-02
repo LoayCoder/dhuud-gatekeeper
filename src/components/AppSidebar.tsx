@@ -25,6 +25,7 @@ import {
   LogOut,
   ChevronRight,
   UserCircle,
+  User,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -252,6 +253,10 @@ export function AppSidebar() {
                   align="end"
                   sideOffset={4}
                 >
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile Settings
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive"

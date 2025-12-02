@@ -20,6 +20,7 @@ import InviteGatekeeper from "./pages/InviteGatekeeper";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminBranding from "./pages/AdminBranding";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
                   
                   {/* HSSE Management Routes */}
                   <Route path="/incidents" element={<PlaceholderPage title="Incidents" description="Report and track safety incidents." />} />
