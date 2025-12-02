@@ -263,14 +263,14 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
         <Separator />
 
-        <div className="space-y-2">
+        <div className="space-y-2 text-start">
           <Label className="text-sm font-medium">{t('profile.emergencyContact')}</Label>
           <p className="text-sm text-muted-foreground mb-3">
             {t('profile.emergencyContactDescription')}
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
+            <div className="grid gap-2 text-start">
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
                 <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -278,13 +278,13 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
                   id="emergencyName" 
                   value={emergencyContactName} 
                   onChange={(e) => setEmergencyContactName(e.target.value)}
-                  className="ps-9"
+                  className="ps-9 text-start"
                   placeholder={t('profile.emergencyContactName')}
                   maxLength={100}
                 />
               </div>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 text-start">
               <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
                 <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -293,7 +293,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
                   type="tel"
                   value={emergencyContactPhone} 
                   onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                  className="ps-9"
+                  className="ps-9 text-start"
                   placeholder="+966 5XX XXX XXXX"
                   maxLength={20}
                 />
