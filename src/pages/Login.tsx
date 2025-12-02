@@ -159,7 +159,15 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
-            <div className="text-center">
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => navigate('/forgot-password')}
+                className="text-sm"
+              >
+                Forgot password?
+              </Button>
               <Button
                 type="button"
                 variant="link"
