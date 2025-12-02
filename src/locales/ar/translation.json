@@ -17,7 +17,9 @@
     "yes": "نعم",
     "no": "لا",
     "status": "الحالة",
-    "active": "نشط"
+    "active": "نشط",
+    "continue": "متابعة",
+    "verify": "تحقق"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -41,6 +43,197 @@
     "validationError": "خطأ في التحقق",
     "error": "خطأ",
     "failedToLogin": "فشل تسجيل الدخول"
+  },
+  "forgotPassword": {
+    "title": "نسيت كلمة المرور",
+    "description": "أدخل عنوان بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "sending": "جاري الإرسال...",
+    "success": "تم إرسال رابط إعادة التعيين",
+    "successMessage": "تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.",
+    "backToLogin": "العودة إلى تسجيل الدخول"
+  },
+  "resetPassword": {
+    "title": "إعادة تعيين كلمة المرور",
+    "description": "أدخل كلمة المرور الجديدة أدناه.",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetting": "جاري إعادة التعيين...",
+    "success": "تم تحديث كلمة المرور",
+    "successMessage": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
+    "goToLogin": "الذهاب إلى تسجيل الدخول"
+  },
+  "mfaSetup": {
+    "title": "إعداد المصادقة الثنائية",
+    "description": "لأمان حسابك، يلزم إعداد المصادقة الثنائية.",
+    "scanQrCode": "امسح رمز QR",
+    "scanInstructions": "امسح رمز QR هذا باستخدام تطبيق المصادقة (Google Authenticator أو Microsoft Authenticator أو Authy).",
+    "manualEntry": "الإدخال اليدوي",
+    "manualInstructions": "إذا لم تتمكن من مسح رمز QR، أدخل هذا المفتاح يدويًا:",
+    "copySecret": "نسخ المفتاح السري",
+    "secretCopied": "تم نسخ المفتاح السري إلى الحافظة",
+    "verifySetup": "التحقق من الإعداد",
+    "verifyInstructions": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة للتحقق من الإعداد.",
+    "verifyCode": "التحقق وإكمال الإعداد",
+    "verifying": "جاري التحقق...",
+    "setupComplete": "اكتمل إعداد المصادقة الثنائية",
+    "setupCompleteMessage": "تم تفعيل المصادقة الثنائية لحسابك بنجاح.",
+    "continueToApp": "المتابعة إلى التطبيق",
+    "setupFailed": "فشل إعداد المصادقة الثنائية"
+  },
+  "invite": {
+    "title": "أدخل رمز الدعوة",
+    "description": "أدخل رمز الدعوة المقدم من مؤسستك للوصول.",
+    "codePlaceholder": "أدخل رمز الدعوة",
+    "verifyCode": "التحقق من الرمز",
+    "verifying": "جاري التحقق...",
+    "invalidCode": "رمز دعوة غير صالح",
+    "invalidCodeMessage": "الرمز الذي أدخلته غير صالح أو منتهي الصلاحية. تواصل مع المسؤول.",
+    "welcomeBack": "مرحبًا بعودتك",
+    "existingUserMessage": "يوجد حساب مرتبط بهذه الدعوة.",
+    "proceedToLogin": "المتابعة إلى تسجيل الدخول",
+    "createAccount": "إنشاء حساب",
+    "newUserMessage": "لقد تمت دعوتك للانضمام إلى"
+  },
+  "adminBranding": {
+    "title": "وحدة إدارة الهوية البصرية",
+    "subtitle": "تخصيص الهوية البصرية لـ",
+    "saveChanges": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "tabs": {
+      "colors": "الألوان",
+      "assets": "الأصول",
+      "theme": "السمة"
+    },
+    "colors": {
+      "title": "لوحة الألوان",
+      "description": "حدد ألوانًا منفصلة للوضع الفاتح والداكن للتباين المناسب.",
+      "lightMode": "الوضع الفاتح",
+      "darkMode": "الوضع الداكن",
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي"
+    },
+    "assets": {
+      "loginLogos": {
+        "title": "شعارات صفحة تسجيل الدخول",
+        "description": "شعارات العلامة التجارية الكاملة المعروضة على صفحة تسجيل الدخول. PNG/SVG، الحد الأدنى 200×50 بكسل",
+        "lightMode": "الوضع الفاتح (شعار داكن)",
+        "darkMode": "الوضع الداكن (شعار فاتح)",
+        "noLogo": "لا يوجد شعار"
+      },
+      "sidebarIcons": {
+        "title": "أيقونات الشريط الجانبي",
+        "description": "أيقونات صغيرة لرأس الشريط الجانبي. PNG/SVG، مربع، الحد الأدنى 64×64 بكسل",
+        "noIcon": "لا توجد أيقونة"
+      },
+      "appIcons": {
+        "title": "أيقونات التطبيق (PWA)",
+        "description": "أيقونات الشاشة الرئيسية للهاتف. PNG فقط، 512×512 بكسل بالضبط"
+      },
+      "favicon": {
+        "title": "أيقونة الموقع",
+        "description": "أيقونة صغيرة في علامة تبويب المتصفح. PNG/ICO، 32×32 أو 64×64 بكسل",
+        "noFavicon": "لا توجد أيقونة موقع"
+      }
+    },
+    "theme": {
+      "title": "خلفية صفحة تسجيل الدخول",
+      "description": "اختر كيفية ظهور خلفية صفحة تسجيل الدخول.",
+      "solidColor": "لون صلب",
+      "customImage": "صورة مخصصة",
+      "backgroundColor": "لون الخلفية",
+      "backgroundImage": "صورة الخلفية",
+      "imageDescription": "JPG أو PNG، يُوصى بـ 1920×1080 بكسل",
+      "noImage": "لم يتم رفع صورة"
+    },
+    "preview": {
+      "title": "معاينة مباشرة",
+      "loginPreview": "معاينة تسجيل الدخول",
+      "sidebarPreview": "معاينة الشريط الجانبي"
+    },
+    "toast": {
+      "assetUploaded": "تم رفع الأصل",
+      "dontForgetSave": "لا تنسَ حفظ تغييراتك.",
+      "brandingUpdated": "تم تحديث الهوية البصرية",
+      "changesApplied": "تم تطبيق تغييراتك مباشرة.",
+      "saveFailed": "فشل حفظ التغييرات"
+    },
+    "errors": {
+      "notAuthenticated": "غير مصادق عليه",
+      "noTenant": "حسابك غير مرتبط بأي مؤسسة. تواصل مع الدعم.",
+      "loadFailed": "فشل تحميل بيانات الهوية البصرية",
+      "noTenantConfigured": "لم يتم تكوين مستأجر",
+      "configError": "خطأ في التكوين"
+    }
+  },
+  "securitySettings": {
+    "twoFactorAuth": "المصادقة الثنائية",
+    "twoFactorDescription": "أضف طبقة إضافية من الأمان لحسابك.",
+    "changePassword": "تغيير كلمة المرور",
+    "changePasswordDescription": "تحديث كلمة مرور حسابك.",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "updatePassword": "تحديث كلمة المرور",
+    "updating": "جاري التحديث...",
+    "passwordUpdated": "تم تحديث كلمة المرور",
+    "passwordUpdateSuccess": "تم تحديث كلمة المرور بنجاح.",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+    "requirements": {
+      "title": "متطلبات كلمة المرور",
+      "minLength": "8 أحرف على الأقل",
+      "uppercase": "حرف كبير واحد",
+      "lowercase": "حرف صغير واحد",
+      "number": "رقم واحد"
+    }
+  },
+  "twoFactorSetup": {
+    "enabled": "المصادقة الثنائية مفعلة",
+    "enabledDescription": "حسابك محمي بالمصادقة الثنائية.",
+    "disable2FA": "تعطيل المصادقة الثنائية",
+    "notEnabled": "المصادقة الثنائية غير مفعلة",
+    "notEnabledDescription": "عزز أمان حسابك بتفعيل المصادقة الثنائية.",
+    "enable": "تفعيل المصادقة الثنائية"
+  },
+  "mfaEnroll": {
+    "title": "تفعيل المصادقة الثنائية",
+    "description": "أضف طبقة إضافية من الأمان لحسابك",
+    "step1Title": "الخطوة 1: احصل على تطبيق المصادقة",
+    "step1Description": "قم بتنزيل تطبيق مصادقة مثل Google Authenticator أو Microsoft Authenticator أو Authy.",
+    "step2Title": "الخطوة 2: امسح رمز QR",
+    "step2Description": "استخدم تطبيق المصادقة لمسح رمز QR الذي سنعرضه لك.",
+    "phoneNearby": "ستحتاج إلى هاتفك بالقرب منك لإكمال هذا الإعداد.",
+    "scanTitle": "امسح رمز QR",
+    "scanDescription": "افتح تطبيق المصادقة وامسح رمز QR هذا",
+    "cantScan": "لا تستطيع المسح؟ أدخل هذا الرمز يدويًا:",
+    "verifyTitle": "التحقق من الإعداد",
+    "verifyDescription": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة",
+    "codeRefreshes": "يتم تحديث الرمز كل 30 ثانية",
+    "successTitle": "تم تفعيل المصادقة الثنائية بنجاح",
+    "successDescription": "حسابك الآن محمي بالمصادقة الثنائية",
+    "successAlert": "ستحتاج إلى إدخال رمز من تطبيق المصادقة في كل مرة تسجل فيها الدخول.",
+    "continue": "متابعة",
+    "back": "رجوع",
+    "verify": "تحقق",
+    "done": "تم",
+    "toastTitle": "تم تفعيل المصادقة الثنائية",
+    "toastDescription": "تم تفعيل المصادقة الثنائية لحسابك."
+  },
+  "mfaDisable": {
+    "title": "تعطيل المصادقة الثنائية",
+    "description": "أدخل رمز المصادقة الثنائية الحالي لتعطيل المصادقة الثنائية",
+    "warning": "تعطيل المصادقة الثنائية سيجعل حسابك أقل أمانًا. ستحتاج فقط إلى كلمة المرور لتسجيل الدخول.",
+    "enterCode": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة",
+    "toastTitle": "تم تعطيل المصادقة الثنائية",
+    "toastDescription": "تم تعطيل المصادقة الثنائية لحسابك."
+  },
+  "mfaVerification": {
+    "title": "المصادقة الثنائية",
+    "description": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة للمتابعة.",
+    "verify": "تحقق",
+    "verifying": "جاري التحقق...",
+    "invalidCode": "رمز التحقق غير صالح",
+    "loginCancelled": "تم إلغاء تسجيل الدخول"
   },
   "navigation": {
     "dashboard": "لوحة المعلومات",
@@ -76,7 +269,12 @@
     "profileUpdateSuccess": "تم تحديث ملفك الشخصي بنجاح.",
     "profileUpdateError": "فشل في تحديث الملف الشخصي",
     "profilePicture": "صورة الملف الشخصي",
-    "changeAvatar": "تغيير الصورة الرمزية"
+    "changeAvatar": "تغيير الصورة الرمزية",
+    "fileTypeError": "يُسمح فقط بملفات JPG وPNG وGIF",
+    "fileSizeError": "يرجى اختيار صورة أقل من 10 ميجابايت",
+    "avatarSaveError": "فشل في حفظ رابط الصورة الرمزية",
+    "avatarHint": "JPG أو GIF أو PNG. الحد الأقصى 2 ميجابايت.",
+    "invalidInput": "إدخال غير صالح"
   },
   "sidebar": {
     "myAccount": "حسابي",

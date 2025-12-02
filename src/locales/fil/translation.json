@@ -17,7 +17,9 @@
     "yes": "Oo",
     "no": "Hindi",
     "status": "Katayuan",
-    "active": "Aktibo"
+    "active": "Aktibo",
+    "continue": "Magpatuloy",
+    "verify": "I-verify"
   },
   "auth": {
     "signIn": "Mag-sign In",
@@ -188,21 +190,42 @@
   "twoFactorSetup": {
     "enabled": "Naka-enable na ang 2FA",
     "enabledDescription": "Protektado ang iyong account ng two-factor authentication.",
-    "disable": "I-disable ang 2FA",
+    "disable2FA": "I-disable ang 2FA",
     "notEnabled": "Hindi Naka-enable ang 2FA",
     "notEnabledDescription": "Dagdagan ang seguridad ng iyong account sa pamamagitan ng pag-enable ng two-factor authentication.",
-    "enable": "I-enable ang 2FA",
-    "disableDialog": {
-      "title": "I-disable ang Two-Factor Authentication",
-      "warning": "Babala: Gagawing mas vulnerable ang iyong account sa unauthorized access kung i-disable ang 2FA.",
-      "enterCode": "Ilagay ang iyong kasalukuyang 2FA code para kumpirmahin:",
-      "confirm": "I-disable ang 2FA",
-      "disabling": "Nagdi-disable..."
-    },
-    "toast": {
-      "disabled": "Na-disable na ang 2FA",
-      "disabledMessage": "Na-disable na ang two-factor authentication sa iyong account."
-    }
+    "enable": "I-enable ang 2FA"
+  },
+  "mfaEnroll": {
+    "title": "I-enable ang Two-Factor Authentication",
+    "description": "Magdagdag ng karagdagang layer ng seguridad sa iyong account",
+    "step1Title": "Hakbang 1: Kumuha ng authenticator app",
+    "step1Description": "Mag-download ng authenticator app tulad ng Google Authenticator, Microsoft Authenticator, o Authy.",
+    "step2Title": "Hakbang 2: I-scan ang QR code",
+    "step2Description": "Gamitin ang iyong authenticator app para i-scan ang QR code na ipapakita namin sa iyo.",
+    "phoneNearby": "Kakailanganin mo ang iyong telepono malapit para kumpletuhin ang setup na ito.",
+    "scanTitle": "I-scan ang QR Code",
+    "scanDescription": "Buksan ang iyong authenticator app at i-scan ang QR code na ito",
+    "cantScan": "Hindi ma-scan? Manu-manong ilagay ang code na ito:",
+    "verifyTitle": "I-verify ang Setup",
+    "verifyDescription": "Ilagay ang 6-digit code mula sa iyong authenticator app",
+    "codeRefreshes": "Nagre-refresh ang code bawat 30 segundo",
+    "successTitle": "Matagumpay na Na-enable ang 2FA",
+    "successDescription": "Protektado na ngayon ang iyong account ng two-factor authentication",
+    "successAlert": "Kakailanganin mong maglagay ng code mula sa iyong authenticator app sa bawat pag-sign in.",
+    "continue": "Magpatuloy",
+    "back": "Bumalik",
+    "verify": "I-verify",
+    "done": "Tapos na",
+    "toastTitle": "Na-enable na ang 2FA",
+    "toastDescription": "Na-enable na ang two-factor authentication para sa iyong account."
+  },
+  "mfaDisable": {
+    "title": "I-disable ang Two-Factor Authentication",
+    "description": "Ilagay ang iyong kasalukuyang 2FA code para i-disable ang two-factor authentication",
+    "warning": "Ang pag-disable ng 2FA ay gagawing mas hindi secure ang iyong account. Kakailanganin mo na lang ang iyong password para mag-sign in.",
+    "enterCode": "Ilagay ang 6-digit code mula sa iyong authenticator app",
+    "toastTitle": "Na-disable na ang 2FA",
+    "toastDescription": "Na-disable na ang two-factor authentication sa iyong account."
   },
   "mfaVerification": {
     "title": "Two-Factor Authentication",
@@ -246,7 +269,12 @@
     "profileUpdateSuccess": "Matagumpay na na-update ang iyong profile.",
     "profileUpdateError": "Nabigo ang pag-update ng profile",
     "profilePicture": "Larawan ng Profile",
-    "changeAvatar": "Palitan ang Avatar"
+    "changeAvatar": "Palitan ang Avatar",
+    "fileTypeError": "Tanging JPG, PNG, at GIF na mga file ang pinapayagan",
+    "fileSizeError": "Mangyaring pumili ng larawan na mas mababa sa 10MB",
+    "avatarSaveError": "Nabigo ang pag-save ng avatar URL",
+    "avatarHint": "JPG, GIF o PNG. Max na laki ay 2MB.",
+    "invalidInput": "Hindi valid na input"
   },
   "sidebar": {
     "myAccount": "Aking Account",

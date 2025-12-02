@@ -17,7 +17,9 @@
     "yes": "ہاں",
     "no": "نہیں",
     "status": "حیثیت",
-    "active": "فعال"
+    "active": "فعال",
+    "continue": "جاری رکھیں",
+    "verify": "تصدیق کریں"
   },
   "auth": {
     "signIn": "سائن ان",
@@ -41,6 +43,197 @@
     "validationError": "توثیق کی خرابی",
     "error": "خرابی",
     "failedToLogin": "لاگ ان ناکام"
+  },
+  "forgotPassword": {
+    "title": "پاس ورڈ بھول گئے",
+    "description": "اپنا ای میل پتہ درج کریں اور ہم آپ کو پاس ورڈ دوبارہ ترتیب دینے کا لنک بھیجیں گے۔",
+    "sendResetLink": "ری سیٹ لنک بھیجیں",
+    "sending": "بھیجا جا رہا ہے...",
+    "success": "ری سیٹ لنک بھیج دیا گیا",
+    "successMessage": "پاس ورڈ دوبارہ ترتیب دینے کے لنک کے لیے اپنا ای میل چیک کریں۔",
+    "backToLogin": "لاگ ان پر واپس جائیں"
+  },
+  "resetPassword": {
+    "title": "پاس ورڈ دوبارہ ترتیب دیں",
+    "description": "نیچے اپنا نیا پاس ورڈ درج کریں۔",
+    "newPassword": "نیا پاس ورڈ",
+    "confirmNewPassword": "نئے پاس ورڈ کی تصدیق کریں",
+    "resetPassword": "پاس ورڈ دوبارہ ترتیب دیں",
+    "resetting": "دوبارہ ترتیب دیا جا رہا ہے...",
+    "success": "پاس ورڈ اپ ڈیٹ ہو گیا",
+    "successMessage": "آپ کا پاس ورڈ کامیابی سے اپ ڈیٹ ہو گیا۔ اب آپ لاگ ان کر سکتے ہیں۔",
+    "goToLogin": "لاگ ان پر جائیں"
+  },
+  "mfaSetup": {
+    "title": "دو عنصری تصدیق کی ترتیب",
+    "description": "آپ کے اکاؤنٹ کی حفاظت کے لیے دو عنصری تصدیق کی ترتیب ضروری ہے۔",
+    "scanQrCode": "QR کوڈ اسکین کریں",
+    "scanInstructions": "اس QR کوڈ کو اپنی تصدیقی ایپ (Google Authenticator، Microsoft Authenticator، Authy) سے اسکین کریں۔",
+    "manualEntry": "دستی اندراج",
+    "manualInstructions": "اگر آپ QR کوڈ اسکین نہیں کر سکتے تو یہ کلید دستی طور پر درج کریں:",
+    "copySecret": "خفیہ کلید کاپی کریں",
+    "secretCopied": "خفیہ کلید کلپ بورڈ پر کاپی ہو گئی",
+    "verifySetup": "سیٹ اپ کی تصدیق کریں",
+    "verifyInstructions": "سیٹ اپ کی تصدیق کے لیے اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "verifyCode": "تصدیق کریں اور سیٹ اپ مکمل کریں",
+    "verifying": "تصدیق ہو رہی ہے...",
+    "setupComplete": "2FA سیٹ اپ مکمل",
+    "setupCompleteMessage": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق کامیابی سے فعال ہو گئی۔",
+    "continueToApp": "ایپ پر جاری رکھیں",
+    "setupFailed": "2FA سیٹ اپ ناکام"
+  },
+  "invite": {
+    "title": "اپنا دعوت کوڈ درج کریں",
+    "description": "رسائی کے لیے اپنی تنظیم کی طرف سے فراہم کردہ دعوت کوڈ درج کریں۔",
+    "codePlaceholder": "دعوت کوڈ درج کریں",
+    "verifyCode": "کوڈ کی تصدیق کریں",
+    "verifying": "تصدیق ہو رہی ہے...",
+    "invalidCode": "غلط دعوت کوڈ",
+    "invalidCodeMessage": "آپ نے جو کوڈ درج کیا وہ غلط یا ختم شدہ ہے۔ اپنے منتظم سے رابطہ کریں۔",
+    "welcomeBack": "خوش آمدید",
+    "existingUserMessage": "اس دعوت سے منسلک ایک اکاؤنٹ موجود ہے۔",
+    "proceedToLogin": "لاگ ان پر جائیں",
+    "createAccount": "اکاؤنٹ بنائیں",
+    "newUserMessage": "آپ کو شامل ہونے کی دعوت دی گئی ہے"
+  },
+  "adminBranding": {
+    "title": "برانڈ مینجمنٹ کنسول",
+    "subtitle": "کے لیے بصری شناخت کو اپنی مرضی کے مطابق بنائیں",
+    "saveChanges": "تبدیلیاں محفوظ کریں",
+    "saving": "محفوظ ہو رہا ہے...",
+    "tabs": {
+      "colors": "رنگ",
+      "assets": "اثاثے",
+      "theme": "تھیم"
+    },
+    "colors": {
+      "title": "رنگوں کی پیلیٹ",
+      "description": "مناسب تضاد کے لیے لائٹ اور ڈارک موڈز کے لیے الگ رنگ متعین کریں۔",
+      "lightMode": "لائٹ موڈ",
+      "darkMode": "ڈارک موڈ",
+      "primaryColor": "بنیادی رنگ",
+      "secondaryColor": "ثانوی رنگ"
+    },
+    "assets": {
+      "loginLogos": {
+        "title": "لاگ ان صفحہ کے لوگو",
+        "description": "لاگ ان صفحہ پر دکھائے جانے والے مکمل برانڈ لوگو۔ PNG/SVG، کم از کم 200x50px",
+        "lightMode": "لائٹ موڈ (گہرا لوگو)",
+        "darkMode": "ڈارک موڈ (ہلکا لوگو)",
+        "noLogo": "کوئی لوگو نہیں"
+      },
+      "sidebarIcons": {
+        "title": "سائیڈبار آئیکن",
+        "description": "سائیڈبار ہیڈر کے لیے چھوٹے آئیکن۔ PNG/SVG، مربع، کم از کم 64x64px",
+        "noIcon": "کوئی آئیکن نہیں"
+      },
+      "appIcons": {
+        "title": "ایپ آئیکن (PWA)",
+        "description": "موبائل ہوم اسکرین آئیکن۔ صرف PNG، بالکل 512x512px"
+      },
+      "favicon": {
+        "title": "فیوکون",
+        "description": "براؤزر ٹیب میں چھوٹا آئیکن۔ PNG/ICO، 32x32px یا 64x64px",
+        "noFavicon": "کوئی فیوکون نہیں"
+      }
+    },
+    "theme": {
+      "title": "لاگ ان صفحہ کا پس منظر",
+      "description": "لاگ ان صفحہ کا پس منظر کیسے ظاہر ہو منتخب کریں۔",
+      "solidColor": "ٹھوس رنگ",
+      "customImage": "اپنی مرضی کی تصویر",
+      "backgroundColor": "پس منظر کا رنگ",
+      "backgroundImage": "پس منظر کی تصویر",
+      "imageDescription": "JPG یا PNG، تجویز کردہ 1920x1080px",
+      "noImage": "کوئی تصویر اپ لوڈ نہیں کی گئی"
+    },
+    "preview": {
+      "title": "براہ راست پیش نظارہ",
+      "loginPreview": "لاگ ان کا پیش نظارہ",
+      "sidebarPreview": "سائیڈبار کا پیش نظارہ"
+    },
+    "toast": {
+      "assetUploaded": "اثاثہ اپ لوڈ ہو گیا",
+      "dontForgetSave": "اپنی تبدیلیاں محفوظ کرنا نہ بھولیں۔",
+      "brandingUpdated": "برانڈنگ اپ ڈیٹ ہو گئی",
+      "changesApplied": "آپ کی تبدیلیاں براہ راست لاگو ہو گئیں۔",
+      "saveFailed": "تبدیلیاں محفوظ کرنے میں ناکام"
+    },
+    "errors": {
+      "notAuthenticated": "تصدیق نہیں ہوئی",
+      "noTenant": "آپ کا اکاؤنٹ کسی تنظیم سے منسلک نہیں ہے۔ سپورٹ سے رابطہ کریں۔",
+      "loadFailed": "برانڈنگ ڈیٹا لوڈ کرنے میں ناکام",
+      "noTenantConfigured": "کوئی کرایہ دار ترتیب نہیں دیا گیا",
+      "configError": "ترتیب کی خرابی"
+    }
+  },
+  "securitySettings": {
+    "twoFactorAuth": "دو عنصری تصدیق",
+    "twoFactorDescription": "اپنے اکاؤنٹ میں سیکیورٹی کی اضافی تہہ شامل کریں۔",
+    "changePassword": "پاس ورڈ تبدیل کریں",
+    "changePasswordDescription": "اپنے اکاؤنٹ کا پاس ورڈ اپ ڈیٹ کریں۔",
+    "newPassword": "نیا پاس ورڈ",
+    "confirmNewPassword": "نئے پاس ورڈ کی تصدیق کریں",
+    "updatePassword": "پاس ورڈ اپ ڈیٹ کریں",
+    "updating": "اپ ڈیٹ ہو رہا ہے...",
+    "passwordUpdated": "پاس ورڈ اپ ڈیٹ ہو گیا",
+    "passwordUpdateSuccess": "آپ کا پاس ورڈ کامیابی سے اپ ڈیٹ ہو گیا۔",
+    "passwordsDoNotMatch": "پاس ورڈ مماثل نہیں ہیں",
+    "requirements": {
+      "title": "پاس ورڈ کی ضروریات",
+      "minLength": "کم از کم 8 حروف",
+      "uppercase": "ایک بڑا حرف",
+      "lowercase": "ایک چھوٹا حرف",
+      "number": "ایک نمبر"
+    }
+  },
+  "twoFactorSetup": {
+    "enabled": "2FA فعال ہے",
+    "enabledDescription": "آپ کا اکاؤنٹ دو عنصری تصدیق سے محفوظ ہے۔",
+    "disable2FA": "2FA غیر فعال کریں",
+    "notEnabled": "2FA فعال نہیں",
+    "notEnabledDescription": "دو عنصری تصدیق فعال کر کے اپنے اکاؤنٹ کی سیکیورٹی بڑھائیں۔",
+    "enable": "2FA فعال کریں"
+  },
+  "mfaEnroll": {
+    "title": "دو عنصری تصدیق فعال کریں",
+    "description": "اپنے اکاؤنٹ میں سیکیورٹی کی اضافی تہہ شامل کریں",
+    "step1Title": "مرحلہ 1: تصدیقی ایپ حاصل کریں",
+    "step1Description": "Google Authenticator، Microsoft Authenticator، یا Authy جیسی تصدیقی ایپ ڈاؤن لوڈ کریں۔",
+    "step2Title": "مرحلہ 2: QR کوڈ اسکین کریں",
+    "step2Description": "ہم آپ کو جو QR کوڈ دکھائیں گے اسے اسکین کرنے کے لیے اپنی تصدیقی ایپ استعمال کریں۔",
+    "phoneNearby": "اس سیٹ اپ کو مکمل کرنے کے لیے آپ کو اپنے فون کی ضرورت ہوگی۔",
+    "scanTitle": "QR کوڈ اسکین کریں",
+    "scanDescription": "اپنی تصدیقی ایپ کھولیں اور یہ QR کوڈ اسکین کریں",
+    "cantScan": "اسکین نہیں کر سکتے؟ یہ کوڈ دستی طور پر درج کریں:",
+    "verifyTitle": "سیٹ اپ کی تصدیق کریں",
+    "verifyDescription": "اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں",
+    "codeRefreshes": "کوڈ ہر 30 سیکنڈ میں تازہ ہوتا ہے",
+    "successTitle": "2FA کامیابی سے فعال ہو گیا",
+    "successDescription": "آپ کا اکاؤنٹ اب دو عنصری تصدیق سے محفوظ ہے",
+    "successAlert": "آپ کو ہر بار سائن ان کرتے وقت اپنی تصدیقی ایپ سے کوڈ درج کرنا ہوگا۔",
+    "continue": "جاری رکھیں",
+    "back": "واپس",
+    "verify": "تصدیق کریں",
+    "done": "ہو گیا",
+    "toastTitle": "2FA فعال ہو گیا",
+    "toastDescription": "آپ کے اکاؤنٹ کے لیے دو عنصری تصدیق فعال ہو گئی۔"
+  },
+  "mfaDisable": {
+    "title": "دو عنصری تصدیق غیر فعال کریں",
+    "description": "دو عنصری تصدیق غیر فعال کرنے کے لیے اپنا موجودہ 2FA کوڈ درج کریں",
+    "warning": "2FA غیر فعال کرنے سے آپ کا اکاؤنٹ کم محفوظ ہو جائے گا۔ آپ کو صرف اپنے پاس ورڈ کی ضرورت ہوگی سائن ان کرنے کے لیے۔",
+    "enterCode": "اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں",
+    "toastTitle": "2FA غیر فعال ہو گیا",
+    "toastDescription": "آپ کے اکاؤنٹ سے دو عنصری تصدیق غیر فعال ہو گئی۔"
+  },
+  "mfaVerification": {
+    "title": "دو عنصری تصدیق",
+    "description": "جاری رکھنے کے لیے اپنی تصدیقی ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "verify": "تصدیق کریں",
+    "verifying": "تصدیق ہو رہی ہے...",
+    "invalidCode": "غلط تصدیقی کوڈ",
+    "loginCancelled": "لاگ ان منسوخ ہو گیا"
   },
   "navigation": {
     "dashboard": "ڈیش بورڈ",
@@ -76,7 +269,12 @@
     "profileUpdateSuccess": "آپ کا پروفائل کامیابی سے اپ ڈیٹ ہو گیا۔",
     "profileUpdateError": "پروفائل اپ ڈیٹ کرنے میں ناکام",
     "profilePicture": "پروفائل تصویر",
-    "changeAvatar": "تصویر تبدیل کریں"
+    "changeAvatar": "تصویر تبدیل کریں",
+    "fileTypeError": "صرف JPG، PNG، اور GIF فائلیں اجازت یافتہ ہیں",
+    "fileSizeError": "براہ کرم 10MB سے کم تصویر منتخب کریں",
+    "avatarSaveError": "اوتار URL محفوظ کرنے میں ناکام",
+    "avatarHint": "JPG، GIF یا PNG۔ زیادہ سے زیادہ 2MB۔",
+    "invalidInput": "غلط ان پٹ"
   },
   "sidebar": {
     "myAccount": "میرا اکاؤنٹ",

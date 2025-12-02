@@ -17,7 +17,9 @@
     "yes": "हां",
     "no": "नहीं",
     "status": "स्थिति",
-    "active": "सक्रिय"
+    "active": "सक्रिय",
+    "continue": "जारी रखें",
+    "verify": "सत्यापित करें"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -41,6 +43,197 @@
     "validationError": "सत्यापन त्रुटि",
     "error": "त्रुटि",
     "failedToLogin": "लॉग इन विफल"
+  },
+  "forgotPassword": {
+    "title": "पासवर्ड भूल गए",
+    "description": "अपना ईमेल पता दर्ज करें और हम आपको पासवर्ड रीसेट लिंक भेजेंगे।",
+    "sendResetLink": "रीसेट लिंक भेजें",
+    "sending": "भेजा जा रहा है...",
+    "success": "रीसेट लिंक भेज दिया गया",
+    "successMessage": "पासवर्ड रीसेट लिंक के लिए अपना ईमेल जांचें।",
+    "backToLogin": "लॉगिन पर वापस जाएं"
+  },
+  "resetPassword": {
+    "title": "पासवर्ड रीसेट करें",
+    "description": "नीचे अपना नया पासवर्ड दर्ज करें।",
+    "newPassword": "नया पासवर्ड",
+    "confirmNewPassword": "नए पासवर्ड की पुष्टि करें",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "resetting": "रीसेट हो रहा है...",
+    "success": "पासवर्ड अपडेट हो गया",
+    "successMessage": "आपका पासवर्ड सफलतापूर्वक अपडेट हो गया। अब आप लॉग इन कर सकते हैं।",
+    "goToLogin": "लॉगिन पर जाएं"
+  },
+  "mfaSetup": {
+    "title": "दो-कारक प्रमाणीकरण सेटअप",
+    "description": "आपके खाते की सुरक्षा के लिए दो-कारक प्रमाणीकरण सेटअप आवश्यक है।",
+    "scanQrCode": "QR कोड स्कैन करें",
+    "scanInstructions": "इस QR कोड को अपने प्रमाणक ऐप (Google Authenticator, Microsoft Authenticator, Authy) से स्कैन करें।",
+    "manualEntry": "मैन्युअल प्रविष्टि",
+    "manualInstructions": "यदि आप QR कोड स्कैन नहीं कर सकते, तो यह कुंजी मैन्युअली दर्ज करें:",
+    "copySecret": "गुप्त कुंजी कॉपी करें",
+    "secretCopied": "गुप्त कुंजी क्लिपबोर्ड पर कॉपी हो गई",
+    "verifySetup": "सेटअप सत्यापित करें",
+    "verifyInstructions": "सेटअप सत्यापित करने के लिए अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।",
+    "verifyCode": "सत्यापित करें और सेटअप पूरा करें",
+    "verifying": "सत्यापित हो रहा है...",
+    "setupComplete": "2FA सेटअप पूर्ण",
+    "setupCompleteMessage": "आपके खाते के लिए दो-कारक प्रमाणीकरण सफलतापूर्वक सक्षम हो गया।",
+    "continueToApp": "ऐप पर जारी रखें",
+    "setupFailed": "2FA सेटअप विफल"
+  },
+  "invite": {
+    "title": "अपना आमंत्रण कोड दर्ज करें",
+    "description": "पहुंच के लिए अपने संगठन द्वारा प्रदान किया गया आमंत्रण कोड दर्ज करें।",
+    "codePlaceholder": "आमंत्रण कोड दर्ज करें",
+    "verifyCode": "कोड सत्यापित करें",
+    "verifying": "सत्यापित हो रहा है...",
+    "invalidCode": "अमान्य आमंत्रण कोड",
+    "invalidCodeMessage": "आपने जो कोड दर्ज किया वह अमान्य या समाप्त हो गया है। अपने व्यवस्थापक से संपर्क करें।",
+    "welcomeBack": "वापसी पर स्वागत है",
+    "existingUserMessage": "इस आमंत्रण से जुड़ा एक खाता मौजूद है।",
+    "proceedToLogin": "लॉगिन पर जाएं",
+    "createAccount": "खाता बनाएं",
+    "newUserMessage": "आपको शामिल होने के लिए आमंत्रित किया गया है"
+  },
+  "adminBranding": {
+    "title": "ब्रांड प्रबंधन कंसोल",
+    "subtitle": "के लिए दृश्य पहचान को अनुकूलित करें",
+    "saveChanges": "परिवर्तन सहेजें",
+    "saving": "सहेजा जा रहा है...",
+    "tabs": {
+      "colors": "रंग",
+      "assets": "संपत्तियां",
+      "theme": "थीम"
+    },
+    "colors": {
+      "title": "रंग पैलेट",
+      "description": "उचित कंट्रास्ट के लिए लाइट और डार्क मोड के लिए अलग-अलग रंग परिभाषित करें।",
+      "lightMode": "लाइट मोड",
+      "darkMode": "डार्क मोड",
+      "primaryColor": "प्राथमिक रंग",
+      "secondaryColor": "द्वितीयक रंग"
+    },
+    "assets": {
+      "loginLogos": {
+        "title": "लॉगिन पेज लोगो",
+        "description": "लॉगिन पेज पर प्रदर्शित पूर्ण ब्रांड लोगो। PNG/SVG, न्यूनतम 200x50px",
+        "lightMode": "लाइट मोड (गहरा लोगो)",
+        "darkMode": "डार्क मोड (हल्का लोगो)",
+        "noLogo": "कोई लोगो नहीं"
+      },
+      "sidebarIcons": {
+        "title": "साइडबार आइकन",
+        "description": "साइडबार हेडर के लिए छोटे आइकन। PNG/SVG, वर्गाकार, न्यूनतम 64x64px",
+        "noIcon": "कोई आइकन नहीं"
+      },
+      "appIcons": {
+        "title": "ऐप आइकन (PWA)",
+        "description": "मोबाइल होम स्क्रीन आइकन। केवल PNG, बिल्कुल 512x512px"
+      },
+      "favicon": {
+        "title": "फेविकॉन",
+        "description": "ब्राउज़र टैब में छोटा आइकन। PNG/ICO, 32x32px या 64x64px",
+        "noFavicon": "कोई फेविकॉन नहीं"
+      }
+    },
+    "theme": {
+      "title": "लॉगिन पेज पृष्ठभूमि",
+      "description": "चुनें कि लॉगिन पेज की पृष्ठभूमि कैसे दिखाई दे।",
+      "solidColor": "ठोस रंग",
+      "customImage": "कस्टम छवि",
+      "backgroundColor": "पृष्ठभूमि रंग",
+      "backgroundImage": "पृष्ठभूमि छवि",
+      "imageDescription": "JPG या PNG, अनुशंसित 1920x1080px",
+      "noImage": "कोई छवि अपलोड नहीं की गई"
+    },
+    "preview": {
+      "title": "लाइव पूर्वावलोकन",
+      "loginPreview": "लॉगिन पूर्वावलोकन",
+      "sidebarPreview": "साइडबार पूर्वावलोकन"
+    },
+    "toast": {
+      "assetUploaded": "संपत्ति अपलोड हो गई",
+      "dontForgetSave": "अपने परिवर्तन सहेजना न भूलें।",
+      "brandingUpdated": "ब्रांडिंग अपडेट हो गई",
+      "changesApplied": "आपके परिवर्तन लाइव लागू हो गए।",
+      "saveFailed": "परिवर्तन सहेजने में विफल"
+    },
+    "errors": {
+      "notAuthenticated": "प्रमाणित नहीं",
+      "noTenant": "आपका खाता किसी संगठन से संबद्ध नहीं है। सहायता से संपर्क करें।",
+      "loadFailed": "ब्रांडिंग डेटा लोड करने में विफल",
+      "noTenantConfigured": "कोई किरायेदार कॉन्फ़िगर नहीं किया गया",
+      "configError": "कॉन्फ़िगरेशन त्रुटि"
+    }
+  },
+  "securitySettings": {
+    "twoFactorAuth": "दो-कारक प्रमाणीकरण",
+    "twoFactorDescription": "अपने खाते में सुरक्षा की एक अतिरिक्त परत जोड़ें।",
+    "changePassword": "पासवर्ड बदलें",
+    "changePasswordDescription": "अपने खाते का पासवर्ड अपडेट करें।",
+    "newPassword": "नया पासवर्ड",
+    "confirmNewPassword": "नए पासवर्ड की पुष्टि करें",
+    "updatePassword": "पासवर्ड अपडेट करें",
+    "updating": "अपडेट हो रहा है...",
+    "passwordUpdated": "पासवर्ड अपडेट हो गया",
+    "passwordUpdateSuccess": "आपका पासवर्ड सफलतापूर्वक अपडेट हो गया।",
+    "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
+    "requirements": {
+      "title": "पासवर्ड आवश्यकताएं",
+      "minLength": "कम से कम 8 अक्षर",
+      "uppercase": "एक बड़ा अक्षर",
+      "lowercase": "एक छोटा अक्षर",
+      "number": "एक नंबर"
+    }
+  },
+  "twoFactorSetup": {
+    "enabled": "2FA सक्षम",
+    "enabledDescription": "आपका खाता दो-कारक प्रमाणीकरण से सुरक्षित है।",
+    "disable2FA": "2FA अक्षम करें",
+    "notEnabled": "2FA सक्षम नहीं",
+    "notEnabledDescription": "दो-कारक प्रमाणीकरण सक्षम करके अपने खाते की सुरक्षा बढ़ाएं।",
+    "enable": "2FA सक्षम करें"
+  },
+  "mfaEnroll": {
+    "title": "दो-कारक प्रमाणीकरण सक्षम करें",
+    "description": "अपने खाते में सुरक्षा की एक अतिरिक्त परत जोड़ें",
+    "step1Title": "चरण 1: प्रमाणक ऐप प्राप्त करें",
+    "step1Description": "Google Authenticator, Microsoft Authenticator, या Authy जैसा प्रमाणक ऐप डाउनलोड करें।",
+    "step2Title": "चरण 2: QR कोड स्कैन करें",
+    "step2Description": "हम आपको जो QR कोड दिखाएंगे उसे स्कैन करने के लिए अपने प्रमाणक ऐप का उपयोग करें।",
+    "phoneNearby": "इस सेटअप को पूरा करने के लिए आपको अपने फोन की आवश्यकता होगी।",
+    "scanTitle": "QR कोड स्कैन करें",
+    "scanDescription": "अपना प्रमाणक ऐप खोलें और यह QR कोड स्कैन करें",
+    "cantScan": "स्कैन नहीं कर सकते? यह कोड मैन्युअली दर्ज करें:",
+    "verifyTitle": "सेटअप सत्यापित करें",
+    "verifyDescription": "अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें",
+    "codeRefreshes": "कोड हर 30 सेकंड में रीफ्रेश होता है",
+    "successTitle": "2FA सफलतापूर्वक सक्षम",
+    "successDescription": "आपका खाता अब दो-कारक प्रमाणीकरण से सुरक्षित है",
+    "successAlert": "आपको हर बार साइन इन करते समय अपने प्रमाणक ऐप से कोड दर्ज करना होगा।",
+    "continue": "जारी रखें",
+    "back": "वापस",
+    "verify": "सत्यापित करें",
+    "done": "हो गया",
+    "toastTitle": "2FA सक्षम हो गया",
+    "toastDescription": "आपके खाते के लिए दो-कारक प्रमाणीकरण सक्षम हो गया।"
+  },
+  "mfaDisable": {
+    "title": "दो-कारक प्रमाणीकरण अक्षम करें",
+    "description": "दो-कारक प्रमाणीकरण अक्षम करने के लिए अपना वर्तमान 2FA कोड दर्ज करें",
+    "warning": "2FA अक्षम करने से आपका खाता कम सुरक्षित हो जाएगा। आपको साइन इन करने के लिए केवल अपने पासवर्ड की आवश्यकता होगी।",
+    "enterCode": "अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें",
+    "toastTitle": "2FA अक्षम हो गया",
+    "toastDescription": "आपके खाते से दो-कारक प्रमाणीकरण अक्षम हो गया।"
+  },
+  "mfaVerification": {
+    "title": "दो-कारक प्रमाणीकरण",
+    "description": "जारी रखने के लिए अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।",
+    "verify": "सत्यापित करें",
+    "verifying": "सत्यापित हो रहा है...",
+    "invalidCode": "अमान्य सत्यापन कोड",
+    "loginCancelled": "लॉगिन रद्द हो गया"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -76,7 +269,12 @@
     "profileUpdateSuccess": "आपकी प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई है।",
     "profileUpdateError": "प्रोफ़ाइल अपडेट करने में विफल",
     "profilePicture": "प्रोफ़ाइल चित्र",
-    "changeAvatar": "अवतार बदलें"
+    "changeAvatar": "अवतार बदलें",
+    "fileTypeError": "केवल JPG, PNG, और GIF फ़ाइलें अनुमत हैं",
+    "fileSizeError": "कृपया 10MB से कम की छवि चुनें",
+    "avatarSaveError": "अवतार URL सहेजने में विफल",
+    "avatarHint": "JPG, GIF या PNG। अधिकतम 2MB।",
+    "invalidInput": "अमान्य इनपुट"
   },
   "sidebar": {
     "myAccount": "मेरा खाता",
