@@ -227,6 +227,7 @@ export type Database = {
           background_theme: string | null
           brand_color: string
           created_at: string | null
+          favicon_url: string | null
           id: string
           logo_url: string | null
           name: string
@@ -240,6 +241,7 @@ export type Database = {
           background_theme?: string | null
           brand_color?: string
           created_at?: string | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -253,6 +255,7 @@ export type Database = {
           background_theme?: string | null
           brand_color?: string
           created_at?: string | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           name?: string

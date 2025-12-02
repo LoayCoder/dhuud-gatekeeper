@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2 } from 'lucide-react';
+import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2, Globe } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
@@ -29,6 +29,7 @@ export default function AdminBranding() {
   
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   const [bgPreview, setBgPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function AdminBranding() {
       setBgColor(tenantData.background_color || '');
       setLogoPreview(tenantData.logo_url);
       setIconPreview(tenantData.app_icon_url);
+      setFaviconPreview(tenantData.favicon_url);
       setBgPreview(tenantData.background_image_url);
 
     } catch (error) {
@@ -76,6 +78,7 @@ export default function AdminBranding() {
     if (url) {
       if (type === 'logo') setLogoPreview(url);
       if (type === 'icon') setIconPreview(url);
+      if (type === 'favicon') setFaviconPreview(url);
       if (type === 'background') setBgPreview(url);
       
       toast({ title: 'Asset Uploaded', description: 'Don\'t forget to save your changes.' });
@@ -92,6 +95,7 @@ export default function AdminBranding() {
         background_color: bgColor,
         logo_url: logoPreview,
         app_icon_url: iconPreview,
+        favicon_url: faviconPreview,
         background_image_url: bgPreview
       };
 
@@ -212,6 +216,35 @@ export default function AdminBranding() {
                     type="file" 
                     accept=".png" 
                     onChange={(e) => handleFileUpload(e, 'icon')}
+                    disabled={uploading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" /> Browser Favicon
+                </CardTitle>
+                <CardDescription>
+                  Displayed in browser tabs and bookmarks.<br/>
+                  <span className="text-xs font-mono text-muted-foreground">Req: PNG/ICO, Max 128x128px</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[150px]">
+                  {faviconPreview ? (
+                    <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-contain" />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No favicon uploaded</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Input 
+                    type="file" 
+                    accept=".png,.ico" 
+                    onChange={(e) => handleFileUpload(e, 'favicon')}
                     disabled={uploading}
                   />
                 </div>

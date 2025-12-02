@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-export type AssetType = 'logo' | 'icon' | 'background';
+export type AssetType = 'logo' | 'icon' | 'background' | 'favicon';
 
 interface ValidationResult {
   valid: boolean;
@@ -15,15 +15,21 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
     logo: ['image/png', 'image/svg+xml'],
     icon: ['image/png'],
     background: ['image/png', 'image/jpeg', 'image/jpg'],
+    favicon: ['image/png', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'],
   };
 
   if (!allowedTypes[type].includes(file.type)) {
-    const formats = type === 'logo' ? 'PNG or SVG' : type === 'icon' ? 'PNG' : 'PNG or JPG';
-    return { valid: false, error: `Invalid file type. Please upload a ${formats} file.` };
+    const formatMap: Record<AssetType, string> = {
+      logo: 'PNG or SVG',
+      icon: 'PNG',
+      background: 'PNG or JPG',
+      favicon: 'PNG or ICO',
+    };
+    return { valid: false, error: `Invalid file type. Please upload a ${formatMap[type]} file.` };
   }
 
-  // Validate dimensions for images (not SVG)
-  if (file.type !== 'image/svg+xml') {
+  // Validate dimensions for images (not SVG or ICO)
+  if (file.type !== 'image/svg+xml' && !file.type.includes('icon') && !file.type.includes('ico')) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -39,6 +45,13 @@ const validateFile = async (file: File, type: AssetType): Promise<ValidationResu
         if (type === 'logo') {
           if (img.width < 200 || img.height < 50) {
             resolve({ valid: false, error: 'Logo must be at least 200x50 pixels.' });
+            return;
+          }
+        }
+
+        if (type === 'favicon') {
+          if (img.width > 128 || img.height > 128) {
+            resolve({ valid: false, error: 'Favicon should be 128x128 pixels or smaller.' });
             return;
           }
         }
