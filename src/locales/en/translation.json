@@ -1,4 +1,9 @@
 {
+  "admin": {
+    "accessDenied": "Access Denied",
+    "noPermission": "You do not have permission to access this page.",
+    "adminOnlyAccess": "Only organization administrators can access the Brand Management Console."
+  },
   "notFound": {
     "pageNotFound": "Oops! Page not found",
     "returnHome": "Return to Home"
@@ -277,7 +282,12 @@
       "loginPreview": "Login Preview",
       "sidebarPreview": "Sidebar Preview",
       "sidebar": "Sidebar",
-      "loginPage": "Login Page"
+      "loginPage": "Login Page",
+      "defaultCompany": "Your Company",
+      "enterpriseHsse": "Enterprise HSSE",
+      "signInPrompt": "Sign in to your account",
+      "emailPlaceholder": "email@example.com",
+      "signInButton": "Sign In"
     },
     "toast": {
       "assetUploaded": "Asset Uploaded",

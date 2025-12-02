@@ -1,4 +1,9 @@
 {
+  "admin": {
+    "accessDenied": "Tinanggihan ang Access",
+    "noPermission": "Wala kang pahintulot na ma-access ang pahinang ito.",
+    "adminOnlyAccess": "Tanging mga administrator ng organisasyon lang ang makakapag-access sa Brand Management Console."
+  },
   "notFound": {
     "pageNotFound": "Oops! Hindi nahanap ang page",
     "returnHome": "Bumalik sa Home"
@@ -186,7 +191,12 @@
       "loginPreview": "Preview ng Login",
       "sidebarPreview": "Preview ng Sidebar",
       "sidebar": "Sidebar",
-      "loginPage": "Login Page"
+      "loginPage": "Login Page",
+      "defaultCompany": "Iyong Kumpanya",
+      "enterpriseHsse": "Enterprise HSSE",
+      "signInPrompt": "Mag-sign in sa iyong account",
+      "emailPlaceholder": "email@example.com",
+      "signInButton": "Mag-sign In"
     },
     "toast": {
       "assetUploaded": "Na-upload na ang Asset",

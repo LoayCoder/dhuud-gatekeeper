@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -78,12 +80,12 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-background p-8">
         <div className="text-center space-y-4">
           <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <h1 className="text-2xl font-bold">{t('admin.accessDenied')}</h1>
           <p className="text-muted-foreground">
-            You do not have permission to access this page.
+            {t('admin.noPermission')}
           </p>
           <p className="text-sm text-muted-foreground">
-            Only organization administrators can access the Brand Management Console.
+            {t('admin.adminOnlyAccess')}
           </p>
         </div>
       </div>
