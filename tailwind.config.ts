@@ -15,8 +15,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-changa)', ...defaultTheme.fontFamily.sans],
-        changa: ['var(--font-changa)', 'sans-serif'],
+        sans: ['var(--font-rubik)', ...defaultTheme.fontFamily.sans],
+        rubik: ['var(--font-rubik)', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
