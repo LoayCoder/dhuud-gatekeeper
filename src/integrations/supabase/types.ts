@@ -221,27 +221,42 @@ export type Database = {
       }
       tenants: {
         Row: {
+          app_icon_url: string | null
+          background_color: string | null
+          background_image_url: string | null
+          background_theme: string | null
           brand_color: string
           created_at: string | null
           id: string
           logo_url: string | null
           name: string
+          secondary_color: string | null
           slug: string
         }
         Insert: {
+          app_icon_url?: string | null
+          background_color?: string | null
+          background_image_url?: string | null
+          background_theme?: string | null
           brand_color?: string
           created_at?: string | null
           id?: string
           logo_url?: string | null
           name: string
+          secondary_color?: string | null
           slug: string
         }
         Update: {
+          app_icon_url?: string | null
+          background_color?: string | null
+          background_image_url?: string | null
+          background_theme?: string | null
           brand_color?: string
           created_at?: string | null
           id?: string
           logo_url?: string | null
           name?: string
+          secondary_color?: string | null
           slug?: string
         }
         Relationships: []

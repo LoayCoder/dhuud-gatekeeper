@@ -4,10 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 interface ThemeContextType {
   primaryColor: string;
   setPrimaryColor: (color: string) => void;
+  secondaryColor: string;
+  setSecondaryColor: (color: string) => void;
+  backgroundColor: string;
+  setBackgroundColor: (color: string) => void;
+  backgroundTheme: 'color' | 'image';
+  setBackgroundTheme: (theme: 'color' | 'image') => void;
+  backgroundImageUrl: string | null;
+  setBackgroundImageUrl: (url: string | null) => void;
   tenantName: string;
   setTenantName: (name: string) => void;
   logoUrl: string | null;
   setLogoUrl: (url: string | null) => void;
+  appIconUrl: string | null;
+  setAppIconUrl: (url: string | null) => void;
   tenantId: string | null;
   setTenantId: (id: string | null) => void;
   invitationEmail: string | null;
@@ -25,8 +35,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY_COLOR);
+  const [secondaryColor, setSecondaryColor] = useState('');
+  const [backgroundColor, setBackgroundColor] = useState('');
+  const [backgroundTheme, setBackgroundTheme] = useState<'color' | 'image'>('color');
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(null);
   const [tenantName, setTenantName] = useState(DEFAULT_TENANT_NAME);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [appIconUrl, setAppIconUrl] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
@@ -47,8 +62,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const resetToDefaults = useCallback(() => {
     setPrimaryColor(DEFAULT_PRIMARY_COLOR);
+    setSecondaryColor('');
+    setBackgroundColor('');
+    setBackgroundTheme('color');
+    setBackgroundImageUrl(null);
     setTenantName(DEFAULT_TENANT_NAME);
     setLogoUrl(null);
+    setAppIconUrl(null);
     setTenantId(null);
   }, []);
 
@@ -73,10 +93,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch tenant details
+      // Fetch tenant details with new branding fields
       const { data: tenant, error: tenantError } = await supabase
         .from('tenants')
-        .select('name, brand_color, logo_url')
+        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, app_icon_url, background_image_url')
         .eq('id', profile.tenant_id)
         .maybeSingle();
 
@@ -89,7 +109,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTenantId(profile.tenant_id);
       setTenantName(tenant.name || DEFAULT_TENANT_NAME);
       setPrimaryColor(tenant.brand_color || DEFAULT_PRIMARY_COLOR);
+      setSecondaryColor(tenant.secondary_color || '');
+      setBackgroundColor(tenant.background_color || '');
+      setBackgroundTheme((tenant.background_theme as 'color' | 'image') || 'color');
       setLogoUrl(tenant.logo_url);
+      setAppIconUrl(tenant.app_icon_url);
+      setBackgroundImageUrl(tenant.background_image_url);
     } catch (error) {
       console.error('Error refreshing tenant data:', error);
     }
@@ -125,10 +150,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       value={{
         primaryColor,
         setPrimaryColor,
+        secondaryColor,
+        setSecondaryColor,
+        backgroundColor,
+        setBackgroundColor,
+        backgroundTheme,
+        setBackgroundTheme,
+        backgroundImageUrl,
+        setBackgroundImageUrl,
         tenantName,
         setTenantName,
         logoUrl,
         setLogoUrl,
+        appIconUrl,
+        setAppIconUrl,
         tenantId,
         setTenantId,
         invitationEmail,
