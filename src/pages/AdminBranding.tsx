@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Palette, Image as ImageIcon, Smartphone, Layout, Upload, Save, Loader2 } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
+import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -142,34 +143,16 @@ export default function AdminBranding() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <Label>Primary Color (Buttons, Links, Active States)</Label>
-                  <div className="flex gap-4 items-center">
-                    <div 
-                      className="h-12 w-12 rounded-lg border shadow-sm" 
-                      style={{ backgroundColor: `hsl(${brandColor})` }} 
-                    />
-                    <Input 
-                      value={brandColor} 
-                      onChange={(e) => setBrandColor(e.target.value)}
-                      placeholder="HSL Value (e.g., 221 83% 53%)"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <Label>Secondary Color (Accents, Highlights)</Label>
-                  <div className="flex gap-4 items-center">
-                    <div 
-                      className="h-12 w-12 rounded-lg border shadow-sm" 
-                      style={{ backgroundColor: `hsl(${secondaryColor})` }} 
-                    />
-                    <Input 
-                      value={secondaryColor} 
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      placeholder="HSL Value"
-                    />
-                  </div>
-                </div>
+                <HslColorPicker
+                  label="Primary Color (Buttons, Links, Active States)"
+                  value={brandColor}
+                  onChange={setBrandColor}
+                />
+                <HslColorPicker
+                  label="Secondary Color (Accents, Highlights)"
+                  value={secondaryColor}
+                  onChange={setSecondaryColor}
+                />
               </div>
             </CardContent>
           </Card>
