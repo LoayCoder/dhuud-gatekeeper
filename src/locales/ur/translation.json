@@ -4,6 +4,18 @@
     "noPermission": "آپ کو اس صفحے تک رسائی کی اجازت نہیں ہے۔",
     "adminOnlyAccess": "صرف تنظیم کے منتظمین برانڈ مینجمنٹ کنسول تک رسائی حاصل کر سکتے ہیں۔"
   },
+  "validation": {
+    "nameTooLong": "نام 100 حروف سے کم ہونا چاہیے",
+    "phoneTooLong": "فون نمبر بہت لمبا ہے"
+  },
+  "pagination": {
+    "previous": "پچھلا",
+    "next": "اگلا",
+    "morePages": "مزید صفحات"
+  },
+  "accessibility": {
+    "toggleSidebar": "سائیڈبار ٹوگل کریں"
+  },
   "notFound": {
     "pageNotFound": "افسوس! صفحہ نہیں ملا",
     "returnHome": "ہوم پر واپس جائیں"

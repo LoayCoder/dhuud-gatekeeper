@@ -4,6 +4,18 @@
     "noPermission": "आपको इस पृष्ठ तक पहुँचने की अनुमति नहीं है।",
     "adminOnlyAccess": "केवल संगठन प्रशासक ब्रांड प्रबंधन कंसोल तक पहुँच सकते हैं।"
   },
+  "validation": {
+    "nameTooLong": "नाम 100 अक्षरों से कम होना चाहिए",
+    "phoneTooLong": "फ़ोन नंबर बहुत लंबा है"
+  },
+  "pagination": {
+    "previous": "पिछला",
+    "next": "अगला",
+    "morePages": "अधिक पृष्ठ"
+  },
+  "accessibility": {
+    "toggleSidebar": "साइडबार टॉगल करें"
+  },
   "notFound": {
     "pageNotFound": "उफ़! पृष्ठ नहीं मिला",
     "returnHome": "होम पर वापस जाएं"

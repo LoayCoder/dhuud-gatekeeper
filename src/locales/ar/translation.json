@@ -4,6 +4,18 @@
     "noPermission": "ليس لديك صلاحية للوصول إلى هذه الصفحة.",
     "adminOnlyAccess": "يمكن فقط لمسؤولي المؤسسة الوصول إلى وحدة إدارة الهوية البصرية."
   },
+  "validation": {
+    "nameTooLong": "يجب أن يكون الاسم أقل من 100 حرف",
+    "phoneTooLong": "رقم الهاتف طويل جداً"
+  },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "morePages": "المزيد من الصفحات"
+  },
+  "accessibility": {
+    "toggleSidebar": "تبديل الشريط الجانبي"
+  },
   "notFound": {
     "pageNotFound": "عفواً! الصفحة غير موجودة",
     "returnHome": "العودة إلى الصفحة الرئيسية"
