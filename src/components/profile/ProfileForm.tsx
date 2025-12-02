@@ -162,16 +162,16 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-start">
       {/* Avatar Upload */}
-      <div className="flex items-center gap-6 pb-6">
-        <Avatar className="h-24 w-24">
+      <div className="flex items-center gap-6 pb-6 rtl:flex-row-reverse">
+        <Avatar className="h-24 w-24 flex-shrink-0">
           <AvatarImage src={avatarUrl || undefined} alt={fullName} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
             {fullName ? fullName.substring(0, 2).toUpperCase() : <User className="h-8 w-8" />}
           </AvatarFallback>
         </Avatar>
-        <div className="space-y-1">
+        <div className="space-y-1 text-start">
           <h3 className="font-medium">{t('profile.profilePicture')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('profile.avatarHint')}
@@ -209,7 +209,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       {/* Personal Information */}
       <div className="grid gap-4 pt-4">
-        <div className="grid gap-2">
+        <div className="grid gap-2 text-start">
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
             <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -217,7 +217,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
               id="email" 
               value={user?.email || ""} 
               disabled 
-              className="ps-9 bg-muted/50" 
+              className="ps-9 bg-muted/50 text-start" 
             />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
@@ -225,7 +225,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
           </p>
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-2 text-start">
           <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
             <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -233,7 +233,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
               id="fullName" 
               value={fullName} 
               onChange={(e) => setFullName(e.target.value)}
-              className="ps-9"
+              className="ps-9 text-start"
               placeholder={t('profile.enterFullName')}
               maxLength={100}
             />
@@ -245,7 +245,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       {/* Contact Information */}
       <div className="space-y-4">
-        <div className="grid gap-2">
+        <div className="grid gap-2 text-start">
           <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
             <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -254,7 +254,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
               type="tel"
               value={phoneNumber} 
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="ps-9"
+              className="ps-9 text-start"
               placeholder="+966 5XX XXX XXXX"
               maxLength={20}
             />
@@ -303,7 +303,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-4 rtl:justify-start">
         <Button onClick={updateProfile} disabled={saving}>
           {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           {t('profile.saveChanges')}
