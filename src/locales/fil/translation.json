@@ -4,6 +4,18 @@
     "noPermission": "Wala kang pahintulot na ma-access ang pahinang ito.",
     "adminOnlyAccess": "Tanging mga administrator ng organisasyon lang ang makakapag-access sa Brand Management Console."
   },
+  "validation": {
+    "nameTooLong": "Ang pangalan ay dapat na mas mababa sa 100 na karakter",
+    "phoneTooLong": "Masyadong mahaba ang numero ng telepono"
+  },
+  "pagination": {
+    "previous": "Nakaraan",
+    "next": "Susunod",
+    "morePages": "Higit pang mga pahina"
+  },
+  "accessibility": {
+    "toggleSidebar": "I-toggle ang Sidebar"
+  },
   "notFound": {
     "pageNotFound": "Oops! Hindi nahanap ang page",
     "returnHome": "Bumalik sa Home"

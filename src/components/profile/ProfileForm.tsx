@@ -37,10 +37,10 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   const profileSchema = z.object({
-    fullName: z.string().trim().max(100, "Name must be less than 100 characters"),
-    phoneNumber: z.string().trim().max(20, "Phone number too long").optional(),
-    emergencyContactName: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
-    emergencyContactPhone: z.string().trim().max(20, "Phone number too long").optional(),
+    fullName: z.string().trim().max(100, t('validation.nameTooLong')),
+    phoneNumber: z.string().trim().max(20, t('validation.phoneTooLong')).optional(),
+    emergencyContactName: z.string().trim().max(100, t('validation.nameTooLong')).optional(),
+    emergencyContactPhone: z.string().trim().max(20, t('validation.phoneTooLong')).optional(),
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

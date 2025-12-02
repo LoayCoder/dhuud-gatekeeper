@@ -4,6 +4,18 @@
     "noPermission": "You do not have permission to access this page.",
     "adminOnlyAccess": "Only organization administrators can access the Brand Management Console."
   },
+  "validation": {
+    "nameTooLong": "Name must be less than 100 characters",
+    "phoneTooLong": "Phone number too long"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "morePages": "More pages"
+  },
+  "accessibility": {
+    "toggleSidebar": "Toggle Sidebar"
+  },
   "notFound": {
     "pageNotFound": "Oops! Page not found",
     "returnHome": "Return to Home"
