@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Building2, MapPin } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileData } from "./types";
@@ -7,12 +8,14 @@ interface AssignmentInfoProps {
 }
 
 export function AssignmentInfo({ profile }: AssignmentInfoProps) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Assignment</CardTitle>
+        <CardTitle className="text-lg">{t('assignment.title')}</CardTitle>
         <CardDescription>
-          Your assigned branch and site location.
+          {t('assignment.description') || 'Your assigned branch and site location.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -23,7 +26,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
               <Building2 className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Branch</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.branch')}</p>
               {profile?.branches ? (
                 <>
                   <p className="font-medium">{profile.branches.name}</p>
@@ -32,7 +35,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground italic">Not Assigned</p>
+                <p className="text-muted-foreground italic">{t('assignment.notAssigned')}</p>
               )}
             </div>
           </div>
@@ -45,7 +48,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
               <MapPin className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Site</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.site')}</p>
               {profile?.sites ? (
                 <>
                   <p className="font-medium">{profile.sites.name}</p>
@@ -54,14 +57,14 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground italic">Not Assigned</p>
+                <p className="text-muted-foreground italic">{t('assignment.notAssigned')}</p>
               )}
             </div>
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Branch and site assignments are managed by your administrator.
+          {t('assignment.managedByAdmin') || 'Branch and site assignments are managed by your administrator.'}
         </p>
       </CardContent>
     </Card>

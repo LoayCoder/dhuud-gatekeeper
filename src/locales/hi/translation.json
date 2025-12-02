@@ -15,7 +15,9 @@
     "close": "बंद करें",
     "confirm": "पुष्टि करें",
     "yes": "हां",
-    "no": "नहीं"
+    "no": "नहीं",
+    "status": "स्थिति",
+    "active": "सक्रिय"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -64,13 +66,17 @@
     "emailAddress": "ईमेल पता",
     "emailManagedByOrg": "ईमेल पता आपके संगठन के व्यवस्थापक द्वारा प्रबंधित है।",
     "phoneNumber": "फ़ोन नंबर",
+    "emergencyContact": "आपातकालीन संपर्क",
+    "emergencyContactDescription": "कार्यस्थल पर आपातकालीन स्थिति में संपर्क करने वाला व्यक्ति।",
     "emergencyContactName": "आपातकालीन संपर्क का नाम",
     "emergencyContactPhone": "आपातकालीन संपर्क का फ़ोन",
     "saveChanges": "परिवर्तन सहेजें",
     "saving": "सहेजा जा रहा है...",
     "profileUpdated": "प्रोफ़ाइल अपडेट हो गई",
     "profileUpdateSuccess": "आपकी प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई है।",
-    "profileUpdateError": "प्रोफ़ाइल अपडेट करने में विफल"
+    "profileUpdateError": "प्रोफ़ाइल अपडेट करने में विफल",
+    "profilePicture": "प्रोफ़ाइल चित्र",
+    "changeAvatar": "अवतार बदलें"
   },
   "sidebar": {
     "myAccount": "मेरा खाता",
@@ -99,14 +105,16 @@
   },
   "assignment": {
     "title": "असाइनमेंट जानकारी",
+    "description": "आपकी असाइन की गई शाखा और साइट का स्थान।",
     "branch": "शाखा",
     "site": "साइट",
-    "notAssigned": "असाइन नहीं किया गया"
+    "notAssigned": "असाइन नहीं किया गया",
+    "managedByAdmin": "शाखा और साइट असाइनमेंट आपके व्यवस्थापक द्वारा प्रबंधित हैं।"
   },
   "role": {
     "title": "भूमिका जानकारी",
     "currentRole": "वर्तमान भूमिका",
-    "roleDescription": "संगठन के भीतर अपनी वर्तमान भूमिका और पहुंच स्तर देखें।",
+    "roleDescription": "संगठन के भीतर आपका वर्तमान पहुंच स्तर।",
     "loggedInAs": "आप इस रूप में लॉग इन हैं"
   },
   "placeholder": {

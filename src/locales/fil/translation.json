@@ -15,7 +15,9 @@
     "close": "Isara",
     "confirm": "Kumpirmahin",
     "yes": "Oo",
-    "no": "Hindi"
+    "no": "Hindi",
+    "status": "Katayuan",
+    "active": "Aktibo"
   },
   "auth": {
     "signIn": "Mag-sign In",
@@ -64,13 +66,17 @@
     "emailAddress": "Email Address",
     "emailManagedByOrg": "Ang email address ay pinamamahalaan ng administrator ng iyong organisasyon.",
     "phoneNumber": "Numero ng Telepono",
+    "emergencyContact": "Emergency Contact",
+    "emergencyContactDescription": "Taong makikipag-ugnayan sa kaso ng emergency sa lugar ng trabaho.",
     "emergencyContactName": "Pangalan ng Emergency Contact",
     "emergencyContactPhone": "Telepono ng Emergency Contact",
     "saveChanges": "I-save ang mga Pagbabago",
     "saving": "Nagse-save...",
     "profileUpdated": "Na-update ang Profile",
     "profileUpdateSuccess": "Matagumpay na na-update ang iyong profile.",
-    "profileUpdateError": "Nabigo ang pag-update ng profile"
+    "profileUpdateError": "Nabigo ang pag-update ng profile",
+    "profilePicture": "Larawan ng Profile",
+    "changeAvatar": "Palitan ang Avatar"
   },
   "sidebar": {
     "myAccount": "Aking Account",
@@ -99,14 +105,16 @@
   },
   "assignment": {
     "title": "Impormasyon ng Assignment",
+    "description": "Ang iyong naka-assign na branch at lokasyon ng site.",
     "branch": "Branch",
     "site": "Site",
-    "notAssigned": "Hindi Naka-assign"
+    "notAssigned": "Hindi Naka-assign",
+    "managedByAdmin": "Ang mga assignment ng branch at site ay pinamamahalaan ng iyong administrator."
   },
   "role": {
     "title": "Impormasyon ng Role",
     "currentRole": "Kasalukuyang Role",
-    "roleDescription": "Tingnan ang iyong kasalukuyang role at antas ng access sa loob ng organisasyon.",
+    "roleDescription": "Ang iyong kasalukuyang antas ng access sa loob ng organisasyon.",
     "loggedInAs": "Naka-log in ka bilang"
   },
   "placeholder": {

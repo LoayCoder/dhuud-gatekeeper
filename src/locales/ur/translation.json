@@ -15,7 +15,9 @@
     "close": "بند کریں",
     "confirm": "تصدیق کریں",
     "yes": "ہاں",
-    "no": "نہیں"
+    "no": "نہیں",
+    "status": "حیثیت",
+    "active": "فعال"
   },
   "auth": {
     "signIn": "سائن ان",
@@ -64,13 +66,17 @@
     "emailAddress": "ای میل پتہ",
     "emailManagedByOrg": "ای میل پتہ آپ کی تنظیم کے منتظم کے ذریعے منظم ہے۔",
     "phoneNumber": "فون نمبر",
+    "emergencyContact": "ہنگامی رابطہ",
+    "emergencyContactDescription": "کام کی جگہ پر ہنگامی صورت میں رابطہ کرنے والا شخص۔",
     "emergencyContactName": "ہنگامی رابطے کا نام",
     "emergencyContactPhone": "ہنگامی رابطے کا فون",
     "saveChanges": "تبدیلیاں محفوظ کریں",
     "saving": "محفوظ ہو رہا ہے...",
     "profileUpdated": "پروفائل اپ ڈیٹ ہو گیا",
     "profileUpdateSuccess": "آپ کا پروفائل کامیابی سے اپ ڈیٹ ہو گیا۔",
-    "profileUpdateError": "پروفائل اپ ڈیٹ کرنے میں ناکام"
+    "profileUpdateError": "پروفائل اپ ڈیٹ کرنے میں ناکام",
+    "profilePicture": "پروفائل تصویر",
+    "changeAvatar": "تصویر تبدیل کریں"
   },
   "sidebar": {
     "myAccount": "میرا اکاؤنٹ",
@@ -99,14 +105,16 @@
   },
   "assignment": {
     "title": "تفویض کی معلومات",
+    "description": "آپ کی تفویض شدہ شاخ اور سائٹ کا مقام۔",
     "branch": "شاخ",
     "site": "سائٹ",
-    "notAssigned": "تفویض نہیں"
+    "notAssigned": "تفویض نہیں",
+    "managedByAdmin": "شاخ اور سائٹ کی تفویض آپ کے منتظم کے ذریعے منظم ہے۔"
   },
   "role": {
     "title": "کردار کی معلومات",
     "currentRole": "موجودہ کردار",
-    "roleDescription": "تنظیم کے اندر اپنا موجودہ کردار اور رسائی کی سطح دیکھیں۔",
+    "roleDescription": "تنظیم کے اندر آپ کی موجودہ رسائی کی سطح۔",
     "loggedInAs": "آپ بطور لاگ ان ہیں"
   },
   "placeholder": {

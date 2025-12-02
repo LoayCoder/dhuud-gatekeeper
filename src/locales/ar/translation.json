@@ -15,7 +15,9 @@
     "close": "إغلاق",
     "confirm": "تأكيد",
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "status": "الحالة",
+    "active": "نشط"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -64,13 +66,17 @@
     "emailAddress": "عنوان البريد الإلكتروني",
     "emailManagedByOrg": "عنوان البريد الإلكتروني مدار بواسطة مسؤول مؤسستك.",
     "phoneNumber": "رقم الهاتف",
+    "emergencyContact": "جهة الاتصال للطوارئ",
+    "emergencyContactDescription": "الشخص الذي يجب الاتصال به في حالة الطوارئ في مكان العمل.",
     "emergencyContactName": "اسم جهة الاتصال للطوارئ",
     "emergencyContactPhone": "هاتف جهة الاتصال للطوارئ",
     "saveChanges": "حفظ التغييرات",
     "saving": "جاري الحفظ...",
     "profileUpdated": "تم تحديث الملف الشخصي",
     "profileUpdateSuccess": "تم تحديث ملفك الشخصي بنجاح.",
-    "profileUpdateError": "فشل في تحديث الملف الشخصي"
+    "profileUpdateError": "فشل في تحديث الملف الشخصي",
+    "profilePicture": "صورة الملف الشخصي",
+    "changeAvatar": "تغيير الصورة الرمزية"
   },
   "sidebar": {
     "myAccount": "حسابي",
@@ -99,14 +105,16 @@
   },
   "assignment": {
     "title": "معلومات التعيين",
+    "description": "الفرع والموقع المعينان لك.",
     "branch": "الفرع",
     "site": "الموقع",
-    "notAssigned": "غير معين"
+    "notAssigned": "غير معين",
+    "managedByAdmin": "يتم إدارة تعيينات الفرع والموقع بواسطة المسؤول."
   },
   "role": {
     "title": "معلومات الدور",
     "currentRole": "الدور الحالي",
-    "roleDescription": "عرض دورك الحالي ومستوى الوصول داخل المؤسسة.",
+    "roleDescription": "مستوى وصولك الحالي داخل المؤسسة.",
     "loggedInAs": "أنت مسجل الدخول كـ"
   },
   "placeholder": {

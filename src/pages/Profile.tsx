@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { RoleInfo } from "@/components/profile/RoleInfo";
 import { ProfileData } from "@/components/profile/types";
 
 export default function Profile() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -79,9 +81,9 @@ export default function Profile() {
   return (
     <div className="container max-w-5xl py-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('profile.title')}</h1>
         <p className="text-muted-foreground">
-          Manage your account profile and security preferences.
+          {t('profile.description')}
         </p>
       </div>
 
@@ -90,16 +92,16 @@ export default function Profile() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
+              <CardTitle>{t('profile.personalInfo')}</CardTitle>
               <CardDescription>
-                Update your personal information and security settings.
+                {t('profile.updatePersonalInfo')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="profile" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="profile">Profile</TabsTrigger>
-                  <TabsTrigger value="security">Security</TabsTrigger>
+                  <TabsTrigger value="profile">{t('profile.profileTab')}</TabsTrigger>
+                  <TabsTrigger value="security">{t('profile.securityTab')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="profile">

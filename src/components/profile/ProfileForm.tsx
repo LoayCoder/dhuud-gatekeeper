@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +13,6 @@ import { AvatarCropDialog } from "@/components/profile/AvatarCropDialog";
 import { ProfileData, AuthUser, ProfileFormData } from "./types";
 import { z } from "zod";
 
-const profileSchema = z.object({
-  fullName: z.string().trim().max(100, "Name must be less than 100 characters"),
-  phoneNumber: z.string().trim().max(20, "Phone number too long").optional(),
-  emergencyContactName: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
-  emergencyContactPhone: z.string().trim().max(20, "Phone number too long").optional(),
-});
-
 interface ProfileFormProps {
   user: AuthUser;
   profile: ProfileData | null;
@@ -26,6 +20,7 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadAvatar, uploading } = useAvatarUpload();
@@ -41,6 +36,13 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
+  const profileSchema = z.object({
+    fullName: z.string().trim().max(100, "Name must be less than 100 characters"),
+    phoneNumber: z.string().trim().max(20, "Phone number too long").optional(),
+    emergencyContactName: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
+    emergencyContactPhone: z.string().trim().max(20, "Phone number too long").optional(),
+  });
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -48,7 +50,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
       toast({
-        title: "Invalid file type",
+        title: t('auth.error'),
         description: "Only JPG, PNG, and GIF files are allowed",
         variant: "destructive",
       });
@@ -57,7 +59,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
     if (file.size > 10 * 1024 * 1024) {
       toast({
-        title: "File too large",
+        title: t('auth.error'),
         description: "Please select an image under 10MB",
         variant: "destructive",
       });
@@ -81,7 +83,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
     
     if (error) {
       toast({
-        title: "Upload failed",
+        title: t('auth.error'),
         description: error,
         variant: "destructive",
       });
@@ -96,7 +98,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       if (updateError) {
         toast({
-          title: "Error",
+          title: t('auth.error'),
           description: "Failed to save avatar URL",
           variant: "destructive",
         });
@@ -105,8 +107,8 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       setAvatarUrl(url);
       toast({
-        title: "Avatar updated",
-        description: "Your profile picture has been updated.",
+        title: t('profile.profileUpdated'),
+        description: t('profile.profileUpdateSuccess'),
       });
     }
   };
@@ -122,7 +124,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
     if (!validation.success) {
       toast({
-        title: "Validation Error",
+        title: t('auth.validationError'),
         description: validation.error.errors[0]?.message || "Invalid input",
         variant: "destructive",
       });
@@ -144,14 +146,14 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       if (error) throw error;
       toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
+        title: t('profile.profileUpdated'),
+        description: t('profile.profileUpdateSuccess'),
       });
       onUpdate();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Error updating profile",
+        title: t('auth.error'),
+        description: error.message || t('profile.profileUpdateError'),
         variant: "destructive",
       });
     } finally {
@@ -170,7 +172,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
           </AvatarFallback>
         </Avatar>
         <div className="space-y-1">
-          <h3 className="font-medium">Profile Picture</h3>
+          <h3 className="font-medium">{t('profile.profilePicture') || 'Profile Picture'}</h3>
           <p className="text-sm text-muted-foreground">
             JPG, GIF or PNG. Max size of 2MB.
           </p>
@@ -190,13 +192,13 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
           >
             {uploading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                {t('common.loading')}
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
-                Change Avatar
+                <Upload className="me-2 h-4 w-4" />
+                {t('profile.changeAvatar') || 'Change Avatar'}
               </>
             )}
           </Button>
@@ -208,31 +210,31 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
       {/* Personal Information */}
       <div className="grid gap-4 pt-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email Address</Label>
+          <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
-            <Mail className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="email" 
               value={user?.email || ""} 
               disabled 
-              className="pl-9 bg-muted/50" 
+              className="ps-9 bg-muted/50" 
             />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
-            Email address is managed by your organization administrator.
+            {t('profile.emailManagedByOrg')}
           </p>
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="fullName">Full Name</Label>
+          <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
-            <User className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="fullName" 
               value={fullName} 
               onChange={(e) => setFullName(e.target.value)}
-              className="pl-9"
-              placeholder="Enter your full name"
+              className="ps-9"
+              placeholder={t('profile.enterFullName')}
               maxLength={100}
             />
           </div>
@@ -244,15 +246,15 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
       {/* Contact Information */}
       <div className="space-y-4">
         <div className="grid gap-2">
-          <Label htmlFor="phoneNumber">Phone Number</Label>
+          <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
-            <Phone className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="phoneNumber" 
               type="tel"
               value={phoneNumber} 
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="pl-9"
+              className="ps-9"
               placeholder="+966 5XX XXX XXXX"
               maxLength={20}
             />
@@ -262,36 +264,36 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <Separator />
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Emergency Contact</Label>
+          <Label className="text-sm font-medium">{t('profile.emergencyContact') || 'Emergency Contact'}</Label>
           <p className="text-sm text-muted-foreground mb-3">
-            Person to contact in case of emergency at the workplace.
+            {t('profile.emergencyContactDescription') || 'Person to contact in case of emergency at the workplace.'}
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">Contact Name</Label>
+              <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
-                <UserCheck className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="emergencyName" 
                   value={emergencyContactName} 
                   onChange={(e) => setEmergencyContactName(e.target.value)}
-                  className="pl-9"
-                  placeholder="Emergency contact name"
+                  className="ps-9"
+                  placeholder={t('profile.emergencyContactName')}
                   maxLength={100}
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">Contact Phone</Label>
+              <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
-                <Phone className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="emergencyPhone" 
                   type="tel"
                   value={emergencyContactPhone} 
                   onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                  className="pl-9"
+                  className="ps-9"
                   placeholder="+966 5XX XXX XXXX"
                   maxLength={20}
                 />
@@ -303,8 +305,8 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
 
       <div className="flex justify-end pt-4">
         <Button onClick={updateProfile} disabled={saving}>
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
+          {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+          {t('profile.saveChanges')}
         </Button>
       </div>
 

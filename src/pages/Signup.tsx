@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
@@ -10,21 +11,22 @@ import { toast } from '@/hooks/use-toast';
 import industrialImage from '@/assets/industrial-safety.jpg';
 import { z } from 'zod';
 
-const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
 export default function Signup() {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
+
+  const signupSchema = z.object({
+    email: z.string().email(t('auth.invalidEmail')),
+    password: z.string().min(8, t('auth.passwordMinLength')),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('auth.passwordsDoNotMatch'),
+    path: ['confirmPassword'],
+  });
 
   useEffect(() => {
     // Redirect to invite if code not validated
@@ -57,7 +59,7 @@ export default function Signup() {
 
     if (!invitationEmail || !invitationCode) {
       toast({
-        title: 'Error',
+        title: t('auth.error'),
         description: 'Invalid invitation data. Please start over.',
         variant: 'destructive',
       });
@@ -134,13 +136,13 @@ export default function Signup() {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth.validationError'),
           description: err.errors[0].message,
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Error',
+          title: t('auth.error'),
           description: err instanceof Error ? err.message : 'Failed to create account',
           variant: 'destructive',
         });
@@ -161,9 +163,9 @@ export default function Signup() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
         <div className="absolute bottom-8 left-8 right-8 text-white">
-          <h1 className="mb-2 text-4xl font-bold">Dhuud HSSE Platform</h1>
+          <h1 className="mb-2 text-4xl font-bold">{t('branding.title')}</h1>
           <p className="text-lg text-white/90">
-            Health, Safety, Security & Environment Management
+            {t('branding.subtitle')}
           </p>
         </div>
       </div>
@@ -181,14 +183,14 @@ export default function Signup() {
               </div>
             )}
             <h2 className="text-3xl font-bold">{tenantName}</h2>
-            <p className="mt-2 text-muted-foreground">Create your account</p>
+            <p className="mt-2 text-muted-foreground">{t('auth.createYourAccount')}</p>
           </div>
 
           {/* Signup Form */}
           <form onSubmit={handleSignup} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -199,11 +201,11 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('auth.password')}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Minimum 8 characters"
+                  placeholder={t('auth.passwordMinLength')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -213,11 +215,11 @@ export default function Signup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Re-enter password"
+                  placeholder={t('auth.confirmPassword')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -228,7 +230,7 @@ export default function Signup() {
             </div>
 
             <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? t('auth.creatingAccount') : t('auth.signUp')}
             </Button>
 
             <div className="text-center">
@@ -241,7 +243,7 @@ export default function Signup() {
                 }}
                 className="text-sm"
               >
-                Back to invitation code
+                {t('auth.backToInvite')}
               </Button>
             </div>
           </form>
@@ -249,7 +251,7 @@ export default function Signup() {
           {/* Footer */}
           <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4" />
-            <span>Protected by Zero Trust Security</span>
+            <span>{t('security.protectedByZeroTrust')}</span>
           </div>
         </div>
       </div>
