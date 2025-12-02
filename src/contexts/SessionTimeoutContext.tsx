@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIdleTimeout } from '@/hooks/use-idle-timeout';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from '@/lib/activity-logger';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SessionTimeoutContextType {
   isWarning: boolean;
@@ -14,24 +15,8 @@ interface SessionTimeoutContextType {
 const SessionTimeoutContext = createContext<SessionTimeoutContextType | undefined>(undefined);
 
 export function SessionTimeoutProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleTimeout = async () => {
     const duration = getSessionDurationSeconds();
