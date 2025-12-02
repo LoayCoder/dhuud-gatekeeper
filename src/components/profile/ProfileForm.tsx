@@ -269,7 +269,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
             {t('profile.emergencyContactDescription')}
           </p>
           
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 rtl:direction-rtl">
             <div className="grid gap-2 text-start">
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
