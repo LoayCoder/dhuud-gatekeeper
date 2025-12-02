@@ -26,6 +26,7 @@ interface ThemeContextType {
   setInvitationData: (email: string, code: string, tenantId: string) => void;
   clearInvitationData: () => void;
   refreshTenantData: () => Promise<void>;
+  isLoading: boolean;
 }
 
 const DEFAULT_PRIMARY_COLOR = '221.2 83.2% 53.3%';
@@ -46,6 +47,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
   const [isCodeValidated, setIsCodeValidated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const setInvitationData = (email: string, code: string, tenantIdValue: string) => {
     setInvitationEmail(email);
@@ -73,6 +75,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshTenantData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -115,8 +118,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setLogoUrl(tenant.logo_url);
       setAppIconUrl(tenant.app_icon_url);
       setBackgroundImageUrl(tenant.background_image_url);
+
+      // Update Favicon dynamically
+      if (tenant.app_icon_url) {
+        const existingLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+        const link = existingLink || document.createElement('link');
+        link.type = 'image/png';
+        link.rel = 'icon';
+        link.href = tenant.app_icon_url;
+        if (!existingLink) {
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+      }
     } catch (error) {
       console.error('Error refreshing tenant data:', error);
+    } finally {
+      setIsLoading(false);
     }
   }, [resetToDefaults]);
 
@@ -172,6 +189,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setInvitationData,
         clearInvitationData,
         refreshTenantData,
+        isLoading,
       }}
     >
       {children}
