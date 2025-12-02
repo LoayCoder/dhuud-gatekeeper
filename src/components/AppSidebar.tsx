@@ -137,14 +137,11 @@ export function AppSidebar() {
                 </div>
               ) : (
                 <>
-                  <div 
-                    className="flex aspect-square size-8 items-center justify-center rounded-lg text-primary-foreground"
-                    style={{ backgroundColor: activePrimaryColor ? `hsl(${activePrimaryColor})` : 'hsl(var(--primary))' }}
-                  >
+                  <div className="flex aspect-square size-8 items-center justify-center">
                     {activeSidebarIconUrl ? (
-                      <img src={activeSidebarIconUrl} alt="Icon" className="size-6 object-contain" />
+                      <img src={activeSidebarIconUrl} alt="Icon" className="size-8 object-contain" />
                     ) : (
-                      <Shield className="size-4" />
+                      <Shield className="size-6 text-primary" />
                     )}
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
