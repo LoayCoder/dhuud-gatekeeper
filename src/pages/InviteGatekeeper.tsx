@@ -38,55 +38,45 @@ export default function InviteGatekeeper() {
 
       setLoading(true);
 
-      // Fetch invitation from database
-      const { data: invitation, error: inviteError } = await supabase
-        .from('invitations')
-        .select('*, tenants(*)')
-        .eq('code', code.trim())
-        .eq('used', false)
-        .maybeSingle();
+      // Fetch invitation securely via RPC (works for anonymous users)
+      const { data: result, error: inviteError } = await supabase
+        .rpc('lookup_invitation', { lookup_code: code.trim() });
 
       if (inviteError) {
         throw new Error('Failed to validate invitation code');
       }
 
-      if (!invitation) {
+      if (!result) {
         toast({
           title: 'Invalid Code',
-          description: 'This invitation code is invalid or has already been used.',
+          description: 'This invitation code is invalid, expired, or has already been used.',
           variant: 'destructive',
         });
         setLoading(false);
         return;
       }
 
-      // Check if invitation has expired
-      const expiresAt = new Date(invitation.expires_at);
-      if (expiresAt < new Date()) {
-        toast({
-          title: 'Expired Code',
-          description: 'This invitation code has expired.',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
+      const inviteData = result as {
+        email: string;
+        tenant_id: string;
+        tenant_name: string;
+        brand_color: string;
+        logo_url: string | null;
+      };
 
-      // Apply tenant branding
-      if (invitation.tenants) {
-        setPrimaryColor(invitation.tenants.brand_color);
-        setTenantName(invitation.tenants.name);
-        setLogoUrl(invitation.tenants.logo_url);
-      }
+      // Apply tenant branding from the RPC result
+      setPrimaryColor(inviteData.brand_color);
+      setTenantName(inviteData.tenant_name);
+      setLogoUrl(inviteData.logo_url);
 
       // Store invitation data in context
-      setInvitationData(invitation.email, code.trim(), invitation.tenant_id);
+      setInvitationData(inviteData.email, code.trim(), inviteData.tenant_id);
 
       // Check if user already exists
       const { data: checkData, error: checkError } = await supabase.functions.invoke(
         'check-user-exists',
         {
-          body: { email: invitation.email },
+          body: { email: inviteData.email },
         }
       );
 
