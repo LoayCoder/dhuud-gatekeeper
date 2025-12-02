@@ -18,6 +18,8 @@ interface ThemeContextType {
   setLogoUrl: (url: string | null) => void;
   appIconUrl: string | null;
   setAppIconUrl: (url: string | null) => void;
+  faviconUrl: string | null;
+  setFaviconUrl: (url: string | null) => void;
   tenantId: string | null;
   setTenantId: (id: string | null) => void;
   invitationEmail: string | null;
@@ -43,6 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [tenantName, setTenantName] = useState(DEFAULT_TENANT_NAME);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [appIconUrl, setAppIconUrl] = useState<string | null>(null);
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // Fetch tenant details with new branding fields
       const { data: tenant, error: tenantError } = await supabase
         .from('tenants')
-        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, app_icon_url, background_image_url')
+        .select('name, brand_color, secondary_color, background_theme, background_color, logo_url, app_icon_url, background_image_url, favicon_url')
         .eq('id', profile.tenant_id)
         .maybeSingle();
 
@@ -118,14 +121,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setLogoUrl(tenant.logo_url);
       setAppIconUrl(tenant.app_icon_url);
       setBackgroundImageUrl(tenant.background_image_url);
+      setFaviconUrl(tenant.favicon_url);
 
-      // Update Favicon dynamically
-      if (tenant.app_icon_url) {
+      // Update Favicon dynamically (prefer favicon_url, fallback to app_icon_url)
+      const faviconSrc = tenant.favicon_url || tenant.app_icon_url;
+      if (faviconSrc) {
         const existingLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
         const link = existingLink || document.createElement('link');
-        link.type = 'image/png';
+        link.type = faviconSrc.endsWith('.ico') ? 'image/x-icon' : 'image/png';
         link.rel = 'icon';
-        link.href = tenant.app_icon_url;
+        link.href = faviconSrc;
         if (!existingLink) {
           document.getElementsByTagName('head')[0].appendChild(link);
         }
@@ -181,6 +186,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setLogoUrl,
         appIconUrl,
         setAppIconUrl,
+        faviconUrl,
+        setFaviconUrl,
         tenantId,
         setTenantId,
         invitationEmail,
