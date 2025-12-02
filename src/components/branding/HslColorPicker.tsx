@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -25,9 +25,32 @@ function formatHsl(h: number, s: number, l: number): string {
   return `${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%`;
 }
 
+// Convert HSL to HSV for the color plane
+function hslToHsv(h: number, s: number, l: number): { h: number; s: number; v: number } {
+  s = s / 100;
+  l = l / 100;
+  const v = l + s * Math.min(l, 1 - l);
+  const sv = v === 0 ? 0 : 2 * (1 - l / v);
+  return { h, s: sv * 100, v: v * 100 };
+}
+
+// Convert HSV to HSL for output
+function hsvToHsl(h: number, s: number, v: number): { h: number; s: number; l: number } {
+  s = s / 100;
+  v = v / 100;
+  const l = v * (1 - s / 2);
+  const sl = l === 0 || l === 1 ? 0 : (v - l) / Math.min(l, 1 - l);
+  return { h, s: sl * 100, l: l * 100 };
+}
+
 export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) {
   const [hsl, setHsl] = useState(() => parseHsl(value));
   const [open, setOpen] = useState(false);
+  const planeRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Convert to HSV for the color plane
+  const hsv = hslToHsv(hsl.h, hsl.s, hsl.l);
 
   useEffect(() => {
     if (value) {
@@ -35,10 +58,53 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
     }
   }, [value]);
 
-  const handleChange = (key: 'h' | 's' | 'l', newValue: number) => {
-    const updated = { ...hsl, [key]: newValue };
-    setHsl(updated);
-    onChange(formatHsl(updated.h, updated.s, updated.l));
+  const updateFromHsv = useCallback((h: number, s: number, v: number) => {
+    const newHsl = hsvToHsl(h, s, v);
+    setHsl(newHsl);
+    onChange(formatHsl(newHsl.h, newHsl.s, newHsl.l));
+  }, [onChange]);
+
+  const handlePlaneInteraction = useCallback((clientX: number, clientY: number) => {
+    if (!planeRef.current) return;
+    
+    const rect = planeRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    
+    const newS = x * 100;
+    const newV = (1 - y) * 100;
+    
+    updateFromHsv(hsl.h, newS, newV);
+  }, [hsl.h, updateFromHsv]);
+
+  const handlePlaneMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    handlePlaneInteraction(e.clientX, e.clientY);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handlePlaneInteraction(e.clientX, e.clientY);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handlePlaneInteraction]);
+
+  const handleHueChange = ([newHue]: number[]) => {
+    updateFromHsv(newHue, hsv.s, hsv.v);
   };
 
   const colorPreview = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
@@ -61,23 +127,37 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <Pipette className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium text-sm">HSL Color Picker</span>
+                <span className="font-medium text-sm">Color Picker</span>
               </div>
 
-              {/* Color Preview */}
-              <div 
-                className="h-16 rounded-lg border shadow-inner"
-                style={{ backgroundColor: colorPreview }}
-              />
+              {/* Color Plane (Saturation x Value/Brightness) */}
+              <div
+                ref={planeRef}
+                className="relative h-40 rounded-lg cursor-crosshair border shadow-inner select-none"
+                style={{
+                  background: `
+                    linear-gradient(to top, #000, transparent),
+                    linear-gradient(to right, #fff, hsl(${hsl.h}, 100%, 50%))
+                  `
+                }}
+                onMouseDown={handlePlaneMouseDown}
+              >
+                {/* Color picker cursor */}
+                <div
+                  className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-md pointer-events-none"
+                  style={{
+                    left: `${hsv.s}%`,
+                    top: `${100 - hsv.v}%`,
+                    backgroundColor: colorPreview,
+                    boxShadow: '0 0 0 1px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3)'
+                  }}
+                />
+              </div>
 
               {/* Hue Slider */}
               <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Hue</span>
-                  <span className="font-mono">{Math.round(hsl.h)}°</span>
-                </div>
                 <div 
-                  className="h-3 rounded-full"
+                  className="h-4 rounded-full"
                   style={{
                     background: 'linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%))'
                   }}
@@ -86,53 +166,31 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
                     value={[hsl.h]}
                     max={360}
                     step={1}
-                    onValueChange={([v]) => handleChange('h', v)}
-                    className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&>.bg-primary]:bg-transparent"
+                    onValueChange={handleHueChange}
+                    className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&>.bg-primary]:bg-transparent"
                   />
                 </div>
               </div>
 
-              {/* Saturation Slider */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Saturation</span>
-                  <span className="font-mono">{Math.round(hsl.s)}%</span>
-                </div>
+              {/* Color Preview & Values */}
+              <div className="flex gap-3">
                 <div 
-                  className="h-3 rounded-full"
-                  style={{
-                    background: `linear-gradient(to right, hsl(${hsl.h}, 0%, ${hsl.l}%), hsl(${hsl.h}, 100%, ${hsl.l}%))`
-                  }}
-                >
-                  <Slider
-                    value={[hsl.s]}
-                    max={100}
-                    step={1}
-                    onValueChange={([v]) => handleChange('s', v)}
-                    className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&>.bg-primary]:bg-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Lightness Slider */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Lightness</span>
-                  <span className="font-mono">{Math.round(hsl.l)}%</span>
-                </div>
-                <div 
-                  className="h-3 rounded-full"
-                  style={{
-                    background: `linear-gradient(to right, hsl(${hsl.h}, ${hsl.s}%, 0%), hsl(${hsl.h}, ${hsl.s}%, 50%), hsl(${hsl.h}, ${hsl.s}%, 100%))`
-                  }}
-                >
-                  <Slider
-                    value={[hsl.l]}
-                    max={100}
-                    step={1}
-                    onValueChange={([v]) => handleChange('l', v)}
-                    className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&>.bg-primary]:bg-transparent"
-                  />
+                  className="h-10 w-16 rounded-lg border shadow-inner flex-shrink-0"
+                  style={{ backgroundColor: colorPreview }}
+                />
+                <div className="flex-1 grid grid-cols-3 gap-1 text-xs">
+                  <div className="text-center">
+                    <div className="text-muted-foreground">H</div>
+                    <div className="font-mono">{Math.round(hsl.h)}°</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-muted-foreground">S</div>
+                    <div className="font-mono">{Math.round(hsl.s)}%</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-muted-foreground">L</div>
+                    <div className="font-mono">{Math.round(hsl.l)}%</div>
+                  </div>
                 </div>
               </div>
 
