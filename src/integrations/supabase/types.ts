@@ -478,6 +478,9 @@ export type Database = {
         | "logout"
         | "session_timeout"
         | "session_extended"
+        | "mfa_enabled"
+        | "mfa_disabled"
+        | "mfa_verification_failed"
       app_role: "admin" | "user"
       visit_status:
         | "pending_security"
@@ -618,6 +621,9 @@ export const Constants = {
         "logout",
         "session_timeout",
         "session_extended",
+        "mfa_enabled",
+        "mfa_disabled",
+        "mfa_verification_failed",
       ],
       app_role: ["admin", "user"],
       visit_status: [

@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-type ActivityEventType = 'login' | 'logout' | 'session_timeout' | 'session_extended';
+type ActivityEventType = 'login' | 'logout' | 'session_timeout' | 'session_extended' | 'mfa_enabled' | 'mfa_disabled' | 'mfa_verification_failed';
 
 interface LogActivityParams {
   eventType: ActivityEventType;

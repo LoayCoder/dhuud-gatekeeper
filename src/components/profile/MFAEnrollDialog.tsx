@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldCheck, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import { useMFA } from "@/hooks/useMFA";
 import { toast } from "@/hooks/use-toast";
+import { logUserActivity } from "@/lib/activity-logger";
 
 interface MFAEnrollDialogProps {
   open: boolean;
@@ -74,6 +75,10 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
     if (success) {
       setStep("success");
       onSuccess();
+      
+      // Log MFA enabled event
+      await logUserActivity({ eventType: 'mfa_enabled' });
+      
       toast({
         title: "2FA Enabled",
         description: "Two-factor authentication has been enabled for your account.",
