@@ -52,6 +52,76 @@ export type Database = {
           },
         ]
       }
+      security_blacklist: {
+        Row: {
+          full_name: string | null
+          id: string
+          listed_at: string | null
+          listed_by: string | null
+          national_id: string | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          full_name?: string | null
+          id?: string
+          listed_at?: string | null
+          listed_by?: string | null
+          national_id?: string | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          full_name?: string | null
+          id?: string
+          listed_at?: string | null
+          listed_by?: string | null
+          national_id?: string | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_blacklist_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           brand_color: string
@@ -127,11 +197,123 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_requests: {
+        Row: {
+          approved_by: string | null
+          created_at: string | null
+          host_id: string
+          id: string
+          security_notes: string | null
+          site_id: string
+          status: Database["public"]["Enums"]["visit_status"] | null
+          tenant_id: string
+          valid_from: string
+          valid_until: string
+          visitor_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string | null
+          host_id: string
+          id?: string
+          security_notes?: string | null
+          site_id: string
+          status?: Database["public"]["Enums"]["visit_status"] | null
+          tenant_id: string
+          valid_from: string
+          valid_until: string
+          visitor_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string | null
+          host_id?: string
+          id?: string
+          security_notes?: string | null
+          site_id?: string
+          status?: Database["public"]["Enums"]["visit_status"] | null
+          tenant_id?: string
+          valid_from?: string
+          valid_until?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_requests_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visitors: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          last_visit_at: string | null
+          national_id: string | null
+          qr_code_token: string
+          tenant_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          last_visit_at?: string | null
+          national_id?: string | null
+          qr_code_token?: string
+          tenant_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_visit_at?: string | null
+          national_id?: string | null
+          qr_code_token?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_auth_tenant_id: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -151,6 +333,13 @@ export type Database = {
         | "session_timeout"
         | "session_extended"
       app_role: "admin" | "user"
+      visit_status:
+        | "pending_security"
+        | "approved"
+        | "rejected"
+        | "checked_in"
+        | "checked_out"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -285,6 +474,14 @@ export const Constants = {
         "session_extended",
       ],
       app_role: ["admin", "user"],
+      visit_status: [
+        "pending_security",
+        "approved",
+        "rejected",
+        "checked_in",
+        "checked_out",
+        "expired",
+      ],
     },
   },
 } as const
