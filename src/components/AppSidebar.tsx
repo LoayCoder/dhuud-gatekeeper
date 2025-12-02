@@ -28,6 +28,7 @@ import {
   User,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
@@ -39,40 +40,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from "@/lib/activity-logger";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppSidebar() {
-  const { tenantName, activeSidebarIconUrl, activePrimaryColor, isLoading } = useTheme();
+  const { tenantName, activeSidebarIconUrl, isLoading: themeLoading } = useTheme();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [userEmail, setUserEmail] = useState("");
-  const [userName, setUserName] = useState("");
-  const [userAvatar, setUserAvatar] = useState("");
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "");
-        
-        // Fetch profile for name and avatar
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name, avatar_url")
-          .eq("id", user.id)
-          .single();
-        
-        if (profile) {
-          setUserName(profile.full_name || "");
-          setUserAvatar(profile.avatar_url || "");
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
+  const userEmail = user?.email || "";
+  const userName = profile?.full_name || "";
+  const userAvatar = profile?.avatar_url || "";
 
   const handleLogout = async () => {
     const duration = getSessionDurationSeconds();
@@ -145,7 +125,7 @@ export function AppSidebar() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              {isLoading ? (
+              {themeLoading ? (
                 <div className="flex items-center gap-2 w-full">
                   <Skeleton className="size-8 rounded-lg shrink-0" />
                   <div className="space-y-1 flex-1 overflow-hidden">
