@@ -88,27 +88,39 @@ export type Database = {
         Row: {
           assigned_branch_id: string | null
           assigned_site_id: string | null
+          avatar_url: string | null
           created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           full_name: string | null
           id: string
+          phone_number: string | null
           tenant_id: string
           updated_at: string | null
         }
         Insert: {
           assigned_branch_id?: string | null
           assigned_site_id?: string | null
+          avatar_url?: string | null
           created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           full_name?: string | null
           id: string
+          phone_number?: string | null
           tenant_id: string
           updated_at?: string | null
         }
         Update: {
           assigned_branch_id?: string | null
           assigned_site_id?: string | null
+          avatar_url?: string | null
           created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           full_name?: string | null
           id?: string
+          phone_number?: string | null
           tenant_id?: string
           updated_at?: string | null
         }
