@@ -23,12 +23,6 @@ export default function Login() {
   const { tenantName, logoUrl, isCodeValidated, invitationEmail, clearInvitationData } = useTheme();
 
   useEffect(() => {
-    // Redirect to invite if code not validated
-    if (!isCodeValidated) {
-      navigate('/invite');
-      return;
-    }
-
     // Pre-fill email if coming from invitation
     if (invitationEmail) {
       setEmail(invitationEmail);
@@ -51,7 +45,7 @@ export default function Login() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, isCodeValidated, invitationEmail]);
+  }, [navigate, invitationEmail]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
