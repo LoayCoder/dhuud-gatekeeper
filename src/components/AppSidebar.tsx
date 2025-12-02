@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -46,11 +47,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppSidebar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { tenantName, activeSidebarIconUrl, isLoading: themeLoading } = useTheme();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
+
+  // Watch for direction changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsRtl(document.documentElement.dir === 'rtl');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Also update when language changes
+  useEffect(() => {
+    setIsRtl(document.documentElement.dir === 'rtl');
+  }, [i18n.language]);
 
   const userEmail = user?.email || "";
   const userName = profile?.full_name || "";
@@ -118,7 +134,7 @@ export function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
       {/* HEADER: Tenant Brand */}
       <SidebarHeader>
         <SidebarMenu>
@@ -247,7 +263,7 @@ export function AppSidebar() {
                 <DropdownMenuContent
                   className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-popover"
                   side="bottom"
-                  align="end"
+                  align={isRtl ? "start" : "end"}
                   sideOffset={4}
                 >
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
