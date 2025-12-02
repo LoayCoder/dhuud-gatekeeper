@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import industrialImage from '@/assets/industrial-safety.jpg';
 import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
+import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -20,6 +21,8 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showMFADialog, setShowMFADialog] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
 
@@ -32,21 +35,69 @@ export default function Login() {
     // Check if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate('/');
+        // Check MFA status
+        checkMFAAndNavigate();
       }
     });
 
-    // Listen for auth changes
+    // Listen for auth changes - but don't auto-navigate if MFA is pending
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        navigate('/');
+      if (session && !showMFADialog) {
+        checkMFAAndNavigate();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, invitationEmail]);
+  }, [navigate, invitationEmail, showMFADialog]);
+
+  const checkMFAAndNavigate = async () => {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    
+    if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+      // User needs to complete MFA
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const totpFactor = factors?.totp?.find(f => f.status === 'verified');
+      
+      if (totpFactor) {
+        setMfaFactorId(totpFactor.id);
+        setShowMFADialog(true);
+        return;
+      }
+    }
+    
+    // No MFA required or already at AAL2
+    if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
+      navigate('/');
+    }
+  };
+
+  const handleMFASuccess = async () => {
+    setShowMFADialog(false);
+    
+    // Fetch tenant branding after successful MFA
+    await refreshTenantData();
+
+    // Start session tracking and log login event
+    startSessionTracking();
+    await logUserActivity({ eventType: 'login' });
+
+    // Clear invitation data
+    clearInvitationData();
+
+    toast({
+      title: 'Welcome Back',
+      description: 'You have been logged in successfully.',
+    });
+
+    navigate('/');
+  };
+
+  const handleMFACancel = () => {
+    setShowMFADialog(false);
+    setMfaFactorId(null);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,14 +115,26 @@ export default function Login() {
 
       if (error) throw error;
 
-      // Fetch tenant branding immediately after login
-      await refreshTenantData();
+      // Check if MFA is required
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      
+      if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+        // User has 2FA enabled - show verification dialog
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const totpFactor = factors?.totp?.find(f => f.status === 'verified');
+        
+        if (totpFactor) {
+          setMfaFactorId(totpFactor.id);
+          setShowMFADialog(true);
+          setLoading(false);
+          return;
+        }
+      }
 
-      // Start session tracking and log login event
+      // No MFA required - proceed with login
+      await refreshTenantData();
       startSessionTracking();
       await logUserActivity({ eventType: 'login' });
-
-      // Clear invitation data after successful login
       clearInvitationData();
 
       toast({
@@ -200,6 +263,17 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* MFA Verification Dialog */}
+      {mfaFactorId && (
+        <MFAVerificationDialog
+          open={showMFADialog}
+          onOpenChange={setShowMFADialog}
+          factorId={mfaFactorId}
+          onSuccess={handleMFASuccess}
+          onCancel={handleMFACancel}
+        />
+      )}
     </div>
   );
 }

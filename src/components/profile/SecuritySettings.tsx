@@ -3,9 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Loader2, Lock, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { TwoFactorSetup } from "./TwoFactorSetup";
 
 const passwordSchema = z.object({
   password: z
@@ -83,83 +85,106 @@ export function SecuritySettings() {
 
   return (
     <div className="space-y-6">
-      {/* Password Requirements */}
-      <div className="rounded-lg border p-4 bg-muted/5">
-        <h4 className="text-sm font-medium mb-3">Password Requirements</h4>
-        <ul className="space-y-2">
-          {requirements.map((req, index) => (
-            <li key={index} className="flex items-center gap-2 text-sm">
-              {req.met ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span className={req.met ? "text-green-600" : "text-muted-foreground"}>
-                {req.label}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {/* Two-Factor Authentication Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
+          <p className="text-sm text-muted-foreground">
+            Secure your account with an additional verification step
+          </p>
+        </div>
+        <TwoFactorSetup />
       </div>
 
-      <form onSubmit={handlePasswordChange} className="space-y-4">
-        <div className="grid gap-2">
-          <Label htmlFor="new-password">New Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="new-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-9"
-              placeholder="Enter new password"
-              autoComplete="new-password"
-            />
-          </div>
+      <Separator />
+
+      {/* Password Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Change Password</h3>
+          <p className="text-sm text-muted-foreground">
+            Update your password to keep your account secure
+          </p>
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="confirm-password">Confirm New Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-9"
-              placeholder="Confirm new password"
-              autoComplete="new-password"
-            />
-          </div>
-          {confirmPassword.length > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              {passwordsMatch ? (
-                <>
+        {/* Password Requirements */}
+        <div className="rounded-lg border p-4 bg-muted/5">
+          <h4 className="text-sm font-medium mb-3">Password Requirements</h4>
+          <ul className="space-y-2">
+            {requirements.map((req, index) => (
+              <li key={index} className="flex items-center gap-2 text-sm">
+                {req.met ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span className="text-green-600">Passwords match</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-4 w-4 text-destructive" />
-                  <span className="text-destructive">Passwords do not match</span>
-                </>
-              )}
-            </div>
-          )}
+                ) : (
+                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className={req.met ? "text-green-600" : "text-muted-foreground"}>
+                  {req.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="flex justify-end pt-2">
-          <Button 
-            type="submit" 
-            disabled={loading || !allRequirementsMet || !passwordsMatch}
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Password
-          </Button>
-        </div>
-      </form>
+        <form onSubmit={handlePasswordChange} className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="new-password">New Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+              <Input 
+                id="new-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-9"
+                placeholder="Enter new password"
+                autoComplete="new-password"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+              <Input 
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pl-9"
+                placeholder="Confirm new password"
+                autoComplete="new-password"
+              />
+            </div>
+            {confirmPassword.length > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                {passwordsMatch ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Passwords match</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4 text-destructive" />
+                    <span className="text-destructive">Passwords do not match</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button 
+              type="submit" 
+              disabled={loading || !allRequirementsMet || !passwordsMatch}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Password
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
