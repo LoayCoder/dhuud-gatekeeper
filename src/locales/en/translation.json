@@ -1,4 +1,8 @@
 {
+  "notFound": {
+    "pageNotFound": "Oops! Page not found",
+    "returnHome": "Return to Home"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",

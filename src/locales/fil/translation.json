@@ -1,4 +1,8 @@
 {
+  "notFound": {
+    "pageNotFound": "Oops! Hindi nahanap ang page",
+    "returnHome": "Bumalik sa Home"
+  },
   "common": {
     "loading": "Naglo-load...",
     "save": "I-save",
@@ -57,12 +61,13 @@
     "title": "I-reset ang Password",
     "description": "Ilagay ang iyong bagong password sa ibaba.",
     "newPassword": "Bagong Password",
-    "confirmNewPassword": "Kumpirmahin ang Bagong Password",
-    "resetPassword": "I-reset ang Password",
-    "resetting": "Nagre-reset...",
-    "success": "Na-update na ang Password",
-    "successMessage": "Matagumpay na na-update ang iyong password. Maaari ka nang mag-log in.",
-    "goToLogin": "Pumunta sa Login"
+    "confirmPassword": "Kumpirmahin ang Password",
+    "updatePassword": "I-update ang Password",
+    "updating": "Nag-a-update...",
+    "passwordUpdated": "Na-update na ang Password",
+    "passwordUpdatedMessage": "Matagumpay na na-reset ang iyong password.",
+    "invalidLink": "Hindi Valid na Link",
+    "invalidLinkMessage": "Ang password reset link na ito ay hindi valid o expired na."
   },
   "mfaSetup": {
     "secureYourAccount": "I-secure ang Iyong Account",

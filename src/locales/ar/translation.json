@@ -1,4 +1,8 @@
 {
+  "notFound": {
+    "pageNotFound": "عفواً! الصفحة غير موجودة",
+    "returnHome": "العودة إلى الصفحة الرئيسية"
+  },
   "common": {
     "loading": "جاري التحميل...",
     "save": "حفظ",
@@ -57,12 +61,13 @@
     "title": "إعادة تعيين كلمة المرور",
     "description": "أدخل كلمة المرور الجديدة أدناه.",
     "newPassword": "كلمة المرور الجديدة",
-    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
-    "resetPassword": "إعادة تعيين كلمة المرور",
-    "resetting": "جاري إعادة التعيين...",
-    "success": "تم تحديث كلمة المرور",
-    "successMessage": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
-    "goToLogin": "الذهاب إلى تسجيل الدخول"
+    "confirmPassword": "تأكيد كلمة المرور",
+    "updatePassword": "تحديث كلمة المرور",
+    "updating": "جاري التحديث...",
+    "passwordUpdated": "تم تحديث كلمة المرور",
+    "passwordUpdatedMessage": "تم إعادة تعيين كلمة المرور بنجاح.",
+    "invalidLink": "رابط غير صالح",
+    "invalidLinkMessage": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية."
   },
   "mfaSetup": {
     "secureYourAccount": "تأمين حسابك",

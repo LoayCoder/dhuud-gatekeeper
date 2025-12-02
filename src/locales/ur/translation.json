@@ -1,4 +1,8 @@
 {
+  "notFound": {
+    "pageNotFound": "افسوس! صفحہ نہیں ملا",
+    "returnHome": "ہوم پر واپس جائیں"
+  },
   "common": {
     "loading": "لوڈ ہو رہا ہے...",
     "save": "محفوظ کریں",
@@ -57,12 +61,13 @@
     "title": "پاس ورڈ دوبارہ ترتیب دیں",
     "description": "نیچے اپنا نیا پاس ورڈ درج کریں۔",
     "newPassword": "نیا پاس ورڈ",
-    "confirmNewPassword": "نئے پاس ورڈ کی تصدیق کریں",
-    "resetPassword": "پاس ورڈ دوبارہ ترتیب دیں",
-    "resetting": "دوبارہ ترتیب دیا جا رہا ہے...",
-    "success": "پاس ورڈ اپ ڈیٹ ہو گیا",
-    "successMessage": "آپ کا پاس ورڈ کامیابی سے اپ ڈیٹ ہو گیا۔ اب آپ لاگ ان کر سکتے ہیں۔",
-    "goToLogin": "لاگ ان پر جائیں"
+    "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+    "updatePassword": "پاس ورڈ اپ ڈیٹ کریں",
+    "updating": "اپ ڈیٹ ہو رہا ہے...",
+    "passwordUpdated": "پاس ورڈ اپ ڈیٹ ہو گیا",
+    "passwordUpdatedMessage": "آپ کا پاس ورڈ کامیابی سے دوبارہ ترتیب ہو گیا۔",
+    "invalidLink": "غلط لنک",
+    "invalidLinkMessage": "پاس ورڈ دوبارہ ترتیب دینے کا یہ لنک غلط یا ختم شدہ ہے۔"
   },
   "mfaSetup": {
     "secureYourAccount": "اپنے اکاؤنٹ کو محفوظ کریں",
