@@ -40,9 +40,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from "@/lib/activity-logger";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppSidebar() {
-  const { tenantName, logoUrl } = useTheme();
+  const { tenantName, logoUrl, isLoading } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState("");
@@ -124,17 +125,29 @@ export function AppSidebar() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="size-6 object-contain" />
-                ) : (
-                  <Shield className="size-4" />
-                )}
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{tenantName}</span>
-                <span className="truncate text-xs text-muted-foreground">Enterprise HSSE</span>
-              </div>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Skeleton className="size-8 rounded-lg" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo" className="size-6 object-contain" />
+                    ) : (
+                      <Shield className="size-4" />
+                    )}
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{tenantName}</span>
+                    <span className="truncate text-xs text-muted-foreground">Enterprise HSSE</span>
+                  </div>
+                </>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
