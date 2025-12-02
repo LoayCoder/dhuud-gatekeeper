@@ -200,7 +200,15 @@
     "welcomeBackMessage": "Please sign in with your existing account.",
     "welcome": "Welcome",
     "welcomeMessage": "Please complete your registration.",
-    "failedToValidate": "Failed to validate invitation code"
+    "failedToValidate": "Failed to validate invitation code",
+    "codeRequired": "Invitation code is required",
+    "failedToVerifyUser": "Failed to verify user status"
+  },
+  "signup": {
+    "invalidInvitationData": "Invalid invitation data. Please start over.",
+    "accountCreated": "Account Created",
+    "setupMfaMessage": "Success! Please set up two-factor authentication.",
+    "failedToCreateAccount": "Failed to create account"
   },
   "adminBranding": {
     "title": "Brand Management Console",

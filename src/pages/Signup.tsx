@@ -60,7 +60,7 @@ export default function Signup() {
     if (!invitationEmail || !invitationCode) {
       toast({
         title: t('auth.error'),
-        description: 'Invalid invitation data. Please start over.',
+        description: t('signup.invalidInvitationData'),
         variant: 'destructive',
       });
       navigate('/invite');
@@ -115,8 +115,8 @@ export default function Signup() {
         clearInvitationData();
 
         toast({
-          title: 'Account Created',
-          description: 'Success! Please set up two-factor authentication.',
+          title: t('signup.accountCreated'),
+          description: t('signup.setupMfaMessage'),
         });
 
         // Auto-login the user and redirect to MFA setup
@@ -143,7 +143,7 @@ export default function Signup() {
       } else {
         toast({
           title: t('auth.error'),
-          description: err instanceof Error ? err.message : 'Failed to create account',
+          description: err instanceof Error ? err.message : t('signup.failedToCreateAccount'),
           variant: 'destructive',
         });
       }
@@ -153,7 +153,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen" dir="ltr">
+    <div className="flex min-h-screen">
       {/* Left Side - Industrial Image */}
       <div className="relative hidden w-1/2 lg:block">
         <img

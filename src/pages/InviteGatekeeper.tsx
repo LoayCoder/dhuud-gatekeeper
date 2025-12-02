@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme, TenantBrandingData } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
-const inviteSchema = z.object({
-  code: z.string().min(1, 'Invitation code is required')
-});
+
 export default function InviteGatekeeper() {
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,6 +23,11 @@ export default function InviteGatekeeper() {
     activeLogoUrl,
     isLoading: themeLoading
   } = useTheme();
+
+  const inviteSchema = z.object({
+    code: z.string().min(1, t('invite.codeRequired'))
+  });
+
   useEffect(() => {
     // Check if already logged in, redirect to dashboard
     supabase.auth.getSession().then(({
@@ -35,6 +40,7 @@ export default function InviteGatekeeper() {
       }
     });
   }, [navigate]);
+
   const handleInviteValidation = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -52,12 +58,12 @@ export default function InviteGatekeeper() {
         lookup_code: code.trim()
       });
       if (inviteError) {
-        throw new Error('Failed to validate invitation code');
+        throw new Error(t('invite.failedToValidate'));
       }
       if (!result) {
         toast({
-          title: 'Invalid Code',
-          description: 'This invitation code is invalid, expired, or has already been used.',
+          title: t('invite.invalidCode'),
+          description: t('invite.invalidCodeMessage'),
           variant: 'destructive'
         });
         setLoading(false);
@@ -85,55 +91,70 @@ export default function InviteGatekeeper() {
       });
       if (checkError) {
         console.error('Error checking user existence:', checkError);
-        throw new Error('Failed to verify user status');
+        throw new Error(t('invite.failedToVerifyUser'));
       }
 
       // Redirect based on user existence
       if (checkData.exists) {
         toast({
-          title: 'Welcome Back',
-          description: 'Please sign in with your existing account.'
+          title: t('invite.welcomeBack'),
+          description: t('invite.welcomeBackMessage')
         });
         navigate('/login');
       } else {
         toast({
-          title: 'Welcome',
-          description: 'Please complete your registration.'
+          title: t('invite.welcome'),
+          description: t('invite.welcomeMessage')
         });
         navigate('/signup');
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth.validationError'),
           description: err.errors[0].message,
           variant: 'destructive'
         });
       } else {
         toast({
-          title: 'Error',
-          description: err instanceof Error ? err.message : 'Failed to validate invitation code',
+          title: t('auth.error'),
+          description: err instanceof Error ? err.message : t('invite.failedToValidate'),
           variant: 'destructive'
         });
       }
       setLoading(false);
     }
   };
-  return <div className="flex min-h-screen items-center justify-center bg-background p-8">
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background p-8">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
         <div className="text-center animate-fade-in mx-0 my-0">
           <div className="mx-auto mb-6 flex items-center justify-center">
-            {themeLoading ? <Skeleton className="h-20 w-48 sm:h-28 sm:w-64 md:h-32 md:w-72" /> : activeLogoUrl ? <img src={activeLogoUrl} alt={tenantName} className="h-20 w-auto max-w-[280px] sm:h-28 sm:max-w-[360px] md:h-32 md:max-w-[420px] object-contain" /> : <Shield className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />}
+            {themeLoading ? (
+              <Skeleton className="h-20 w-48 sm:h-28 sm:w-64 md:h-32 md:w-72" />
+            ) : activeLogoUrl ? (
+              <img
+                src={activeLogoUrl}
+                alt={tenantName}
+                className="h-20 w-auto max-w-[280px] sm:h-28 sm:max-w-[360px] md:h-32 md:max-w-[420px] object-contain"
+              />
+            ) : (
+              <Shield className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />
+            )}
           </div>
-          <h1 className="text-4xl font-bold py-[14px]">{themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}</h1>
+          <h1 className="text-4xl font-bold py-[14px]">
+            {themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}
+          </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Enter your invitation code to continue
+            {t('invite.enterCodeToContinue')}
           </p>
         </div>
 
         {/* Loading Skeleton */}
-        {loading && <div className="space-y-6 animate-fade-in">
+        {loading && (
+          <div className="space-y-6 animate-fade-in">
             <div className="space-y-2">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-14 w-full" />
@@ -143,34 +164,51 @@ export default function InviteGatekeeper() {
               <Skeleton className="h-4 w-3/4 mx-auto" />
               <Skeleton className="h-4 w-2/3 mx-auto" />
             </div>
-          </div>}
+          </div>
+        )}
 
         {/* Invitation Code Form */}
-        {!loading && <form onSubmit={handleInviteValidation} className="space-y-6 animate-fade-in">
+        {!loading && (
+          <form onSubmit={handleInviteValidation} className="space-y-6 animate-fade-in">
             <div className="space-y-2">
               <Label htmlFor="code" className="text-base">
-                Invitation Code
+                {t('invite.invitationCode')}
               </Label>
-              <Input id="code" type="text" placeholder="Enter your code" value={code} onChange={e => setCode(e.target.value)} required className="h-14 text-lg" />
+              <Input
+                id="code"
+                type="text"
+                placeholder={t('invite.enterYourCode')}
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                required
+                className="h-14 text-lg"
+              />
             </div>
 
             <Button type="submit" className="h-14 w-full text-lg">
-              Continue
+              {t('invite.continue')}
             </Button>
-          </form>}
+          </form>
+        )}
 
         {/* Login Link */}
         <div className="text-center">
-          <Button type="button" variant="link" onClick={() => navigate('/login')} className="text-sm">
-            Already have an account? Log in
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => navigate('/login')}
+            className="text-sm"
+          >
+            {t('invite.alreadyHaveAccount')}
           </Button>
         </div>
 
         {/* Security Footer */}
         <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Shield className="h-4 w-4" />
-          <span>Protected by Zero Trust Security</span>
+          <span>{t('security.protectedByZeroTrust')}</span>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

@@ -124,7 +124,7 @@ export default function MFASetup() {
   }
 
   return (
-    <div className="flex min-h-screen" dir="ltr">
+    <div className="flex min-h-screen">
       {/* Left Side - Industrial Image */}
       <div className="relative hidden w-1/2 lg:block">
         <img
