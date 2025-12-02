@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ export function MFAVerificationDialog({
   onSuccess,
   onCancel,
 }: MFAVerificationDialogProps) {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +46,7 @@ export function MFAVerificationDialog({
 
       if (challengeError) {
         toast({
-          title: "Verification Failed",
+          title: t('mfaVerification.verificationFailed'),
           description: challengeError.message,
           variant: "destructive",
         });
@@ -67,8 +69,8 @@ export function MFAVerificationDialog({
         });
         
         toast({
-          title: "Invalid Code",
-          description: "Please check your authenticator app and try again.",
+          title: t('mfaVerification.invalidCode'),
+          description: t('mfaVerification.invalidCodeMessage'),
           variant: "destructive",
         });
         setCode("");
@@ -80,8 +82,8 @@ export function MFAVerificationDialog({
       onSuccess();
     } catch (err) {
       toast({
-        title: "Verification Failed",
-        description: "An unexpected error occurred",
+        title: t('mfaVerification.verificationFailed'),
+        description: t('mfaVerification.unexpectedError'),
         variant: "destructive",
       });
     } finally {
@@ -100,9 +102,9 @@ export function MFAVerificationDialog({
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Two-Factor Authentication</DialogTitle>
+          <DialogTitle>{t('mfaVerification.title')}</DialogTitle>
           <DialogDescription>
-            Enter the verification code from your authenticator app
+            {t('mfaVerification.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,22 +137,22 @@ export function MFAVerificationDialog({
           </div>
 
           <p className="text-sm text-muted-foreground text-center">
-            Open your authenticator app to view your code
+            {t('mfaVerification.openAuthenticator')}
           </p>
         </div>
 
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
-            Cancel
+            {t('mfaVerification.cancel')}
           </Button>
           <Button
             onClick={handleVerify}
             disabled={loading || code.length !== 6}
           >
             {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="me-2 h-4 w-4 animate-spin" />
             ) : null}
-            Verify
+            {t('mfaVerification.verify')}
           </Button>
         </div>
       </DialogContent>

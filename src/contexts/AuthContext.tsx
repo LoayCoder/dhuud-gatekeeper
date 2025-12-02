@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import i18n from '@/i18n';
 
 interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   tenant_id: string;
+  preferred_language: string | null;
 }
 
 interface AuthContextType {
@@ -30,12 +32,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url, tenant_id')
+      .select('full_name, avatar_url, tenant_id, preferred_language')
       .eq('id', userId)
       .single();
     
     if (data) {
       setProfile(data);
+      
+      // Apply user's preferred language if set
+      if (data.preferred_language && data.preferred_language !== i18n.language) {
+        i18n.changeLanguage(data.preferred_language);
+      }
     }
   };
 

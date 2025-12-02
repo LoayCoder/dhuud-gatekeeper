@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,15 +9,16 @@ import { Shield, ArrowLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
-const resetSchema = z.object({
-  email: z.string().email('Invalid email address'),
-});
-
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
+
+  const resetSchema = z.object({
+    email: z.string().email(t('auth.invalidEmail')),
+  });
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,20 +37,20 @@ export default function ForgotPassword() {
 
       setEmailSent(true);
       toast({
-        title: 'Check Your Email',
-        description: 'We sent you a password reset link. Please check your inbox.',
+        title: t('forgotPassword.checkYourEmail'),
+        description: t('forgotPassword.emailSentMessage'),
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
-          title: 'Validation Error',
+          title: t('auth.validationError'),
           description: err.errors[0].message,
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Error',
-          description: err instanceof Error ? err.message : 'Failed to send reset email',
+          title: t('auth.error'),
+          description: err instanceof Error ? err.message : t('forgotPassword.sendResetLink'),
           variant: 'destructive',
         });
       }
@@ -65,18 +67,18 @@ export default function ForgotPassword() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <Shield className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">Reset Password</h1>
+          <h1 className="text-3xl font-bold">{t('forgotPassword.title')}</h1>
           <p className="mt-2 text-muted-foreground">
             {emailSent
-              ? 'Check your email for the reset link'
-              : 'Enter your email to receive a password reset link'}
+              ? t('forgotPassword.emailSentDescription')
+              : t('forgotPassword.description')}
           </p>
         </div>
 
         {!emailSent ? (
           <form onSubmit={handlePasswordReset} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -90,7 +92,7 @@ export default function ForgotPassword() {
             </div>
 
             <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? t('forgotPassword.sending') : t('forgotPassword.sendResetLink')}
             </Button>
 
             <div className="text-center">
@@ -100,8 +102,8 @@ export default function ForgotPassword() {
                 onClick={() => navigate('/login')}
                 className="text-sm"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to login
+                <ArrowLeft className="me-2 h-4 w-4" />
+                {t('forgotPassword.backToLogin')}
               </Button>
             </div>
           </form>
@@ -109,7 +111,7 @@ export default function ForgotPassword() {
           <div className="space-y-6">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
               <p className="text-sm">
-                We've sent a password reset link to <strong>{email}</strong>
+                {t('forgotPassword.sentTo')} <strong>{email}</strong>
               </p>
             </div>
 
@@ -119,8 +121,8 @@ export default function ForgotPassword() {
               onClick={() => navigate('/login')}
               className="h-12 w-full"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to login
+              <ArrowLeft className="me-2 h-4 w-4" />
+              {t('forgotPassword.backToLogin')}
             </Button>
           </div>
         )}
@@ -128,7 +130,7 @@ export default function ForgotPassword() {
         {/* Security Footer */}
         <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Shield className="h-4 w-4" />
-          <span>Protected by Zero Trust Security</span>
+          <span>{t('security.protectedByZeroTrust')}</span>
         </div>
       </div>
     </div>

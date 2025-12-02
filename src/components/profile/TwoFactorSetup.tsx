@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Shield, Loader2 } from "lucide-react";
@@ -7,6 +8,7 @@ import { MFAEnrollDialog } from "./MFAEnrollDialog";
 import { MFADisableDialog } from "./MFADisableDialog";
 
 export function TwoFactorSetup() {
+  const { t } = useTranslation();
   const { isEnabled, isLoading, factors, refreshFactors } = useMFA();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
@@ -32,15 +34,15 @@ export function TwoFactorSetup() {
         </div>
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <h4 className="font-medium">Two-Factor Authentication</h4>
+            <h4 className="font-medium">{t('twoFactorSetup.twoFactorAuth')}</h4>
             <Badge variant={isEnabled ? "default" : "secondary"}>
-              {isEnabled ? "Enabled" : "Disabled"}
+              {isEnabled ? t('twoFactorSetup.enabled') : t('twoFactorSetup.disabled')}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
             {isEnabled
-              ? "Your account is protected with two-factor authentication."
-              : "Add an extra layer of security to your account by requiring a verification code from your authenticator app."}
+              ? t('twoFactorSetup.enabledMessage')
+              : t('twoFactorSetup.disabledMessage')}
           </p>
         </div>
       </div>
@@ -53,11 +55,11 @@ export function TwoFactorSetup() {
             onClick={() => setDisableDialogOpen(true)}
             className="text-destructive hover:text-destructive"
           >
-            Disable 2FA
+            {t('twoFactorSetup.disable2FA')}
           </Button>
         ) : (
           <Button onClick={() => setEnrollDialogOpen(true)}>
-            Enable 2FA
+            {t('twoFactorSetup.enable2FA')}
           </Button>
         )}
       </div>
