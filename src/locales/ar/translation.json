@@ -858,6 +858,7 @@
     "totalForPeriod": "الإجمالي لـ {{period}}",
     "youSave": "توفر",
     "comparedToMonthly": "مقارنة بالفوترة الشهرية",
+    "selectionSummary": "ملخص الاختيار",
     "status": {
       "pending": "قيد المراجعة",
       "under_review": "تحت المراجعة",

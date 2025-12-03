@@ -27,7 +27,8 @@ import {
   UserCountSlider, 
   ModuleSelector, 
   PriceBreakdown,
-  BillingPeriodToggle 
+  BillingPeriodToggle,
+  SelectionSummary
 } from "@/components/subscription";
 
 export default function SubscriptionManagement() {
@@ -277,6 +278,14 @@ export default function SubscriptionManagement() {
 
             {/* Price Breakdown Sidebar */}
             <div className="space-y-4">
+              <SelectionSummary
+                planName={selectedPlan?.display_name}
+                billingMonths={billingMonths}
+                userCount={selectedUserCount}
+                moduleCount={selectedModuleIds.length}
+                totalPrice={priceBreakdown?.totalMonthly || 0}
+              />
+
               <PriceBreakdown
                 breakdown={priceBreakdown}
                 isLoading={isCalculating}
