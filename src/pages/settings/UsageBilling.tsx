@@ -28,11 +28,14 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function UsageBilling() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { usage, isLoading: usageLoading } = useProfileUsage();
   const { quota, breakdown, isLoading: quotaLoading } = useLicensedUserQuota();
   const { billingRecords, isLoading: billingLoading } = useProfileBilling();
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   // Prepare trend data for line chart (last 6 months, sorted ascending)
   const trendData = useMemo(() => {
@@ -68,8 +71,8 @@ export default function UsageBilling() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className={isRTL ? 'text-end' : ''}>
         <h1 className="text-3xl font-bold">{t('profileBilling.title')}</h1>
         <p className="text-muted-foreground">{t('profileBilling.description')}</p>
       </div>
@@ -85,7 +88,7 @@ export default function UsageBilling() {
         {/* Profile Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <TrendingUp className="h-5 w-5" />
               {t('profileBilling.usageTrend', 'Usage Trend')}
             </CardTitle>
@@ -144,7 +147,7 @@ export default function UsageBilling() {
         {/* Profile Distribution Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <PieChart className="h-5 w-5" />
               {t('profileBilling.distribution', 'Profile Distribution')}
             </CardTitle>
@@ -200,7 +203,7 @@ export default function UsageBilling() {
       {/* Billing History */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <History className="h-5 w-5" />
             {t('profileBilling.billingHistory')}
           </CardTitle>

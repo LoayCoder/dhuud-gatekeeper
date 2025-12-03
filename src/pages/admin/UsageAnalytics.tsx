@@ -217,9 +217,9 @@ export default function UsageAnalytics() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={isRTL ? 'text-end' : ''}>
           <h1 className="text-3xl font-bold tracking-tight">{t('analytics.title')}</h1>
           <p className="text-muted-foreground">{t('analytics.description')}</p>
         </div>
@@ -282,7 +282,7 @@ export default function UsageAnalytics() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className={isRTL ? 'flex-row-reverse' : ''}>
           <TabsTrigger value="overview">{t('analytics.overview')}</TabsTrigger>
           <TabsTrigger value="tenants">{t('analytics.tenantUsage')}</TabsTrigger>
           <TabsTrigger value="logs">{t('analytics.activityLogs')}</TabsTrigger>
