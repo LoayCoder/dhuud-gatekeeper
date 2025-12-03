@@ -615,6 +615,16 @@
     "selectionSummary": "चयन सारांश",
     "configurePlan": "योजना कॉन्फ़िगर करें",
     "myRequests": "मेरे अनुरोध",
-    "requestPlan": "सदस्यता योजना का अनुरोध करें"
+    "requestPlan": "सदस्यता योजना का अनुरोध करें",
+    "confirmRequest": "अनुरोध की पुष्टि करें",
+    "confirmRequestMessage": "क्या आप वाकई यह सदस्यता अनुरोध सबमिट करना चाहते हैं?",
+    "submitRequest": "अनुरोध सबमिट करें",
+    "cancelRequest": "अनुरोध रद्द करें",
+    "requestCanceled": "अनुरोध रद्द हो गया",
+    "requestCanceledDesc": "आपका सदस्यता अनुरोध रद्द कर दिया गया है।",
+    "canceling": "रद्द हो रहा है...",
+    "confirmCancelTitle": "अनुरोध रद्द करें?",
+    "confirmCancelMessage": "क्या आप वाकई इस सदस्यता अनुरोध को रद्द करना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "confirmCancel": "हां, रद्द करें"
   }
 }

@@ -615,6 +615,16 @@
     "selectionSummary": "Buod ng Pinili",
     "configurePlan": "I-configure ang Plano",
     "myRequests": "Mga Kahilingan Ko",
-    "requestPlan": "Humiling ng Subscription Plan"
+    "requestPlan": "Humiling ng Subscription Plan",
+    "confirmRequest": "Kumpirmahin ang Kahilingan",
+    "confirmRequestMessage": "Sigurado ka bang gusto mong isumite ang kahilingan sa subscription na ito?",
+    "submitRequest": "Isumite ang Kahilingan",
+    "cancelRequest": "Kanselahin ang Kahilingan",
+    "requestCanceled": "Nakansela ang Kahilingan",
+    "requestCanceledDesc": "Nakansela na ang iyong kahilingan sa subscription.",
+    "canceling": "Kinakansela...",
+    "confirmCancelTitle": "Kanselahin ang Kahilingan?",
+    "confirmCancelMessage": "Sigurado ka bang gusto mong kanselahin ang kahilingan sa subscription na ito? Hindi na ito maibabalik.",
+    "confirmCancel": "Oo, Kanselahin"
   }
 }
