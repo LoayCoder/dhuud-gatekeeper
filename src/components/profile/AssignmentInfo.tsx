@@ -12,7 +12,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
 
   return (
     <Card>
-      <CardHeader className="text-start">
+      <CardHeader>
         <CardTitle className="text-lg">{t('assignment.title')}</CardTitle>
         <CardDescription>
           {t('assignment.description')}
@@ -21,7 +21,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
       <CardContent className="space-y-4">
         {/* Branch Info */}
         <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-start gap-3 rtl:flex-row-reverse text-start">
+          <div className="flex items-start gap-3">
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
               <Building2 className="h-4 w-4 text-primary" />
             </div>
@@ -43,7 +43,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
 
         {/* Site Info */}
         <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-start gap-3 rtl:flex-row-reverse text-start">
+          <div className="flex items-start gap-3">
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
               <MapPin className="h-4 w-4 text-primary" />
             </div>
@@ -63,7 +63,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground text-start">
+        <p className="text-xs text-muted-foreground">
           {t('assignment.managedByAdmin')}
         </p>
       </CardContent>
