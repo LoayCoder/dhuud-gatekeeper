@@ -26,11 +26,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
-interface Branch { id: string; name: string; location: string | null; }
+interface Branch { 
+  id: string; 
+  name: string; 
+  location: string | null; 
+  latitude: number | null;
+  longitude: number | null;
+}
 interface Division { id: string; name: string; }
 interface Department { id: string; name: string; division_id: string; divisions?: { name: string } | null; }
 interface Section { id: string; name: string; department_id: string; departments?: { name: string } | null; }
@@ -53,10 +59,18 @@ export default function OrgStructure() {
   const [newItemName, setNewItemName] = useState("");
   const [parentId, setParentId] = useState<string>("");
   const [creating, setCreating] = useState(false);
+  
+  // Branch location form state
+  const [newBranchLocation, setNewBranchLocation] = useState("");
+  const [newBranchLatitude, setNewBranchLatitude] = useState("");
+  const [newBranchLongitude, setNewBranchLongitude] = useState("");
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingLatitude, setEditingLatitude] = useState("");
+  const [editingLongitude, setEditingLongitude] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Fetch all hierarchy data
@@ -64,7 +78,7 @@ export default function OrgStructure() {
     setLoading(true);
     try {
       const [b, d, dep, sec] = await Promise.all([
-        supabase.from('branches').select('id, name, location').order('name'),
+        supabase.from('branches').select('id, name, location, latitude, longitude').order('name'),
         supabase.from('divisions').select('id, name').order('name'),
         supabase.from('departments').select('id, name, division_id, divisions(name)').order('name'),
         supabase.from('sections').select('id, name, department_id, departments(name)').order('name'),
@@ -85,6 +99,40 @@ export default function OrgStructure() {
     fetchData();
   }, []);
 
+  // Get current location using browser geolocation
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('orgStructure.geolocationNotSupported'), 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setNewBranchLatitude(position.coords.latitude.toFixed(6));
+        setNewBranchLongitude(position.coords.longitude.toFixed(6));
+        setGettingLocation(false);
+        toast({ 
+          title: t('orgStructure.success'), 
+          description: t('orgStructure.locationRetrieved') 
+        });
+      },
+      (error) => {
+        setGettingLocation(false);
+        let message = t('orgStructure.locationError');
+        if (error.code === error.PERMISSION_DENIED) {
+          message = t('orgStructure.locationPermissionDenied');
+        }
+        toast({ title: t('common.error'), description: message, variant: "destructive" });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   // Generic Create Function
   const handleCreate = async (table: TableType) => {
     if (!newItemName.trim()) return;
@@ -99,6 +147,17 @@ export default function OrgStructure() {
         name: newItemName.trim(),
         tenant_id: profile.tenant_id
       };
+
+      // Add branch-specific fields
+      if (table === 'branches') {
+        if (newBranchLocation.trim()) {
+          payload.location = newBranchLocation.trim();
+        }
+        if (newBranchLatitude && newBranchLongitude) {
+          payload.latitude = parseFloat(newBranchLatitude);
+          payload.longitude = parseFloat(newBranchLongitude);
+        }
+      }
 
       // Add parent FKs
       if (table === 'departments') {
@@ -124,6 +183,9 @@ export default function OrgStructure() {
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemCreated') });
       setNewItemName("");
       setParentId("");
+      setNewBranchLocation("");
+      setNewBranchLatitude("");
+      setNewBranchLongitude("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -142,9 +204,22 @@ export default function OrgStructure() {
     setSaving(true);
 
     try {
+      const updatePayload: Record<string, unknown> = { name: editingName.trim() };
+      
+      // Add branch-specific fields for updates
+      if (table === 'branches') {
+        if (editingLatitude && editingLongitude) {
+          updatePayload.latitude = parseFloat(editingLatitude);
+          updatePayload.longitude = parseFloat(editingLongitude);
+        } else {
+          updatePayload.latitude = null;
+          updatePayload.longitude = null;
+        }
+      }
+
       const { error } = await supabase
         .from(table)
-        .update({ name: editingName.trim() })
+        .update(updatePayload)
         .eq('id', id);
       
       if (error) throw error;
@@ -152,6 +227,8 @@ export default function OrgStructure() {
       toast({ title: t('orgStructure.success'), description: t('orgStructure.itemUpdated') });
       setEditingId(null);
       setEditingName("");
+      setEditingLatitude("");
+      setEditingLongitude("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -162,15 +239,19 @@ export default function OrgStructure() {
   };
 
   // Start editing
-  const startEditing = (id: string, currentName: string) => {
+  const startEditing = (id: string, currentName: string, latitude?: number | null, longitude?: number | null) => {
     setEditingId(id);
     setEditingName(currentName);
+    setEditingLatitude(latitude?.toString() || "");
+    setEditingLongitude(longitude?.toString() || "");
   };
 
   // Cancel editing
   const cancelEditing = () => {
     setEditingId(null);
     setEditingName("");
+    setEditingLatitude("");
+    setEditingLongitude("");
   };
 
   // Generic Delete Function
@@ -187,6 +268,11 @@ export default function OrgStructure() {
     }
   };
 
+  // Open location in external map
+  const openInMaps = (lat: number, lng: number) => {
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex justify-center">
@@ -196,9 +282,91 @@ export default function OrgStructure() {
   }
 
   const direction = isRTL ? 'rtl' : 'ltr';
-  const textAlign = isRTL ? 'text-right' : 'text-left';
+  const textAlign = isRTL ? 'text-end' : 'text-start';
 
-  // Reusable row component for simple tables (branches, divisions)
+  // Branch row component with location support
+  const renderBranchRow = (item: Branch) => (
+    <TableRow key={item.id}>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <Input
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            className={`h-8 ${textAlign}`}
+            dir={direction}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleUpdate('branches', item.id);
+              if (e.key === 'Escape') cancelEditing();
+            }}
+          />
+        ) : (
+          item.name
+        )}
+      </TableCell>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Input
+              value={editingLatitude}
+              onChange={(e) => setEditingLatitude(e.target.value)}
+              placeholder={t('orgStructure.latitude')}
+              className="h-8 w-24"
+              type="number"
+              step="any"
+            />
+            <Input
+              value={editingLongitude}
+              onChange={(e) => setEditingLongitude(e.target.value)}
+              placeholder={t('orgStructure.longitude')}
+              className="h-8 w-24"
+              type="number"
+              step="any"
+            />
+          </div>
+        ) : (
+          item.latitude && item.longitude ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+              onClick={() => openInMaps(item.latitude!, item.longitude!)}
+            >
+              <MapPin className="h-3 w-3" />
+              <span className="text-xs">{item.latitude?.toFixed(4)}, {item.longitude?.toFixed(4)}</span>
+            </Button>
+          ) : (
+            <span className="text-muted-foreground text-xs">{t('orgStructure.noCoordinates')}</span>
+          )
+        )}
+      </TableCell>
+      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
+        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+          {editingId === item.id ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => handleUpdate('branches', item.id)} disabled={saving}>
+                <Check className="h-4 w-4 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, item.latitude, item.longitude)}>
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleDelete('branches', item.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  // Reusable row component for simple tables (divisions)
   const renderSimpleRow = (item: { id: string; name: string }, table: TableType) => (
     <TableRow key={item.id}>
       <TableCell className={textAlign}>
@@ -218,7 +386,7 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
-      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
+      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
         <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
           {editingId === item.id ? (
             <>
@@ -269,7 +437,7 @@ export default function OrgStructure() {
         )}
       </TableCell>
       <TableCell className={`text-muted-foreground ${textAlign}`}>{parentName}</TableCell>
-      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
+      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
         <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
           {editingId === item.id ? (
             <>
@@ -298,7 +466,7 @@ export default function OrgStructure() {
   return (
     <div className="container py-8 space-y-8" dir={direction}>
       {/* Header */}
-      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end me-auto' : 'items-start'}`}>
+      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end' : 'items-start'}`}>
         <h1 className={`text-3xl font-bold tracking-tight ${textAlign}`}>{t('orgStructure.title')}</h1>
         <p className={`text-muted-foreground ${textAlign}`}>{t('orgStructure.description')}</p>
       </div>
@@ -318,36 +486,114 @@ export default function OrgStructure() {
               <CardTitle className={textAlign}>{t('orgStructure.manageBranches')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <Input 
-                  placeholder={t('orgStructure.newBranchPlaceholder')}
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  className={textAlign}
-                  dir={direction}
-                />
-                <Button onClick={() => handleCreate('branches')} disabled={creating} className={isRTL ? 'flex-row-reverse' : ''}>
+              {/* Branch Creation Form */}
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className={`grid gap-4 md:grid-cols-2 ${isRTL ? 'text-end' : 'text-start'}`}>
+                  {/* Branch Name */}
+                  <div className="space-y-2">
+                    <Label className={textAlign}>{t('orgStructure.branchName')}</Label>
+                    <Input 
+                      placeholder={t('orgStructure.newBranchPlaceholder')}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className={textAlign}
+                      dir={direction}
+                    />
+                  </div>
+                  {/* Location Description */}
+                  <div className="space-y-2">
+                    <Label className={textAlign}>{t('orgStructure.locationDescription')}</Label>
+                    <Input 
+                      placeholder={t('orgStructure.locationPlaceholder')}
+                      value={newBranchLocation}
+                      onChange={(e) => setNewBranchLocation(e.target.value)}
+                      className={textAlign}
+                      dir={direction}
+                    />
+                  </div>
+                </div>
+
+                {/* GPS Coordinates */}
+                <div className="space-y-2">
+                  <Label className={textAlign}>{t('orgStructure.gpsCoordinates')}</Label>
+                  <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex-1">
+                      <Input 
+                        placeholder={t('orgStructure.latitude')}
+                        value={newBranchLatitude}
+                        onChange={(e) => setNewBranchLatitude(e.target.value)}
+                        type="number"
+                        step="any"
+                        className={textAlign}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input 
+                        placeholder={t('orgStructure.longitude')}
+                        value={newBranchLongitude}
+                        onChange={(e) => setNewBranchLongitude(e.target.value)}
+                        type="number"
+                        step="any"
+                        className={textAlign}
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={getCurrentLocation}
+                      disabled={gettingLocation}
+                      className={`shrink-0 ${isRTL ? 'flex-row-reverse' : ''}`}
+                    >
+                      {gettingLocation ? (
+                        <Loader2 className={`h-4 w-4 animate-spin ${isRTL ? 'ms-2' : 'me-2'}`} />
+                      ) : (
+                        <Navigation className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                      )}
+                      {t('orgStructure.useCurrentLocation')}
+                    </Button>
+                  </div>
+                  {newBranchLatitude && newBranchLongitude && (
+                    <p className={`text-xs text-muted-foreground ${textAlign}`}>
+                      <a 
+                        href={`https://www.google.com/maps?q=${newBranchLatitude},${newBranchLongitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {t('orgStructure.viewOnMap')} →
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                <Button 
+                  onClick={() => handleCreate('branches')} 
+                  disabled={creating || !newItemName.trim()} 
+                  className={`w-full md:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
+                >
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
-                  {t('orgStructure.add')}
+                  {t('orgStructure.addBranch')}
                 </Button>
               </div>
+
+              {/* Branches Table */}
               <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
-                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.coordinates')}</TableHead>
+                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {branches.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                           {t('orgStructure.noItems')}
                         </TableCell>
                       </TableRow>
                     ) : (
-                      branches.map((item) => renderSimpleRow(item, 'branches'))
+                      branches.map((item) => renderBranchRow(item))
                     )}
                   </TableBody>
                 </Table>
@@ -381,7 +627,7 @@ export default function OrgStructure() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
-                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -443,7 +689,7 @@ export default function OrgStructure() {
                     <TableRow>
                       <TableHead className={textAlign}>{t('orgStructure.department')}</TableHead>
                       <TableHead className={textAlign}>{t('orgStructure.parentDivision')}</TableHead>
-                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -454,7 +700,9 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      departments.map((item) => renderRowWithParent(item, item.divisions?.name, 'departments'))
+                      departments.map((item) =>
+                        renderRowWithParent(item, item.divisions?.name, 'departments')
+                      )
                     )}
                   </TableBody>
                 </Table>
@@ -505,7 +753,7 @@ export default function OrgStructure() {
                     <TableRow>
                       <TableHead className={textAlign}>{t('orgStructure.section')}</TableHead>
                       <TableHead className={textAlign}>{t('orgStructure.parentDepartment')}</TableHead>
-                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -516,7 +764,9 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      sections.map((item) => renderRowWithParent(item, item.departments?.name, 'sections'))
+                      sections.map((item) =>
+                        renderRowWithParent(item, item.departments?.name, 'sections')
+                      )
                     )}
                   </TableBody>
                 </Table>
