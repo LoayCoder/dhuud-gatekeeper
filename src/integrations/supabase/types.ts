@@ -158,6 +158,55 @@ export type Database = {
           },
         ]
       }
+      manager_team: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          manager_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          manager_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          manager_id?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_team_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_team_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_team_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mfa_backup_codes: {
         Row: {
           code_hash: string
@@ -480,6 +529,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles: {
+        Row: {
+          category: Database["public"]["Enums"]["role_category"]
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          module_access: string[] | null
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["role_category"]
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          module_access?: string[] | null
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["role_category"]
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          module_access?: string[] | null
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
       }
       sections: {
         Row: {
@@ -1313,6 +1401,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_role_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          role_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role_id?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_role_assignments_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_role_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1489,6 +1619,13 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
+      get_team_hierarchy: {
+        Args: { p_manager_id: string }
+        Returns: {
+          depth: number
+          user_id: string
+        }[]
+      }
       get_tenant_modules: {
         Args: { p_tenant_id: string }
         Returns: Database["public"]["Enums"]["module_code"][]
@@ -1507,11 +1644,29 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_user_roles: {
+        Args: { p_user_id: string }
+        Returns: {
+          category: Database["public"]["Enums"]["role_category"]
+          role_code: string
+          role_id: string
+          role_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_role_by_code: {
+        Args: { p_role_code: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      is_in_team_hierarchy: {
+        Args: { p_manager_id: string; p_user_id: string }
         Returns: boolean
       }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
@@ -1546,6 +1701,14 @@ export type Database = {
         | "api_access"
         | "priority_support"
       profile_type: "visitor" | "member" | "contractor"
+      role_category:
+        | "general"
+        | "hsse"
+        | "environmental"
+        | "ptw"
+        | "security"
+        | "audit"
+        | "food_safety"
       subscription_event_type:
         | "plan_changed"
         | "trial_started"
@@ -1749,6 +1912,15 @@ export const Constants = {
         "priority_support",
       ],
       profile_type: ["visitor", "member", "contractor"],
+      role_category: [
+        "general",
+        "hsse",
+        "environmental",
+        "ptw",
+        "security",
+        "audit",
+        "food_safety",
+      ],
       subscription_event_type: [
         "plan_changed",
         "trial_started",

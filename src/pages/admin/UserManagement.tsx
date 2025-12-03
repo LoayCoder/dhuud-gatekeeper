@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, LogIn, LogOut } from "lucide-react";
+import { Loader2, Pencil, Plus, LogIn, LogOut, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,9 @@ import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCar
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
 import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log";
+import { RoleBadge } from "@/components/roles/RoleBadge";
+import { ManagerTeamViewer } from "@/components/hierarchy/ManagerTeamViewer";
+import { useUserRoles, Role } from "@/hooks/use-user-roles";
 
 interface UserProfile {
   id: string;
@@ -56,6 +59,7 @@ interface UserProfile {
 
 interface UserWithRole extends UserProfile {
   role?: string;
+  userRoles?: { role_id: string; role_code: string; role_name: string; category: string }[];
 }
 
 interface HierarchyItem {
@@ -82,9 +86,11 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [branchFilter, setBranchFilter] = useState<string>('all');
   const [divisionFilter, setDivisionFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const { quota, breakdown, isLoading: quotaLoading, refetch: refetchQuota } = useLicensedUserQuota();
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated } = useAdminAuditLog();
+  const { roles } = useUserRoles();
 
   const fetchData = async () => {
     setLoading(true);
@@ -104,11 +110,28 @@ export default function UserManagement() {
       if (profilesError) throw profilesError;
 
       const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
+      
+      // Fetch new role assignments
+      const { data: roleAssignments } = await supabase
+        .from('user_role_assignments')
+        .select('user_id, role_id, roles(code, name, category)');
 
-      const usersWithRoles = (profilesData || []).map(p => ({
-        ...p,
-        role: rolesData?.find(r => r.user_id === p.id)?.role || 'user'
-      })) as UserWithRole[];
+      const usersWithRoles = (profilesData || []).map(p => {
+        const userRoleAssignments = (roleAssignments || [])
+          .filter((ra: any) => ra.user_id === p.id)
+          .map((ra: any) => ({
+            role_id: ra.role_id,
+            role_code: ra.roles?.code || '',
+            role_name: ra.roles?.name || '',
+            category: ra.roles?.category || 'general',
+          }));
+
+        return {
+          ...p,
+          role: rolesData?.find(r => r.user_id === p.id)?.role || 'user',
+          userRoles: userRoleAssignments,
+        };
+      }) as UserWithRole[];
 
       setUsers(usersWithRoles);
 
@@ -136,9 +159,13 @@ export default function UserManagement() {
       if (statusFilter === 'inactive' && user.is_active) return false;
       if (branchFilter !== 'all' && user.assigned_branch_id !== branchFilter) return false;
       if (divisionFilter !== 'all' && user.assigned_division_id !== divisionFilter) return false;
+      if (roleFilter !== 'all') {
+        const hasRole = user.userRoles?.some(r => r.role_code === roleFilter);
+        if (!hasRole) return false;
+      }
       return true;
     });
-  }, [users, userTypeFilter, statusFilter, branchFilter, divisionFilter]);
+  }, [users, userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
 
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRole) => { setEditingUser(user); setIsFormDialogOpen(true); };
