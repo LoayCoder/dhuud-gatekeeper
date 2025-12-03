@@ -158,26 +158,81 @@ export type Database = {
           },
         ]
       }
+      modules: {
+        Row: {
+          base_price_monthly: number | null
+          code: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price_monthly?: number | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price_monthly?: number | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       plan_modules: {
         Row: {
           created_at: string | null
+          custom_price: number | null
           id: string
+          included_in_base: boolean | null
           module: Database["public"]["Enums"]["module_code"]
+          module_id: string | null
           plan_id: string
         }
         Insert: {
           created_at?: string | null
+          custom_price?: number | null
           id?: string
+          included_in_base?: boolean | null
           module: Database["public"]["Enums"]["module_code"]
+          module_id?: string | null
           plan_id: string
         }
         Update: {
           created_at?: string | null
+          custom_price?: number | null
           id?: string
+          included_in_base?: boolean | null
           module?: Database["public"]["Enums"]["module_code"]
+          module_id?: string | null
           plan_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "plan_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "plan_modules_plan_id_fkey"
             columns: ["plan_id"]
@@ -189,45 +244,57 @@ export type Database = {
       }
       plans: {
         Row: {
+          base_price_monthly: number | null
           created_at: string | null
           description: string | null
           display_name: string
           features: Json | null
           id: string
+          included_users: number | null
           is_active: boolean | null
+          is_custom: boolean | null
           max_users: number
           name: string
           price_monthly: number
+          price_per_user: number | null
           price_yearly: number | null
           sort_order: number | null
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
         }
         Insert: {
+          base_price_monthly?: number | null
           created_at?: string | null
           description?: string | null
           display_name: string
           features?: Json | null
           id?: string
+          included_users?: number | null
           is_active?: boolean | null
+          is_custom?: boolean | null
           max_users?: number
           name: string
           price_monthly?: number
+          price_per_user?: number | null
           price_yearly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
         }
         Update: {
+          base_price_monthly?: number | null
           created_at?: string | null
           description?: string | null
           display_name?: string
           features?: Json | null
           id?: string
+          included_users?: number | null
           is_active?: boolean | null
+          is_custom?: boolean | null
           max_users?: number
           name?: string
           price_monthly?: number
+          price_per_user?: number | null
           price_yearly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
@@ -494,6 +561,106 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "subscription_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_requests: {
+        Row: {
+          admin_notes: string | null
+          approved_modules: string[] | null
+          approved_plan_id: string | null
+          approved_total_monthly: number | null
+          approved_user_limit: number | null
+          calculated_base_price: number | null
+          calculated_module_price: number | null
+          calculated_total_monthly: number | null
+          calculated_user_price: number | null
+          created_at: string | null
+          id: string
+          request_type: Database["public"]["Enums"]["subscription_request_type"]
+          requested_modules: string[] | null
+          requested_plan_id: string | null
+          requested_user_limit: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status:
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
+          tenant_id: string
+          tenant_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_modules?: string[] | null
+          approved_plan_id?: string | null
+          approved_total_monthly?: number | null
+          approved_user_limit?: number | null
+          calculated_base_price?: number | null
+          calculated_module_price?: number | null
+          calculated_total_monthly?: number | null
+          calculated_user_price?: number | null
+          created_at?: string | null
+          id?: string
+          request_type?: Database["public"]["Enums"]["subscription_request_type"]
+          requested_modules?: string[] | null
+          requested_plan_id?: string | null
+          requested_user_limit?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?:
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
+          tenant_id: string
+          tenant_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_modules?: string[] | null
+          approved_plan_id?: string | null
+          approved_total_monthly?: number | null
+          approved_user_limit?: number | null
+          calculated_base_price?: number | null
+          calculated_module_price?: number | null
+          calculated_total_monthly?: number | null
+          calculated_user_price?: number | null
+          created_at?: string | null
+          id?: string
+          request_type?: Database["public"]["Enums"]["subscription_request_type"]
+          requested_modules?: string[] | null
+          requested_plan_id?: string | null
+          requested_user_limit?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?:
+            | Database["public"]["Enums"]["subscription_request_status"]
+            | null
+          tenant_id?: string
+          tenant_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_requests_approved_plan_id_fkey"
+            columns: ["approved_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_requested_plan_id_fkey"
+            columns: ["requested_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -890,6 +1057,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_subscription_price: {
+        Args: {
+          p_module_ids: string[]
+          p_plan_id: string
+          p_user_count: number
+        }
+        Returns: Json
+      }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_tenant_modules: {
@@ -937,6 +1112,23 @@ export type Database = {
         | "user_limit_changed"
         | "payment_succeeded"
         | "payment_failed"
+        | "request_submitted"
+        | "request_approved"
+        | "request_declined"
+        | "request_modified"
+      subscription_request_status:
+        | "pending"
+        | "under_review"
+        | "approved"
+        | "declined"
+        | "modified"
+        | "canceled"
+      subscription_request_type:
+        | "new"
+        | "upgrade"
+        | "downgrade"
+        | "modify"
+        | "cancel"
       tenant_status: "active" | "suspended" | "disabled"
       ticket_category: "billing" | "technical" | "feature_request" | "general"
       ticket_priority: "low" | "medium" | "high" | "urgent"
@@ -1109,6 +1301,25 @@ export const Constants = {
         "user_limit_changed",
         "payment_succeeded",
         "payment_failed",
+        "request_submitted",
+        "request_approved",
+        "request_declined",
+        "request_modified",
+      ],
+      subscription_request_status: [
+        "pending",
+        "under_review",
+        "approved",
+        "declined",
+        "modified",
+        "canceled",
+      ],
+      subscription_request_type: [
+        "new",
+        "upgrade",
+        "downgrade",
+        "modify",
+        "cancel",
       ],
       tenant_status: ["active", "suspended", "disabled"],
       ticket_category: ["billing", "technical", "feature_request", "general"],
