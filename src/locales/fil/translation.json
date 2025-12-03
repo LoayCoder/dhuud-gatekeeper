@@ -46,7 +46,9 @@
     "dark": "Madilim",
     "system": "Sistema",
     "changeLanguage": "Palitan ang wika",
-    "error": "Error"
+    "error": "Error",
+    "success": "Matagumpay",
+    "saving": "Nagse-save..."
   },
   "auth": {
     "signIn": "Mag-sign In",

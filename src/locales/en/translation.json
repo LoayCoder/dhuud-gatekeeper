@@ -48,6 +48,8 @@
     "system": "System",
     "changeLanguage": "Change language",
     "error": "Error",
+    "success": "Success",
+    "saving": "Saving...",
     "comingSoon": "Coming Soon",
     "submitting": "Submitting...",
     "actions": "Actions",

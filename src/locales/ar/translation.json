@@ -47,6 +47,8 @@
     "system": "النظام",
     "changeLanguage": "تغيير اللغة",
     "error": "خطأ",
+    "success": "نجاح",
+    "saving": "جاري الحفظ...",
     "comingSoon": "قريباً",
     "submitting": "جاري الإرسال...",
     "actions": "الإجراءات"

@@ -46,7 +46,9 @@
     "dark": "گہرا",
     "system": "سسٹم",
     "changeLanguage": "زبان تبدیل کریں",
-    "error": "خرابی"
+    "error": "خرابی",
+    "success": "کامیابی",
+    "saving": "محفوظ ہو رہا ہے..."
   },
   "auth": {
     "signIn": "سائن ان",
