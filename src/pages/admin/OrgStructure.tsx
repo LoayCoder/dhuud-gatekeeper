@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -80,6 +80,7 @@ export default function OrgStructure() {
   const [newSiteLatitude, setNewSiteLatitude] = useState("");
   const [newSiteLongitude, setNewSiteLongitude] = useState("");
   const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
+  const [siteSearchQuery, setSiteSearchQuery] = useState("");
 
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -860,6 +861,18 @@ export default function OrgStructure() {
                 </Button>
               </div>
 
+              {/* Search Filter */}
+              <div className={`relative ${isRTL ? 'text-end' : 'text-start'}`}>
+                <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground ${isRTL ? 'end-3' : 'start-3'}`} />
+                <Input
+                  placeholder={t('orgStructure.searchSites')}
+                  value={siteSearchQuery}
+                  onChange={(e) => setSiteSearchQuery(e.target.value)}
+                  className={`${isRTL ? 'pe-10' : 'ps-10'} ${textAlign}`}
+                  dir={direction}
+                />
+              </div>
+
               {/* Sites Table */}
               <div className="rounded-md border" dir={direction}>
                 <Table>
@@ -872,15 +885,26 @@ export default function OrgStructure() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sites.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                          {t('orgStructure.noItems')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      sites.map((item) => renderSiteRow(item))
-                    )}
+                    {(() => {
+                      const filteredSites = sites.filter(site => {
+                        const query = siteSearchQuery.toLowerCase().trim();
+                        if (!query) return true;
+                        const nameMatch = site.name.toLowerCase().includes(query);
+                        const branchMatch = site.branches?.name?.toLowerCase().includes(query) || false;
+                        return nameMatch || branchMatch;
+                      });
+                      
+                      if (filteredSites.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                              {siteSearchQuery ? t('orgStructure.noSearchResults') : t('orgStructure.noItems')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filteredSites.map((item) => renderSiteRow(item));
+                    })()}
                   </TableBody>
                 </Table>
               </div>

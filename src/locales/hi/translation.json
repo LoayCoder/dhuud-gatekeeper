@@ -468,7 +468,9 @@
     "selectBranch": "शाखा चुनें",
     "branchRequired": "कृपया मूल शाखा चुनें",
     "addSite": "साइट जोड़ें",
-    "noAddress": "कोई पता नहीं"
+    "noAddress": "कोई पता नहीं",
+    "searchSites": "साइट के नाम या शाखा से खोजें...",
+    "noSearchResults": "आपकी खोज से कोई साइट नहीं मिली।"
   },
   "userManagement": {
     "title": "उपयोगकर्ता प्रबंधन",

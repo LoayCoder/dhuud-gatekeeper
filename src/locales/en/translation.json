@@ -464,7 +464,9 @@
     "selectBranch": "Select branch",
     "branchRequired": "Please select a parent branch",
     "addSite": "Add Site",
-    "noAddress": "No address"
+    "noAddress": "No address",
+    "searchSites": "Search by site name or branch...",
+    "noSearchResults": "No sites match your search."
   },
   "userManagement": {
     "title": "User Management",

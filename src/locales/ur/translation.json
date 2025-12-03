@@ -468,7 +468,9 @@
     "selectBranch": "برانچ منتخب کریں",
     "branchRequired": "براہ کرم پیرنٹ برانچ منتخب کریں",
     "addSite": "سائٹ شامل کریں",
-    "noAddress": "کوئی پتہ نہیں"
+    "noAddress": "کوئی پتہ نہیں",
+    "searchSites": "سائٹ کے نام یا برانچ سے تلاش کریں...",
+    "noSearchResults": "آپ کی تلاش سے کوئی سائٹ نہیں ملی۔"
   },
   "userManagement": {
     "title": "صارف کا انتظام",

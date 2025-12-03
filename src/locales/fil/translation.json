@@ -468,7 +468,9 @@
     "selectBranch": "Pumili ng branch",
     "branchRequired": "Mangyaring pumili ng parent branch",
     "addSite": "Magdagdag ng Site",
-    "noAddress": "Walang address"
+    "noAddress": "Walang address",
+    "searchSites": "Maghanap ayon sa pangalan ng site o branch...",
+    "noSearchResults": "Walang site na tumutugma sa iyong paghahanap."
   },
   "userManagement": {
     "title": "Pamamahala ng User",

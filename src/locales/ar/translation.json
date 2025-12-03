@@ -471,7 +471,9 @@
     "selectBranch": "اختر الفرع",
     "branchRequired": "يرجى اختيار الفرع الرئيسي",
     "addSite": "إضافة موقع",
-    "noAddress": "لا يوجد عنوان"
+    "noAddress": "لا يوجد عنوان",
+    "searchSites": "البحث حسب اسم الموقع أو الفرع...",
+    "noSearchResults": "لا توجد مواقع تطابق بحثك."
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
