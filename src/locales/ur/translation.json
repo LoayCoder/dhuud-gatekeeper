@@ -606,6 +606,12 @@
     "nMonths": "{{count}} مہینے",
     "discount": "رعایت",
     "savePercent": "{{percent}}% بچائیں",
+    "monthlyRate": "ماہانہ شرح",
+    "originalPrice": "اصل قیمت",
+    "discountApplied": "{{percent}}% رعایت",
+    "totalForPeriod": "{{period}} کا مجموعی",
+    "youSave": "آپ بچاتے ہیں",
+    "comparedToMonthly": "ماہانہ بلنگ کے مقابلے",
     "configurePlan": "پلان کنفیگر کریں",
     "myRequests": "میری درخواستیں",
     "requestPlan": "سبسکرپشن پلان کی درخواست کریں"

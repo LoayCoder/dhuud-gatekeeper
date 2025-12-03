@@ -606,6 +606,12 @@
     "nMonths": "{{count}} Buwan",
     "discount": "Diskwento",
     "savePercent": "Makatipid ng {{percent}}%",
+    "monthlyRate": "Buwanang Rate",
+    "originalPrice": "Orihinal na Presyo",
+    "discountApplied": "{{percent}}% Diskwento",
+    "totalForPeriod": "Kabuuang para sa {{period}}",
+    "youSave": "Makatipid ka ng",
+    "comparedToMonthly": "kumpara sa buwanang pagsingil",
     "configurePlan": "I-configure ang Plano",
     "myRequests": "Mga Kahilingan Ko",
     "requestPlan": "Humiling ng Subscription Plan"
