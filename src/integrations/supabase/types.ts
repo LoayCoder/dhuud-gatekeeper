@@ -397,7 +397,9 @@ export type Database = {
           contact_person: string | null
           contact_phone: string | null
           country: string | null
+          cr_number: string | null
           created_at: string | null
+          employee_count: number | null
           favicon_url: string | null
           id: string
           industry: string | null
@@ -412,6 +414,7 @@ export type Database = {
           slug: string
           status: Database["public"]["Enums"]["tenant_status"]
           updated_at: string | null
+          vat_number: string | null
         }
         Insert: {
           app_icon_dark_url?: string | null
@@ -426,7 +429,9 @@ export type Database = {
           contact_person?: string | null
           contact_phone?: string | null
           country?: string | null
+          cr_number?: string | null
           created_at?: string | null
+          employee_count?: number | null
           favicon_url?: string | null
           id?: string
           industry?: string | null
@@ -441,6 +446,7 @@ export type Database = {
           slug: string
           status?: Database["public"]["Enums"]["tenant_status"]
           updated_at?: string | null
+          vat_number?: string | null
         }
         Update: {
           app_icon_dark_url?: string | null
@@ -455,7 +461,9 @@ export type Database = {
           contact_person?: string | null
           contact_phone?: string | null
           country?: string | null
+          cr_number?: string | null
           created_at?: string | null
+          employee_count?: number | null
           favicon_url?: string | null
           id?: string
           industry?: string | null
@@ -470,6 +478,7 @@ export type Database = {
           slug?: string
           status?: Database["public"]["Enums"]["tenant_status"]
           updated_at?: string | null
+          vat_number?: string | null
         }
         Relationships: []
       }

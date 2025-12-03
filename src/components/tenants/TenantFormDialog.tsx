@@ -33,6 +33,9 @@ const formSchema = z.object({
   industry: z.string().max(100).optional().nullable(),
   country: z.string().max(100).optional().nullable(),
   city: z.string().max(100).optional().nullable(),
+  cr_number: z.string().max(50).optional().nullable(),
+  vat_number: z.string().max(50).optional().nullable(),
+  employee_count: z.coerce.number().int().min(0).optional().nullable(),
   contact_person: z.string().max(100).optional().nullable(),
   contact_email: z.string().email().optional().or(z.literal('')).nullable(),
   contact_phone: z.string().max(20).optional().nullable(),
@@ -61,6 +64,9 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       industry: '',
       country: '',
       city: '',
+      cr_number: '',
+      vat_number: '',
+      employee_count: null,
       contact_person: '',
       contact_email: '',
       contact_phone: '',
@@ -76,6 +82,9 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         industry: tenant.industry || '',
         country: tenant.country || '',
         city: tenant.city || '',
+        cr_number: tenant.cr_number || '',
+        vat_number: tenant.vat_number || '',
+        employee_count: tenant.employee_count || null,
         contact_person: tenant.contact_person || '',
         contact_email: tenant.contact_email || '',
         contact_phone: tenant.contact_phone || '',
@@ -88,6 +97,9 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         industry: '',
         country: '',
         city: '',
+        cr_number: '',
+        vat_number: '',
+        employee_count: null,
         contact_person: '',
         contact_email: '',
         contact_phone: '',
@@ -103,6 +115,9 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       industry: values.industry || null,
       country: values.country || null,
       city: values.city || null,
+      cr_number: values.cr_number || null,
+      vat_number: values.vat_number || null,
+      employee_count: values.employee_count || null,
       contact_person: values.contact_person || null,
       contact_email: values.contact_email || null,
       contact_phone: values.contact_phone || null,
@@ -215,6 +230,57 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
                     <FormLabel>{t('tenantManagement.fields.city')}</FormLabel>
                     <FormControl>
                       <Input {...field} value={field.value || ''} placeholder={t('tenantManagement.placeholders.city')} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* CR Number */}
+              <FormField
+                control={form.control}
+                name="cr_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('tenantManagement.fields.crNumber')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ''} placeholder={t('tenantManagement.placeholders.crNumber')} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* VAT Number */}
+              <FormField
+                control={form.control}
+                name="vat_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('tenantManagement.fields.vatNumber')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ''} placeholder={t('tenantManagement.placeholders.vatNumber')} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Employee Count */}
+              <FormField
+                control={form.control}
+                name="employee_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('tenantManagement.fields.employeeCount')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        min="0"
+                        value={field.value ?? ''} 
+                        placeholder={t('tenantManagement.placeholders.employeeCount')} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
