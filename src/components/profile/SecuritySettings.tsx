@@ -133,13 +133,13 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="new-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="ps-9"
+                className="ltr:pl-9 rtl:pr-9"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
@@ -149,19 +149,19 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ps-9"
+                className="ltr:pl-9 rtl:pr-9"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
             </div>
             {confirmPassword.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
                 {passwordsMatch ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
