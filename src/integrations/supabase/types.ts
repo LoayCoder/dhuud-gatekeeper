@@ -161,6 +161,7 @@ export type Database = {
       modules: {
         Row: {
           base_price_monthly: number | null
+          base_price_yearly: number | null
           code: string
           created_at: string | null
           description: string | null
@@ -173,6 +174,7 @@ export type Database = {
         }
         Insert: {
           base_price_monthly?: number | null
+          base_price_yearly?: number | null
           code: string
           created_at?: string | null
           description?: string | null
@@ -185,6 +187,7 @@ export type Database = {
         }
         Update: {
           base_price_monthly?: number | null
+          base_price_yearly?: number | null
           code?: string
           created_at?: string | null
           description?: string | null
@@ -257,6 +260,7 @@ export type Database = {
           name: string
           price_monthly: number
           price_per_user: number | null
+          price_per_user_yearly: number | null
           price_yearly: number | null
           sort_order: number | null
           stripe_price_id_monthly: string | null
@@ -276,6 +280,7 @@ export type Database = {
           name: string
           price_monthly?: number
           price_per_user?: number | null
+          price_per_user_yearly?: number | null
           price_yearly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
@@ -295,6 +300,7 @@ export type Database = {
           name?: string
           price_monthly?: number
           price_per_user?: number | null
+          price_per_user_yearly?: number | null
           price_yearly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
@@ -575,6 +581,7 @@ export type Database = {
           approved_plan_id: string | null
           approved_total_monthly: number | null
           approved_user_limit: number | null
+          billing_period: string | null
           calculated_base_price: number | null
           calculated_module_price: number | null
           calculated_total_monthly: number | null
@@ -600,6 +607,7 @@ export type Database = {
           approved_plan_id?: string | null
           approved_total_monthly?: number | null
           approved_user_limit?: number | null
+          billing_period?: string | null
           calculated_base_price?: number | null
           calculated_module_price?: number | null
           calculated_total_monthly?: number | null
@@ -625,6 +633,7 @@ export type Database = {
           approved_plan_id?: string | null
           approved_total_monthly?: number | null
           approved_user_limit?: number | null
+          billing_period?: string | null
           calculated_base_price?: number | null
           calculated_module_price?: number | null
           calculated_total_monthly?: number | null
@@ -1057,14 +1066,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      calculate_subscription_price: {
-        Args: {
-          p_module_ids: string[]
-          p_plan_id: string
-          p_user_count: number
-        }
-        Returns: Json
-      }
+      calculate_subscription_price:
+        | {
+            Args: {
+              p_module_ids: string[]
+              p_plan_id: string
+              p_user_count: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_billing_period?: string
+              p_module_ids: string[]
+              p_plan_id: string
+              p_user_count: number
+            }
+            Returns: Json
+          }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_tenant_modules: {

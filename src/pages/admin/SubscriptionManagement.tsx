@@ -26,7 +26,8 @@ import {
   PlanSelector, 
   UserCountSlider, 
   ModuleSelector, 
-  PriceBreakdown 
+  PriceBreakdown,
+  BillingPeriodToggle 
 } from "@/components/subscription";
 
 export default function SubscriptionManagement() {
@@ -45,9 +46,11 @@ export default function SubscriptionManagement() {
     selectedPlanId,
     selectedUserCount,
     selectedModuleIds,
+    billingPeriod,
     setSelectedPlanId,
     setSelectedUserCount,
     toggleModule,
+    setBillingPeriod,
     priceBreakdown,
     isCalculating,
   } = usePriceCalculator(subscription?.planId, subscription?.maxUsers || 5);
