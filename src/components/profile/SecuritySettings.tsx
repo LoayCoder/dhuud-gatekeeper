@@ -135,46 +135,46 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
               <Input 
                 id="new-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="ltr:pl-9 ltr:pr-9 rtl:pr-9 rtl:pl-9"
+                className="px-9"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              <Lock className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
               <Input 
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ltr:pl-9 ltr:pr-9 rtl:pr-9 rtl:pl-9"
+                className="px-9"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              <Lock className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
             {confirmPassword.length > 0 && (
               <div className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
