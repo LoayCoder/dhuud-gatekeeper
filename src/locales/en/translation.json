@@ -84,6 +84,7 @@
     "brandManagement": "Brand Management",
     "userManagement": "User Management",
     "orgStructure": "Organization Structure",
+    "tenantManagement": "Tenant Management",
     "platform": "Platform",
     "enterpriseHsse": "Enterprise HSSE"
   },
@@ -498,5 +499,73 @@
     "success": "Success",
     "assignmentsUpdated": "User assignments updated.",
     "errorFetching": "Error fetching data"
+  },
+  "tenantManagement": {
+    "title": "Tenant Management",
+    "description": "Manage organizations and their account status.",
+    "addTenant": "Add Tenant",
+    "editTenant": "Edit Tenant",
+    "addDescription": "Create a new tenant organization.",
+    "editDescription": "Update tenant details.",
+    "searchPlaceholder": "Search tenants...",
+    "noTenants": "No tenants found.",
+    "columns": {
+      "name": "Name",
+      "slug": "Slug",
+      "industry": "Industry",
+      "location": "Location",
+      "contact": "Contact"
+    },
+    "fields": {
+      "name": "Organization Name",
+      "slug": "Slug (URL identifier)",
+      "industry": "Industry",
+      "country": "Country",
+      "city": "City",
+      "contactPerson": "Contact Person",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "notes": "Notes"
+    },
+    "placeholders": {
+      "name": "e.g. Acme Corporation",
+      "slug": "e.g. acme-corp",
+      "industry": "e.g. Oil & Gas, Construction",
+      "country": "e.g. Saudi Arabia",
+      "city": "e.g. Riyadh",
+      "contactPerson": "e.g. John Smith",
+      "contactEmail": "e.g. john@acme.com",
+      "contactPhone": "e.g. +966 50 123 4567",
+      "notes": "Internal notes about this tenant..."
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "activate": "Activate",
+      "suspend": "Suspend",
+      "disable": "Disable"
+    },
+    "statusDialog": {
+      "activateTitle": "Activate Tenant",
+      "activateDescription": "This will activate {{name}} and allow their users to access the platform.",
+      "suspendTitle": "Suspend Tenant",
+      "suspendDescription": "This will temporarily suspend {{name}}.",
+      "suspendWarning": "Users from this organization will not be able to sign in while suspended.",
+      "disableTitle": "Disable Tenant",
+      "disableDescription": "This will disable {{name}}.",
+      "disableWarning": "This action will block all users from this organization. They will not be able to access the platform."
+    },
+    "toast": {
+      "created": "Tenant Created",
+      "createdDescription": "The new tenant has been created successfully.",
+      "updated": "Tenant Updated",
+      "updatedDescription": "The tenant has been updated successfully.",
+      "statusUpdated": "Status Updated",
+      "statusUpdatedDescription": "The tenant status has been updated."
+    }
   }
 }
