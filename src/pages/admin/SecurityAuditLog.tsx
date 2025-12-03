@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Shield, Search, Eye, AlertTriangle, Lock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users } from "lucide-react";
 import { format } from "date-fns";
 import { RTLWrapper } from "@/components/RTLWrapper";
 
@@ -24,7 +25,11 @@ interface ActivityLog {
     access_granted?: boolean;
     reason?: string;
     timestamp?: string;
+    target_user_name?: string;
+    target_user_email?: string;
+    changes?: Record<string, { from: unknown; to: unknown }>;
   } | null;
+  session_duration_seconds?: number | null;
   created_at: string;
   user_name?: string | null;
 }
@@ -38,16 +43,27 @@ const accessTypeLabels: Record<string, { label: string; icon: React.ReactNode; v
   invitation_code_viewed: { label: "Invitation Code", icon: <Lock className="h-3 w-3" />, variant: "outline" },
 };
 
+const userEventLabels: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  user_created: { label: "User Created", icon: <UserPlus className="h-3 w-3" />, variant: "default" },
+  user_updated: { label: "User Updated", icon: <Pencil className="h-3 w-3" />, variant: "secondary" },
+  user_deactivated: { label: "User Deactivated", icon: <UserX className="h-3 w-3" />, variant: "destructive" },
+  user_activated: { label: "User Activated", icon: <UserCheck className="h-3 w-3" />, variant: "default" },
+  user_deleted: { label: "User Deleted", icon: <UserMinus className="h-3 w-3" />, variant: "destructive" },
+};
+
+const USER_MANAGEMENT_EVENTS = ['user_created', 'user_updated', 'user_deactivated', 'user_activated', 'user_deleted'] as const;
+
 export default function SecurityAuditLog() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [accessTypeFilter, setAccessTypeFilter] = useState<string>("all");
+  const [userEventFilter, setUserEventFilter] = useState<string>("all");
+  const [userSearchQuery, setUserSearchQuery] = useState("");
 
   // Fetch sensitive data access logs
-  const { data: logs, isLoading } = useQuery({
-    queryKey: ["security-audit-logs"],
+  const { data: sensitiveDataLogs, isLoading: isSensitiveLoading } = useQuery({
+    queryKey: ["security-audit-logs-sensitive"],
     queryFn: async () => {
-      // Get logs
       const { data: logsData, error } = await supabase
         .from("user_activity_logs")
         .select("*")
@@ -56,7 +72,6 @@ export default function SecurityAuditLog() {
 
       if (error) throw error;
       
-      // Filter for sensitive data access logs
       const sensitiveDataLogs = logsData.filter(
         (log) => {
           const metadata = log.metadata as ActivityLog["metadata"];
@@ -64,7 +79,6 @@ export default function SecurityAuditLog() {
         }
       );
 
-      // Get unique user IDs and fetch their names
       const userIds = [...new Set(sensitiveDataLogs.map(log => log.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -81,8 +95,37 @@ export default function SecurityAuditLog() {
     },
   });
 
-  // Filter logs based on search and access type
-  const filteredLogs = logs?.filter(log => {
+  // Fetch user management logs
+  const { data: userManagementLogs, isLoading: isUserMgmtLoading } = useQuery({
+    queryKey: ["security-audit-logs-user-management"],
+    queryFn: async () => {
+      const { data: logsData, error } = await supabase
+        .from("user_activity_logs")
+        .select("*")
+        .in("event_type", USER_MANAGEMENT_EVENTS)
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+
+      const userIds = [...new Set(logsData.map(log => log.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+      return logsData.map(log => ({
+        ...log,
+        user_name: profileMap.get(log.user_id) || null,
+        metadata: log.metadata as ActivityLog["metadata"],
+      })) as ActivityLog[];
+    },
+  });
+
+  // Filter sensitive data logs
+  const filteredSensitiveLogs = sensitiveDataLogs?.filter(log => {
     const matchesSearch = searchQuery === "" || 
       log.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.metadata?.access_type?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -93,10 +136,28 @@ export default function SecurityAuditLog() {
     return matchesSearch && matchesType;
   });
 
-  // Get unique access types for filter dropdown
-  const accessTypes = logs 
-    ? [...new Set(logs.map(log => log.metadata?.access_type).filter(Boolean))]
+  // Filter user management logs
+  const filteredUserMgmtLogs = userManagementLogs?.filter(log => {
+    const matchesSearch = userSearchQuery === "" || 
+      log.user_name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      log.metadata?.target_user_name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      log.metadata?.target_user_email?.toLowerCase().includes(userSearchQuery.toLowerCase());
+    
+    const matchesType = userEventFilter === "all" || log.event_type === userEventFilter;
+    
+    return matchesSearch && matchesType;
+  });
+
+  const accessTypes = sensitiveDataLogs 
+    ? [...new Set(sensitiveDataLogs.map(log => log.metadata?.access_type).filter(Boolean))]
     : [];
+
+  const formatChanges = (changes: Record<string, { from: unknown; to: unknown }> | undefined) => {
+    if (!changes || Object.keys(changes).length === 0) return "—";
+    return Object.entries(changes)
+      .map(([key, { from, to }]) => `${key}: ${String(from) || '(empty)'} → ${String(to) || '(empty)'}`)
+      .join(", ");
+  };
 
   return (
     <RTLWrapper className="container max-w-7xl py-8 space-y-8">
@@ -106,156 +167,335 @@ export default function SecurityAuditLog() {
           {t("securityAudit.title", "Security Audit Log")}
         </h1>
         <p className="text-muted-foreground">
-          {t("securityAudit.description", "Monitor and review sensitive data access attempts across the platform")}
+          {t("securityAudit.description", "Monitor and review security events and user management activities")}
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("securityAudit.sensitiveDataAccess", "Sensitive Data Access")}</CardTitle>
-          <CardDescription>
-            {t("securityAudit.accessLogDescription", "Track who accessed sensitive information and when")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("securityAudit.searchPlaceholder", "Search by user or access type...")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="[padding-inline-start:2.25rem]"
-              />
-            </div>
-            <Select value={accessTypeFilter} onValueChange={setAccessTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder={t("securityAudit.filterByType", "Filter by type")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("common.all", "All Types")}</SelectItem>
-                {accessTypes.map((type) => (
-                  <SelectItem key={type} value={type!}>
-                    {accessTypeLabels[type!]?.label || type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <Tabs defaultValue="user-management" className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="user-management" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            {t("securityAudit.userManagement", "User Management")}
+          </TabsTrigger>
+          <TabsTrigger value="sensitive-access" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            {t("securityAudit.sensitiveAccess", "Data Access")}
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold">{logs?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t("securityAudit.totalAccesses", "Total Accesses")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold text-green-600">
-                  {logs?.filter(l => l.metadata?.access_granted).length || 0}
+        {/* User Management Tab */}
+        <TabsContent value="user-management">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("securityAudit.userActivityLog", "User Activity Log")}</CardTitle>
+              <CardDescription>
+                {t("securityAudit.userActivityDescription", "Track user creation, updates, activation, and deactivation events")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("securityAudit.searchUserPlaceholder", "Search by admin or target user...")}
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    className="[padding-inline-start:2.25rem]"
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("securityAudit.granted", "Granted")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold text-red-600">
-                  {logs?.filter(l => !l.metadata?.access_granted).length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("securityAudit.denied", "Denied")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <div className="text-2xl font-bold">
-                  {new Set(logs?.map(l => l.user_id)).size || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("securityAudit.uniqueUsers", "Unique Users")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                <Select value={userEventFilter} onValueChange={setUserEventFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder={t("securityAudit.filterByEvent", "Filter by event")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all", "All Events")}</SelectItem>
+                    {USER_MANAGEMENT_EVENTS.map((event) => (
+                      <SelectItem key={event} value={event}>
+                        {userEventLabels[event]?.label || event}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Logs Table */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredLogs && filteredLogs.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
-                    <TableHead>{t("securityAudit.user", "User")}</TableHead>
-                    <TableHead>{t("securityAudit.accessType", "Access Type")}</TableHead>
-                    <TableHead>{t("securityAudit.status", "Status")}</TableHead>
-                    <TableHead>{t("securityAudit.details", "Details")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLogs.map((log) => {
-                    const accessInfo = accessTypeLabels[log.metadata?.access_type || ""] || {
-                      label: log.metadata?.access_type || "Unknown",
-                      icon: <Eye className="h-3 w-3" />,
-                      variant: "default" as const,
-                    };
-                    
-                    return (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-sm">
-                          {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
-                        </TableCell>
-                        <TableCell>
-                          {log.user_name || t("common.unknown", "Unknown User")}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={accessInfo.variant} className="gap-1">
-                            {accessInfo.icon}
-                            {accessInfo.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {log.metadata?.access_granted ? (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              {t("securityAudit.granted", "Granted")}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-red-600 border-red-600">
-                              {t("securityAudit.denied", "Denied")}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                          {log.metadata?.reason || "—"}
-                        </TableCell>
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold">{userManagementLogs?.length || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.totalEvents", "Total Events")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {userManagementLogs?.filter(l => l.event_type === 'user_created').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.created", "Created")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {userManagementLogs?.filter(l => l.event_type === 'user_updated').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.updated", "Updated")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-amber-600">
+                      {userManagementLogs?.filter(l => l.event_type === 'user_activated').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.activated", "Activated")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-red-600">
+                      {userManagementLogs?.filter(l => l.event_type === 'user_deactivated').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.deactivated", "Deactivated")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* User Management Logs Table */}
+              {isUserMgmtLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredUserMgmtLogs && filteredUserMgmtLogs.length > 0 ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead>{t("securityAudit.performedBy", "Performed By")}</TableHead>
+                        <TableHead>{t("securityAudit.action", "Action")}</TableHead>
+                        <TableHead>{t("securityAudit.targetUser", "Target User")}</TableHead>
+                        <TableHead>{t("securityAudit.changes", "Changes")}</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t("securityAudit.noLogs", "No sensitive data access logs found")}</p>
-              <p className="text-sm mt-1">
-                {t("securityAudit.noLogsDescription", "Access attempts will appear here when users view protected information")}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUserMgmtLogs.map((log) => {
+                        const eventInfo = userEventLabels[log.event_type] || {
+                          label: log.event_type,
+                          icon: <Users className="h-3 w-3" />,
+                          variant: "default" as const,
+                        };
+                        
+                        return (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-mono text-sm whitespace-nowrap">
+                              {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
+                            </TableCell>
+                            <TableCell>
+                              {log.user_name || t("common.unknown", "Unknown")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={eventInfo.variant} className="gap-1">
+                                {eventInfo.icon}
+                                {eventInfo.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {log.metadata?.target_user_name || "—"}
+                                </span>
+                                {log.metadata?.target_user_email && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {log.metadata.target_user_email}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground max-w-[300px]">
+                              <span className="line-clamp-2" title={formatChanges(log.metadata?.changes)}>
+                                {formatChanges(log.metadata?.changes)}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("securityAudit.noUserLogs", "No user management events found")}</p>
+                  <p className="text-sm mt-1">
+                    {t("securityAudit.noUserLogsDescription", "User management activities will appear here")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Sensitive Data Access Tab */}
+        <TabsContent value="sensitive-access">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("securityAudit.sensitiveDataAccess", "Sensitive Data Access")}</CardTitle>
+              <CardDescription>
+                {t("securityAudit.accessLogDescription", "Track who accessed sensitive information and when")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("securityAudit.searchPlaceholder", "Search by user or access type...")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="[padding-inline-start:2.25rem]"
+                  />
+                </div>
+                <Select value={accessTypeFilter} onValueChange={setAccessTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder={t("securityAudit.filterByType", "Filter by type")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all", "All Types")}</SelectItem>
+                    {accessTypes.map((type) => (
+                      <SelectItem key={type} value={type!}>
+                        {accessTypeLabels[type!]?.label || type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold">{sensitiveDataLogs?.length || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.totalAccesses", "Total Accesses")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {sensitiveDataLogs?.filter(l => l.metadata?.access_granted).length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.granted", "Granted")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-red-600">
+                      {sensitiveDataLogs?.filter(l => !l.metadata?.access_granted).length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.denied", "Denied")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold">
+                      {new Set(sensitiveDataLogs?.map(l => l.user_id)).size || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.uniqueUsers", "Unique Users")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Logs Table */}
+              {isSensitiveLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredSensitiveLogs && filteredSensitiveLogs.length > 0 ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead>{t("securityAudit.user", "User")}</TableHead>
+                        <TableHead>{t("securityAudit.accessType", "Access Type")}</TableHead>
+                        <TableHead>{t("securityAudit.status", "Status")}</TableHead>
+                        <TableHead>{t("securityAudit.details", "Details")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSensitiveLogs.map((log) => {
+                        const accessInfo = accessTypeLabels[log.metadata?.access_type || ""] || {
+                          label: log.metadata?.access_type || "Unknown",
+                          icon: <Eye className="h-3 w-3" />,
+                          variant: "default" as const,
+                        };
+                        
+                        return (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-mono text-sm">
+                              {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
+                            </TableCell>
+                            <TableCell>
+                              {log.user_name || t("common.unknown", "Unknown User")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={accessInfo.variant} className="gap-1">
+                                {accessInfo.icon}
+                                {accessInfo.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {log.metadata?.access_granted ? (
+                                <Badge variant="outline" className="text-green-600 border-green-600">
+                                  {t("securityAudit.granted", "Granted")}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-red-600 border-red-600">
+                                  {t("securityAudit.denied", "Denied")}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                              {log.metadata?.reason || "—"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("securityAudit.noLogs", "No sensitive data access logs found")}</p>
+                  <p className="text-sm mt-1">
+                    {t("securityAudit.noLogsDescription", "Access attempts will appear here when users view protected information")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </RTLWrapper>
   );
 }
