@@ -192,7 +192,7 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
-            <Mail className="absolute [inset-inline-start:0.75rem] top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input id="email" value={user?.email || ""} disabled className="[padding-inline-start:2.25rem] bg-muted/50" />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
@@ -203,7 +203,7 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
-            <User className="absolute [inset-inline-start:0.75rem] top-3 h-4 w-4 text-muted-foreground" />
+            <User className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} className="[padding-inline-start:2.25rem]" placeholder={t('profile.enterFullName')} maxLength={100} />
           </div>
         </div>
@@ -216,7 +216,7 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
-            <Phone className="absolute [inset-inline-start:0.75rem] top-3 h-4 w-4 text-muted-foreground" />
+            <Phone className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="[padding-inline-start:2.25rem]" dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} />
           </div>
         </div>
@@ -233,14 +233,14 @@ export function ProfileForm({
             <div className="grid gap-2">
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
-                <UserCheck className="absolute [inset-inline-start:0.75rem] top-3 h-4 w-4 text-muted-foreground" />
+                <UserCheck className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input id="emergencyName" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} className="[padding-inline-start:2.25rem]" placeholder={t('profile.emergencyContactName')} maxLength={100} />
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
-                <Phone className="absolute [inset-inline-start:0.75rem] top-3 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input id="emergencyPhone" type="tel" value={emergencyContactPhone} onChange={e => setEmergencyContactPhone(e.target.value)} className="[padding-inline-start:2.25rem]" dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} />
               </div>
             </div>
