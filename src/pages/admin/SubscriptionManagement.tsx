@@ -292,12 +292,24 @@ export default function SubscriptionManagement() {
 
             {/* Price Breakdown Sidebar */}
             <div className="space-y-4">
-              <PriceBreakdown breakdown={priceBreakdown} isLoading={isCalculating} planName={selectedPlan?.display_name} billingMonths={billingMonths} className="sticky top-4" />
-
-              <Button className="w-full" size="lg" onClick={() => setShowRequestDialog(true)} disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}>
-                <Send className="h-4 w-4 me-2" />
-                {t('subscription.requestPlan')}
-              </Button>
+              <PriceBreakdown 
+                breakdown={priceBreakdown} 
+                isLoading={isCalculating} 
+                planName={selectedPlan?.display_name} 
+                billingMonths={billingMonths} 
+                className="sticky top-4"
+                actionButton={
+                  <Button 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={() => setShowRequestDialog(true)} 
+                    disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}
+                  >
+                    <Send className="h-4 w-4 me-2" />
+                    {t('subscription.requestPlan')}
+                  </Button>
+                }
+              />
             </div>
           </div>
         </TabsContent>
