@@ -47,6 +47,24 @@ export default function TenantManagement() {
     },
   });
 
+  // Fetch user counts per tenant
+  const { data: userCounts = {} } = useQuery({
+    queryKey: ['tenant-user-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('tenant_id');
+      if (error) throw error;
+      
+      // Count users per tenant
+      const counts: Record<string, number> = {};
+      data.forEach((profile) => {
+        counts[profile.tenant_id] = (counts[profile.tenant_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
   // Create tenant mutation
   const createMutation = useMutation({
     mutationFn: async (values: Partial<Tenant> & { name: string; slug: string }) => {
@@ -219,6 +237,7 @@ export default function TenantManagement() {
           <TenantListTable
             tenants={filteredTenants}
             isLoading={isLoading}
+            userCounts={userCounts}
             onEdit={handleEdit}
             onStatusChange={handleStatusChange}
             onManageInvitations={handleManageInvitations}
