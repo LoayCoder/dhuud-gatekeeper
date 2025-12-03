@@ -162,9 +162,9 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
   };
 
   return (
-    <div className="space-y-6" dir="auto">
+    <div className="space-y-6">
       {/* Avatar Upload */}
-      <div className="flex items-center gap-6 pb-6 rtl:flex-row-reverse">
+      <div className="flex items-center gap-6 pb-6">
         <Avatar className="h-24 w-24 flex-shrink-0">
           <AvatarImage src={avatarUrl || undefined} alt={fullName} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
@@ -172,7 +172,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
           </AvatarFallback>
         </Avatar>
         <div className="space-y-1">
-          <h3 className="font-medium text-start">{t('profile.profilePicture')}</h3>
+          <h3 className="font-medium">{t('profile.profilePicture')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('profile.avatarHint')}
           </p>
@@ -210,32 +210,30 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
       {/* Personal Information */}
       <div className="grid gap-4 pt-4">
         <div className="grid gap-2">
-          <Label htmlFor="email" className="text-start">{t('profile.emailAddress')}</Label>
+          <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
-            <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
             <Input 
               id="email" 
               value={user?.email || ""} 
               disabled 
-              className="ps-9 bg-muted/50" 
-              dir="auto"
+              className="ps-9 rtl:ps-3 rtl:pe-9 bg-muted/50" 
             />
           </div>
-          <p className="text-[0.8rem] text-muted-foreground text-start">
+          <p className="text-[0.8rem] text-muted-foreground">
             {t('profile.emailManagedByOrg')}
           </p>
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="fullName" className="text-start">{t('profile.fullName')}</Label>
+          <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
-            <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
             <Input 
               id="fullName" 
               value={fullName} 
               onChange={(e) => setFullName(e.target.value)}
-              className="ps-9"
-              dir="auto"
+              className="ps-9 rtl:ps-3 rtl:pe-9"
               placeholder={t('profile.enterFullName')}
               maxLength={100}
             />
@@ -248,15 +246,15 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
       {/* Contact Information */}
       <div className="space-y-4">
         <div className="grid gap-2">
-          <Label htmlFor="phoneNumber" className="text-start">{t('profile.phoneNumber')}</Label>
+          <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
-            <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
             <Input 
               id="phoneNumber" 
               type="tel"
               value={phoneNumber} 
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="ps-9"
+              className="ps-9 rtl:ps-3 rtl:pe-9"
               dir="ltr"
               placeholder="+966 5XX XXX XXXX"
               maxLength={20}
@@ -267,37 +265,36 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <Separator />
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-start block">{t('profile.emergencyContact')}</Label>
-          <p className="text-sm text-muted-foreground mb-3 text-start">
+          <Label className="text-sm font-medium">{t('profile.emergencyContact')}</Label>
+          <p className="text-sm text-muted-foreground mb-3">
             {t('profile.emergencyContactDescription')}
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="emergencyName" className="text-xs text-muted-foreground text-start">{t('profile.emergencyContactName')}</Label>
+              <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
-                <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
                 <Input 
                   id="emergencyName" 
                   value={emergencyContactName} 
                   onChange={(e) => setEmergencyContactName(e.target.value)}
-                  className="ps-9"
-                  dir="auto"
+                  className="ps-9 rtl:ps-3 rtl:pe-9"
                   placeholder={t('profile.emergencyContactName')}
                   maxLength={100}
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground text-start">{t('profile.emergencyContactPhone')}</Label>
+              <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
-                <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
                 <Input 
                   id="emergencyPhone" 
                   type="tel"
                   value={emergencyContactPhone} 
                   onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                  className="ps-9"
+                  className="ps-9 rtl:ps-3 rtl:pe-9"
                   dir="ltr"
                   placeholder="+966 5XX XXX XXXX"
                   maxLength={20}

@@ -11,6 +11,7 @@ import { TenantInfo } from "@/components/profile/TenantInfo";
 import { AssignmentInfo } from "@/components/profile/AssignmentInfo";
 import { RoleInfo } from "@/components/profile/RoleInfo";
 import { ProfileData } from "@/components/profile/types";
+import { RTLWrapper } from "@/components/RTLWrapper";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -79,8 +80,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="container max-w-5xl py-8 space-y-8 text-start">
-      <div className="text-start">
+    <RTLWrapper className="container max-w-5xl py-8 space-y-8">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('profile.title')}</h1>
         <p className="text-muted-foreground">
           {t('profile.description')}
@@ -91,7 +92,7 @@ export default function Profile() {
         {/* Left Column - Main Content */}
         <div className="space-y-6">
           <Card>
-            <CardHeader className="text-start">
+            <CardHeader>
               <CardTitle>{t('profile.personalInfo')}</CardTitle>
               <CardDescription>
                 {t('profile.updatePersonalInfo')}
@@ -129,6 +130,6 @@ export default function Profile() {
           <RoleInfo role={userRole} />
         </div>
       </div>
-    </div>
+    </RTLWrapper>
   );
 }
