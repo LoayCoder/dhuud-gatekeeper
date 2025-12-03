@@ -1458,6 +1458,7 @@ export type Database = {
         Returns: Json
       }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
+      cleanup_expired_trusted_devices: { Args: never; Returns: number }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_tenant_modules: {
