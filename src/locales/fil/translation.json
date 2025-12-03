@@ -185,7 +185,8 @@
       "favicon": {
         "title": "Favicon",
         "description": "Maliit na icon sa browser tab. PNG/ICO, 32x32px o 64x64px",
-        "noFavicon": "Walang favicon"
+        "noFavicon": "Walang favicon",
+        "chooseFile": "Pumili ng file"
       }
     },
     "theme": {

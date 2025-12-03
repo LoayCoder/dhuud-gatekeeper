@@ -185,7 +185,8 @@
       "favicon": {
         "title": "फेविकॉन",
         "description": "ब्राउज़र टैब में छोटा आइकन। PNG/ICO, 32x32px या 64x64px",
-        "noFavicon": "कोई फेविकॉन नहीं"
+        "noFavicon": "कोई फेविकॉन नहीं",
+        "chooseFile": "फ़ाइल चुनें"
       }
     },
     "theme": {

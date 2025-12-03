@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FileInputButton } from '@/components/ui/file-input-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -299,7 +300,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px] w-full">
                       {logoLightPreview ? <img src={logoLightPreview} alt="Logo Light" className="h-10 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>}
                     </div>
-                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-light')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-light')} disabled={uploading} className="w-full" />
                   </div>
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
@@ -309,7 +310,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px] w-full">
                       {logoDarkPreview ? <img src={logoDarkPreview} alt="Logo Dark" className="h-10 object-contain" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.loginLogos.noLogo')}</span>}
                     </div>
-                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-dark')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-dark')} disabled={uploading} className="w-full" />
                   </div>
                 </div>
               </CardContent>
@@ -331,7 +332,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px] w-full">
                       {sidebarIconLightPreview ? <img src={sidebarIconLightPreview} alt="Sidebar Icon Light" className="h-12 w-12 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-light')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-light')} disabled={uploading} className="w-full" />
                   </div>
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
@@ -341,7 +342,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px] w-full">
                       {sidebarIconDarkPreview ? <img src={sidebarIconDarkPreview} alt="Sidebar Icon Dark" className="h-12 w-12 object-contain" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-dark')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-dark')} disabled={uploading} className="w-full" />
                   </div>
                 </div>
               </CardContent>
@@ -363,7 +364,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-background min-h-[100px] w-full">
                       {iconLightPreview ? <img src={iconLightPreview} alt="App Icon Light" className="h-16 w-16 object-contain rounded-xl" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input type="file" accept=".png" onChange={e => handleFileUpload(e, 'icon-light')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png" onChange={e => handleFileUpload(e, 'icon-light')} disabled={uploading} className="w-full" />
                   </div>
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
@@ -373,7 +374,7 @@ export default function AdminBranding() {
                     <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-slate-900 min-h-[100px] w-full">
                       {iconDarkPreview ? <img src={iconDarkPreview} alt="App Icon Dark" className="h-16 w-16 object-contain rounded-xl" /> : <span className="text-slate-400 text-sm">{t('adminBranding.assets.sidebarIcons.noIcon')}</span>}
                     </div>
-                    <Input type="file" accept=".png" onChange={e => handleFileUpload(e, 'icon-dark')} disabled={uploading} className="w-full" />
+                    <FileInputButton accept=".png" onChange={e => handleFileUpload(e, 'icon-dark')} disabled={uploading} className="w-full" />
                   </div>
                 </div>
               </CardContent>
@@ -391,7 +392,7 @@ export default function AdminBranding() {
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[120px] w-full">
                   {faviconPreview ? <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-contain" /> : <span className="text-muted-foreground text-sm">{t('adminBranding.assets.favicon.noFavicon')}</span>}
                 </div>
-                <Input type="file" accept=".png,.ico" onChange={e => handleFileUpload(e, 'favicon')} disabled={uploading} className="w-full" />
+                <FileInputButton accept=".png,.ico" onChange={e => handleFileUpload(e, 'favicon')} disabled={uploading} className="w-full" />
               </CardContent>
             </Card>
           </div>
