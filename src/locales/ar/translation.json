@@ -46,7 +46,8 @@
     "dark": "داكن",
     "system": "النظام",
     "changeLanguage": "تغيير اللغة",
-    "error": "خطأ"
+    "error": "خطأ",
+    "comingSoon": "قريباً"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -729,5 +730,26 @@
   "userLimit": {
     "title": "حصة المستخدمين",
     "limitReached": "تم الوصول إلى الحد الأقصى للمستخدمين. قم بالترقية لإضافة المزيد."
+  },
+  "subscription": {
+    "title": "إدارة الاشتراك",
+    "description": "إدارة خطة اشتراكك وإعدادات الفوترة.",
+    "currentPlan": "الخطة الحالية",
+    "noPlan": "لم يتم اختيار خطة",
+    "trialStatus": "تجريبي - {{days}} أيام متبقية",
+    "activeStatus": "اشتراك نشط",
+    "inactiveStatus": "غير نشط",
+    "availablePlans": "الخطط المتاحة",
+    "currentPlanBadge": "الحالية",
+    "perMonth": "شهر",
+    "perYear": "سنة",
+    "savePercent": "وفر {{percent}}%",
+    "includes": "يشمل",
+    "upToUsers": "حتى {{count}} مستخدم",
+    "currentPlanButton": "الخطة الحالية",
+    "upgradeTo": "ترقية إلى {{plan}}",
+    "billingInfo": "معلومات الفوترة",
+    "billingDescription": "إدارة طريقة الدفع وتفاصيل الفوترة.",
+    "stripeComingSoon": "تكامل معالجة الدفع قريباً."
   }
 }
