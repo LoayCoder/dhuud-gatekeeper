@@ -27,6 +27,8 @@ import NotFound from "./pages/NotFound";
 import OrgStructure from "./pages/admin/OrgStructure";
 import UserManagement from "./pages/admin/UserManagement";
 import TenantManagement from "./pages/admin/TenantManagement";
+import SupportDashboard from "./pages/admin/SupportDashboard";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +102,17 @@ const App = () => (
                         </AdminRoute>
                       }
                     />
+                    <Route
+                      path="/admin/support"
+                      element={
+                        <AdminRoute>
+                          <SupportDashboard />
+                        </AdminRoute>
+                      }
+                    />
+
+                    {/* User Routes */}
+                    <Route path="/support" element={<Support />} />
                   </Route>
 
                   {/* Catch-all */}
