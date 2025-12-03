@@ -158,6 +158,30 @@ export type Database = {
           },
         ]
       }
+      mfa_backup_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       modules: {
         Row: {
           base_price_monthly: number | null
@@ -1459,6 +1483,10 @@ export type Database = {
       }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
+      generate_mfa_backup_codes: {
+        Args: { p_code_hashes: string[]; p_user_id: string }
+        Returns: undefined
+      }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_tenant_modules: {
@@ -1487,6 +1515,10 @@ export type Database = {
         Returns: boolean
       }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
+      verify_mfa_backup_code: {
+        Args: { p_code_hash: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       activity_event_type:

@@ -10,11 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShieldCheck, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import { ShieldCheck, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft, Key } from "lucide-react";
 import { useMFA } from "@/hooks/useMFA";
+import { useMFABackupCodes } from "@/hooks/use-mfa-backup-codes";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
 import { logUserActivity } from "@/lib/activity-logger";
+import { BackupCodesDialog } from "./BackupCodesDialog";
 
 interface MFAEnrollDialogProps {
   open: boolean;
@@ -22,11 +24,12 @@ interface MFAEnrollDialogProps {
   onSuccess: () => void;
 }
 
-type Step = "intro" | "qrcode" | "verify" | "success";
+type Step = "intro" | "qrcode" | "verify" | "success" | "backup";
 
 export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDialogProps) {
   const { t } = useTranslation();
   const { enroll, verify, challenge } = useMFA();
+  const { generateCodes } = useMFABackupCodes();
   const { tenantName } = useTheme();
   const [step, setStep] = useState<Step>("intro");
   const [loading, setLoading] = useState(false);
@@ -37,12 +40,14 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
   } | null>(null);
   const [code, setCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
   const handleClose = () => {
     setStep("intro");
     setEnrollData(null);
     setCode("");
     setCopied(false);
+    setBackupCodes([]);
     onOpenChange(false);
   };
 
@@ -74,10 +79,19 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
     }
 
     const success = await verify(enrollData.id, challengeId, code);
-    setLoading(false);
-
+    
     if (success) {
-      setStep("success");
+      // Generate backup codes
+      const codes = await generateCodes();
+      setLoading(false);
+      
+      if (codes) {
+        setBackupCodes(codes);
+        setStep("backup");
+      } else {
+        setStep("success");
+      }
+      
       onSuccess();
       
       // Log MFA enabled event
@@ -88,6 +102,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
         description: t('mfaEnroll.toastDescription'),
       });
     } else {
+      setLoading(false);
       setCode("");
     }
   };
@@ -248,6 +263,42 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
                 ) : null}
                 {t('common.verify')}
               </Button>
+            </div>
+          </>
+        )}
+
+        {step === "backup" && backupCodes.length > 0 && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-primary" />
+                {t('backupCodes.title')}
+              </DialogTitle>
+              <DialogDescription>
+                {t('backupCodes.newCodesDescription')}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {t('backupCodes.warning')}
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/50 p-4">
+                {backupCodes.map((code, index) => (
+                  <code key={index} className="font-mono text-sm text-center py-1 bg-background rounded">
+                    {code}
+                  </code>
+                ))}
+              </div>
+
+              <p className="text-sm text-muted-foreground text-center">
+                {t('backupCodes.eachCodeOnce')}
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleClose}>{t('backupCodes.iSavedThem')}</Button>
             </div>
           </>
         )}

@@ -34,6 +34,7 @@
     "export": "Export",
     "import": "Import",
     "close": "Close",
+    "copy": "Copy",
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
@@ -1230,5 +1231,27 @@
     "employees": "Employees",
     "contractorsLT": "Contractors (LT)",
     "membersWithLogin": "Members"
+  },
+  "backupCodes": {
+    "title": "Backup Codes",
+    "description": "Use these codes if you lose access to your authenticator app.",
+    "newCodesDescription": "Save these backup codes in a secure location. Each code can only be used once.",
+    "warning": "These codes will only be shown once! Save them now.",
+    "eachCodeOnce": "Each code can only be used once.",
+    "iSavedThem": "I've Saved Them",
+    "copied": "Copied",
+    "copiedDescription": "Backup codes copied to clipboard.",
+    "downloaded": "Downloaded",
+    "downloadedDescription": "Backup codes saved to file.",
+    "download": "Download",
+    "regenerate": "Regenerate",
+    "regenerateConfirm": "This will invalidate all existing backup codes. Continue?",
+    "remainingCodes": "{{remaining}} of {{total}} codes remaining",
+    "noCodesYet": "No backup codes generated",
+    "enterCode": "Enter backup code",
+    "useBackupCode": "Use backup code instead",
+    "useAuthenticator": "Use authenticator app",
+    "invalidCode": "Invalid backup code",
+    "codeUsedSuccess": "Backup code verified successfully"
   }
 }
