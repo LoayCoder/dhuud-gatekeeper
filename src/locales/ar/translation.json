@@ -318,6 +318,11 @@
     "userManagement": "إدارة المستخدمين",
     "orgStructure": "الهيكل التنظيمي",
     "tenantManagement": "إدارة المستأجرين",
+    "supportDashboard": "لوحة الدعم",
+    "subscriptionsOverview": "نظرة عامة على الاشتراكات",
+    "support": "الدعم",
+    "settings": "الإعدادات",
+    "subscription": "الاشتراك",
     "platform": "المنصة",
     "enterpriseHsse": "الصحة والسلامة للمؤسسات"
   },
@@ -737,8 +742,9 @@
     "currentPlan": "الخطة الحالية",
     "noPlan": "لم يتم اختيار خطة",
     "trialStatus": "تجريبي - {{days}} أيام متبقية",
-    "activeStatus": "اشتراك نشط",
+    "activeStatus": "نشط",
     "inactiveStatus": "غير نشط",
+    "canceledStatus": "ملغى",
     "availablePlans": "الخطط المتاحة",
     "currentPlanBadge": "الحالية",
     "perMonth": "شهر",
@@ -750,6 +756,24 @@
     "upgradeTo": "ترقية إلى {{plan}}",
     "billingInfo": "معلومات الفوترة",
     "billingDescription": "إدارة طريقة الدفع وتفاصيل الفوترة.",
-    "stripeComingSoon": "تكامل معالجة الدفع قريباً."
+    "stripeComingSoon": "تكامل معالجة الدفع قريباً.",
+    "comparePlans": "مقارنة الخطط",
+    "planComparison": "مقارنة الخطط",
+    "features": "الميزات",
+    "maxUsers": "الحد الأقصى للمستخدمين"
+  },
+  "subscriptionOverview": {
+    "title": "نظرة عامة على الاشتراكات",
+    "description": "مراقبة اشتراكات جميع المستأجرين وحالة الفوترة.",
+    "totalTenants": "إجمالي المستأجرين",
+    "activeSubscriptions": "الاشتراكات النشطة",
+    "inTrial": "في الفترة التجريبية",
+    "monthlyRevenue": "الإيرادات الشهرية",
+    "allTenants": "جميع المستأجرين",
+    "allTenantsDesc": "حالة الاشتراك لجميع المستأجرين المسجلين.",
+    "userUsage": "استخدام المستخدمين",
+    "trialEnds": "انتهاء التجربة",
+    "daysLeft": "أيام متبقية",
+    "noTenants": "لم يتم العثور على مستأجرين."
   }
 }
