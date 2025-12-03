@@ -7,15 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Activity, Users, LogIn, Shield, Clock, TrendingUp } from 'lucide-react';
+import { Activity, Users, LogIn, Shield, Clock } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { useState } from 'react';
+
+const RTL_LANGUAGES = ['ar', 'ur'];
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 export default function UsageAnalytics() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [dateRange, setDateRange] = useState('7');
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   // Fetch activity summary
   const { data: activitySummary } = useQuery({
@@ -268,16 +271,28 @@ export default function UsageAnalytics() {
                 <CardTitle className="text-base">{t('analytics.loginTrend')}</CardTitle>
                 <CardDescription>{t('analytics.loginTrendDesc')}</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="h-[300px]" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailyActivity}>
+                  <LineChart data={isRTL ? [...dailyActivity].reverse() : dailyActivity}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-xs"
+                      reversed={isRTL}
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs" 
+                      orientation={isRTL ? 'right' : 'left'}
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                    />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))' 
+                        border: '1px solid hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        direction: isRTL ? 'rtl' : 'ltr',
+                        textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
                     <Line 
@@ -298,7 +313,7 @@ export default function UsageAnalytics() {
                 <CardTitle className="text-base">{t('analytics.eventDistribution')}</CardTitle>
                 <CardDescription>{t('analytics.eventDistributionDesc')}</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="h-[300px]" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -310,12 +325,21 @@ export default function UsageAnalytics() {
                       paddingAngle={2}
                       dataKey="value"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                     >
                       {eventTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        direction: isRTL ? 'rtl' : 'ltr',
+                        textAlign: isRTL ? 'right' : 'left',
+                      }} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -333,16 +357,30 @@ export default function UsageAnalytics() {
               <CardDescription>{t('analytics.tenantUsageDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px] mb-6">
+              <div className="h-[400px] mb-6" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={tenantStats.slice(0, 10)} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={150} className="text-xs" />
+                    <XAxis 
+                      type="number"
+                      orientation={isRTL ? 'top' : 'bottom'}
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                    />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      width={150} 
+                      className="text-xs"
+                      orientation={isRTL ? 'right' : 'left'}
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                    />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))' 
+                        border: '1px solid hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        direction: isRTL ? 'rtl' : 'ltr',
+                        textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
                     <Bar dataKey="userCount" fill="hsl(var(--primary))" name={t('analytics.users')} />
