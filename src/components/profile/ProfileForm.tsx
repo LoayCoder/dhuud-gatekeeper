@@ -193,7 +193,7 @@ export function ProfileForm({
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
             <Mail className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="email" value={user?.email || ""} disabled className="[padding-inline-start:2.25rem] bg-muted/50" />
+            <Input id="email" value={user?.email || ""} disabled className="[padding-inline-start:2.25rem] px-[35px] bg-muted/50" />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
             {t('profile.emailManagedByOrg')}
