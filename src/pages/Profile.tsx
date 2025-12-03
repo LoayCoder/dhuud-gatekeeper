@@ -101,8 +101,8 @@ export default function Profile() {
             <CardContent>
               <Tabs defaultValue="profile" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="profile">{t('profile.profileTab')}</TabsTrigger>
-                  <TabsTrigger value="security">{t('profile.securityTab')}</TabsTrigger>
+                  <TabsTrigger value="profile" className="rtl:order-last">{t('profile.profileTab')}</TabsTrigger>
+                  <TabsTrigger value="security" className="rtl:order-first">{t('profile.securityTab')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="profile">
