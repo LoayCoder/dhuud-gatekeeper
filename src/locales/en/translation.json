@@ -607,8 +607,11 @@
       "revoked": "Invitation Revoked",
       "revokedDescription": "The invitation has been revoked.",
       "copied": "Code Copied",
-      "copiedDescription": "Invitation code copied to clipboard."
+      "copiedDescription": "Invitation code copied to clipboard.",
+      "emailResent": "Email Resent",
+      "emailResentDescription": "Invitation email resent to {{email}}."
     },
-    "sendEmailOnCreate": "Send invitation email"
+    "sendEmailOnCreate": "Send invitation email",
+    "resendEmail": "Resend invitation email"
   }
 }
