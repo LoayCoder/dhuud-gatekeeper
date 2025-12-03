@@ -838,6 +838,8 @@
     "submitRequest": "إرسال الطلب",
     "requestSubmitted": "تم إرسال الطلب",
     "requestSubmittedDesc": "تم إرسال طلب اشتراكك للمراجعة.",
+    "requestSent": "تم إرسال الطلب!",
+    "confirmationEmailMessage": "ستتلقى قريباً تأكيداً وتفاصيل طريقة الدفع في بريدك الإلكتروني.",
     "monthly": "شهري",
     "yearly": "سنوي",
     "save10Percent": "-10%",
