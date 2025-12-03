@@ -1,4 +1,5 @@
-// Pure pricing functions for the profile billing system
+// Pure pricing utility functions - pricing data comes from database only
+// SECURITY: Never hardcode pricing values - always fetch from server
 
 export interface PlanPricing {
   name: string;
@@ -27,34 +28,14 @@ export interface BillingCalculation {
   };
 }
 
-// Plan pricing configuration
-export const PLAN_PRICING: Record<string, PlanPricing> = {
-  starter: {
-    name: 'Starter',
-    profileQuotaMonthly: 50,
-    extraProfilePriceSar: 0.50,
-  },
-  professional: {
-    name: 'Professional',
-    profileQuotaMonthly: 500,
-    extraProfilePriceSar: 0.25,
-  },
-  enterprise: {
-    name: 'Enterprise',
-    profileQuotaMonthly: 2000,
-    extraProfilePriceSar: 0.10,
-  },
-};
-
 /**
- * Calculate profile billing for a given usage and plan
+ * Calculate profile billing for a given usage and plan pricing
+ * NOTE: Plan pricing MUST come from the database, never hardcoded
  */
 export function calculateProfileBilling(
   usage: ProfileUsageData,
-  planName: string
+  plan: PlanPricing
 ): BillingCalculation {
-  const plan = PLAN_PRICING[planName.toLowerCase()] || PLAN_PRICING.starter;
-  
   const billableProfiles = Math.max(0, usage.totalProfiles - plan.profileQuotaMonthly);
   const profileCharges = billableProfiles * plan.extraProfilePriceSar;
 
@@ -115,13 +96,6 @@ export function formatSARArabic(amount: number): string {
     currency: 'SAR',
     minimumFractionDigits: 2,
   }).format(amount);
-}
-
-/**
- * Get plan pricing by name
- */
-export function getPlanPricing(planName: string): PlanPricing {
-  return PLAN_PRICING[planName.toLowerCase()] || PLAN_PRICING.starter;
 }
 
 /**
