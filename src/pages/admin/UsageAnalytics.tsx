@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Activity, Users, LogIn, Shield, Clock } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { useState } from 'react';
@@ -14,6 +14,31 @@ import { useState } from 'react';
 const RTL_LANGUAGES = ['ar', 'ur'];
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+// RTL-aware custom legend component
+const CustomLegend = ({ payload, isRTL }: { payload?: Array<{ value: string; color: string }>; isRTL: boolean }) => {
+  if (!payload) return null;
+  
+  return (
+    <div 
+      className={`flex flex-wrap gap-4 justify-center mt-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {payload.map((entry, index) => (
+        <div 
+          key={`legend-${index}`} 
+          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+        >
+          <div 
+            className="w-3 h-3 rounded-full shrink-0" 
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-sm text-muted-foreground">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function UsageAnalytics() {
   const { t, i18n } = useTranslation();
@@ -271,7 +296,7 @@ export default function UsageAnalytics() {
                 <CardTitle className="text-base">{t('analytics.loginTrend')}</CardTitle>
                 <CardDescription>{t('analytics.loginTrendDesc')}</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]" dir="ltr">
+              <CardContent className="h-[340px]" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={isRTL ? [...dailyActivity].reverse() : dailyActivity}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -295,12 +320,17 @@ export default function UsageAnalytics() {
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
+                    <Legend 
+                      content={({ payload }) => <CustomLegend payload={payload?.map(p => ({ value: t('analytics.logins'), color: p.color as string }))} isRTL={isRTL} />}
+                      verticalAlign="bottom"
+                    />
                     <Line 
                       type="monotone" 
                       dataKey="logins" 
                       stroke="hsl(var(--primary))" 
                       strokeWidth={2}
                       dot={{ fill: 'hsl(var(--primary))' }}
+                      name={t('analytics.logins')}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -313,19 +343,17 @@ export default function UsageAnalytics() {
                 <CardTitle className="text-base">{t('analytics.eventDistribution')}</CardTitle>
                 <CardDescription>{t('analytics.eventDistributionDesc')}</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]" dir="ltr">
+              <CardContent className="h-[340px]" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={eventTypeData}
                       cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
+                      cy="45%"
+                      innerRadius={50}
+                      outerRadius={85}
                       paddingAngle={2}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      labelLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                     >
                       {eventTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -339,6 +367,18 @@ export default function UsageAnalytics() {
                         direction: isRTL ? 'rtl' : 'ltr',
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
+                    />
+                    <Legend 
+                      content={({ payload }) => (
+                        <CustomLegend 
+                          payload={payload?.map((p, i) => ({ 
+                            value: eventTypeData[i]?.name || p.value as string, 
+                            color: p.color as string 
+                          }))} 
+                          isRTL={isRTL} 
+                        />
+                      )}
+                      verticalAlign="bottom"
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -357,7 +397,7 @@ export default function UsageAnalytics() {
               <CardDescription>{t('analytics.tenantUsageDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px] mb-6" dir="ltr">
+              <div className="h-[440px] mb-6" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={tenantStats.slice(0, 10)} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -382,6 +422,18 @@ export default function UsageAnalytics() {
                         direction: isRTL ? 'rtl' : 'ltr',
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
+                    />
+                    <Legend 
+                      content={({ payload }) => (
+                        <CustomLegend 
+                          payload={payload?.map(p => ({ 
+                            value: p.value as string, 
+                            color: p.color as string 
+                          }))} 
+                          isRTL={isRTL} 
+                        />
+                      )}
+                      verticalAlign="bottom"
                     />
                     <Bar dataKey="userCount" fill="hsl(var(--primary))" name={t('analytics.users')} />
                     <Bar dataKey="loginCount" fill="hsl(var(--chart-2))" name={t('analytics.logins30d')} />
