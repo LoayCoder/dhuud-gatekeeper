@@ -112,7 +112,7 @@ export function SecuritySettings() {
         {/* Password Requirements */}
         <div className="rounded-lg border p-4 bg-muted/5">
           <h4 className="text-sm font-medium mb-3">{t('securitySettings.passwordRequirements')}</h4>
-          <ul className="space-y-2">
+          <ul className="space-y-2 rtl:text-right">
             {requirements.map((req, index) => (
               <li key={index} className="flex items-center gap-2 text-sm rtl:flex-row-reverse rtl:justify-end">
                 {req.met ? (
