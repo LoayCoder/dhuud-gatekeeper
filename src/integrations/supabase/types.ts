@@ -460,6 +460,47 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: Database["public"]["Enums"]["subscription_event_type"]
+          id: string
+          new_value: Json | null
+          performed_by: string | null
+          previous_value: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: Database["public"]["Enums"]["subscription_event_type"]
+          id?: string
+          new_value?: Json | null
+          performed_by?: string | null
+          previous_value?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: Database["public"]["Enums"]["subscription_event_type"]
+          id?: string
+          new_value?: Json | null
+          performed_by?: string | null
+          previous_value?: Json | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -886,6 +927,16 @@ export type Database = {
         | "reports_analytics"
         | "api_access"
         | "priority_support"
+      subscription_event_type:
+        | "plan_changed"
+        | "trial_started"
+        | "trial_ended"
+        | "subscription_activated"
+        | "subscription_canceled"
+        | "subscription_renewed"
+        | "user_limit_changed"
+        | "payment_succeeded"
+        | "payment_failed"
       tenant_status: "active" | "suspended" | "disabled"
       ticket_category: "billing" | "technical" | "feature_request" | "general"
       ticket_priority: "low" | "medium" | "high" | "urgent"
@@ -1047,6 +1098,17 @@ export const Constants = {
         "reports_analytics",
         "api_access",
         "priority_support",
+      ],
+      subscription_event_type: [
+        "plan_changed",
+        "trial_started",
+        "trial_ended",
+        "subscription_activated",
+        "subscription_canceled",
+        "subscription_renewed",
+        "user_limit_changed",
+        "payment_succeeded",
+        "payment_failed",
       ],
       tenant_status: ["active", "suspended", "disabled"],
       ticket_category: ["billing", "technical", "feature_request", "general"],

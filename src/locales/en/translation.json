@@ -768,5 +768,21 @@
     "trialEnds": "Trial Ends",
     "daysLeft": "days left",
     "noTenants": "No tenants found."
+  },
+  "subscriptionEvents": {
+    "title": "Subscription Activity Log",
+    "description": "Recent subscription changes and billing events.",
+    "noEvents": "No subscription events recorded yet.",
+    "from": "From",
+    "to": "To",
+    "plan_changed": "Plan Changed",
+    "trial_started": "Trial Started",
+    "trial_ended": "Trial Ended",
+    "subscription_activated": "Subscription Activated",
+    "subscription_canceled": "Subscription Canceled",
+    "subscription_renewed": "Subscription Renewed",
+    "user_limit_changed": "User Limit Changed",
+    "payment_succeeded": "Payment Succeeded",
+    "payment_failed": "Payment Failed"
   }
 }
