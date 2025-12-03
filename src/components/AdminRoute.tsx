@@ -41,19 +41,15 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
 
       setAuthenticated(true);
 
-      // Check if user has admin role
-      const { data: roleData, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+      // Check if user has admin role using unified is_admin() function
+      const { data: isAdminResult, error } = await supabase
+        .rpc('is_admin', { p_user_id: session.user.id });
 
       if (error) {
         console.error('Error checking admin role:', error);
         setIsAdmin(false);
       } else {
-        setIsAdmin(!!roleData);
+        setIsAdmin(!!isAdminResult);
       }
     } catch (error) {
       console.error('Error in admin check:', error);

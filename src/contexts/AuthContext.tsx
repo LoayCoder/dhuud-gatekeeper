@@ -35,14 +35,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
+    // Use unified is_admin() function that checks both legacy and new role systems
+    const { data: isAdminResult, error } = await supabase
+      .rpc('is_admin', { p_user_id: userId });
     
-    if (data) {
-      setUserRole(data.role as UserRole);
+    if (!error && isAdminResult) {
+      setUserRole('admin');
+    } else {
+      // Default to 'user' if not admin
+      setUserRole('user');
     }
   };
 

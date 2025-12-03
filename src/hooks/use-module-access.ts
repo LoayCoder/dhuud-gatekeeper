@@ -9,7 +9,11 @@ export type ModuleCode =
   | 'audits' 
   | 'reports_analytics'
   | 'api_access'
-  | 'priority_support';
+  | 'priority_support'
+  | 'ptw'
+  | 'security'
+  | 'food_safety'
+  | 'environmental';
 
 interface TenantSubscription {
   planId: string | null;

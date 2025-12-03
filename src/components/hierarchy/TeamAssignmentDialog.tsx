@@ -56,14 +56,14 @@ export function TeamAssignmentDialog({
   const [isFetching, setIsFetching] = useState(true);
   const isRTL = i18n.dir() === 'rtl';
 
-  // Fetch users who have the manager role
+  // Fetch users who have the manager role - with proper role verification
   useEffect(() => {
     async function fetchManagers() {
       if (!profile?.tenant_id) return;
       
       setIsFetching(true);
       try {
-        // Get users with manager role from new system
+        // Get users with manager role from new system using has_role_by_code for security
         const { data: managerRoleAssignments } = await supabase
           .from('user_role_assignments')
           .select(`
@@ -80,11 +80,26 @@ export function TeamAssignmentDialog({
           return;
         }
 
-        // Fetch profile details for managers
+        // Verify each user actually has manager role using server-side function
+        const verifiedManagerIds: string[] = [];
+        for (const managerId of managerUserIds) {
+          const { data: hasManagerRole } = await supabase
+            .rpc('has_role_by_code', { p_user_id: managerId, p_role_code: 'manager' });
+          if (hasManagerRole) {
+            verifiedManagerIds.push(managerId);
+          }
+        }
+
+        if (verifiedManagerIds.length === 0) {
+          setManagers([]);
+          return;
+        }
+
+        // Fetch profile details for verified managers
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name')
-          .in('id', managerUserIds)
+          .in('id', verifiedManagerIds)
           .neq('id', userId) // Exclude current user
           .eq('is_active', true);
 

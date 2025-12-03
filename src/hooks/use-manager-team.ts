@@ -100,7 +100,7 @@ export function useManagerTeam(managerId?: string) {
     fetchTeamHierarchy();
   }, [fetchTeamHierarchy]);
 
-  // Build tree structure from flat hierarchy
+  // Build tree structure from flat hierarchy with proper depth tracking
   function buildHierarchyTree(
     managerId: string,
     members: TeamMember[],
@@ -108,9 +108,21 @@ export function useManagerTeam(managerId?: string) {
   ): TeamHierarchyNode[] {
     // Get direct reports (depth 1)
     const directReports = members.filter(m => m.depth === 1);
+    const visited = new Set<string>(); // Circular reference prevention
     
-    return directReports.map(member => {
-      const node: TeamHierarchyNode = {
+    return directReports.map(member => buildNode(member, members, managerIds, visited, 1));
+  }
+
+  function buildNode(
+    member: TeamMember,
+    allMembers: TeamMember[],
+    managerIds: Set<string>,
+    visited: Set<string>,
+    currentDepth: number
+  ): TeamHierarchyNode {
+    // Circular reference prevention
+    if (visited.has(member.user_id)) {
+      return {
         id: member.user_id,
         full_name: member.full_name,
         job_title: member.job_title,
@@ -118,41 +130,29 @@ export function useManagerTeam(managerId?: string) {
         is_active: member.is_active,
         children: [],
       };
+    }
+    visited.add(member.user_id);
 
-      // If this member is also a manager, recursively get their team
-      if (managerIds.has(member.user_id)) {
-        const subMembers = members.filter(m => 
-          m.depth > 1 && isDescendantOf(member.user_id, m.user_id, members)
-        );
-        node.children = buildSubTree(member.user_id, subMembers, managerIds);
-      }
+    const node: TeamHierarchyNode = {
+      id: member.user_id,
+      full_name: member.full_name,
+      job_title: member.job_title,
+      user_type: member.user_type,
+      is_active: member.is_active,
+      children: [],
+    };
 
-      return node;
-    });
-  }
+    // If this member is also a manager, get their direct reports
+    if (managerIds.has(member.user_id) && currentDepth < 10) { // Max depth limit
+      const childMembers = allMembers.filter(m => 
+        m.depth === currentDepth + 1 && !visited.has(m.user_id)
+      );
+      node.children = childMembers.map(child => 
+        buildNode(child, allMembers, managerIds, visited, currentDepth + 1)
+      );
+    }
 
-  function buildSubTree(
-    managerId: string,
-    allMembers: TeamMember[],
-    managerIds: Set<string>
-  ): TeamHierarchyNode[] {
-    // This is a simplified version - in production, you'd need proper parent tracking
-    return allMembers
-      .filter(m => m.is_manager === false || !managerIds.has(m.user_id))
-      .slice(0, 5) // Limit for performance
-      .map(member => ({
-        id: member.user_id,
-        full_name: member.full_name,
-        job_title: member.job_title,
-        user_type: member.user_type,
-        is_active: member.is_active,
-        children: [],
-      }));
-  }
-
-  function isDescendantOf(ancestorId: string, descendantId: string, members: TeamMember[]): boolean {
-    // Simplified check - would need proper parent tracking for accuracy
-    return true;
+    return node;
   }
 
   // Assign user to manager's team (admin only)
