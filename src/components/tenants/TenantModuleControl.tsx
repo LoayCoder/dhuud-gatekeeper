@@ -38,9 +38,25 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
     },
   });
 
+  // Send email notification
+  const sendEmailNotification = async (type: 'module_enabled' | 'module_disabled', moduleName: string) => {
+    try {
+      await supabase.functions.invoke('send-subscription-email', {
+        body: {
+          type,
+          tenant_name: tenant.name,
+          tenant_email: tenant.contact_email || tenant.billing_email,
+          module_name: moduleName,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+    }
+  };
+
   // Toggle module mutation
   const toggleMutation = useMutation({
-    mutationFn: async ({ moduleId, enabled }: { moduleId: string; enabled: boolean }) => {
+    mutationFn: async ({ moduleId, enabled, moduleName }: { moduleId: string; enabled: boolean; moduleName: string }) => {
       // Check if override exists
       const { data: existingOverride } = await supabase
         .from('tenant_modules')
@@ -77,6 +93,11 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
           });
         if (error) throw error;
       }
+
+      // Send email notification if tenant has email
+      if (tenant.contact_email || tenant.billing_email) {
+        await sendEmailNotification(enabled ? 'module_enabled' : 'module_disabled', moduleName);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-modules-with-overrides', tenant.id] });
@@ -94,10 +115,10 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
     },
   });
 
-  const handleToggle = async (moduleId: string, currentEnabled: boolean) => {
+  const handleToggle = async (moduleId: string, currentEnabled: boolean, moduleName: string) => {
     setUpdatingModules(prev => new Set(prev).add(moduleId));
     try {
-      await toggleMutation.mutateAsync({ moduleId, enabled: !currentEnabled });
+      await toggleMutation.mutateAsync({ moduleId, enabled: !currentEnabled, moduleName });
     } finally {
       setUpdatingModules(prev => {
         const next = new Set(prev);
@@ -162,7 +183,7 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
                 ) : (
                   <Switch
                     checked={module.is_enabled}
-                    onCheckedChange={() => handleToggle(module.module_id, module.is_enabled)}
+                    onCheckedChange={() => handleToggle(module.module_id, module.is_enabled, module.module_name)}
                     disabled={isUpdating}
                   />
                 )}

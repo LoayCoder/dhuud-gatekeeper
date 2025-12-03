@@ -2,23 +2,26 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface SubscriptionEmailRequest {
-  type: 'request_submitted' | 'request_approved' | 'request_declined' | 'request_modified' | 'request_canceled';
-  request_id: string;
+  type: 'request_submitted' | 'request_approved' | 'request_declined' | 'request_modified' | 'request_canceled' | 'trial_started' | 'trial_extended' | 'trial_ended' | 'module_enabled' | 'module_disabled';
+  request_id?: string;
   tenant_name: string;
   tenant_email: string;
-  plan_name: string;
-  user_count: number;
-  total_monthly: number;
-  billing_period: string;
+  plan_name?: string;
+  user_count?: number;
+  total_monthly?: number;
+  billing_period?: string;
   admin_notes?: string;
+  // Trial specific
+  trial_end_date?: string;
+  days_added?: number;
+  // Module specific
+  module_name?: string;
 }
 
 const formatPrice = (cents: number): string => {
@@ -28,6 +31,14 @@ const formatPrice = (cents: number): string => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(cents / 100);
+};
+
+const formatDate = (dateStr: string): string => {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -41,12 +52,12 @@ const handler = async (req: Request): Promise<Response> => {
     const payload: SubscriptionEmailRequest = await req.json();
     console.log("Email payload:", payload);
 
-    const { type, tenant_name, tenant_email, plan_name, user_count, total_monthly, billing_period, admin_notes } = payload;
+    const { type, tenant_name, tenant_email, plan_name, user_count, total_monthly, billing_period, admin_notes, trial_end_date, days_added, module_name } = payload;
 
     let subject = '';
     let htmlContent = '';
 
-    const priceDisplay = `${formatPrice(total_monthly)}/${billing_period === 'yearly' ? 'year' : 'month'}`;
+    const priceDisplay = total_monthly ? `${formatPrice(total_monthly)}/${billing_period === 'yearly' ? 'year' : 'month'}` : '';
 
     switch (type) {
       case 'request_submitted':
@@ -195,6 +206,133 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `;
         break;
+
+      case 'trial_started':
+        subject = `Trial Period Started - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #2563eb;">🎉 Your Trial Has Started!</h1>
+            <p>Welcome to Dhuud HSSE Platform! Your trial period is now active.</p>
+            
+            <div style="background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #bfdbfe;">
+              <h3 style="margin-top: 0; color: #2563eb;">Trial Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Organization:</strong></td><td style="padding: 8px 0;">${tenant_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Trial Ends:</strong></td><td style="padding: 8px 0; color: #2563eb; font-weight: bold;">${trial_end_date ? formatDate(trial_end_date) : 'N/A'}</td></tr>
+              </table>
+            </div>
+            
+            <p>During your trial, you have access to all platform features. Explore and see how Dhuud can help your organization!</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'trial_extended':
+        subject = `Trial Period Extended - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #16a34a;">✨ Your Trial Has Been Extended!</h1>
+            <p>Great news! Your trial period has been extended.</p>
+            
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #86efac;">
+              <h3 style="margin-top: 0; color: #16a34a;">Extended Trial Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Organization:</strong></td><td style="padding: 8px 0;">${tenant_name}</td></tr>
+                ${days_added ? `<tr><td style="padding: 8px 0;"><strong>Days Added:</strong></td><td style="padding: 8px 0;">${days_added} days</td></tr>` : ''}
+                <tr><td style="padding: 8px 0;"><strong>New End Date:</strong></td><td style="padding: 8px 0; color: #16a34a; font-weight: bold;">${trial_end_date ? formatDate(trial_end_date) : 'N/A'}</td></tr>
+              </table>
+            </div>
+            
+            <p>Continue exploring all the features of Dhuud HSSE Platform!</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'trial_ended':
+        subject = `Trial Period Ended - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #f59e0b;">⏰ Your Trial Has Ended</h1>
+            <p>Your trial period has come to an end.</p>
+            
+            <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #fcd34d;">
+              <h3 style="margin-top: 0; color: #f59e0b;">What's Next?</h3>
+              <p>To continue using Dhuud HSSE Platform and retain access to all features, please subscribe to one of our plans.</p>
+            </div>
+            
+            <p>Contact our team if you have any questions about choosing the right plan for your organization.</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'module_enabled':
+        subject = `Module Access Enabled - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #16a34a;">✅ Module Access Enabled</h1>
+            <p>A new feature module has been enabled for your organization.</p>
+            
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #86efac;">
+              <h3 style="margin-top: 0; color: #16a34a;">Module Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Organization:</strong></td><td style="padding: 8px 0;">${tenant_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Module:</strong></td><td style="padding: 8px 0; color: #16a34a; font-weight: bold;">${module_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Status:</strong></td><td style="padding: 8px 0;">Enabled</td></tr>
+              </table>
+            </div>
+            
+            <p>You can now access this module's features in your dashboard.</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'module_disabled':
+        subject = `Module Access Disabled - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #dc2626;">Module Access Disabled</h1>
+            <p>A feature module has been disabled for your organization.</p>
+            
+            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #fecaca;">
+              <h3 style="margin-top: 0; color: #dc2626;">Module Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Organization:</strong></td><td style="padding: 8px 0;">${tenant_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Module:</strong></td><td style="padding: 8px 0;">${module_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Status:</strong></td><td style="padding: 8px 0; color: #dc2626; font-weight: bold;">Disabled</td></tr>
+              </table>
+            </div>
+            
+            <p>If you have questions about this change, please contact our support team.</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      default:
+        console.log("Unknown email type:", type);
+        return new Response(JSON.stringify({ error: "Unknown email type" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
     }
 
     // Determine recipient based on type
