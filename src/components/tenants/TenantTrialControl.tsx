@@ -30,14 +30,40 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
   const trialEndDate = tenant.trial_end_date ? new Date(tenant.trial_end_date) : null;
   const daysRemaining = trialEndDate ? differenceInDays(trialEndDate, new Date()) : 0;
 
+  // Send email notification
+  const sendEmailNotification = async (type: string, trialEndDate?: string, daysAdded?: number) => {
+    try {
+      await supabase.functions.invoke('send-subscription-email', {
+        body: {
+          type,
+          tenant_name: tenant.name,
+          tenant_email: tenant.contact_email || tenant.billing_email,
+          trial_end_date: trialEndDate,
+          days_added: daysAdded,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+    }
+  };
+
   // Update trial mutation
   const updateTrialMutation = useMutation({
-    mutationFn: async (updates: Partial<Tables<'tenants'>>) => {
+    mutationFn: async ({ updates, emailType, daysAdded }: { 
+      updates: Partial<Tables<'tenants'>>;
+      emailType?: 'trial_started' | 'trial_extended' | 'trial_ended';
+      daysAdded?: number;
+    }) => {
       const { error } = await supabase
         .from('tenants')
         .update(updates)
         .eq('id', tenant.id);
       if (error) throw error;
+      
+      // Send email notification if type is provided and tenant has email
+      if (emailType && (tenant.contact_email || tenant.billing_email)) {
+        await sendEmailNotification(emailType, updates.trial_end_date || undefined, daysAdded);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
@@ -62,9 +88,12 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
     const endDate = addDays(startDate, days);
     
     updateTrialMutation.mutate({
-      subscription_status: 'trialing',
-      trial_start_date: startDate.toISOString(),
-      trial_end_date: endDate.toISOString(),
+      updates: {
+        subscription_status: 'trialing',
+        trial_start_date: startDate.toISOString(),
+        trial_end_date: endDate.toISOString(),
+      },
+      emailType: 'trial_started',
     });
   };
 
@@ -74,7 +103,11 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
     const newEndDate = addDays(trialEndDate, days);
     
     updateTrialMutation.mutate({
-      trial_end_date: newEndDate.toISOString(),
+      updates: {
+        trial_end_date: newEndDate.toISOString(),
+      },
+      emailType: 'trial_extended',
+      daysAdded: days,
     });
   };
 
@@ -82,20 +115,28 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
     if (!customEndDate) return;
     
     updateTrialMutation.mutate({
-      trial_end_date: new Date(customEndDate).toISOString(),
+      updates: {
+        trial_end_date: new Date(customEndDate).toISOString(),
+      },
+      emailType: 'trial_extended',
     });
   };
 
   const handleEndTrial = () => {
     updateTrialMutation.mutate({
-      subscription_status: 'inactive',
-      trial_end_date: new Date().toISOString(),
+      updates: {
+        subscription_status: 'inactive',
+        trial_end_date: new Date().toISOString(),
+      },
+      emailType: 'trial_ended',
     });
   };
 
   const handleUpdateStatus = () => {
     updateTrialMutation.mutate({
-      subscription_status: subscriptionStatus,
+      updates: {
+        subscription_status: subscriptionStatus,
+      },
     });
   };
 
