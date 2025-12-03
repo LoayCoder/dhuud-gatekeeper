@@ -43,7 +43,8 @@ interface Section { id: string; name: string; department_id: string; departments
 interface Site { 
   id: string; 
   name: string; 
-  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   branch_id: string | null; 
   is_active: boolean | null;
   branches?: { name: string } | null; 
@@ -76,14 +77,16 @@ export default function OrgStructure() {
   const [gettingLocation, setGettingLocation] = useState(false);
 
   // Site form state
-  const [newSiteAddress, setNewSiteAddress] = useState("");
+  const [newSiteLatitude, setNewSiteLatitude] = useState("");
+  const [newSiteLongitude, setNewSiteLongitude] = useState("");
+  const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
 
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingLatitude, setEditingLatitude] = useState("");
   const [editingLongitude, setEditingLongitude] = useState("");
-  const [editingAddress, setEditingAddress] = useState("");
+  
   const [saving, setSaving] = useState(false);
 
   // Fetch all hierarchy data
@@ -95,7 +98,7 @@ export default function OrgStructure() {
         supabase.from('divisions').select('id, name').order('name'),
         supabase.from('departments').select('id, name, division_id, divisions(name)').order('name'),
         supabase.from('sections').select('id, name, department_id, departments(name)').order('name'),
-        supabase.from('sites').select('id, name, address, branch_id, is_active, branches(name)').order('name'),
+        supabase.from('sites').select('id, name, latitude, longitude, branch_id, is_active, branches(name)').order('name'),
       ]);
 
       if (b.data) setBranches(b.data);
@@ -182,8 +185,9 @@ export default function OrgStructure() {
           return;
         }
         payload.branch_id = parentId;
-        if (newSiteAddress.trim()) {
-          payload.address = newSiteAddress.trim();
+        if (newSiteLatitude && newSiteLongitude) {
+          payload.latitude = parseFloat(newSiteLatitude);
+          payload.longitude = parseFloat(newSiteLongitude);
         }
       }
 
@@ -216,7 +220,8 @@ export default function OrgStructure() {
       setNewBranchLocation("");
       setNewBranchLatitude("");
       setNewBranchLongitude("");
-      setNewSiteAddress("");
+      setNewSiteLatitude("");
+      setNewSiteLongitude("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -250,7 +255,13 @@ export default function OrgStructure() {
 
       // Add site-specific fields for updates
       if (table === 'sites') {
-        updatePayload.address = editingAddress.trim() || null;
+        if (editingLatitude && editingLongitude) {
+          updatePayload.latitude = parseFloat(editingLatitude);
+          updatePayload.longitude = parseFloat(editingLongitude);
+        } else {
+          updatePayload.latitude = null;
+          updatePayload.longitude = null;
+        }
       }
 
       const { error } = await supabase
@@ -265,7 +276,6 @@ export default function OrgStructure() {
       setEditingName("");
       setEditingLatitude("");
       setEditingLongitude("");
-      setEditingAddress("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -276,12 +286,11 @@ export default function OrgStructure() {
   };
 
   // Start editing
-  const startEditing = (id: string, currentName: string, latitude?: number | null, longitude?: number | null, address?: string | null) => {
+  const startEditing = (id: string, currentName: string, latitude?: number | null, longitude?: number | null) => {
     setEditingId(id);
     setEditingName(currentName);
     setEditingLatitude(latitude?.toString() || "");
     setEditingLongitude(longitude?.toString() || "");
-    setEditingAddress(address || "");
   };
 
   // Cancel editing
@@ -290,7 +299,6 @@ export default function OrgStructure() {
     setEditingName("");
     setEditingLatitude("");
     setEditingLongitude("");
-    setEditingAddress("");
   };
 
   // Generic Delete Function
@@ -502,7 +510,7 @@ export default function OrgStructure() {
     </TableRow>
   );
 
-  // Site row component with address support
+  // Site row component with GPS coordinates support
   const renderSiteRow = (item: Site) => (
     <TableRow key={item.id}>
       <TableCell className={textAlign}>
@@ -530,17 +538,38 @@ export default function OrgStructure() {
       </TableCell>
       <TableCell className={textAlign}>
         {editingId === item.id ? (
-          <Input
-            value={editingAddress}
-            onChange={(e) => setEditingAddress(e.target.value)}
-            placeholder={t('orgStructure.addressPlaceholder')}
-            className={`h-8 ${textAlign}`}
-            dir={direction}
-          />
+          <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Input
+              value={editingLatitude}
+              onChange={(e) => setEditingLatitude(e.target.value)}
+              placeholder={t('orgStructure.latitude')}
+              className="h-8 w-24"
+              type="number"
+              step="any"
+            />
+            <Input
+              value={editingLongitude}
+              onChange={(e) => setEditingLongitude(e.target.value)}
+              placeholder={t('orgStructure.longitude')}
+              className="h-8 w-24"
+              type="number"
+              step="any"
+            />
+          </div>
         ) : (
-          <span className={item.address ? '' : 'text-muted-foreground text-xs'}>
-            {item.address || t('orgStructure.noAddress')}
-          </span>
+          item.latitude && item.longitude ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+              onClick={() => openInMaps(item.latitude!, item.longitude!)}
+            >
+              <MapPin className="h-3 w-3" />
+              <span className="text-xs">{item.latitude?.toFixed(4)}, {item.longitude?.toFixed(4)}</span>
+            </Button>
+          ) : (
+            <span className="text-muted-foreground text-xs">{t('orgStructure.noCoordinates')}</span>
+          )
         )}
       </TableCell>
       <TableCell className={isRTL ? 'text-start' : 'text-end'}>
@@ -556,7 +585,7 @@ export default function OrgStructure() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, null, null, item.address)}>
+              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, item.latitude, item.longitude)}>
                 <Pencil className="h-4 w-4 text-muted-foreground" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleDelete('sites', item.id)}>
@@ -717,41 +746,115 @@ export default function OrgStructure() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Site Creation Form */}
-              <div className={`flex gap-4 items-end flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <div className="w-full md:w-1/4">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentBranch')}</Label>
-                  <Select onValueChange={setParentId} value={parentId}>
-                    <SelectTrigger className={textAlign} dir={direction}>
-                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
-                    </SelectTrigger>
-                    <SelectContent dir={direction}>
-                      {branches.map(b => (
-                        <SelectItem key={b.id} value={b.id} className={textAlign}>{b.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className={`grid gap-4 md:grid-cols-2 ${isRTL ? 'text-end' : 'text-start'}`}>
+                  {/* Parent Branch */}
+                  <div className="space-y-2">
+                    <Label className={textAlign}>{t('orgStructure.parentBranch')}</Label>
+                    <Select onValueChange={setParentId} value={parentId}>
+                      <SelectTrigger className={textAlign} dir={direction}>
+                        <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                      </SelectTrigger>
+                      <SelectContent dir={direction}>
+                        {branches.map(b => (
+                          <SelectItem key={b.id} value={b.id} className={textAlign}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Site Name */}
+                  <div className="space-y-2">
+                    <Label className={textAlign}>{t('orgStructure.siteName')}</Label>
+                    <Input 
+                      placeholder={t('orgStructure.newSitePlaceholder')}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className={textAlign}
+                      dir={direction}
+                    />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-[200px]">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.siteName')}</Label>
-                  <Input 
-                    placeholder={t('orgStructure.newSitePlaceholder')}
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    className={textAlign}
-                    dir={direction}
-                  />
+
+                {/* GPS Coordinates */}
+                <div className="space-y-2">
+                  <Label className={textAlign}>{t('orgStructure.gpsCoordinates')}</Label>
+                  <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex-1">
+                      <Input 
+                        placeholder={t('orgStructure.latitude')}
+                        value={newSiteLatitude}
+                        onChange={(e) => setNewSiteLatitude(e.target.value)}
+                        type="number"
+                        step="any"
+                        className={textAlign}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input 
+                        placeholder={t('orgStructure.longitude')}
+                        value={newSiteLongitude}
+                        onChange={(e) => setNewSiteLongitude(e.target.value)}
+                        type="number"
+                        step="any"
+                        className={textAlign}
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        if (!navigator.geolocation) {
+                          toast({ title: t('common.error'), description: t('orgStructure.geolocationNotSupported'), variant: "destructive" });
+                          return;
+                        }
+                        setGettingSiteLocation(true);
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setNewSiteLatitude(position.coords.latitude.toFixed(6));
+                            setNewSiteLongitude(position.coords.longitude.toFixed(6));
+                            setGettingSiteLocation(false);
+                            toast({ title: t('orgStructure.success'), description: t('orgStructure.locationRetrieved') });
+                          },
+                          (error) => {
+                            setGettingSiteLocation(false);
+                            let message = t('orgStructure.locationError');
+                            if (error.code === error.PERMISSION_DENIED) {
+                              message = t('orgStructure.locationPermissionDenied');
+                            }
+                            toast({ title: t('common.error'), description: message, variant: "destructive" });
+                          },
+                          { enableHighAccuracy: true, timeout: 10000 }
+                        );
+                      }}
+                      disabled={gettingSiteLocation}
+                      className={`shrink-0 ${isRTL ? 'flex-row-reverse' : ''}`}
+                    >
+                      {gettingSiteLocation ? (
+                        <Loader2 className={`h-4 w-4 animate-spin ${isRTL ? 'ms-2' : 'me-2'}`} />
+                      ) : (
+                        <Navigation className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                      )}
+                      {t('orgStructure.useCurrentLocation')}
+                    </Button>
+                  </div>
+                  {newSiteLatitude && newSiteLongitude && (
+                    <p className={`text-xs text-muted-foreground ${textAlign}`}>
+                      <a 
+                        href={`https://www.google.com/maps?q=${newSiteLatitude},${newSiteLongitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {t('orgStructure.viewOnMap')} →
+                      </a>
+                    </p>
+                  )}
                 </div>
-                <div className="flex-1 min-w-[200px]">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.siteAddress')}</Label>
-                  <Input 
-                    placeholder={t('orgStructure.addressPlaceholder')}
-                    value={newSiteAddress}
-                    onChange={(e) => setNewSiteAddress(e.target.value)}
-                    className={textAlign}
-                    dir={direction}
-                  />
-                </div>
-                <Button onClick={() => handleCreate('sites')} disabled={creating || !parentId || !newItemName.trim()} className={isRTL ? 'flex-row-reverse' : ''}>
+
+                <Button 
+                  onClick={() => handleCreate('sites')} 
+                  disabled={creating || !parentId || !newItemName.trim()} 
+                  className={`w-full md:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
+                >
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
                   {t('orgStructure.addSite')}
                 </Button>
@@ -764,7 +867,7 @@ export default function OrgStructure() {
                     <TableRow>
                       <TableHead className={textAlign}>{t('orgStructure.siteName')}</TableHead>
                       <TableHead className={textAlign}>{t('orgStructure.parentBranch')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.siteAddress')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.coordinates')}</TableHead>
                       <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
