@@ -18,21 +18,27 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           name: string
           tenant_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name: string
           tenant_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string
           tenant_id?: string
         }
