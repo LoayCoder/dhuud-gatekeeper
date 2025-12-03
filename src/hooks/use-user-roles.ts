@@ -101,11 +101,12 @@ export function useUserRoles() {
 
   // Assign roles to a user (admin only)
   const assignRoles = useCallback(async (userId: string, roleIds: string[], tenantId: string) => {
-    // First, get current assignments to preserve normal_user
+    // First, get current assignments to preserve normal_user - WITH tenant filter for security
     const { data: existingAssignments } = await supabase
       .from('user_role_assignments')
       .select('role_id')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId); // CRITICAL: tenant isolation
 
     const normalUserRole = roles.find(r => r.code === 'normal_user');
     
@@ -114,12 +115,13 @@ export function useUserRoles() {
       ? [...roleIds, normalUserRole.id]
       : roleIds;
 
-    // Delete existing non-normal_user assignments
+    // Delete existing non-normal_user assignments - WITH tenant filter for security
     if (normalUserRole) {
       await supabase
         .from('user_role_assignments')
         .delete()
         .eq('user_id', userId)
+        .eq('tenant_id', tenantId) // CRITICAL: tenant isolation
         .neq('role_id', normalUserRole.id);
     }
 

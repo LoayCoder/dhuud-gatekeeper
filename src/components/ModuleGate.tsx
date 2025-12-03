@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModuleAccess, ModuleCode } from '@/hooks/use-module-access';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,12 @@ export function ModuleGate({
   showUpgradePrompt = true 
 }: ModuleGateProps) {
   const { t } = useTranslation();
-  const { hasModule, isLoading } = useModuleAccess();
-  const { user } = useAuth();
+  const { hasModule, isLoading: tenantModulesLoading } = useModuleAccess();
+  const { hasModuleAccess: hasRoleModuleAccess, isLoading: rolesLoading } = useUserRoles();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  const isLoading = tenantModulesLoading || rolesLoading;
 
   // Show loading state
   if (isLoading) {
@@ -36,8 +40,16 @@ export function ModuleGate({
     );
   }
 
-  // Check if user has access to this module
-  if (hasModule(module)) {
+  // Admin has full access to all modules
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
+  // Check BOTH tenant module access AND user role-based module access
+  const hasTenantAccess = hasModule(module);
+  const hasRoleAccess = hasRoleModuleAccess(module);
+  
+  if (hasTenantAccess && hasRoleAccess) {
     return <>{children}</>;
   }
 
