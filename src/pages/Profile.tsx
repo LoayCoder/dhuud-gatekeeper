@@ -88,7 +88,7 @@ export default function Profile() {
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_300px] rtl:lg:grid-cols-[300px_1fr]">
         {/* Left Column - Main Content */}
         <div className="space-y-6">
           <Card>

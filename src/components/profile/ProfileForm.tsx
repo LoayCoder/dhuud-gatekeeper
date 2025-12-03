@@ -164,7 +164,7 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
   return (
     <div className="space-y-6">
       {/* Avatar Upload */}
-      <div className="flex items-center gap-6 pb-6">
+      <div className="flex items-center gap-6 pb-6 rtl:flex-row-reverse">
         <Avatar className="h-24 w-24 flex-shrink-0">
           <AvatarImage src={avatarUrl || undefined} alt={fullName} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
@@ -212,12 +212,12 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <div className="grid gap-2">
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
-            <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
+            <Mail className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="email" 
               value={user?.email || ""} 
               disabled 
-              className="ps-9 rtl:ps-3 rtl:pe-9 bg-muted/50" 
+              className="ps-9 bg-muted/50" 
             />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
@@ -228,12 +228,12 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <div className="grid gap-2">
           <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
-            <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
+            <User className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="fullName" 
               value={fullName} 
               onChange={(e) => setFullName(e.target.value)}
-              className="ps-9 rtl:ps-3 rtl:pe-9"
+              className="ps-9"
               placeholder={t('profile.enterFullName')}
               maxLength={100}
             />
@@ -248,13 +248,13 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
         <div className="grid gap-2">
           <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
-            <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
+            <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="phoneNumber" 
               type="tel"
               value={phoneNumber} 
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="ps-9 rtl:ps-3 rtl:pe-9"
+              className="ps-9"
               dir="ltr"
               placeholder="+966 5XX XXX XXXX"
               maxLength={20}
@@ -274,12 +274,12 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
             <div className="grid gap-2">
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
-                <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
+                <UserCheck className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="emergencyName" 
                   value={emergencyContactName} 
                   onChange={(e) => setEmergencyContactName(e.target.value)}
-                  className="ps-9 rtl:ps-3 rtl:pe-9"
+                  className="ps-9"
                   placeholder={t('profile.emergencyContactName')}
                   maxLength={100}
                 />
@@ -288,13 +288,13 @@ export function ProfileForm({ user, profile, onUpdate }: ProfileFormProps) {
             <div className="grid gap-2">
               <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
-                <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground rtl:start-auto rtl:end-2.5" />
+                <Phone className="absolute start-2.5 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="emergencyPhone" 
                   type="tel"
                   value={emergencyContactPhone} 
                   onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                  className="ps-9 rtl:ps-3 rtl:pe-9"
+                  className="ps-9"
                   dir="ltr"
                   placeholder="+966 5XX XXX XXXX"
                   maxLength={20}
