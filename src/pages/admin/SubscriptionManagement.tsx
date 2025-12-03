@@ -468,11 +468,11 @@ export default function SubscriptionManagement() {
             </p>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0 mx-[44px]">
+          <DialogFooter className="gap-2 sm:gap-0 mx-[44px] px-0">
             <Button variant="outline" onClick={() => {
             setCancelRequestId(null);
             setRequestToCancel(null);
-          }} disabled={cancelRequest.isPending} className="px-[33px]">
+          }} disabled={cancelRequest.isPending} className="px-[35px] mx-[2px]">
               {t('common.back')}
             </Button>
             <Button variant="destructive" onClick={() => requestToCancel && cancelRequest.mutate(requestToCancel)} disabled={cancelRequest.isPending}>
