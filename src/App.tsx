@@ -26,6 +26,7 @@ import MFASetup from "./pages/MFASetup";
 import NotFound from "./pages/NotFound";
 import OrgStructure from "./pages/admin/OrgStructure";
 import UserManagement from "./pages/admin/UserManagement";
+import TenantManagement from "./pages/admin/TenantManagement";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,14 @@ const App = () => (
                       element={
                         <AdminRoute>
                           <OrgStructure />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/tenants"
+                      element={
+                        <AdminRoute>
+                          <TenantManagement />
                         </AdminRoute>
                       }
                     />

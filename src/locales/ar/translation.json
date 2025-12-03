@@ -316,6 +316,7 @@
     "brandManagement": "إدارة الهوية البصرية",
     "userManagement": "إدارة المستخدمين",
     "orgStructure": "الهيكل التنظيمي",
+    "tenantManagement": "إدارة المستأجرين",
     "platform": "المنصة",
     "enterpriseHsse": "الصحة والسلامة للمؤسسات"
   },
@@ -505,5 +506,73 @@
     "success": "تم بنجاح",
     "assignmentsUpdated": "تم تحديث تعيينات المستخدم.",
     "errorFetching": "خطأ في جلب البيانات"
+  },
+  "tenantManagement": {
+    "title": "إدارة المستأجرين",
+    "description": "إدارة المؤسسات وحالة حساباتها.",
+    "addTenant": "إضافة مستأجر",
+    "editTenant": "تعديل المستأجر",
+    "addDescription": "إنشاء مؤسسة مستأجرة جديدة.",
+    "editDescription": "تحديث تفاصيل المستأجر.",
+    "searchPlaceholder": "البحث عن المستأجرين...",
+    "noTenants": "لا يوجد مستأجرون.",
+    "columns": {
+      "name": "الاسم",
+      "slug": "المعرف",
+      "industry": "الصناعة",
+      "location": "الموقع",
+      "contact": "جهة الاتصال"
+    },
+    "fields": {
+      "name": "اسم المؤسسة",
+      "slug": "المعرف (معرف URL)",
+      "industry": "الصناعة",
+      "country": "الدولة",
+      "city": "المدينة",
+      "contactPerson": "جهة الاتصال",
+      "contactEmail": "البريد الإلكتروني",
+      "contactPhone": "رقم الهاتف",
+      "notes": "ملاحظات"
+    },
+    "placeholders": {
+      "name": "مثال: شركة أكمي",
+      "slug": "مثال: acme-corp",
+      "industry": "مثال: النفط والغاز، البناء",
+      "country": "مثال: المملكة العربية السعودية",
+      "city": "مثال: الرياض",
+      "contactPerson": "مثال: أحمد محمد",
+      "contactEmail": "مثال: ahmed@acme.com",
+      "contactPhone": "مثال: +966 50 123 4567",
+      "notes": "ملاحظات داخلية حول هذا المستأجر..."
+    },
+    "status": {
+      "active": "نشط",
+      "suspended": "معلق",
+      "disabled": "معطل"
+    },
+    "actions": {
+      "openMenu": "فتح القائمة",
+      "activate": "تفعيل",
+      "suspend": "تعليق",
+      "disable": "تعطيل"
+    },
+    "statusDialog": {
+      "activateTitle": "تفعيل المستأجر",
+      "activateDescription": "سيؤدي هذا إلى تفعيل {{name}} والسماح لمستخدميه بالوصول إلى المنصة.",
+      "suspendTitle": "تعليق المستأجر",
+      "suspendDescription": "سيؤدي هذا إلى تعليق {{name}} مؤقتًا.",
+      "suspendWarning": "لن يتمكن المستخدمون من هذه المؤسسة من تسجيل الدخول أثناء التعليق.",
+      "disableTitle": "تعطيل المستأجر",
+      "disableDescription": "سيؤدي هذا إلى تعطيل {{name}}.",
+      "disableWarning": "سيؤدي هذا الإجراء إلى حظر جميع المستخدمين من هذه المؤسسة. لن يتمكنوا من الوصول إلى المنصة."
+    },
+    "toast": {
+      "created": "تم إنشاء المستأجر",
+      "createdDescription": "تم إنشاء المستأجر الجديد بنجاح.",
+      "updated": "تم تحديث المستأجر",
+      "updatedDescription": "تم تحديث المستأجر بنجاح.",
+      "statusUpdated": "تم تحديث الحالة",
+      "statusUpdatedDescription": "تم تحديث حالة المستأجر."
+    }
   }
 }

@@ -29,6 +29,7 @@ import {
   UserCircle,
   User,
   Network,
+  Layers,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -134,6 +135,11 @@ export function AppSidebar() {
           title: t('navigation.orgStructure'),
           url: "/admin/org-structure",
           icon: Network,
+        },
+        {
+          title: t('navigation.tenantManagement'),
+          url: "/admin/tenants",
+          icon: Layers,
         },
       ],
     },
