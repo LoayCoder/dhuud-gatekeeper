@@ -38,8 +38,8 @@ export function BrandingPreviewPanel({
   return (
     <Card className="sticky top-6">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
+        <div className="flex items-center justify-between ltr:flex-row rtl:flex-row-reverse">
+          <CardTitle className="flex items-center gap-2 text-base ltr:flex-row rtl:flex-row-reverse">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
