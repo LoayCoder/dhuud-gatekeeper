@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import industrialImage from '@/assets/industrial-safety.jpg';
 import { z } from 'zod';
@@ -16,8 +18,10 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [breachWarning, setBreachWarning] = useState<string | null>(null);
   const navigate = useNavigate();
   const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
+  const { checkPassword, isChecking } = usePasswordBreachCheck();
 
   const signupSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -70,6 +74,16 @@ export default function Signup() {
     try {
       signupSchema.parse({ email: invitationEmail, password, confirmPassword });
       setLoading(true);
+      setBreachWarning(null);
+
+      // Check for breached password
+      const breachResult = await checkPassword(password);
+      if (breachResult.isBreached) {
+        const breachMessage = t('security.passwordBreached').replace('{{count}}', breachResult.count.toLocaleString());
+        setBreachWarning(breachMessage);
+        setLoading(false);
+        return;
+      }
 
       // 1. Get Tenant ID from Invitation using secure function
       const { data: inviteResult, error: inviteFetchError } = await supabase
@@ -227,9 +241,17 @@ export default function Signup() {
                   className="h-12"
                 />
               </div>
+
+              {breachWarning && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{breachWarning}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
-            <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
+            <Button type="submit" className="h-12 w-full text-lg" disabled={loading || isChecking}>
+              {isChecking && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {loading ? t('auth.creatingAccount') : t('auth.signUp')}
             </Button>
 

@@ -158,7 +158,8 @@
     "protectedByZeroTrust": "Protected by Zero Trust Security",
     "securityStatus": "Security Status",
     "zeroTrustActive": "Zero Trust authentication active",
-    "protected": "Protected"
+    "protected": "Protected",
+    "passwordBreached": "This password has been found in {{count}} data breaches. Please choose a different password for your security."
   },
   "dashboard": {
     "welcomeTitle": "Welcome to Dhuud HSSE Platform",

@@ -391,7 +391,8 @@
     "protectedByZeroTrust": "محمي بواسطة أمان انعدام الثقة",
     "securityStatus": "حالة الأمان",
     "zeroTrustActive": "مصادقة انعدام الثقة نشطة",
-    "protected": "محمي"
+    "protected": "محمي",
+    "passwordBreached": "تم العثور على كلمة المرور هذه في {{count}} اختراق للبيانات. يرجى اختيار كلمة مرور مختلفة لأمانك."
   },
   "dashboard": {
     "welcomeTitle": "مرحبًا بك في منصة ذود للصحة والسلامة",

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { usePasswordBreachCheck } from "@/hooks/use-password-breach-check";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Lock, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Lock, CheckCircle2, XCircle, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
@@ -23,6 +25,8 @@ export function SecuritySettings() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [breachWarning, setBreachWarning] = useState<string | null>(null);
+  const { checkPassword, isChecking } = usePasswordBreachCheck();
 
   const passwordSchema = z.object({
     password: z
@@ -64,7 +68,18 @@ export function SecuritySettings() {
     }
 
     setLoading(true);
+    setBreachWarning(null);
+
     try {
+      // Check for breached password
+      const breachResult = await checkPassword(password);
+      if (breachResult.isBreached) {
+        const breachMessage = t('security.passwordBreached').replace('{{count}}', breachResult.count.toLocaleString());
+        setBreachWarning(breachMessage);
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) throw error;
@@ -193,12 +208,19 @@ export function SecuritySettings() {
             )}
           </div>
 
+          {breachWarning && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{breachWarning}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex justify-end pt-2">
             <Button 
               type="submit" 
-              disabled={loading || !allRequirementsMet || !passwordsMatch}
+              disabled={loading || isChecking || !allRequirementsMet || !passwordsMatch}
             >
-              {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {(loading || isChecking) && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {t('securitySettings.updatePassword')}
             </Button>
           </div>
