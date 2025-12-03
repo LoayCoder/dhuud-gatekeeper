@@ -135,20 +135,20 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="new-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-9 pr-9"
+                className="ltr:pl-9 ltr:pr-9 rtl:pr-9 rtl:pl-9"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -158,20 +158,20 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-9 pr-9"
+                className="ltr:pl-9 ltr:pr-9 rtl:pr-9 rtl:pl-9"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
