@@ -854,6 +854,7 @@
     "totalForPeriod": "Total for {{period}}",
     "youSave": "You save",
     "comparedToMonthly": "compared to monthly billing",
+    "selectionSummary": "Selection Summary",
     "status": {
       "pending": "Pending Review",
       "under_review": "Under Review",

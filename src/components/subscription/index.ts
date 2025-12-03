@@ -5,3 +5,4 @@ export { PlanSelector } from './PlanSelector';
 export { SubscriptionRequestsTable } from './SubscriptionRequestsTable';
 export { RequestReviewDialog } from './RequestReviewDialog';
 export { BillingPeriodToggle } from './BillingPeriodToggle';
+export { SelectionSummary } from './SelectionSummary';
