@@ -20,7 +20,7 @@
     "pageNotFound": "Oops! Hindi nahanap ang page",
     "returnHome": "Bumalik sa Home"
   },
-  "common": {
+"common": {
     "loading": "Naglo-load...",
     "save": "I-save",
     "cancel": "Kanselahin",
@@ -34,6 +34,7 @@
     "export": "I-export",
     "import": "I-import",
     "close": "Isara",
+    "copy": "Kopyahin",
     "confirm": "Kumpirmahin",
     "yes": "Oo",
     "no": "Hindi",
@@ -1211,5 +1212,27 @@
     "employees": "Mga Empleyado",
     "contractorsLT": "Mga Kontratista (LT)",
     "membersWithLogin": "Mga Miyembro"
+  },
+  "backupCodes": {
+    "title": "Mga Backup Code",
+    "description": "Gamitin ang mga code na ito kung mawala ang access sa iyong authenticator app.",
+    "newCodesDescription": "I-save ang mga backup code na ito sa isang ligtas na lugar. Bawat code ay magagamit lamang nang isang beses.",
+    "warning": "Ang mga code na ito ay ipapakita lamang nang isang beses! I-save na sila ngayon.",
+    "eachCodeOnce": "Bawat code ay magagamit lamang nang isang beses.",
+    "iSavedThem": "Na-save Ko Na",
+    "copied": "Nakopya",
+    "copiedDescription": "Nakopya na ang mga backup code sa clipboard.",
+    "downloaded": "Na-download",
+    "downloadedDescription": "Na-save na ang mga backup code sa file.",
+    "download": "I-download",
+    "regenerate": "Bumuo ng Bago",
+    "regenerateConfirm": "Ito ay magpapawalang-bisa sa lahat ng kasalukuyang backup code. Magpatuloy?",
+    "remainingCodes": "{{remaining}} sa {{total}} na code ang natitira",
+    "noCodesYet": "Wala pang nabuong backup code",
+    "enterCode": "Ilagay ang backup code",
+    "useBackupCode": "Gumamit ng backup code sa halip",
+    "useAuthenticator": "Gumamit ng authenticator app",
+    "invalidCode": "Hindi valid ang backup code",
+    "codeUsedSuccess": "Matagumpay na na-verify ang backup code"
   }
 }

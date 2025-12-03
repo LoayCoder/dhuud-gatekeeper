@@ -1534,6 +1534,7 @@ export type Database = {
         | "user_deactivated"
         | "user_activated"
         | "user_deleted"
+        | "backup_code_used"
       app_role: "admin" | "user"
       contractor_type: "long_term" | "short_term"
       module_code:
@@ -1734,6 +1735,7 @@ export const Constants = {
         "user_deactivated",
         "user_activated",
         "user_deleted",
+        "backup_code_used",
       ],
       app_role: ["admin", "user"],
       contractor_type: ["long_term", "short_term"],

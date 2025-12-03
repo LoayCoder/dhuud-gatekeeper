@@ -165,8 +165,8 @@ serve(async (req) => {
 
       console.log(`Backup code verification for user ${user.id}: ${isValid ? 'success' : 'failed'}`);
 
-      // Send email notification if backup code was successfully used
-      if (isValid && user.email) {
+      // Send email notification and log audit event if backup code was successfully used
+      if (isValid) {
         // Get user's full name from profile
         const { data: profile } = await supabaseAdmin
           .from('profiles')
@@ -174,7 +174,29 @@ serve(async (req) => {
           .eq('id', user.id)
           .single();
         
-        await sendBackupCodeUsedEmail(user.email, profile?.full_name || null);
+        // Log backup code usage to audit log
+        const { error: logError } = await supabaseAdmin
+          .from('user_activity_logs')
+          .insert({
+            user_id: user.id,
+            event_type: 'backup_code_used',
+            metadata: {
+              ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+              user_agent: req.headers.get('user-agent') || 'unknown',
+              timestamp: new Date().toISOString()
+            }
+          });
+        
+        if (logError) {
+          console.error('Failed to log backup code usage:', logError);
+        } else {
+          console.log(`Backup code usage logged for user ${user.id}`);
+        }
+        
+        // Send email notification
+        if (user.email) {
+          await sendBackupCodeUsedEmail(user.email, profile?.full_name || null);
+        }
       }
 
       return new Response(
