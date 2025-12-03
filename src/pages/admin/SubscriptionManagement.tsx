@@ -133,6 +133,32 @@ export default function SubscriptionManagement() {
     },
   });
 
+  // Cancel request mutation
+  const cancelRequest = useMutation({
+    mutationFn: async (requestId: string) => {
+      const { error } = await supabase
+        .from('subscription_requests')
+        .update({ status: 'canceled' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: t('subscription.requestCanceled'),
+        description: t('subscription.requestCanceledDesc'),
+      });
+      queryClient.invalidateQueries({ queryKey: ['subscription-requests'] });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
   const hasPendingRequest = pendingRequests.some(r => r.status === 'pending' || r.status === 'under_review');
 
@@ -376,6 +402,32 @@ export default function SubscriptionManagement() {
                         <p className="text-sm font-medium text-green-600">
                           {t('subscription.approvedPrice')}: {formatPrice(request.approved_total_monthly)}/{t('subscription.month')}
                         </p>
+                      </div>
+                    </>
+                  )}
+
+                  {(request.status === 'pending' || request.status === 'under_review') && (
+                    <>
+                      <Separator />
+                      <div className="flex justify-end">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => cancelRequest.mutate(request.id)}
+                          disabled={cancelRequest.isPending}
+                        >
+                          {cancelRequest.isPending ? (
+                            <>
+                              <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              {t('common.canceling')}
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4 me-2" />
+                              {t('subscription.cancelRequest')}
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </>
                   )}
