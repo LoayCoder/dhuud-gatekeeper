@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -40,8 +40,16 @@ interface Branch {
 interface Division { id: string; name: string; }
 interface Department { id: string; name: string; division_id: string; divisions?: { name: string } | null; }
 interface Section { id: string; name: string; department_id: string; departments?: { name: string } | null; }
+interface Site { 
+  id: string; 
+  name: string; 
+  address: string | null;
+  branch_id: string | null; 
+  is_active: boolean | null;
+  branches?: { name: string } | null; 
+}
 
-type TableType = 'branches' | 'divisions' | 'departments' | 'sections';
+type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites';
 
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
@@ -54,6 +62,7 @@ export default function OrgStructure() {
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
 
   // Form State
   const [newItemName, setNewItemName] = useState("");
@@ -66,28 +75,34 @@ export default function OrgStructure() {
   const [newBranchLongitude, setNewBranchLongitude] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
 
+  // Site form state
+  const [newSiteAddress, setNewSiteAddress] = useState("");
+
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingLatitude, setEditingLatitude] = useState("");
   const [editingLongitude, setEditingLongitude] = useState("");
+  const [editingAddress, setEditingAddress] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Fetch all hierarchy data
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [b, d, dep, sec] = await Promise.all([
+      const [b, d, dep, sec, sit] = await Promise.all([
         supabase.from('branches').select('id, name, location, latitude, longitude').order('name'),
         supabase.from('divisions').select('id, name').order('name'),
         supabase.from('departments').select('id, name, division_id, divisions(name)').order('name'),
         supabase.from('sections').select('id, name, department_id, departments(name)').order('name'),
+        supabase.from('sites').select('id, name, address, branch_id, is_active, branches(name)').order('name'),
       ]);
 
       if (b.data) setBranches(b.data);
       if (d.data) setDivisions(d.data);
       if (dep.data) setDepartments(dep.data as Department[]);
       if (sec.data) setSections(sec.data as Section[]);
+      if (sit.data) setSites(sit.data as Site[]);
     } catch (error) {
       console.error("Error fetching org structure:", error);
     } finally {
@@ -159,7 +174,20 @@ export default function OrgStructure() {
         }
       }
 
-      // Add parent FKs
+      // Add site-specific fields
+      if (table === 'sites') {
+        if (!parentId) {
+          toast({ title: t('common.error'), description: t('orgStructure.branchRequired'), variant: "destructive" });
+          setCreating(false);
+          return;
+        }
+        payload.branch_id = parentId;
+        if (newSiteAddress.trim()) {
+          payload.address = newSiteAddress.trim();
+        }
+      }
+
+      // Add parent FKs for departments
       if (table === 'departments') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.divisionRequired'), variant: "destructive" });
@@ -168,6 +196,8 @@ export default function OrgStructure() {
         }
         payload.division_id = parentId;
       }
+
+      // Add parent FKs for sections
       if (table === 'sections') {
         if (!parentId) {
           toast({ title: t('common.error'), description: t('orgStructure.departmentRequired'), variant: "destructive" });
@@ -186,6 +216,7 @@ export default function OrgStructure() {
       setNewBranchLocation("");
       setNewBranchLatitude("");
       setNewBranchLongitude("");
+      setNewSiteAddress("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -217,6 +248,11 @@ export default function OrgStructure() {
         }
       }
 
+      // Add site-specific fields for updates
+      if (table === 'sites') {
+        updatePayload.address = editingAddress.trim() || null;
+      }
+
       const { error } = await supabase
         .from(table)
         .update(updatePayload)
@@ -229,6 +265,7 @@ export default function OrgStructure() {
       setEditingName("");
       setEditingLatitude("");
       setEditingLongitude("");
+      setEditingAddress("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -239,11 +276,12 @@ export default function OrgStructure() {
   };
 
   // Start editing
-  const startEditing = (id: string, currentName: string, latitude?: number | null, longitude?: number | null) => {
+  const startEditing = (id: string, currentName: string, latitude?: number | null, longitude?: number | null, address?: string | null) => {
     setEditingId(id);
     setEditingName(currentName);
     setEditingLatitude(latitude?.toString() || "");
     setEditingLongitude(longitude?.toString() || "");
+    setEditingAddress(address || "");
   };
 
   // Cancel editing
@@ -252,6 +290,7 @@ export default function OrgStructure() {
     setEditingName("");
     setEditingLatitude("");
     setEditingLongitude("");
+    setEditingAddress("");
   };
 
   // Generic Delete Function
@@ -463,6 +502,73 @@ export default function OrgStructure() {
     </TableRow>
   );
 
+  // Site row component with address support
+  const renderSiteRow = (item: Site) => (
+    <TableRow key={item.id}>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <Input
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            className={`h-8 ${textAlign}`}
+            dir={direction}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleUpdate('sites', item.id);
+              if (e.key === 'Escape') cancelEditing();
+            }}
+          />
+        ) : (
+          <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            {item.name}
+          </div>
+        )}
+      </TableCell>
+      <TableCell className={`text-muted-foreground ${textAlign}`}>
+        {item.branches?.name || '-'}
+      </TableCell>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <Input
+            value={editingAddress}
+            onChange={(e) => setEditingAddress(e.target.value)}
+            placeholder={t('orgStructure.addressPlaceholder')}
+            className={`h-8 ${textAlign}`}
+            dir={direction}
+          />
+        ) : (
+          <span className={item.address ? '' : 'text-muted-foreground text-xs'}>
+            {item.address || t('orgStructure.noAddress')}
+          </span>
+        )}
+      </TableCell>
+      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
+        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+          {editingId === item.id ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => handleUpdate('sites', item.id)} disabled={saving}>
+                <Check className="h-4 w-4 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, null, null, item.address)}>
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleDelete('sites', item.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
   return (
     <div className="container py-8 space-y-8" dir={direction}>
       {/* Header */}
@@ -472,8 +578,9 @@ export default function OrgStructure() {
       </div>
 
       <Tabs defaultValue="branches" className="w-full" dir={direction}>
-        <TabsList className={`grid w-full grid-cols-4 lg:w-[600px] ${isRTL ? 'ms-auto' : ''}`}>
+        <TabsList className={`grid w-full grid-cols-5 lg:w-[750px] ${isRTL ? 'ms-auto' : ''}`}>
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
+          <TabsTrigger value="sites">{t('orgStructure.sites')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
           <TabsTrigger value="departments">{t('orgStructure.departments')}</TabsTrigger>
           <TabsTrigger value="sections">{t('orgStructure.sections')}</TabsTrigger>
@@ -594,6 +701,82 @@ export default function OrgStructure() {
                       </TableRow>
                     ) : (
                       branches.map((item) => renderBranchRow(item))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SITES TAB */}
+        <TabsContent value="sites">
+          <Card>
+            <CardHeader>
+              <CardTitle className={textAlign}>{t('orgStructure.manageSites')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Site Creation Form */}
+              <div className={`flex gap-4 items-end flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className="w-full md:w-1/4">
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentBranch')}</Label>
+                  <Select onValueChange={setParentId} value={parentId}>
+                    <SelectTrigger className={textAlign} dir={direction}>
+                      <SelectValue placeholder={t('orgStructure.selectBranch')} />
+                    </SelectTrigger>
+                    <SelectContent dir={direction}>
+                      {branches.map(b => (
+                        <SelectItem key={b.id} value={b.id} className={textAlign}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.siteName')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.newSitePlaceholder')}
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className={textAlign}
+                    dir={direction}
+                  />
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.siteAddress')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.addressPlaceholder')}
+                    value={newSiteAddress}
+                    onChange={(e) => setNewSiteAddress(e.target.value)}
+                    className={textAlign}
+                    dir={direction}
+                  />
+                </div>
+                <Button onClick={() => handleCreate('sites')} disabled={creating || !parentId || !newItemName.trim()} className={isRTL ? 'flex-row-reverse' : ''}>
+                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                  {t('orgStructure.addSite')}
+                </Button>
+              </div>
+
+              {/* Sites Table */}
+              <div className="rounded-md border" dir={direction}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className={textAlign}>{t('orgStructure.siteName')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.parentBranch')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.siteAddress')}</TableHead>
+                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sites.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                          {t('orgStructure.noItems')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sites.map((item) => renderSiteRow(item))
                     )}
                   </TableBody>
                 </Table>

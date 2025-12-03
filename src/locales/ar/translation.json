@@ -460,7 +460,18 @@
     "locationRetrieved": "تم استرداد الموقع بنجاح.",
     "locationError": "فشل في الحصول على الموقع.",
     "locationPermissionDenied": "تم رفض إذن الموقع. يرجى السماح بالوصول إلى الموقع.",
-    "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم بواسطة متصفحك."
+    "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم بواسطة متصفحك.",
+    "sites": "المواقع",
+    "manageSites": "إدارة المواقع",
+    "siteName": "اسم الموقع",
+    "siteAddress": "العنوان",
+    "newSitePlaceholder": "أدخل اسم الموقع (مثل: موقف السيارات، مبنى المكتب)",
+    "addressPlaceholder": "أدخل عنوان الموقع",
+    "parentBranch": "الفرع الرئيسي",
+    "selectBranch": "اختر الفرع",
+    "branchRequired": "يرجى اختيار الفرع الرئيسي",
+    "addSite": "إضافة موقع",
+    "noAddress": "لا يوجد عنوان"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
