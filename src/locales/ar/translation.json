@@ -614,8 +614,11 @@
       "revoked": "تم إلغاء الدعوة",
       "revokedDescription": "تم إلغاء الدعوة.",
       "copied": "تم نسخ الرمز",
-      "copiedDescription": "تم نسخ رمز الدعوة إلى الحافظة."
+      "copiedDescription": "تم نسخ رمز الدعوة إلى الحافظة.",
+      "emailResent": "تم إعادة إرسال البريد",
+      "emailResentDescription": "تم إعادة إرسال بريد الدعوة إلى {{email}}."
     },
-    "sendEmailOnCreate": "إرسال بريد إلكتروني للدعوة"
+    "sendEmailOnCreate": "إرسال بريد إلكتروني للدعوة",
+    "resendEmail": "إعادة إرسال بريد الدعوة"
   }
 }

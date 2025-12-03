@@ -180,6 +180,35 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
     setDeleteDialogOpen(true);
   };
 
+  // Resend email mutation
+  const resendMutation = useMutation({
+    mutationFn: async (invitation: Invitation) => {
+      const { error } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          email: invitation.email,
+          code: invitation.code,
+          tenantName: tenant.name,
+          expiresAt: invitation.expires_at,
+        },
+      });
+      if (error) throw error;
+      return invitation;
+    },
+    onSuccess: (invitation) => {
+      toast({
+        title: t('invitations.toast.emailResent'),
+        description: t('invitations.toast.emailResentDescription', { email: invitation.email }),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleDeleteConfirm = () => {
     if (invitationToDelete) {
       deleteMutation.mutate(invitationToDelete.id);
@@ -318,15 +347,33 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
                     </TableCell>
                     <TableCell>{getStatusBadge(invitation)}</TableCell>
                     <TableCell className="text-end">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteClick(invitation)}
-                        disabled={invitation.used}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        {!invitation.used && !isPast(new Date(invitation.expires_at)) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => resendMutation.mutate(invitation)}
+                            disabled={resendMutation.isPending}
+                            title={t('invitations.resendEmail')}
+                          >
+                            {resendMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Mail className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteClick(invitation)}
+                          disabled={invitation.used}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
