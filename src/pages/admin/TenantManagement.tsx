@@ -11,6 +11,7 @@ import { Plus, Search, Building2 } from 'lucide-react';
 import { TenantListTable } from '@/components/tenants/TenantListTable';
 import { TenantFormDialog } from '@/components/tenants/TenantFormDialog';
 import { TenantStatusDialog } from '@/components/tenants/TenantStatusDialog';
+import { TenantDetailDialog } from '@/components/tenants/TenantDetailDialog';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -30,6 +31,8 @@ export default function TenantManagement() {
     tenant: null,
     newStatus: null,
   });
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailTenant, setDetailTenant] = useState<Tenant | null>(null);
 
   // Fetch tenants
   const { data: tenants = [], isLoading } = useQuery({
@@ -153,6 +156,11 @@ export default function TenantManagement() {
     setStatusDialog({ open: true, tenant, newStatus });
   };
 
+  const handleManageInvitations = (tenant: Tenant) => {
+    setDetailTenant(tenant);
+    setDetailDialogOpen(true);
+  };
+
   const handleFormSubmit = (values: Partial<Tenant> & { name: string; slug: string }) => {
     if (editingTenant) {
       updateMutation.mutate({ id: editingTenant.id, values });
@@ -213,6 +221,7 @@ export default function TenantManagement() {
             isLoading={isLoading}
             onEdit={handleEdit}
             onStatusChange={handleStatusChange}
+            onManageInvitations={handleManageInvitations}
           />
         </CardContent>
       </Card>
@@ -234,6 +243,13 @@ export default function TenantManagement() {
         newStatus={statusDialog.newStatus}
         onConfirm={handleStatusConfirm}
         isSubmitting={statusMutation.isPending}
+      />
+
+      {/* Detail Dialog with Invitations */}
+      <TenantDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        tenant={detailTenant}
       />
     </div>
   );

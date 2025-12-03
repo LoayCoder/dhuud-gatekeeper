@@ -547,7 +547,12 @@
       "openMenu": "Open menu",
       "activate": "Activate",
       "suspend": "Suspend",
-      "disable": "Disable"
+      "disable": "Disable",
+      "manageInvitations": "Manage Invitations"
+    },
+    "detail": {
+      "description": "Manage tenant settings and invitation codes.",
+      "invitations": "Invitations"
     },
     "statusDialog": {
       "activateTitle": "Activate Tenant",
@@ -566,6 +571,42 @@
       "updatedDescription": "The tenant has been updated successfully.",
       "statusUpdated": "Status Updated",
       "statusUpdatedDescription": "The tenant status has been updated."
+    }
+  },
+  "invitations": {
+    "createNew": "Create New Invitation",
+    "createInvitation": "Create Invitation",
+    "existingInvitations": "Existing Invitations",
+    "noInvitations": "No invitation codes yet. Create one to invite users.",
+    "fields": {
+      "email": "Email Address",
+      "expiryDays": "Expires In (Days)"
+    },
+    "placeholders": {
+      "email": "user@company.com"
+    },
+    "columns": {
+      "code": "Code",
+      "email": "Email",
+      "expires": "Expires"
+    },
+    "status": {
+      "pending": "Pending",
+      "used": "Used",
+      "expired": "Expired"
+    },
+    "revokeDialog": {
+      "title": "Revoke Invitation",
+      "description": "Are you sure you want to revoke the invitation for {{email}}? This code will no longer be valid.",
+      "confirm": "Revoke"
+    },
+    "toast": {
+      "created": "Invitation Created",
+      "createdDescription": "Invitation code {{code}} has been created.",
+      "revoked": "Invitation Revoked",
+      "revokedDescription": "The invitation has been revoked.",
+      "copied": "Code Copied",
+      "copiedDescription": "Invitation code copied to clipboard."
     }
   }
 }
