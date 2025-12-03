@@ -583,5 +583,31 @@
     "isActive": "सक्रिय",
     "inactive": "निष्क्रिय",
     "planSaved": "योजना सफलतापूर्वक सहेजी गई।"
+  },
+  "subscription": {
+    "title": "सदस्यता प्रबंधन",
+    "description": "अपनी सदस्यता योजना कॉन्फ़िगर करें और परिवर्तनों का अनुरोध करें।",
+    "currentPlan": "वर्तमान योजना",
+    "noPlan": "कोई योजना चयनित नहीं",
+    "activeStatus": "सक्रिय",
+    "inactiveStatus": "निष्क्रिय",
+    "monthly": "मासिक",
+    "yearly": "वार्षिक",
+    "save10Percent": "-10%",
+    "billingPeriod": "बिलिंग अवधि",
+    "selectDuration": "सदस्यता अवधि चुनें",
+    "selectMonths": "महीनों की संख्या चुनें",
+    "yearlyOption": "1 वर्ष (12 महीने)",
+    "monthlyOption": "1 महीना",
+    "monthsOption": "{{count}} महीने",
+    "selectedPeriod": "चयनित अवधि",
+    "oneYear": "1 वर्ष",
+    "oneMonth": "1 महीना",
+    "nMonths": "{{count}} महीने",
+    "discount": "छूट",
+    "savePercent": "{{percent}}% बचाएं",
+    "configurePlan": "योजना कॉन्फ़िगर करें",
+    "myRequests": "मेरे अनुरोध",
+    "requestPlan": "सदस्यता योजना का अनुरोध करें"
   }
 }

@@ -583,5 +583,31 @@
     "isActive": "فعال",
     "inactive": "غیر فعال",
     "planSaved": "پلان کامیابی سے محفوظ ہو گیا۔"
+  },
+  "subscription": {
+    "title": "سبسکرپشن کا انتظام",
+    "description": "اپنی سبسکرپشن پلان کو ترتیب دیں اور تبدیلیوں کی درخواست کریں۔",
+    "currentPlan": "موجودہ پلان",
+    "noPlan": "کوئی پلان منتخب نہیں",
+    "activeStatus": "فعال",
+    "inactiveStatus": "غیر فعال",
+    "monthly": "ماہانہ",
+    "yearly": "سالانہ",
+    "save10Percent": "-10%",
+    "billingPeriod": "بلنگ کی مدت",
+    "selectDuration": "سبسکرپشن کی مدت منتخب کریں",
+    "selectMonths": "مہینوں کی تعداد منتخب کریں",
+    "yearlyOption": "1 سال (12 مہینے)",
+    "monthlyOption": "1 مہینہ",
+    "monthsOption": "{{count}} مہینے",
+    "selectedPeriod": "منتخب مدت",
+    "oneYear": "1 سال",
+    "oneMonth": "1 مہینہ",
+    "nMonths": "{{count}} مہینے",
+    "discount": "رعایت",
+    "savePercent": "{{percent}}% بچائیں",
+    "configurePlan": "پلان کنفیگر کریں",
+    "myRequests": "میری درخواستیں",
+    "requestPlan": "سبسکرپشن پلان کی درخواست کریں"
   }
 }
