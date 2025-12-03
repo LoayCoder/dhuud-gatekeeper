@@ -251,6 +251,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_name: string
+          extra_profile_price_sar: number | null
           features: Json | null
           id: string
           included_users: number | null
@@ -262,6 +263,7 @@ export type Database = {
           price_per_user: number | null
           price_per_user_yearly: number | null
           price_yearly: number | null
+          profile_quota_monthly: number | null
           sort_order: number | null
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
@@ -271,6 +273,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_name: string
+          extra_profile_price_sar?: number | null
           features?: Json | null
           id?: string
           included_users?: number | null
@@ -282,6 +285,7 @@ export type Database = {
           price_per_user?: number | null
           price_per_user_yearly?: number | null
           price_yearly?: number | null
+          profile_quota_monthly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
@@ -291,6 +295,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_name?: string
+          extra_profile_price_sar?: number | null
           features?: Json | null
           id?: string
           included_users?: number | null
@@ -302,6 +307,7 @@ export type Database = {
           price_per_user?: number | null
           price_per_user_yearly?: number | null
           price_yearly?: number | null
+          profile_quota_monthly?: number | null
           sort_order?: number | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
@@ -316,15 +322,29 @@ export type Database = {
           assigned_section_id: string | null
           assigned_site_id: string | null
           avatar_url: string | null
+          contract_end: string | null
+          contract_start: string | null
+          contractor_company_name: string | null
+          contractor_type: Database["public"]["Enums"]["contractor_type"] | null
           created_at: string | null
+          deleted_at: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          employee_id: string | null
           full_name: string | null
+          has_login: boolean | null
           id: string
+          is_active: boolean | null
+          is_deleted: boolean | null
+          job_title: string | null
+          membership_end: string | null
+          membership_id: string | null
+          membership_start: string | null
           phone_number: string | null
           preferred_language: string | null
           tenant_id: string
           updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
           assigned_branch_id?: string | null
@@ -333,15 +353,31 @@ export type Database = {
           assigned_section_id?: string | null
           assigned_site_id?: string | null
           avatar_url?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_company_name?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
+          deleted_at?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          employee_id?: string | null
           full_name?: string | null
+          has_login?: boolean | null
           id: string
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          job_title?: string | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
           phone_number?: string | null
           preferred_language?: string | null
           tenant_id: string
           updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
           assigned_branch_id?: string | null
@@ -350,15 +386,31 @@ export type Database = {
           assigned_section_id?: string | null
           assigned_site_id?: string | null
           avatar_url?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_company_name?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
           created_at?: string | null
+          deleted_at?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          employee_id?: string | null
           full_name?: string | null
+          has_login?: boolean | null
           id?: string
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          job_title?: string | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
           phone_number?: string | null
           preferred_language?: string | null
           tenant_id?: string
           updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: [
           {
@@ -736,6 +788,81 @@ export type Database = {
           },
         ]
       }
+      tenant_billing_records: {
+        Row: {
+          billable_profiles: number | null
+          billing_month: string
+          contractor_count: number | null
+          created_at: string | null
+          free_quota: number | null
+          id: string
+          licensed_user_charges: number | null
+          licensed_users: number | null
+          member_count: number | null
+          plan_id: string | null
+          profile_charges: number | null
+          rate_per_profile: number | null
+          status: string | null
+          tenant_id: string
+          total_charge: number | null
+          total_profiles: number | null
+          visitor_count: number | null
+        }
+        Insert: {
+          billable_profiles?: number | null
+          billing_month: string
+          contractor_count?: number | null
+          created_at?: string | null
+          free_quota?: number | null
+          id?: string
+          licensed_user_charges?: number | null
+          licensed_users?: number | null
+          member_count?: number | null
+          plan_id?: string | null
+          profile_charges?: number | null
+          rate_per_profile?: number | null
+          status?: string | null
+          tenant_id: string
+          total_charge?: number | null
+          total_profiles?: number | null
+          visitor_count?: number | null
+        }
+        Update: {
+          billable_profiles?: number | null
+          billing_month?: string
+          contractor_count?: number | null
+          created_at?: string | null
+          free_quota?: number | null
+          id?: string
+          licensed_user_charges?: number | null
+          licensed_users?: number | null
+          member_count?: number | null
+          plan_id?: string | null
+          profile_charges?: number | null
+          rate_per_profile?: number | null
+          status?: string | null
+          tenant_id?: string
+          total_charge?: number | null
+          total_profiles?: number | null
+          visitor_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_billing_records_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_billing_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_modules: {
         Row: {
           created_at: string
@@ -783,6 +910,146 @@ export type Database = {
           },
           {
             foreignKeyName: "tenant_modules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_profile_usage: {
+        Row: {
+          billing_month: string
+          contractor_count: number | null
+          created_at: string | null
+          id: string
+          member_count: number | null
+          tenant_id: string
+          total_profiles: number | null
+          updated_at: string | null
+          visitor_count: number | null
+        }
+        Insert: {
+          billing_month: string
+          contractor_count?: number | null
+          created_at?: string | null
+          id?: string
+          member_count?: number | null
+          tenant_id: string
+          total_profiles?: number | null
+          updated_at?: string | null
+          visitor_count?: number | null
+        }
+        Update: {
+          billing_month?: string
+          contractor_count?: number | null
+          created_at?: string | null
+          id?: string
+          member_count?: number | null
+          tenant_id?: string
+          total_profiles?: number | null
+          updated_at?: string | null
+          visitor_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_profile_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_profiles: {
+        Row: {
+          company_name: string | null
+          contract_end: string | null
+          contract_start: string | null
+          contractor_type: Database["public"]["Enums"]["contractor_type"] | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          has_login: boolean | null
+          host_id: string | null
+          id: string
+          is_active: boolean | null
+          is_deleted: boolean | null
+          membership_end: string | null
+          membership_id: string | null
+          membership_start: string | null
+          national_id: string | null
+          phone: string | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          tenant_id: string
+          updated_at: string | null
+          visit_date: string | null
+          visit_duration_hours: number | null
+          visit_reason: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          has_login?: boolean | null
+          host_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
+          national_id?: string | null
+          phone?: string | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          tenant_id: string
+          updated_at?: string | null
+          visit_date?: string | null
+          visit_duration_hours?: number | null
+          visit_reason?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          has_login?: boolean | null
+          host_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
+          national_id?: string | null
+          phone?: string | null
+          profile_type?: Database["public"]["Enums"]["profile_type"]
+          tenant_id?: string
+          updated_at?: string | null
+          visit_date?: string | null
+          visit_duration_hours?: number | null
+          visit_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_profiles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1120,6 +1387,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_profile_billing: {
+        Args: { p_billing_month: string; p_tenant_id: string }
+        Returns: Json
+      }
       calculate_subscription_price:
         | {
             Args: {
@@ -1143,8 +1414,13 @@ export type Database = {
         Returns: boolean
       }
       can_view_visitor_pii: { Args: never; Returns: boolean }
+      check_licensed_user_quota: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       get_auth_tenant_id: { Args: never; Returns: string }
+      get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_tenant_modules: {
         Args: { p_tenant_id: string }
         Returns: Database["public"]["Enums"]["module_code"][]
@@ -1182,6 +1458,7 @@ export type Database = {
         | "mfa_disabled"
         | "mfa_verification_failed"
       app_role: "admin" | "user"
+      contractor_type: "long_term" | "short_term"
       module_code:
         | "hsse_core"
         | "visitor_management"
@@ -1190,6 +1467,7 @@ export type Database = {
         | "reports_analytics"
         | "api_access"
         | "priority_support"
+      profile_type: "visitor" | "member" | "contractor"
       subscription_event_type:
         | "plan_changed"
         | "trial_started"
@@ -1226,6 +1504,12 @@ export type Database = {
         | "waiting_customer"
         | "resolved"
         | "closed"
+      user_type:
+        | "employee"
+        | "contractor_longterm"
+        | "contractor_shortterm"
+        | "member"
+        | "visitor"
       visit_status:
         | "pending_security"
         | "approved"
@@ -1370,6 +1654,7 @@ export const Constants = {
         "mfa_verification_failed",
       ],
       app_role: ["admin", "user"],
+      contractor_type: ["long_term", "short_term"],
       module_code: [
         "hsse_core",
         "visitor_management",
@@ -1379,6 +1664,7 @@ export const Constants = {
         "api_access",
         "priority_support",
       ],
+      profile_type: ["visitor", "member", "contractor"],
       subscription_event_type: [
         "plan_changed",
         "trial_started",
@@ -1418,6 +1704,13 @@ export const Constants = {
         "waiting_customer",
         "resolved",
         "closed",
+      ],
+      user_type: [
+        "employee",
+        "contractor_longterm",
+        "contractor_shortterm",
+        "member",
+        "visitor",
       ],
       visit_status: [
         "pending_security",
