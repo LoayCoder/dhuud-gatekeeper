@@ -6,31 +6,28 @@ import { ShieldCheck, Shield, Loader2 } from "lucide-react";
 import { useMFA } from "@/hooks/useMFA";
 import { MFAEnrollDialog } from "./MFAEnrollDialog";
 import { MFADisableDialog } from "./MFADisableDialog";
-
 export function TwoFactorSetup() {
-  const { t } = useTranslation();
-  const { isEnabled, isLoading, factors, refreshFactors } = useMFA();
+  const {
+    t
+  } = useTranslation();
+  const {
+    isEnabled,
+    isLoading,
+    factors,
+    refreshFactors
+  } = useMFA();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
+    return <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       {/* Status Display */}
       <div className="flex items-start gap-4 rtl:flex-row-reverse">
         <div className={`rounded-full p-3 flex-shrink-0 ${isEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
-          {isEnabled ? (
-            <ShieldCheck className="h-6 w-6 text-green-600" />
-          ) : (
-            <Shield className="h-6 w-6 text-muted-foreground" />
-          )}
+          {isEnabled ? <ShieldCheck className="h-6 w-6 text-green-600" /> : <Shield className="h-6 w-6 text-muted-foreground" />}
         </div>
         <div className="flex-1 space-y-1 text-start">
           <div className="flex items-center gap-2 rtl:flex-row-reverse">
@@ -39,44 +36,24 @@ export function TwoFactorSetup() {
               {isEnabled ? t('twoFactorSetup.enabled') : t('twoFactorSetup.disabled')}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {isEnabled
-              ? t('twoFactorSetup.enabledMessage')
-              : t('twoFactorSetup.disabledMessage')}
+          <p className="text-sm text-muted-foreground text-right">
+            {isEnabled ? t('twoFactorSetup.enabledMessage') : t('twoFactorSetup.disabledMessage')}
           </p>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="flex justify-end rtl:justify-start">
-        {isEnabled ? (
-          <Button
-            variant="outline"
-            onClick={() => setDisableDialogOpen(true)}
-            className="text-destructive hover:text-destructive"
-          >
+        {isEnabled ? <Button variant="outline" onClick={() => setDisableDialogOpen(true)} className="text-destructive hover:text-destructive">
             {t('twoFactorSetup.disable2FA')}
-          </Button>
-        ) : (
-          <Button onClick={() => setEnrollDialogOpen(true)}>
+          </Button> : <Button onClick={() => setEnrollDialogOpen(true)}>
             {t('twoFactorSetup.enable2FA')}
-          </Button>
-        )}
+          </Button>}
       </div>
 
       {/* Dialogs */}
-      <MFAEnrollDialog
-        open={enrollDialogOpen}
-        onOpenChange={setEnrollDialogOpen}
-        onSuccess={refreshFactors}
-      />
+      <MFAEnrollDialog open={enrollDialogOpen} onOpenChange={setEnrollDialogOpen} onSuccess={refreshFactors} />
       
-      <MFADisableDialog
-        open={disableDialogOpen}
-        onOpenChange={setDisableDialogOpen}
-        factorId={factors[0]?.id}
-        onSuccess={refreshFactors}
-      />
-    </div>
-  );
+      <MFADisableDialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen} factorId={factors[0]?.id} onSuccess={refreshFactors} />
+    </div>;
 }
