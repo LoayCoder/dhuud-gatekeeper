@@ -596,7 +596,7 @@
       "activate": "تفعيل",
       "suspend": "تعليق",
       "disable": "تعطيل",
-      "manageInvitations": "إدارة الدعوات"
+      "manageTenant": "إدارة المستأجر"
     },
     "detail": {
       "description": "إدارة إعدادات المستأجر ورموز الدعوة.",

@@ -588,7 +588,7 @@
       "activate": "Activate",
       "suspend": "Suspend",
       "disable": "Disable",
-      "manageInvitations": "Manage Invitations"
+      "manageTenant": "Manage Tenant"
     },
     "detail": {
       "description": "Manage tenant settings and invitation codes.",
