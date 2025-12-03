@@ -41,6 +41,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@supabase/supabase-js": "^2.86.0",
     "@tanstack/react-query": "^5.83.0",
+    "@testing-library/react": "^16.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -65,6 +66,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-rtl": "^0.9.0",
     "vaul": "^0.9.9",
+    "vitest": "^4.0.15",
     "zod": "^3.25.76"
   },
   "devDependencies": {
