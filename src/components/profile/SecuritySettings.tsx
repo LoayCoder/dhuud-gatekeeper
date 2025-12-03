@@ -151,7 +151,7 @@ export function SecuritySettings() {
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
@@ -174,7 +174,7 @@ export function SecuritySettings() {
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute ltr:right-3 rtl:left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
             {confirmPassword.length > 0 && (
               <div className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
