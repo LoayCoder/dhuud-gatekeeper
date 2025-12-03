@@ -28,6 +28,7 @@ import {
   ChevronRight,
   UserCircle,
   User,
+  Network,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,6 +129,11 @@ export function AppSidebar() {
           title: t('navigation.userManagement'),
           url: "/admin/users",
           icon: Users,
+        },
+        {
+          title: t('navigation.orgStructure'),
+          url: "/admin/org-structure",
+          icon: Network,
         },
       ],
     },

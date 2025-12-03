@@ -46,6 +46,74 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          created_at: string | null
+          division_id: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          division_id: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          division_id?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_division_id_fkey"
+            columns: ["division_id"]
+            isOneToOne: false
+            referencedRelation: "divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      divisions: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "divisions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           code: string
@@ -87,6 +155,9 @@ export type Database = {
       profiles: {
         Row: {
           assigned_branch_id: string | null
+          assigned_department_id: string | null
+          assigned_division_id: string | null
+          assigned_section_id: string | null
           assigned_site_id: string | null
           avatar_url: string | null
           created_at: string | null
@@ -101,6 +172,9 @@ export type Database = {
         }
         Insert: {
           assigned_branch_id?: string | null
+          assigned_department_id?: string | null
+          assigned_division_id?: string | null
+          assigned_section_id?: string | null
           assigned_site_id?: string | null
           avatar_url?: string | null
           created_at?: string | null
@@ -115,6 +189,9 @@ export type Database = {
         }
         Update: {
           assigned_branch_id?: string | null
+          assigned_department_id?: string | null
+          assigned_division_id?: string | null
+          assigned_section_id?: string | null
           assigned_site_id?: string | null
           avatar_url?: string | null
           created_at?: string | null
@@ -136,6 +213,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_assigned_department_id_fkey"
+            columns: ["assigned_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_division_id_fkey"
+            columns: ["assigned_division_id"]
+            isOneToOne: false
+            referencedRelation: "divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_section_id_fkey"
+            columns: ["assigned_section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_assigned_site_id_fkey"
             columns: ["assigned_site_id"]
             isOneToOne: false
@@ -144,6 +242,45 @@ export type Database = {
           },
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sections: {
+        Row: {
+          created_at: string | null
+          department_id: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department_id: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sections_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
