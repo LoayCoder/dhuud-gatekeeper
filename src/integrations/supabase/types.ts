@@ -1081,6 +1081,7 @@ export type Database = {
           logo_dark_url: string | null
           logo_light_url: string | null
           max_users_override: number | null
+          mfa_trust_duration_days: number | null
           name: string
           notes: string | null
           plan_id: string | null
@@ -1121,6 +1122,7 @@ export type Database = {
           logo_dark_url?: string | null
           logo_light_url?: string | null
           max_users_override?: number | null
+          mfa_trust_duration_days?: number | null
           name: string
           notes?: string | null
           plan_id?: string | null
@@ -1161,6 +1163,7 @@ export type Database = {
           logo_dark_url?: string | null
           logo_light_url?: string | null
           max_users_override?: number | null
+          mfa_trust_duration_days?: number | null
           name?: string
           notes?: string | null
           plan_id?: string | null

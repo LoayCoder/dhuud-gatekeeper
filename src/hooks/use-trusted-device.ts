@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 const TRUST_STORAGE_KEY = 'mfa_trusted_device_token';
-const TRUST_DAYS = 15;
+const DEFAULT_TRUST_DAYS = 15;
 
 interface TrustedDevice {
   id: string;
@@ -9,6 +9,29 @@ interface TrustedDevice {
   trusted_until: string;
   created_at: string;
   last_used_at: string;
+}
+
+// Fetch tenant's configured trust duration
+async function getTenantTrustDuration(userId: string): Promise<number> {
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', userId)
+      .single();
+
+    if (!profile?.tenant_id) return DEFAULT_TRUST_DAYS;
+
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('mfa_trust_duration_days')
+      .eq('id', profile.tenant_id)
+      .single();
+
+    return tenant?.mfa_trust_duration_days ?? DEFAULT_TRUST_DAYS;
+  } catch {
+    return DEFAULT_TRUST_DAYS;
+  }
 }
 
 export function useTrustedDevice() {
@@ -76,8 +99,9 @@ export function useTrustedDevice() {
 
   const trustDevice = async (userId: string): Promise<boolean> => {
     const token = generateToken();
+    const trustDays = await getTenantTrustDuration(userId);
     const trustedUntil = new Date();
-    trustedUntil.setDate(trustedUntil.getDate() + TRUST_DAYS);
+    trustedUntil.setDate(trustedUntil.getDate() + trustDays);
 
     try {
       const { error } = await supabase.from('trusted_devices').insert({
