@@ -28,6 +28,7 @@ import OrgStructure from "./pages/admin/OrgStructure";
 import UserManagement from "./pages/admin/UserManagement";
 import TenantManagement from "./pages/admin/TenantManagement";
 import SupportDashboard from "./pages/admin/SupportDashboard";
+import SubscriptionManagement from "./pages/admin/SubscriptionManagement";
 import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
@@ -113,6 +114,7 @@ const App = () => (
 
                     {/* User Routes */}
                     <Route path="/support" element={<Support />} />
+                    <Route path="/settings/subscription" element={<SubscriptionManagement />} />
                   </Route>
 
                   {/* Catch-all */}

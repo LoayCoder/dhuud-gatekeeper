@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { Outlet } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { TrialBanner } from "@/components/TrialBanner";
 export default function MainLayout() {
   const {
     tenantName
@@ -26,6 +27,7 @@ export default function MainLayout() {
 
           {/* Main Page Content */}
           <main className="flex flex-1 flex-col gap-4 p-4">
+            <TrialBanner />
             <Outlet />
           </main>
         </SidebarInset>
