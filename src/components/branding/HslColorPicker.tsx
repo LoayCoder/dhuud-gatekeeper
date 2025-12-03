@@ -213,7 +213,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
         <Input 
           value={value} 
           onChange={(e) => onChange(e.target.value)}
-          placeholder="e.g., 221 83% 53%"
+          placeholder={t('adminBranding.colorPicker.hslPlaceholder')}
           className="font-mono text-sm"
         />
       </div>

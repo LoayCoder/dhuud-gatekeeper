@@ -39,10 +39,10 @@ export function TenantInfo({ memberSince }: TenantInfoProps) {
         <div className="space-y-2 text-start">
           <div className="text-sm grid gap-2">
             <div className="flex justify-between py-2 border-b rtl:flex-row-reverse">
-              <span className="text-muted-foreground">{t('common.status') || 'Status'}</span>
+              <span className="text-muted-foreground">{t('common.status')}</span>
               <span className="text-green-600 font-medium flex items-center gap-1 rtl:flex-row-reverse">
                 <span className="h-2 w-2 rounded-full bg-green-600 inline-block" />
-                {t('common.active') || 'Active'}
+                {t('common.active')}
               </span>
             </div>
             {memberSince && (

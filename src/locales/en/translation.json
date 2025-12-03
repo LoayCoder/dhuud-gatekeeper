@@ -56,6 +56,8 @@
     "creatingAccount": "Creating Account...",
     "email": "Email",
     "password": "Password",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "confirmPassword": "Confirm Password",
     "forgotPassword": "Forgot password?",
     "backToInvite": "Back to invitation code",

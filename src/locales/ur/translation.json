@@ -55,6 +55,8 @@
     "creatingAccount": "اکاؤنٹ بنایا جا رہا ہے...",
     "email": "ای میل",
     "password": "پاس ورڈ",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "confirmPassword": "پاس ورڈ کی تصدیق کریں",
     "forgotPassword": "پاس ورڈ بھول گئے؟",
     "backToInvite": "دعوت کوڈ پر واپس جائیں",

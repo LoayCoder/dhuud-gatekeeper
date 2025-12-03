@@ -55,6 +55,8 @@
     "creatingAccount": "Gumagawa ng Account...",
     "email": "Email",
     "password": "Password",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "confirmPassword": "Kumpirmahin ang Password",
     "forgotPassword": "Nakalimutan ang password?",
     "backToInvite": "Bumalik sa invitation code",

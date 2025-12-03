@@ -15,7 +15,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
       <CardHeader className="text-start">
         <CardTitle className="text-lg">{t('assignment.title')}</CardTitle>
         <CardDescription>
-          {t('assignment.description') || 'Your assigned branch and site location.'}
+          {t('assignment.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -64,7 +64,7 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
         </div>
 
         <p className="text-xs text-muted-foreground text-start">
-          {t('assignment.managedByAdmin') || 'Branch and site assignments are managed by your administrator.'}
+          {t('assignment.managedByAdmin')}
         </p>
       </CardContent>
     </Card>

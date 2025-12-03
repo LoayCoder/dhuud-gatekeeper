@@ -55,6 +55,8 @@
     "creatingAccount": "खाता बनाया जा रहा है...",
     "email": "ईमेल",
     "password": "पासवर्ड",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "confirmPassword": "पासवर्ड की पुष्टि करें",
     "forgotPassword": "पासवर्ड भूल गए?",
     "backToInvite": "आमंत्रण कोड पर वापस जाएं",
