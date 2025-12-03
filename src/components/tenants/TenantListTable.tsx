@@ -20,9 +20,10 @@ interface TenantListTableProps {
   isLoading: boolean;
   onEdit: (tenant: Tenant) => void;
   onStatusChange: (tenant: Tenant, newStatus: TenantStatus) => void;
+  onManageInvitations: (tenant: Tenant) => void;
 }
 
-export function TenantListTable({ tenants, isLoading, onEdit, onStatusChange }: TenantListTableProps) {
+export function TenantListTable({ tenants, isLoading, onEdit, onStatusChange, onManageInvitations }: TenantListTableProps) {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -84,6 +85,7 @@ export function TenantListTable({ tenants, isLoading, onEdit, onStatusChange }: 
                   tenant={tenant}
                   onEdit={onEdit}
                   onStatusChange={onStatusChange}
+                  onManageInvitations={onManageInvitations}
                 />
               </TableCell>
             </TableRow>

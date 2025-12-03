@@ -554,7 +554,12 @@
       "openMenu": "فتح القائمة",
       "activate": "تفعيل",
       "suspend": "تعليق",
-      "disable": "تعطيل"
+      "disable": "تعطيل",
+      "manageInvitations": "إدارة الدعوات"
+    },
+    "detail": {
+      "description": "إدارة إعدادات المستأجر ورموز الدعوة.",
+      "invitations": "الدعوات"
     },
     "statusDialog": {
       "activateTitle": "تفعيل المستأجر",
@@ -573,6 +578,42 @@
       "updatedDescription": "تم تحديث المستأجر بنجاح.",
       "statusUpdated": "تم تحديث الحالة",
       "statusUpdatedDescription": "تم تحديث حالة المستأجر."
+    }
+  },
+  "invitations": {
+    "createNew": "إنشاء دعوة جديدة",
+    "createInvitation": "إنشاء دعوة",
+    "existingInvitations": "الدعوات الحالية",
+    "noInvitations": "لا توجد رموز دعوة بعد. أنشئ واحدة لدعوة المستخدمين.",
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "expiryDays": "تنتهي خلال (أيام)"
+    },
+    "placeholders": {
+      "email": "user@company.com"
+    },
+    "columns": {
+      "code": "الرمز",
+      "email": "البريد الإلكتروني",
+      "expires": "ينتهي في"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "used": "مستخدم",
+      "expired": "منتهي"
+    },
+    "revokeDialog": {
+      "title": "إلغاء الدعوة",
+      "description": "هل أنت متأكد من إلغاء الدعوة لـ {{email}}؟ لن يكون هذا الرمز صالحًا بعد الآن.",
+      "confirm": "إلغاء"
+    },
+    "toast": {
+      "created": "تم إنشاء الدعوة",
+      "createdDescription": "تم إنشاء رمز الدعوة {{code}}.",
+      "revoked": "تم إلغاء الدعوة",
+      "revokedDescription": "تم إلغاء الدعوة.",
+      "copied": "تم نسخ الرمز",
+      "copiedDescription": "تم نسخ رمز الدعوة إلى الحافظة."
     }
   }
 }
