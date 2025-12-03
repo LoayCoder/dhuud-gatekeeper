@@ -160,7 +160,7 @@ export function ProfileForm({
   };
   return <div className="space-y-6">
       {/* Avatar Upload */}
-      <div className="gap-6 pb-6 flex-row flex items-center justify-end">
+      <div className="gap-6 pb-6 flex-row flex items-center justify-center">
         <Avatar className="h-24 w-24 flex-shrink-0">
           <AvatarImage src={avatarUrl || undefined} alt={fullName} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
