@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import { UserLimitIndicator } from "@/components/UserLimitIndicator";
 import { useModuleAccess } from "@/hooks/use-module-access";
+import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 
 export default function SubscriptionManagement() {
   const { t } = useTranslation();
@@ -42,9 +43,12 @@ export default function SubscriptionManagement() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('subscription.title')}</h1>
-        <p className="text-muted-foreground">{t('subscription.description')}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('subscription.title')}</h1>
+          <p className="text-muted-foreground">{t('subscription.description')}</p>
+        </div>
+        <PlanComparisonModal />
       </div>
 
       {/* Current Plan Status */}

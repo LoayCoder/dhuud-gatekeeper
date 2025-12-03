@@ -87,7 +87,10 @@
     "orgStructure": "Organization Structure",
     "tenantManagement": "Tenant Management",
     "supportDashboard": "Support Dashboard",
+    "subscriptionsOverview": "Subscriptions Overview",
     "support": "Support",
+    "settings": "Settings",
+    "subscription": "Subscription",
     "platform": "Platform",
     "enterpriseHsse": "Enterprise HSSE"
   },
@@ -732,8 +735,9 @@
     "currentPlan": "Current Plan",
     "noPlan": "No Plan Selected",
     "trialStatus": "Trial - {{days}} days remaining",
-    "activeStatus": "Active Subscription",
+    "activeStatus": "Active",
     "inactiveStatus": "Inactive",
+    "canceledStatus": "Canceled",
     "availablePlans": "Available Plans",
     "currentPlanBadge": "Current",
     "perMonth": "month",
@@ -745,6 +749,24 @@
     "upgradeTo": "Upgrade to {{plan}}",
     "billingInfo": "Billing Information",
     "billingDescription": "Manage your payment method and billing details.",
-    "stripeComingSoon": "Payment processing integration coming soon."
+    "stripeComingSoon": "Payment processing integration coming soon.",
+    "comparePlans": "Compare Plans",
+    "planComparison": "Plan Comparison",
+    "features": "Features",
+    "maxUsers": "Maximum Users"
+  },
+  "subscriptionOverview": {
+    "title": "Subscriptions Overview",
+    "description": "Monitor all tenant subscriptions and billing status.",
+    "totalTenants": "Total Tenants",
+    "activeSubscriptions": "Active Subscriptions",
+    "inTrial": "In Trial",
+    "monthlyRevenue": "Monthly Revenue",
+    "allTenants": "All Tenants",
+    "allTenantsDesc": "Subscription status for all registered tenants.",
+    "userUsage": "User Usage",
+    "trialEnds": "Trial Ends",
+    "daysLeft": "days left",
+    "noTenants": "No tenants found."
   }
 }

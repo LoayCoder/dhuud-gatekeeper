@@ -29,6 +29,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import TenantManagement from "./pages/admin/TenantManagement";
 import SupportDashboard from "./pages/admin/SupportDashboard";
 import SubscriptionManagement from "./pages/admin/SubscriptionManagement";
+import SubscriptionOverview from "./pages/admin/SubscriptionOverview";
 import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
@@ -108,6 +109,14 @@ const App = () => (
                       element={
                         <AdminRoute>
                           <SupportDashboard />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/subscriptions"
+                      element={
+                        <AdminRoute>
+                          <SubscriptionOverview />
                         </AdminRoute>
                       }
                     />

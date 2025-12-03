@@ -32,6 +32,8 @@ import {
   Layers,
   HelpCircle,
   LifeBuoy,
+  CreditCard,
+  Receipt,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -148,12 +150,29 @@ export function AppSidebar() {
           url: "/admin/support",
           icon: HelpCircle,
         },
+        {
+          title: t('navigation.subscriptionsOverview'),
+          url: "/admin/subscriptions",
+          icon: Receipt,
+        },
       ],
     },
     {
       title: t('navigation.support'),
       url: "/support",
       icon: LifeBuoy,
+    },
+    {
+      title: t('navigation.settings'),
+      icon: Settings,
+      isActive: location.pathname.startsWith("/settings"),
+      items: [
+        {
+          title: t('navigation.subscription'),
+          url: "/settings/subscription",
+          icon: CreditCard,
+        },
+      ],
     },
   ];
 
