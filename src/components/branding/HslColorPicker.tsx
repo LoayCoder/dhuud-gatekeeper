@@ -112,9 +112,9 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
   const colorPreview = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
 
   return (
-    <div className="space-y-2">
-      <Label className="ltr:text-left rtl:text-right">{label}</Label>
-      <div className="flex gap-3 items-center ltr:flex-row rtl:flex-row-reverse">
+    <div className="space-y-2 flex flex-col rtl:items-end">
+      <Label className="ltr:text-left rtl:text-right block w-full">{label}</Label>
+      <div className="flex gap-3 items-center ltr:flex-row rtl:flex-row-reverse w-full">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -125,7 +125,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               <span className="sr-only">{t('adminBranding.colorPicker.pickColor')}</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4" align="start">
+          <PopoverContent className="w-72 p-4" align="start" side="bottom">
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2 ltr:flex-row rtl:flex-row-reverse">
                 <Pipette className="h-4 w-4 text-muted-foreground" />
@@ -197,13 +197,13 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               </div>
 
               {/* Manual Input */}
-              <div className="pt-2 border-t">
-                <Label className="text-xs text-muted-foreground ltr:text-left rtl:text-right">{t('adminBranding.colorPicker.hslValue')}</Label>
+              <div className="pt-2 border-t flex flex-col rtl:items-end">
+                <Label className="text-xs text-muted-foreground ltr:text-left rtl:text-right block w-full">{t('adminBranding.colorPicker.hslValue')}</Label>
                 <Input
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
                   placeholder={t('adminBranding.colorPicker.hslPlaceholder')}
-                  className="mt-1 font-mono text-xs h-8"
+                  className="mt-1 font-mono text-xs h-8 w-full"
                 />
               </div>
             </div>
