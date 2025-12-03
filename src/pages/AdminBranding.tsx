@@ -382,7 +382,7 @@ export default function AdminBranding() {
             {/* Favicon */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse text-justify">
+                <CardTitle className="ltr:text-left rtl:text-right">
                    {t('adminBranding.assets.favicon.title')}
                 </CardTitle>
                 <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.favicon.description')}</CardDescription>
