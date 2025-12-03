@@ -1138,6 +1138,11 @@ export type Database = {
             }
             Returns: Json
           }
+      can_view_sensitive_profile_data: {
+        Args: { profile_user_id: string }
+        Returns: boolean
+      }
+      can_view_visitor_pii: { Args: never; Returns: boolean }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_tenant_modules: {
