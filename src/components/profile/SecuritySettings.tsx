@@ -111,10 +111,10 @@ export function SecuritySettings() {
 
         {/* Password Requirements */}
         <div className="rounded-lg border p-4 bg-muted/5">
-          <h4 className="text-sm font-medium mb-3">{t('securitySettings.passwordRequirements')}</h4>
-          <ul className="flex flex-col space-y-2 rtl:items-end">
+          <h4 className="text-sm font-medium mb-3 ltr:text-left rtl:text-right">{t('securitySettings.passwordRequirements')}</h4>
+          <ul className="space-y-2">
             {requirements.map((req, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm w-full rtl:flex-row-reverse rtl:justify-end">
+              <li key={index} className="flex items-center gap-2 text-sm ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                 {req.met ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                 ) : (
