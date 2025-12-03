@@ -289,8 +289,8 @@ export default function AdminBranding() {
                 <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.title')}</CardTitle>
                 <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.description')}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
+              <CardContent className="flex flex-col rtl:items-end">
+                <div className="grid md:grid-cols-2 gap-6 w-full">
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
                       <Sun className="h-4 w-4 text-amber-500" />
@@ -321,8 +321,8 @@ export default function AdminBranding() {
                 <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.title')}</CardTitle>
                 <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.description')}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
+              <CardContent className="flex flex-col rtl:items-end">
+                <div className="grid md:grid-cols-2 gap-6 w-full">
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
                       <Sun className="h-4 w-4 text-amber-500" />
@@ -353,8 +353,8 @@ export default function AdminBranding() {
                 <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.title')}</CardTitle>
                 <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.description')}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
+              <CardContent className="flex flex-col rtl:items-end">
+                <div className="grid md:grid-cols-2 gap-6 w-full">
                   <div className="flex flex-col space-y-3 rtl:items-end">
                     <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse">
                       <Sun className="h-4 w-4 text-amber-500" />
