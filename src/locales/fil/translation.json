@@ -691,7 +691,20 @@
       "description": "Pamahalaan ang mga setting ng tenant at mga invitation code.",
       "invitations": "Mga Invitation",
       "modules": "Mga Module",
-      "trial": "Trial at Katayuan"
+      "trial": "Trial at Katayuan",
+      "security": "Seguridad"
+    },
+    "security": {
+      "mfaTrustDuration": "Tagal ng Pinagkakatiwalaang Device ng MFA",
+      "mfaTrustDurationDesc": "I-configure kung gaano katagal mananatiling pinagkakatiwalaan ang mga device pagkatapos ng MFA verification.",
+      "trustDurationLabel": "Tagal ng Tiwala",
+      "trustDurationHelp": "Maaaring laktawan ng mga user ang MFA para sa ganitong bilang ng araw sa mga pinagkakatiwalaang device (1-365 araw).",
+      "currentSetting": "Kasalukuyang setting",
+      "invalidDuration": "Ang tagal ay dapat nasa pagitan ng 1 at 365 araw.",
+      "updated": "Na-update ang mga Setting ng Seguridad",
+      "updatedDesc": "Nai-save ang mga setting ng seguridad ng tenant.",
+      "overview": "Pangkalahatang-ideya ng Seguridad",
+      "overviewDesc": "Ang mga karagdagang setting ng seguridad ay magiging available dito sa mga susunod na update."
     },
     "modules": {
       "description": "I-enable o i-disable ang mga feature module para sa tenant na ito. Ino-override ang mga default ng plano.",

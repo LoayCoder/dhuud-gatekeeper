@@ -675,7 +675,20 @@
       "description": "Manage tenant settings and invitation codes.",
       "invitations": "Invitations",
       "modules": "Modules",
-      "trial": "Trial & Status"
+      "trial": "Trial & Status",
+      "security": "Security"
+    },
+    "security": {
+      "mfaTrustDuration": "MFA Trusted Device Duration",
+      "mfaTrustDurationDesc": "Configure how long devices remain trusted after MFA verification.",
+      "trustDurationLabel": "Trust Duration",
+      "trustDurationHelp": "Users can skip MFA for this many days on trusted devices (1-365 days).",
+      "currentSetting": "Current setting",
+      "invalidDuration": "Duration must be between 1 and 365 days.",
+      "updated": "Security Settings Updated",
+      "updatedDesc": "Tenant security settings have been saved.",
+      "overview": "Security Overview",
+      "overviewDesc": "Additional security settings will be available here in future updates."
     },
     "modules": {
       "description": "Enable or disable feature modules for this tenant. Overrides plan defaults.",
