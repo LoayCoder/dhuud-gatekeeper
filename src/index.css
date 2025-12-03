@@ -187,25 +187,6 @@ All colors MUST be HSL.
     direction: ltr;
   }
 
-  /* RTL input text alignment - inherit direction properly */
-  [dir="rtl"] input:not([dir="ltr"]),
-  [dir="rtl"] textarea:not([dir="ltr"]) {
-    text-align: right;
-  }
-
-  /* RTL icon positioning for inputs with start-2.5 */
-  [dir="rtl"] .relative > .absolute.start-2\\.5 {
-    left: auto;
-    right: 0.625rem;
-  }
-
-  /* RTL padding for inputs with ps-9 */
-  [dir="rtl"] input.ps-9:not([dir="ltr"]),
-  [dir="rtl"] .ps-9:not([dir="ltr"]) {
-    padding-left: 0.75rem;
-    padding-right: 2.25rem;
-  }
-
   /* RTL-aware text alignment */
   .text-start {
     text-align: start;
