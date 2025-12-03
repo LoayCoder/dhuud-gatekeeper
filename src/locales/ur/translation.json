@@ -457,7 +457,18 @@
     "locationRetrieved": "مقام کامیابی سے حاصل ہوا۔",
     "locationError": "مقام حاصل کرنے میں ناکامی۔",
     "locationPermissionDenied": "مقام کی اجازت مسترد۔ براہ کرم مقام تک رسائی کی اجازت دیں۔",
-    "geolocationNotSupported": "آپ کا براؤزر جیو لوکیشن کی سپورٹ نہیں کرتا۔"
+    "geolocationNotSupported": "آپ کا براؤزر جیو لوکیشن کی سپورٹ نہیں کرتا۔",
+    "sites": "سائٹس",
+    "manageSites": "سائٹس کا انتظام",
+    "siteName": "سائٹ کا نام",
+    "siteAddress": "پتہ",
+    "newSitePlaceholder": "سائٹ کا نام درج کریں (مثال: پارکنگ ایریا، آفس بلڈنگ)",
+    "addressPlaceholder": "سائٹ کا پتہ درج کریں",
+    "parentBranch": "پیرنٹ برانچ",
+    "selectBranch": "برانچ منتخب کریں",
+    "branchRequired": "براہ کرم پیرنٹ برانچ منتخب کریں",
+    "addSite": "سائٹ شامل کریں",
+    "noAddress": "کوئی پتہ نہیں"
   },
   "userManagement": {
     "title": "صارف کا انتظام",

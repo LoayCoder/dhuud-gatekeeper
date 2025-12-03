@@ -453,7 +453,18 @@
     "locationRetrieved": "Location retrieved successfully.",
     "locationError": "Failed to get location.",
     "locationPermissionDenied": "Location permission denied. Please allow location access.",
-    "geolocationNotSupported": "Geolocation is not supported by your browser."
+    "geolocationNotSupported": "Geolocation is not supported by your browser.",
+    "sites": "Sites",
+    "manageSites": "Manage Sites",
+    "siteName": "Site Name",
+    "siteAddress": "Address",
+    "newSitePlaceholder": "Enter site name (e.g., Parking Area, Office Building)",
+    "addressPlaceholder": "Enter site address",
+    "parentBranch": "Parent Branch",
+    "selectBranch": "Select branch",
+    "branchRequired": "Please select a parent branch",
+    "addSite": "Add Site",
+    "noAddress": "No address"
   },
   "userManagement": {
     "title": "User Management",

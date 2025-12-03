@@ -457,7 +457,18 @@
     "locationRetrieved": "Matagumpay na nakuha ang lokasyon.",
     "locationError": "Nabigo ang pagkuha ng lokasyon.",
     "locationPermissionDenied": "Tinanggihan ang pahintulot sa lokasyon. Pakipayagan ang access sa lokasyon.",
-    "geolocationNotSupported": "Hindi sinusuportahan ng iyong browser ang geolocation."
+    "geolocationNotSupported": "Hindi sinusuportahan ng iyong browser ang geolocation.",
+    "sites": "Mga Site",
+    "manageSites": "Pamahalaan ang mga Site",
+    "siteName": "Pangalan ng Site",
+    "siteAddress": "Address",
+    "newSitePlaceholder": "Ilagay ang pangalan ng site (hal., Parking Area, Office Building)",
+    "addressPlaceholder": "Ilagay ang address ng site",
+    "parentBranch": "Parent Branch",
+    "selectBranch": "Pumili ng branch",
+    "branchRequired": "Mangyaring pumili ng parent branch",
+    "addSite": "Magdagdag ng Site",
+    "noAddress": "Walang address"
   },
   "userManagement": {
     "title": "Pamamahala ng User",

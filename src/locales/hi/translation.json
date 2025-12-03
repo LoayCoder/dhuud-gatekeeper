@@ -457,7 +457,18 @@
     "locationRetrieved": "स्थान सफलतापूर्वक प्राप्त हुआ।",
     "locationError": "स्थान प्राप्त करने में विफल।",
     "locationPermissionDenied": "स्थान अनुमति अस्वीकृत। कृपया स्थान पहुंच की अनुमति दें।",
-    "geolocationNotSupported": "आपका ब्राउज़र जियोलोकेशन का समर्थन नहीं करता।"
+    "geolocationNotSupported": "आपका ब्राउज़र जियोलोकेशन का समर्थन नहीं करता।",
+    "sites": "साइट्स",
+    "manageSites": "साइट्स प्रबंधित करें",
+    "siteName": "साइट का नाम",
+    "siteAddress": "पता",
+    "newSitePlaceholder": "साइट का नाम दर्ज करें (जैसे: पार्किंग क्षेत्र, कार्यालय भवन)",
+    "addressPlaceholder": "साइट का पता दर्ज करें",
+    "parentBranch": "मूल शाखा",
+    "selectBranch": "शाखा चुनें",
+    "branchRequired": "कृपया मूल शाखा चुनें",
+    "addSite": "साइट जोड़ें",
+    "noAddress": "कोई पता नहीं"
   },
   "userManagement": {
     "title": "उपयोगकर्ता प्रबंधन",
