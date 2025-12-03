@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -34,6 +34,8 @@ interface Branch { id: string; name: string; location: string | null; }
 interface Division { id: string; name: string; }
 interface Department { id: string; name: string; division_id: string; divisions?: { name: string } | null; }
 interface Section { id: string; name: string; department_id: string; departments?: { name: string } | null; }
+
+type TableType = 'branches' | 'divisions' | 'departments' | 'sections';
 
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
@@ -51,6 +53,11 @@ export default function OrgStructure() {
   const [newItemName, setNewItemName] = useState("");
   const [parentId, setParentId] = useState<string>("");
   const [creating, setCreating] = useState(false);
+
+  // Edit State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Fetch all hierarchy data
   const fetchData = async () => {
@@ -79,7 +86,7 @@ export default function OrgStructure() {
   }, []);
 
   // Generic Create Function
-  const handleCreate = async (table: 'branches' | 'divisions' | 'departments' | 'sections') => {
+  const handleCreate = async (table: TableType) => {
     if (!newItemName.trim()) return;
     if (!profile?.tenant_id) {
       toast({ title: t('common.error'), description: t('orgStructure.noTenant'), variant: "destructive" });
@@ -126,11 +133,51 @@ export default function OrgStructure() {
     }
   };
 
+  // Generic Update Function
+  const handleUpdate = async (table: TableType, id: string) => {
+    if (!editingName.trim()) {
+      toast({ title: t('common.error'), description: t('orgStructure.nameRequired'), variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from(table)
+        .update({ name: editingName.trim() })
+        .eq('id', id);
+      
+      if (error) throw error;
+
+      toast({ title: t('orgStructure.success'), description: t('orgStructure.itemUpdated') });
+      setEditingId(null);
+      setEditingName("");
+      fetchData();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      toast({ title: t('common.error'), description: message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Start editing
+  const startEditing = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditingName(currentName);
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingName("");
+  };
+
   // Generic Delete Function
   const handleDelete = async (table: string, id: string) => {
     if (!confirm(t('orgStructure.confirmDelete'))) return;
     try {
-      const { error } = await supabase.from(table as 'branches' | 'divisions' | 'departments' | 'sections').delete().eq('id', id);
+      const { error } = await supabase.from(table as TableType).delete().eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.deleted'), description: t('orgStructure.itemRemoved') });
       fetchData();
@@ -150,6 +197,103 @@ export default function OrgStructure() {
 
   const direction = isRTL ? 'rtl' : 'ltr';
   const textAlign = isRTL ? 'text-right' : 'text-left';
+
+  // Reusable row component for simple tables (branches, divisions)
+  const renderSimpleRow = (item: { id: string; name: string }, table: TableType) => (
+    <TableRow key={item.id}>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <Input
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            className={`h-8 ${textAlign}`}
+            dir={direction}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleUpdate(table, item.id);
+              if (e.key === 'Escape') cancelEditing();
+            }}
+          />
+        ) : (
+          item.name
+        )}
+      </TableCell>
+      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
+        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+          {editingId === item.id ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => handleUpdate(table, item.id)} disabled={saving}>
+                <Check className="h-4 w-4 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  // Reusable row component for tables with parent (departments, sections)
+  const renderRowWithParent = (
+    item: { id: string; name: string },
+    parentName: string | undefined,
+    table: TableType
+  ) => (
+    <TableRow key={item.id}>
+      <TableCell className={textAlign}>
+        {editingId === item.id ? (
+          <Input
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            className={`h-8 ${textAlign}`}
+            dir={direction}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleUpdate(table, item.id);
+              if (e.key === 'Escape') cancelEditing();
+            }}
+          />
+        ) : (
+          item.name
+        )}
+      </TableCell>
+      <TableCell className={`text-muted-foreground ${textAlign}`}>{parentName}</TableCell>
+      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
+        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+          {editingId === item.id ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => handleUpdate(table, item.id)} disabled={saving}>
+                <Check className="h-4 w-4 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="container py-8 space-y-8" dir={direction}>
@@ -203,16 +347,7 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      branches.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className={textAlign}>{item.name}</TableCell>
-                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete('branches', item.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      branches.map((item) => renderSimpleRow(item, 'branches'))
                     )}
                   </TableBody>
                 </Table>
@@ -257,16 +392,7 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      divisions.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className={textAlign}>{item.name}</TableCell>
-                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete('divisions', item.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      divisions.map((item) => renderSimpleRow(item, 'divisions'))
                     )}
                   </TableBody>
                 </Table>
@@ -328,17 +454,7 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      departments.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className={textAlign}>{item.name}</TableCell>
-                          <TableCell className={`text-muted-foreground ${textAlign}`}>{item.divisions?.name}</TableCell>
-                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete('departments', item.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      departments.map((item) => renderRowWithParent(item, item.divisions?.name, 'departments'))
                     )}
                   </TableBody>
                 </Table>
@@ -400,17 +516,7 @@ export default function OrgStructure() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      sections.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className={textAlign}>{item.name}</TableCell>
-                          <TableCell className={`text-muted-foreground ${textAlign}`}>{item.departments?.name}</TableCell>
-                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete('sections', item.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      sections.map((item) => renderRowWithParent(item, item.departments?.name, 'sections'))
                     )}
                   </TableBody>
                 </Table>
