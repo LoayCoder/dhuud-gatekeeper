@@ -610,10 +610,12 @@
     "toast": {
       "created": "تم إنشاء الدعوة",
       "createdDescription": "تم إنشاء رمز الدعوة {{code}}.",
+      "createdWithEmail": "تم إرسال رمز الدعوة {{code}} إلى {{email}}.",
       "revoked": "تم إلغاء الدعوة",
       "revokedDescription": "تم إلغاء الدعوة.",
       "copied": "تم نسخ الرمز",
       "copiedDescription": "تم نسخ رمز الدعوة إلى الحافظة."
-    }
+    },
+    "sendEmailOnCreate": "إرسال بريد إلكتروني للدعوة"
   }
 }

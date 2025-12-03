@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -25,7 +26,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Copy, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Copy, CheckCircle2, XCircle, Clock, Loader2, Mail, Send } from 'lucide-react';
 import { format, addDays, isPast } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Tables } from '@/integrations/supabase/types';
@@ -53,6 +54,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
 
   const [newEmail, setNewEmail] = useState('');
   const [expiryDays, setExpiryDays] = useState(7);
+  const [sendEmail, setSendEmail] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invitationToDelete, setInvitationToDelete] = useState<Invitation | null>(null);
 
@@ -72,7 +74,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
 
   // Create invitation mutation
   const createMutation = useMutation({
-    mutationFn: async ({ email, expiryDays }: { email: string; expiryDays: number }) => {
+    mutationFn: async ({ email, expiryDays, sendEmail }: { email: string; expiryDays: number; sendEmail: boolean }) => {
       const code = generateCode();
       const expires_at = addDays(new Date(), expiryDays).toISOString();
       
@@ -88,14 +90,40 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
         .select()
         .single();
       if (error) throw error;
-      return data;
+
+      // Send email if enabled
+      if (sendEmail) {
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+            body: {
+              email: email.toLowerCase().trim(),
+              code,
+              tenantName: tenant.name,
+              expiresAt: expires_at,
+            },
+          });
+          
+          if (emailError) {
+            console.error('Failed to send invitation email:', emailError);
+            // Don't throw - invitation was created successfully
+          } else {
+            console.log('Invitation email sent:', emailResult);
+          }
+        } catch (e) {
+          console.error('Error invoking email function:', e);
+        }
+      }
+
+      return { ...data, emailSent: sendEmail };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['invitations', tenant.id] });
       setNewEmail('');
       toast({
         title: t('invitations.toast.created'),
-        description: t('invitations.toast.createdDescription', { code: data.code }),
+        description: data.emailSent 
+          ? t('invitations.toast.createdWithEmail', { code: data.code, email: data.email })
+          : t('invitations.toast.createdDescription', { code: data.code }),
       });
     },
     onError: (error) => {
@@ -136,7 +164,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
 
   const handleCreate = () => {
     if (!newEmail.trim()) return;
-    createMutation.mutate({ email: newEmail, expiryDays });
+    createMutation.mutate({ email: newEmail, expiryDays, sendEmail });
   };
 
   const handleCopyCode = (code: string) => {
@@ -212,12 +240,27 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
             />
           </div>
         </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="sendEmail" 
+              checked={sendEmail} 
+              onCheckedChange={(checked) => setSendEmail(checked === true)}
+            />
+            <Label htmlFor="sendEmail" className="text-sm font-normal cursor-pointer flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              {t('invitations.sendEmailOnCreate')}
+            </Label>
+          </div>
+        </div>
         <Button 
           onClick={handleCreate} 
           disabled={!newEmail.trim() || createMutation.isPending}
         >
           {createMutation.isPending ? (
             <Loader2 className="h-4 w-4 me-2 animate-spin" />
+          ) : sendEmail ? (
+            <Send className="h-4 w-4 me-2" />
           ) : (
             <Plus className="h-4 w-4 me-2" />
           )}

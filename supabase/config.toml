@@ -2,3 +2,6 @@ project_id = "xdlowvfzhvjzbtgvurzj"
 
 [functions.check-user-exists]
 verify_jwt = false
+
+[functions.send-invitation-email]
+verify_jwt = false
