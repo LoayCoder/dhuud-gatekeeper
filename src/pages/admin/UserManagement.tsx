@@ -175,7 +175,7 @@ export default function UserManagement() {
   return (
     <div className="container py-8 space-y-8" dir={direction}>
       {/* Header - Right aligned for RTL */}
-      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end ms-auto' : 'items-start'}`}>
         <h1 className={`text-3xl font-bold tracking-tight ${textAlign}`}>{t('userManagement.title')}</h1>
         <p className={`text-muted-foreground ${textAlign}`}>{t('userManagement.description')}</p>
       </div>
