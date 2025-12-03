@@ -49,13 +49,13 @@ export function LoginPreview({ logoUrl, primaryColor, tenantName, isDark = false
       {/* Mock Form */}
       <div className="space-y-2">
         <div className={cn(
-          "h-8 rounded border text-xs flex items-center px-2",
+          "h-8 rounded border text-xs flex items-center px-2 ltr:text-left rtl:text-right",
           isDark ? "bg-slate-800 border-slate-600 text-slate-500" : "bg-muted/30 border-input text-muted-foreground"
         )}>
           {t('adminBranding.preview.emailPlaceholder')}
         </div>
         <div className={cn(
-          "h-8 rounded border text-xs flex items-center px-2",
+          "h-8 rounded border text-xs flex items-center px-2 ltr:text-left rtl:text-right",
           isDark ? "bg-slate-800 border-slate-600 text-slate-500" : "bg-muted/30 border-input text-muted-foreground"
         )}>
           ••••••••

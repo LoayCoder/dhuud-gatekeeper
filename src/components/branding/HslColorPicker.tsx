@@ -113,8 +113,8 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-3 items-center rtl:flex-row-reverse">
+      <Label className="ltr:text-left rtl:text-right">{label}</Label>
+      <div className="flex gap-3 items-center ltr:flex-row rtl:flex-row-reverse">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -127,7 +127,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
           </PopoverTrigger>
           <PopoverContent className="w-72 p-4" align="start">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 ltr:flex-row rtl:flex-row-reverse">
                 <Pipette className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium text-sm">{t('adminBranding.colorPicker.title')}</span>
               </div>
@@ -175,7 +175,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               </div>
 
               {/* Color Preview & Values */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 ltr:flex-row rtl:flex-row-reverse">
                 <div 
                   className="h-10 w-16 rounded-lg border shadow-inner flex-shrink-0"
                   style={{ backgroundColor: colorPreview }}
@@ -198,7 +198,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
 
               {/* Manual Input */}
               <div className="pt-2 border-t">
-                <Label className="text-xs text-muted-foreground">{t('adminBranding.colorPicker.hslValue')}</Label>
+                <Label className="text-xs text-muted-foreground ltr:text-left rtl:text-right">{t('adminBranding.colorPicker.hslValue')}</Label>
                 <Input
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
