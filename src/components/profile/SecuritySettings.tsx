@@ -16,7 +16,8 @@ interface PasswordRequirement {
 }
 
 export function SecuritySettings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -114,7 +115,7 @@ export function SecuritySettings() {
           <h4 className="text-sm font-medium mb-3 ltr:text-left rtl:text-right">{t('securitySettings.passwordRequirements')}</h4>
           <ul className="space-y-2">
             {requirements.map((req, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
+              <li key={index} className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
                 {req.met ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                 ) : (
