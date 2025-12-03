@@ -234,7 +234,7 @@ export function ProfileForm({
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
                 <UserCheck className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="emergencyName" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} className="[padding-inline-start:2.25rem]" placeholder={t('profile.emergencyContactName')} maxLength={100} />
+                <Input id="emergencyName" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} placeholder={t('profile.emergencyContactName')} maxLength={100} className="[padding-inline-start:2.25rem] px-[35px]" />
               </div>
             </div>
             <div className="grid gap-2">
