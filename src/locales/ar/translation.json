@@ -55,6 +55,8 @@
     "creatingAccount": "جاري إنشاء الحساب...",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "confirmPassword": "تأكيد كلمة المرور",
     "forgotPassword": "نسيت كلمة المرور؟",
     "backToInvite": "العودة إلى رمز الدعوة",
