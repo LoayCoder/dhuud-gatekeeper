@@ -388,7 +388,9 @@
     "securityStatus": "Katayuan ng Seguridad",
     "zeroTrustActive": "Zero Trust authentication aktibo",
     "protected": "Protektado",
-    "passwordBreached": "Ang password na ito ay natagpuan sa {{count}} data breaches. Mangyaring pumili ng ibang password para sa iyong seguridad."
+    "passwordBreached": "Ang password na ito ay natagpuan sa {{count}} data breaches. Mangyaring pumili ng ibang password para sa iyong seguridad.",
+    "passwordCompromised": "Babala sa Seguridad ng Password",
+    "passwordBreachedWarning": "Ang iyong password ay natagpuan sa {{count}} data breaches. Mangyaring palitan ito sa Profile → Security."
   },
   "dashboard": {
     "welcomeTitle": "Maligayang Pagdating sa Dhuud HSSE Platform",
