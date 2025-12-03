@@ -20,12 +20,13 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Pencil, Plus, LogIn, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserFormDialog } from "@/components/users/UserFormDialog";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
+import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log";
 
 interface UserProfile {
   id: string;
@@ -64,7 +65,7 @@ interface HierarchyItem {
 
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
-  const { user: currentUser, isAdmin, profile } = useAuth();
+  const { profile } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const isRTL = i18n.dir() === 'rtl';
@@ -83,6 +84,7 @@ export default function UserManagement() {
   const [divisionFilter, setDivisionFilter] = useState<string>('all');
 
   const { quota, breakdown, isLoading: quotaLoading, refetch: refetchQuota } = useLicensedUserQuota();
+  const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated } = useAdminAuditLog();
 
   const fetchData = async () => {
     setLoading(true);
@@ -164,16 +166,40 @@ export default function UserManagement() {
     };
 
     if (editingUser) {
+      // Detect changes for audit logging
+      const changes = detectUserChanges(editingUser as unknown as Record<string, unknown>, updateData);
+      
+      // Check for status change
+      const wasActive = editingUser.is_active;
+      const isNowActive = data.is_active;
+      
       const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
       if (error) throw error;
+      
+      // Log appropriate audit events
+      if (wasActive && !isNowActive) {
+        await logUserDeactivated(editingUser.id, data.full_name);
+      } else if (!wasActive && isNowActive) {
+        await logUserActivated(editingUser.id, data.full_name);
+      }
+      
+      if (Object.keys(changes).length > 0) {
+        await logUserUpdated(editingUser.id, data.full_name, changes);
+      }
+      
       toast({ title: t('userManagement.userUpdated') });
     } else {
+      const newUserId = crypto.randomUUID();
       const { error } = await supabase.from('profiles').insert({
-        id: crypto.randomUUID(),
+        id: newUserId,
         tenant_id: profile?.tenant_id,
         ...updateData,
       });
       if (error) throw error;
+      
+      // Log user creation
+      await logUserCreated(newUserId, data.full_name, data.user_type);
+      
       toast({ title: t('userManagement.userCreated') });
     }
     fetchData();
@@ -215,7 +241,7 @@ export default function UserManagement() {
               <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
               <Select value={userTypeFilter} onValueChange={setUserTypeFilter} dir={direction}>
                 <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction}>
+                <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allTypes')}</SelectItem>
                   <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
                   <SelectItem value="contractor_longterm">{t('userTypes.contractorLongterm')}</SelectItem>
@@ -225,32 +251,35 @@ export default function UserManagement() {
                 </SelectContent>
               </Select>
             </div>
+
             <div className={`space-y-2 ${textAlign}`}>
               <label className="text-sm font-medium">{t('userManagement.filterByStatus')}</label>
               <Select value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
                 <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction}>
+                <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allStatuses')}</SelectItem>
                   <SelectItem value="active">{t('userManagement.active')}</SelectItem>
                   <SelectItem value="inactive">{t('userManagement.inactive')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div className={`space-y-2 ${textAlign}`}>
               <label className="text-sm font-medium">{t('userManagement.filterByBranch')}</label>
               <Select value={branchFilter} onValueChange={setBranchFilter} dir={direction}>
                 <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction}>
+                <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
                   {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+
             <div className={`space-y-2 ${textAlign}`}>
               <label className="text-sm font-medium">{t('userManagement.filterByDivision')}</label>
               <Select value={divisionFilter} onValueChange={setDivisionFilter} dir={direction}>
                 <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction}>
+                <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allDivisions')}</SelectItem>
                   {divisions.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                 </SelectContent>
@@ -261,69 +290,94 @@ export default function UserManagement() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className={textAlign}>{t('userManagement.allUsers')}</CardTitle>
-          <CardDescription className={textAlign}>{t('userManagement.showingUsers', { count: filteredUsers.length, total: users.length })}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-hidden" dir={direction}>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className={textAlign}>{t('userManagement.employee')}</TableHead>
+                  <TableHead className={textAlign}>{t('profile.fullName')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.userType')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.status')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.login')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.locationBranch')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.functionalUnit')}</TableHead>
-                  <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('userManagement.actions')}</TableHead>
+                  <TableHead className={textAlign}>{t('orgStructure.branch')}</TableHead>
+                  <TableHead className={textAlign}>{t('userManagement.hierarchy')}</TableHead>
+                  <TableHead className={textAlign}>{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={7} className="h-24 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></TableCell></TableRow>
-                ) : filteredUsers.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">{t('userManagement.noUsers')}</TableCell></TableRow>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      {t('common.noData')}
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  filteredUsers.map(user => (
+                  filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className={`font-medium ${textAlign}`}>
                         <div className="flex flex-col">
-                          <span>{user.full_name || t('userManagement.unnamedProfile')}</span>
-                          {user.employee_id && <span className="text-xs text-muted-foreground">{user.employee_id}</span>}
+                          <span>{user.full_name || '-'}</span>
+                          {user.employee_id && (
+                            <span className="text-xs text-muted-foreground">#{user.employee_id}</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className={textAlign}>
-                        <Badge variant={getUserTypeBadgeVariant(user.user_type)}>{t(getUserTypeLabel(user.user_type || ''))}</Badge>
+                        <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
+                          {user.user_type ? t(getUserTypeLabel(user.user_type)) : '-'}
+                        </Badge>
                       </TableCell>
                       <TableCell className={textAlign}>
-                        <Badge variant={user.is_active ? 'default' : 'secondary'}>{user.is_active ? t('userManagement.active') : t('userManagement.inactive')}</Badge>
+                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                          {user.is_active ? t('userManagement.active') : t('userManagement.inactive')}
+                        </Badge>
                       </TableCell>
                       <TableCell className={textAlign}>
-                        {user.has_login ? <LogIn className="h-4 w-4 text-primary" /> : <LogOut className="h-4 w-4 text-muted-foreground" />}
+                        {user.has_login ? (
+                          <LogIn className="h-4 w-4 text-primary" />
+                        ) : (
+                          <LogOut className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </TableCell>
-                      <TableCell className={textAlign}>{user.branches?.name || <span className="text-muted-foreground italic">{t('userManagement.unassigned')}</span>}</TableCell>
                       <TableCell className={textAlign}>
-                        <div className={`flex flex-col text-sm ${isRTL ? 'items-end' : 'items-start'}`}>
-                          {user.divisions?.name && <span className="font-semibold">{user.divisions.name}</span>}
-                          {user.departments?.name && <span className={`text-muted-foreground text-xs ${isRTL ? 'me-2' : 'ms-2'}`}>{hierarchyArrow} {user.departments.name}</span>}
-                          {user.sections?.name && <span className={`text-muted-foreground text-xs ${isRTL ? 'me-4' : 'ms-4'}`}>{hierarchyArrow} {user.sections.name}</span>}
-                          {!user.divisions?.name && <span className="text-muted-foreground italic">{t('userManagement.noUnit')}</span>}
-                        </div>
+                        {user.branches?.name || '-'}
                       </TableCell>
-                      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}><Pencil className="h-4 w-4" /></Button>
+                      <TableCell className={`text-sm ${textAlign}`}>
+                        {user.divisions?.name && (
+                          <span>{user.divisions.name}</span>
+                        )}
+                        {user.departments?.name && (
+                          <span className="text-muted-foreground"> {hierarchyArrow} {user.departments.name}</span>
+                        )}
+                        {user.sections?.name && (
+                          <span className="text-muted-foreground"> {hierarchyArrow} {user.sections.name}</span>
+                        )}
+                        {!user.divisions?.name && !user.departments?.name && !user.sections?.name && '-'}
+                      </TableCell>
+                      <TableCell className={textAlign}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      <UserFormDialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen} user={editingUser} onSave={handleSaveUser} />
+      <UserFormDialog
+        open={isFormDialogOpen}
+        onOpenChange={setIsFormDialogOpen}
+        user={editingUser}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 }

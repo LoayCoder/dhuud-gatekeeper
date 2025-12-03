@@ -1457,6 +1457,11 @@ export type Database = {
         | "mfa_enabled"
         | "mfa_disabled"
         | "mfa_verification_failed"
+        | "user_created"
+        | "user_updated"
+        | "user_deactivated"
+        | "user_activated"
+        | "user_deleted"
       app_role: "admin" | "user"
       contractor_type: "long_term" | "short_term"
       module_code:
@@ -1652,6 +1657,11 @@ export const Constants = {
         "mfa_enabled",
         "mfa_disabled",
         "mfa_verification_failed",
+        "user_created",
+        "user_updated",
+        "user_deactivated",
+        "user_activated",
+        "user_deleted",
       ],
       app_role: ["admin", "user"],
       contractor_type: ["long_term", "short_term"],

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -174,15 +174,43 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     form.setValue('has_login', shouldHaveLogin);
   }, [userType, form]);
 
-  // Filter departments by division
-  const filteredDepartments = hierarchy.departments.filter(
-    (d) => !selectedDivisionId || d.division_id === selectedDivisionId
-  );
+  // Filter departments by selected division (cascade filtering)
+  const filteredDepartments = useMemo(() => {
+    if (!selectedDivisionId) return [];
+    return hierarchy.departments.filter((d) => d.division_id === selectedDivisionId);
+  }, [hierarchy.departments, selectedDivisionId]);
 
-  // Filter sections by department
-  const filteredSections = hierarchy.sections.filter(
-    (s) => !selectedDepartmentId || s.department_id === selectedDepartmentId
-  );
+  // Filter sections by selected department (cascade filtering)
+  const filteredSections = useMemo(() => {
+    if (!selectedDepartmentId) return [];
+    return hierarchy.sections.filter((s) => s.department_id === selectedDepartmentId);
+  }, [hierarchy.sections, selectedDepartmentId]);
+
+  // Clear child selections when parent changes
+  useEffect(() => {
+    const currentDeptId = form.getValues('assigned_department_id');
+    if (currentDeptId && selectedDivisionId) {
+      const deptBelongsToDivision = hierarchy.departments.some(
+        d => d.id === currentDeptId && d.division_id === selectedDivisionId
+      );
+      if (!deptBelongsToDivision) {
+        form.setValue('assigned_department_id', null);
+        form.setValue('assigned_section_id', null);
+      }
+    }
+  }, [selectedDivisionId, hierarchy.departments, form]);
+
+  useEffect(() => {
+    const currentSectionId = form.getValues('assigned_section_id');
+    if (currentSectionId && selectedDepartmentId) {
+      const sectionBelongsToDept = hierarchy.sections.some(
+        s => s.id === currentSectionId && s.department_id === selectedDepartmentId
+      );
+      if (!sectionBelongsToDept) {
+        form.setValue('assigned_section_id', null);
+      }
+    }
+  }, [selectedDepartmentId, hierarchy.sections, form]);
 
   const onSubmit = async (data: UserFormValues) => {
     // Check quota for new users with login
