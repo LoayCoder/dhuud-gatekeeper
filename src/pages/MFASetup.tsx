@@ -59,7 +59,7 @@ export default function MFASetup() {
 
   const handleStartEnrollment = async () => {
     setLoading(true);
-    const result = await enroll();
+    const result = await enroll(tenantName || 'DHUUD-SaaS');
     setLoading(false);
 
     if (result) {
