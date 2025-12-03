@@ -36,7 +36,7 @@ export function TwoFactorSetup() {
               {isEnabled ? t('twoFactorSetup.enabled') : t('twoFactorSetup.disabled')}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground text-left">
+          <p className="text-sm text-muted-foreground ltr:text-left rtl:text-right">
             {isEnabled ? t('twoFactorSetup.enabledMessage') : t('twoFactorSetup.disabledMessage')}
           </p>
         </div>
