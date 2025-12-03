@@ -24,7 +24,7 @@ export function TwoFactorSetup() {
   return (
     <div className="space-y-4">
       {/* Status Display */}
-      <div className="flex items-start gap-4 rtl:flex-row-reverse text-start">
+      <div className="flex items-start gap-4 rtl:flex-row-reverse">
         <div className={`rounded-full p-3 flex-shrink-0 ${isEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
           {isEnabled ? (
             <ShieldCheck className="h-6 w-6 text-green-600" />
@@ -32,8 +32,8 @@ export function TwoFactorSetup() {
             <Shield className="h-6 w-6 text-muted-foreground" />
           )}
         </div>
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2 rtl:flex-row-reverse rtl:justify-end">
+        <div className="flex-1 space-y-1 text-start">
+          <div className="flex items-center gap-2 rtl:flex-row-reverse">
             <h4 className="font-medium">{t('twoFactorSetup.twoFactorAuth')}</h4>
             <Badge variant={isEnabled ? "default" : "secondary"}>
               {isEnabled ? t('twoFactorSetup.enabled') : t('twoFactorSetup.disabled')}
