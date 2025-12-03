@@ -6,11 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Dialog, DialogContent, DialogDescription, DialogFooter, 
+  Dialog, DialogContent, DialogFooter, 
   DialogHeader, DialogTitle 
 } from "@/components/ui/dialog";
 import { 
@@ -22,13 +21,12 @@ import { UserLimitIndicator } from "@/components/UserLimitIndicator";
 import { useModuleAccess } from "@/hooks/use-module-access";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { usePriceCalculator, formatPrice } from "@/hooks/use-price-calculator";
-import { 
+import {
   PlanSelector, 
   UserCountSlider, 
   ModuleSelector, 
   PriceBreakdown,
-  BillingPeriodToggle,
-  SelectionSummary
+  BillingPeriodToggle
 } from "@/components/subscription";
 
 export default function SubscriptionManagement() {
@@ -38,7 +36,6 @@ export default function SubscriptionManagement() {
   const { subscription, isTrialActive, getTrialDaysRemaining } = useModuleAccess();
   
   const [showRequestDialog, setShowRequestDialog] = useState(false);
-  const [tenantNotes, setTenantNotes] = useState("");
   
   const {
     plans,
@@ -114,7 +111,6 @@ export default function SubscriptionManagement() {
           calculated_user_price: priceBreakdown.userPrice,
           calculated_module_price: priceBreakdown.modulePrice,
           calculated_total_monthly: priceBreakdown.totalMonthly,
-          tenant_notes: tenantNotes || null,
           status: 'pending',
         });
 
@@ -125,11 +121,10 @@ export default function SubscriptionManagement() {
         title: t('subscription.requestSubmitted'),
         description: t('subscription.requestSubmittedDesc'),
       });
-      setShowRequestDialog(false);
-      setTenantNotes("");
       queryClient.invalidateQueries({ queryKey: ['subscription-requests'] });
     },
     onError: (error) => {
+      setShowRequestDialog(false);
       toast({
         title: t('common.error'),
         description: error.message,
@@ -278,14 +273,6 @@ export default function SubscriptionManagement() {
 
             {/* Price Breakdown Sidebar */}
             <div className="space-y-4">
-              <SelectionSummary
-                planName={selectedPlan?.display_name}
-                billingMonths={billingMonths}
-                userCount={selectedUserCount}
-                moduleCount={selectedModuleIds.length}
-                totalPrice={priceBreakdown?.totalMonthly || 0}
-              />
-
               <PriceBreakdown
                 breakdown={priceBreakdown}
                 isLoading={isCalculating}
@@ -297,11 +284,14 @@ export default function SubscriptionManagement() {
               <Button
                 className="w-full"
                 size="lg"
-                onClick={() => setShowRequestDialog(true)}
-                disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}
+                onClick={() => {
+                  submitRequest.mutate();
+                  setShowRequestDialog(true);
+                }}
+                disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest || submitRequest.isPending}
               >
                 <Send className="h-4 w-4 me-2" />
-                {t('subscription.requestPlan')}
+                {submitRequest.isPending ? t('common.submitting') : t('subscription.requestPlan')}
               </Button>
             </div>
           </div>
@@ -403,54 +393,24 @@ export default function SubscriptionManagement() {
       <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('subscription.confirmRequest')}</DialogTitle>
-            <DialogDescription>
-              {t('subscription.confirmRequestDesc')}
-            </DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              {t('subscription.requestSent', 'Request Sent!')}
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="rounded-lg bg-muted p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{t('subscription.plan')}:</span>
-                <span className="font-medium">{selectedPlan?.display_name}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>{t('subscription.users')}:</span>
-                <span className="font-medium">{selectedUserCount}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>{t('subscription.modules')}:</span>
-                <span className="font-medium">{selectedModuleIds.length}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between">
-                <span className="font-medium">{t('subscription.total')}:</span>
-                <span className="font-bold text-primary">
-                  {priceBreakdown ? formatPrice(priceBreakdown.totalMonthly) : '-'}/{t('subscription.month')}
-                </span>
-              </div>
+          <div className="py-4 text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+              <Send className="h-8 w-8 text-green-500" />
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('subscription.additionalNotes')}</label>
-              <Textarea
-                placeholder={t('subscription.notesPlaceholder')}
-                value={tenantNotes}
-                onChange={(e) => setTenantNotes(e.target.value)}
-                rows={3}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground text-end">{tenantNotes.length}/500</p>
-            </div>
+            <p className="text-muted-foreground">
+              {t('subscription.confirmationEmailMessage', 'You will soon receive a confirmation and payment method details in your email.')}
+            </p>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRequestDialog(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={() => submitRequest.mutate()} disabled={submitRequest.isPending}>
-              {submitRequest.isPending ? t('common.submitting') : t('subscription.submitRequest')}
+            <Button onClick={() => setShowRequestDialog(false)} className="w-full">
+              {t('common.done', 'Done')}
             </Button>
           </DialogFooter>
         </DialogContent>
