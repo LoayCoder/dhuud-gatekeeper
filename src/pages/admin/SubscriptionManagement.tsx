@@ -284,14 +284,11 @@ export default function SubscriptionManagement() {
               <Button
                 className="w-full"
                 size="lg"
-                onClick={() => {
-                  submitRequest.mutate();
-                  setShowRequestDialog(true);
-                }}
-                disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest || submitRequest.isPending}
+                onClick={() => setShowRequestDialog(true)}
+                disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}
               >
                 <Send className="h-4 w-4 me-2" />
-                {submitRequest.isPending ? t('common.submitting') : t('subscription.requestPlan')}
+                {t('subscription.requestPlan')}
               </Button>
             </div>
           </div>
@@ -390,28 +387,78 @@ export default function SubscriptionManagement() {
       </Tabs>
 
       {/* Request Confirmation Dialog */}
-      <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
+      <Dialog open={showRequestDialog} onOpenChange={(open) => !submitRequest.isPending && setShowRequestDialog(open)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              {t('subscription.requestSent', 'Request Sent!')}
+              {submitRequest.isSuccess ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  {t('subscription.requestSent', 'Request Sent!')}
+                </>
+              ) : (
+                <>
+                  <Send className="h-5 w-5 text-primary" />
+                  {t('subscription.confirmRequest', 'Confirm Request')}
+                </>
+              )}
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
-              <Send className="h-8 w-8 text-green-500" />
-            </div>
-            <p className="text-muted-foreground">
-              {t('subscription.confirmationEmailMessage', 'You will soon receive a confirmation and payment method details in your email.')}
-            </p>
+            {submitRequest.isSuccess ? (
+              <>
+                <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-green-500" />
+                </div>
+                <p className="text-muted-foreground">
+                  {t('subscription.confirmationEmailMessage', 'You will soon receive a confirmation and payment method details in your email.')}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Send className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-muted-foreground">
+                  {t('subscription.confirmRequestMessage', 'Are you sure you want to submit this subscription request?')}
+                </p>
+              </>
+            )}
           </div>
 
-          <DialogFooter>
-            <Button onClick={() => setShowRequestDialog(false)} className="w-full">
-              {t('common.done', 'Done')}
-            </Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            {submitRequest.isSuccess ? (
+              <Button onClick={() => setShowRequestDialog(false)} className="w-full">
+                {t('common.done', 'Done')}
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowRequestDialog(false)}
+                  disabled={submitRequest.isPending}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button 
+                  onClick={() => submitRequest.mutate()}
+                  disabled={submitRequest.isPending}
+                >
+                  {submitRequest.isPending ? (
+                    <>
+                      <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t('common.submitting')}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 me-2" />
+                      {t('subscription.submitRequest', 'Submit Request')}
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
