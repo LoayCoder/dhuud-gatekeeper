@@ -227,7 +227,7 @@ export default function AdminBranding() {
       </div>;
   }
   return <div className="p-6 space-y-6 max-w-7xl mx-auto text-start">
-      <div className="flex flex-row-reverse justify-between items-center rtl:flex-row">
+      <div className="flex flex-row-reverse justify-between items-center">
         <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Save className="me-2 h-4 w-4" />}
           {saving ? t('adminBranding.saving') : t('adminBranding.saveChanges')}
