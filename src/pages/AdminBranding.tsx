@@ -237,12 +237,12 @@ export default function AdminBranding() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_320px] gap-6 rtl:lg:grid-cols-[320px_1fr]">
-        <Tabs defaultValue="visuals" className="w-full flex flex-col rtl:items-end lg:order-1 rtl:lg:order-2">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px] rtl:direction-rtl">
-          <TabsTrigger value="visuals" className="flex gap-2 ltr:flex-row rtl:flex-row-reverse"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
-          <TabsTrigger value="assets" className="flex gap-2 ltr:flex-row rtl:flex-row-reverse"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
-          <TabsTrigger value="theme" className="flex gap-2 ltr:flex-row rtl:flex-row-reverse"><Layout className="h-4 w-4" /> {t('adminBranding.tabs.theme')}</TabsTrigger>
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+        <Tabs defaultValue="visuals" className="w-full flex flex-col rtl:items-end">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="visuals" className="gap-2 ltr:flex-row rtl:flex-row-reverse"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
+          <TabsTrigger value="assets" className="gap-2 ltr:flex-row rtl:flex-row-reverse"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
+          <TabsTrigger value="theme" className="gap-2 ltr:flex-row rtl:flex-row-reverse"><Layout className="h-4 w-4" /> {t('adminBranding.tabs.theme')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="visuals" className="w-full">
@@ -446,7 +446,7 @@ export default function AdminBranding() {
         </Tabs>
 
         {/* Live Preview Panel */}
-        <div className="hidden lg:block lg:order-2 rtl:lg:order-1">
+        <div className="hidden lg:block">
           <BrandingPreviewPanel primaryColorLight={brandColorLight} primaryColorDark={brandColorDark} logoLightUrl={logoLightPreview} logoDarkUrl={logoDarkPreview} sidebarIconLightUrl={sidebarIconLightPreview} sidebarIconDarkUrl={sidebarIconDarkPreview} tenantName={tenant?.name || ''} previewMode={previewMode} onPreviewModeChange={setPreviewMode} />
         </div>
       </div>
