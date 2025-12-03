@@ -11,7 +11,7 @@ export function RoleInfo({ role }: RoleInfoProps) {
 
   return (
     <Card>
-      <CardHeader className="text-start">
+      <CardHeader>
         <CardTitle className="text-lg">{t('role.title')}</CardTitle>
         <CardDescription>
           {t('role.roleDescription')}
@@ -19,7 +19,7 @@ export function RoleInfo({ role }: RoleInfoProps) {
       </CardHeader>
       <CardContent>
         <div className="rounded-md border p-4 bg-muted/10">
-          <div className="flex items-center gap-4 rtl:flex-row-reverse text-start">
+          <div className="flex items-center gap-4">
             <div className="p-2 bg-primary/10 rounded-full flex-shrink-0">
               <Shield className="h-5 w-5 text-primary" />
             </div>
