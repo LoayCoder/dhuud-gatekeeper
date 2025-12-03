@@ -176,8 +176,8 @@ export default function UserManagement() {
 
   return (
     <div className="container py-8 space-y-8">
-      <div className={`flex flex-row-reverse justify-between items-center`}>
-        <div className={`flex flex-col gap-1 ${isRTL ? 'items-end' : 'items-start'}`}>
+      <div className="flex justify-between items-center">
+        <div className={`flex flex-col gap-1 ${isRTL ? 'ms-auto text-end' : ''}`}>
           <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
           <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
