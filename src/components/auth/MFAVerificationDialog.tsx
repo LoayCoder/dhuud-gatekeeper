@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { logUserActivity } from "@/lib/activity-logger";
+import { useTrustedDevice } from "@/hooks/use-trusted-device";
 
 interface MFAVerificationDialogProps {
   open: boolean;
@@ -20,6 +22,7 @@ interface MFAVerificationDialogProps {
   factorId: string;
   onSuccess: () => void;
   onCancel: () => void;
+  userId?: string;
 }
 
 export function MFAVerificationDialog({
@@ -28,10 +31,13 @@ export function MFAVerificationDialog({
   factorId,
   onSuccess,
   onCancel,
+  userId,
 }: MFAVerificationDialogProps) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(false);
+  const { trustDevice: saveTrustedDevice } = useTrustedDevice();
 
   const handleVerify = async () => {
     if (code.length !== 6) return;
@@ -76,6 +82,11 @@ export function MFAVerificationDialog({
         setCode("");
         setLoading(false);
         return;
+      }
+
+      // Trust device if checkbox was checked
+      if (trustDevice && userId) {
+        await saveTrustedDevice(userId);
       }
 
       // Success!
@@ -139,6 +150,22 @@ export function MFAVerificationDialog({
           <p className="text-sm text-muted-foreground text-center">
             {t('mfaVerification.openAuthenticator')}
           </p>
+
+          {/* Trust device checkbox */}
+          <div className="flex items-center space-x-2 rtl:space-x-reverse justify-center pt-2">
+            <Checkbox
+              id="trustDevice"
+              checked={trustDevice}
+              onCheckedChange={(checked) => setTrustDevice(checked === true)}
+              disabled={loading}
+            />
+            <label
+              htmlFor="trustDevice"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              {t('trustedDevices.trustFor15Days')}
+            </label>
+          </div>
         </div>
 
         <div className="flex justify-end gap-3">

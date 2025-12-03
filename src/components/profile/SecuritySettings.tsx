@@ -11,6 +11,7 @@ import { Loader2, Lock, CheckCircle2, XCircle, Eye, EyeOff, AlertTriangle } from
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
+import { TrustedDevicesSection } from "./TrustedDevicesSection";
 
 interface PasswordRequirement {
   label: string;
@@ -115,6 +116,11 @@ export function SecuritySettings() {
         </div>
         <TwoFactorSetup />
       </div>
+
+      <Separator />
+
+      {/* Trusted Devices Section */}
+      <TrustedDevicesSection />
 
       <Separator />
 

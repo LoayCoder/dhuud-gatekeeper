@@ -338,6 +338,25 @@
     "unexpectedError": "Nagkaroon ng hindi inaasahang error",
     "loginCancelled": "Kinansela ang Login"
   },
+  "trustedDevices": {
+    "title": "Mga Pinagkakatiwalaang Device",
+    "description": "Mga device na maaaring laktawan ang 2FA verification sa loob ng 15 araw",
+    "trustFor15Days": "Pagkatiwalaan ang device na ito sa loob ng 15 araw",
+    "noDevices": "Walang pinagkakatiwalaang device",
+    "noDevicesHint": "Kapag nag-verify ka gamit ang 2FA, maaari mong piliin na pagkatiwalaan ang iyong device",
+    "unknownDevice": "Hindi kilalang Device",
+    "lastUsed": "Huling ginamit",
+    "trustedUntil": "Pinagkakatiwalaan hanggang",
+    "expired": "Nag-expire na",
+    "deviceRevoked": "Na-revoke ang Device",
+    "deviceRevokedMessage": "Ang device na ito ay mangangailangan na ng 2FA verification",
+    "allDevicesRevoked": "Lahat ng Device ay Na-revoke",
+    "allDevicesRevokedMessage": "Lahat ng device ay mangangailangan ng 2FA verification sa susunod na login",
+    "revokeFailed": "Nabigo ang pag-revoke ng device trust",
+    "revokeAll": "I-revoke Lahat",
+    "revokeAllConfirm": "I-revoke ang lahat ng pinagkakatiwalaang device?",
+    "revokeAllMessage": "Lahat ng iyong device ay mangangailangan ng 2FA verification sa susunod na login. Hindi na ito maaaring i-undo."
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "hsseManagement": "Pamamahala ng HSSE",

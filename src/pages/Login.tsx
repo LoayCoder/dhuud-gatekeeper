@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
+import { useTrustedDevice } from '@/hooks/use-trusted-device';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,10 +22,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showMFADialog, setShowMFADialog] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const passwordRef = useRef<string>('');
   const navigate = useNavigate();
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
   const { checkPassword } = usePasswordBreachCheck();
+  const { checkTrustedDevice } = useTrustedDevice();
 
   const loginSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -58,14 +61,26 @@ export default function Login() {
   }, [navigate, invitationEmail, showMFADialog]);
 
   const checkMFAAndNavigate = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     
     if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-      // User needs to complete MFA
+      // User needs to complete MFA - but check if device is trusted first
+      if (user) {
+        const isTrusted = await checkTrustedDevice(user.id);
+        if (isTrusted) {
+          // Device is trusted, skip MFA
+          navigate('/');
+          return;
+        }
+      }
+      
+      // Device not trusted, show MFA dialog
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const totpFactor = factors?.totp?.find(f => f.status === 'verified');
       
       if (totpFactor) {
+        setCurrentUserId(user?.id || null);
         setMfaFactorId(totpFactor.id);
         setShowMFADialog(true);
         return;
@@ -139,14 +154,35 @@ export default function Login() {
       if (error) throw error;
 
       // Check if MFA is required
+      const { data: { user } } = await supabase.auth.getUser();
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       
       if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-        // User has 2FA enabled - show verification dialog
+        // User has 2FA enabled - check if device is trusted first
+        if (user) {
+          const isTrusted = await checkTrustedDevice(user.id);
+          if (isTrusted) {
+            // Device is trusted, skip MFA and proceed with login
+            await refreshTenantData();
+            startSessionTracking();
+            await logUserActivity({ eventType: 'login' });
+            clearInvitationData();
+            toast({
+              title: t('auth.welcomeBack'),
+              description: t('auth.loginSuccess'),
+            });
+            checkPasswordBreach(password);
+            navigate('/');
+            return;
+          }
+        }
+
+        // Device not trusted - show verification dialog
         const { data: factors } = await supabase.auth.mfa.listFactors();
         const totpFactor = factors?.totp?.find(f => f.status === 'verified');
         
         if (totpFactor) {
+          setCurrentUserId(user?.id || null);
           setMfaFactorId(totpFactor.id);
           setShowMFADialog(true);
           setLoading(false);
@@ -298,6 +334,7 @@ export default function Login() {
           factorId={mfaFactorId}
           onSuccess={handleMFASuccess}
           onCancel={handleMFACancel}
+          userId={currentUserId || undefined}
         />
       )}
     </div>

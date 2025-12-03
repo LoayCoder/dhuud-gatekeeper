@@ -338,6 +338,25 @@
     "unexpectedError": "एक अप्रत्याशित त्रुटि हुई",
     "loginCancelled": "लॉगिन रद्द हो गया"
   },
+  "trustedDevices": {
+    "title": "विश्वसनीय उपकरण",
+    "description": "उपकरण जो 15 दिनों के लिए 2FA सत्यापन छोड़ सकते हैं",
+    "trustFor15Days": "इस उपकरण पर 15 दिनों के लिए भरोसा करें",
+    "noDevices": "कोई विश्वसनीय उपकरण नहीं",
+    "noDevicesHint": "जब आप 2FA से सत्यापित करते हैं, तो आप अपने उपकरण पर भरोसा कर सकते हैं",
+    "unknownDevice": "अज्ञात उपकरण",
+    "lastUsed": "अंतिम उपयोग",
+    "trustedUntil": "विश्वसनीय तक",
+    "expired": "समाप्त",
+    "deviceRevoked": "उपकरण विश्वास निरस्त",
+    "deviceRevokedMessage": "इस उपकरण को अब 2FA सत्यापन की आवश्यकता होगी",
+    "allDevicesRevoked": "सभी उपकरण निरस्त",
+    "allDevicesRevokedMessage": "अगले लॉगिन पर सभी उपकरणों को 2FA सत्यापन की आवश्यकता होगी",
+    "revokeFailed": "उपकरण विश्वास निरस्त करने में विफल",
+    "revokeAll": "सभी निरस्त करें",
+    "revokeAllConfirm": "सभी विश्वसनीय उपकरण निरस्त करें?",
+    "revokeAllMessage": "अगले लॉगिन पर सभी उपकरणों को 2FA सत्यापन की आवश्यकता होगी। यह पूर्ववत नहीं किया जा सकता।"
+  },
   "navigation": {
     "dashboard": "डैशबोर्ड",
     "hsseManagement": "HSSE प्रबंधन",
