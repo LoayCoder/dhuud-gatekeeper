@@ -34,6 +34,8 @@ import {
   LifeBuoy,
   CreditCard,
   Receipt,
+  Puzzle,
+  FileStack,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -154,6 +156,16 @@ export function AppSidebar() {
           title: t('navigation.subscriptionsOverview'),
           url: "/admin/subscriptions",
           icon: Receipt,
+        },
+        {
+          title: t('navigation.moduleManagement'),
+          url: "/admin/modules",
+          icon: Puzzle,
+        },
+        {
+          title: t('navigation.planManagement'),
+          url: "/admin/plans",
+          icon: FileStack,
         },
       ],
     },
