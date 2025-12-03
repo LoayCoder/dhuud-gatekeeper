@@ -30,10 +30,15 @@ import { Loader2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SensitiveField } from "@/components/ui/sensitive-field";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfile {
   id: string;
   full_name: string | null;
+  phone_number: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
   assigned_branch_id: string | null;
   assigned_division_id: string | null;
   assigned_department_id: string | null;
@@ -57,6 +62,7 @@ interface HierarchyItem {
 
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
+  const { user: currentUser, isAdmin } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const isRTL = i18n.dir() === 'rtl';
@@ -83,6 +89,9 @@ export default function UserManagement() {
         .select(`
           id,
           full_name,
+          phone_number,
+          emergency_contact_name,
+          emergency_contact_phone,
           assigned_branch_id,
           assigned_division_id,
           assigned_department_id,
@@ -192,6 +201,7 @@ export default function UserManagement() {
                 <TableRow>
                   <TableHead className={textAlign}>{t('userManagement.employee')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.role')}</TableHead>
+                  <TableHead className={textAlign}>{t('profile.phoneNumber', 'Phone')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.locationBranch')}</TableHead>
                   <TableHead className={textAlign}>{t('userManagement.functionalUnit')}</TableHead>
                   <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('userManagement.actions')}</TableHead>
@@ -200,24 +210,35 @@ export default function UserManagement() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                     </TableCell>
                   </TableRow>
                 ) : users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       {t('userManagement.noUsers')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user) => (
+                  users.map((user) => {
+                    const canViewSensitive = currentUser?.id === user.id || isAdmin;
+                    return (
                     <TableRow key={user.id}>
                       <TableCell className={`font-medium ${textAlign}`}>
                         {user.full_name || t('userManagement.unnamedProfile')}
                       </TableCell>
                       <TableCell className={textAlign}>
                         <Badge variant="secondary">{user.role || t('userManagement.user')}</Badge>
+                      </TableCell>
+                      <TableCell className={textAlign}>
+                        <SensitiveField
+                          value={user.phone_number}
+                          canAccess={canViewSensitive}
+                          accessType="profile_phone_viewed"
+                          targetId={user.id}
+                          maskType="partial"
+                        />
                       </TableCell>
                       <TableCell className={textAlign}>
                         {user.branches?.name || (
@@ -257,7 +278,7 @@ export default function UserManagement() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))
+                  )})
                 )}
               </TableBody>
             </Table>

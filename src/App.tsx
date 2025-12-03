@@ -33,6 +33,7 @@ import SubscriptionOverview from "./pages/admin/SubscriptionOverview";
 import ModuleManagement from "./pages/admin/ModuleManagement";
 import PlanManagement from "./pages/admin/PlanManagement";
 import UsageAnalytics from "./pages/admin/UsageAnalytics";
+import SecurityAuditLog from "./pages/admin/SecurityAuditLog";
 import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
@@ -144,6 +145,14 @@ const App = () => (
                       element={
                         <AdminRoute>
                           <UsageAnalytics />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/security-audit"
+                      element={
+                        <AdminRoute>
+                          <SecurityAuditLog />
                         </AdminRoute>
                       }
                     />
