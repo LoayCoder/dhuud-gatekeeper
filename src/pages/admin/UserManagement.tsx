@@ -60,6 +60,8 @@ export default function UserManagement() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const isRTL = i18n.dir() === 'rtl';
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const textAlign = isRTL ? 'text-right' : 'text-left';
   
   // Hierarchy Data Options
   const [branches, setBranches] = useState<HierarchyItem[]>([]);
@@ -76,7 +78,6 @@ export default function UserManagement() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Profiles with ALL hierarchy joins
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -94,12 +95,10 @@ export default function UserManagement() {
 
       if (profilesError) throw profilesError;
 
-      // 2. Fetch user roles separately
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
-      // 3. Merge roles with profiles
       const usersWithRoles = (profilesData || []).map(profile => {
         const userRole = rolesData?.find(r => r.user_id === profile.id);
         return {
@@ -110,7 +109,6 @@ export default function UserManagement() {
 
       setUsers(usersWithRoles);
 
-      // 4. Fetch Hierarchy Options for Dropdowns
       const [b, d, dep, sec] = await Promise.all([
         supabase.from('branches').select('id, name'),
         supabase.from('divisions').select('id, name'),
@@ -135,13 +133,11 @@ export default function UserManagement() {
     fetchData();
   }, []);
 
-  // Filter Departments based on selected Division
   const getDepartmentsForDivision = (divId: string | null) => {
     if (!divId) return [];
     return departments.filter(d => d.division_id === divId);
   };
 
-  // Filter Sections based on selected Department
   const getSectionsForDepartment = (deptId: string | null) => {
     if (!deptId) return [];
     return sections.filter(s => s.department_id === deptId);
@@ -174,32 +170,31 @@ export default function UserManagement() {
     }
   };
 
-  // RTL-aware arrow for hierarchy
   const hierarchyArrow = isRTL ? '←' : '↳';
 
   return (
-    <div className="container py-8 space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end text-end' : 'items-start text-start'}`}>
-        <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
-        <p className="text-muted-foreground">{t('userManagement.description')}</p>
+    <div className="container py-8 space-y-8" dir={direction}>
+      {/* Header - Right aligned for RTL */}
+      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end' : 'items-start'}`}>
+        <h1 className={`text-3xl font-bold tracking-tight ${textAlign}`}>{t('userManagement.title')}</h1>
+        <p className={`text-muted-foreground ${textAlign}`}>{t('userManagement.description')}</p>
       </div>
 
       <Card>
-        <CardHeader className={isRTL ? 'text-end' : 'text-start'}>
-          <CardTitle>{t('userManagement.allUsers')}</CardTitle>
-          <CardDescription>{t('userManagement.manageAssignments')}</CardDescription>
+        <CardHeader>
+          <CardTitle className={textAlign}>{t('userManagement.allUsers')}</CardTitle>
+          <CardDescription className={textAlign}>{t('userManagement.manageAssignments')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-hidden" dir={direction}>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.employee')}</TableHead>
-                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.role')}</TableHead>
-                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.locationBranch')}</TableHead>
-                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.functionalUnit')}</TableHead>
-                  <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('userManagement.actions')}</TableHead>
+                  <TableHead className={textAlign}>{t('userManagement.employee')}</TableHead>
+                  <TableHead className={textAlign}>{t('userManagement.role')}</TableHead>
+                  <TableHead className={textAlign}>{t('userManagement.locationBranch')}</TableHead>
+                  <TableHead className={textAlign}>{t('userManagement.functionalUnit')}</TableHead>
+                  <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('userManagement.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -218,18 +213,18 @@ export default function UserManagement() {
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className={`font-medium ${isRTL ? 'text-end' : 'text-start'}`}>
+                      <TableCell className={`font-medium ${textAlign}`}>
                         {user.full_name || t('userManagement.unnamedProfile')}
                       </TableCell>
-                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
+                      <TableCell className={textAlign}>
                         <Badge variant="secondary">{user.role || t('userManagement.user')}</Badge>
                       </TableCell>
-                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
+                      <TableCell className={textAlign}>
                         {user.branches?.name || (
                           <span className="text-muted-foreground italic">{t('userManagement.unassigned')}</span>
                         )}
                       </TableCell>
-                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
+                      <TableCell className={textAlign}>
                         <div className={`flex flex-col text-sm ${isRTL ? 'items-end' : 'items-start'}`}>
                           {user.divisions?.name && (
                             <span className="font-semibold">{user.divisions.name}</span>
@@ -249,7 +244,7 @@ export default function UserManagement() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
+                      <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -272,30 +267,31 @@ export default function UserManagement() {
 
       {/* Assignment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]" dir={isRTL ? 'rtl' : 'ltr'}>
-          <DialogHeader className={isRTL ? 'text-end' : 'text-start'}>
-            <DialogTitle>{t('userManagement.editAssignments')}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[500px]" dir={direction}>
+          <DialogHeader>
+            <DialogTitle className={textAlign}>{t('userManagement.editAssignments')}</DialogTitle>
+            <DialogDescription className={textAlign}>
               {t('userManagement.assignTo')} {editingUser?.full_name || t('userManagement.unnamedProfile')}.
             </DialogDescription>
           </DialogHeader>
           
           {editingUser && (
             <div className="grid gap-4 py-4">
-              {/* 1. Branch (Geographic) */}
-              <div className="grid gap-2">
-                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.branchLocation')}</Label>
+              {/* Branch */}
+              <div className={`grid gap-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <Label>{t('userManagement.branchLocation')}</Label>
                 <Select
                   value={editingUser.assigned_branch_id || "none"}
                   onValueChange={(val) => setEditingUser({ 
                     ...editingUser, 
                     assigned_branch_id: val === "none" ? null : val 
                   })}
+                  dir={direction}
                 >
-                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
+                  <SelectTrigger className={textAlign}>
                     <SelectValue placeholder={t('userManagement.selectBranch')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover z-50" dir={direction}>
                     <SelectItem value="none">{t('userManagement.none')}</SelectItem>
                     {branches.map((b) => (
                       <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -304,9 +300,9 @@ export default function UserManagement() {
                 </Select>
               </div>
 
-              {/* 2. Division (Top Level) */}
-              <div className="grid gap-2">
-                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.division')}</Label>
+              {/* Division */}
+              <div className={`grid gap-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <Label>{t('userManagement.division')}</Label>
                 <Select
                   value={editingUser.assigned_division_id || "none"}
                   onValueChange={(val) => setEditingUser({ 
@@ -315,11 +311,12 @@ export default function UserManagement() {
                     assigned_department_id: null,
                     assigned_section_id: null 
                   })}
+                  dir={direction}
                 >
-                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
+                  <SelectTrigger className={textAlign}>
                     <SelectValue placeholder={t('userManagement.selectDivision')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover z-50" dir={direction}>
                     <SelectItem value="none">{t('userManagement.none')}</SelectItem>
                     {divisions.map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
@@ -328,9 +325,9 @@ export default function UserManagement() {
                 </Select>
               </div>
 
-              {/* 3. Department (Child of Division) */}
-              <div className="grid gap-2">
-                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.department')}</Label>
+              {/* Department */}
+              <div className={`grid gap-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <Label>{t('userManagement.department')}</Label>
                 <Select
                   value={editingUser.assigned_department_id || "none"}
                   disabled={!editingUser.assigned_division_id}
@@ -339,11 +336,12 @@ export default function UserManagement() {
                     assigned_department_id: val === "none" ? null : val,
                     assigned_section_id: null
                   })}
+                  dir={direction}
                 >
-                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
+                  <SelectTrigger className={textAlign}>
                     <SelectValue placeholder={t('userManagement.selectDepartment')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover z-50" dir={direction}>
                     <SelectItem value="none">{t('userManagement.none')}</SelectItem>
                     {getDepartmentsForDivision(editingUser.assigned_division_id).map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
@@ -352,9 +350,9 @@ export default function UserManagement() {
                 </Select>
               </div>
 
-              {/* 4. Section (Child of Department) */}
-              <div className="grid gap-2">
-                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.section')}</Label>
+              {/* Section */}
+              <div className={`grid gap-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <Label>{t('userManagement.section')}</Label>
                 <Select
                   value={editingUser.assigned_section_id || "none"}
                   disabled={!editingUser.assigned_department_id}
@@ -362,11 +360,12 @@ export default function UserManagement() {
                     ...editingUser, 
                     assigned_section_id: val === "none" ? null : val 
                   })}
+                  dir={direction}
                 >
-                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
+                  <SelectTrigger className={textAlign}>
                     <SelectValue placeholder={t('userManagement.selectSection')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover z-50" dir={direction}>
                     <SelectItem value="none">{t('userManagement.none')}</SelectItem>
                     {getSectionsForDepartment(editingUser.assigned_department_id).map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -377,11 +376,15 @@ export default function UserManagement() {
             </div>
           )}
 
-          <DialogFooter className={`gap-2 ${isRTL ? 'flex-row-reverse sm:flex-row-reverse' : ''}`}>
+          <DialogFooter className={`gap-2 sm:gap-2 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSave} disabled={saving} className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Button 
+              onClick={handleSave} 
+              disabled={saving} 
+              className={`inline-flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+            >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               {t('userManagement.saveAssignments')}
             </Button>
