@@ -235,23 +235,25 @@
   },
   "securitySettings": {
     "twoFactorAuth": "المصادقة الثنائية",
-    "twoFactorDescription": "أضف طبقة إضافية من الأمان لحسابك.",
+    "twoFactorDescription": "أضف طبقة إضافية من الأمان لحسابك",
     "changePassword": "تغيير كلمة المرور",
-    "changePasswordDescription": "تحديث كلمة مرور حسابك.",
+    "changePasswordDescription": "قم بتحديث كلمة المرور للحفاظ على أمان حسابك",
+    "passwordRequirements": "متطلبات كلمة المرور",
+    "atLeast8Chars": "8 أحرف على الأقل",
+    "oneUppercase": "حرف كبير واحد (A-Z)",
+    "oneLowercase": "حرف صغير واحد (a-z)",
+    "oneNumber": "رقم واحد (0-9)",
     "newPassword": "كلمة المرور الجديدة",
     "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
-    "updatePassword": "تحديث كلمة المرور",
-    "updating": "جاري التحديث...",
-    "passwordUpdated": "تم تحديث كلمة المرور",
-    "passwordUpdateSuccess": "تم تحديث كلمة المرور بنجاح.",
+    "enterNewPassword": "أدخل كلمة المرور الجديدة",
+    "confirmNewPasswordPlaceholder": "تأكيد كلمة المرور الجديدة",
+    "passwordsMatch": "كلمات المرور متطابقة",
     "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
-    "requirements": {
-      "title": "متطلبات كلمة المرور",
-      "minLength": "8 أحرف على الأقل",
-      "uppercase": "حرف كبير واحد",
-      "lowercase": "حرف صغير واحد",
-      "number": "رقم واحد"
-    }
+    "updatePassword": "تحديث كلمة المرور",
+    "passwordUpdated": "تم تحديث كلمة المرور",
+    "passwordUpdatedMessage": "تم تغيير كلمة المرور بنجاح.",
+    "updateFailed": "فشل التحديث",
+    "invalidPassword": "كلمة مرور غير صالحة"
   },
   "twoFactorSetup": {
     "twoFactorAuth": "المصادقة الثنائية",
