@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -203,16 +203,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending ${type} email to ${toEmail}`);
 
-    const emailResponse = await resend.emails.send({
-      from: "Dhuud Platform <onboarding@resend.dev>",
-      to: [toEmail],
-      subject,
-      html: htmlContent,
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Dhuud Platform <onboarding@resend.dev>",
+        to: [toEmail],
+        subject,
+        html: htmlContent,
+      }),
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    const emailData = await emailResponse.json();
 
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+    console.log("Email sent successfully:", emailData);
+
+    return new Response(JSON.stringify({ success: true, data: emailData }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

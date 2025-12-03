@@ -736,6 +736,60 @@ export type Database = {
           },
         ]
       }
+      tenant_modules: {
+        Row: {
+          created_at: string
+          disabled_at: string | null
+          disabled_by: string | null
+          enabled: boolean
+          enabled_at: string | null
+          enabled_by: string | null
+          id: string
+          module_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
+          enabled?: boolean
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          module_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
+          enabled?: boolean
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          module_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_modules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           app_icon_dark_url: string | null
@@ -1089,6 +1143,16 @@ export type Database = {
       get_tenant_modules: {
         Args: { p_tenant_id: string }
         Returns: Database["public"]["Enums"]["module_code"][]
+      }
+      get_tenant_modules_with_overrides: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          is_enabled: boolean
+          module_code: string
+          module_id: string
+          module_name: string
+          source: string
+        }[]
       }
       get_user_role: {
         Args: { _user_id: string }

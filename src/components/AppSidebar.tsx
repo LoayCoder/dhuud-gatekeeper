@@ -36,6 +36,7 @@ import {
   Receipt,
   Puzzle,
   FileStack,
+  BarChart3,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -166,6 +167,11 @@ export function AppSidebar() {
           title: t('navigation.planManagement'),
           url: "/admin/plans",
           icon: FileStack,
+        },
+        {
+          title: t('analytics.title', 'Usage Analytics'),
+          url: "/admin/analytics",
+          icon: BarChart3,
         },
       ],
     },

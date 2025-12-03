@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InvitationManagement } from './InvitationManagement';
+import { TenantModuleControl } from './TenantModuleControl';
+import { TenantTrialControl } from './TenantTrialControl';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -34,11 +36,19 @@ export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailD
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-1">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="invitations">{t('tenantManagement.detail.invitations')}</TabsTrigger>
+            <TabsTrigger value="modules">{t('tenantManagement.detail.modules')}</TabsTrigger>
+            <TabsTrigger value="trial">{t('tenantManagement.detail.trial')}</TabsTrigger>
           </TabsList>
           <TabsContent value="invitations" className="flex-1 overflow-auto mt-4">
             <InvitationManagement tenant={tenant} />
+          </TabsContent>
+          <TabsContent value="modules" className="flex-1 overflow-auto mt-4">
+            <TenantModuleControl tenant={tenant} />
+          </TabsContent>
+          <TabsContent value="trial" className="flex-1 overflow-auto mt-4">
+            <TenantTrialControl tenant={tenant} />
           </TabsContent>
         </Tabs>
       </DialogContent>
