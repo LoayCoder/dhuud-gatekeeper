@@ -31,11 +31,15 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Loader2, Users } from 'lucide-react';
 import { UserType, isContractorType, userTypeHasLogin } from '@/lib/license-utils';
 import { useLicensedUserQuota } from '@/hooks/use-licensed-user-quota';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleSelector } from '@/components/roles/RoleSelector';
+import { useUserRoles } from '@/hooks/use-user-roles';
+import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialog';
 
 const userFormSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -72,10 +76,15 @@ interface UserFormDialogProps {
 }
 
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
-  const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { profile, isAdmin } = useAuth();
   const { quota, checkCanAddUser } = useLicensedUserQuota();
+  const { roles, fetchUserRoles, assignRoles } = useUserRoles();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [showTeamAssignment, setShowTeamAssignment] = useState(false);
+  const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
+  const isRTL = i18n.dir() === 'rtl';
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
     divisions: any[];
@@ -140,33 +149,52 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     loadHierarchy();
   }, [profile?.tenant_id]);
 
-  // Reset form when user changes
+  // Reset form and load user roles when user changes
   useEffect(() => {
-    if (user) {
-      form.reset({
-        full_name: user.full_name || '',
-        email: user.email || '',
-        phone_number: user.phone_number || '',
-        user_type: user.user_type || 'employee',
-        has_login: user.has_login ?? true,
-        is_active: user.is_active ?? true,
-        employee_id: user.employee_id || '',
-        job_title: user.job_title || '',
-        contractor_company_name: user.contractor_company_name || '',
-        contract_start: user.contract_start || '',
-        contract_end: user.contract_end || '',
-        membership_id: user.membership_id || '',
-        membership_start: user.membership_start || '',
-        membership_end: user.membership_end || '',
-        assigned_branch_id: user.assigned_branch_id || null,
-        assigned_division_id: user.assigned_division_id || null,
-        assigned_department_id: user.assigned_department_id || null,
-        assigned_section_id: user.assigned_section_id || null,
-      });
-    } else {
-      form.reset();
+    async function loadUserData() {
+      if (user) {
+        form.reset({
+          full_name: user.full_name || '',
+          email: user.email || '',
+          phone_number: user.phone_number || '',
+          user_type: user.user_type || 'employee',
+          has_login: user.has_login ?? true,
+          is_active: user.is_active ?? true,
+          employee_id: user.employee_id || '',
+          job_title: user.job_title || '',
+          contractor_company_name: user.contractor_company_name || '',
+          contract_start: user.contract_start || '',
+          contract_end: user.contract_end || '',
+          membership_id: user.membership_id || '',
+          membership_start: user.membership_start || '',
+          membership_end: user.membership_end || '',
+          assigned_branch_id: user.assigned_branch_id || null,
+          assigned_division_id: user.assigned_division_id || null,
+          assigned_department_id: user.assigned_department_id || null,
+          assigned_section_id: user.assigned_section_id || null,
+        });
+
+        // Load user's roles
+        const userRoles = await fetchUserRoles(user.id);
+        setSelectedRoleIds(userRoles.map(r => r.role_id));
+
+        // Load manager assignment
+        const { data: teamAssignment } = await supabase
+          .from('manager_team')
+          .select('manager_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setCurrentManagerId(teamAssignment?.manager_id || null);
+      } else {
+        form.reset();
+        // Set default normal_user role for new users
+        const normalUserRole = roles.find(r => r.code === 'normal_user');
+        setSelectedRoleIds(normalUserRole ? [normalUserRole.id] : []);
+        setCurrentManagerId(null);
+      }
     }
-  }, [user, form]);
+    loadUserData();
+  }, [user, form, fetchUserRoles, roles]);
 
   // Auto-set has_login based on user type
   useEffect(() => {
@@ -221,11 +249,23 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     setIsLoading(true);
     try {
       await onSave(data);
+      
+      // Assign roles after save (for existing users we have the ID)
+      if (user && profile?.tenant_id) {
+        await assignRoles(user.id, selectedRoleIds, profile.tenant_id);
+      }
+      
       onOpenChange(false);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Check if user has manager role
+  const hasManagerRole = selectedRoleIds.some(roleId => {
+    const role = roles.find(r => r.id === roleId);
+    return role?.code === 'manager';
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -345,6 +385,40 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 )}
               />
             </div>
+
+            {/* Role Assignment (Admin Only) */}
+            {isAdmin && (
+              <div className="space-y-2 p-4 border rounded-lg">
+                <Label className="font-medium">{t('roles.roleAssignment')}</Label>
+                <p className="text-xs text-muted-foreground mb-2">{t('roles.roleAssignmentDescription')}</p>
+                <RoleSelector
+                  selectedRoleIds={selectedRoleIds}
+                  onChange={setSelectedRoleIds}
+                />
+              </div>
+            )}
+
+            {/* Team Assignment (Admin Only, for editing existing users) */}
+            {isAdmin && user && (
+              <div className="space-y-2 p-4 border rounded-lg">
+                <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div>
+                    <Label className="font-medium">{t('hierarchy.teamAssignment')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('hierarchy.teamAssignmentDescription')}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTeamAssignment(true)}
+                    className="gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    {currentManagerId ? t('hierarchy.changeManager') : t('hierarchy.assignToTeam')}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Employee Fields */}
             {userType === 'employee' && (
@@ -594,6 +668,26 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
           </form>
         </Form>
       </DialogContent>
+
+      {/* Team Assignment Dialog */}
+      {user && (
+        <TeamAssignmentDialog
+          open={showTeamAssignment}
+          onOpenChange={setShowTeamAssignment}
+          userId={user.id}
+          userName={user.full_name || ''}
+          currentManagerId={currentManagerId}
+          onAssigned={() => {
+            // Refresh manager assignment
+            supabase
+              .from('manager_team')
+              .select('manager_id')
+              .eq('user_id', user.id)
+              .maybeSingle()
+              .then(({ data }) => setCurrentManagerId(data?.manager_id || null));
+          }}
+        />
+      )}
     </Dialog>
   );
 }
