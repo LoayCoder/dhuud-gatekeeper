@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Lock, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Lock, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
@@ -21,6 +21,8 @@ export function SecuritySettings() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const passwordSchema = z.object({
     password: z
@@ -133,32 +135,46 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="new-password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-9"
+                className="pl-9 pr-9"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="confirm-password"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pr-9"
+                className="pl-9 pr-9"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {confirmPassword.length > 0 && (
               <div className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
