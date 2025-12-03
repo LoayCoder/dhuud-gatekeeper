@@ -161,7 +161,10 @@
     "protected": "Protected",
     "passwordBreached": "This password has been found in {{count}} data breaches. Please choose a different password for your security.",
     "passwordCompromised": "Password Security Warning",
-    "passwordBreachedWarning": "Your password has been found in {{count}} data breaches. Please change it in Profile → Security."
+    "passwordBreachedWarning": "Your password has been found in {{count}} data breaches. Please change it in Profile → Security.",
+    "restrictedAccess": "You don't have permission to view this information",
+    "sensitiveDataHidden": "Sensitive data hidden for security",
+    "clickToReveal": "Click to reveal"
   },
   "dashboard": {
     "welcomeTitle": "Welcome to Dhuud HSSE Platform",

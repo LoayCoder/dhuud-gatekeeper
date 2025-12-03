@@ -400,7 +400,10 @@
     "protected": "Protektado",
     "passwordBreached": "Ang password na ito ay natagpuan sa {{count}} data breaches. Mangyaring pumili ng ibang password para sa iyong seguridad.",
     "passwordCompromised": "Babala sa Seguridad ng Password",
-    "passwordBreachedWarning": "Ang iyong password ay natagpuan sa {{count}} data breaches. Mangyaring palitan ito sa Profile → Security."
+    "passwordBreachedWarning": "Ang iyong password ay natagpuan sa {{count}} data breaches. Mangyaring palitan ito sa Profile → Security.",
+    "restrictedAccess": "Wala kang pahintulot na tingnan ang impormasyong ito",
+    "sensitiveDataHidden": "Sensitibong data ay nakatago para sa seguridad",
+    "clickToReveal": "I-click upang ipakita"
   },
   "dashboard": {
     "welcomeTitle": "Maligayang Pagdating sa Dhuud HSSE Platform",

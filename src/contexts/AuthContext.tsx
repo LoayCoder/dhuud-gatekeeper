@@ -10,10 +10,14 @@ interface Profile {
   preferred_language: string | null;
 }
 
+type UserRole = 'admin' | 'user';
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  userRole: UserRole | null;
+  isAdmin: boolean;
   mfaEnabled: boolean;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -26,8 +30,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchUserRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    if (data) {
+      setUserRole(data.role as UserRole);
+    }
+  };
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -54,7 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (user?.id) {
-      await fetchProfile(user.id);
+      await Promise.all([
+        fetchProfile(user.id),
+        fetchUserRole(user.id),
+      ]);
     }
   };
 
@@ -69,10 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Defer Supabase calls with setTimeout to prevent deadlock
           setTimeout(() => {
             fetchProfile(newSession.user.id);
+            fetchUserRole(newSession.user.id);
             checkMFA();
           }, 0);
         } else {
           setProfile(null);
+          setUserRole(null);
           setMfaEnabled(false);
         }
       }
@@ -88,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (existingSession?.user) {
         await Promise.all([
           fetchProfile(existingSession.user.id),
+          fetchUserRole(existingSession.user.id),
           checkMFA()
         ]);
       }
@@ -104,6 +127,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     user,
     profile,
+    userRole,
+    isAdmin: userRole === 'admin',
     mfaEnabled,
     isLoading,
     isAuthenticated: !!session,
