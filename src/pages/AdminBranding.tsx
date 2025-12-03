@@ -226,15 +226,15 @@ export default function AdminBranding() {
       </div>;
   }
   return <div className="p-6 space-y-6 max-w-7xl mx-auto text-start">
-      <div className="justify-between items-center flex flex-row">
-        <div className="text-start">
-          <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
-          <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
-        </div>
+      <div className="flex flex-row-reverse justify-between items-center rtl:flex-row">
         <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Save className="me-2 h-4 w-4" />}
           {saving ? t('adminBranding.saving') : t('adminBranding.saveChanges')}
         </Button>
+        <div className="ltr:text-left rtl:text-right">
+          <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
+          <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
@@ -248,13 +248,13 @@ export default function AdminBranding() {
         <TabsContent value="visuals">
           <Card>
             <CardHeader>
-              <CardTitle className="text-start">{t('adminBranding.colors.title')}</CardTitle>
-              <CardDescription className="text-start">{t('adminBranding.colors.description')}</CardDescription>
+              <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.colors.title')}</CardTitle>
+              <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.colors.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Light Mode Colors */}
               <div className="space-y-4">
-                <div className="gap-2 text-lg font-semibold flex items-center justify-start">
+                <div className="gap-2 text-lg font-semibold flex items-center ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse">
                   <Sun className="h-5 w-5 text-amber-500" />
                   <span>{t('adminBranding.colors.lightMode')}</span>
                 </div>
@@ -268,7 +268,7 @@ export default function AdminBranding() {
 
               {/* Dark Mode Colors */}
               <div className="space-y-4">
-                <div className="gap-2 text-lg font-semibold flex items-center justify-start">
+                <div className="gap-2 text-lg font-semibold flex items-center ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse">
                   <Moon className="h-5 w-5 text-blue-400" />
                   <span>{t('adminBranding.colors.darkMode')}</span>
                 </div>
@@ -286,13 +286,13 @@ export default function AdminBranding() {
             {/* Login Page Logos */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('adminBranding.assets.loginLogos.title')}</CardTitle>
-                <CardDescription>{t('adminBranding.assets.loginLogos.description')}</CardDescription>
+                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.title')}</CardTitle>
+                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Sun className="h-4 w-4 text-amber-500" />
                       <span>{t('adminBranding.assets.loginLogos.lightMode')}</span>
                     </div>
@@ -302,7 +302,7 @@ export default function AdminBranding() {
                     <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'logo-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Moon className="h-4 w-4 text-blue-400" />
                       <span>{t('adminBranding.assets.loginLogos.darkMode')}</span>
                     </div>
@@ -318,13 +318,13 @@ export default function AdminBranding() {
             {/* Sidebar Icons */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('adminBranding.assets.sidebarIcons.title')}</CardTitle>
-                <CardDescription>{t('adminBranding.assets.sidebarIcons.description')}</CardDescription>
+                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.title')}</CardTitle>
+                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Sun className="h-4 w-4 text-amber-500" />
                       <span>{t('adminBranding.colors.lightMode')}</span>
                     </div>
@@ -334,7 +334,7 @@ export default function AdminBranding() {
                     <Input type="file" accept=".png,.svg" onChange={e => handleFileUpload(e, 'sidebar-icon-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Moon className="h-4 w-4 text-blue-400" />
                       <span>{t('adminBranding.colors.darkMode')}</span>
                     </div>
@@ -350,13 +350,13 @@ export default function AdminBranding() {
             {/* App Icons (PWA) */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('adminBranding.assets.appIcons.title')}</CardTitle>
-                <CardDescription>{t('adminBranding.assets.appIcons.description')}</CardDescription>
+                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.title')}</CardTitle>
+                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Sun className="h-4 w-4 text-amber-500" />
                       <span>{t('adminBranding.colors.lightMode')}</span>
                     </div>
@@ -366,7 +366,7 @@ export default function AdminBranding() {
                     <Input type="file" accept=".png" onChange={e => handleFileUpload(e, 'icon-light')} disabled={uploading} />
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-medium">
+                    <div className="flex items-center gap-2 text-sm font-medium ltr:flex-row rtl:flex-row-reverse ltr:justify-start rtl:justify-end">
                       <Moon className="h-4 w-4 text-blue-400" />
                       <span>{t('adminBranding.colors.darkMode')}</span>
                     </div>
@@ -382,10 +382,10 @@ export default function AdminBranding() {
             {/* Favicon */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse">
                   <Globe className="h-5 w-5" /> {t('adminBranding.assets.favicon.title')}
                 </CardTitle>
-                <CardDescription>{t('adminBranding.assets.favicon.description')}</CardDescription>
+                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.favicon.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[120px]">
@@ -400,16 +400,16 @@ export default function AdminBranding() {
         <TabsContent value="theme">
           <Card>
             <CardHeader>
-              <CardTitle>{t('adminBranding.theme.title')}</CardTitle>
-              <CardDescription>{t('adminBranding.theme.description')}</CardDescription>
+              <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.theme.title')}</CardTitle>
+              <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.theme.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <RadioGroup value={bgTheme} onValueChange={v => setBgTheme(v as 'color' | 'image')} className="flex gap-6">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <RadioGroupItem value="color" id="r-color" />
                   <Label htmlFor="r-color">{t('adminBranding.theme.solidColor')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <RadioGroupItem value="image" id="r-image" />
                   <Label htmlFor="r-image">{t('adminBranding.theme.customImage')}</Label>
                 </div>
@@ -418,15 +418,15 @@ export default function AdminBranding() {
               <Separator />
 
               {bgTheme === 'color' ? <div className="space-y-4">
-                  <Label>{t('adminBranding.theme.backgroundColor')}</Label>
+                  <Label className="ltr:text-left rtl:text-right block">{t('adminBranding.theme.backgroundColor')}</Label>
                   <div className="flex gap-4 items-center">
-                    <div className="h-12 w-12 rounded-lg border shadow-sm" style={{
+                    <div className="h-12 w-12 rounded-lg border shadow-sm shrink-0" style={{
                     backgroundColor: `hsl(${bgColor})`
                   }} />
                     <Input value={bgColor} onChange={e => setBgColor(e.target.value)} placeholder={t('adminBranding.theme.hslPlaceholder')} />
                   </div>
                 </div> : <div className="space-y-4">
-                  <Label>{t('adminBranding.theme.backgroundImage')}</Label>
+                  <Label className="ltr:text-left rtl:text-right block">{t('adminBranding.theme.backgroundImage')}</Label>
                   <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group" style={{
                   backgroundImage: bgPreview ? `url(${bgPreview})` : 'none'
                 }}>
@@ -438,7 +438,7 @@ export default function AdminBranding() {
                         <span className="text-muted-foreground text-sm">{t('adminBranding.theme.noImage')}</span>
                       </div>}
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('adminBranding.theme.imageDescription')}</p>
+                  <p className="text-xs text-muted-foreground ltr:text-left rtl:text-right">{t('adminBranding.theme.imageDescription')}</p>
                 </div>}
             </CardContent>
           </Card>
