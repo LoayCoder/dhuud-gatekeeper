@@ -583,5 +583,31 @@
     "isActive": "Aktibo",
     "inactive": "Hindi Aktibo",
     "planSaved": "Matagumpay na na-save ang plano."
+  },
+  "subscription": {
+    "title": "Pamamahala ng Subscription",
+    "description": "I-configure ang iyong subscription plan at humiling ng mga pagbabago.",
+    "currentPlan": "Kasalukuyang Plano",
+    "noPlan": "Walang Napiling Plano",
+    "activeStatus": "Aktibo",
+    "inactiveStatus": "Hindi Aktibo",
+    "monthly": "Buwanan",
+    "yearly": "Taunan",
+    "save10Percent": "-10%",
+    "billingPeriod": "Panahon ng Pagsingil",
+    "selectDuration": "Pumili ng Tagal ng Subscription",
+    "selectMonths": "Pumili ng bilang ng buwan",
+    "yearlyOption": "1 Taon (12 buwan)",
+    "monthlyOption": "1 Buwan",
+    "monthsOption": "{{count}} Buwan",
+    "selectedPeriod": "Napiling Panahon",
+    "oneYear": "1 Taon",
+    "oneMonth": "1 Buwan",
+    "nMonths": "{{count}} Buwan",
+    "discount": "Diskwento",
+    "savePercent": "Makatipid ng {{percent}}%",
+    "configurePlan": "I-configure ang Plano",
+    "myRequests": "Mga Kahilingan Ko",
+    "requestPlan": "Humiling ng Subscription Plan"
   }
 }

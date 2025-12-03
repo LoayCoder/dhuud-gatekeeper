@@ -47,10 +47,12 @@ export default function SubscriptionManagement() {
     selectedUserCount,
     selectedModuleIds,
     billingPeriod,
+    billingMonths,
     setSelectedPlanId,
     setSelectedUserCount,
     toggleModule,
     setBillingPeriod,
+    setBillingMonths,
     priceBreakdown,
     isCalculating,
   } = usePriceCalculator(subscription?.planId, subscription?.maxUsers || 5);
@@ -235,6 +237,13 @@ export default function SubscriptionManagement() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
+              {/* Billing Period Selection */}
+              <BillingPeriodToggle
+                billingMonths={billingMonths}
+                onMonthsChange={setBillingMonths}
+                disabled={hasPendingRequest}
+              />
+
               {/* Plan Selection */}
               <PlanSelector
                 plans={plans}

@@ -38,11 +38,12 @@ export interface PriceBreakdown {
   modulePrice: number;
   total: number;
   totalMonthly: number;
-  billingPeriod: 'monthly' | 'yearly';
+  billingPeriod: BillingPeriod;
+  billingMonths: number;
   moduleDetails: { id: string; name: string; price: number; included: boolean }[];
 }
 
-export type BillingPeriod = 'monthly' | 'yearly';
+export type BillingPeriod = 'monthly' | 'yearly' | 'custom';
 
 export interface UsePriceCalculatorReturn {
   plans: Plan[];
@@ -54,10 +55,12 @@ export interface UsePriceCalculatorReturn {
   selectedUserCount: number;
   selectedModuleIds: string[];
   billingPeriod: BillingPeriod;
+  billingMonths: number;
   
   setSelectedPlanId: (id: string | null) => void;
   setSelectedUserCount: (count: number) => void;
   setSelectedModuleIds: (ids: string[]) => void;
+  setBillingMonths: (months: number) => void;
   setBillingPeriod: (period: BillingPeriod) => void;
   toggleModule: (id: string) => void;
   
@@ -75,8 +78,21 @@ export function usePriceCalculator(
   const [selectedUserCount, setSelectedUserCount] = useState(initialUserCount);
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>(initialModuleIds);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(initialBillingPeriod);
+  const [billingMonths, setBillingMonths] = useState(initialBillingPeriod === 'yearly' ? 12 : 1);
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Sync billingPeriod with billingMonths
+  const handleSetBillingMonths = useCallback((months: number) => {
+    setBillingMonths(months);
+    if (months === 12) {
+      setBillingPeriod('yearly');
+    } else if (months === 1) {
+      setBillingPeriod('monthly');
+    } else {
+      setBillingPeriod('custom');
+    }
+  }, []);
 
   const { data: plans = [], isLoading: plansLoading, error: plansError } = useQuery({
     queryKey: ['plans-dynamic'],
@@ -114,11 +130,14 @@ export function usePriceCalculator(
 
     setIsCalculating(true);
     try {
+      // For custom months, use monthly pricing from DB, then multiply on frontend
+      const dbBillingPeriod = billingMonths === 12 ? 'yearly' : 'monthly';
+      
       const { data, error } = await supabase.rpc('calculate_subscription_price', {
         p_plan_id: selectedPlanId,
         p_user_count: selectedUserCount,
         p_module_ids: selectedModuleIds,
-        p_billing_period: billingPeriod,
+        p_billing_period: dbBillingPeriod,
       });
 
       if (error) throw error;
@@ -137,26 +156,32 @@ export function usePriceCalculator(
 
       const moduleDetails = selectedModuleIds.map(moduleId => {
         const mod = modules.find(m => m.id === moduleId);
+        const monthlyPrice = mod?.base_price_monthly || 0;
         return {
           id: moduleId,
           name: mod?.name || 'Unknown',
-          price: billingPeriod === 'yearly' 
-            ? (mod?.base_price_yearly || (mod?.base_price_monthly || 0) * 12)
-            : (mod?.base_price_monthly || 0),
+          price: monthlyPrice * billingMonths,
           included: false,
         };
       });
 
+      // Calculate total based on billing months
+      const monthlyTotal = priceData.total_monthly || 0;
+      const periodTotal = billingMonths === 12 
+        ? (priceData.total || monthlyTotal * 12)
+        : monthlyTotal * billingMonths;
+
       setPriceBreakdown({
-        basePrice: priceData.base_price || 0,
+        basePrice: (priceData.base_price || 0) * (billingMonths === 12 ? 1 : billingMonths),
         includedUsers: priceData.included_users || 1,
         extraUsers: priceData.extra_users || 0,
         pricePerUser: priceData.price_per_user || 0,
-        userPrice: priceData.user_price || 0,
-        modulePrice: priceData.module_price || 0,
-        total: priceData.total || 0,
+        userPrice: (priceData.user_price || 0) * (billingMonths === 12 ? 1 : billingMonths),
+        modulePrice: (priceData.module_price || 0) * (billingMonths === 12 ? 1 : billingMonths),
+        total: periodTotal,
         totalMonthly: priceData.total_monthly || 0,
         billingPeriod: billingPeriod,
+        billingMonths: billingMonths,
         moduleDetails,
       });
     } catch (err) {
@@ -191,10 +216,12 @@ export function usePriceCalculator(
     selectedUserCount,
     selectedModuleIds,
     billingPeriod,
+    billingMonths,
     setSelectedPlanId,
     setSelectedUserCount,
     setSelectedModuleIds,
     setBillingPeriod,
+    setBillingMonths: handleSetBillingMonths,
     toggleModule,
     priceBreakdown,
     isCalculating,
