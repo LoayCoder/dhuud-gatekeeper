@@ -174,30 +174,32 @@ export default function UserManagement() {
     }
   };
 
+  // RTL-aware arrow for hierarchy
+  const hierarchyArrow = isRTL ? '←' : '↳';
+
   return (
-    <div className="container py-8 space-y-8">
-      <div className="flex justify-between items-center">
-        <div className={`flex flex-col gap-1 ${isRTL ? 'ms-auto text-end' : ''}`}>
-          <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
-          <p className="text-muted-foreground">{t('userManagement.description')}</p>
-        </div>
+    <div className="container py-8 space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end text-end' : 'items-start text-start'}`}>
+        <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
+        <p className="text-muted-foreground">{t('userManagement.description')}</p>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-start">{t('userManagement.allUsers')}</CardTitle>
-          <CardDescription className="text-start">{t('userManagement.manageAssignments')}</CardDescription>
+        <CardHeader className={isRTL ? 'text-end' : 'text-start'}>
+          <CardTitle>{t('userManagement.allUsers')}</CardTitle>
+          <CardDescription>{t('userManagement.manageAssignments')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-start">{t('userManagement.employee')}</TableHead>
-                  <TableHead className="text-start">{t('userManagement.role')}</TableHead>
-                  <TableHead className="text-start">{t('userManagement.locationBranch')}</TableHead>
-                  <TableHead className="text-start">{t('userManagement.functionalUnit')}</TableHead>
-                  <TableHead className="text-end">{t('userManagement.actions')}</TableHead>
+                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.employee')}</TableHead>
+                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.role')}</TableHead>
+                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.locationBranch')}</TableHead>
+                  <TableHead className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.functionalUnit')}</TableHead>
+                  <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('userManagement.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -216,30 +218,30 @@ export default function UserManagement() {
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium text-start">
+                      <TableCell className={`font-medium ${isRTL ? 'text-end' : 'text-start'}`}>
                         {user.full_name || t('userManagement.unnamedProfile')}
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
                         <Badge variant="secondary">{user.role || t('userManagement.user')}</Badge>
                       </TableCell>
-                      <TableCell className="text-start">
+                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
                         {user.branches?.name || (
                           <span className="text-muted-foreground italic">{t('userManagement.unassigned')}</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-start">
-                        <div className="flex flex-col text-sm">
+                      <TableCell className={isRTL ? 'text-end' : 'text-start'}>
+                        <div className={`flex flex-col text-sm ${isRTL ? 'items-end' : 'items-start'}`}>
                           {user.divisions?.name && (
                             <span className="font-semibold">{user.divisions.name}</span>
                           )}
                           {user.departments?.name && (
-                            <span className={`text-muted-foreground text-xs ${isRTL ? 'pe-2' : 'ps-2'}`}>
-                              ↳ {user.departments.name}
+                            <span className={`text-muted-foreground text-xs ${isRTL ? 'me-2' : 'ms-2'}`}>
+                              {hierarchyArrow} {user.departments.name}
                             </span>
                           )}
                           {user.sections?.name && (
-                            <span className={`text-muted-foreground text-xs ${isRTL ? 'pe-4' : 'ps-4'}`}>
-                              ↳ {user.sections.name}
+                            <span className={`text-muted-foreground text-xs ${isRTL ? 'me-4' : 'ms-4'}`}>
+                              {hierarchyArrow} {user.sections.name}
                             </span>
                           )}
                           {!user.divisions?.name && (
@@ -247,7 +249,7 @@ export default function UserManagement() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-end">
+                      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -270,10 +272,10 @@ export default function UserManagement() {
 
       {/* Assignment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-start">{t('userManagement.editAssignments')}</DialogTitle>
-            <DialogDescription className="text-start">
+        <DialogContent className="sm:max-w-[500px]" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader className={isRTL ? 'text-end' : 'text-start'}>
+            <DialogTitle>{t('userManagement.editAssignments')}</DialogTitle>
+            <DialogDescription>
               {t('userManagement.assignTo')} {editingUser?.full_name || t('userManagement.unnamedProfile')}.
             </DialogDescription>
           </DialogHeader>
@@ -282,7 +284,7 @@ export default function UserManagement() {
             <div className="grid gap-4 py-4">
               {/* 1. Branch (Geographic) */}
               <div className="grid gap-2">
-                <Label className="text-start">{t('userManagement.branchLocation')}</Label>
+                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.branchLocation')}</Label>
                 <Select
                   value={editingUser.assigned_branch_id || "none"}
                   onValueChange={(val) => setEditingUser({ 
@@ -290,7 +292,7 @@ export default function UserManagement() {
                     assigned_branch_id: val === "none" ? null : val 
                   })}
                 >
-                  <SelectTrigger className="text-start">
+                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
                     <SelectValue placeholder={t('userManagement.selectBranch')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -304,7 +306,7 @@ export default function UserManagement() {
 
               {/* 2. Division (Top Level) */}
               <div className="grid gap-2">
-                <Label className="text-start">{t('userManagement.division')}</Label>
+                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.division')}</Label>
                 <Select
                   value={editingUser.assigned_division_id || "none"}
                   onValueChange={(val) => setEditingUser({ 
@@ -314,7 +316,7 @@ export default function UserManagement() {
                     assigned_section_id: null 
                   })}
                 >
-                  <SelectTrigger className="text-start">
+                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
                     <SelectValue placeholder={t('userManagement.selectDivision')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -328,7 +330,7 @@ export default function UserManagement() {
 
               {/* 3. Department (Child of Division) */}
               <div className="grid gap-2">
-                <Label className="text-start">{t('userManagement.department')}</Label>
+                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.department')}</Label>
                 <Select
                   value={editingUser.assigned_department_id || "none"}
                   disabled={!editingUser.assigned_division_id}
@@ -338,7 +340,7 @@ export default function UserManagement() {
                     assigned_section_id: null
                   })}
                 >
-                  <SelectTrigger className="text-start">
+                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
                     <SelectValue placeholder={t('userManagement.selectDepartment')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,7 +354,7 @@ export default function UserManagement() {
 
               {/* 4. Section (Child of Department) */}
               <div className="grid gap-2">
-                <Label className="text-start">{t('userManagement.section')}</Label>
+                <Label className={isRTL ? 'text-end' : 'text-start'}>{t('userManagement.section')}</Label>
                 <Select
                   value={editingUser.assigned_section_id || "none"}
                   disabled={!editingUser.assigned_department_id}
@@ -361,7 +363,7 @@ export default function UserManagement() {
                     assigned_section_id: val === "none" ? null : val 
                   })}
                 >
-                  <SelectTrigger className="text-start">
+                  <SelectTrigger className={isRTL ? 'text-end' : 'text-start'}>
                     <SelectValue placeholder={t('userManagement.selectSection')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -375,12 +377,12 @@ export default function UserManagement() {
             </div>
           )}
 
-          <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+          <DialogFooter className={`gap-2 ${isRTL ? 'flex-row-reverse sm:flex-row-reverse' : ''}`}>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 className={`h-4 w-4 animate-spin ${isRTL ? 'ms-2' : 'me-2'}`} />}
+            <Button onClick={handleSave} disabled={saving} className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               {t('userManagement.saveAssignments')}
             </Button>
           </DialogFooter>
