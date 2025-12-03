@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Pencil, Play, Pause, Ban, Mail } from 'lucide-react';
+import { MoreHorizontal, Pencil, Play, Pause, Ban, Settings } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -37,8 +37,8 @@ export function TenantActions({ tenant, onEdit, onStatusChange, onManageInvitati
           {t('common.edit')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onManageInvitations(tenant)}>
-          <Mail className="h-4 w-4 me-2" />
-          {t('tenantManagement.actions.manageInvitations')}
+          <Settings className="h-4 w-4 me-2" />
+          {t('tenantManagement.actions.manageTenant')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {tenant.status !== 'active' && (
