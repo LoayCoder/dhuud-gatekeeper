@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 interface SubscriptionEmailRequest {
-  type: 'request_submitted' | 'request_approved' | 'request_declined' | 'request_modified';
+  type: 'request_submitted' | 'request_approved' | 'request_declined' | 'request_modified' | 'request_canceled';
   request_id: string;
   tenant_name: string;
   tenant_email: string;
@@ -163,6 +163,31 @@ const handler = async (req: Request): Promise<Response> => {
             ` : ''}
             
             <p>Your subscription is now active with the approved configuration.</p>
+            
+            <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+              Dhuud HSSE Platform - Health, Safety, Security & Environment Management
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'request_canceled':
+        subject = `Subscription Request Canceled - ${tenant_name}`;
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #6b7280;">Subscription Request Canceled</h1>
+            <p>Your subscription request has been canceled as per your request.</p>
+            
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #d1d5db;">
+              <h3 style="margin-top: 0;">Canceled Request Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Plan:</strong></td><td style="padding: 8px 0;">${plan_name}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Users:</strong></td><td style="padding: 8px 0;">${user_count}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Price:</strong></td><td style="padding: 8px 0;">${priceDisplay}</td></tr>
+              </table>
+            </div>
+            
+            <p>If you'd like to submit a new subscription request, please visit your subscription settings.</p>
             
             <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
               Dhuud HSSE Platform - Health, Safety, Security & Environment Management

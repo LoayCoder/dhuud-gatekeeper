@@ -36,6 +36,8 @@ export default function SubscriptionManagement() {
   const { subscription, isTrialActive, getTrialDaysRemaining } = useModuleAccess();
   
   const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [cancelRequestId, setCancelRequestId] = useState<string | null>(null);
+  const [requestToCancel, setRequestToCancel] = useState<any>(null);
   
   const {
     plans,
@@ -135,13 +137,39 @@ export default function SubscriptionManagement() {
 
   // Cancel request mutation
   const cancelRequest = useMutation({
-    mutationFn: async (requestId: string) => {
+    mutationFn: async (request: any) => {
       const { error } = await supabase
         .from('subscription_requests')
         .update({ status: 'canceled' })
-        .eq('id', requestId);
+        .eq('id', request.id);
 
       if (error) throw error;
+
+      // Send cancellation email
+      try {
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('name, contact_email, billing_email')
+          .eq('id', profile?.tenant_id)
+          .maybeSingle();
+
+        if (tenant) {
+          await supabase.functions.invoke('send-subscription-email', {
+            body: {
+              type: 'request_canceled',
+              request_id: request.id,
+              tenant_name: tenant.name,
+              tenant_email: tenant.billing_email || tenant.contact_email || '',
+              plan_name: request.requested_plan?.display_name || 'Unknown',
+              user_count: request.requested_user_limit,
+              total_monthly: request.calculated_total_monthly,
+              billing_period: request.billing_period || 'monthly',
+            },
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send cancellation email:', emailError);
+      }
     },
     onSuccess: () => {
       toast({
@@ -149,6 +177,8 @@ export default function SubscriptionManagement() {
         description: t('subscription.requestCanceledDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['subscription-requests'] });
+      setCancelRequestId(null);
+      setRequestToCancel(null);
     },
     onError: (error) => {
       toast({
@@ -413,20 +443,14 @@ export default function SubscriptionManagement() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => cancelRequest.mutate(request.id)}
+                          onClick={() => {
+                            setCancelRequestId(request.id);
+                            setRequestToCancel(request);
+                          }}
                           disabled={cancelRequest.isPending}
                         >
-                          {cancelRequest.isPending ? (
-                            <>
-                              <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                              {t('common.canceling')}
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="h-4 w-4 me-2" />
-                              {t('subscription.cancelRequest')}
-                            </>
-                          )}
+                          <XCircle className="h-4 w-4 me-2" />
+                          {t('subscription.cancelRequest')}
                         </Button>
                       </div>
                     </>
@@ -511,6 +535,57 @@ export default function SubscriptionManagement() {
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={!!cancelRequestId} onOpenChange={(open) => !cancelRequest.isPending && !open && (setCancelRequestId(null), setRequestToCancel(null))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-destructive" />
+              {t('subscription.confirmCancelTitle', 'Cancel Request?')}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4 text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <XCircle className="h-8 w-8 text-destructive" />
+            </div>
+            <p className="text-muted-foreground">
+              {t('subscription.confirmCancelMessage', 'Are you sure you want to cancel this subscription request? This action cannot be undone.')}
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setCancelRequestId(null);
+                setRequestToCancel(null);
+              }}
+              disabled={cancelRequest.isPending}
+            >
+              {t('common.back')}
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => requestToCancel && cancelRequest.mutate(requestToCancel)}
+              disabled={cancelRequest.isPending}
+            >
+              {cancelRequest.isPending ? (
+                <>
+                  <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {t('common.canceling')}
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 me-2" />
+                  {t('subscription.confirmCancel', 'Yes, Cancel Request')}
+                </>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
