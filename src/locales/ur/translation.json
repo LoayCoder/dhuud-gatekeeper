@@ -615,6 +615,16 @@
     "selectionSummary": "انتخاب کا خلاصہ",
     "configurePlan": "پلان کنفیگر کریں",
     "myRequests": "میری درخواستیں",
-    "requestPlan": "سبسکرپشن پلان کی درخواست کریں"
+    "requestPlan": "سبسکرپشن پلان کی درخواست کریں",
+    "confirmRequest": "درخواست کی تصدیق کریں",
+    "confirmRequestMessage": "کیا آپ واقعی یہ سبسکرپشن درخواست جمع کرانا چاہتے ہیں؟",
+    "submitRequest": "درخواست جمع کرائیں",
+    "cancelRequest": "درخواست منسوخ کریں",
+    "requestCanceled": "درخواست منسوخ ہو گئی",
+    "requestCanceledDesc": "آپ کی سبسکرپشن درخواست منسوخ کر دی گئی ہے۔",
+    "canceling": "منسوخ ہو رہا ہے...",
+    "confirmCancelTitle": "درخواست منسوخ کریں؟",
+    "confirmCancelMessage": "کیا آپ واقعی یہ سبسکرپشن درخواست منسوخ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔",
+    "confirmCancel": "ہاں، منسوخ کریں"
   }
 }
