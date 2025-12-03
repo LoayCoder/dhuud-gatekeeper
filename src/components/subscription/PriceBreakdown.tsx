@@ -14,6 +14,7 @@ interface PriceBreakdownProps {
   className?: string;
   compact?: boolean;
   billingMonths?: number;
+  actionButton?: React.ReactNode;
 }
 
 // Get discount percentage based on billing months
@@ -29,7 +30,8 @@ export function PriceBreakdown({
   planName,
   className,
   compact = false,
-  billingMonths = 1
+  billingMonths = 1,
+  actionButton
 }: PriceBreakdownProps) {
   const { t } = useTranslation();
 
@@ -211,6 +213,13 @@ export function PriceBreakdown({
             <span className="text-sm text-green-600 font-medium">
               {t('subscription.youSave', 'You save')} {formatPrice(discountAmount)} {t('subscription.comparedToMonthly', 'compared to monthly billing')}
             </span>
+          </div>
+        )}
+
+        {/* Action Button */}
+        {actionButton && (
+          <div className="pt-2">
+            {actionButton}
           </div>
         )}
       </CardContent>
