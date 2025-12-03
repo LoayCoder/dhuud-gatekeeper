@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Image as ImageIcon, Layout, Upload, Save, Loader2, Globe, Sun, Moon } from 'lucide-react';
+import { Palette, Image as ImageIcon, Layout, Upload, Save, Loader2, Sun, Moon } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
@@ -382,8 +382,8 @@ export default function AdminBranding() {
             {/* Favicon */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse">
-                  <Globe className="h-5 w-5" /> {t('adminBranding.assets.favicon.title')}
+                <CardTitle className="flex items-center gap-2 ltr:justify-start rtl:justify-end ltr:flex-row rtl:flex-row-reverse text-justify">
+                   {t('adminBranding.assets.favicon.title')}
                 </CardTitle>
                 <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.favicon.description')}</CardDescription>
               </CardHeader>
