@@ -37,6 +37,7 @@ import {
   Puzzle,
   FileStack,
   BarChart3,
+  ShieldAlert,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -172,6 +173,11 @@ export function AppSidebar() {
           title: t('analytics.title', 'Usage Analytics'),
           url: "/admin/analytics",
           icon: BarChart3,
+        },
+        {
+          title: t('navigation.securityAudit', 'Security Audit'),
+          url: "/admin/security-audit",
+          icon: ShieldAlert,
         },
       ],
     },
