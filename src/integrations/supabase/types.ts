@@ -392,17 +392,26 @@ export type Database = {
           background_theme: string | null
           brand_color: string
           brand_color_dark: string | null
+          city: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          country: string | null
           created_at: string | null
           favicon_url: string | null
           id: string
+          industry: string | null
           logo_dark_url: string | null
           logo_light_url: string | null
           name: string
+          notes: string | null
           secondary_color: string | null
           secondary_color_dark: string | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
           slug: string
+          status: Database["public"]["Enums"]["tenant_status"]
+          updated_at: string | null
         }
         Insert: {
           app_icon_dark_url?: string | null
@@ -412,17 +421,26 @@ export type Database = {
           background_theme?: string | null
           brand_color?: string
           brand_color_dark?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          country?: string | null
           created_at?: string | null
           favicon_url?: string | null
           id?: string
+          industry?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
           name: string
+          notes?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug: string
+          status?: Database["public"]["Enums"]["tenant_status"]
+          updated_at?: string | null
         }
         Update: {
           app_icon_dark_url?: string | null
@@ -432,17 +450,26 @@ export type Database = {
           background_theme?: string | null
           brand_color?: string
           brand_color_dark?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          country?: string | null
           created_at?: string | null
           favicon_url?: string | null
           id?: string
+          industry?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
           name?: string
+          notes?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug?: string
+          status?: Database["public"]["Enums"]["tenant_status"]
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -634,6 +661,7 @@ export type Database = {
         | "mfa_disabled"
         | "mfa_verification_failed"
       app_role: "admin" | "user"
+      tenant_status: "active" | "suspended" | "disabled"
       visit_status:
         | "pending_security"
         | "approved"
@@ -778,6 +806,7 @@ export const Constants = {
         "mfa_verification_failed",
       ],
       app_role: ["admin", "user"],
+      tenant_status: ["active", "suspended", "disabled"],
       visit_status: [
         "pending_security",
         "approved",
