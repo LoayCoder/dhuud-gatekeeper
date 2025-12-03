@@ -133,13 +133,13 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="new-password">{t('securitySettings.newPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="new-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="ltr:pl-9 rtl:pr-9"
+                className="pr-9"
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
@@ -149,13 +149,13 @@ export function SecuritySettings() {
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">{t('securitySettings.confirmNewPassword')}</Label>
             <div className="relative">
-              <Lock className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="ltr:pl-9 rtl:pr-9"
+                className="pr-9"
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
