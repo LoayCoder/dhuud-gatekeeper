@@ -1,10 +1,50 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+// Send security alert email when backup code is used
+async function sendBackupCodeUsedEmail(email: string, userName: string | null) {
+  const displayName = userName || 'User';
+  const timestamp = new Date().toLocaleString('en-US', { 
+    dateStyle: 'full', 
+    timeStyle: 'short' 
+  });
+  
+  try {
+    await resend.emails.send({
+      from: "DHUUD Security <onboarding@resend.dev>",
+      to: [email],
+      subject: "Security Alert: Backup Code Used",
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #dc2626; margin-bottom: 20px;">Security Alert</h1>
+          <p>Hello ${displayName},</p>
+          <p>A backup code was used to sign in to your DHUUD account on <strong>${timestamp}</strong>.</p>
+          <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #92400e;"><strong>Was this you?</strong></p>
+            <p style="margin: 10px 0 0 0; color: #92400e;">If you used this backup code, no action is needed. However, we recommend generating new backup codes if you're running low.</p>
+          </div>
+          <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #991b1b;"><strong>Wasn't you?</strong></p>
+            <p style="margin: 10px 0 0 0; color: #991b1b;">If you did not use this backup code, your account may be compromised. Please change your password immediately and contact support.</p>
+          </div>
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This is an automated security notification from DHUUD Platform.</p>
+        </div>
+      `,
+    });
+    console.log(`Backup code used notification sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send backup code notification email:', error);
+    // Don't throw - email failure shouldn't block login
+  }
+}
 
 // Simple hash function for backup codes (SHA-256)
 async function hashCode(code: string): Promise<string> {
@@ -124,6 +164,18 @@ serve(async (req) => {
       }
 
       console.log(`Backup code verification for user ${user.id}: ${isValid ? 'success' : 'failed'}`);
+
+      // Send email notification if backup code was successfully used
+      if (isValid && user.email) {
+        // Get user's full name from profile
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        await sendBackupCodeUsedEmail(user.email, profile?.full_name || null);
+      }
 
       return new Response(
         JSON.stringify({ valid: isValid }),
