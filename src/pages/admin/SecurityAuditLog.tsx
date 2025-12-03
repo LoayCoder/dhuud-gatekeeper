@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users } from "lucide-react";
+import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { RTLWrapper } from "@/components/RTLWrapper";
 
@@ -28,6 +28,8 @@ interface ActivityLog {
     target_user_name?: string;
     target_user_email?: string;
     changes?: Record<string, { from: unknown; to: unknown }>;
+    ip_address?: string;
+    user_agent?: string;
   } | null;
   session_duration_seconds?: number | null;
   created_at: string;
@@ -51,7 +53,19 @@ const userEventLabels: Record<string, { label: string; icon: React.ReactNode; va
   user_deleted: { label: "User Deleted", icon: <UserMinus className="h-3 w-3" />, variant: "destructive" },
 };
 
+const securityEventLabels: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  login: { label: "Login", icon: <LogIn className="h-3 w-3" />, variant: "default" },
+  logout: { label: "Logout", icon: <LogOut className="h-3 w-3" />, variant: "secondary" },
+  session_timeout: { label: "Session Timeout", icon: <Clock className="h-3 w-3" />, variant: "outline" },
+  session_extended: { label: "Session Extended", icon: <Clock className="h-3 w-3" />, variant: "secondary" },
+  mfa_enabled: { label: "MFA Enabled", icon: <ShieldCheck className="h-3 w-3" />, variant: "default" },
+  mfa_disabled: { label: "MFA Disabled", icon: <ShieldOff className="h-3 w-3" />, variant: "destructive" },
+  mfa_verification_failed: { label: "MFA Failed", icon: <ShieldAlert className="h-3 w-3" />, variant: "destructive" },
+  backup_code_used: { label: "Backup Code Used", icon: <KeyRound className="h-3 w-3" />, variant: "destructive" },
+};
+
 const USER_MANAGEMENT_EVENTS = ['user_created', 'user_updated', 'user_deactivated', 'user_activated', 'user_deleted'] as const;
+const SECURITY_EVENTS = ['login', 'logout', 'session_timeout', 'session_extended', 'mfa_enabled', 'mfa_disabled', 'mfa_verification_failed', 'backup_code_used'] as const;
 
 export default function SecurityAuditLog() {
   const { t } = useTranslation();
@@ -59,6 +73,8 @@ export default function SecurityAuditLog() {
   const [accessTypeFilter, setAccessTypeFilter] = useState<string>("all");
   const [userEventFilter, setUserEventFilter] = useState<string>("all");
   const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [securityEventFilter, setSecurityEventFilter] = useState<string>("all");
+  const [securitySearchQuery, setSecuritySearchQuery] = useState("");
 
   // Fetch sensitive data access logs
   const { data: sensitiveDataLogs, isLoading: isSensitiveLoading } = useQuery({
@@ -124,6 +140,35 @@ export default function SecurityAuditLog() {
     },
   });
 
+  // Fetch security events logs (login, logout, MFA, backup codes)
+  const { data: securityEventLogs, isLoading: isSecurityLoading } = useQuery({
+    queryKey: ["security-audit-logs-security-events"],
+    queryFn: async () => {
+      const { data: logsData, error } = await supabase
+        .from("user_activity_logs")
+        .select("*")
+        .in("event_type", SECURITY_EVENTS)
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+
+      const userIds = [...new Set(logsData.map(log => log.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+      return logsData.map(log => ({
+        ...log,
+        user_name: profileMap.get(log.user_id) || null,
+        metadata: log.metadata as ActivityLog["metadata"],
+      })) as ActivityLog[];
+    },
+  });
+
   // Filter sensitive data logs
   const filteredSensitiveLogs = sensitiveDataLogs?.filter(log => {
     const matchesSearch = searchQuery === "" || 
@@ -144,6 +189,16 @@ export default function SecurityAuditLog() {
       log.metadata?.target_user_email?.toLowerCase().includes(userSearchQuery.toLowerCase());
     
     const matchesType = userEventFilter === "all" || log.event_type === userEventFilter;
+    
+    return matchesSearch && matchesType;
+  });
+
+  // Filter security event logs
+  const filteredSecurityLogs = securityEventLogs?.filter(log => {
+    const matchesSearch = securitySearchQuery === "" || 
+      log.user_name?.toLowerCase().includes(securitySearchQuery.toLowerCase());
+    
+    const matchesType = securityEventFilter === "all" || log.event_type === securityEventFilter;
     
     return matchesSearch && matchesType;
   });
@@ -171,8 +226,12 @@ export default function SecurityAuditLog() {
         </p>
       </div>
 
-      <Tabs defaultValue="user-management" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+      <Tabs defaultValue="security-events" className="space-y-6">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsTrigger value="security-events" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            {t("securityAudit.securityEvents", "Security Events")}
+          </TabsTrigger>
           <TabsTrigger value="user-management" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             {t("securityAudit.userManagement", "User Management")}
@@ -182,6 +241,150 @@ export default function SecurityAuditLog() {
             {t("securityAudit.sensitiveAccess", "Data Access")}
           </TabsTrigger>
         </TabsList>
+
+        {/* Security Events Tab (Login, MFA, Backup Codes) */}
+        <TabsContent value="security-events">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("securityAudit.securityEventsTitle", "Security Events")}</CardTitle>
+              <CardDescription>
+                {t("securityAudit.securityEventsDescription", "Track logins, MFA events, and backup code usage")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("securityAudit.searchUserPlaceholder", "Search by user...")}
+                    value={securitySearchQuery}
+                    onChange={(e) => setSecuritySearchQuery(e.target.value)}
+                    className="[padding-inline-start:2.25rem]"
+                  />
+                </div>
+                <Select value={securityEventFilter} onValueChange={setSecurityEventFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder={t("securityAudit.filterByEvent", "Filter by event")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all", "All Events")}</SelectItem>
+                    {SECURITY_EVENTS.map((event) => (
+                      <SelectItem key={event} value={event}>
+                        {securityEventLabels[event]?.label || event}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold">{securityEventLogs?.length || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.totalEvents", "Total Events")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {securityEventLogs?.filter(l => l.event_type === 'login').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.logins", "Logins")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-amber-600">
+                      {securityEventLogs?.filter(l => l.event_type === 'backup_code_used').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.backupCodesUsed", "Backup Codes Used")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-2xl font-bold text-red-600">
+                      {securityEventLogs?.filter(l => l.event_type === 'mfa_verification_failed').length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.mfaFailed", "MFA Failed")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Security Events Table */}
+              {isSecurityLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredSecurityLogs && filteredSecurityLogs.length > 0 ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead>{t("securityAudit.user", "User")}</TableHead>
+                        <TableHead>{t("securityAudit.event", "Event")}</TableHead>
+                        <TableHead>{t("securityAudit.details", "Details")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSecurityLogs.map((log) => {
+                        const eventInfo = securityEventLabels[log.event_type] || {
+                          label: log.event_type,
+                          icon: <Shield className="h-3 w-3" />,
+                          variant: "default" as const,
+                        };
+                        
+                        return (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-mono text-sm whitespace-nowrap">
+                              {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
+                            </TableCell>
+                            <TableCell>
+                              {log.user_name || t("common.unknown", "Unknown")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={eventInfo.variant} className="gap-1">
+                                {eventInfo.icon}
+                                {eventInfo.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {log.metadata?.ip_address && (
+                                <span className="mr-2">IP: {log.metadata.ip_address}</span>
+                              )}
+                              {log.session_duration_seconds && (
+                                <span>Duration: {Math.round(log.session_duration_seconds / 60)}min</span>
+                              )}
+                              {!log.metadata?.ip_address && !log.session_duration_seconds && "—"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <ShieldCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("securityAudit.noSecurityLogs", "No security events found")}</p>
+                  <p className="text-sm mt-1">
+                    {t("securityAudit.noSecurityLogsDescription", "Login, MFA, and backup code events will appear here")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* User Management Tab */}
         <TabsContent value="user-management">
