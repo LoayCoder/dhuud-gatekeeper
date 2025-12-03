@@ -338,6 +338,25 @@
     "unexpectedError": "حدث خطأ غير متوقع",
     "loginCancelled": "تم إلغاء تسجيل الدخول"
   },
+  "trustedDevices": {
+    "title": "الأجهزة الموثوقة",
+    "description": "الأجهزة التي يمكنها تخطي التحقق الثنائي لمدة 15 يومًا",
+    "trustFor15Days": "الوثوق بهذا الجهاز لمدة 15 يومًا",
+    "noDevices": "لا توجد أجهزة موثوقة",
+    "noDevicesHint": "عند التحقق بالمصادقة الثنائية، يمكنك اختيار الوثوق بجهازك",
+    "unknownDevice": "جهاز غير معروف",
+    "lastUsed": "آخر استخدام",
+    "trustedUntil": "موثوق حتى",
+    "expired": "منتهي الصلاحية",
+    "deviceRevoked": "تم إلغاء ثقة الجهاز",
+    "deviceRevokedMessage": "سيتطلب هذا الجهاز الآن التحقق الثنائي",
+    "allDevicesRevoked": "تم إلغاء ثقة جميع الأجهزة",
+    "allDevicesRevokedMessage": "ستتطلب جميع أجهزتك التحقق الثنائي عند تسجيل الدخول التالي",
+    "revokeFailed": "فشل إلغاء ثقة الجهاز",
+    "revokeAll": "إلغاء الكل",
+    "revokeAllConfirm": "إلغاء ثقة جميع الأجهزة؟",
+    "revokeAllMessage": "ستتطلب جميع أجهزتك التحقق الثنائي عند تسجيل الدخول التالي. لا يمكن التراجع عن هذا."
+  },
   "navigation": {
     "dashboard": "لوحة المعلومات",
     "hsseManagement": "إدارة الصحة والسلامة",

@@ -338,6 +338,25 @@
     "unexpectedError": "غیر متوقع خرابی پیش آئی",
     "loginCancelled": "لاگ ان منسوخ ہو گیا"
   },
+  "trustedDevices": {
+    "title": "قابل اعتماد آلات",
+    "description": "آلات جو 15 دنوں کے لیے 2FA تصدیق چھوڑ سکتے ہیں",
+    "trustFor15Days": "اس آلے پر 15 دنوں کے لیے بھروسہ کریں",
+    "noDevices": "کوئی قابل اعتماد آلات نہیں",
+    "noDevicesHint": "جب آپ 2FA سے تصدیق کرتے ہیں، آپ اپنے آلے پر بھروسہ کر سکتے ہیں",
+    "unknownDevice": "نامعلوم آلہ",
+    "lastUsed": "آخری استعمال",
+    "trustedUntil": "قابل اعتماد تک",
+    "expired": "ختم ہو گیا",
+    "deviceRevoked": "آلے کا اعتماد منسوخ",
+    "deviceRevokedMessage": "اس آلے کو اب 2FA تصدیق کی ضرورت ہوگی",
+    "allDevicesRevoked": "تمام آلات منسوخ",
+    "allDevicesRevokedMessage": "اگلے لاگ ان پر تمام آلات کو 2FA تصدیق کی ضرورت ہوگی",
+    "revokeFailed": "آلے کا اعتماد منسوخ کرنے میں ناکام",
+    "revokeAll": "سب منسوخ کریں",
+    "revokeAllConfirm": "تمام قابل اعتماد آلات منسوخ کریں؟",
+    "revokeAllMessage": "اگلے لاگ ان پر تمام آلات کو 2FA تصدیق کی ضرورت ہوگی۔ یہ واپس نہیں ہو سکتا۔"
+  },
   "navigation": {
     "dashboard": "ڈیش بورڈ",
     "hsseManagement": "صحت و حفاظت کا انتظام",

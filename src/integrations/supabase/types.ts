@@ -1223,6 +1223,42 @@ export type Database = {
           },
         ]
       }
+      trusted_devices: {
+        Row: {
+          created_at: string | null
+          device_name: string | null
+          device_token: string
+          id: string
+          ip_address: string | null
+          last_used_at: string | null
+          trusted_until: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_name?: string | null
+          device_token: string
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          trusted_until: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_name?: string | null
+          device_token?: string
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          trusted_until?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activity_logs: {
         Row: {
           created_at: string
