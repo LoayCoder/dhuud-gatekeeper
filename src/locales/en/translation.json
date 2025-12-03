@@ -49,7 +49,9 @@
     "changeLanguage": "Change language",
     "error": "Error",
     "comingSoon": "Coming Soon",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "actions": "Actions",
+    "close": "Close"
   },
   "auth": {
     "signIn": "Sign In",
@@ -851,5 +853,37 @@
     "user_limit_changed": "User Limit Changed",
     "payment_succeeded": "Payment Succeeded",
     "payment_failed": "Payment Failed"
+  },
+  "adminSubscription": {
+    "requests": "Requests",
+    "activity": "Activity Log",
+    "subscriptionRequests": "Subscription Requests",
+    "requestsDescription": "Review and manage tenant subscription requests.",
+    "noRequests": "No subscription requests found.",
+    "pendingRequests": "Pending Requests",
+    "tenant": "Tenant",
+    "type": "Type",
+    "requestedPlan": "Requested Plan",
+    "price": "Price",
+    "submitted": "Submitted",
+    "review": "Review",
+    "view": "View",
+    "filterByStatus": "Filter by status",
+    "allRequests": "All Requests",
+    "reviewRequest": "Review Subscription Request",
+    "requestDetails": "Request Details",
+    "modifyApprove": "Modify & Approve",
+    "modifyDescription": "Make changes to the request before approving.",
+    "adminResponse": "Admin Response",
+    "adminNotesPlaceholder": "Add notes for the tenant (they will see this)...",
+    "modifyNotesPlaceholder": "Explain the changes you made...",
+    "approvedPrice": "Approved Price",
+    "approve": "Approve",
+    "approveWithChanges": "Approve with Changes",
+    "decline": "Decline",
+    "requestUpdated": "Request Updated",
+    "statusApproved": "The subscription has been approved and activated.",
+    "statusDeclined": "The subscription request has been declined.",
+    "statusModified": "The subscription has been approved with modifications."
   }
 }

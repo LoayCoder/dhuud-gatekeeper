@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,13 +6,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Building2, Users, CreditCard, TrendingUp, Clock, AlertTriangle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, Users, CreditCard, TrendingUp, Clock, AlertTriangle, FileText, Inbox } from "lucide-react";
 import { format } from "date-fns";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { SubscriptionAuditLog } from "@/components/SubscriptionAuditLog";
+import { SubscriptionRequestsTable } from "@/components/subscription/SubscriptionRequestsTable";
+import { RequestReviewDialog } from "@/components/subscription/RequestReviewDialog";
+
+interface SubscriptionRequest {
+  id: string;
+  tenant_id: string;
+  request_type: string;
+  requested_plan_id: string | null;
+  requested_user_limit: number;
+  requested_modules: string[] | null;
+  calculated_base_price: number;
+  calculated_user_price: number;
+  calculated_module_price: number;
+  calculated_total_monthly: number;
+  status: string;
+  tenant_notes: string | null;
+  admin_notes: string | null;
+  approved_plan_id: string | null;
+  approved_user_limit: number | null;
+  approved_modules: string[] | null;
+  approved_total_monthly: number | null;
+  created_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  tenant: { name: string } | null;
+  requested_plan: { display_name: string } | null;
+}
 
 export default function SubscriptionOverview() {
   const { t } = useTranslation();
+  const [selectedRequest, setSelectedRequest] = useState<SubscriptionRequest | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Fetch pending requests count for badge
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['pending-requests-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('subscription_requests')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['pending', 'under_review']);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const { data: tenants = [], isLoading } = useQuery({
     queryKey: ['admin-tenants-subscriptions'],
@@ -37,7 +83,6 @@ export default function SubscriptionOverview() {
       
       if (error) throw error;
 
-      // Get user counts for each tenant
       const tenantsWithCounts = await Promise.all(
         data.map(async (tenant) => {
           const { count } = await supabase
@@ -62,7 +107,6 @@ export default function SubscriptionOverview() {
     },
   });
 
-  // Calculate stats
   const stats = {
     totalTenants: tenants.length,
     activeSubs: tenants.filter(t => t.subscription_status === 'active').length,
@@ -89,6 +133,11 @@ export default function SubscriptionOverview() {
     const now = new Date();
     const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return days > 0 ? days : 0;
+  };
+
+  const handleReviewRequest = (request: SubscriptionRequest) => {
+    setSelectedRequest(request);
+    setReviewDialogOpen(true);
   };
 
   return (
@@ -144,87 +193,145 @@ export default function SubscriptionOverview() {
         </Card>
       </div>
 
-      {/* Tenants Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('subscriptionOverview.allTenants')}</CardTitle>
-          <CardDescription>{t('subscriptionOverview.allTenantsDesc')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('tenantManagement.name')}</TableHead>
-                <TableHead>{t('subscription.currentPlan')}</TableHead>
-                <TableHead>{t('common.status')}</TableHead>
-                <TableHead>{t('subscriptionOverview.userUsage')}</TableHead>
-                <TableHead>{t('subscriptionOverview.trialEnds')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    {t('common.loading')}
-                  </TableCell>
-                </TableRow>
-              ) : tenants.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    {t('subscriptionOverview.noTenants')}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                tenants.map((tenant) => {
-                  const usagePercent = (tenant.userCount / tenant.maxUsers) * 100;
-                  const trialDays = getTrialDaysRemaining(tenant.trial_end_date);
-                  
-                  return (
-                    <TableRow key={tenant.id}>
-                      <TableCell className="font-medium">{tenant.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{tenant.planName}</Badge>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(tenant.subscription_status)}</TableCell>
-                      <TableCell>
-                        <div className="space-y-1 min-w-[120px]">
-                          <div className="flex justify-between text-xs">
-                            <span>{tenant.userCount}/{tenant.maxUsers}</span>
-                            {usagePercent >= 90 && (
-                              <AlertTriangle className="h-3 w-3 text-destructive" />
-                            )}
-                          </div>
-                          <Progress 
-                            value={usagePercent} 
-                            className={`h-1.5 ${usagePercent >= 90 ? '[&>div]:bg-destructive' : ''}`}
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {tenant.subscription_status === 'trialing' && tenant.trial_end_date ? (
-                          <div className="text-sm">
-                            <span className={trialDays && trialDays <= 3 ? 'text-destructive font-medium' : ''}>
-                              {trialDays} {t('subscriptionOverview.daysLeft')}
-                            </span>
-                            <div className="text-xs text-muted-foreground">
-                              {format(new Date(tenant.trial_end_date), 'MMM d, yyyy')}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+      {/* Main Tabs */}
+      <Tabs defaultValue="requests" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="requests" className="gap-2">
+            <Inbox className="h-4 w-4" />
+            {t('adminSubscription.requests')}
+            {pendingCount > 0 && (
+              <Badge variant="destructive" className="ms-1 h-5 min-w-5 rounded-full p-0 text-xs flex items-center justify-center">
+                {pendingCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="tenants" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            {t('subscriptionOverview.allTenants')}
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="gap-2">
+            <FileText className="h-4 w-4" />
+            {t('adminSubscription.activity')}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Requests Tab */}
+        <TabsContent value="requests" className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={t('adminSubscription.filterByStatus')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('adminSubscription.allRequests')}</SelectItem>
+                <SelectItem value="pending">{t('subscription.status.pending')}</SelectItem>
+                <SelectItem value="under_review">{t('subscription.status.under_review')}</SelectItem>
+                <SelectItem value="approved">{t('subscription.status.approved')}</SelectItem>
+                <SelectItem value="declined">{t('subscription.status.declined')}</SelectItem>
+                <SelectItem value="modified">{t('subscription.status.modified')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <SubscriptionRequestsTable 
+            onReviewRequest={handleReviewRequest}
+            statusFilter={statusFilter}
+          />
+        </TabsContent>
+
+        {/* Tenants Tab */}
+        <TabsContent value="tenants">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('subscriptionOverview.allTenants')}</CardTitle>
+              <CardDescription>{t('subscriptionOverview.allTenantsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('tenantManagement.columns.name')}</TableHead>
+                    <TableHead>{t('subscription.currentPlan')}</TableHead>
+                    <TableHead>{t('common.status')}</TableHead>
+                    <TableHead>{t('subscriptionOverview.userUsage')}</TableHead>
+                    <TableHead>{t('subscriptionOverview.trialEnds')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        {t('common.loading')}
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  ) : tenants.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        {t('subscriptionOverview.noTenants')}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    tenants.map((tenant) => {
+                      const usagePercent = (tenant.userCount / tenant.maxUsers) * 100;
+                      const trialDays = getTrialDaysRemaining(tenant.trial_end_date);
+                      
+                      return (
+                        <TableRow key={tenant.id}>
+                          <TableCell className="font-medium">{tenant.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{tenant.planName}</Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(tenant.subscription_status)}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1 min-w-[120px]">
+                              <div className="flex justify-between text-xs">
+                                <span>{tenant.userCount}/{tenant.maxUsers}</span>
+                                {usagePercent >= 90 && (
+                                  <AlertTriangle className="h-3 w-3 text-destructive" />
+                                )}
+                              </div>
+                              <Progress 
+                                value={usagePercent} 
+                                className={`h-1.5 ${usagePercent >= 90 ? '[&>div]:bg-destructive' : ''}`}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {tenant.subscription_status === 'trialing' && tenant.trial_end_date ? (
+                              <div className="text-sm">
+                                <span className={trialDays && trialDays <= 3 ? 'text-destructive font-medium' : ''}>
+                                  {trialDays} {t('subscriptionOverview.daysLeft')}
+                                </span>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(new Date(tenant.trial_end_date), 'MMM d, yyyy')}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Subscription Audit Log */}
-      <SubscriptionAuditLog />
+        {/* Activity Tab */}
+        <TabsContent value="activity">
+          <SubscriptionAuditLog />
+        </TabsContent>
+      </Tabs>
+
+      {/* Review Dialog */}
+      <RequestReviewDialog
+        request={selectedRequest}
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+      />
     </div>
   );
 }

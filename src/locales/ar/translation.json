@@ -48,7 +48,8 @@
     "changeLanguage": "تغيير اللغة",
     "error": "خطأ",
     "comingSoon": "قريباً",
-    "submitting": "جاري الإرسال..."
+    "submitting": "جاري الإرسال...",
+    "actions": "الإجراءات"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -858,5 +859,37 @@
     "user_limit_changed": "تم تغيير حد المستخدمين",
     "payment_succeeded": "نجح الدفع",
     "payment_failed": "فشل الدفع"
+  },
+  "adminSubscription": {
+    "requests": "الطلبات",
+    "activity": "سجل النشاط",
+    "subscriptionRequests": "طلبات الاشتراك",
+    "requestsDescription": "مراجعة وإدارة طلبات اشتراك المستأجرين.",
+    "noRequests": "لم يتم العثور على طلبات اشتراك.",
+    "pendingRequests": "الطلبات المعلقة",
+    "tenant": "المستأجر",
+    "type": "النوع",
+    "requestedPlan": "الخطة المطلوبة",
+    "price": "السعر",
+    "submitted": "تاريخ الإرسال",
+    "review": "مراجعة",
+    "view": "عرض",
+    "filterByStatus": "تصفية حسب الحالة",
+    "allRequests": "جميع الطلبات",
+    "reviewRequest": "مراجعة طلب الاشتراك",
+    "requestDetails": "تفاصيل الطلب",
+    "modifyApprove": "تعديل والموافقة",
+    "modifyDescription": "إجراء تغييرات على الطلب قبل الموافقة.",
+    "adminResponse": "رد المسؤول",
+    "adminNotesPlaceholder": "أضف ملاحظات للمستأجر (سيرونها)...",
+    "modifyNotesPlaceholder": "اشرح التغييرات التي أجريتها...",
+    "approvedPrice": "السعر المعتمد",
+    "approve": "موافقة",
+    "approveWithChanges": "الموافقة مع تعديلات",
+    "decline": "رفض",
+    "requestUpdated": "تم تحديث الطلب",
+    "statusApproved": "تمت الموافقة على الاشتراك وتفعيله.",
+    "statusDeclined": "تم رفض طلب الاشتراك.",
+    "statusModified": "تمت الموافقة على الاشتراك مع تعديلات."
   }
 }
