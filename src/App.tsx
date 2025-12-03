@@ -34,7 +34,9 @@ import ModuleManagement from "./pages/admin/ModuleManagement";
 import PlanManagement from "./pages/admin/PlanManagement";
 import UsageAnalytics from "./pages/admin/UsageAnalytics";
 import SecurityAuditLog from "./pages/admin/SecurityAuditLog";
+import BillingOverview from "./pages/admin/BillingOverview";
 import Support from "./pages/Support";
+import UsageBilling from "./pages/settings/UsageBilling";
 
 const queryClient = new QueryClient();
 
@@ -157,9 +159,19 @@ const App = () => (
                       }
                     />
 
+                    <Route
+                      path="/admin/billing"
+                      element={
+                        <AdminRoute>
+                          <BillingOverview />
+                        </AdminRoute>
+                      }
+                    />
+
                     {/* User Routes */}
                     <Route path="/support" element={<Support />} />
                     <Route path="/settings/subscription" element={<SubscriptionManagement />} />
+                    <Route path="/settings/usage-billing" element={<UsageBilling />} />
                   </Route>
 
                   {/* Catch-all */}
