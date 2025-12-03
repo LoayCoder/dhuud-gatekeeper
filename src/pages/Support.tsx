@@ -56,8 +56,10 @@ const priorityColors: Record<TicketPriority, string> = {
   urgent: 'bg-destructive/10 text-destructive',
 };
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function Support() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function Support() {
     category: 'general' as TicketCategory,
     priority: 'medium' as TicketPriority,
   });
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ['support-tickets'],
@@ -126,8 +129,8 @@ export default function Support() {
   return (
     <RTLWrapper>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={isRTL ? 'text-end' : ''}>
             <h1 className="text-3xl font-bold tracking-tight">{t('support.title')}</h1>
             <p className="text-muted-foreground">{t('support.description')}</p>
           </div>
@@ -233,15 +236,15 @@ export default function Support() {
                 {tickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+                    className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}
                     onClick={() => setSelectedTicket(ticket)}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                       <div className={`p-2 rounded-full ${statusColors[ticket.status]}`}>
                         {statusIcons[ticket.status]}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
+                      <div className={isRTL ? 'text-end' : ''}>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                           <span className="text-xs text-muted-foreground">#{ticket.ticket_number}</span>
                           <h4 className="font-medium">{ticket.subject}</h4>
                         </div>
@@ -250,7 +253,7 @@ export default function Support() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                       <Badge variant="outline" className={priorityColors[ticket.priority]}>
                         {t(`support.priorities.${ticket.priority}`)}
                       </Badge>

@@ -38,9 +38,12 @@ interface Module {
   name: string;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function PlanManagement() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -239,9 +242,9 @@ export default function PlanManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={isRTL ? 'text-end' : ''}>
           <h1 className="text-3xl font-bold tracking-tight">{t('adminPlans.title')}</h1>
           <p className="text-muted-foreground">{t('adminPlans.description')}</p>
         </div>

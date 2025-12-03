@@ -40,11 +40,14 @@ interface SubscriptionRequest {
   requested_plan: { display_name: string } | null;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function SubscriptionOverview() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedRequest, setSelectedRequest] = useState<SubscriptionRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   // Fetch pending requests count for badge
   const { data: pendingCount = 0 } = useQuery({
@@ -141,9 +144,9 @@ export default function SubscriptionOverview() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={isRTL ? 'text-end' : ''}>
           <h1 className="text-3xl font-bold tracking-tight">{t('subscriptionOverview.title')}</h1>
           <p className="text-muted-foreground">{t('subscriptionOverview.description')}</p>
         </div>
@@ -195,7 +198,7 @@ export default function SubscriptionOverview() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList>
+        <TabsList className={isRTL ? 'flex-row-reverse' : ''}>
           <TabsTrigger value="requests" className="gap-2">
             <Inbox className="h-4 w-4" />
             {t('adminSubscription.requests')}
