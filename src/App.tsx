@@ -24,6 +24,8 @@ import AdminBranding from "./pages/AdminBranding";
 import Profile from "./pages/Profile";
 import MFASetup from "./pages/MFASetup";
 import NotFound from "./pages/NotFound";
+import OrgStructure from "./pages/admin/OrgStructure";
+import UserManagement from "./pages/admin/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -77,7 +79,15 @@ const App = () => (
                       path="/admin/users"
                       element={
                         <AdminRoute>
-                          <PlaceholderPage title="User Management" description="Manage users and their permissions." />
+                          <UserManagement />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/org-structure"
+                      element={
+                        <AdminRoute>
+                          <OrgStructure />
                         </AdminRoute>
                       }
                     />

@@ -45,7 +45,8 @@
     "light": "ہلکا",
     "dark": "گہرا",
     "system": "سسٹم",
-    "changeLanguage": "زبان تبدیل کریں"
+    "changeLanguage": "زبان تبدیل کریں",
+    "error": "خرابی"
   },
   "auth": {
     "signIn": "سائن ان",
@@ -311,6 +312,7 @@
     "administration": "انتظامیہ",
     "brandManagement": "برانڈ مینجمنٹ",
     "userManagement": "صارف کا انتظام",
+    "orgStructure": "تنظیمی ڈھانچہ",
     "platform": "پلیٹ فارم",
     "enterpriseHsse": "انٹرپرائز صحت و حفاظت"
   },
@@ -337,9 +339,9 @@
     "profileUpdateError": "پروفائل اپ ڈیٹ کرنے میں ناکام",
     "profilePicture": "پروفائل تصویر",
     "changeAvatar": "تصویر تبدیل کریں",
-    "fileTypeError": "صرف JPG، PNG، اور GIF فائلیں اجازت یافتہ ہیں",
-    "fileSizeError": "براہ کرم 10MB سے کم تصویر منتخب کریں",
-    "avatarSaveError": "اوتار URL محفوظ کرنے میں ناکام",
+    "fileTypeError": "صرف JPG، PNG، اور GIF فائلز کی اجازت ہے",
+    "fileSizeError": "براہ کرم 10MB سے کم کی تصویر منتخب کریں",
+    "avatarSaveError": "تصویر کا URL محفوظ کرنے میں ناکام",
     "avatarHint": "JPG، GIF یا PNG۔ زیادہ سے زیادہ 2MB۔",
     "invalidInput": "غلط ان پٹ"
   },
@@ -348,9 +350,9 @@
     "profileSettings": "پروفائل کی ترتیبات"
   },
   "security": {
-    "protectedByZeroTrust": "زیرو ٹرسٹ سیکیورٹی سے محفوظ",
+    "protectedByZeroTrust": "صفر اعتماد سیکیورٹی سے محفوظ",
     "securityStatus": "سیکیورٹی کی حیثیت",
-    "zeroTrustActive": "زیرو ٹرسٹ تصدیق فعال",
+    "zeroTrustActive": "صفر اعتماد تصدیق فعال",
     "protected": "محفوظ"
   },
   "dashboard": {
@@ -366,29 +368,34 @@
   "tenant": {
     "tenantInfo": "کرایہ دار کی معلومات",
     "organization": "تنظیم",
-    "memberSince": "ممبر بنے"
+    "memberSince": "رکن بنے"
   },
   "assignment": {
-    "title": "تفویض کی معلومات",
-    "description": "آپ کی تفویض شدہ شاخ اور سائٹ کا مقام۔",
-    "branch": "شاخ",
+    "title": "تعیناتی کی معلومات",
+    "description": "آپ کا مقام اور تنظیمی یونٹ۔",
+    "branch": "برانچ",
     "site": "سائٹ",
-    "notAssigned": "تفویض نہیں",
-    "managedByAdmin": "شاخ اور سائٹ کی تفویض آپ کے منتظم کے ذریعے منظم ہے۔"
+    "division": "ڈویژن",
+    "department": "شعبہ",
+    "section": "سیکشن",
+    "notAssigned": "غیر تعینات",
+    "managedByAdmin": "تعیناتیاں آپ کے منتظم کے ذریعے منظم ہیں۔",
+    "location": "مقام",
+    "functionalUnit": "فنکشنل یونٹ"
   },
   "role": {
     "title": "کردار کی معلومات",
     "currentRole": "موجودہ کردار",
     "roleDescription": "تنظیم کے اندر آپ کی موجودہ رسائی کی سطح۔",
-    "loggedInAs": "آپ بطور لاگ ان ہیں"
+    "loggedInAs": "آپ لاگ ان ہیں بطور"
   },
   "placeholder": {
-    "comingSoon": "یہ فیچر جلد آ رہا ہے۔",
-    "checkBackLater": "اپ ڈیٹس کے لیے بعد میں چیک کریں۔"
+    "comingSoon": "یہ خصوصیت جلد آ رہی ہے۔",
+    "checkBackLater": "اپ ڈیٹس کے لیے بعد میں دوبارہ چیک کریں۔"
   },
   "sessionTimeout": {
     "warningTitle": "سیشن جلد ختم ہو رہا ہے",
-    "warningDescription": "غیر فعالیت کی وجہ سے آپ کا سیشن {{time}} میں ختم ہو جائے گا۔ کیا آپ لاگ ان رہنا چاہتے ہیں؟",
+    "warningDescription": "آپ کا سیشن {{time}} میں غیر فعالیت کی وجہ سے ختم ہو جائے گا۔ کیا آپ لاگ ان رہنا چاہتے ہیں؟",
     "logOutNow": "ابھی لاگ آؤٹ کریں",
     "stayLoggedIn": "لاگ ان رہیں"
   },
@@ -398,5 +405,72 @@
     "verifyCode": "کوڈ کی تصدیق کریں",
     "verifying": "تصدیق ہو رہی ہے...",
     "invalidCode": "غلط تصدیقی کوڈ"
+  },
+  "orgStructure": {
+    "title": "تنظیمی ڈھانچہ",
+    "description": "اپنی کمپنی کا درجہ بندی متعین کریں (برانچز، ڈویژنز، شعبے، سیکشنز)۔",
+    "branches": "برانچز",
+    "divisions": "ڈویژنز",
+    "departments": "شعبے",
+    "sections": "سیکشنز",
+    "manageBranches": "برانچز کا انتظام",
+    "manageDivisions": "فنکشنل ڈویژنز کا انتظام",
+    "manageDepartments": "شعبوں کا انتظام",
+    "manageSections": "سیکشنز کا انتظام",
+    "newBranchPlaceholder": "نئی برانچ کا نام (مثال: ریاض ہیڈ آفس)",
+    "newDivisionPlaceholder": "نئی ڈویژن کا نام (مثال: HR، IT، آپریشنز)",
+    "newDepartmentPlaceholder": "مثال: بھرتی",
+    "newSectionPlaceholder": "مثال: تنخواہوں کی پروسیسنگ",
+    "parentDivision": "پیرنٹ ڈویژن",
+    "parentDepartment": "پیرنٹ شعبہ",
+    "selectDivision": "ڈویژن منتخب کریں",
+    "selectDepartment": "شعبہ منتخب کریں",
+    "add": "شامل کریں",
+    "name": "نام",
+    "actions": "کاروائیاں",
+    "confirmDelete": "کیا آپ کو یقین ہے؟ یہ منسلک آئٹمز کو حذف کر سکتا ہے۔",
+    "success": "کامیابی",
+    "deleted": "حذف ہو گیا",
+    "itemCreated": "آئٹم کامیابی سے بن گیا۔",
+    "itemRemoved": "آئٹم ہٹا دیا گیا۔",
+    "divisionRequired": "ڈویژن ضروری ہے",
+    "departmentRequired": "شعبہ ضروری ہے",
+    "noTenant": "آپ کا اکاؤنٹ کسی تنظیم سے منسلک نہیں ہے۔",
+    "noItems": "کوئی آئٹم نہیں ملا۔ اوپر ایک شامل کریں۔",
+    "department": "شعبہ",
+    "section": "سیکشن",
+    "departmentName": "شعبے کا نام",
+    "sectionName": "سیکشن کا نام"
+  },
+  "userManagement": {
+    "title": "صارف کا انتظام",
+    "description": "صارفین کو برانچز، ڈویژنز، اور شعبوں میں تعینات کریں۔",
+    "allUsers": "تمام صارفین",
+    "manageAssignments": "صارف کی تنظیمی تعیناتیوں کو دیکھیں اور منظم کریں۔",
+    "employee": "ملازم",
+    "role": "کردار",
+    "locationBranch": "مقام (برانچ)",
+    "functionalUnit": "فنکشنل یونٹ",
+    "actions": "کاروائیاں",
+    "noUsers": "کوئی صارف نہیں ملا۔",
+    "unnamedProfile": "بے نام پروفائل",
+    "user": "صارف",
+    "unassigned": "غیر تعینات",
+    "noUnit": "کوئی یونٹ نہیں",
+    "editAssignments": "تعیناتیاں ترمیم کریں",
+    "assignTo": "تنظیمی یونٹس کو تعینات کریں",
+    "branchLocation": "برانچ (مقام)",
+    "selectBranch": "برانچ منتخب کریں",
+    "division": "ڈویژن",
+    "selectDivision": "ڈویژن منتخب کریں",
+    "department": "شعبہ",
+    "selectDepartment": "شعبہ منتخب کریں",
+    "section": "سیکشن",
+    "selectSection": "سیکشن منتخب کریں",
+    "none": "کوئی نہیں",
+    "saveAssignments": "تعیناتیاں محفوظ کریں",
+    "success": "کامیابی",
+    "assignmentsUpdated": "صارف کی تعیناتیاں اپ ڈیٹ ہو گئیں۔",
+    "errorFetching": "ڈیٹا حاصل کرنے میں خرابی"
   }
 }
