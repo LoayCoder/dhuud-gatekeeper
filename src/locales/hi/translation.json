@@ -606,6 +606,12 @@
     "nMonths": "{{count}} महीने",
     "discount": "छूट",
     "savePercent": "{{percent}}% बचाएं",
+    "monthlyRate": "मासिक दर",
+    "originalPrice": "मूल मूल्य",
+    "discountApplied": "{{percent}}% छूट",
+    "totalForPeriod": "{{period}} के लिए कुल",
+    "youSave": "आप बचाते हैं",
+    "comparedToMonthly": "मासिक बिलिंग की तुलना में",
     "configurePlan": "योजना कॉन्फ़िगर करें",
     "myRequests": "मेरे अनुरोध",
     "requestPlan": "सदस्यता योजना का अनुरोध करें"

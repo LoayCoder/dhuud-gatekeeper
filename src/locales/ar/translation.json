@@ -852,6 +852,12 @@
     "oneMonth": "شهر واحد",
     "nMonths": "{{count}} أشهر",
     "discount": "الخصم",
+    "monthlyRate": "السعر الشهري",
+    "originalPrice": "السعر الأصلي",
+    "discountApplied": "خصم {{percent}}%",
+    "totalForPeriod": "الإجمالي لـ {{period}}",
+    "youSave": "توفر",
+    "comparedToMonthly": "مقارنة بالفوترة الشهرية",
     "status": {
       "pending": "قيد المراجعة",
       "under_review": "تحت المراجعة",

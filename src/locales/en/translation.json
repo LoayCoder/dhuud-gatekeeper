@@ -848,6 +848,12 @@
     "nMonths_plural": "{{count}} Months",
     "discount": "Discount",
     "perYear": "year",
+    "monthlyRate": "Monthly Rate",
+    "originalPrice": "Original Price",
+    "discountApplied": "{{percent}}% Discount",
+    "totalForPeriod": "Total for {{period}}",
+    "youSave": "You save",
+    "comparedToMonthly": "compared to monthly billing",
     "status": {
       "pending": "Pending Review",
       "under_review": "Under Review",

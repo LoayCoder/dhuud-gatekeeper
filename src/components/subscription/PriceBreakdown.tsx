@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Users, Package, Calculator, Sparkles } from 'lucide-react';
+import { Users, Package, Calculator, Sparkles, Percent } from 'lucide-react';
 import { formatPrice, type PriceBreakdown as PriceBreakdownType } from '@/hooks/use-price-calculator';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,14 @@ interface PriceBreakdownProps {
   planName?: string;
   className?: string;
   compact?: boolean;
+  billingMonths?: number;
+}
+
+// Get discount percentage based on billing months
+function getDiscountPercent(months: number): number {
+  if (months === 12) return 10; // Yearly: 10% discount
+  if (months >= 6) return 5; // 6+ months: 5% discount
+  return 0;
 }
 
 export function PriceBreakdown({ 
@@ -20,9 +28,22 @@ export function PriceBreakdown({
   isLoading, 
   planName,
   className,
-  compact = false 
+  compact = false,
+  billingMonths = 1
 }: PriceBreakdownProps) {
   const { t } = useTranslation();
+
+  const discountPercent = getDiscountPercent(billingMonths);
+  const periodTotal = breakdown ? breakdown.totalMonthly * billingMonths : 0;
+  const discountAmount = periodTotal * (discountPercent / 100);
+  const finalTotal = periodTotal - discountAmount;
+
+  // Format period label
+  const getPeriodLabel = () => {
+    if (billingMonths === 12) return t('subscription.oneYear');
+    if (billingMonths === 1) return t('subscription.oneMonth');
+    return t('subscription.nMonths', { count: billingMonths });
+  };
 
   if (isLoading) {
     return (
@@ -131,34 +152,64 @@ export function PriceBreakdown({
           </div>
         )}
 
+        {/* Monthly Subtotal */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>{t('subscription.monthlyRate', 'Monthly Rate')}</span>
+          <span>{formatPrice(breakdown.totalMonthly)}/{t('subscription.month', 'month')}</span>
+        </div>
+
         <Separator />
 
-        {/* Total */}
+        {/* Billing Period Summary */}
+        <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t('subscription.billingPeriod', 'Billing Period')}</span>
+            <Badge variant="outline">{getPeriodLabel()}</Badge>
+          </div>
+          
+          {/* Original price before discount */}
+          {discountPercent > 0 && (
+            <>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{t('subscription.originalPrice', 'Original Price')}</span>
+                <span className="line-through text-muted-foreground">{formatPrice(periodTotal)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-green-600">
+                <span className="flex items-center gap-1">
+                  <Percent className="h-3 w-3" />
+                  {t('subscription.discountApplied', '{{percent}}% Discount', { percent: discountPercent })}
+                </span>
+                <span>-{formatPrice(discountAmount)}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Total for Period */}
         <div className="flex items-center justify-between">
           <span className="text-base font-semibold">
-            {t('subscription.totalMonthly', 'Total Monthly')}
+            {billingMonths === 1 
+              ? t('subscription.totalMonthly', 'Total Monthly')
+              : t('subscription.totalForPeriod', 'Total for {{period}}', { period: getPeriodLabel() })
+            }
           </span>
           <div className="text-end">
             <span className="text-2xl font-bold text-primary">
-              {formatPrice(breakdown.totalMonthly)}
+              {formatPrice(finalTotal)}
             </span>
-            <span className="text-xs text-muted-foreground block">
-              /{t('subscription.month', 'month')}
-            </span>
+            {billingMonths > 1 && (
+              <span className="text-xs text-muted-foreground block">
+                ({formatPrice(finalTotal / billingMonths)}/{t('subscription.month', 'month')})
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Annual estimate */}
-        {!compact && (
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <span className="text-sm text-muted-foreground">
-              {t('subscription.annualEstimate', 'Annual estimate')}: {' '}
-            </span>
-            <span className="font-semibold">
-              {formatPrice(breakdown.totalMonthly * 12)}
-            </span>
-            <span className="text-xs text-muted-foreground ms-1">
-              ({t('subscription.save10', 'Save ~10% with annual billing')})
+        {/* Savings message */}
+        {!compact && discountPercent > 0 && (
+          <div className="rounded-lg bg-green-500/10 p-3 text-center">
+            <span className="text-sm text-green-600 font-medium">
+              {t('subscription.youSave', 'You save')} {formatPrice(discountAmount)} {t('subscription.comparedToMonthly', 'compared to monthly billing')}
             </span>
           </div>
         )}

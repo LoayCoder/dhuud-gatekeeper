@@ -237,13 +237,6 @@ export default function SubscriptionManagement() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
-              {/* Billing Period Selection */}
-              <BillingPeriodToggle
-                billingMonths={billingMonths}
-                onMonthsChange={setBillingMonths}
-                disabled={hasPendingRequest}
-              />
-
               {/* Plan Selection */}
               <PlanSelector
                 plans={plans}
@@ -252,6 +245,13 @@ export default function SubscriptionManagement() {
                 isLoading={isLoading}
                 currentPlanId={subscription?.planId}
                 disabled={hasPendingRequest}
+              />
+
+              {/* Billing Period Selection */}
+              <BillingPeriodToggle
+                billingMonths={billingMonths}
+                onMonthsChange={setBillingMonths}
+                disabled={hasPendingRequest || !selectedPlanId}
               />
 
               {/* User Count */}
@@ -281,6 +281,7 @@ export default function SubscriptionManagement() {
                 breakdown={priceBreakdown}
                 isLoading={isCalculating}
                 planName={selectedPlan?.display_name}
+                billingMonths={billingMonths}
                 className="sticky top-4"
               />
 
