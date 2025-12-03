@@ -419,13 +419,7 @@ export default function AdminBranding() {
               <Separator className="w-full" />
 
               {bgTheme === 'color' ? <div className="flex flex-col space-y-4 w-full rtl:items-end">
-                  <Label className="ltr:text-left rtl:text-right block">{t('adminBranding.theme.backgroundColor')}</Label>
-                  <div className="flex gap-4 items-center w-full ltr:flex-row rtl:flex-row-reverse">
-                    <div className="h-12 w-12 rounded-lg border shadow-sm shrink-0" style={{
-                    backgroundColor: `hsl(${bgColor})`
-                  }} />
-                    <Input value={bgColor} onChange={e => setBgColor(e.target.value)} placeholder={t('adminBranding.theme.hslPlaceholder')} className="flex-1" />
-                  </div>
+                  <HslColorPicker label={t('adminBranding.theme.backgroundColor')} value={bgColor} onChange={setBgColor} />
                 </div> : <div className="flex flex-col space-y-4 w-full rtl:items-end">
                   <Label className="ltr:text-left rtl:text-right block">{t('adminBranding.theme.backgroundImage')}</Label>
                   <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group w-full" style={{
