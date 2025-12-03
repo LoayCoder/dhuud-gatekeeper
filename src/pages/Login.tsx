@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,8 +21,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showMFADialog, setShowMFADialog] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const passwordRef = useRef<string>('');
   const navigate = useNavigate();
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
+  const { checkPassword } = usePasswordBreachCheck();
 
   const loginSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -75,6 +78,19 @@ export default function Login() {
     }
   };
 
+  const checkPasswordBreach = async (pwd: string) => {
+    const breachResult = await checkPassword(pwd);
+    if (breachResult.isBreached) {
+      const breachMessage = t('security.passwordBreachedWarning').replace('{{count}}', breachResult.count.toLocaleString());
+      toast({
+        title: t('security.passwordCompromised'),
+        description: breachMessage,
+        variant: 'destructive',
+        duration: 10000,
+      });
+    }
+  };
+
   const handleMFASuccess = async () => {
     setShowMFADialog(false);
     
@@ -93,6 +109,10 @@ export default function Login() {
       description: t('auth.loginSuccess'),
     });
 
+    // Check for breached password after successful login (non-blocking)
+    checkPasswordBreach(passwordRef.current);
+    passwordRef.current = '';
+
     navigate('/');
   };
 
@@ -109,6 +129,7 @@ export default function Login() {
       loginSchema.parse({ email, password });
       
       setLoading(true);
+      passwordRef.current = password;
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -143,6 +164,9 @@ export default function Login() {
         title: t('auth.welcomeBack'),
         description: t('auth.loginSuccess'),
       });
+
+      // Check for breached password after successful login (non-blocking)
+      checkPasswordBreach(password);
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast({
