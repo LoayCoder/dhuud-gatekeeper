@@ -8,37 +8,30 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Dialog, DialogContent, DialogFooter, 
-  DialogHeader, DialogTitle 
-} from "@/components/ui/dialog";
-import { 
-  Send, Clock, CheckCircle2, XCircle, AlertCircle, 
-  FileText, History 
-} from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Send, Clock, CheckCircle2, XCircle, AlertCircle, FileText, History } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { UserLimitIndicator } from "@/components/UserLimitIndicator";
 import { useModuleAccess } from "@/hooks/use-module-access";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { usePriceCalculator, formatPrice } from "@/hooks/use-price-calculator";
-import {
-  PlanSelector, 
-  UserCountSlider, 
-  ModuleSelector, 
-  PriceBreakdown,
-  BillingPeriodToggle
-} from "@/components/subscription";
-
+import { PlanSelector, UserCountSlider, ModuleSelector, PriceBreakdown, BillingPeriodToggle } from "@/components/subscription";
 export default function SubscriptionManagement() {
-  const { t } = useTranslation();
-  const { profile } = useAuth();
+  const {
+    t
+  } = useTranslation();
+  const {
+    profile
+  } = useAuth();
   const queryClient = useQueryClient();
-  const { subscription, isTrialActive, getTrialDaysRemaining } = useModuleAccess();
-  
+  const {
+    subscription,
+    isTrialActive,
+    getTrialDaysRemaining
+  } = useModuleAccess();
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [cancelRequestId, setCancelRequestId] = useState<string | null>(null);
   const [requestToCancel, setRequestToCancel] = useState<any>(null);
-  
   const {
     plans,
     modules,
@@ -54,28 +47,30 @@ export default function SubscriptionManagement() {
     setBillingPeriod,
     setBillingMonths,
     priceBreakdown,
-    isCalculating,
+    isCalculating
   } = usePriceCalculator(subscription?.planId, subscription?.maxUsers || 5);
 
   // Fetch pending requests
-  const { data: pendingRequests = [] } = useQuery({
+  const {
+    data: pendingRequests = []
+  } = useQuery({
     queryKey: ['subscription-requests', profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
-      const { data, error } = await supabase
-        .from('subscription_requests')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('subscription_requests').select(`
           *,
           requested_plan:plans!subscription_requests_requested_plan_id_fkey(display_name),
           approved_plan:plans!subscription_requests_approved_plan_id_fkey(display_name)
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .order('created_at', { ascending: false });
-      
+        `).eq('tenant_id', profile.tenant_id).order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
       return data;
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!profile?.tenant_id
   });
 
   // Submit request mutation
@@ -100,59 +95,56 @@ export default function SubscriptionManagement() {
           }
         }
       }
-
-      const { error } = await supabase
-        .from('subscription_requests')
-        .insert({
-          tenant_id: profile.tenant_id,
-          request_type: requestType,
-          requested_plan_id: selectedPlanId,
-          requested_user_limit: selectedUserCount,
-          requested_modules: selectedModuleIds,
-          calculated_base_price: priceBreakdown.basePrice,
-          calculated_user_price: priceBreakdown.userPrice,
-          calculated_module_price: priceBreakdown.modulePrice,
-          calculated_total_monthly: priceBreakdown.totalMonthly,
-          status: 'pending',
-        });
-
+      const {
+        error
+      } = await supabase.from('subscription_requests').insert({
+        tenant_id: profile.tenant_id,
+        request_type: requestType,
+        requested_plan_id: selectedPlanId,
+        requested_user_limit: selectedUserCount,
+        requested_modules: selectedModuleIds,
+        calculated_base_price: priceBreakdown.basePrice,
+        calculated_user_price: priceBreakdown.userPrice,
+        calculated_module_price: priceBreakdown.modulePrice,
+        calculated_total_monthly: priceBreakdown.totalMonthly,
+        status: 'pending'
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       toast({
         title: t('subscription.requestSubmitted'),
-        description: t('subscription.requestSubmittedDesc'),
+        description: t('subscription.requestSubmittedDesc')
       });
-      queryClient.invalidateQueries({ queryKey: ['subscription-requests'] });
+      queryClient.invalidateQueries({
+        queryKey: ['subscription-requests']
+      });
     },
-    onError: (error) => {
+    onError: error => {
       setShowRequestDialog(false);
       toast({
         title: t('common.error'),
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   // Cancel request mutation
   const cancelRequest = useMutation({
     mutationFn: async (request: any) => {
-      const { error } = await supabase
-        .from('subscription_requests')
-        .update({ status: 'canceled' })
-        .eq('id', request.id);
-
+      const {
+        error
+      } = await supabase.from('subscription_requests').update({
+        status: 'canceled'
+      }).eq('id', request.id);
       if (error) throw error;
 
       // Send cancellation email
       try {
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('name, contact_email, billing_email')
-          .eq('id', profile?.tenant_id)
-          .maybeSingle();
-
+        const {
+          data: tenant
+        } = await supabase.from('tenants').select('name, contact_email, billing_email').eq('id', profile?.tenant_id).maybeSingle();
         if (tenant) {
           await supabase.functions.invoke('send-subscription-email', {
             body: {
@@ -163,8 +155,8 @@ export default function SubscriptionManagement() {
               plan_name: request.requested_plan?.display_name || 'Unknown',
               user_count: request.requested_user_limit,
               total_monthly: request.calculated_total_monthly,
-              billing_period: request.billing_period || 'monthly',
-            },
+              billing_period: request.billing_period || 'monthly'
+            }
           });
         }
       } catch (emailError) {
@@ -174,35 +166,40 @@ export default function SubscriptionManagement() {
     onSuccess: () => {
       toast({
         title: t('subscription.requestCanceled'),
-        description: t('subscription.requestCanceledDesc'),
+        description: t('subscription.requestCanceledDesc')
       });
-      queryClient.invalidateQueries({ queryKey: ['subscription-requests'] });
+      queryClient.invalidateQueries({
+        queryKey: ['subscription-requests']
+      });
       setCancelRequestId(null);
       setRequestToCancel(null);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: t('common.error'),
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
-
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
   const hasPendingRequest = pendingRequests.some(r => r.status === 'pending' || r.status === 'under_review');
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'under_review': return <AlertCircle className="h-4 w-4 text-blue-500" />;
-      case 'approved': return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case 'declined': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'modified': return <FileText className="h-4 w-4 text-purple-500" />;
-      default: return <Clock className="h-4 w-4" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'under_review':
+        return <AlertCircle className="h-4 w-4 text-blue-500" />;
+      case 'approved':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'declined':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'modified':
+        return <FileText className="h-4 w-4 text-purple-500" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
-
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'secondary',
@@ -210,13 +207,11 @@ export default function SubscriptionManagement() {
       approved: 'default',
       declined: 'destructive',
       modified: 'default',
-      canceled: 'outline',
+      canceled: 'outline'
     };
     return <Badge variant={variants[status] || 'secondary'}>{t(`subscription.status.${status}`, status)}</Badge>;
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -238,12 +233,9 @@ export default function SubscriptionManagement() {
                 {subscription?.planName || t('subscription.noPlan')}
               </p>
               <p className="text-sm text-muted-foreground">
-                {subscription?.subscriptionStatus === 'trialing' 
-                  ? t('subscription.trialStatus', { days: getTrialDaysRemaining() })
-                  : subscription?.subscriptionStatus === 'active'
-                    ? t('subscription.activeStatus')
-                    : t('subscription.inactiveStatus')
-                }
+                {subscription?.subscriptionStatus === 'trialing' ? t('subscription.trialStatus', {
+                days: getTrialDaysRemaining()
+              }) : subscription?.subscriptionStatus === 'active' ? t('subscription.activeStatus') : t('subscription.inactiveStatus')}
               </p>
             </div>
             <Badge variant={subscription?.subscriptionStatus === 'active' ? 'default' : 'secondary'}>
@@ -263,18 +255,15 @@ export default function SubscriptionManagement() {
           <TabsTrigger value="requests" className="gap-2">
             <History className="h-4 w-4" />
             {t('subscription.myRequests')}
-            {hasPendingRequest && (
-              <Badge variant="secondary" className="ms-1 h-5 w-5 rounded-full p-0 text-xs">
+            {hasPendingRequest && <Badge variant="secondary" className="ms-1 h-5 w-5 rounded-full p-0 text-xs">
                 !
-              </Badge>
-            )}
+              </Badge>}
           </TabsTrigger>
         </TabsList>
 
         {/* Configure Plan Tab */}
         <TabsContent value="configure" className="space-y-6">
-          {hasPendingRequest && (
-            <Card className="border-yellow-500/50 bg-yellow-500/5">
+          {hasPendingRequest && <Card className="border-yellow-500/50 bg-yellow-500/5">
               <CardContent className="flex items-center gap-3 py-4">
                 <Clock className="h-5 w-5 text-yellow-500" />
                 <div>
@@ -284,65 +273,28 @@ export default function SubscriptionManagement() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
               {/* Plan Selection */}
-              <PlanSelector
-                plans={plans}
-                selectedPlanId={selectedPlanId}
-                onSelect={setSelectedPlanId}
-                isLoading={isLoading}
-                currentPlanId={subscription?.planId}
-                disabled={hasPendingRequest}
-              />
+              <PlanSelector plans={plans} selectedPlanId={selectedPlanId} onSelect={setSelectedPlanId} isLoading={isLoading} currentPlanId={subscription?.planId} disabled={hasPendingRequest} />
 
               {/* Billing Period Selection */}
-              <BillingPeriodToggle
-                billingMonths={billingMonths}
-                onMonthsChange={setBillingMonths}
-                disabled={hasPendingRequest || !selectedPlanId}
-              />
+              <BillingPeriodToggle billingMonths={billingMonths} onMonthsChange={setBillingMonths} disabled={hasPendingRequest || !selectedPlanId} />
 
               {/* User Count */}
-              <UserCountSlider
-                value={selectedUserCount}
-                onChange={setSelectedUserCount}
-                min={1}
-                max={selectedPlan?.max_users || 100}
-                includedUsers={selectedPlan?.included_users || 1}
-                pricePerUser={selectedPlan?.price_per_user || 0}
-                disabled={!selectedPlanId || hasPendingRequest}
-              />
+              <UserCountSlider value={selectedUserCount} onChange={setSelectedUserCount} min={1} max={selectedPlan?.max_users || 100} includedUsers={selectedPlan?.included_users || 1} pricePerUser={selectedPlan?.price_per_user || 0} disabled={!selectedPlanId || hasPendingRequest} />
 
               {/* Module Selection */}
-              <ModuleSelector
-                modules={modules}
-                selectedModuleIds={selectedModuleIds}
-                onToggle={toggleModule}
-                isLoading={isLoading}
-                disabled={!selectedPlanId || hasPendingRequest}
-              />
+              <ModuleSelector modules={modules} selectedModuleIds={selectedModuleIds} onToggle={toggleModule} isLoading={isLoading} disabled={!selectedPlanId || hasPendingRequest} />
             </div>
 
             {/* Price Breakdown Sidebar */}
             <div className="space-y-4">
-              <PriceBreakdown
-                breakdown={priceBreakdown}
-                isLoading={isCalculating}
-                planName={selectedPlan?.display_name}
-                billingMonths={billingMonths}
-                className="sticky top-4"
-              />
+              <PriceBreakdown breakdown={priceBreakdown} isLoading={isCalculating} planName={selectedPlan?.display_name} billingMonths={billingMonths} className="sticky top-4" />
 
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={() => setShowRequestDialog(true)}
-                disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}
-              >
+              <Button className="w-full" size="lg" onClick={() => setShowRequestDialog(true)} disabled={!selectedPlanId || !priceBreakdown || hasPendingRequest}>
                 <Send className="h-4 w-4 me-2" />
                 {t('subscription.requestPlan')}
               </Button>
@@ -352,8 +304,7 @@ export default function SubscriptionManagement() {
 
         {/* My Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
-          {pendingRequests.length === 0 ? (
-            <Card>
+          {pendingRequests.length === 0 ? <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <History className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="font-semibold">{t('subscription.noRequests')}</h3>
@@ -361,10 +312,7 @@ export default function SubscriptionManagement() {
                   {t('subscription.noRequestsDesc')}
                 </p>
               </CardContent>
-            </Card>
-          ) : (
-            pendingRequests.map((request) => (
-              <Card key={request.id} className={request.status === 'pending' ? 'border-yellow-500/30' : ''}>
+            </Card> : pendingRequests.map(request => <Card key={request.id} className={request.status === 'pending' ? 'border-yellow-500/30' : ''}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -377,12 +325,12 @@ export default function SubscriptionManagement() {
                   </div>
                   <CardDescription>
                     {new Date(request.created_at).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -405,142 +353,104 @@ export default function SubscriptionManagement() {
                     </div>
                   </div>
 
-                  {request.tenant_notes && (
-                    <>
+                  {request.tenant_notes && <>
                       <Separator />
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">{t('subscription.yourNotes')}</p>
                         <p className="text-sm">{request.tenant_notes}</p>
                       </div>
-                    </>
-                  )}
+                    </>}
 
-                  {request.admin_notes && (
-                    <>
+                  {request.admin_notes && <>
                       <Separator />
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">{t('subscription.adminNotes')}</p>
                         <p className="text-sm">{request.admin_notes}</p>
                       </div>
-                    </>
-                  )}
+                    </>}
 
-                  {request.status === 'approved' && request.approved_total_monthly && (
-                    <>
+                  {request.status === 'approved' && request.approved_total_monthly && <>
                       <Separator />
                       <div className="rounded-lg bg-green-500/10 p-3">
                         <p className="text-sm font-medium text-green-600">
                           {t('subscription.approvedPrice')}: {formatPrice(request.approved_total_monthly)}/{t('subscription.month')}
                         </p>
                       </div>
-                    </>
-                  )}
+                    </>}
 
-                  {(request.status === 'pending' || request.status === 'under_review') && (
-                    <>
+                  {(request.status === 'pending' || request.status === 'under_review') && <>
                       <Separator />
                       <div className="flex justify-end">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setCancelRequestId(request.id);
-                            setRequestToCancel(request);
-                          }}
-                          disabled={cancelRequest.isPending}
-                        >
+                        <Button variant="destructive" size="sm" onClick={() => {
+                  setCancelRequestId(request.id);
+                  setRequestToCancel(request);
+                }} disabled={cancelRequest.isPending}>
                           <XCircle className="h-4 w-4 me-2" />
                           {t('subscription.cancelRequest')}
                         </Button>
                       </div>
-                    </>
-                  )}
+                    </>}
                 </CardContent>
-              </Card>
-            ))
-          )}
+              </Card>)}
         </TabsContent>
       </Tabs>
 
       {/* Request Confirmation Dialog */}
-      <Dialog open={showRequestDialog} onOpenChange={(open) => !submitRequest.isPending && setShowRequestDialog(open)}>
+      <Dialog open={showRequestDialog} onOpenChange={open => !submitRequest.isPending && setShowRequestDialog(open)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {submitRequest.isSuccess ? (
-                <>
+              {submitRequest.isSuccess ? <>
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                   {t('subscription.requestSent', 'Request Sent!')}
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Send className="h-5 w-5 text-primary" />
                   {t('subscription.confirmRequest', 'Confirm Request')}
-                </>
-              )}
+                </>}
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4 text-center space-y-4">
-            {submitRequest.isSuccess ? (
-              <>
+            {submitRequest.isSuccess ? <>
                 <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 </div>
                 <p className="text-muted-foreground">
                   {t('subscription.confirmationEmailMessage', 'You will soon receive a confirmation and payment method details in your email.')}
                 </p>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <Send className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-muted-foreground">
                   {t('subscription.confirmRequestMessage', 'Are you sure you want to submit this subscription request?')}
                 </p>
-              </>
-            )}
+              </>}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            {submitRequest.isSuccess ? (
-              <Button onClick={() => setShowRequestDialog(false)} className="w-full">
+            {submitRequest.isSuccess ? <Button onClick={() => setShowRequestDialog(false)} className="w-full">
                 {t('common.done', 'Done')}
-              </Button>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowRequestDialog(false)}
-                  disabled={submitRequest.isPending}
-                >
+              </Button> : <>
+                <Button variant="outline" onClick={() => setShowRequestDialog(false)} disabled={submitRequest.isPending}>
                   {t('common.cancel')}
                 </Button>
-                <Button 
-                  onClick={() => submitRequest.mutate()}
-                  disabled={submitRequest.isPending}
-                >
-                  {submitRequest.isPending ? (
-                    <>
+                <Button onClick={() => submitRequest.mutate()} disabled={submitRequest.isPending}>
+                  {submitRequest.isPending ? <>
                       <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
                       {t('common.submitting')}
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Send className="h-4 w-4 me-2" />
                       {t('subscription.submitRequest', 'Submit Request')}
-                    </>
-                  )}
+                    </>}
                 </Button>
-              </>
-            )}
+              </>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Cancel Confirmation Dialog */}
-      <Dialog open={!!cancelRequestId} onOpenChange={(open) => !cancelRequest.isPending && !open && (setCancelRequestId(null), setRequestToCancel(null))}>
+      <Dialog open={!!cancelRequestId} onOpenChange={open => !cancelRequest.isPending && !open && (setCancelRequestId(null), setRequestToCancel(null))}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -558,37 +468,24 @@ export default function SubscriptionManagement() {
             </p>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setCancelRequestId(null);
-                setRequestToCancel(null);
-              }}
-              disabled={cancelRequest.isPending}
-            >
+          <DialogFooter className="gap-2 sm:gap-0 mx-[44px]">
+            <Button variant="outline" onClick={() => {
+            setCancelRequestId(null);
+            setRequestToCancel(null);
+          }} disabled={cancelRequest.isPending} className="px-[33px]">
               {t('common.back')}
             </Button>
-            <Button 
-              variant="destructive"
-              onClick={() => requestToCancel && cancelRequest.mutate(requestToCancel)}
-              disabled={cancelRequest.isPending}
-            >
-              {cancelRequest.isPending ? (
-                <>
+            <Button variant="destructive" onClick={() => requestToCancel && cancelRequest.mutate(requestToCancel)} disabled={cancelRequest.isPending}>
+              {cancelRequest.isPending ? <>
                   <div className="h-4 w-4 me-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   {t('common.canceling')}
-                </>
-              ) : (
-                <>
+                </> : <>
                   <XCircle className="h-4 w-4 me-2" />
                   {t('subscription.confirmCancel', 'Yes, Cancel Request')}
-                </>
-              )}
+                </>}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }
