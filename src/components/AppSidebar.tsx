@@ -179,6 +179,11 @@ export function AppSidebar() {
           url: "/admin/security-audit",
           icon: ShieldAlert,
         },
+        {
+          title: t('navigation.billingOverview'),
+          url: "/admin/billing",
+          icon: Receipt,
+        },
       ],
     },
     {
@@ -195,6 +200,11 @@ export function AppSidebar() {
           title: t('navigation.subscription'),
           url: "/settings/subscription",
           icon: CreditCard,
+        },
+        {
+          title: t('navigation.usageBilling'),
+          url: "/settings/usage-billing",
+          icon: Receipt,
         },
       ],
     },

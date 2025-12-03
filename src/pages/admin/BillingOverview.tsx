@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import MainLayout from '@/components/layout/MainLayout';
 import { TenantBillingTable } from '@/components/billing/TenantBillingTable';
 import { useAllTenantsUsage } from '@/hooks/use-profile-usage';
 import { useAllTenantsBilling, useGenerateBillingRecord } from '@/hooks/use-profile-billing';
@@ -73,198 +72,196 @@ export default function BillingOverview() {
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{t('adminBilling.title')}</h1>
-            <p className="text-muted-foreground">{t('adminBilling.description')}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { refetchUsage(); refetchBilling(); }}>
-              <RefreshCw className="h-4 w-4 me-2" />
-              {t('common.refresh')}
-            </Button>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 me-2" />
-              {t('common.export')}
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{t('adminBilling.title')}</h1>
+          <p className="text-muted-foreground">{t('adminBilling.description')}</p>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Building2 className="h-8 w-8 text-muted-foreground" />
-                <div>
-                  <p className="text-2xl font-bold">{tenantsUsage?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">{t('adminBilling.totalTenants')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Users className="h-8 w-8 text-muted-foreground" />
-                <div>
-                  <p className="text-2xl font-bold">{totalProfiles}</p>
-                  <p className="text-xs text-muted-foreground">{t('adminBilling.totalProfiles')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <DollarSign className="h-8 w-8 text-muted-foreground" />
-                <div>
-                  <p className="text-2xl font-bold">{formatSAR(totalCharges)}</p>
-                  <p className="text-xs text-muted-foreground">{t('adminBilling.totalCharges')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <TrendingUp className="h-8 w-8 text-warning" />
-                <div>
-                  <p className="text-2xl font-bold">{tenantsOverQuota}</p>
-                  <p className="text-xs text-muted-foreground">{t('adminBilling.overQuota')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => { refetchUsage(); refetchBilling(); }}>
+            <RefreshCw className="h-4 w-4 me-2" />
+            {t('common.refresh')}
+          </Button>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 me-2" />
+            {t('common.export')}
+          </Button>
         </div>
+      </div>
 
-        {/* Tabs for Usage vs Billing */}
-        <Tabs defaultValue="billing" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
-            <TabsTrigger value="usage">{t('adminBilling.currentUsage')}</TabsTrigger>
-          </TabsList>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Building2 className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <p className="text-2xl font-bold">{tenantsUsage?.length || 0}</p>
+                <p className="text-xs text-muted-foreground">{t('adminBilling.totalTenants')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Users className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <p className="text-2xl font-bold">{totalProfiles}</p>
+                <p className="text-xs text-muted-foreground">{t('adminBilling.totalProfiles')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <DollarSign className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <p className="text-2xl font-bold">{formatSAR(totalCharges)}</p>
+                <p className="text-xs text-muted-foreground">{t('adminBilling.totalCharges')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <TrendingUp className="h-8 w-8 text-warning" />
+              <div>
+                <p className="text-2xl font-bold">{tenantsOverQuota}</p>
+                <p className="text-xs text-muted-foreground">{t('adminBilling.overQuota')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          <TabsContent value="billing">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>{t('adminBilling.billingRecords')}</CardTitle>
-                  <CardDescription>{t('adminBilling.billingRecordsDesc')}</CardDescription>
+      {/* Tabs for Usage vs Billing */}
+      <Tabs defaultValue="billing" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
+          <TabsTrigger value="usage">{t('adminBilling.currentUsage')}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="billing">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>{t('adminBilling.billingRecords')}</CardTitle>
+                <CardDescription>{t('adminBilling.billingRecordsDesc')}</CardDescription>
+              </div>
+              <Button 
+                onClick={handleGenerateAllBilling} 
+                disabled={generateBilling.isPending}
+              >
+                <Receipt className="h-4 w-4 me-2" />
+                {t('adminBilling.generateBilling')}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <TenantBillingTable
+                tenants={allBilling}
+                isLoading={billingLoading}
+                onViewDetails={(id) => {
+                  const tenant = allBilling?.find((t) => t.id === id);
+                  setSelectedTenant(tenant);
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="usage">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('adminBilling.currentUsage')}</CardTitle>
+              <CardDescription>{t('adminBilling.currentUsageDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {usageLoading ? (
+                <div className="animate-pulse space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-12 bg-muted rounded" />
+                  ))}
                 </div>
-                <Button 
-                  onClick={handleGenerateAllBilling} 
-                  disabled={generateBilling.isPending}
-                >
-                  <Receipt className="h-4 w-4 me-2" />
-                  {t('adminBilling.generateBilling')}
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <TenantBillingTable
-                  tenants={allBilling}
-                  isLoading={billingLoading}
-                  onViewDetails={(id) => {
-                    const tenant = allBilling?.find((t) => t.id === id);
-                    setSelectedTenant(tenant);
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="usage">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('adminBilling.currentUsage')}</CardTitle>
-                <CardDescription>{t('adminBilling.currentUsageDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {usageLoading ? (
-                  <div className="animate-pulse space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-12 bg-muted rounded" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {tenantsUsage?.map((tenant) => (
-                      <div 
-                        key={tenant.id} 
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{tenant.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {tenant.plans?.name || 'Starter'}
+              ) : (
+                <div className="space-y-4">
+                  {tenantsUsage?.map((tenant) => (
+                    <div 
+                      key={tenant.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{tenant.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {tenant.plans?.name || 'Starter'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-end">
+                          <p className="text-sm">
+                            {tenant.usage?.total_profiles || 0} / {tenant.usage?.free_quota || 50}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t('profileBilling.profiles')}
                           </p>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-end">
-                            <p className="text-sm">
-                              {tenant.usage?.total_profiles || 0} / {tenant.usage?.free_quota || 50}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {t('profileBilling.profiles')}
-                            </p>
-                          </div>
-                          {tenant.usage && tenant.usage.total_profiles > tenant.usage.free_quota && (
-                            <Badge variant="destructive">
-                              {t('adminBilling.overQuota')}
-                            </Badge>
-                          )}
-                        </div>
+                        {tenant.usage && tenant.usage.total_profiles > tenant.usage.free_quota && (
+                          <Badge variant="destructive">
+                            {t('adminBilling.overQuota')}
+                          </Badge>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        {/* Tenant Details Dialog */}
-        <Dialog open={!!selectedTenant} onOpenChange={() => setSelectedTenant(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selectedTenant?.name}</DialogTitle>
-              <DialogDescription>
-                {t('adminBilling.tenantDetails')}
-              </DialogDescription>
-            </DialogHeader>
-            {selectedTenant && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground">{t('profileBilling.thisMonth')}</p>
-                    <p className="text-2xl font-bold">
-                      {selectedTenant.currentBilling?.total_profiles || 0}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatSAR(selectedTenant.currentBilling?.profile_charges || 0)}
-                    </p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground">{t('profileBilling.lastMonth')}</p>
-                    <p className="text-2xl font-bold">
-                      {selectedTenant.lastBilling?.total_profiles || 0}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatSAR(selectedTenant.lastBilling?.profile_charges || 0)}
-                    </p>
-                  </div>
+      {/* Tenant Details Dialog */}
+      <Dialog open={!!selectedTenant} onOpenChange={() => setSelectedTenant(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedTenant?.name}</DialogTitle>
+            <DialogDescription>
+              {t('adminBilling.tenantDetails')}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTenant && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <p className="text-sm text-muted-foreground">{t('profileBilling.thisMonth')}</p>
+                  <p className="text-2xl font-bold">
+                    {selectedTenant.currentBilling?.total_profiles || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatSAR(selectedTenant.currentBilling?.profile_charges || 0)}
+                  </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">{t('subscription.plan')}</p>
-                  <Badge>{selectedTenant.plans?.display_name || 'Starter'}</Badge>
+                  <p className="text-sm text-muted-foreground">{t('profileBilling.lastMonth')}</p>
+                  <p className="text-2xl font-bold">
+                    {selectedTenant.lastBilling?.total_profiles || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatSAR(selectedTenant.lastBilling?.profile_charges || 0)}
+                  </p>
                 </div>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    </MainLayout>
+              <div className="p-4 border rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">{t('subscription.plan')}</p>
+                <Badge>{selectedTenant.plans?.display_name || 'Starter'}</Badge>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
