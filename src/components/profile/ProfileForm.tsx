@@ -204,7 +204,7 @@ export function ProfileForm({
           <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
             <User className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} className="[padding-inline-start:2.25rem]" placeholder={t('profile.enterFullName')} maxLength={100} />
+            <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder={t('profile.enterFullName')} maxLength={100} className="[padding-inline-start:2.25rem] px-[35px]" />
           </div>
         </div>
       </div>
