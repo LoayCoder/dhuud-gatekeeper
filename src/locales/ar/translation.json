@@ -41,6 +41,7 @@
     "active": "نشط",
     "continue": "متابعة",
     "verify": "تحقق",
+    "done": "تم",
     "toggleTheme": "تبديل المظهر",
     "light": "فاتح",
     "dark": "داكن",
@@ -327,9 +328,14 @@
   "mfaVerification": {
     "title": "المصادقة الثنائية",
     "description": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة للمتابعة.",
+    "openAuthenticator": "افتح تطبيق المصادقة لعرض الرمز",
     "verify": "تحقق",
+    "cancel": "إلغاء",
     "verifying": "جاري التحقق...",
-    "invalidCode": "رمز التحقق غير صالح",
+    "verificationFailed": "فشل التحقق",
+    "invalidCode": "رمز غير صالح",
+    "invalidCodeMessage": "يرجى التحقق من تطبيق المصادقة والمحاولة مرة أخرى.",
+    "unexpectedError": "حدث خطأ غير متوقع",
     "loginCancelled": "تم إلغاء تسجيل الدخول"
   },
   "navigation": {
@@ -603,7 +609,38 @@
     },
     "detail": {
       "description": "إدارة إعدادات المستأجر ورموز الدعوة.",
-      "invitations": "الدعوات"
+      "invitations": "الدعوات",
+      "modules": "الوحدات",
+      "trial": "التجربة والحالة"
+    },
+    "modules": {
+      "description": "تمكين أو تعطيل وحدات الميزات لهذا المستأجر. يتجاوز الإعدادات الافتراضية للخطة.",
+      "updated": "تم تحديث الوحدة",
+      "updatedDesc": "تم تحديث الوصول إلى الوحدة.",
+      "override": "تجاوز",
+      "fromPlan": "من الخطة",
+      "required": "مطلوب"
+    },
+    "trial": {
+      "currentStatus": "الحالة الحالية",
+      "status": "حالة الاشتراك",
+      "startDate": "بداية التجربة",
+      "endDate": "نهاية التجربة",
+      "daysRemaining": "الأيام المتبقية",
+      "days": "أيام",
+      "actions": "إجراءات التجربة",
+      "actionsDesc": "إدارة فترة التجربة وحالة الاشتراك.",
+      "duration": "مدة التجربة",
+      "extendBy": "تمديد التجربة بـ",
+      "start": "بدء التجربة",
+      "extend": "تمديد التجربة",
+      "end": "إنهاء التجربة",
+      "customEndDate": "تاريخ انتهاء مخصص",
+      "setDate": "تحديد التاريخ",
+      "subscriptionStatus": "حالة الاشتراك",
+      "subscriptionStatusDesc": "تغيير حالة الاشتراك يدوياً.",
+      "updated": "تم تحديث التجربة",
+      "updatedDesc": "تم تحديث إعدادات التجربة."
     },
     "statusDialog": {
       "activateTitle": "تفعيل المستأجر",
