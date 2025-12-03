@@ -30,6 +30,8 @@ import {
   User,
   Network,
   Layers,
+  HelpCircle,
+  LifeBuoy,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,7 +143,17 @@ export function AppSidebar() {
           url: "/admin/tenants",
           icon: Layers,
         },
+        {
+          title: t('navigation.supportDashboard'),
+          url: "/admin/support",
+          icon: HelpCircle,
+        },
       ],
+    },
+    {
+      title: t('navigation.support'),
+      url: "/support",
+      icon: LifeBuoy,
     },
   ];
 

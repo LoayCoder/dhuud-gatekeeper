@@ -85,6 +85,8 @@
     "userManagement": "User Management",
     "orgStructure": "Organization Structure",
     "tenantManagement": "Tenant Management",
+    "supportDashboard": "Support Dashboard",
+    "support": "Support",
     "platform": "Platform",
     "enterpriseHsse": "Enterprise HSSE"
   },
@@ -620,5 +622,107 @@
     },
     "sendEmailOnCreate": "Send invitation email",
     "resendEmail": "Resend invitation email"
+  },
+  "support": {
+    "title": "Support",
+    "description": "Get help from our support team",
+    "newTicket": "New Ticket",
+    "createTicket": "Create Support Ticket",
+    "createDescription": "Describe your issue and we'll get back to you as soon as possible.",
+    "subject": "Subject",
+    "subjectPlaceholder": "Brief description of your issue",
+    "descriptionPlaceholder": "Provide details about your issue...",
+    "category": "Category",
+    "priority": "Priority",
+    "yourTickets": "Your Tickets",
+    "ticketsDescription": "Track and manage your support requests",
+    "noTickets": "No support tickets yet. Create one if you need help.",
+    "ticketCreated": "Your ticket has been submitted.",
+    "createError": "Failed to create ticket.",
+    "fillRequired": "Please fill in all required fields.",
+    "messageSent": "Message sent successfully.",
+    "sendError": "Failed to send message.",
+    "reply": "Reply",
+    "replyPlaceholder": "Type your reply...",
+    "send": "Send",
+    "details": "Details",
+    "created": "Created",
+    "lastUpdated": "Last Updated",
+    "you": "You",
+    "supportTeam": "Support Team",
+    "ticketClosed": "This ticket is closed and cannot receive new messages.",
+    "submit": "Submit Ticket",
+    "categories": {
+      "general": "General",
+      "technical": "Technical",
+      "billing": "Billing",
+      "featureRequest": "Feature Request"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "waiting_customer": "Waiting on You",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    }
+  },
+  "adminSupport": {
+    "title": "Support Dashboard",
+    "description": "Manage and respond to customer support tickets",
+    "openTickets": "Open Tickets",
+    "inProgress": "In Progress",
+    "urgentTickets": "Urgent",
+    "totalTickets": "Total Tickets",
+    "allTickets": "All Tickets",
+    "searchPlaceholder": "Search by ticket #, subject, or tenant...",
+    "status": "Status",
+    "priority": "Priority",
+    "allStatuses": "All Statuses",
+    "allPriorities": "All Priorities",
+    "noTickets": "No tickets found.",
+    "subject": "Subject",
+    "tenant": "Tenant",
+    "created": "Created",
+    "customer": "Customer",
+    "supportAgent": "Support Agent",
+    "ticketDetails": "Ticket Details",
+    "respond": "Respond",
+    "replyPlaceholder": "Type your response to the customer...",
+    "internalNotePlaceholder": "Add an internal note (not visible to customer)...",
+    "markInternal": "Internal note (not visible to customer)",
+    "addNote": "Add Note",
+    "internalNote": "Internal Note",
+    "statusUpdated": "Ticket status updated.",
+    "ticketUpdated": "Ticket updated.",
+    "updateError": "Failed to update ticket."
+  },
+  "moduleGate": {
+    "featureLocked": "Feature Not Available",
+    "upgradeRequired": "Upgrade your plan to access {{module}}.",
+    "upgradePlan": "Upgrade Plan"
+  },
+  "modules": {
+    "hsse_core": "HSSE Core",
+    "visitor_management": "Visitor Management",
+    "incidents": "Incident Reporting",
+    "audits": "Audits & Inspections",
+    "reports_analytics": "Reports & Analytics",
+    "api_access": "API Access",
+    "priority_support": "Priority Support"
+  },
+  "trial": {
+    "daysRemaining": "{{days}} days left in your free trial",
+    "lastDay": "Last day of your free trial!",
+    "upgradNow": "Upgrade Now"
+  },
+  "userLimit": {
+    "title": "User Quota",
+    "limitReached": "User limit reached. Upgrade to add more users."
   }
 }

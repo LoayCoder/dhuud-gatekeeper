@@ -158,6 +158,83 @@ export type Database = {
           },
         ]
       }
+      plan_modules: {
+        Row: {
+          created_at: string | null
+          id: string
+          module: Database["public"]["Enums"]["module_code"]
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          module: Database["public"]["Enums"]["module_code"]
+          plan_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          module?: Database["public"]["Enums"]["module_code"]
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_modules_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_users: number
+          name: string
+          price_monthly: number
+          price_yearly: number | null
+          sort_order: number | null
+          stripe_price_id_monthly: string | null
+          stripe_price_id_yearly: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_users?: number
+          name: string
+          price_monthly?: number
+          price_yearly?: number | null
+          sort_order?: number | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_users?: number
+          name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          sort_order?: number | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           assigned_branch_id: string | null
@@ -383,6 +460,65 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["ticket_category"] | null
+          closed_at: string | null
+          created_at: string | null
+          created_by: string
+          description: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"] | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["ticket_status"] | null
+          subject: string
+          tenant_id: string
+          ticket_number: number
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"] | null
+          closed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"] | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"] | null
+          subject: string
+          tenant_id: string
+          ticket_number?: number
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"] | null
+          closed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"] | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"] | null
+          subject?: string
+          tenant_id?: string
+          ticket_number?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           app_icon_dark_url: string | null
@@ -390,6 +526,7 @@ export type Database = {
           background_color: string | null
           background_image_url: string | null
           background_theme: string | null
+          billing_email: string | null
           brand_color: string
           brand_color_dark: string | null
           city: string | null
@@ -405,14 +542,21 @@ export type Database = {
           industry: string | null
           logo_dark_url: string | null
           logo_light_url: string | null
+          max_users_override: number | null
           name: string
           notes: string | null
+          plan_id: string | null
           secondary_color: string | null
           secondary_color_dark: string | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
           slug: string
           status: Database["public"]["Enums"]["tenant_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
           updated_at: string | null
           vat_number: string | null
         }
@@ -422,6 +566,7 @@ export type Database = {
           background_color?: string | null
           background_image_url?: string | null
           background_theme?: string | null
+          billing_email?: string | null
           brand_color?: string
           brand_color_dark?: string | null
           city?: string | null
@@ -437,14 +582,21 @@ export type Database = {
           industry?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
+          max_users_override?: number | null
           name: string
           notes?: string | null
+          plan_id?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug: string
           status?: Database["public"]["Enums"]["tenant_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string | null
           vat_number?: string | null
         }
@@ -454,6 +606,7 @@ export type Database = {
           background_color?: string | null
           background_image_url?: string | null
           background_theme?: string | null
+          billing_email?: string | null
           brand_color?: string
           brand_color_dark?: string | null
           city?: string | null
@@ -469,18 +622,68 @@ export type Database = {
           industry?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
+          max_users_override?: number | null
           name?: string
           notes?: string | null
+          plan_id?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["tenant_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string | null
           vat_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message?: string
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activity_logs: {
         Row: {
@@ -646,7 +849,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       get_auth_tenant_id: { Args: never; Returns: string }
+      get_tenant_modules: {
+        Args: { p_tenant_id: string }
+        Returns: Database["public"]["Enums"]["module_code"][]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -670,7 +878,23 @@ export type Database = {
         | "mfa_disabled"
         | "mfa_verification_failed"
       app_role: "admin" | "user"
+      module_code:
+        | "hsse_core"
+        | "visitor_management"
+        | "incidents"
+        | "audits"
+        | "reports_analytics"
+        | "api_access"
+        | "priority_support"
       tenant_status: "active" | "suspended" | "disabled"
+      ticket_category: "billing" | "technical" | "feature_request" | "general"
+      ticket_priority: "low" | "medium" | "high" | "urgent"
+      ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting_customer"
+        | "resolved"
+        | "closed"
       visit_status:
         | "pending_security"
         | "approved"
@@ -815,7 +1039,25 @@ export const Constants = {
         "mfa_verification_failed",
       ],
       app_role: ["admin", "user"],
+      module_code: [
+        "hsse_core",
+        "visitor_management",
+        "incidents",
+        "audits",
+        "reports_analytics",
+        "api_access",
+        "priority_support",
+      ],
       tenant_status: ["active", "suspended", "disabled"],
+      ticket_category: ["billing", "technical", "feature_request", "general"],
+      ticket_priority: ["low", "medium", "high", "urgent"],
+      ticket_status: [
+        "open",
+        "in_progress",
+        "waiting_customer",
+        "resolved",
+        "closed",
+      ],
       visit_status: [
         "pending_security",
         "approved",

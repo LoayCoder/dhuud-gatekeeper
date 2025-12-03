@@ -627,5 +627,107 @@
     },
     "sendEmailOnCreate": "إرسال بريد إلكتروني للدعوة",
     "resendEmail": "إعادة إرسال بريد الدعوة"
+  },
+  "support": {
+    "title": "الدعم",
+    "description": "احصل على مساعدة من فريق الدعم",
+    "newTicket": "تذكرة جديدة",
+    "createTicket": "إنشاء تذكرة دعم",
+    "createDescription": "صف مشكلتك وسنرد عليك في أقرب وقت ممكن.",
+    "subject": "الموضوع",
+    "subjectPlaceholder": "وصف موجز لمشكلتك",
+    "descriptionPlaceholder": "قدم تفاصيل حول مشكلتك...",
+    "category": "الفئة",
+    "priority": "الأولوية",
+    "yourTickets": "تذاكرك",
+    "ticketsDescription": "تتبع وإدارة طلبات الدعم الخاصة بك",
+    "noTickets": "لا توجد تذاكر دعم بعد. أنشئ واحدة إذا كنت بحاجة إلى مساعدة.",
+    "ticketCreated": "تم تقديم تذكرتك.",
+    "createError": "فشل في إنشاء التذكرة.",
+    "fillRequired": "يرجى ملء جميع الحقول المطلوبة.",
+    "messageSent": "تم إرسال الرسالة بنجاح.",
+    "sendError": "فشل في إرسال الرسالة.",
+    "reply": "الرد",
+    "replyPlaceholder": "اكتب ردك...",
+    "send": "إرسال",
+    "details": "التفاصيل",
+    "created": "تاريخ الإنشاء",
+    "lastUpdated": "آخر تحديث",
+    "you": "أنت",
+    "supportTeam": "فريق الدعم",
+    "ticketClosed": "هذه التذكرة مغلقة ولا يمكن استقبال رسائل جديدة.",
+    "submit": "إرسال التذكرة",
+    "categories": {
+      "general": "عام",
+      "technical": "تقني",
+      "billing": "الفواتير",
+      "featureRequest": "طلب ميزة"
+    },
+    "priorities": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "urgent": "عاجل"
+    },
+    "statuses": {
+      "open": "مفتوح",
+      "in_progress": "قيد التنفيذ",
+      "waiting_customer": "في انتظارك",
+      "resolved": "تم الحل",
+      "closed": "مغلق"
+    }
+  },
+  "adminSupport": {
+    "title": "لوحة الدعم",
+    "description": "إدارة والرد على تذاكر دعم العملاء",
+    "openTickets": "التذاكر المفتوحة",
+    "inProgress": "قيد التنفيذ",
+    "urgentTickets": "عاجل",
+    "totalTickets": "إجمالي التذاكر",
+    "allTickets": "جميع التذاكر",
+    "searchPlaceholder": "البحث برقم التذكرة أو الموضوع أو المستأجر...",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "allStatuses": "جميع الحالات",
+    "allPriorities": "جميع الأولويات",
+    "noTickets": "لم يتم العثور على تذاكر.",
+    "subject": "الموضوع",
+    "tenant": "المستأجر",
+    "created": "تاريخ الإنشاء",
+    "customer": "العميل",
+    "supportAgent": "وكيل الدعم",
+    "ticketDetails": "تفاصيل التذكرة",
+    "respond": "الرد",
+    "replyPlaceholder": "اكتب ردك للعميل...",
+    "internalNotePlaceholder": "أضف ملاحظة داخلية (غير مرئية للعميل)...",
+    "markInternal": "ملاحظة داخلية (غير مرئية للعميل)",
+    "addNote": "إضافة ملاحظة",
+    "internalNote": "ملاحظة داخلية",
+    "statusUpdated": "تم تحديث حالة التذكرة.",
+    "ticketUpdated": "تم تحديث التذكرة.",
+    "updateError": "فشل في تحديث التذكرة."
+  },
+  "moduleGate": {
+    "featureLocked": "الميزة غير متاحة",
+    "upgradeRequired": "قم بترقية خطتك للوصول إلى {{module}}.",
+    "upgradePlan": "ترقية الخطة"
+  },
+  "modules": {
+    "hsse_core": "نظام HSSE الأساسي",
+    "visitor_management": "إدارة الزوار",
+    "incidents": "تقارير الحوادث",
+    "audits": "التدقيق والتفتيش",
+    "reports_analytics": "التقارير والتحليلات",
+    "api_access": "الوصول إلى API",
+    "priority_support": "دعم الأولوية"
+  },
+  "trial": {
+    "daysRemaining": "{{days}} أيام متبقية في تجربتك المجانية",
+    "lastDay": "اليوم الأخير من تجربتك المجانية!",
+    "upgradNow": "ترقية الآن"
+  },
+  "userLimit": {
+    "title": "حصة المستخدمين",
+    "limitReached": "تم الوصول إلى الحد الأقصى للمستخدمين. قم بالترقية لإضافة المزيد."
   }
 }
