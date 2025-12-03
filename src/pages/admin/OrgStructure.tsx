@@ -148,15 +148,19 @@ export default function OrgStructure() {
     );
   }
 
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const textAlign = isRTL ? 'text-right' : 'text-left';
+
   return (
-    <div className="container py-8 space-y-8">
-      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end' : 'items-start'}`}>
-        <h1 className="text-3xl font-bold tracking-tight">{t('orgStructure.title')}</h1>
-        <p className="text-muted-foreground">{t('orgStructure.description')}</p>
+    <div className="container py-8 space-y-8" dir={direction}>
+      {/* Header */}
+      <div className={`flex flex-col gap-1 ${isRTL ? 'items-end ms-auto' : 'items-start'}`}>
+        <h1 className={`text-3xl font-bold tracking-tight ${textAlign}`}>{t('orgStructure.title')}</h1>
+        <p className={`text-muted-foreground ${textAlign}`}>{t('orgStructure.description')}</p>
       </div>
 
-      <Tabs defaultValue="branches" className="w-full">
-        <TabsList className={`grid w-full grid-cols-4 lg:w-[600px] ${isRTL ? 'flex-row-reverse' : ''}`}>
+      <Tabs defaultValue="branches" className="w-full" dir={direction}>
+        <TabsList className={`grid w-full grid-cols-4 lg:w-[600px] ${isRTL ? 'ms-auto' : ''}`}>
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
           <TabsTrigger value="departments">{t('orgStructure.departments')}</TabsTrigger>
@@ -167,7 +171,7 @@ export default function OrgStructure() {
         <TabsContent value="branches">
           <Card>
             <CardHeader>
-              <CardTitle className="text-start">{t('orgStructure.manageBranches')}</CardTitle>
+              <CardTitle className={textAlign}>{t('orgStructure.manageBranches')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
@@ -175,19 +179,20 @@ export default function OrgStructure() {
                   placeholder={t('orgStructure.newBranchPlaceholder')}
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
-                  className="text-start"
+                  className={textAlign}
+                  dir={direction}
                 />
-                <Button onClick={() => handleCreate('branches')} disabled={creating}>
+                <Button onClick={() => handleCreate('branches')} disabled={creating} className={isRTL ? 'flex-row-reverse' : ''}>
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
                   {t('orgStructure.add')}
                 </Button>
               </div>
-              <div className="rounded-md border">
+              <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
-                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
+                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -200,8 +205,8 @@ export default function OrgStructure() {
                     ) : (
                       branches.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-start">{item.name}</TableCell>
-                          <TableCell className="text-end">
+                          <TableCell className={textAlign}>{item.name}</TableCell>
+                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                             <Button variant="ghost" size="sm" onClick={() => handleDelete('branches', item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -220,7 +225,7 @@ export default function OrgStructure() {
         <TabsContent value="divisions">
           <Card>
             <CardHeader>
-              <CardTitle className="text-start">{t('orgStructure.manageDivisions')}</CardTitle>
+              <CardTitle className={textAlign}>{t('orgStructure.manageDivisions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
@@ -228,19 +233,20 @@ export default function OrgStructure() {
                   placeholder={t('orgStructure.newDivisionPlaceholder')}
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
-                  className="text-start"
+                  className={textAlign}
+                  dir={direction}
                 />
-                <Button onClick={() => handleCreate('divisions')} disabled={creating}>
+                <Button onClick={() => handleCreate('divisions')} disabled={creating} className={isRTL ? 'flex-row-reverse' : ''}>
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
                   {t('orgStructure.add')}
                 </Button>
               </div>
-              <div className="rounded-md border">
+              <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
-                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
+                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -253,8 +259,8 @@ export default function OrgStructure() {
                     ) : (
                       divisions.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-start">{item.name}</TableCell>
-                          <TableCell className="text-end">
+                          <TableCell className={textAlign}>{item.name}</TableCell>
+                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                             <Button variant="ghost" size="sm" onClick={() => handleDelete('divisions', item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -273,44 +279,45 @@ export default function OrgStructure() {
         <TabsContent value="departments">
           <Card>
             <CardHeader>
-              <CardTitle className="text-start">{t('orgStructure.manageDepartments')}</CardTitle>
+              <CardTitle className={textAlign}>{t('orgStructure.manageDepartments')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <div className="w-1/3">
-                  <Label className="mb-2 block text-start">{t('orgStructure.parentDivision')}</Label>
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentDivision')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
-                    <SelectTrigger className="text-start">
+                    <SelectTrigger className={textAlign} dir={direction}>
                       <SelectValue placeholder={t('orgStructure.selectDivision')} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={direction}>
                       {divisions.map(d => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                        <SelectItem key={d.id} value={d.id} className={textAlign}>{d.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label className="mb-2 block text-start">{t('orgStructure.departmentName')}</Label>
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.departmentName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newDepartmentPlaceholder')}
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    className="text-start"
+                    className={textAlign}
+                    dir={direction}
                   />
                 </div>
-                <Button onClick={() => handleCreate('departments')} disabled={creating || !parentId}>
+                <Button onClick={() => handleCreate('departments')} disabled={creating || !parentId} className={isRTL ? 'flex-row-reverse' : ''}>
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
                   {t('orgStructure.add')}
                 </Button>
               </div>
-              <div className="rounded-md border">
+              <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-start">{t('orgStructure.department')}</TableHead>
-                      <TableHead className="text-start">{t('orgStructure.parentDivision')}</TableHead>
-                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.department')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.parentDivision')}</TableHead>
+                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -323,9 +330,9 @@ export default function OrgStructure() {
                     ) : (
                       departments.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-start">{item.name}</TableCell>
-                          <TableCell className="text-muted-foreground text-start">{item.divisions?.name}</TableCell>
-                          <TableCell className="text-end">
+                          <TableCell className={textAlign}>{item.name}</TableCell>
+                          <TableCell className={`text-muted-foreground ${textAlign}`}>{item.divisions?.name}</TableCell>
+                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                             <Button variant="ghost" size="sm" onClick={() => handleDelete('departments', item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -344,44 +351,45 @@ export default function OrgStructure() {
         <TabsContent value="sections">
           <Card>
             <CardHeader>
-              <CardTitle className="text-start">{t('orgStructure.manageSections')}</CardTitle>
+              <CardTitle className={textAlign}>{t('orgStructure.manageSections')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <div className="w-1/3">
-                  <Label className="mb-2 block text-start">{t('orgStructure.parentDepartment')}</Label>
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentDepartment')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
-                    <SelectTrigger className="text-start">
+                    <SelectTrigger className={textAlign} dir={direction}>
                       <SelectValue placeholder={t('orgStructure.selectDepartment')} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={direction}>
                       {departments.map(d => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                        <SelectItem key={d.id} value={d.id} className={textAlign}>{d.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label className="mb-2 block text-start">{t('orgStructure.sectionName')}</Label>
+                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.sectionName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newSectionPlaceholder')}
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    className="text-start"
+                    className={textAlign}
+                    dir={direction}
                   />
                 </div>
-                <Button onClick={() => handleCreate('sections')} disabled={creating || !parentId}>
+                <Button onClick={() => handleCreate('sections')} disabled={creating || !parentId} className={isRTL ? 'flex-row-reverse' : ''}>
                   <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
                   {t('orgStructure.add')}
                 </Button>
               </div>
-              <div className="rounded-md border">
+              <div className="rounded-md border" dir={direction}>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-start">{t('orgStructure.section')}</TableHead>
-                      <TableHead className="text-start">{t('orgStructure.parentDepartment')}</TableHead>
-                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.section')}</TableHead>
+                      <TableHead className={textAlign}>{t('orgStructure.parentDepartment')}</TableHead>
+                      <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -394,9 +402,9 @@ export default function OrgStructure() {
                     ) : (
                       sections.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-start">{item.name}</TableCell>
-                          <TableCell className="text-muted-foreground text-start">{item.departments?.name}</TableCell>
-                          <TableCell className="text-end">
+                          <TableCell className={textAlign}>{item.name}</TableCell>
+                          <TableCell className={`text-muted-foreground ${textAlign}`}>{item.departments?.name}</TableCell>
+                          <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                             <Button variant="ghost" size="sm" onClick={() => handleDelete('sections', item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
