@@ -1114,7 +1114,11 @@
     "thisMonth": "Ngayong Buwan",
     "lastMonth": "Nakaraang Buwan",
     "pending": "Nakabinbin",
-    "exported": "Matagumpay na na-export ang data"
+    "exported": "Matagumpay na na-export ang data",
+    "usageTrend": "Trend ng Paggamit",
+    "usageTrendDesc": "Bilang ng profile sa nakaraang 6 na buwan",
+    "distribution": "Distribusyon ng Profile",
+    "distributionDesc": "Kasalukuyang breakdown ayon sa uri ng profile"
   },
   "adminBilling": {
     "title": "Pangkalahatang-ideya ng Billing",

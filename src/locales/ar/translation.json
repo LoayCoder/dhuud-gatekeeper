@@ -1144,7 +1144,11 @@
     "thisMonth": "هذا الشهر",
     "lastMonth": "الشهر الماضي",
     "pending": "قيد الانتظار",
-    "exported": "تم تصدير البيانات بنجاح"
+    "exported": "تم تصدير البيانات بنجاح",
+    "usageTrend": "اتجاه الاستخدام",
+    "usageTrendDesc": "عدد الملفات خلال آخر 6 أشهر",
+    "distribution": "توزيع الملفات",
+    "distributionDesc": "التوزيع الحالي حسب نوع الملف"
   },
   "adminBilling": {
     "title": "نظرة عامة على الفوترة",

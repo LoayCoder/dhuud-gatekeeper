@@ -1153,7 +1153,11 @@
     "thisMonth": "This Month",
     "lastMonth": "Last Month",
     "pending": "Pending",
-    "exported": "Data exported successfully"
+    "exported": "Data exported successfully",
+    "usageTrend": "Usage Trend",
+    "usageTrendDesc": "Profile count over the last 6 months",
+    "distribution": "Profile Distribution",
+    "distributionDesc": "Current breakdown by profile type"
   },
   "adminBilling": {
     "title": "Billing Overview",
