@@ -276,7 +276,8 @@
       "favicon": {
         "title": "Favicon",
         "description": "Browser tab icon. ICO/PNG, 32x32px or 64x64px",
-        "noFavicon": "No favicon"
+        "noFavicon": "No favicon",
+        "chooseFile": "Choose file"
       }
     },
     "theme": {

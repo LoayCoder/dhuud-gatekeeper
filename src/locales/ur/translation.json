@@ -185,7 +185,8 @@
       "favicon": {
         "title": "فیوکون",
         "description": "براؤزر ٹیب میں چھوٹا آئیکن۔ PNG/ICO، 32x32px یا 64x64px",
-        "noFavicon": "کوئی فیوکون نہیں"
+        "noFavicon": "کوئی فیوکون نہیں",
+        "chooseFile": "فائل منتخب کریں"
       }
     },
     "theme": {
