@@ -25,7 +25,7 @@ interface UseMFAReturn {
   factors: Factor[];
   isEnabled: boolean;
   isLoading: boolean;
-  enroll: () => Promise<EnrollResult | null>;
+  enroll: (issuer?: string) => Promise<EnrollResult | null>;
   verify: (factorId: string, challengeId: string, code: string) => Promise<boolean>;
   unenroll: (factorId: string) => Promise<boolean>;
   challenge: (factorId: string) => Promise<string | null>;
@@ -62,11 +62,12 @@ export function useMFA(): UseMFAReturn {
     refreshFactors();
   }, [refreshFactors]);
 
-  const enroll = async (): Promise<EnrollResult | null> => {
+  const enroll = async (issuer?: string): Promise<EnrollResult | null> => {
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'Authenticator App',
+        issuer: issuer || 'DHUUD-SaaS',
       });
 
       if (error) {

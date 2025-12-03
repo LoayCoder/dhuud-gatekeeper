@@ -12,6 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldCheck, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import { useMFA } from "@/hooks/useMFA";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
 import { logUserActivity } from "@/lib/activity-logger";
 
@@ -26,6 +27,7 @@ type Step = "intro" | "qrcode" | "verify" | "success";
 export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDialogProps) {
   const { t } = useTranslation();
   const { enroll, verify, challenge } = useMFA();
+  const { tenantName } = useTheme();
   const [step, setStep] = useState<Step>("intro");
   const [loading, setLoading] = useState(false);
   const [enrollData, setEnrollData] = useState<{
@@ -46,7 +48,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
 
   const handleStartEnrollment = async () => {
     setLoading(true);
-    const result = await enroll();
+    const result = await enroll(tenantName || 'DHUUD-SaaS');
     setLoading(false);
 
     if (result) {
