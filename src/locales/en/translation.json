@@ -603,10 +603,12 @@
     "toast": {
       "created": "Invitation Created",
       "createdDescription": "Invitation code {{code}} has been created.",
+      "createdWithEmail": "Invitation code {{code}} has been sent to {{email}}.",
       "revoked": "Invitation Revoked",
       "revokedDescription": "The invitation has been revoked.",
       "copied": "Code Copied",
       "copiedDescription": "Invitation code copied to clipboard."
-    }
+    },
+    "sendEmailOnCreate": "Send invitation email"
   }
 }
