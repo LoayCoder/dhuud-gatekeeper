@@ -217,7 +217,7 @@ export function ProfileForm({
           <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
             <Phone className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="[padding-inline-start:2.25rem]" dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} />
+            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} className="[padding-inline-start:2.25rem] px-[35px]" />
           </div>
         </div>
 
