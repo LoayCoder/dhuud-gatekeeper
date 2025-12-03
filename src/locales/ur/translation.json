@@ -387,7 +387,8 @@
     "protectedByZeroTrust": "صفر اعتماد سیکیورٹی سے محفوظ",
     "securityStatus": "سیکیورٹی کی حیثیت",
     "zeroTrustActive": "صفر اعتماد تصدیق فعال",
-    "protected": "محفوظ"
+    "protected": "محفوظ",
+    "passwordBreached": "یہ پاس ورڈ {{count}} ڈیٹا کی خلاف ورزیوں میں پایا گیا ہے۔ براہ کرم اپنی حفاظت کے لیے کوئی مختلف پاس ورڈ منتخب کریں۔"
   },
   "dashboard": {
     "welcomeTitle": "ذود صحت و حفاظت پلیٹ فارم میں خوش آمدید",
