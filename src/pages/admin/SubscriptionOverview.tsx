@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Building2, Users, CreditCard, TrendingUp, Clock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
+import { SubscriptionAuditLog } from "@/components/SubscriptionAuditLog";
 
 export default function SubscriptionOverview() {
   const { t } = useTranslation();
@@ -221,6 +222,9 @@ export default function SubscriptionOverview() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Subscription Audit Log */}
+      <SubscriptionAuditLog />
     </div>
   );
 }

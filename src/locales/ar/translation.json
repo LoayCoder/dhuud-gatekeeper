@@ -775,5 +775,21 @@
     "trialEnds": "انتهاء التجربة",
     "daysLeft": "أيام متبقية",
     "noTenants": "لم يتم العثور على مستأجرين."
+  },
+  "subscriptionEvents": {
+    "title": "سجل نشاط الاشتراك",
+    "description": "تغييرات الاشتراك الأخيرة وأحداث الفوترة.",
+    "noEvents": "لم يتم تسجيل أي أحداث اشتراك بعد.",
+    "from": "من",
+    "to": "إلى",
+    "plan_changed": "تم تغيير الخطة",
+    "trial_started": "بدأت الفترة التجريبية",
+    "trial_ended": "انتهت الفترة التجريبية",
+    "subscription_activated": "تم تفعيل الاشتراك",
+    "subscription_canceled": "تم إلغاء الاشتراك",
+    "subscription_renewed": "تم تجديد الاشتراك",
+    "user_limit_changed": "تم تغيير حد المستخدمين",
+    "payment_succeeded": "نجح الدفع",
+    "payment_failed": "فشل الدفع"
   }
 }
