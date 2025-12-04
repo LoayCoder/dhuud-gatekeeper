@@ -1664,6 +1664,7 @@ export type Database = {
         Args: { p_role_code: string; p_user_id: string }
         Returns: boolean
       }
+      has_security_access: { Args: { _user_id: string }; Returns: boolean }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_in_team_hierarchy: {
         Args: { p_manager_id: string; p_user_id: string }
