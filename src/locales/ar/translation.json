@@ -587,7 +587,10 @@
     "addSite": "إضافة موقع",
     "noAddress": "لا يوجد عنوان",
     "searchSites": "البحث حسب اسم الموقع أو الفرع...",
-    "noSearchResults": "لا توجد مواقع تطابق بحثك."
+    "noSearchResults": "لا توجد مواقع تطابق بحثك.",
+    "branch": "الفرع",
+    "division": "القسم الوظيفي",
+    "site": "الموقع"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
@@ -658,19 +661,6 @@
     "filterByRole": "فلتر حسب الدور",
     "allRoles": "جميع الأدوار",
     "hierarchy": "التسلسل الهرمي"
-  },
-  "orgStructure": {
-    "title": "الهيكل التنظيمي",
-    "branch": "الفرع",
-    "branches": "الفروع",
-    "division": "القسم",
-    "divisions": "الأقسام",
-    "department": "الإدارة",
-    "departments": "الإدارات",
-    "section": "الوحدة",
-    "sections": "الوحدات",
-    "site": "الموقع",
-    "sites": "المواقع"
   },
   "tenantManagement": {
     "title": "إدارة المستأجرين",

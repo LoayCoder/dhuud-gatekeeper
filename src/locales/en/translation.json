@@ -573,7 +573,10 @@
     "addSite": "Add Site",
     "noAddress": "No address",
     "searchSites": "Search by site name or branch...",
-    "noSearchResults": "No sites match your search."
+    "noSearchResults": "No sites match your search.",
+    "branch": "Branch",
+    "division": "Division",
+    "site": "Site"
   },
   "userManagement": {
     "title": "User Management",
