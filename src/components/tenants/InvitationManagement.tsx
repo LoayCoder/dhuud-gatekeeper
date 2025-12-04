@@ -66,6 +66,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
         .from('invitations')
         .select('id, email, code, expires_at, used, created_at')
         .eq('tenant_id', tenant.id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Invitation[];
@@ -135,12 +136,13 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
     },
   });
 
-  // Delete invitation mutation
+  // Delete invitation mutation (Soft Delete)
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Soft delete - set deleted_at timestamp
       const { error } = await supabase
         .from('invitations')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;
     },

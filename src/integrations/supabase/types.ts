@@ -17,6 +17,7 @@ export type Database = {
       branches: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           latitude: number | null
           location: string | null
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           latitude?: number | null
           location?: string | null
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           latitude?: number | null
           location?: string | null
@@ -55,6 +58,7 @@ export type Database = {
       departments: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           division_id: string
           id: string
           name: string
@@ -62,6 +66,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           division_id: string
           id?: string
           name: string
@@ -69,6 +74,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           division_id?: string
           id?: string
           name?: string
@@ -94,18 +100,21 @@ export type Database = {
       divisions: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           name: string
           tenant_id: string
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           name: string
           tenant_id: string
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           name?: string
           tenant_id?: string
@@ -124,6 +133,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
+          deleted_at: string | null
           email: string
           expires_at: string
           id: string
@@ -133,6 +143,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string | null
+          deleted_at?: string | null
           email: string
           expires_at: string
           id?: string
@@ -142,6 +153,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string | null
+          deleted_at?: string | null
           email?: string
           expires_at?: string
           id?: string
@@ -162,6 +174,7 @@ export type Database = {
         Row: {
           assigned_at: string | null
           assigned_by: string | null
+          deleted_at: string | null
           id: string
           manager_id: string
           tenant_id: string
@@ -170,6 +183,7 @@ export type Database = {
         Insert: {
           assigned_at?: string | null
           assigned_by?: string | null
+          deleted_at?: string | null
           id?: string
           manager_id: string
           tenant_id: string
@@ -178,6 +192,7 @@ export type Database = {
         Update: {
           assigned_at?: string | null
           assigned_by?: string | null
+          deleted_at?: string | null
           id?: string
           manager_id?: string
           tenant_id?: string
@@ -212,6 +227,7 @@ export type Database = {
           code_hash: string
           created_at: string
           id: string
+          tenant_id: string | null
           used_at: string | null
           user_id: string
         }
@@ -219,6 +235,7 @@ export type Database = {
           code_hash: string
           created_at?: string
           id?: string
+          tenant_id?: string | null
           used_at?: string | null
           user_id: string
         }
@@ -226,6 +243,7 @@ export type Database = {
           code_hash?: string
           created_at?: string
           id?: string
+          tenant_id?: string | null
           used_at?: string | null
           user_id?: string
         }
@@ -237,6 +255,7 @@ export type Database = {
           base_price_yearly: number | null
           code: string
           created_at: string | null
+          deleted_at: string | null
           description: string | null
           icon: string | null
           id: string
@@ -250,6 +269,7 @@ export type Database = {
           base_price_yearly?: number | null
           code: string
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
@@ -263,6 +283,7 @@ export type Database = {
           base_price_yearly?: number | null
           code?: string
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
@@ -572,6 +593,7 @@ export type Database = {
       sections: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           department_id: string
           id: string
           name: string
@@ -579,6 +601,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           department_id: string
           id?: string
           name: string
@@ -586,6 +609,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           department_id?: string
           id?: string
           name?: string
@@ -651,6 +675,7 @@ export type Database = {
           address: string | null
           branch_id: string | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_active: boolean | null
           latitude: number | null
@@ -662,6 +687,7 @@ export type Database = {
           address?: string | null
           branch_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -673,6 +699,7 @@ export type Database = {
           address?: string | null
           branch_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -1310,6 +1337,7 @@ export type Database = {
           is_internal: boolean | null
           message: string
           sender_id: string
+          tenant_id: string | null
           ticket_id: string
         }
         Insert: {
@@ -1318,6 +1346,7 @@ export type Database = {
           is_internal?: boolean | null
           message: string
           sender_id: string
+          tenant_id?: string | null
           ticket_id: string
         }
         Update: {
@@ -1326,6 +1355,7 @@ export type Database = {
           is_internal?: boolean | null
           message?: string
           sender_id?: string
+          tenant_id?: string | null
           ticket_id?: string
         }
         Relationships: [
@@ -1346,6 +1376,7 @@ export type Database = {
           id: string
           ip_address: string | null
           last_used_at: string | null
+          tenant_id: string | null
           trusted_until: string
           user_agent: string | null
           user_id: string
@@ -1357,6 +1388,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           last_used_at?: string | null
+          tenant_id?: string | null
           trusted_until: string
           user_agent?: string | null
           user_id: string
@@ -1368,6 +1400,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           last_used_at?: string | null
+          tenant_id?: string | null
           trusted_until?: string
           user_agent?: string | null
           user_id?: string
@@ -1379,24 +1412,36 @@ export type Database = {
           created_at: string
           event_type: Database["public"]["Enums"]["activity_event_type"]
           id: string
+          ip_address: string | null
           metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
           session_duration_seconds: number | null
+          tenant_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           event_type: Database["public"]["Enums"]["activity_event_type"]
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
           session_duration_seconds?: number | null
+          tenant_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           event_type?: Database["public"]["Enums"]["activity_event_type"]
           id?: string
+          ip_address?: string | null
           metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
           session_duration_seconds?: number | null
+          tenant_id?: string | null
           user_id?: string
         }
         Relationships: []
