@@ -1037,6 +1037,9 @@
     "youSave": "توفر",
     "comparedToMonthly": "مقارنة بالفوترة الشهرية",
     "selectionSummary": "ملخص الاختيار",
+    "starter": "المبتدئة",
+    "professional": "الاحترافية",
+    "enterprise": "المؤسسات",
     "status": {
       "pending": "قيد المراجعة",
       "under_review": "تحت المراجعة",
@@ -1246,6 +1249,7 @@
     "thisMonth": "هذا الشهر",
     "lastMonth": "الشهر الماضي",
     "pending": "قيد الانتظار",
+    "paid": "مدفوع",
     "exported": "تم تصدير البيانات بنجاح",
     "usageTrend": "اتجاه الاستخدام",
     "usageTrendDesc": "عدد الملفات خلال آخر 6 أشهر",

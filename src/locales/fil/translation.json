@@ -1033,6 +1033,9 @@
     "youSave": "Nakatipid ka ng",
     "comparedToMonthly": "kumpara sa buwanang billing",
     "selectionSummary": "Buod ng Pagpili",
+    "starter": "Starter",
+    "professional": "Professional",
+    "enterprise": "Enterprise",
     "status": {
       "pending": "Nakabinbin",
       "under_review": "Sinusuri",
@@ -1213,6 +1216,7 @@
     "thisMonth": "Ngayong Buwan",
     "lastMonth": "Nakaraang Buwan",
     "pending": "Nakabinbin",
+    "paid": "Bayad na",
     "exported": "Matagumpay na na-export ang data",
     "usageTrend": "Trend ng Paggamit",
     "usageTrendDesc": "Bilang ng profile sa nakaraang 6 na buwan",

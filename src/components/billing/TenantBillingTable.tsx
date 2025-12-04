@@ -52,12 +52,12 @@ export function TenantBillingTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('tenantManagement.name')}</TableHead>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('subscription.plan')}</TableHead>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('profileBilling.thisMonth')}</TableHead>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('profileBilling.lastMonth')}</TableHead>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.status')}</TableHead>
-              <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.actions')}</TableHead>
+              <TableHead className="text-start">{t('tenantManagement.columns.name')}</TableHead>
+              <TableHead className="text-start">{t('subscription.plan')}</TableHead>
+              <TableHead className="text-start">{t('profileBilling.thisMonth')}</TableHead>
+              <TableHead className="text-start">{t('profileBilling.lastMonth')}</TableHead>
+              <TableHead className="text-start">{t('common.status')}</TableHead>
+              <TableHead className="text-start">{t('common.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -79,7 +79,7 @@ export function TenantBillingTable({
 
   if (!tenants?.length) {
     return (
-      <div className={`text-center py-8 text-muted-foreground`}>
+      <div className="text-center py-8 text-muted-foreground">
         {t('common.noData')}
       </div>
     );
@@ -90,24 +90,24 @@ export function TenantBillingTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('tenantManagement.name')}</TableHead>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('subscription.plan')}</TableHead>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('profileBilling.thisMonth')}</TableHead>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('profileBilling.lastMonth')}</TableHead>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.status')}</TableHead>
-            <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.actions')}</TableHead>
+            <TableHead className="text-start">{t('tenantManagement.columns.name')}</TableHead>
+            <TableHead className="text-start">{t('subscription.plan')}</TableHead>
+            <TableHead className="text-start">{t('profileBilling.thisMonth')}</TableHead>
+            <TableHead className="text-start">{t('profileBilling.lastMonth')}</TableHead>
+            <TableHead className="text-start">{t('common.status')}</TableHead>
+            <TableHead className="text-start">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tenants.map((tenant) => (
             <TableRow key={tenant.id}>
-              <TableCell className={`font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{tenant.name}</TableCell>
-              <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+              <TableCell className="font-medium text-start">{tenant.name}</TableCell>
+              <TableCell className="text-start">
                 <Badge variant="outline">
-                  {tenant.plans?.display_name || tenant.plans?.name || 'Starter'}
+                  {tenant.plans?.display_name || tenant.plans?.name || t('subscription.starter')}
                 </Badge>
               </TableCell>
-              <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+              <TableCell className="text-start">
                 <div className="space-y-1">
                   <p className="text-sm">
                     {tenant.currentBilling?.total_profiles || 0} {t('profileBilling.profiles')}
@@ -117,7 +117,7 @@ export function TenantBillingTable({
                   </p>
                 </div>
               </TableCell>
-              <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+              <TableCell className="text-start">
                 <div className="space-y-1">
                   <p className="text-sm">
                     {tenant.lastBilling?.total_profiles || 0} {t('profileBilling.profiles')}
@@ -127,15 +127,17 @@ export function TenantBillingTable({
                   </p>
                 </div>
               </TableCell>
-              <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+              <TableCell className="text-start">
                 <Badge 
                   variant={tenant.currentBilling?.status === 'paid' ? 'default' : 'secondary'}
                 >
-                  {tenant.currentBilling?.status || t('profileBilling.pending')}
+                  {tenant.currentBilling?.status === 'paid' 
+                    ? t('profileBilling.paid') 
+                    : t('profileBilling.pending')}
                 </Badge>
               </TableCell>
-              <TableCell className={isRTL ? 'text-right' : 'text-left'}>
-                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+              <TableCell className="text-start">
+                <div className="flex items-center gap-2 justify-start">
                   {onViewDetails && (
                     <Button
                       variant="ghost"

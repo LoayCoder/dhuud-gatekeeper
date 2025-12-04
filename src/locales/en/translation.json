@@ -1023,6 +1023,9 @@
     "youSave": "You save",
     "comparedToMonthly": "compared to monthly billing",
     "selectionSummary": "Selection Summary",
+    "starter": "Starter",
+    "professional": "Professional",
+    "enterprise": "Enterprise",
     "status": {
       "pending": "Pending Review",
       "under_review": "Under Review",
@@ -1232,6 +1235,7 @@
     "thisMonth": "This Month",
     "lastMonth": "Last Month",
     "pending": "Pending",
+    "paid": "Paid",
     "exported": "Data exported successfully",
     "usageTrend": "Usage Trend",
     "usageTrendDesc": "Profile count over the last 6 months",
