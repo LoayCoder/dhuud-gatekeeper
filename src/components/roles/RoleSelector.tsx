@@ -112,7 +112,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                     <CommandGroup 
                       key={category} 
                       heading={
-                        <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+                        <div className="flex items-center gap-2">
                           <RoleCategoryBadge category={category} />
                         </div>
                       }
@@ -128,14 +128,10 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                             onSelect={() => handleToggleRole(role.id)}
                             className={cn(
                               "cursor-pointer",
-                              isRTL && "flex-row-reverse",
                               isNormalUser && isSelected && "opacity-60"
                             )}
                           >
-                            <div className={cn(
-                              "flex items-center gap-2 flex-1",
-                              isRTL && "flex-row-reverse"
-                            )}>
+                            <div className="flex items-center gap-2 flex-1">
                               <div className={cn(
                                 "w-4 h-4 border rounded flex items-center justify-center",
                                 isSelected ? "bg-primary border-primary" : "border-input",
@@ -143,7 +139,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                               )}>
                                 {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                               </div>
-                              <div className={cn("flex flex-col", isRTL && "items-end")}>
+                              <div className="flex flex-col text-start">
                                 <span className="font-medium">
                                   {t(`roles.${role.code}`, { defaultValue: role.name })}
                                 </span>

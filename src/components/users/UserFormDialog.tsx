@@ -88,7 +88,6 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
-  const textAlign = isRTL ? 'text-right' : 'text-left';
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
     divisions: any[];
@@ -274,11 +273,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden" dir={direction}>
-        <DialogHeader className={textAlign}>
-          <DialogTitle className={textAlign}>
+        <DialogHeader className="text-start">
+          <DialogTitle className="text-start">
             {user ? t('userManagement.editUser') : t('userManagement.addUser')}
           </DialogTitle>
-          <DialogDescription className={textAlign}>
+          <DialogDescription className="text-start">
             {quota && (
               <span className="text-xs">
                 {t('userManagement.licensedUsers')}: {quota.current_licensed_users} / {quota.max_licensed_users}
@@ -664,11 +663,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
               </div>
             </div>
 
-            <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading} className={isRTL ? 'flex-row-reverse' : ''}>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('common.save')}
               </Button>
