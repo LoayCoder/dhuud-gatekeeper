@@ -414,10 +414,10 @@ export default function SubscriptionManagement() {
             <DialogTitle className="flex items-center gap-2">
               {submitRequest.isSuccess ? <>
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  {t('subscription.requestSent', 'Request Sent!')}
+                  {t('subscription.requestSent')}
                 </> : <>
                   <Send className="h-5 w-5 text-primary" />
-                  {t('subscription.confirmRequest', 'Confirm Request')}
+                  {t('subscription.confirmRequest')}
                 </>}
             </DialogTitle>
           </DialogHeader>
@@ -428,21 +428,21 @@ export default function SubscriptionManagement() {
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 </div>
                 <p className="text-muted-foreground">
-                  {t('subscription.confirmationEmailMessage', 'You will soon receive a confirmation and payment method details in your email.')}
+                  {t('subscription.confirmationEmailMessage')}
                 </p>
               </> : <>
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <Send className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-muted-foreground">
-                  {t('subscription.confirmRequestMessage', 'Are you sure you want to submit this subscription request?')}
+                  {t('subscription.confirmRequestMessage')}
                 </p>
               </>}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
             {submitRequest.isSuccess ? <Button onClick={() => setShowRequestDialog(false)} className="w-full">
-                {t('common.done', 'Done')}
+                {t('common.done')}
               </Button> : <>
                 <Button variant="outline" onClick={() => setShowRequestDialog(false)} disabled={submitRequest.isPending}>
                   {t('common.cancel')}
@@ -453,7 +453,7 @@ export default function SubscriptionManagement() {
                       {t('common.submitting')}
                     </> : <>
                       <Send className="h-4 w-4 me-2" />
-                      {t('subscription.submitRequest', 'Submit Request')}
+                      {t('subscription.submitRequest')}
                     </>}
                 </Button>
               </>}
@@ -467,7 +467,7 @@ export default function SubscriptionManagement() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-destructive" />
-              {t('subscription.confirmCancelTitle', 'Cancel Request?')}
+              {t('subscription.confirmCancelTitle')}
             </DialogTitle>
           </DialogHeader>
 
@@ -476,7 +476,7 @@ export default function SubscriptionManagement() {
               <XCircle className="h-8 w-8 text-destructive" />
             </div>
             <p className="text-muted-foreground">
-              {t('subscription.confirmCancelMessage', 'Are you sure you want to cancel this subscription request? This action cannot be undone.')}
+              {t('subscription.confirmCancelMessage')}
             </p>
           </div>
 
@@ -493,7 +493,7 @@ export default function SubscriptionManagement() {
                   {t('common.canceling')}
                 </> : <>
                   <XCircle className="h-4 w-4 me-2" />
-                  {t('subscription.confirmCancel', 'Yes, Cancel Request')}
+                  {t('subscription.confirmCancel')}
                 </>}
             </Button>
           </DialogFooter>
