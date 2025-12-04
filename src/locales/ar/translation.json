@@ -1356,5 +1356,25 @@
     "assignError": "فشل في تعيين المستخدم للفريق",
     "removeSuccess": "تم إزالة المستخدم من الفريق",
     "removeError": "فشل في إزالة المستخدم من الفريق"
+  },
+  "pwa": {
+    "installTitle": "تثبيت Dhuud HSSE",
+    "installDescription": "ثبّت التطبيق للوصول الأسرع والدعم بدون اتصال.",
+    "installButton": "تثبيت التطبيق",
+    "iosInstructions": "لتثبيت هذا التطبيق على جهاز iPhone:",
+    "iosTapShare": "اضغط على",
+    "iosShareButton": "زر المشاركة",
+    "iosScrollAndTap": "مرر واضغط على",
+    "iosAddToHome": "إضافة إلى الشاشة الرئيسية"
+  },
+  "network": {
+    "offline": "أنت غير متصل",
+    "backOnline": "عدت متصلاً",
+    "pendingChanges": "{{count}} تغيير(ات) معلقة",
+    "syncNow": "مزامنة الآن",
+    "syncSuccess": "اكتملت المزامنة",
+    "syncSuccessDesc": "تمت مزامنة {{count}} تغيير(ات) بنجاح.",
+    "syncFailed": "فشلت بعض التغييرات",
+    "syncFailedDesc": "تعذرت مزامنة {{count}} تغيير(ات)."
   }
 }

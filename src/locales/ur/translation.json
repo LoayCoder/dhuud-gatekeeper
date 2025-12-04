@@ -1326,5 +1326,25 @@
     "assignError": "صارف کو ٹیم میں شامل کرنے میں ناکام",
     "removeSuccess": "صارف ٹیم سے ہٹا دیا گیا",
     "removeError": "صارف کو ٹیم سے ہٹانے میں ناکام"
+  },
+  "pwa": {
+    "installTitle": "Dhuud HSSE انسٹال کریں",
+    "installDescription": "تیز رسائی اور آف لائن سپورٹ کے لیے ایپ انسٹال کریں۔",
+    "installButton": "ایپ انسٹال کریں",
+    "iosInstructions": "اپنے iPhone پر یہ ایپ انسٹال کرنے کے لیے:",
+    "iosTapShare": "پر ٹیپ کریں",
+    "iosShareButton": "شیئر بٹن",
+    "iosScrollAndTap": "سکرول کریں اور ٹیپ کریں",
+    "iosAddToHome": "ہوم اسکرین میں شامل کریں"
+  },
+  "network": {
+    "offline": "آپ آف لائن ہیں",
+    "backOnline": "واپس آن لائن",
+    "pendingChanges": "{{count}} زیر التواء تبدیلی(ات)",
+    "syncNow": "ابھی مطابقت پذیر کریں",
+    "syncSuccess": "مطابقت پذیری مکمل",
+    "syncSuccessDesc": "{{count}} تبدیلی(ات) کامیابی سے مطابقت پذیر ہو گئیں۔",
+    "syncFailed": "کچھ تبدیلیاں ناکام ہو گئیں",
+    "syncFailedDesc": "{{count}} تبدیلی(ات) مطابقت پذیر نہیں ہو سکیں۔"
   }
 }
