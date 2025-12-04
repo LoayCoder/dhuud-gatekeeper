@@ -36,11 +36,13 @@ const categoryOrder: RoleCategory[] = [
   'food_safety',
 ];
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelectorProps) {
   const { t, i18n } = useTranslation();
   const { roles, rolesByCategory, isLoading } = useUserRoles();
   const [open, setOpen] = useState(false);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   // Find the normal_user role to prevent its removal
   const normalUserRole = roles.find(r => r.code === 'normal_user');

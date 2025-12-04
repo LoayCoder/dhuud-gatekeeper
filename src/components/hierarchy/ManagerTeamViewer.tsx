@@ -22,11 +22,13 @@ interface ManagerTeamViewerProps {
   compact?: boolean;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function ManagerTeamViewer({ managerId, managerName, compact }: ManagerTeamViewerProps) {
   const { t, i18n } = useTranslation();
   const { teamHierarchy, teamMembers, isLoading, isManager } = useManagerTeam(managerId);
   const [open, setOpen] = useState(false);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   if (!isManager && !isLoading) {
     return null;
