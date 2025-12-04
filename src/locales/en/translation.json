@@ -1,4 +1,18 @@
 {
+  "pages": {
+    "incidents": {
+      "title": "Incidents",
+      "description": "Report and track safety incidents."
+    },
+    "audits": {
+      "title": "Audits & Inspections",
+      "description": "Manage compliance audits and site inspections."
+    },
+    "visitors": {
+      "title": "Visitor Gatekeeper",
+      "description": "Manage visitor access and pre-registration."
+    }
+  },
   "admin": {
     "accessDenied": "Access Denied",
     "noPermission": "You do not have permission to access this page.",

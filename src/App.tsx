@@ -98,9 +98,9 @@ const App = () => (
                       <Route path="/profile" element={<Profile />} />
                       
                       {/* HSSE Management Routes */}
-                      <Route path="/incidents" element={<PlaceholderPage title="Incidents" description="Report and track safety incidents." />} />
-                      <Route path="/audits" element={<PlaceholderPage title="Audits & Inspections" description="Manage compliance audits and site inspections." />} />
-                      <Route path="/visitors" element={<PlaceholderPage title="Visitor Gatekeeper" description="Manage visitor access and pre-registration." />} />
+                      <Route path="/incidents" element={<PlaceholderPage titleKey="pages.incidents.title" descriptionKey="pages.incidents.description" />} />
+                      <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
+                      <Route path="/visitors" element={<PlaceholderPage titleKey="pages.visitors.title" descriptionKey="pages.visitors.description" />} />
 
                       {/* Admin Routes */}
                       <Route
