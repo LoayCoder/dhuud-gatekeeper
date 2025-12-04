@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import industrialImage from '@/assets/industrial-safety.jpg';
+// Image loaded from public folder for better performance (not bundled)
 import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
@@ -227,9 +227,10 @@ export default function Login() {
       {/* Left Side - Industrial Image */}
       <div className="relative hidden w-1/2 lg:block">
         <img
-          src={industrialImage}
+          src="/images/industrial-safety.jpg"
           alt="Industrial Safety"
           className="h-full w-full object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
         <div className="absolute bottom-8 left-8 right-8 text-white">
