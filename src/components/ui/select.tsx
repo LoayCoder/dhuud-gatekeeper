@@ -4,15 +4,27 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Select = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>
->(({ dir, ...props }, ref) => {
-  // Inherit direction from document if not explicitly set
-  const direction = dir || (typeof document !== 'undefined' ? (document.documentElement.dir as "ltr" | "rtl") : "ltr");
-  return <SelectPrimitive.Root dir={direction} {...props} />;
-});
-Select.displayName = "Select";
+// Hook to get current document direction
+const useDirection = () => {
+  const [dir, setDir] = React.useState<"ltr" | "rtl">("ltr");
+  
+  React.useEffect(() => {
+    const updateDir = () => {
+      setDir((document.documentElement.dir as "ltr" | "rtl") || "ltr");
+    };
+    updateDir();
+    
+    // Watch for direction changes
+    const observer = new MutationObserver(updateDir);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
+    
+    return () => observer.disconnect();
+  }, []);
+  
+  return dir;
+};
+
+const Select = SelectPrimitive.Root;
 
 const SelectGroup = SelectPrimitive.Group;
 
@@ -68,16 +80,14 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & { dir?: "ltr" | "rtl" }
->(({ className, children, position = "popper", dir, ...props }, ref) => {
-  // Inherit direction from document if not explicitly set
-  const direction = dir || (typeof document !== 'undefined' ? document.documentElement.dir as "ltr" | "rtl" : "ltr");
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => {
+  const direction = useDirection();
   
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={ref}
-        dir={direction}
         className={cn(
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
@@ -95,7 +105,9 @@ const SelectContent = React.forwardRef<
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
           )}
         >
-          {children}
+          <div dir={direction}>
+            {children}
+          </div>
         </SelectPrimitive.Viewport>
         <SelectScrollDownButton />
       </SelectPrimitive.Content>
