@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,31 +13,36 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/PlaceholderPage";
+import { PageLoader } from "./components/ui/page-loader";
 
-// Pages
+// Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import InviteGatekeeper from "./pages/InviteGatekeeper";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import AdminBranding from "./pages/AdminBranding";
-import Profile from "./pages/Profile";
-import MFASetup from "./pages/MFASetup";
 import NotFound from "./pages/NotFound";
-import OrgStructure from "./pages/admin/OrgStructure";
-import UserManagement from "./pages/admin/UserManagement";
-import TenantManagement from "./pages/admin/TenantManagement";
-import SupportDashboard from "./pages/admin/SupportDashboard";
-import SubscriptionManagement from "./pages/admin/SubscriptionManagement";
-import SubscriptionOverview from "./pages/admin/SubscriptionOverview";
-import ModuleManagement from "./pages/admin/ModuleManagement";
-import PlanManagement from "./pages/admin/PlanManagement";
-import UsageAnalytics from "./pages/admin/UsageAnalytics";
-import SecurityAuditLog from "./pages/admin/SecurityAuditLog";
-import BillingOverview from "./pages/admin/BillingOverview";
-import Support from "./pages/Support";
-import UsageBilling from "./pages/settings/UsageBilling";
+
+// Lazy loaded pages - loaded on demand
+const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Profile = lazy(() => import("./pages/Profile"));
+const MFASetup = lazy(() => import("./pages/MFASetup"));
+const Support = lazy(() => import("./pages/Support"));
+
+// Admin pages - lazy loaded (heavy components)
+const AdminBranding = lazy(() => import("./pages/AdminBranding"));
+const OrgStructure = lazy(() => import("./pages/admin/OrgStructure"));
+const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const TenantManagement = lazy(() => import("./pages/admin/TenantManagement"));
+const SupportDashboard = lazy(() => import("./pages/admin/SupportDashboard"));
+const SubscriptionManagement = lazy(() => import("./pages/admin/SubscriptionManagement"));
+const SubscriptionOverview = lazy(() => import("./pages/admin/SubscriptionOverview"));
+const ModuleManagement = lazy(() => import("./pages/admin/ModuleManagement"));
+const PlanManagement = lazy(() => import("./pages/admin/PlanManagement"));
+const UsageAnalytics = lazy(() => import("./pages/admin/UsageAnalytics"));
+const SecurityAuditLog = lazy(() => import("./pages/admin/SecurityAuditLog"));
+const BillingOverview = lazy(() => import("./pages/admin/BillingOverview"));
+const UsageBilling = lazy(() => import("./pages/settings/UsageBilling"));
 
 const queryClient = new QueryClient();
 
@@ -51,132 +57,134 @@ const App = () => (
             <AuthProvider>
               <SessionTimeoutProvider>
                 <SessionTimeoutWarning />
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/invite" element={<InviteGatekeeper />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/register" element={<Navigate to="/invite" replace />} />
-                  <Route path="/mfa-setup" element={<MFASetup />} />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/invite" element={<InviteGatekeeper />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/register" element={<Navigate to="/invite" replace />} />
+                    <Route path="/mfa-setup" element={<MFASetup />} />
 
-                  {/* Protected Routes with MainLayout */}
-                  <Route
-                    element={
-                      <ProtectedRoute>
-                        <MainLayout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
-                    
-                    {/* HSSE Management Routes */}
-                    <Route path="/incidents" element={<PlaceholderPage title="Incidents" description="Report and track safety incidents." />} />
-                    <Route path="/audits" element={<PlaceholderPage title="Audits & Inspections" description="Manage compliance audits and site inspections." />} />
-                    <Route path="/visitors" element={<PlaceholderPage title="Visitor Gatekeeper" description="Manage visitor access and pre-registration." />} />
+                    {/* Protected Routes with MainLayout */}
+                    <Route
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout />
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/profile" element={<Profile />} />
+                      
+                      {/* HSSE Management Routes */}
+                      <Route path="/incidents" element={<PlaceholderPage title="Incidents" description="Report and track safety incidents." />} />
+                      <Route path="/audits" element={<PlaceholderPage title="Audits & Inspections" description="Manage compliance audits and site inspections." />} />
+                      <Route path="/visitors" element={<PlaceholderPage title="Visitor Gatekeeper" description="Manage visitor access and pre-registration." />} />
 
-                    {/* Admin Routes */}
-                    <Route
-                      path="/admin/branding"
-                      element={
-                        <AdminRoute>
-                          <AdminBranding />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/users"
-                      element={
-                        <AdminRoute>
-                          <UserManagement />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/org-structure"
-                      element={
-                        <AdminRoute>
-                          <OrgStructure />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/tenants"
-                      element={
-                        <AdminRoute>
-                          <TenantManagement />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/support"
-                      element={
-                        <AdminRoute>
-                          <SupportDashboard />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/subscriptions"
-                      element={
-                        <AdminRoute>
-                          <SubscriptionOverview />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/modules"
-                      element={
-                        <AdminRoute>
-                          <ModuleManagement />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/plans"
-                      element={
-                        <AdminRoute>
-                          <PlanManagement />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/analytics"
-                      element={
-                        <AdminRoute>
-                          <UsageAnalytics />
-                        </AdminRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/security-audit"
-                      element={
-                        <AdminRoute>
-                          <SecurityAuditLog />
-                        </AdminRoute>
-                      }
-                    />
+                      {/* Admin Routes */}
+                      <Route
+                        path="/admin/branding"
+                        element={
+                          <AdminRoute>
+                            <AdminBranding />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/users"
+                        element={
+                          <AdminRoute>
+                            <UserManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/org-structure"
+                        element={
+                          <AdminRoute>
+                            <OrgStructure />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/tenants"
+                        element={
+                          <AdminRoute>
+                            <TenantManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/support"
+                        element={
+                          <AdminRoute>
+                            <SupportDashboard />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/subscriptions"
+                        element={
+                          <AdminRoute>
+                            <SubscriptionOverview />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/modules"
+                        element={
+                          <AdminRoute>
+                            <ModuleManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/plans"
+                        element={
+                          <AdminRoute>
+                            <PlanManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/analytics"
+                        element={
+                          <AdminRoute>
+                            <UsageAnalytics />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/security-audit"
+                        element={
+                          <AdminRoute>
+                            <SecurityAuditLog />
+                          </AdminRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/admin/billing"
-                      element={
-                        <AdminRoute>
-                          <BillingOverview />
-                        </AdminRoute>
-                      }
-                    />
+                      <Route
+                        path="/admin/billing"
+                        element={
+                          <AdminRoute>
+                            <BillingOverview />
+                          </AdminRoute>
+                        }
+                      />
 
-                    {/* User Routes */}
-                    <Route path="/support" element={<Support />} />
-                    <Route path="/settings/subscription" element={<SubscriptionManagement />} />
-                    <Route path="/settings/usage-billing" element={<UsageBilling />} />
-                  </Route>
+                      {/* User Routes */}
+                      <Route path="/support" element={<Support />} />
+                      <Route path="/settings/subscription" element={<SubscriptionManagement />} />
+                      <Route path="/settings/usage-billing" element={<UsageBilling />} />
+                    </Route>
 
-                  {/* Catch-all */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    {/* Catch-all */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
               </SessionTimeoutProvider>
             </AuthProvider>
           </BrowserRouter>
