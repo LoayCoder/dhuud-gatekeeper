@@ -1422,6 +1422,20 @@
       "bell": "Bell",
       "ping": "Ping",
       "none": "None"
+    },
+    "categoryPreferences": "Notification Categories",
+    "categoryPreferencesDescription": "Enable or disable specific notification types.",
+    "category": {
+      "sync": "Sync Notifications",
+      "update": "Updates & Approvals",
+      "info": "Information Alerts",
+      "error": "Security & Error Alerts"
+    },
+    "categoryDescription": {
+      "sync": "Notifications when offline changes are synced",
+      "update": "Subscription approvals, feature updates, and changes",
+      "info": "General information and status updates",
+      "error": "Security alerts, errors, and critical warnings"
     }
   }
 }

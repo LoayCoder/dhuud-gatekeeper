@@ -71,6 +71,7 @@ export type NotificationSoundType = 'sync' | 'update' | 'info' | 'error';
 export type SoundOption = 'default' | 'chime' | 'bell' | 'ping' | 'none';
 
 const SOUND_SETTINGS_KEY = 'notification-sounds';
+const CATEGORY_PREFS_KEY = 'notification-category-prefs';
 
 export interface SoundSettings {
   sync: SoundOption;
@@ -79,11 +80,25 @@ export interface SoundSettings {
   error: SoundOption;
 }
 
+export interface CategoryPreferences {
+  sync: boolean;
+  update: boolean;
+  info: boolean;
+  error: boolean;
+}
+
 const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   sync: 'default',
   update: 'chime',
   info: 'ping',
   error: 'bell',
+};
+
+const DEFAULT_CATEGORY_PREFS: CategoryPreferences = {
+  sync: true,
+  update: true,
+  info: true,
+  error: true,
 };
 
 export function getSoundSettings(): SoundSettings {
@@ -99,6 +114,72 @@ export function setSoundSettings(settings: Partial<SoundSettings>): void {
   const current = getSoundSettings();
   const updated = { ...current, ...settings };
   localStorage.setItem(SOUND_SETTINGS_KEY, JSON.stringify(updated));
+}
+
+export function getCategoryPreferences(): CategoryPreferences {
+  try {
+    const stored = localStorage.getItem(CATEGORY_PREFS_KEY);
+    return stored ? { ...DEFAULT_CATEGORY_PREFS, ...JSON.parse(stored) } : DEFAULT_CATEGORY_PREFS;
+  } catch {
+    return DEFAULT_CATEGORY_PREFS;
+  }
+}
+
+export function setCategoryPreferences(prefs: Partial<CategoryPreferences>): void {
+  const current = getCategoryPreferences();
+  const updated = { ...current, ...prefs };
+  localStorage.setItem(CATEGORY_PREFS_KEY, JSON.stringify(updated));
+}
+
+export function isCategoryEnabled(type: NotificationSoundType): boolean {
+  return getCategoryPreferences()[type];
+}
+
+// Send push notification with category check
+export async function sendPushNotification(
+  title: string,
+  body: string,
+  type: NotificationSoundType = 'info'
+): Promise<boolean> {
+  // Check if category is enabled
+  if (!isCategoryEnabled(type)) {
+    console.log(`Notification category "${type}" is disabled, skipping push`);
+    return false;
+  }
+
+  // Check if notifications are supported and granted
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    console.log('Push notifications not available or not granted');
+    // Still add to history
+    addNotificationToHistory({ title, body, type });
+    return false;
+  }
+
+  try {
+    // Play sound
+    playNotificationSound(type);
+    
+    // Add to history
+    addNotificationToHistory({ title, body, type });
+    
+    // Show browser notification
+    const notification = new Notification(title, {
+      body,
+      icon: '/pwa-192x192.png',
+      tag: `${type}-${Date.now()}`,
+      requireInteraction: type === 'error',
+    });
+
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+
+    return true;
+  } catch (error) {
+    console.error('Failed to send push notification:', error);
+    return false;
+  }
 }
 
 // Audio context for playing sounds

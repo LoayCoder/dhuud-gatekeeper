@@ -1402,6 +1402,20 @@
       "bell": "Bell",
       "ping": "Ping",
       "none": "Wala"
+    },
+    "categoryPreferences": "Mga Kategorya ng Notification",
+    "categoryPreferencesDescription": "I-enable o i-disable ang mga partikular na uri ng notification.",
+    "category": {
+      "sync": "Mga Sync Notification",
+      "update": "Mga Update at Approval",
+      "info": "Mga Impormasyon na Alerto",
+      "error": "Mga Security at Error na Alerto"
+    },
+    "categoryDescription": {
+      "sync": "Mga notification kapag na-sync ang mga offline na pagbabago",
+      "update": "Mga approval ng subscription, update ng feature, at mga pagbabago",
+      "info": "Pangkalahatang impormasyon at mga update sa status",
+      "error": "Mga security alert, error, at kritikal na babala"
     }
   }
 }

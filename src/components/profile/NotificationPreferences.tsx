@@ -10,6 +10,7 @@ import { useNotificationPermission } from "@/hooks/use-notification-permission";
 import { toast } from "@/hooks/use-toast";
 import { NotificationHistory } from "./NotificationHistory";
 import { NotificationSoundSettings } from "./NotificationSoundSettings";
+import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
 
 export function NotificationPreferences() {
   const { t, i18n } = useTranslation();
@@ -177,6 +178,11 @@ export function NotificationPreferences() {
         </Alert>
       )}
 
+      <Separator className="my-6" />
+      
+      {/* Category Preferences */}
+      <NotificationCategoryPreferences />
+      
       <Separator className="my-6" />
       
       {/* Sound Settings */}
