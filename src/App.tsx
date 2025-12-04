@@ -14,6 +14,7 @@ import { AdminRoute } from "./components/AdminRoute";
 import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
+import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -53,6 +54,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <NetworkStatusIndicator />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>
