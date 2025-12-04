@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,6 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Eye, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatPrice } from '@/hooks/use-price-calculator';
+import { usePaginatedQuery } from '@/hooks/use-paginated-query';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 interface SubscriptionRequest {
   id: string;
@@ -33,32 +34,47 @@ interface SubscriptionRequestsTableProps {
 }
 
 const RTL_LANGUAGES = ['ar', 'ur'];
+const PAGE_SIZE = 20;
 
 export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: SubscriptionRequestsTableProps) {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
-  const { data: requests = [], isLoading } = useQuery({
+  const {
+    data: paginatedData,
+    isLoading,
+    page,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    goToFirstPage,
+  } = usePaginatedQuery<SubscriptionRequest>({
     queryKey: ['admin-subscription-requests', statusFilter],
-    queryFn: async () => {
+    queryFn: async ({ from, to }) => {
       let query = supabase
         .from('subscription_requests')
         .select(`
           *,
           tenant:tenants!subscription_requests_tenant_id_fkey(name),
           requested_plan:plans!subscription_requests_requested_plan_id_fkey(display_name)
-        `)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false });
 
       if (statusFilter && statusFilter !== 'all') {
         query = query.eq('status', statusFilter as 'pending' | 'under_review' | 'approved' | 'declined' | 'modified' | 'canceled');
       }
 
-      const { data, error } = await query;
+      const { data, count, error } = await query.range(from, to);
       if (error) throw error;
-      return data as SubscriptionRequest[];
+      return { data: data as SubscriptionRequest[], count: count || 0 };
     },
+    pageSize: PAGE_SIZE,
   });
+
+  const requests = paginatedData?.data || [];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -217,6 +233,20 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
               ))}
             </TableBody>
           </Table>
+        )}
+        {totalCount > 0 && (
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            hasNextPage={hasNextPage}
+            hasPreviousPage={hasPreviousPage}
+            isLoading={isLoading}
+            onNextPage={goToNextPage}
+            onPreviousPage={goToPreviousPage}
+            onFirstPage={goToFirstPage}
+          />
         )}
       </CardContent>
     </Card>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -30,6 +30,8 @@ import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log
 import { RoleBadge } from "@/components/roles/RoleBadge";
 import { ManagerTeamViewer } from "@/components/hierarchy/ManagerTeamViewer";
 import { useUserRoles, Role } from "@/hooks/use-user-roles";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 interface UserProfile {
   id: string;
@@ -72,8 +74,6 @@ const RTL_LANGUAGES = ['ar', 'ur'];
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
-  const [users, setUsers] = useState<UserWithRole[]>([]);
-  const [loading, setLoading] = useState(true);
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
   const textAlign = isRTL ? 'text-right' : 'text-left';
@@ -94,10 +94,25 @@ export default function UserManagement() {
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated } = useAdminAuditLog();
   const { roles } = useUserRoles();
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const { data: profilesData, error: profilesError } = await supabase
+  const PAGE_SIZE = 25;
+
+  // Server-side paginated query for profiles
+  const {
+    data: paginatedData,
+    isLoading: loading,
+    page,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    goToFirstPage,
+    refetch: refetchUsers,
+  } = usePaginatedQuery<UserWithRole>({
+    queryKey: ['users-paginated', userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter],
+    queryFn: async ({ from, to }) => {
+      let query = supabase
         .from('profiles')
         .select(`
           id, full_name, phone_number, assigned_branch_id, assigned_division_id,
@@ -106,20 +121,39 @@ export default function UserManagement() {
           contract_end, membership_id, membership_start, membership_end,
           branches:assigned_branch_id(name), divisions:assigned_division_id(name),
           departments:assigned_department_id(name), sections:assigned_section_id(name)
-        `)
-        .or('is_deleted.is.null,is_deleted.eq.false');
+        `, { count: 'exact' })
+        .or('is_deleted.is.null,is_deleted.eq.false')
+        .order('full_name', { ascending: true });
 
+      // Apply filters server-side
+      if (userTypeFilter !== 'all') {
+        query = query.eq('user_type', userTypeFilter as any);
+      }
+      if (statusFilter === 'active') {
+        query = query.eq('is_active', true);
+      } else if (statusFilter === 'inactive') {
+        query = query.eq('is_active', false);
+      }
+      if (branchFilter !== 'all') {
+        query = query.eq('assigned_branch_id', branchFilter);
+      }
+      if (divisionFilter !== 'all') {
+        query = query.eq('assigned_division_id', divisionFilter);
+      }
+
+      const { data: profilesData, count, error: profilesError } = await query.range(from, to);
       if (profilesError) throw profilesError;
 
-      const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
+      // Fetch roles for the current page of users
+      const userIds = (profilesData || []).map(p => p.id);
       
-      // Fetch new role assignments
-      const { data: roleAssignments } = await supabase
-        .from('user_role_assignments')
-        .select('user_id, role_id, roles(code, name, category)');
+      const [rolesResult, roleAssignmentsResult] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
+        supabase.from('user_role_assignments').select('user_id, role_id, roles(code, name, category)').in('user_id', userIds),
+      ]);
 
       const usersWithRoles = (profilesData || []).map(p => {
-        const userRoleAssignments = (roleAssignments || [])
+        const userRoleAssignments = (roleAssignmentsResult.data || [])
           .filter((ra: any) => ra.user_id === p.id)
           .map((ra: any) => ({
             role_id: ra.role_id,
@@ -128,46 +162,38 @@ export default function UserManagement() {
             category: ra.roles?.category || 'general',
           }));
 
+        // Filter by role if set
+        if (roleFilter !== 'all') {
+          const hasRole = userRoleAssignments.some(r => r.role_code === roleFilter);
+          if (!hasRole) return null;
+        }
+
         return {
           ...p,
-          role: rolesData?.find(r => r.user_id === p.id)?.role || 'user',
+          role: rolesResult.data?.find(r => r.user_id === p.id)?.role || 'user',
           userRoles: userRoleAssignments,
         };
-      }) as UserWithRole[];
+      }).filter(Boolean) as UserWithRole[];
 
-      setUsers(usersWithRoles);
+      return { data: usersWithRoles, count: count || 0 };
+    },
+    pageSize: PAGE_SIZE,
+  });
 
+  const users = paginatedData?.data || [];
+
+  // Fetch branches and divisions for filters (one-time)
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
       const [b, d] = await Promise.all([
-        supabase.from('branches').select('id, name'),
-        supabase.from('divisions').select('id, name'),
+        supabase.from('branches').select('id, name').order('name').limit(100),
+        supabase.from('divisions').select('id, name').order('name').limit(100),
       ]);
-
       if (b.data) setBranches(b.data);
       if (d.data) setDivisions(d.data);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : t('common.error');
-      toast({ title: t('userManagement.errorFetching'), description: message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchData(); }, []);
-
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      if (userTypeFilter !== 'all' && user.user_type !== userTypeFilter) return false;
-      if (statusFilter === 'active' && !user.is_active) return false;
-      if (statusFilter === 'inactive' && user.is_active) return false;
-      if (branchFilter !== 'all' && user.assigned_branch_id !== branchFilter) return false;
-      if (divisionFilter !== 'all' && user.assigned_division_id !== divisionFilter) return false;
-      if (roleFilter !== 'all') {
-        const hasRole = user.userRoles?.some(r => r.role_code === roleFilter);
-        if (!hasRole) return false;
-      }
-      return true;
-    });
-  }, [users, userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
+    };
+    fetchFilterOptions();
+  }, []);
 
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRole) => { setEditingUser(user); setIsFormDialogOpen(true); };
@@ -231,7 +257,7 @@ export default function UserManagement() {
       
       toast({ title: t('userManagement.userCreated') });
     }
-    fetchData();
+    refetchUsers();
     refetchQuota();
   };
 
@@ -338,14 +364,14 @@ export default function UserManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {t('common.noData')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
+                  users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className={`font-medium ${textAlign}`}>
                         <div className="flex flex-col">
@@ -397,6 +423,20 @@ export default function UserManagement() {
                 )}
               </TableBody>
             </Table>
+          )}
+          {totalCount > 0 && (
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
+              isLoading={loading}
+              onNextPage={goToNextPage}
+              onPreviousPage={goToPreviousPage}
+              onFirstPage={goToFirstPage}
+            />
           )}
         </CardContent>
       </Card>
