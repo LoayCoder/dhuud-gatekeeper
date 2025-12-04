@@ -64,7 +64,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('invitations')
-        .select('*')
+        .select('id, email, code, expires_at, used, created_at')
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
       if (error) throw error;

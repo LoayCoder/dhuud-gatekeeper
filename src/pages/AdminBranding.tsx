@@ -82,7 +82,15 @@ export default function AdminBranding() {
       const {
         data: tenantData,
         error: tenantError
-      } = await supabase.from('tenants').select('*').eq('id', profile.tenant_id).single();
+      } = await supabase.from('tenants').select(`
+        id, name,
+        brand_color, secondary_color, brand_color_dark, secondary_color_dark,
+        background_theme, background_color, background_image_url,
+        logo_light_url, logo_dark_url,
+        sidebar_icon_light_url, sidebar_icon_dark_url,
+        app_icon_light_url, app_icon_dark_url,
+        favicon_url
+      `).eq('id', profile.tenant_id).single();
       if (tenantError) throw tenantError;
       setTenant(tenantData);
 
