@@ -94,6 +94,7 @@ export function LicensedUserQuotaCard({
           </div>
           <Progress 
             value={Math.min(usagePercentage, 100)} 
+            dir={isRTL ? 'rtl' : 'ltr'}
             className={`h-3 ${isAtQuota ? '[&>div]:bg-destructive' : isNearQuota ? '[&>div]:bg-warning' : ''}`}
           />
           {isAtQuota && (
