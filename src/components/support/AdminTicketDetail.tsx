@@ -77,7 +77,7 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ticket_messages')
-        .select('*')
+        .select('id, message, sender_id, is_internal, created_at')
         .eq('ticket_id', ticket.id)
         .order('created_at', { ascending: true });
 

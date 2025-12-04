@@ -40,7 +40,11 @@ export default function TenantManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tenants')
-        .select('*')
+        .select(`
+          id, name, slug, status, industry, country, city,
+          plan_id, max_users_override, trial_start_date, trial_end_date,
+          created_at, updated_at
+        `)
         .order('name');
       if (error) throw error;
       return data as Tenant[];

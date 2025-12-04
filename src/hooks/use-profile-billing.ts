@@ -34,7 +34,13 @@ export function useProfileBilling(tenantId?: string) {
 
       const { data, error } = await supabase
         .from('tenant_billing_records')
-        .select('*')
+        .select(`
+          id, tenant_id, billing_month, plan_id,
+          visitor_count, member_count, contractor_count, total_profiles,
+          free_quota, billable_profiles, rate_per_profile,
+          profile_charges, licensed_users, licensed_user_charges,
+          total_charge, status, created_at
+        `)
         .eq('tenant_id', targetTenantId)
         .order('billing_month', { ascending: false });
 
@@ -79,14 +85,26 @@ export function useAllTenantsBilling() {
       const billingPromises = tenants.map(async (tenant) => {
         const { data: currentBilling } = await supabase
           .from('tenant_billing_records')
-          .select('*')
+          .select(`
+            id, tenant_id, billing_month, plan_id,
+            visitor_count, member_count, contractor_count, total_profiles,
+            free_quota, billable_profiles, rate_per_profile,
+            profile_charges, licensed_users, licensed_user_charges,
+            total_charge, status, created_at
+          `)
           .eq('tenant_id', tenant.id)
           .eq('billing_month', currentMonth)
           .maybeSingle();
 
         const { data: lastBilling } = await supabase
           .from('tenant_billing_records')
-          .select('*')
+          .select(`
+            id, tenant_id, billing_month, plan_id,
+            visitor_count, member_count, contractor_count, total_profiles,
+            free_quota, billable_profiles, rate_per_profile,
+            profile_charges, licensed_users, licensed_user_charges,
+            total_charge, status, created_at
+          `)
           .eq('tenant_id', tenant.id)
           .eq('billing_month', lastMonth)
           .maybeSingle();

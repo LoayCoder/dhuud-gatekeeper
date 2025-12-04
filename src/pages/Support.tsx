@@ -74,7 +74,7 @@ export default function Support() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('support_tickets')
-        .select('*')
+        .select('id, ticket_number, subject, description, status, priority, category, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

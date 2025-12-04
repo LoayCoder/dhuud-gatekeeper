@@ -68,7 +68,14 @@ export function useTenantProfiles(tenantId?: string, profileType?: string) {
 
       let query = supabase
         .from('tenant_profiles')
-        .select('*')
+        .select(`
+          id, tenant_id, profile_type, full_name, email, phone,
+          company_name, has_login, is_active, is_deleted,
+          membership_id, membership_start, membership_end,
+          contractor_type, contract_start, contract_end,
+          visit_reason, host_id, visit_date, visit_duration_hours,
+          created_at, updated_at
+        `)
         .eq('tenant_id', targetTenantId)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });

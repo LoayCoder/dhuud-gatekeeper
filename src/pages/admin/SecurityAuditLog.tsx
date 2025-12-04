@@ -82,20 +82,18 @@ export default function SecurityAuditLog() {
   const { data: sensitiveDataLogs, isLoading: isSensitiveLoading } = useQuery({
     queryKey: ["security-audit-logs-sensitive"],
     queryFn: async () => {
+      // Fetch sensitive data access logs - server-side JSONB filter
       const { data: logsData, error } = await supabase
         .from("user_activity_logs")
-        .select("*")
+        .select("id, user_id, event_type, metadata, created_at")
+        .filter('metadata->>sensitive_data_access', 'eq', 'true')
         .order("created_at", { ascending: false })
         .limit(500);
 
       if (error) throw error;
       
-      const sensitiveDataLogs = logsData.filter(
-        (log) => {
-          const metadata = log.metadata as ActivityLog["metadata"];
-          return metadata?.sensitive_data_access === true;
-        }
-      );
+      // Server-side filtering applied - no client-side filtering needed
+      const sensitiveDataLogs = logsData || [];
 
       const userIds = [...new Set(sensitiveDataLogs.map(log => log.user_id))];
       const { data: profiles } = await supabase
@@ -119,7 +117,7 @@ export default function SecurityAuditLog() {
     queryFn: async () => {
       const { data: logsData, error } = await supabase
         .from("user_activity_logs")
-        .select("*")
+        .select("id, user_id, event_type, metadata, created_at")
         .in("event_type", USER_MANAGEMENT_EVENTS)
         .order("created_at", { ascending: false })
         .limit(500);
@@ -148,7 +146,7 @@ export default function SecurityAuditLog() {
     queryFn: async () => {
       const { data: logsData, error } = await supabase
         .from("user_activity_logs")
-        .select("*")
+        .select("id, user_id, event_type, metadata, created_at")
         .in("event_type", SECURITY_EVENTS)
         .order("created_at", { ascending: false })
         .limit(500);

@@ -69,8 +69,9 @@ export function TicketDetail({ ticket, onBack }: TicketDetailProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ticket_messages')
-        .select('*')
+        .select('id, message, sender_id, is_internal, created_at')
         .eq('ticket_id', ticket.id)
+        .eq('is_internal', false)  // Server-side filter - regular users don't see internal notes
         .order('created_at', { ascending: true });
 
       if (error) throw error;

@@ -31,11 +31,15 @@ export default function Profile() {
 
       setUser(user);
 
-      // Fetch profile with branch and site joins
+      // Fetch profile with branch and site joins - explicit columns only
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
-          *,
+          id, full_name, phone_number, avatar_url, preferred_language,
+          emergency_contact_name, emergency_contact_phone,
+          assigned_branch_id, assigned_site_id,
+          assigned_division_id, assigned_department_id, assigned_section_id,
+          user_type, job_title, employee_id, created_at, tenant_id,
           branches:assigned_branch_id(name, location),
           sites:assigned_site_id(name, address)
         `)
