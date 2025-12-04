@@ -21,28 +21,28 @@ import Login from "./pages/Login";
 import InviteGatekeeper from "./pages/InviteGatekeeper";
 import NotFound from "./pages/NotFound";
 
-// Lazy loaded pages - loaded on demand
-const Signup = lazy(() => import("./pages/Signup"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Profile = lazy(() => import("./pages/Profile"));
-const MFASetup = lazy(() => import("./pages/MFASetup"));
-const Support = lazy(() => import("./pages/Support"));
+// Lazy loaded pages - loaded on demand with named chunks
+const Signup = lazy(() => import(/* webpackChunkName: "auth-signup" */ "./pages/Signup"));
+const ForgotPassword = lazy(() => import(/* webpackChunkName: "auth-forgot" */ "./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import(/* webpackChunkName: "auth-reset" */ "./pages/ResetPassword"));
+const Profile = lazy(() => import(/* webpackChunkName: "user-profile" */ "./pages/Profile"));
+const MFASetup = lazy(() => import(/* webpackChunkName: "auth-mfa" */ "./pages/MFASetup"));
+const Support = lazy(() => import(/* webpackChunkName: "user-support" */ "./pages/Support"));
 
-// Admin pages - lazy loaded (heavy components)
-const AdminBranding = lazy(() => import("./pages/AdminBranding"));
-const OrgStructure = lazy(() => import("./pages/admin/OrgStructure"));
-const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
-const TenantManagement = lazy(() => import("./pages/admin/TenantManagement"));
-const SupportDashboard = lazy(() => import("./pages/admin/SupportDashboard"));
-const SubscriptionManagement = lazy(() => import("./pages/admin/SubscriptionManagement"));
-const SubscriptionOverview = lazy(() => import("./pages/admin/SubscriptionOverview"));
-const ModuleManagement = lazy(() => import("./pages/admin/ModuleManagement"));
-const PlanManagement = lazy(() => import("./pages/admin/PlanManagement"));
-const UsageAnalytics = lazy(() => import("./pages/admin/UsageAnalytics"));
-const SecurityAuditLog = lazy(() => import("./pages/admin/SecurityAuditLog"));
-const BillingOverview = lazy(() => import("./pages/admin/BillingOverview"));
-const UsageBilling = lazy(() => import("./pages/settings/UsageBilling"));
+// Admin pages - lazy loaded with named chunks for better caching
+const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
+const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
+const UserManagement = lazy(() => import(/* webpackChunkName: "admin-users" */ "./pages/admin/UserManagement"));
+const TenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenants" */ "./pages/admin/TenantManagement"));
+const SupportDashboard = lazy(() => import(/* webpackChunkName: "admin-support" */ "./pages/admin/SupportDashboard"));
+const SubscriptionManagement = lazy(() => import(/* webpackChunkName: "settings-subscription" */ "./pages/admin/SubscriptionManagement"));
+const SubscriptionOverview = lazy(() => import(/* webpackChunkName: "admin-subscriptions" */ "./pages/admin/SubscriptionOverview"));
+const ModuleManagement = lazy(() => import(/* webpackChunkName: "admin-modules" */ "./pages/admin/ModuleManagement"));
+const PlanManagement = lazy(() => import(/* webpackChunkName: "admin-plans" */ "./pages/admin/PlanManagement"));
+const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" */ "./pages/admin/UsageAnalytics"));
+const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
+const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
+const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
 
 const queryClient = new QueryClient();
 

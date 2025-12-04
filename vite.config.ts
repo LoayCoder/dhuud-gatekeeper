@@ -15,4 +15,35 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Named chunks for better caching and debugging
+        manualChunks: {
+          // Vendor chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'vendor-charts': ['recharts'],
+        },
+        // Chunk file naming pattern
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId || '';
+          // Named route chunks
+          if (facadeModuleId.includes('/pages/admin/')) {
+            return 'assets/admin-[name]-[hash].js';
+          }
+          if (facadeModuleId.includes('/pages/settings/')) {
+            return 'assets/settings-[name]-[hash].js';
+          }
+          if (facadeModuleId.includes('/pages/')) {
+            return 'assets/pages-[name]-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
+      },
+    },
+  },
 }));
