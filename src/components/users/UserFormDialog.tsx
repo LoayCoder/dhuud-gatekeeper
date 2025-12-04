@@ -273,7 +273,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={direction}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden" dir={direction}>
         <DialogHeader className={textAlign}>
           <DialogTitle className={textAlign}>
             {user ? t('userManagement.editUser') : t('userManagement.addUser')}
@@ -288,9 +288,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3" dir={direction}>
               <FormField
                 control={form.control}
                 name="full_name"
@@ -320,7 +320,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3" dir={direction}>
               <FormField
                 control={form.control}
                 name="phone_number"
@@ -362,16 +362,16 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             </div>
 
             {/* Login & Status */}
-            <div className={`flex items-center gap-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex items-center gap-8 mb-4" dir={direction}>
               <FormField
                 control={form.control}
                 name="has_login"
                 render={({ field }) => (
-                  <FormItem className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <FormItem className="flex items-center gap-3 space-y-0">
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
-                    <FormLabel className="!mt-0">{t('userManagement.hasLogin')}</FormLabel>
+                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.hasLogin')}</FormLabel>
                   </FormItem>
                 )}
               />
@@ -380,11 +380,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <FormItem className="flex items-center gap-3 space-y-0">
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
-                    <FormLabel className="!mt-0">{t('userManagement.isActive')}</FormLabel>
+                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.isActive')}</FormLabel>
                   </FormItem>
                 )}
               />
@@ -392,9 +392,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
             {/* Role Assignment (Admin Only) */}
             {isAdmin && (
-              <div className={`space-y-2 p-4 border rounded-lg ${textAlign}`}>
-                <Label className="font-medium">{t('roles.roleAssignment')}</Label>
-                <p className="text-xs text-muted-foreground mb-2">{t('roles.roleAssignmentDescription')}</p>
+              <div className="space-y-2 p-3 border rounded-lg" dir={direction}>
+                <Label className="font-medium text-start block">{t('roles.roleAssignment')}</Label>
+                <p className="text-xs text-muted-foreground mb-2 text-start">{t('roles.roleAssignmentDescription')}</p>
                 <RoleSelector
                   selectedRoleIds={selectedRoleIds}
                   onChange={setSelectedRoleIds}
@@ -404,9 +404,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
             {/* Team Assignment (Admin Only, for editing existing users) */}
             {isAdmin && user && (
-              <div className="space-y-2 p-4 border rounded-lg">
-                <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <div>
+              <div className="space-y-2 p-3 border rounded-lg" dir={direction}>
+                <div className="flex items-center justify-between">
+                  <div className="text-start">
                     <Label className="font-medium">{t('hierarchy.teamAssignment')}</Label>
                     <p className="text-xs text-muted-foreground">{t('hierarchy.teamAssignmentDescription')}</p>
                   </div>
@@ -426,7 +426,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
             {/* Employee Fields */}
             {userType === 'employee' && (
-              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
+              <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg" dir={direction}>
                 <FormField
                   control={form.control}
                   name="employee_id"
@@ -539,9 +539,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             )}
 
             {/* Organizational Hierarchy */}
-            <div className={`space-y-4 p-4 border rounded-lg ${textAlign}`}>
-              <h4 className="font-medium">{t('userManagement.organizationalAssignment')}</h4>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3 p-3 border rounded-lg" dir={direction}>
+              <h4 className="font-medium text-start">{t('userManagement.organizationalAssignment')}</h4>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="assigned_branch_id"
