@@ -1033,6 +1033,9 @@
     "youSave": "आप बचाते हैं",
     "comparedToMonthly": "मासिक बिलिंग की तुलना में",
     "selectionSummary": "चयन सारांश",
+    "starter": "स्टार्टर",
+    "professional": "प्रोफेशनल",
+    "enterprise": "एंटरप्राइज",
     "status": {
       "pending": "समीक्षाधीन",
       "under_review": "समीक्षा में",
@@ -1213,6 +1216,7 @@
     "thisMonth": "इस महीने",
     "lastMonth": "पिछले महीने",
     "pending": "लंबित",
+    "paid": "भुगतान हुआ",
     "exported": "डेटा सफलतापूर्वक निर्यात हो गया",
     "usageTrend": "उपयोग प्रवृत्ति",
     "usageTrendDesc": "पिछले 6 महीनों में प्रोफ़ाइल की संख्या",

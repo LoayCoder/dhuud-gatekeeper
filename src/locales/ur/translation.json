@@ -1033,6 +1033,9 @@
     "youSave": "آپ بچاتے ہیں",
     "comparedToMonthly": "ماہانہ بلنگ کے مقابلے میں",
     "selectionSummary": "انتخاب کا خلاصہ",
+    "starter": "ابتدائی",
+    "professional": "پیشہ ورانہ",
+    "enterprise": "انٹرپرائز",
     "status": {
       "pending": "زیر جائزہ",
       "under_review": "جائزے میں",
@@ -1213,6 +1216,7 @@
     "thisMonth": "اس مہینے",
     "lastMonth": "پچھلے مہینے",
     "pending": "زیر التواء",
+    "paid": "ادا شدہ",
     "exported": "ڈیٹا کامیابی سے ایکسپورٹ ہو گیا",
     "usageTrend": "استعمال کا رجحان",
     "usageTrendDesc": "پچھلے 6 مہینوں میں پروفائل کی تعداد",
