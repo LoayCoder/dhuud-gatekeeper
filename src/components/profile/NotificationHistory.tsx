@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, RefreshCw, Info, AlertTriangle, Check, Trash2, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useNotificationHistory } from "@/hooks/use-notification-history";
 import { NotificationHistoryItem } from "@/lib/notification-history";
 import { cn } from "@/lib/utils";
+
+type NotificationType = 'all' | 'sync' | 'update' | 'info' | 'error';
 
 const typeIcons = {
   sync: RefreshCw,
@@ -82,6 +86,19 @@ export function NotificationHistory() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const { history, unreadCount, markAsRead, markAllAsRead, clearHistory } = useNotificationHistory();
+  const [filter, setFilter] = useState<NotificationType>('all');
+
+  const filteredHistory = filter === 'all' 
+    ? history 
+    : history.filter(item => item.type === filter);
+
+  const filterCounts = {
+    all: history.length,
+    sync: history.filter(h => h.type === 'sync').length,
+    update: history.filter(h => h.type === 'update').length,
+    info: history.filter(h => h.type === 'info').length,
+    error: history.filter(h => h.type === 'error').length,
+  };
 
   return (
     <div className="space-y-4">
@@ -97,6 +114,51 @@ export function NotificationHistory() {
             {unreadCount} {t('notifications.unread')}
           </Badge>
         )}
+      </div>
+
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-2">
+        <ToggleGroup 
+          type="single" 
+          value={filter} 
+          onValueChange={(v) => v && setFilter(v as NotificationType)}
+          className="justify-start flex-wrap"
+        >
+          <ToggleGroupItem value="all" size="sm" className="gap-1">
+            {t('common.all')}
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {filterCounts.all}
+            </Badge>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="sync" size="sm" className="gap-1">
+            <RefreshCw className="h-3.5 w-3.5" />
+            {t('notifications.soundType.sync')}
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {filterCounts.sync}
+            </Badge>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="update" size="sm" className="gap-1">
+            <Bell className="h-3.5 w-3.5" />
+            {t('notifications.soundType.update')}
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {filterCounts.update}
+            </Badge>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="info" size="sm" className="gap-1">
+            <Info className="h-3.5 w-3.5" />
+            {t('notifications.soundType.info')}
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {filterCounts.info}
+            </Badge>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="error" size="sm" className="gap-1">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {t('notifications.soundType.error')}
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {filterCounts.error}
+            </Badge>
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       <div className="rounded-lg border">
@@ -129,9 +191,9 @@ export function NotificationHistory() {
         )}
 
         {/* Notification list */}
-        {history.length > 0 ? (
+        {filteredHistory.length > 0 ? (
           <ScrollArea className="h-[300px]">
-            {history.map((item) => (
+            {filteredHistory.map((item) => (
               <NotificationItem
                 key={item.id}
                 item={item}

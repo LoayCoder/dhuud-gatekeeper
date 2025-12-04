@@ -38,9 +38,8 @@ import {
   FileStack,
   BarChart3,
   ShieldAlert,
-  Bell,
 } from "lucide-react";
-import { useNotificationHistory } from "@/hooks/use-notification-history";
+import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,7 +65,6 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
-  const { unreadCount } = useNotificationHistory();
 
   // Watch for direction changes
   useEffect(() => {
@@ -250,19 +248,8 @@ export function AppSidebar() {
                 )}
               </SidebarMenuButton>
               
-              {/* Notification Bell with Badge */}
-              <button
-                onClick={() => navigate("/profile?tab=security")}
-                className="relative p-2 rounded-md hover:bg-sidebar-accent transition-colors group-data-[collapsible=icon]:hidden"
-                title={t('notifications.title')}
-              >
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
+              {/* Notification Popover */}
+              <NotificationPopover />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
