@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -55,6 +55,7 @@ import {
 import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from "@/lib/activity-logger";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { prefetchRoute, prefetchRoutes } from "@/hooks/use-prefetch";
 
 export function AppSidebar() {
   const { t, i18n } = useTranslation();
@@ -256,7 +257,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) =>
                 item.items ? (
-                  // Collapsible Section
+                  // Collapsible Section - prefetch all children on hover
                   <Collapsible
                     key={item.title}
                     asChild
@@ -264,7 +265,13 @@ export function AppSidebar() {
                     className="group/collapsible"
                   >
                     <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
+                      <CollapsibleTrigger 
+                        asChild
+                        onMouseEnter={() => {
+                          // Prefetch all child routes when hovering the section
+                          prefetchRoutes(item.items.map(sub => sub.url));
+                        }}
+                      >
                         <SidebarMenuButton tooltip={item.title}>
                           {item.icon && <item.icon />}
                           <span>{item.title}</span>
@@ -279,7 +286,10 @@ export function AppSidebar() {
                                 asChild
                                 isActive={location.pathname === subItem.url}
                               >
-                                <NavLink to={subItem.url}>
+                                <NavLink 
+                                  to={subItem.url}
+                                  onMouseEnter={() => prefetchRoute(subItem.url)}
+                                >
                                   {subItem.icon && (
                                     <subItem.icon className="me-2 h-4 w-4 opacity-70" />
                                   )}
@@ -293,14 +303,17 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   </Collapsible>
                 ) : (
-                  // Single Link
+                  // Single Link - prefetch on hover
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
                       isActive={location.pathname === item.url}
                       tooltip={item.title}
                     >
-                      <NavLink to={item.url}>
+                      <NavLink 
+                        to={item.url}
+                        onMouseEnter={() => item.url && prefetchRoute(item.url)}
+                      >
                         {item.icon && <item.icon />}
                         <span>{item.title}</span>
                       </NavLink>
@@ -343,7 +356,10 @@ export function AppSidebar() {
                   align={isRtl ? "start" : "end"}
                   sideOffset={4}
                 >
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem 
+                    onClick={() => navigate("/profile")}
+                    onMouseEnter={() => prefetchRoute('/profile')}
+                  >
                     <User className="me-2 h-4 w-4" />
                     {t('sidebar.profileSettings')}
                   </DropdownMenuItem>
