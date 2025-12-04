@@ -1392,6 +1392,25 @@
     "syncComplete": "اكتملت المزامنة",
     "syncCompleteBody": "تمت مزامنة {{count}} تغيير(ات) بنجاح",
     "syncPartialFailed": "فشلت المزامنة جزئياً",
-    "syncPartialFailedBody": "تمت مزامنة {{success}} تغيير(ات)، فشلت {{failed}}"
+    "syncPartialFailedBody": "تمت مزامنة {{success}} تغيير(ات)، فشلت {{failed}}",
+    "title": "الإشعارات",
+    "description": "إدارة كيفية تلقي الإشعارات من التطبيق.",
+    "browserPermission": "إشعارات المتصفح",
+    "permissionGranted": "الإشعارات مفعلة",
+    "permissionDenied": "الإشعارات محظورة",
+    "permissionDefault": "انقر لتفعيل إشعارات المتصفح",
+    "enabled": "تم تفعيل الإشعارات",
+    "enabledDescription": "ستتلقى الآن إشعارات للأحداث المهمة.",
+    "deniedTitle": "تم رفض الإذن",
+    "deniedDescription": "تم رفض الإشعارات. يمكنك تغيير ذلك من إعدادات المتصفح.",
+    "howToEnable": "كيفية التفعيل",
+    "revokeInfo": "تغيير إعدادات الإشعارات",
+    "revokeInstructions": "لتغيير أذونات الإشعارات، انقر على أيقونة القفل في شريط عنوان المتصفح وقم بتحديث إعداد الإشعارات.",
+    "unsupported": "الإشعارات غير مدعومة في هذا المتصفح.",
+    "syncNotifications": "إشعارات المزامنة",
+    "syncNotificationsDescription": "احصل على إشعارات عند مزامنة التغييرات غير المتصلة مع الخادم.",
+    "periodicSync": "التحديثات في الخلفية",
+    "periodicSyncDescription": "التحقق تلقائياً من التحديثات كل بضع ساعات في الخلفية.",
+    "blockedInstructions": "الإشعارات محظورة حالياً. لتفعيلها، انقر على أيقونة القفل في شريط عنوان المتصفح وغيّر إعداد الإشعارات إلى 'السماح'."
   }
 }

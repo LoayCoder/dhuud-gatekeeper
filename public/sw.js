@@ -1,6 +1,7 @@
-const CACHE_NAME = 'dhuud-cache-v1';
+const CACHE_NAME = 'dhuud-cache-v2';
 const OFFLINE_URL = '/offline.html';
 const SYNC_TAG = 'offline-mutations-sync';
+const PERIODIC_SYNC_TAG = 'server-updates-sync';
 const MUTATION_STORE_KEY = 'offline-mutation-queue';
 
 const STATIC_ASSETS = [
@@ -106,8 +107,21 @@ async function showSyncNotification(result) {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
+  const notificationData = event.notification.data || {};
+
   if (event.action === 'retry') {
     event.waitUntil(processMutationQueue());
+  } else if (event.action === 'update' || notificationData.type === 'update') {
+    // Handle update notification - activate new service worker
+    event.waitUntil(
+      self.registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
+    );
+    // Reload all clients
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach(client => client.navigate(client.url));
+      })
+    );
   } else {
     // Open or focus the app
     event.waitUntil(
@@ -132,6 +146,82 @@ self.addEventListener('sync', (event) => {
     );
   }
 });
+
+// Periodic Background Sync event handler - checks for server updates
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === PERIODIC_SYNC_TAG) {
+    event.waitUntil(checkForServerUpdates());
+  }
+});
+
+// Check for server updates and notify user
+async function checkForServerUpdates() {
+  try {
+    // Fetch latest app version or check for updates
+    const response = await fetch('/?_=' + Date.now(), { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    
+    if (!response.ok) {
+      console.log('Server update check failed:', response.status);
+      return;
+    }
+
+    // Check if there's a new service worker available
+    const registration = self.registration;
+    await registration.update();
+    
+    // If there's a waiting worker, notify the user
+    if (registration.waiting) {
+      await showUpdateNotification();
+    }
+
+    // Also sync any pending mutations while we're at it
+    const mutationResult = await processMutationQueue();
+    if (mutationResult.success > 0 || mutationResult.failed > 0) {
+      showSyncNotification(mutationResult);
+    }
+
+    // Notify clients about the periodic sync completion
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'PERIODIC_SYNC_COMPLETE',
+        timestamp: Date.now(),
+        hasUpdate: !!registration.waiting,
+      });
+    });
+
+    console.log('Periodic sync completed at:', new Date().toISOString());
+  } catch (error) {
+    console.error('Periodic sync failed:', error);
+  }
+}
+
+// Show notification when updates are available
+async function showUpdateNotification() {
+  if (self.Notification?.permission !== 'granted') {
+    return;
+  }
+
+  try {
+    await self.registration.showNotification('Update Available', {
+      body: 'A new version of the app is available. Tap to update.',
+      icon: '/pwa-192x192.png',
+      tag: 'update-notification',
+      badge: '/pwa-192x192.png',
+      vibrate: [100, 50, 100],
+      data: { type: 'update' },
+      actions: [
+        { action: 'update', title: 'Update Now' },
+        { action: 'dismiss', title: 'Later' }
+      ]
+    });
+  } catch (error) {
+    console.error('Failed to show update notification:', error);
+  }
+}
 
 // Process queued mutations
 async function processMutationQueue() {

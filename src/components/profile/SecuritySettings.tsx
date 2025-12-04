@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
 import { TrustedDevicesSection } from "./TrustedDevicesSection";
+import { NotificationPreferences } from "./NotificationPreferences";
 
 interface PasswordRequirement {
   label: string;
@@ -121,6 +122,11 @@ export function SecuritySettings() {
 
       {/* Trusted Devices Section */}
       <TrustedDevicesSection />
+
+      <Separator />
+
+      {/* Notification Preferences Section */}
+      <NotificationPreferences />
 
       <Separator />
 

@@ -1362,6 +1362,25 @@
     "syncComplete": "Kumpleto na ang Sync",
     "syncCompleteBody": "{{count}} na pagbabago ang matagumpay na na-sync",
     "syncPartialFailed": "Nabigo ang Bahagi ng Sync",
-    "syncPartialFailedBody": "{{success}} na pagbabago ang na-sync, {{failed}} ang nabigo"
+    "syncPartialFailedBody": "{{success}} na pagbabago ang na-sync, {{failed}} ang nabigo",
+    "title": "Mga Notification",
+    "description": "Pamahalaan kung paano ka makakatanggap ng mga notification mula sa application.",
+    "browserPermission": "Mga Browser Notification",
+    "permissionGranted": "Naka-enable ang mga notification",
+    "permissionDenied": "Naka-block ang mga notification",
+    "permissionDefault": "I-click para i-enable ang browser notifications",
+    "enabled": "Naka-enable na ang Notifications",
+    "enabledDescription": "Makakatanggap ka na ng mga notification para sa mahahalagang event.",
+    "deniedTitle": "Hindi Pinahintulutan",
+    "deniedDescription": "Hindi pinahintulutan ang mga notification. Maaari mong baguhin ito sa iyong browser settings.",
+    "howToEnable": "Paano I-enable",
+    "revokeInfo": "Baguhin ang Notification Settings",
+    "revokeInstructions": "Para baguhin ang mga notification permission, i-click ang lock icon sa address bar ng iyong browser at i-update ang notification setting.",
+    "unsupported": "Hindi sinusuportahan ang mga notification sa browser na ito.",
+    "syncNotifications": "Mga Sync Notification",
+    "syncNotificationsDescription": "Ma-notify kapag na-sync ang mga offline na pagbabago sa server.",
+    "periodicSync": "Mga Background Update",
+    "periodicSyncDescription": "Awtomatikong suriin ang mga update kada ilang oras sa background.",
+    "blockedInstructions": "Kasalukuyang naka-block ang mga notification. Para i-enable ang mga ito, i-click ang lock icon sa address bar ng iyong browser at palitan ang notification setting sa 'Allow'."
   }
 }
