@@ -48,7 +48,8 @@ export default function ModuleManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('modules')
-        .select('*')
+        .select('id, code, name, description, base_price_monthly, base_price_yearly, is_active, sort_order, icon')
+        .is('deleted_at', null)
         .order('sort_order');
       if (error) throw error;
       return data as Module[];
@@ -100,7 +101,11 @@ export default function ModuleManagement() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('modules').delete().eq('id', id);
+      // Soft delete - set deleted_at timestamp
+      const { error } = await supabase
+        .from('modules')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {

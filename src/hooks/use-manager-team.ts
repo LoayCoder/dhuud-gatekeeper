@@ -61,11 +61,12 @@ export function useManagerTeam(managerId?: string) {
 
       if (profilesError) throw profilesError;
 
-      // Check which members are also managers
+      // Check which members are also managers (filter soft deleted)
       const { data: managerAssignments } = await supabase
         .from('manager_team')
         .select('manager_id')
-        .in('manager_id', userIds);
+        .in('manager_id', userIds)
+        .is('deleted_at', null);
 
       const managerIds = new Set((managerAssignments || []).map(m => m.manager_id));
 
@@ -174,11 +175,12 @@ export function useManagerTeam(managerId?: string) {
     return true;
   }, [profile?.tenant_id, user?.id, fetchTeamHierarchy]);
 
-  // Remove user from team (admin only)
+  // Remove user from team (admin only) - Soft Delete
   const removeFromTeam = useCallback(async (userId: string, fromManagerId: string) => {
+    // Soft delete - set deleted_at timestamp
     const { error } = await supabase
       .from('manager_team')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('manager_id', fromManagerId)
       .eq('user_id', userId);
 

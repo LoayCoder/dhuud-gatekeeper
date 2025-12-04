@@ -97,11 +97,11 @@ export default function OrgStructure() {
     setLoading(true);
     try {
       const [b, d, dep, sec, sit] = await Promise.all([
-        supabase.from('branches').select('id, name, location, latitude, longitude').order('name'),
-        supabase.from('divisions').select('id, name').order('name'),
-        supabase.from('departments').select('id, name, division_id, divisions(name)').order('name'),
-        supabase.from('sections').select('id, name, department_id, departments(name)').order('name'),
-        supabase.from('sites').select('id, name, latitude, longitude, branch_id, is_active, branches(name)').order('name'),
+        supabase.from('branches').select('id, name, location, latitude, longitude').is('deleted_at', null).order('name'),
+        supabase.from('divisions').select('id, name').is('deleted_at', null).order('name'),
+        supabase.from('departments').select('id, name, division_id, divisions(name)').is('deleted_at', null).order('name'),
+        supabase.from('sections').select('id, name, department_id, departments(name)').is('deleted_at', null).order('name'),
+        supabase.from('sites').select('id, name, latitude, longitude, branch_id, is_active, branches(name)').is('deleted_at', null).order('name'),
       ]);
 
       if (b.data) setBranches(b.data);
@@ -304,11 +304,15 @@ export default function OrgStructure() {
     setEditingLongitude("");
   };
 
-  // Generic Delete Function
+  // Generic Delete Function (Soft Delete)
   const handleDelete = async (table: string, id: string) => {
     if (!confirm(t('orgStructure.confirmDelete'))) return;
     try {
-      const { error } = await supabase.from(table as TableType).delete().eq('id', id);
+      // Soft delete - set deleted_at timestamp
+      const { error } = await supabase
+        .from(table as TableType)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
       if (error) throw error;
       toast({ title: t('orgStructure.deleted'), description: t('orgStructure.itemRemoved') });
       fetchData();
