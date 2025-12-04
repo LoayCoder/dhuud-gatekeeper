@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [wasOffline, setWasOffline] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      if (wasOffline) {
-        // Show reconnected state briefly
-        setTimeout(() => setWasOffline(false), 3000);
-      }
+      // Auto-dismiss "Back online" after 3 seconds
+      timeoutRef.current = setTimeout(() => setWasOffline(false), 3000);
     };
 
     const handleOffline = () => {
+      // Clear any pending timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsOnline(false);
       setWasOffline(true);
     };
@@ -24,8 +27,11 @@ export function useNetworkStatus() {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, [wasOffline]);
+  }, []);
 
   return { isOnline, wasOffline };
 }
