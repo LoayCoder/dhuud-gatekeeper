@@ -1626,6 +1626,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_team_hierarchy_with_profiles: {
+        Args: { p_manager_id: string }
+        Returns: {
+          depth: number
+          full_name: string
+          is_active: boolean
+          is_manager: boolean
+          job_title: string
+          user_id: string
+          user_type: string
+        }[]
+      }
       get_tenant_modules: {
         Args: { p_tenant_id: string }
         Returns: Database["public"]["Enums"]["module_code"][]
@@ -1651,6 +1663,38 @@ export type Database = {
           role_code: string
           role_id: string
           role_name: string
+        }[]
+      }
+      get_users_with_roles_paginated: {
+        Args: {
+          p_branch_id?: string
+          p_division_id?: string
+          p_is_active?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_role_code?: string
+          p_tenant_id: string
+          p_user_type?: string
+        }
+        Returns: {
+          assigned_branch_id: string
+          assigned_department_id: string
+          assigned_division_id: string
+          assigned_section_id: string
+          branch_name: string
+          department_name: string
+          division_name: string
+          employee_id: string
+          full_name: string
+          has_login: boolean
+          id: string
+          is_active: boolean
+          job_title: string
+          phone_number: string
+          role_assignments: Json
+          section_name: string
+          total_count: number
+          user_type: string
         }[]
       }
       has_role: {

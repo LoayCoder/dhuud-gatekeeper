@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useState, useCallback } from 'react';
 
 export interface TenantProfile {
   id: string;
@@ -57,14 +58,41 @@ export interface CreateTenantProfileInput {
   visit_duration_hours?: number;
 }
 
-export function useTenantProfiles(tenantId?: string, profileType?: string) {
+interface UseTenantProfilesOptions {
+  tenantId?: string;
+  profileType?: string;
+  pageSize?: number;
+}
+
+interface PaginatedTenantProfilesResult {
+  profiles: TenantProfile[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  // Pagination
+  page: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  goToPage: (page: number) => void;
+  goToNextPage: () => void;
+  goToPreviousPage: () => void;
+}
+
+export function useTenantProfiles(options: UseTenantProfilesOptions = {}): PaginatedTenantProfilesResult {
+  const { tenantId, profileType, pageSize = 25 } = options;
   const { profile } = useAuth();
   const targetTenantId = tenantId || profile?.tenant_id;
+  const [page, setPage] = useState(1);
 
-  const { data: profiles, isLoading, error, refetch } = useQuery({
-    queryKey: ['tenant-profiles', targetTenantId, profileType],
-    queryFn: async (): Promise<TenantProfile[]> => {
-      if (!targetTenantId) return [];
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['tenant-profiles', targetTenantId, profileType, page, pageSize],
+    queryFn: async (): Promise<{ profiles: TenantProfile[]; totalCount: number }> => {
+      if (!targetTenantId) return { profiles: [], totalCount: 0 };
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
 
       let query = supabase
         .from('tenant_profiles')
@@ -75,27 +103,58 @@ export function useTenantProfiles(tenantId?: string, profileType?: string) {
           contractor_type, contract_start, contract_end,
           visit_reason, host_id, visit_date, visit_duration_hours,
           created_at, updated_at
-        `)
+        `, { count: 'exact' })
         .eq('tenant_id', targetTenantId)
         .eq('is_deleted', false)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (profileType && ['visitor', 'member', 'contractor'].includes(profileType)) {
         query = query.eq('profile_type', profileType as 'visitor' | 'member' | 'contractor');
       }
 
-      const { data, error } = await query;
+      const { data, count, error } = await query;
       if (error) throw error;
-      return data as TenantProfile[];
+      return { 
+        profiles: data as TenantProfile[], 
+        totalCount: count || 0 
+      };
     },
     enabled: !!targetTenantId,
   });
 
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const hasNextPage = page < totalPages;
+  const hasPreviousPage = page > 1;
+
+  const goToPage = useCallback((newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  }, [totalPages]);
+
+  const goToNextPage = useCallback(() => {
+    if (hasNextPage) setPage(p => p + 1);
+  }, [hasNextPage]);
+
+  const goToPreviousPage = useCallback(() => {
+    if (hasPreviousPage) setPage(p => p - 1);
+  }, [hasPreviousPage]);
+
   return {
-    profiles,
+    profiles: data?.profiles || [],
     isLoading,
-    error,
+    error: error as Error | null,
     refetch,
+    page,
+    totalCount,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
   };
 }
 

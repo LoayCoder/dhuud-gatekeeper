@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, LogIn, LogOut, Users } from "lucide-react";
+import { Loader2, Pencil, Plus, LogIn, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,42 +27,10 @@ import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCar
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
 import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log";
-import { RoleBadge } from "@/components/roles/RoleBadge";
 import { ManagerTeamViewer } from "@/components/hierarchy/ManagerTeamViewer";
-import { useUserRoles, Role } from "@/hooks/use-user-roles";
-import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-
-interface UserProfile {
-  id: string;
-  full_name: string | null;
-  phone_number: string | null;
-  assigned_branch_id: string | null;
-  assigned_division_id: string | null;
-  assigned_department_id: string | null;
-  assigned_section_id: string | null;
-  user_type: string | null;
-  has_login: boolean | null;
-  is_active: boolean | null;
-  is_deleted: boolean | null;
-  employee_id: string | null;
-  job_title: string | null;
-  contractor_company_name: string | null;
-  contract_start: string | null;
-  contract_end: string | null;
-  membership_id: string | null;
-  membership_start: string | null;
-  membership_end: string | null;
-  branches?: { name: string } | null;
-  divisions?: { name: string } | null;
-  departments?: { name: string } | null;
-  sections?: { name: string } | null;
-}
-
-interface UserWithRole extends UserProfile {
-  role?: string;
-  userRoles?: { role_id: string; role_code: string; role_name: string; category: string }[];
-}
+import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
 
 interface HierarchyItem {
   id: string;
@@ -82,8 +50,9 @@ export default function UserManagement() {
   const [divisions, setDivisions] = useState<HierarchyItem[]>([]);
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
+  const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
 
+  // Filters
   const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [branchFilter, setBranchFilter] = useState<string>('all');
@@ -94,11 +63,18 @@ export default function UserManagement() {
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated } = useAdminAuditLog();
   const { roles } = useUserRoles();
 
-  const PAGE_SIZE = 25;
+  // Build filters object for the hook
+  const filters: UseUsersPaginatedFilters = {
+    userType: userTypeFilter !== 'all' ? userTypeFilter : null,
+    isActive: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : null,
+    branchId: branchFilter !== 'all' ? branchFilter : null,
+    divisionId: divisionFilter !== 'all' ? divisionFilter : null,
+    roleCode: roleFilter !== 'all' ? roleFilter : null,
+  };
 
-  // Server-side paginated query for profiles
+  // Use the optimized server-side paginated query
   const {
-    data: paginatedData,
+    users,
     isLoading: loading,
     page,
     totalPages,
@@ -107,80 +83,15 @@ export default function UserManagement() {
     hasPreviousPage,
     goToNextPage,
     goToPreviousPage,
-    goToFirstPage,
+    goToPage,
     refetch: refetchUsers,
-  } = usePaginatedQuery<UserWithRole>({
-    queryKey: ['users-paginated', userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter],
-    queryFn: async ({ from, to }) => {
-      let query = supabase
-        .from('profiles')
-        .select(`
-          id, full_name, phone_number, assigned_branch_id, assigned_division_id,
-          assigned_department_id, assigned_section_id, user_type, has_login, is_active,
-          is_deleted, employee_id, job_title, contractor_company_name, contract_start,
-          contract_end, membership_id, membership_start, membership_end,
-          branches:assigned_branch_id(name), divisions:assigned_division_id(name),
-          departments:assigned_department_id(name), sections:assigned_section_id(name)
-        `, { count: 'exact' })
-        .or('is_deleted.is.null,is_deleted.eq.false')
-        .order('full_name', { ascending: true });
+    resetPage,
+  } = useUsersPaginated({ filters, pageSize: 25 });
 
-      // Apply filters server-side
-      if (userTypeFilter !== 'all') {
-        query = query.eq('user_type', userTypeFilter as any);
-      }
-      if (statusFilter === 'active') {
-        query = query.eq('is_active', true);
-      } else if (statusFilter === 'inactive') {
-        query = query.eq('is_active', false);
-      }
-      if (branchFilter !== 'all') {
-        query = query.eq('assigned_branch_id', branchFilter);
-      }
-      if (divisionFilter !== 'all') {
-        query = query.eq('assigned_division_id', divisionFilter);
-      }
-
-      const { data: profilesData, count, error: profilesError } = await query.range(from, to);
-      if (profilesError) throw profilesError;
-
-      // Fetch roles for the current page of users
-      const userIds = (profilesData || []).map(p => p.id);
-      
-      const [rolesResult, roleAssignmentsResult] = await Promise.all([
-        supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
-        supabase.from('user_role_assignments').select('user_id, role_id, roles(code, name, category)').in('user_id', userIds),
-      ]);
-
-      const usersWithRoles = (profilesData || []).map(p => {
-        const userRoleAssignments = (roleAssignmentsResult.data || [])
-          .filter((ra: any) => ra.user_id === p.id)
-          .map((ra: any) => ({
-            role_id: ra.role_id,
-            role_code: ra.roles?.code || '',
-            role_name: ra.roles?.name || '',
-            category: ra.roles?.category || 'general',
-          }));
-
-        // Filter by role if set
-        if (roleFilter !== 'all') {
-          const hasRole = userRoleAssignments.some(r => r.role_code === roleFilter);
-          if (!hasRole) return null;
-        }
-
-        return {
-          ...p,
-          role: rolesResult.data?.find(r => r.user_id === p.id)?.role || 'user',
-          userRoles: userRoleAssignments,
-        };
-      }).filter(Boolean) as UserWithRole[];
-
-      return { data: usersWithRoles, count: count || 0 };
-    },
-    pageSize: PAGE_SIZE,
-  });
-
-  const users = paginatedData?.data || [];
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    resetPage();
+  }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter, resetPage]);
 
   // Fetch branches and divisions for filters (one-time)
   useEffect(() => {
@@ -196,7 +107,7 @@ export default function UserManagement() {
   }, []);
 
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
-  const handleEditUser = (user: UserWithRole) => { setEditingUser(user); setIsFormDialogOpen(true); };
+  const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
 
   const handleSaveUser = async (data: any) => {
     const updateData = {
@@ -291,7 +202,7 @@ export default function UserManagement() {
           <CardTitle className={`text-lg ${textAlign}`}>{t('userManagement.filters')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className={`space-y-2 ${textAlign}`}>
               <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
               <Select value={userTypeFilter} onValueChange={setUserTypeFilter} dir={direction}>
@@ -337,6 +248,17 @@ export default function UserManagement() {
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allDivisions')}</SelectItem>
                   {divisions.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className={`space-y-2 ${textAlign}`}>
+              <label className="text-sm font-medium">{t('userManagement.filterByRole')}</label>
+              <Select value={roleFilter} onValueChange={setRoleFilter} dir={direction}>
+                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectContent dir={direction} className="bg-background">
+                  <SelectItem value="all">{t('userManagement.allRoles')}</SelectItem>
+                  {roles.map(r => <SelectItem key={r.id} value={r.code}>{r.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -399,24 +321,35 @@ export default function UserManagement() {
                         )}
                       </TableCell>
                       <TableCell className={textAlign}>
-                        {user.branches?.name || '-'}
+                        {user.branch_name || '-'}
                       </TableCell>
                       <TableCell className={`text-sm ${textAlign}`}>
-                        {user.divisions?.name && (
-                          <span>{user.divisions.name}</span>
+                        {user.division_name && (
+                          <span>{user.division_name}</span>
                         )}
-                        {user.departments?.name && (
-                          <span className="text-muted-foreground"> {hierarchyArrow} {user.departments.name}</span>
+                        {user.department_name && (
+                          <span className="text-muted-foreground"> {hierarchyArrow} {user.department_name}</span>
                         )}
-                        {user.sections?.name && (
-                          <span className="text-muted-foreground"> {hierarchyArrow} {user.sections.name}</span>
+                        {user.section_name && (
+                          <span className="text-muted-foreground"> {hierarchyArrow} {user.section_name}</span>
                         )}
-                        {!user.divisions?.name && !user.departments?.name && !user.sections?.name && '-'}
                       </TableCell>
-                      <TableCell className={textAlign}>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                      <TableCell>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditUser(user)}
+                            aria-label={t('common.edit')}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <ManagerTeamViewer 
+                            managerId={user.id} 
+                            managerName={user.full_name || undefined} 
+                            compact 
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -424,19 +357,23 @@ export default function UserManagement() {
               </TableBody>
             </Table>
           )}
-          {totalCount > 0 && (
-            <PaginationControls
-              page={page}
-              totalPages={totalPages}
-              totalCount={totalCount}
-              pageSize={PAGE_SIZE}
-              hasNextPage={hasNextPage}
-              hasPreviousPage={hasPreviousPage}
-              isLoading={loading}
-              onNextPage={goToNextPage}
-              onPreviousPage={goToPreviousPage}
-              onFirstPage={goToFirstPage}
-            />
+          
+          {totalPages > 1 && (
+            <div className="border-t p-4">
+              <PaginationControls
+                page={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                pageSize={25}
+                hasNextPage={hasNextPage}
+                hasPreviousPage={hasPreviousPage}
+                onNextPage={goToNextPage}
+                onPreviousPage={goToPreviousPage}
+                onFirstPage={() => goToPage(1)}
+                onLastPage={() => goToPage(totalPages)}
+                isLoading={loading}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -444,7 +381,20 @@ export default function UserManagement() {
       <UserFormDialog
         open={isFormDialogOpen}
         onOpenChange={setIsFormDialogOpen}
-        user={editingUser}
+        user={editingUser ? {
+          id: editingUser.id,
+          full_name: editingUser.full_name,
+          phone_number: editingUser.phone_number,
+          user_type: editingUser.user_type,
+          has_login: editingUser.has_login,
+          is_active: editingUser.is_active,
+          employee_id: editingUser.employee_id,
+          job_title: editingUser.job_title,
+          assigned_branch_id: editingUser.assigned_branch_id,
+          assigned_division_id: editingUser.assigned_division_id,
+          assigned_department_id: editingUser.assigned_department_id,
+          assigned_section_id: editingUser.assigned_section_id,
+        } : null}
         onSave={handleSaveUser}
       />
     </div>
