@@ -1,4 +1,18 @@
 {
+  "pages": {
+    "incidents": {
+      "title": "Mga Insidente",
+      "description": "Mag-ulat at mag-track ng mga insidente sa kaligtasan."
+    },
+    "audits": {
+      "title": "Mga Audit at Inspeksyon",
+      "description": "Pamahalaan ang mga compliance audit at site inspection."
+    },
+    "visitors": {
+      "title": "Visitor Gatekeeper",
+      "description": "Pamahalaan ang visitor access at pre-registration."
+    }
+  },
   "admin": {
     "accessDenied": "Tinanggihan ang Access",
     "noPermission": "Wala kang pahintulot na ma-access ang pahinang ito.",
