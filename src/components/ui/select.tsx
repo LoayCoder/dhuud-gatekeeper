@@ -4,7 +4,15 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+const Select = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>
+>(({ dir, ...props }, ref) => {
+  // Inherit direction from document if not explicitly set
+  const direction = dir || (typeof document !== 'undefined' ? (document.documentElement.dir as "ltr" | "rtl") : "ltr");
+  return <SelectPrimitive.Root dir={direction} {...props} />;
+});
+Select.displayName = "Select";
 
 const SelectGroup = SelectPrimitive.Group;
 
