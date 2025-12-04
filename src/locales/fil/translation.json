@@ -1326,5 +1326,25 @@
     "assignError": "Nabigo ang pag-assign ng user sa team",
     "removeSuccess": "Naalis ang user sa team",
     "removeError": "Nabigo ang pag-alis ng user sa team"
+  },
+  "pwa": {
+    "installTitle": "I-install ang Dhuud HSSE",
+    "installDescription": "I-install ang app para sa mas mabilis na access at offline support.",
+    "installButton": "I-install ang App",
+    "iosInstructions": "Para i-install ang app na ito sa iyong iPhone:",
+    "iosTapShare": "I-tap ang",
+    "iosShareButton": "Share button",
+    "iosScrollAndTap": "Mag-scroll at i-tap ang",
+    "iosAddToHome": "Add to Home Screen"
+  },
+  "network": {
+    "offline": "Ikaw ay offline",
+    "backOnline": "Bumalik na online",
+    "pendingChanges": "{{count}} naka-pending na pagbabago",
+    "syncNow": "I-sync Ngayon",
+    "syncSuccess": "Kumpleto na ang sync",
+    "syncSuccessDesc": "{{count}} na pagbabago ang matagumpay na na-sync.",
+    "syncFailed": "Nabigo ang ilang pagbabago",
+    "syncFailedDesc": "{{count}} na pagbabago ang hindi ma-sync."
   }
 }

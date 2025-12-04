@@ -1346,5 +1346,25 @@
     "userAssignedDescription": "{{name}} has been assigned to the team",
     "userRemoved": "User Removed",
     "userRemovedDescription": "{{name}} has been removed from the team"
+  },
+  "pwa": {
+    "installTitle": "Install Dhuud HSSE",
+    "installDescription": "Install the app for faster access and offline support.",
+    "installButton": "Install App",
+    "iosInstructions": "To install this app on your iPhone:",
+    "iosTapShare": "Tap the",
+    "iosShareButton": "Share button",
+    "iosScrollAndTap": "Scroll and tap",
+    "iosAddToHome": "Add to Home Screen"
+  },
+  "network": {
+    "offline": "You are offline",
+    "backOnline": "Back online",
+    "pendingChanges": "{{count}} pending change(s)",
+    "syncNow": "Sync Now",
+    "syncSuccess": "Sync complete",
+    "syncSuccessDesc": "{{count}} change(s) synced successfully.",
+    "syncFailed": "Some changes failed",
+    "syncFailedDesc": "{{count}} change(s) could not be synced."
   }
 }

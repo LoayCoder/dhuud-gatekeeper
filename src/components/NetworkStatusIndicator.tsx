@@ -20,14 +20,14 @@ export function NetworkStatusIndicator() {
       const { success, failed } = await replayQueuedMutations();
       if (success > 0) {
         toast({
-          title: t('common.syncSuccess', 'Sync complete'),
-          description: t('common.syncSuccessDesc', '{{count}} change(s) synced successfully.', { count: success }),
+          title: t('network.syncSuccess', 'Sync complete'),
+          description: t('network.syncSuccessDesc', '{{count}} change(s) synced successfully.', { count: success }),
         });
       }
       if (failed > 0) {
         toast({
-          title: t('common.syncFailed', 'Some changes failed'),
-          description: t('common.syncFailedDesc', '{{count}} change(s) could not be synced.', { count: failed }),
+          title: t('network.syncFailed', 'Some changes failed'),
+          description: t('network.syncFailedDesc', '{{count}} change(s) could not be synced.', { count: failed }),
           variant: 'destructive',
         });
       }
@@ -51,7 +51,7 @@ export function NetworkStatusIndicator() {
         <div className="flex items-center gap-2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-medium text-white shadow-lg animate-in slide-in-from-left">
           <CloudOff className="h-4 w-4" />
           <span>
-            {t('common.pendingChanges', '{{count}} pending change(s)', { count: pendingCount })}
+            {t('network.pendingChanges', '{{count}} pending change(s)', { count: pendingCount })}
           </span>
           <button
             onClick={handleSyncNow}
@@ -59,7 +59,7 @@ export function NetworkStatusIndicator() {
             className="ms-2 flex items-center gap-1 rounded bg-white/20 px-2 py-0.5 text-xs hover:bg-white/30 disabled:opacity-50"
           >
             <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
-            {t('common.syncNow', 'Sync Now')}
+            {t('network.syncNow', 'Sync Now')}
           </button>
         </div>
       )}
@@ -80,12 +80,12 @@ export function NetworkStatusIndicator() {
           {isOnline ? (
             <>
               <Wifi className="h-4 w-4" />
-              <span>{t('common.backOnline', 'Back online')}</span>
+              <span>{t('network.backOnline', 'Back online')}</span>
             </>
           ) : (
             <>
               <WifiOff className="h-4 w-4" />
-              <span>{t('common.offline', 'You are offline')}</span>
+              <span>{t('network.offline', 'You are offline')}</span>
               {pendingCount > 0 && (
                 <span className="ms-1 rounded-full bg-white/20 px-2 py-0.5 text-xs">
                   {pendingCount}

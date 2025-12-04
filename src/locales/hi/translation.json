@@ -1326,5 +1326,25 @@
     "assignError": "उपयोगकर्ता को टीम में असाइन करने में विफल",
     "removeSuccess": "उपयोगकर्ता टीम से हटाया गया",
     "removeError": "उपयोगकर्ता को टीम से हटाने में विफल"
+  },
+  "pwa": {
+    "installTitle": "Dhuud HSSE इंस्टॉल करें",
+    "installDescription": "तेज़ पहुंच और ऑफ़लाइन सहायता के लिए ऐप इंस्टॉल करें।",
+    "installButton": "ऐप इंस्टॉल करें",
+    "iosInstructions": "अपने iPhone पर यह ऐप इंस्टॉल करने के लिए:",
+    "iosTapShare": "पर टैप करें",
+    "iosShareButton": "शेयर बटन",
+    "iosScrollAndTap": "स्क्रॉल करें और टैप करें",
+    "iosAddToHome": "होम स्क्रीन पर जोड़ें"
+  },
+  "network": {
+    "offline": "आप ऑफ़लाइन हैं",
+    "backOnline": "वापस ऑनलाइन",
+    "pendingChanges": "{{count}} लंबित परिवर्तन",
+    "syncNow": "अभी सिंक करें",
+    "syncSuccess": "सिंक पूर्ण",
+    "syncSuccessDesc": "{{count}} परिवर्तन सफलतापूर्वक सिंक हुए।",
+    "syncFailed": "कुछ परिवर्तन विफल",
+    "syncFailedDesc": "{{count}} परिवर्तन सिंक नहीं हो सके।"
   }
 }

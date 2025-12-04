@@ -36,7 +36,7 @@ export function useOfflineMutation<TVariables>(
       offlineMutationQueue.add(mutationKey, variables);
       toast({
         title: 'Saved offline',
-        description: 'Your changes will be synced when you\'re back online.',
+        description: "Your changes will be synced when you're back online.",
       });
       return Promise.resolve();
     },
