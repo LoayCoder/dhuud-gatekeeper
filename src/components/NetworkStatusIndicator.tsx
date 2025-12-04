@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export function NetworkStatusIndicator() {
-  const { isOnline, wasOffline } = useNetworkStatus();
+  const { isOnline, wasOffline, isDismissing } = useNetworkStatus();
   const pendingCount = usePendingMutationsCount();
   const { t } = useTranslation();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -68,10 +68,13 @@ export function NetworkStatusIndicator() {
       {showOfflineStatus && (
         <div
           className={cn(
-            'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium shadow-lg transition-all duration-300 animate-in slide-in-from-left',
+            'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium shadow-lg transition-all duration-300',
             isOnline
               ? 'bg-green-500/90 text-white'
-              : 'bg-destructive/90 text-destructive-foreground'
+              : 'bg-destructive/90 text-destructive-foreground',
+            isDismissing
+              ? 'animate-fade-out opacity-0'
+              : 'animate-in slide-in-from-left'
           )}
         >
           {isOnline ? (
