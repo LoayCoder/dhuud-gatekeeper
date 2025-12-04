@@ -341,7 +341,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('userManagement.userType')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} dir={direction}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -556,6 +556,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           form.setValue('assigned_section_id', null);
                         }} 
                         value={field.value || 'none'}
+                        dir={direction}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -586,6 +587,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           form.setValue('assigned_section_id', null);
                         }} 
                         value={field.value || 'none'}
+                        dir={direction}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -615,6 +617,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           form.setValue('assigned_section_id', null);
                         }} 
                         value={field.value || 'none'}
+                        dir={direction}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -641,6 +644,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                       <Select 
                         onValueChange={(v) => field.onChange(v === 'none' ? null : v)} 
                         value={field.value || 'none'}
+                        dir={direction}
                       >
                         <FormControl>
                           <SelectTrigger>
