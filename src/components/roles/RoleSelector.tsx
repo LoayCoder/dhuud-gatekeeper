@@ -75,9 +75,9 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
             className="w-full justify-between min-h-[40px] h-auto"
             disabled={disabled || isLoading}
           >
-            <div className="flex flex-wrap gap-1 flex-1">
+            <div className="flex flex-wrap gap-1 flex-1 justify-start" dir={isRTL ? 'rtl' : 'ltr'}>
               {selectedRoles.length === 0 ? (
-                <span className="text-muted-foreground">{t('roles.selectRoles')}</span>
+                <span className="text-muted-foreground text-start">{t('roles.selectRoles')}</span>
               ) : (
                 selectedRoles.slice(0, 3).map(role => (
                   <RoleBadge
