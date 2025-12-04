@@ -1382,6 +1382,25 @@
     "syncComplete": "Sync Complete",
     "syncCompleteBody": "{{count}} change(s) synced successfully",
     "syncPartialFailed": "Sync Partially Failed",
-    "syncPartialFailedBody": "{{success}} change(s) synced, {{failed}} failed"
+    "syncPartialFailedBody": "{{success}} change(s) synced, {{failed}} failed",
+    "title": "Notifications",
+    "description": "Manage how you receive notifications from the application.",
+    "browserPermission": "Browser Notifications",
+    "permissionGranted": "Notifications are enabled",
+    "permissionDenied": "Notifications are blocked",
+    "permissionDefault": "Click to enable browser notifications",
+    "enabled": "Notifications Enabled",
+    "enabledDescription": "You will now receive notifications for important events.",
+    "deniedTitle": "Permission Denied",
+    "deniedDescription": "Notifications were denied. You can change this in your browser settings.",
+    "howToEnable": "How to Enable",
+    "revokeInfo": "Change Notification Settings",
+    "revokeInstructions": "To change notification permissions, click the lock icon in your browser's address bar and update the notification setting.",
+    "unsupported": "Notifications are not supported in this browser.",
+    "syncNotifications": "Sync Notifications",
+    "syncNotificationsDescription": "Get notified when offline changes are synced to the server.",
+    "periodicSync": "Background Updates",
+    "periodicSyncDescription": "Automatically check for updates every few hours in the background.",
+    "blockedInstructions": "Notifications are currently blocked. To enable them, click the lock icon in your browser's address bar and change the notification setting to 'Allow'."
   }
 }
