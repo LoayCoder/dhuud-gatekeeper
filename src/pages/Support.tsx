@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { RTLWrapper } from '@/components/RTLWrapper';
@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { Plus, MessageSquare, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { TicketDetail } from '@/components/support/TicketDetail';
+import { usePaginatedQuery } from '@/hooks/use-paginated-query';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -56,6 +58,8 @@ const priorityColors: Record<TicketPriority, string> = {
   urgent: 'bg-destructive/10 text-destructive',
 };
 
+const PAGE_SIZE = 20;
+
 export default function Support() {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
@@ -69,18 +73,33 @@ export default function Support() {
     priority: 'medium' as TicketPriority,
   });
 
-  const { data: tickets = [], isLoading } = useQuery({
+  const {
+    data: paginatedData,
+    isLoading,
+    page,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    goToFirstPage,
+  } = usePaginatedQuery<Ticket>({
     queryKey: ['support-tickets'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async ({ from, to }) => {
+      const { data, count, error } = await supabase
         .from('support_tickets')
-        .select('id, ticket_number, subject, description, status, priority, category, created_at, updated_at')
-        .order('created_at', { ascending: false });
+        .select('id, ticket_number, subject, description, status, priority, category, created_at, updated_at', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      return data as Ticket[];
+      return { data: data as Ticket[], count: count || 0 };
     },
+    pageSize: PAGE_SIZE,
   });
+
+  const tickets = paginatedData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: async (ticket: typeof newTicket) => {
@@ -261,6 +280,21 @@ export default function Support() {
                   </div>
                 ))}
               </div>
+            )}
+            {totalCount > 0 && (
+              <PaginationControls
+                page={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                pageSize={PAGE_SIZE}
+                hasNextPage={hasNextPage}
+                hasPreviousPage={hasPreviousPage}
+                isLoading={isLoading}
+                onNextPage={goToNextPage}
+                onPreviousPage={goToPreviousPage}
+                onFirstPage={goToFirstPage}
+                className="border-t-0 mt-4"
+              />
             )}
           </CardContent>
         </Card>

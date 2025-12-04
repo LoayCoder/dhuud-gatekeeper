@@ -12,10 +12,14 @@ import { TenantListTable } from '@/components/tenants/TenantListTable';
 import { TenantFormDialog } from '@/components/tenants/TenantFormDialog';
 import { TenantStatusDialog } from '@/components/tenants/TenantStatusDialog';
 import { TenantDetailDialog } from '@/components/tenants/TenantDetailDialog';
+import { usePaginatedQuery } from '@/hooks/use-paginated-query';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
 type TenantStatus = 'active' | 'suspended' | 'disabled';
+
+const PAGE_SIZE = 25;
 
 export default function TenantManagement() {
   const { t } = useTranslation();
@@ -34,30 +38,55 @@ export default function TenantManagement() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailTenant, setDetailTenant] = useState<Tenant | null>(null);
 
-  // Fetch tenants
-  const { data: tenants = [], isLoading } = useQuery({
-    queryKey: ['tenants'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+  // Paginated tenant fetch with server-side search
+  const {
+    data: paginatedData,
+    isLoading,
+    page,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    goToFirstPage,
+    refetch,
+  } = usePaginatedQuery<Tenant>({
+    queryKey: ['tenants', searchQuery],
+    queryFn: async ({ from, to }) => {
+      let query = supabase
         .from('tenants')
         .select(`
           id, name, slug, status, industry, country, city,
           plan_id, max_users_override, trial_start_date, trial_end_date,
           created_at, updated_at
-        `)
+        `, { count: 'exact' })
         .order('name');
+
+      // Server-side search
+      if (searchQuery.trim()) {
+        query = query.or(`name.ilike.%${searchQuery}%,slug.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%,industry.ilike.%${searchQuery}%`);
+      }
+
+      const { data, count, error } = await query.range(from, to);
       if (error) throw error;
-      return data as Tenant[];
+      return { data: data as Tenant[], count: count || 0 };
     },
+    pageSize: PAGE_SIZE,
   });
 
-  // Fetch user counts per tenant
+  const tenants = paginatedData?.data || [];
+
+  // Fetch user counts per tenant (for current page only)
   const { data: userCounts = {} } = useQuery({
-    queryKey: ['tenant-user-counts'],
+    queryKey: ['tenant-user-counts', tenants.map(t => t.id).join(',')],
     queryFn: async () => {
+      if (tenants.length === 0) return {};
+      
       const { data, error } = await supabase
         .from('profiles')
-        .select('tenant_id');
+        .select('tenant_id')
+        .in('tenant_id', tenants.map(t => t.id));
       if (error) throw error;
       
       // Count users per tenant
@@ -67,6 +96,7 @@ export default function TenantManagement() {
       });
       return counts;
     },
+    enabled: tenants.length > 0,
   });
 
   // Create tenant mutation
@@ -156,13 +186,7 @@ export default function TenantManagement() {
     },
   });
 
-  // Filter tenants by search
-  const filteredTenants = tenants.filter((tenant) =>
-    tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.contact_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.industry?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Server-side search is now handled in the query
 
   const handleCreate = () => {
     setEditingTenant(null);
@@ -239,13 +263,28 @@ export default function TenantManagement() {
 
           {/* Table */}
           <TenantListTable
-            tenants={filteredTenants}
+            tenants={tenants}
             isLoading={isLoading}
             userCounts={userCounts}
             onEdit={handleEdit}
             onStatusChange={handleStatusChange}
             onManageInvitations={handleManageInvitations}
           />
+          {totalCount > 0 && (
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
+              isLoading={isLoading}
+              onNextPage={goToNextPage}
+              onPreviousPage={goToPreviousPage}
+              onFirstPage={goToFirstPage}
+              className="mt-4"
+            />
+          )}
         </CardContent>
       </Card>
 
