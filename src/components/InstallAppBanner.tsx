@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+import { Download, X, Share, PlusSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,13 +9,37 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+}
+
+function isInStandaloneMode(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as any).standalone === true
+  );
+}
+
+function isIOSSafari(): boolean {
+  const ua = navigator.userAgent;
+  const isIos = isIOS();
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  return isIos && isSafari;
+}
+
 export function InstallAppBanner() {
   const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
+  const [showIOSBanner, setShowIOSBanner] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
 
   useEffect(() => {
+    // Check if already installed
+    if (isInStandaloneMode()) {
+      return;
+    }
+
     // Check if already dismissed recently (within 7 days)
     const dismissedAt = localStorage.getItem('pwa-install-dismissed');
     if (dismissedAt) {
@@ -26,8 +50,9 @@ export function InstallAppBanner() {
       }
     }
 
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    // Check for iOS Safari specifically
+    if (isIOSSafari()) {
+      setShowIOSBanner(true);
       return;
     }
 
@@ -61,10 +86,68 @@ export function InstallAppBanner() {
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
     setTimeout(() => {
       setShowBanner(false);
+      setShowIOSBanner(false);
       setIsDismissing(false);
     }, 300);
   };
 
+  // iOS Safari banner
+  if (showIOSBanner) {
+    return (
+      <div
+        className={cn(
+          'fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-md rounded-lg border bg-card p-4 shadow-lg',
+          isDismissing ? 'animate-fade-out' : 'animate-in slide-in-from-bottom'
+        )}
+      >
+        <button
+          onClick={handleDismiss}
+          className="absolute end-2 top-2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label={t('common.dismiss', 'Dismiss')}
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Download className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">
+              {t('pwa.installTitle', 'Install Dhuud HSSE')}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t('pwa.iosInstructions', 'To install this app on your iPhone:')}
+            </p>
+            <ol className="mt-2 space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                  1
+                </span>
+                <span className="flex items-center gap-1">
+                  {t('pwa.iosTapShare', 'Tap the')}
+                  <Share className="mx-1 h-4 w-4 text-primary" />
+                  {t('pwa.iosShareButton', 'Share button')}
+                </span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                  2
+                </span>
+                <span className="flex items-center gap-1">
+                  {t('pwa.iosScrollAndTap', 'Scroll and tap')}
+                  <PlusSquare className="mx-1 h-4 w-4 text-primary" />
+                  <strong>{t('pwa.iosAddToHome', 'Add to Home Screen')}</strong>
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard install prompt banner
   if (!showBanner) return null;
 
   return (
