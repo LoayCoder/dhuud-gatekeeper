@@ -1383,5 +1383,15 @@
     "savedOffline": "تم الحفظ بدون اتصال",
     "savedOfflineDesc": "ستتم مزامنة تغييراتك عند العودة للاتصال.",
     "savedOfflineBackgroundDesc": "ستتم مزامنة تغييراتك تلقائياً في الخلفية."
+  },
+  "notifications": {
+    "enableTitle": "تفعيل الإشعارات",
+    "enableDescription": "احصل على إشعارات عند مزامنة تغييراتك بنجاح أو في حالة وجود مشاكل.",
+    "enable": "تفعيل",
+    "notNow": "ليس الآن",
+    "syncComplete": "اكتملت المزامنة",
+    "syncCompleteBody": "تمت مزامنة {{count}} تغيير(ات) بنجاح",
+    "syncPartialFailed": "فشلت المزامنة جزئياً",
+    "syncPartialFailedBody": "تمت مزامنة {{success}} تغيير(ات)، فشلت {{failed}}"
   }
 }

@@ -56,14 +56,80 @@ self.addEventListener('message', (event) => {
           });
         });
       });
+      
+      // Show notification if permission granted
+      showSyncNotification(result);
     });
+  }
+});
+
+// Show notification for sync results
+async function showSyncNotification(result) {
+  // Check if we have notification permission
+  if (self.Notification?.permission !== 'granted') {
+    return;
+  }
+
+  const { success, failed } = result;
+  
+  // Don't show notification if nothing happened
+  if (success === 0 && failed === 0) {
+    return;
+  }
+
+  const title = failed > 0 ? 'Sync Partially Failed' : 'Sync Complete';
+  const body = failed > 0
+    ? `${success} change(s) synced, ${failed} failed`
+    : `${success} change(s) synced successfully`;
+  const icon = '/pwa-192x192.png';
+  const tag = 'sync-notification';
+
+  try {
+    await self.registration.showNotification(title, {
+      body,
+      icon,
+      tag,
+      badge: '/pwa-192x192.png',
+      vibrate: [100, 50, 100],
+      data: { success, failed },
+      actions: failed > 0 ? [
+        { action: 'retry', title: 'Retry' },
+        { action: 'dismiss', title: 'Dismiss' }
+      ] : []
+    });
+  } catch (error) {
+    console.error('Failed to show notification:', error);
+  }
+}
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'retry') {
+    event.waitUntil(processMutationQueue());
+  } else {
+    // Open or focus the app
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        if (clients.length > 0) {
+          return clients[0].focus();
+        }
+        return self.clients.openWindow('/');
+      })
+    );
   }
 });
 
 // Background Sync event handler
 self.addEventListener('sync', (event) => {
   if (event.tag === SYNC_TAG) {
-    event.waitUntil(processMutationQueue());
+    event.waitUntil(
+      processMutationQueue().then((result) => {
+        showSyncNotification(result);
+        return result;
+      })
+    );
   }
 });
 

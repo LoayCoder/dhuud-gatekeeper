@@ -1353,5 +1353,15 @@
     "savedOffline": "آف لائن محفوظ ہو گیا",
     "savedOfflineDesc": "آپ کی تبدیلیاں واپس آن لائن ہونے پر مطابقت پذیر ہوں گی۔",
     "savedOfflineBackgroundDesc": "آپ کی تبدیلیاں خود بخود پس منظر میں مطابقت پذیر ہوں گی۔"
+  },
+  "notifications": {
+    "enableTitle": "اطلاعات فعال کریں",
+    "enableDescription": "جب آپ کی تبدیلیاں کامیابی سے مطابقت پذیر ہوں یا کوئی مسئلہ ہو تو مطلع ہوں۔",
+    "enable": "فعال کریں",
+    "notNow": "ابھی نہیں",
+    "syncComplete": "مطابقت پذیری مکمل",
+    "syncCompleteBody": "{{count}} تبدیلی(ات) کامیابی سے مطابقت پذیر ہو گئیں",
+    "syncPartialFailed": "مطابقت پذیری جزوی طور پر ناکام",
+    "syncPartialFailedBody": "{{success}} تبدیلی(ات) مطابقت پذیر ہوئیں، {{failed}} ناکام"
   }
 }
