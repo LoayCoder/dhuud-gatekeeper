@@ -32,8 +32,11 @@ interface SubscriptionRequestsTableProps {
   statusFilter?: string;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: SubscriptionRequestsTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['admin-subscription-requests', statusFilter],
@@ -109,7 +112,7 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className={isRTL ? 'text-right' : 'text-left'}>
           <CardTitle>{t('adminSubscription.pendingRequests')}</CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,11 +127,11 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
   const pendingCount = requests.filter(r => r.status === 'pending' || r.status === 'under_review').length;
 
   return (
-    <Card>
+    <Card dir={isRTL ? 'rtl' : 'ltr'}>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={isRTL ? 'text-right' : 'text-left'}>
+            <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               {t('adminSubscription.subscriptionRequests')}
               {pendingCount > 0 && (
                 <Badge variant="destructive" className="rounded-full">
@@ -150,25 +153,25 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('adminSubscription.tenant')}</TableHead>
-                <TableHead>{t('adminSubscription.type')}</TableHead>
-                <TableHead>{t('adminSubscription.requestedPlan')}</TableHead>
-                <TableHead>{t('adminSubscription.price')}</TableHead>
-                <TableHead>{t('common.status')}</TableHead>
-                <TableHead>{t('adminSubscription.submitted')}</TableHead>
-                <TableHead className="text-end">{t('common.actions')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('adminSubscription.tenant')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('adminSubscription.type')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('adminSubscription.requestedPlan')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('adminSubscription.price')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.status')}</TableHead>
+                <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('adminSubscription.submitted')}</TableHead>
+                <TableHead className={isRTL ? 'text-left' : 'text-right'}>{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {requests.map((request) => (
                 <TableRow key={request.id} className={request.status === 'pending' ? 'bg-yellow-500/5' : ''}>
-                  <TableCell className="font-medium">
+                  <TableCell className={`font-medium ${isRTL ? 'text-right' : 'text-left'}`}>
                     {request.tenant?.name || '-'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={isRTL ? 'text-right' : 'text-left'}>
                     {getRequestTypeBadge(request.request_type)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={isRTL ? 'text-right' : 'text-left'}>
                     <div>
                       <span>{request.requested_plan?.display_name || '-'}</span>
                       <span className="text-xs text-muted-foreground block">
@@ -176,19 +179,19 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={isRTL ? 'text-right' : 'text-left'}>
                     <span className="font-medium">
                       {formatPrice(request.calculated_total_monthly)}
                     </span>
                     <span className="text-xs text-muted-foreground">/{t('subscription.month')}</span>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                  <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
                       {getStatusIcon(request.status)}
                       {getStatusBadge(request.status)}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={isRTL ? 'text-right' : 'text-left'}>
                     <div className="text-sm">
                       {format(new Date(request.created_at), 'MMM d, yyyy')}
                       <span className="text-xs text-muted-foreground block">
@@ -196,13 +199,14 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-end">
+                  <TableCell className={isRTL ? 'text-left' : 'text-right'}>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => onReviewRequest(request)}
+                      className={isRTL ? 'flex-row-reverse' : ''}
                     >
-                      <Eye className="h-4 w-4 me-1" />
+                      <Eye className={`h-4 w-4 ${isRTL ? 'ms-1' : 'me-1'}`} />
                       {request.status === 'pending' || request.status === 'under_review' 
                         ? t('adminSubscription.review')
                         : t('adminSubscription.view')
