@@ -16,6 +16,7 @@ import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
 import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
 import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
+import { InstallAppBanner } from "./components/InstallAppBanner";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -57,6 +58,7 @@ const App = () => (
           <Sonner />
           <NetworkStatusIndicator />
           <OnlineRetryHandler />
+          <InstallAppBanner />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>
