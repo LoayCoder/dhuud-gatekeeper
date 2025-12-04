@@ -1369,6 +1369,9 @@
     "syncSuccess": "Sync complete",
     "syncSuccessDesc": "{{count}} change(s) synced successfully.",
     "syncFailed": "Some changes failed",
-    "syncFailedDesc": "{{count}} change(s) could not be synced."
+    "syncFailedDesc": "{{count}} change(s) could not be synced.",
+    "savedOffline": "Saved offline",
+    "savedOfflineDesc": "Your changes will be synced when you're back online.",
+    "savedOfflineBackgroundDesc": "Your changes will sync automatically in the background."
   }
 }

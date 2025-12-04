@@ -1379,6 +1379,9 @@
     "syncSuccess": "اكتملت المزامنة",
     "syncSuccessDesc": "تمت مزامنة {{count}} تغيير(ات) بنجاح.",
     "syncFailed": "فشلت بعض التغييرات",
-    "syncFailedDesc": "تعذرت مزامنة {{count}} تغيير(ات)."
+    "syncFailedDesc": "تعذرت مزامنة {{count}} تغيير(ات).",
+    "savedOffline": "تم الحفظ بدون اتصال",
+    "savedOfflineDesc": "ستتم مزامنة تغييراتك عند العودة للاتصال.",
+    "savedOfflineBackgroundDesc": "ستتم مزامنة تغييراتك تلقائياً في الخلفية."
   }
 }

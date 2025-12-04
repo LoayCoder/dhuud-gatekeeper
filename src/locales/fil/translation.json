@@ -1349,6 +1349,9 @@
     "syncSuccess": "Kumpleto na ang sync",
     "syncSuccessDesc": "{{count}} na pagbabago ang matagumpay na na-sync.",
     "syncFailed": "Nabigo ang ilang pagbabago",
-    "syncFailedDesc": "{{count}} na pagbabago ang hindi ma-sync."
+    "syncFailedDesc": "{{count}} na pagbabago ang hindi ma-sync.",
+    "savedOffline": "Na-save nang offline",
+    "savedOfflineDesc": "Ang iyong mga pagbabago ay magsi-sync kapag bumalik ka online.",
+    "savedOfflineBackgroundDesc": "Ang iyong mga pagbabago ay awtomatikong magsi-sync sa background."
   }
 }
