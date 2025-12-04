@@ -346,7 +346,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent dir={direction}>
                         <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
                         <SelectItem value="contractor_longterm">{t('userTypes.contractorLongterm')}</SelectItem>
                         <SelectItem value="contractor_shortterm">{t('userTypes.contractorShortterm')}</SelectItem>
@@ -562,7 +562,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                             <SelectValue placeholder={t('common.select')} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent dir={direction}>
                           <SelectItem value="none">{t('common.none')}</SelectItem>
                           {hierarchy.branches.map((b) => (
                             <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -593,7 +593,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                             <SelectValue placeholder={t('common.select')} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent dir={direction}>
                           <SelectItem value="none">{t('common.none')}</SelectItem>
                           {hierarchy.divisions.map((d) => (
                             <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
@@ -623,7 +623,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                             <SelectValue placeholder={t('common.select')} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent dir={direction}>
                           <SelectItem value="none">{t('common.none')}</SelectItem>
                           {filteredDepartments.map((d) => (
                             <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
@@ -650,7 +650,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                             <SelectValue placeholder={t('common.select')} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent dir={direction}>
                           <SelectItem value="none">{t('common.none')}</SelectItem>
                           {filteredSections.map((s) => (
                             <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>

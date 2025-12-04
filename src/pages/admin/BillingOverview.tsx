@@ -26,11 +26,9 @@ import {
 import { formatSAR } from '@/lib/pricing-engine';
 import { toast } from 'sonner';
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function BillingOverview() {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = i18n.dir();
   const { tenantsUsage, isLoading: usageLoading, refetch: refetchUsage } = useAllTenantsUsage();
   const { allBilling, isLoading: billingLoading, refetch: refetchBilling } = useAllTenantsBilling();
   const generateBilling = useGenerateBillingRecord();
@@ -75,20 +73,20 @@ export default function BillingOverview() {
   };
 
   return (
-    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-6" dir={direction}>
       {/* Header */}
-      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
-        <div className={isRTL ? 'text-right' : 'text-left'}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBilling.title')}</h1>
           <p className="text-muted-foreground">{t('adminBilling.description')}</p>
         </div>
-        <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className="flex gap-2">
           <Button variant="outline" onClick={() => { refetchUsage(); refetchBilling(); }}>
-            <RefreshCw className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+            <RefreshCw className="h-4 w-4 me-2" />
             {t('common.refresh')}
           </Button>
           <Button variant="outline" onClick={handleExport}>
-            <Download className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+            <Download className="h-4 w-4 me-2" />
             {t('common.export')}
           </Button>
         </div>
@@ -98,9 +96,9 @@ export default function BillingOverview() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex items-center gap-4">
               <Building2 className="h-8 w-8 text-muted-foreground" />
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="text-start">
                 <p className="text-2xl font-bold">{tenantsUsage?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">{t('adminBilling.totalTenants')}</p>
               </div>
@@ -109,9 +107,9 @@ export default function BillingOverview() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex items-center gap-4">
               <Users className="h-8 w-8 text-muted-foreground" />
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="text-start">
                 <p className="text-2xl font-bold">{totalProfiles}</p>
                 <p className="text-xs text-muted-foreground">{t('adminBilling.totalProfiles')}</p>
               </div>
@@ -120,9 +118,9 @@ export default function BillingOverview() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex items-center gap-4">
               <DollarSign className="h-8 w-8 text-muted-foreground" />
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="text-start">
                 <p className="text-2xl font-bold">{formatSAR(totalCharges)}</p>
                 <p className="text-xs text-muted-foreground">{t('adminBilling.totalCharges')}</p>
               </div>
@@ -131,9 +129,9 @@ export default function BillingOverview() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex items-center gap-4">
               <TrendingUp className="h-8 w-8 text-warning" />
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="text-start">
                 <p className="text-2xl font-bold">{tenantsOverQuota}</p>
                 <p className="text-xs text-muted-foreground">{t('adminBilling.overQuota')}</p>
               </div>
@@ -144,7 +142,7 @@ export default function BillingOverview() {
 
       {/* Tabs for Usage vs Billing */}
       <Tabs defaultValue="billing" className="space-y-4">
-        <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
+        <div className="flex justify-start">
           <TabsList>
             <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
             <TabsTrigger value="usage">{t('adminBilling.currentUsage')}</TabsTrigger>
@@ -153,8 +151,8 @@ export default function BillingOverview() {
 
         <TabsContent value="billing">
           <Card>
-            <CardHeader className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="text-start">
                 <CardTitle>{t('adminBilling.billingRecords')}</CardTitle>
                 <CardDescription>{t('adminBilling.billingRecordsDesc')}</CardDescription>
               </div>
@@ -162,7 +160,7 @@ export default function BillingOverview() {
                 onClick={handleGenerateAllBilling} 
                 disabled={generateBilling.isPending}
               >
-                <Receipt className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                <Receipt className="h-4 w-4 me-2" />
                 {t('adminBilling.generateBilling')}
               </Button>
             </CardHeader>
@@ -181,7 +179,7 @@ export default function BillingOverview() {
 
         <TabsContent value="usage">
           <Card>
-            <CardHeader className={isRTL ? 'text-right' : 'text-left'}>
+            <CardHeader className="text-start">
               <CardTitle>{t('adminBilling.currentUsage')}</CardTitle>
               <CardDescription>{t('adminBilling.currentUsageDesc')}</CardDescription>
             </CardHeader>
@@ -197,16 +195,16 @@ export default function BillingOverview() {
                   {tenantsUsage?.map((tenant) => (
                     <div 
                       key={tenant.id} 
-                      className={`flex items-center justify-between p-4 border rounded-lg ${isRTL ? 'flex-row-reverse' : ''}`}
+                      className="flex items-center justify-between p-4 border rounded-lg"
                     >
-                      <div className={isRTL ? 'text-right' : 'text-left'}>
+                      <div className="text-start">
                         <p className="font-medium">{tenant.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {tenant.plans?.name || 'Starter'}
                         </p>
                       </div>
-                      <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <div className={isRTL ? 'text-start' : 'text-end'}>
+                      <div className="flex items-center gap-4">
+                        <div className="text-end">
                           <p className="text-sm">
                             {tenant.usage?.total_profiles || 0} / {tenant.usage?.free_quota || 50}
                           </p>
@@ -231,8 +229,8 @@ export default function BillingOverview() {
 
       {/* Tenant Details Dialog */}
       <Dialog open={!!selectedTenant} onOpenChange={() => setSelectedTenant(null)}>
-        <DialogContent dir={isRTL ? 'rtl' : 'ltr'}>
-          <DialogHeader className={isRTL ? 'text-right' : 'text-left'}>
+        <DialogContent dir={direction}>
+          <DialogHeader className="text-start">
             <DialogTitle>{selectedTenant?.name}</DialogTitle>
             <DialogDescription>
               {t('adminBilling.tenantDetails')}
@@ -241,7 +239,7 @@ export default function BillingOverview() {
           {selectedTenant && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className={`p-4 border rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
+                <div className="p-4 border rounded-lg text-start">
                   <p className="text-sm text-muted-foreground">{t('profileBilling.thisMonth')}</p>
                   <p className="text-2xl font-bold">
                     {selectedTenant.currentBilling?.total_profiles || 0}
@@ -250,7 +248,7 @@ export default function BillingOverview() {
                     {formatSAR(selectedTenant.currentBilling?.profile_charges || 0)}
                   </p>
                 </div>
-                <div className={`p-4 border rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
+                <div className="p-4 border rounded-lg text-start">
                   <p className="text-sm text-muted-foreground">{t('profileBilling.lastMonth')}</p>
                   <p className="text-2xl font-bold">
                     {selectedTenant.lastBilling?.total_profiles || 0}
@@ -260,7 +258,7 @@ export default function BillingOverview() {
                   </p>
                 </div>
               </div>
-              <div className={`p-4 border rounded-lg ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className="p-4 border rounded-lg text-start">
                 <p className="text-sm text-muted-foreground mb-2">{t('subscription.plan')}</p>
                 <Badge>{selectedTenant.plans?.display_name || 'Starter'}</Badge>
               </div>

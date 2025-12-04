@@ -29,11 +29,9 @@ const typeColors = {
 function NotificationItem({ 
   item, 
   onMarkRead,
-  isRTL 
 }: { 
   item: NotificationHistoryItem; 
   onMarkRead: (id: string) => void;
-  isRTL: boolean;
 }) {
   const Icon = typeIcons[item.type] || Info;
   
@@ -41,15 +39,14 @@ function NotificationItem({
     <div 
       className={cn(
         "flex gap-3 p-3 border-b last:border-b-0 transition-colors",
-        !item.read && "bg-muted/50",
-        isRTL && "flex-row-reverse"
+        !item.read && "bg-muted/50"
       )}
     >
       <div className={cn("mt-0.5", typeColors[item.type])}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className={cn("flex-1 min-w-0", isRTL && "text-right")}>
-        <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse justify-end")}>
+      <div className="flex-1 min-w-0 text-start">
+        <div className="flex items-center gap-2">
           <p className={cn("font-medium text-sm truncate", !item.read && "font-semibold")}>
             {item.title}
           </p>
@@ -84,7 +81,7 @@ function NotificationItem({
 
 export function NotificationHistory() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const direction = i18n.dir();
   const { history, unreadCount, markAsRead, markAllAsRead, clearHistory } = useNotificationHistory();
   const [filter, setFilter] = useState<NotificationType>('all');
 
@@ -101,9 +98,9 @@ export function NotificationHistory() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className={cn("flex items-center justify-between", isRTL && "flex-row-reverse")}>
-        <div className={isRTL ? "text-right" : ""}>
+    <div className="space-y-4" dir={direction}>
+      <div className="flex items-center justify-between">
+        <div className="text-start">
           <h3 className="text-lg font-medium">{t('notifications.history')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('notifications.historyDescription')}
@@ -164,16 +161,13 @@ export function NotificationHistory() {
       <div className="rounded-lg border">
         {/* Actions bar */}
         {history.length > 0 && (
-          <div className={cn(
-            "flex items-center justify-between p-2 border-b bg-muted/30",
-            isRTL && "flex-row-reverse"
-          )}>
+          <div className="flex items-center justify-between p-2 border-b bg-muted/30">
             <Button
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
               disabled={unreadCount === 0}
-              className={cn("gap-2", isRTL && "flex-row-reverse")}
+              className="gap-2"
             >
               <CheckCheck className="h-4 w-4" />
               {t('notifications.markAllRead')}
@@ -182,7 +176,7 @@ export function NotificationHistory() {
               variant="ghost"
               size="sm"
               onClick={clearHistory}
-              className={cn("gap-2 text-destructive hover:text-destructive", isRTL && "flex-row-reverse")}
+              className="gap-2 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
               {t('notifications.clearHistory')}
@@ -198,7 +192,6 @@ export function NotificationHistory() {
                 key={item.id}
                 item={item}
                 onMarkRead={markAsRead}
-                isRTL={isRTL}
               />
             ))}
           </ScrollArea>

@@ -21,7 +21,7 @@ interface PasswordRequirement {
 
 export function SecuritySettings() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const direction = i18n.dir();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -106,10 +106,10 @@ export function SecuritySettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={direction}>
       {/* Two-Factor Authentication Section */}
       <div className="space-y-4">
-        <div>
+        <div className="text-start">
           <h3 className="text-lg font-medium">{t('securitySettings.twoFactorAuth')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('securitySettings.twoFactorDescription')}
@@ -132,7 +132,7 @@ export function SecuritySettings() {
 
       {/* Password Section */}
       <div className="space-y-4">
-        <div>
+        <div className="text-start">
           <h3 className="text-lg font-medium">{t('securitySettings.changePassword')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('securitySettings.changePasswordDescription')}
@@ -141,10 +141,10 @@ export function SecuritySettings() {
 
         {/* Password Requirements */}
         <div className="rounded-lg border p-4 bg-muted/5">
-          <h4 className="text-sm font-medium mb-3 ltr:text-left rtl:text-right">{t('securitySettings.passwordRequirements')}</h4>
-          <ul className="flex flex-col space-y-2 rtl:items-end">
+          <h4 className="text-sm font-medium mb-3 text-start">{t('securitySettings.passwordRequirements')}</h4>
+          <ul className="flex flex-col space-y-2">
             {requirements.map((req, index) => (
-              <li key={index} className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
+              <li key={index} className="flex items-center gap-2 text-sm">
                 {req.met ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                 ) : (
@@ -165,7 +165,7 @@ export function SecuritySettings() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute start-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -178,7 +178,7 @@ export function SecuritySettings() {
                 placeholder={t('securitySettings.enterNewPassword')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute end-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export function SecuritySettings() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute ltr:left-3 rtl:right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute start-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -201,10 +201,10 @@ export function SecuritySettings() {
                 placeholder={t('securitySettings.confirmNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
-              <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute end-3 top-3 h-4 w-4 text-muted-foreground" />
             </div>
             {confirmPassword.length > 0 && (
-              <div className={`flex items-center gap-2 text-sm ${isRTL ? 'flex-row-reverse justify-end' : 'flex-row justify-start'}`}>
+              <div className="flex items-center gap-2 text-sm">
                 {passwordsMatch ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
@@ -227,7 +227,7 @@ export function SecuritySettings() {
             </Alert>
           )}
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end">
             <Button 
               type="submit" 
               disabled={loading || isChecking || !allRequirementsMet || !passwordsMatch}

@@ -24,7 +24,7 @@ const categoryConfig: {
 
 export function NotificationCategoryPreferences() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const direction = i18n.dir();
   const [prefs, setPrefs] = useState<CategoryPreferences>(getCategoryPreferences);
 
   useEffect(() => {
@@ -38,8 +38,8 @@ export function NotificationCategoryPreferences() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className={isRTL ? "text-right" : ""}>
+    <div className="space-y-4" dir={direction}>
+      <div className="text-start">
         <h3 className="text-lg font-medium">{t('notifications.categoryPreferences')}</h3>
         <p className="text-sm text-muted-foreground">
           {t('notifications.categoryPreferencesDescription')}
@@ -50,14 +50,11 @@ export function NotificationCategoryPreferences() {
         {categoryConfig.map(({ type, icon: Icon, colorClass }) => (
           <div
             key={type}
-            className={cn(
-              "flex items-center justify-between py-3 border-b last:border-b-0",
-              isRTL && "flex-row-reverse"
-            )}
+            className="flex items-center justify-between py-3 border-b last:border-b-0"
           >
-            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+            <div className="flex items-center gap-3">
               <Icon className={cn("h-4 w-4", colorClass)} />
-              <div className={isRTL ? "text-right" : ""}>
+              <div className="text-start">
                 <Label htmlFor={`category-${type}`} className="font-medium cursor-pointer">
                   {t(`notifications.category.${type}`)}
                 </Label>

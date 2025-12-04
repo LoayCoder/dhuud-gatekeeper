@@ -8,11 +8,12 @@ interface TenantInfoProps {
 }
 
 export function TenantInfo({ memberSince }: TenantInfoProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const { tenantName, activeSidebarIconUrl, activePrimaryColor } = useTheme();
 
   return (
-    <Card>
+    <Card dir={direction}>
       <CardHeader>
         <CardTitle className="text-lg text-start">{t('tenant.organization')}</CardTitle>
       </CardHeader>
@@ -38,15 +39,15 @@ export function TenantInfo({ memberSince }: TenantInfoProps) {
 
         <div className="space-y-2 text-start">
           <div className="text-sm grid gap-2">
-            <div className="flex justify-between py-2 border-b rtl:flex-row-reverse">
+            <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground">{t('common.status')}</span>
-              <span className="text-green-600 font-medium flex items-center gap-1 rtl:flex-row-reverse">
+              <span className="text-green-600 font-medium flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-green-600 inline-block" />
                 {t('common.active')}
               </span>
             </div>
             {memberSince && (
-              <div className="flex justify-between py-2 border-b rtl:flex-row-reverse">
+              <div className="flex justify-between py-2 border-b">
                 <span className="text-muted-foreground">{t('tenant.memberSince')}</span>
                 <span>{new Date(memberSince).toLocaleDateString()}</span>
               </div>
