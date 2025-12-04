@@ -3,22 +3,31 @@ import { useState, useEffect, useRef } from 'react';
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [wasOffline, setWasOffline] = useState(false);
+  const [isDismissing, setIsDismissing] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dismissTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Auto-dismiss "Back online" after 3 seconds
-      timeoutRef.current = setTimeout(() => setWasOffline(false), 3000);
+      // Start dismiss animation after 2.5 seconds
+      timeoutRef.current = setTimeout(() => {
+        setIsDismissing(true);
+        // Hide completely after animation (300ms)
+        dismissTimeoutRef.current = setTimeout(() => {
+          setWasOffline(false);
+          setIsDismissing(false);
+        }, 300);
+      }, 2500);
     };
 
     const handleOffline = () => {
-      // Clear any pending timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      // Clear any pending timeouts
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (dismissTimeoutRef.current) clearTimeout(dismissTimeoutRef.current);
       setIsOnline(false);
       setWasOffline(true);
+      setIsDismissing(false);
     };
 
     window.addEventListener('online', handleOnline);
@@ -27,11 +36,10 @@ export function useNetworkStatus() {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (dismissTimeoutRef.current) clearTimeout(dismissTimeoutRef.current);
     };
   }, []);
 
-  return { isOnline, wasOffline };
+  return { isOnline, wasOffline, isDismissing };
 }
