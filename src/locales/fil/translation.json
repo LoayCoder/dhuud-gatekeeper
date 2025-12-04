@@ -1353,5 +1353,15 @@
     "savedOffline": "Na-save nang offline",
     "savedOfflineDesc": "Ang iyong mga pagbabago ay magsi-sync kapag bumalik ka online.",
     "savedOfflineBackgroundDesc": "Ang iyong mga pagbabago ay awtomatikong magsi-sync sa background."
+  },
+  "notifications": {
+    "enableTitle": "I-enable ang Notifications",
+    "enableDescription": "Ma-notify kapag matagumpay na na-sync ang iyong mga pagbabago o may mga problema.",
+    "enable": "I-enable",
+    "notNow": "Hindi Ngayon",
+    "syncComplete": "Kumpleto na ang Sync",
+    "syncCompleteBody": "{{count}} na pagbabago ang matagumpay na na-sync",
+    "syncPartialFailed": "Nabigo ang Bahagi ng Sync",
+    "syncPartialFailedBody": "{{success}} na pagbabago ang na-sync, {{failed}} ang nabigo"
   }
 }

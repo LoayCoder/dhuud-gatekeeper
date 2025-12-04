@@ -1373,5 +1373,15 @@
     "savedOffline": "Saved offline",
     "savedOfflineDesc": "Your changes will be synced when you're back online.",
     "savedOfflineBackgroundDesc": "Your changes will sync automatically in the background."
+  },
+  "notifications": {
+    "enableTitle": "Enable Notifications",
+    "enableDescription": "Get notified when your offline changes sync successfully or if there are any issues.",
+    "enable": "Enable",
+    "notNow": "Not Now",
+    "syncComplete": "Sync Complete",
+    "syncCompleteBody": "{{count}} change(s) synced successfully",
+    "syncPartialFailed": "Sync Partially Failed",
+    "syncPartialFailedBody": "{{success}} change(s) synced, {{failed}} failed"
   }
 }

@@ -1353,5 +1353,15 @@
     "savedOffline": "ऑफ़लाइन सहेजा गया",
     "savedOfflineDesc": "आपके परिवर्तन वापस ऑनलाइन होने पर सिंक होंगे।",
     "savedOfflineBackgroundDesc": "आपके परिवर्तन स्वचालित रूप से बैकग्राउंड में सिंक होंगे।"
+  },
+  "notifications": {
+    "enableTitle": "सूचनाएं सक्षम करें",
+    "enableDescription": "जब आपके परिवर्तन सफलतापूर्वक सिंक हों या कोई समस्या हो तो सूचित हों।",
+    "enable": "सक्षम करें",
+    "notNow": "अभी नहीं",
+    "syncComplete": "सिंक पूर्ण",
+    "syncCompleteBody": "{{count}} परिवर्तन सफलतापूर्वक सिंक हुए",
+    "syncPartialFailed": "सिंक आंशिक रूप से विफल",
+    "syncPartialFailedBody": "{{success}} परिवर्तन सिंक हुए, {{failed}} विफल"
   }
 }

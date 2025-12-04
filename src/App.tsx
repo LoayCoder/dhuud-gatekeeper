@@ -18,6 +18,7 @@ import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
 import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNotifier";
+import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -61,6 +62,7 @@ const App = () => (
           <OnlineRetryHandler />
           <InstallAppBanner />
           <ServiceWorkerUpdateNotifier />
+          <NotificationPermissionPrompt />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>
