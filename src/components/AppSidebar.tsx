@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -38,7 +38,9 @@ import {
   FileStack,
   BarChart3,
   ShieldAlert,
+  Bell,
 } from "lucide-react";
+import { useNotificationHistory } from "@/hooks/use-notification-history";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +66,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
+  const { unreadCount } = useNotificationHistory();
 
   // Watch for direction changes
   useEffect(() => {
@@ -217,34 +220,50 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              {themeLoading ? (
-                <div className="flex items-center gap-2 w-full">
-                  <Skeleton className="size-8 rounded-lg shrink-0" />
-                  <div className="space-y-1 flex-1 overflow-hidden">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-3 w-12" />
+            <div className="flex items-center gap-2 w-full">
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex-1"
+              >
+                {themeLoading ? (
+                  <div className="flex items-center gap-2 w-full">
+                    <Skeleton className="size-8 rounded-lg shrink-0" />
+                    <div className="space-y-1 flex-1 overflow-hidden">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex aspect-square size-8 items-center justify-center">
-                    {activeSidebarIconUrl ? (
-                      <img src={activeSidebarIconUrl} alt="Icon" className="size-8 object-contain" />
-                    ) : (
-                      <Shield className="size-6 text-primary" />
-                    )}
-                  </div>
-                  <div className="grid flex-1 text-start text-sm leading-tight">
-                    <span className="truncate font-semibold">{tenantName}</span>
-                    <span className="truncate text-xs text-muted-foreground">{t('navigation.enterpriseHsse')}</span>
-                  </div>
-                </>
-              )}
-            </SidebarMenuButton>
+                ) : (
+                  <>
+                    <div className="flex aspect-square size-8 items-center justify-center">
+                      {activeSidebarIconUrl ? (
+                        <img src={activeSidebarIconUrl} alt="Icon" className="size-8 object-contain" />
+                      ) : (
+                        <Shield className="size-6 text-primary" />
+                      )}
+                    </div>
+                    <div className="grid flex-1 text-start text-sm leading-tight">
+                      <span className="truncate font-semibold">{tenantName}</span>
+                      <span className="truncate text-xs text-muted-foreground">{t('navigation.enterpriseHsse')}</span>
+                    </div>
+                  </>
+                )}
+              </SidebarMenuButton>
+              
+              {/* Notification Bell with Badge */}
+              <button
+                onClick={() => navigate("/profile?tab=security")}
+                className="relative p-2 rounded-md hover:bg-sidebar-accent transition-colors group-data-[collapsible=icon]:hidden"
+                title={t('notifications.title')}
+              >
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
