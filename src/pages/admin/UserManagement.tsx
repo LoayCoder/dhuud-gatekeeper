@@ -44,7 +44,6 @@ export default function UserManagement() {
   const { profile } = useAuth();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
-  const textAlign = isRTL ? 'text-right' : 'text-left';
   
   const [branches, setBranches] = useState<HierarchyItem[]>([]);
   const [divisions, setDivisions] = useState<HierarchyItem[]>([]);
@@ -199,14 +198,14 @@ export default function UserManagement() {
 
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className={`text-lg ${textAlign}`}>{t('userManagement.filters')}</CardTitle>
+          <CardTitle className="text-lg text-start">{t('userManagement.filters')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className={`space-y-2 ${textAlign}`}>
+            <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
               <Select value={userTypeFilter} onValueChange={setUserTypeFilter} dir={direction}>
-                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allTypes')}</SelectItem>
                   <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
@@ -218,10 +217,10 @@ export default function UserManagement() {
               </Select>
             </div>
 
-            <div className={`space-y-2 ${textAlign}`}>
+            <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByStatus')}</label>
               <Select value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
-                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allStatuses')}</SelectItem>
                   <SelectItem value="active">{t('userManagement.active')}</SelectItem>
@@ -230,10 +229,10 @@ export default function UserManagement() {
               </Select>
             </div>
 
-            <div className={`space-y-2 ${textAlign}`}>
+            <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByBranch')}</label>
               <Select value={branchFilter} onValueChange={setBranchFilter} dir={direction}>
-                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
                   {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
@@ -241,10 +240,10 @@ export default function UserManagement() {
               </Select>
             </div>
 
-            <div className={`space-y-2 ${textAlign}`}>
+            <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByDivision')}</label>
               <Select value={divisionFilter} onValueChange={setDivisionFilter} dir={direction}>
-                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allDivisions')}</SelectItem>
                   {divisions.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
@@ -252,10 +251,10 @@ export default function UserManagement() {
               </Select>
             </div>
 
-            <div className={`space-y-2 ${textAlign}`}>
+            <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByRole')}</label>
               <Select value={roleFilter} onValueChange={setRoleFilter} dir={direction}>
-                <SelectTrigger className={textAlign}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
                 <SelectContent dir={direction} className="bg-background">
                   <SelectItem value="all">{t('userManagement.allRoles')}</SelectItem>
                   {roles.map(r => <SelectItem key={r.id} value={r.code}>{r.name}</SelectItem>)}
@@ -276,13 +275,13 @@ export default function UserManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className={textAlign}>{t('profile.fullName')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.userType')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.status')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.login')}</TableHead>
-                  <TableHead className={textAlign}>{t('orgStructure.branch')}</TableHead>
-                  <TableHead className={textAlign}>{t('userManagement.hierarchy')}</TableHead>
-                  <TableHead className={textAlign}>{t('common.actions')}</TableHead>
+                  <TableHead className="text-start">{t('profile.fullName')}</TableHead>
+                  <TableHead className="text-start">{t('userManagement.userType')}</TableHead>
+                  <TableHead className="text-start">{t('userManagement.status')}</TableHead>
+                  <TableHead className="text-start">{t('userManagement.login')}</TableHead>
+                  <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
+                  <TableHead className="text-start">{t('userManagement.hierarchy')}</TableHead>
+                  <TableHead className="text-start">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -295,7 +294,7 @@ export default function UserManagement() {
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className={`font-medium ${textAlign}`}>
+                      <TableCell className="font-medium text-start">
                         <div className="flex flex-col">
                           <span>{user.full_name || '-'}</span>
                           {user.employee_id && (
@@ -303,27 +302,27 @@ export default function UserManagement() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className={textAlign}>
+                      <TableCell className="text-start">
                         <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
                           {user.user_type ? t(getUserTypeLabel(user.user_type)) : '-'}
                         </Badge>
                       </TableCell>
-                      <TableCell className={textAlign}>
+                      <TableCell className="text-start">
                         <Badge variant={user.is_active ? 'default' : 'secondary'}>
                           {user.is_active ? t('userManagement.active') : t('userManagement.inactive')}
                         </Badge>
                       </TableCell>
-                      <TableCell className={textAlign}>
+                      <TableCell className="text-start">
                         {user.has_login ? (
                           <LogIn className="h-4 w-4 text-primary" />
                         ) : (
                           <LogOut className="h-4 w-4 text-muted-foreground" />
                         )}
                       </TableCell>
-                      <TableCell className={textAlign}>
+                      <TableCell className="text-start">
                         {user.branch_name || '-'}
                       </TableCell>
-                      <TableCell className={`text-sm ${textAlign}`}>
+                      <TableCell className="text-sm text-start">
                         {user.division_name && (
                           <span>{user.division_name}</span>
                         )}
@@ -335,7 +334,7 @@ export default function UserManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className={`flex items-center gap-2 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                        <div className="flex items-center gap-2 justify-start">
                           <Button
                             variant="ghost"
                             size="icon"
