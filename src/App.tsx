@@ -15,6 +15,7 @@ import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
 import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
+import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -55,6 +56,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <NetworkStatusIndicator />
+          <OnlineRetryHandler />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>
