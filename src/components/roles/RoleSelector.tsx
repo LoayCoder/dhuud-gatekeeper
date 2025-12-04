@@ -65,23 +65,17 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
   const selectedRoles = roles.filter(r => selectedRoleIds.includes(r.id));
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" dir={isRTL ? 'rtl' : 'ltr'}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={cn(
-              "w-full justify-between min-h-[40px] h-auto",
-              isRTL && "flex-row-reverse"
-            )}
+            className="w-full justify-between min-h-[40px] h-auto"
             disabled={disabled || isLoading}
           >
-            <div className={cn(
-              "flex flex-wrap gap-1",
-              isRTL ? "justify-end" : "justify-start"
-            )}>
+            <div className="flex flex-wrap gap-1 flex-1">
               {selectedRoles.length === 0 ? (
                 <span className="text-muted-foreground">{t('roles.selectRoles')}</span>
               ) : (
@@ -177,7 +171,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
 
       {/* Selected roles display */}
       {selectedRoles.length > 0 && (
-        <div className={cn("flex flex-wrap gap-1", isRTL && "justify-end")}>
+        <div className="flex flex-wrap gap-1">
           {selectedRoles.map(role => (
             <RoleBadge
               key={role.id}
