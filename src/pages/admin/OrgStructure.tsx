@@ -52,13 +52,11 @@ interface Site {
 
 type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites';
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = i18n.dir();
   
   // Data State
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -335,18 +333,15 @@ export default function OrgStructure() {
     );
   }
 
-  const direction = isRTL ? 'rtl' : 'ltr';
-  const textAlign = isRTL ? 'text-end' : 'text-start';
-
   // Branch row component with location support
   const renderBranchRow = (item: Branch) => (
     <TableRow key={item.id}>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
           <Input
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className={`h-8 ${textAlign}`}
+            className="h-8 text-start"
             dir={direction}
             autoFocus
             onKeyDown={(e) => {
@@ -358,9 +353,9 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
-          <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex gap-2">
             <Input
               value={editingLatitude}
               onChange={(e) => setEditingLatitude(e.target.value)}
@@ -383,7 +378,7 @@ export default function OrgStructure() {
             <Button
               variant="ghost"
               size="sm"
-              className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+              className="gap-1"
               onClick={() => openInMaps(item.latitude!, item.longitude!)}
             >
               <MapPin className="h-3 w-3" />
@@ -394,8 +389,8 @@ export default function OrgStructure() {
           )
         )}
       </TableCell>
-      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
-        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+      <TableCell className="text-end">
+        <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
             <>
               <Button variant="ghost" size="sm" onClick={() => handleUpdate('branches', item.id)} disabled={saving}>
@@ -423,12 +418,12 @@ export default function OrgStructure() {
   // Reusable row component for simple tables (divisions)
   const renderSimpleRow = (item: { id: string; name: string }, table: TableType) => (
     <TableRow key={item.id}>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
           <Input
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className={`h-8 ${textAlign}`}
+            className="h-8 text-start"
             dir={direction}
             autoFocus
             onKeyDown={(e) => {
@@ -440,8 +435,8 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
-      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
-        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+      <TableCell className="text-end">
+        <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
             <>
               <Button variant="ghost" size="sm" onClick={() => handleUpdate(table, item.id)} disabled={saving}>
@@ -473,12 +468,12 @@ export default function OrgStructure() {
     table: TableType
   ) => (
     <TableRow key={item.id}>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
           <Input
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className={`h-8 ${textAlign}`}
+            className="h-8 text-start"
             dir={direction}
             autoFocus
             onKeyDown={(e) => {
@@ -490,9 +485,9 @@ export default function OrgStructure() {
           item.name
         )}
       </TableCell>
-      <TableCell className={`text-muted-foreground ${textAlign}`}>{parentName}</TableCell>
-      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
-        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+      <TableCell className="text-muted-foreground text-start">{parentName}</TableCell>
+      <TableCell className="text-end">
+        <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
             <>
               <Button variant="ghost" size="sm" onClick={() => handleUpdate(table, item.id)} disabled={saving}>
@@ -520,12 +515,12 @@ export default function OrgStructure() {
   // Site row component with GPS coordinates support
   const renderSiteRow = (item: Site) => (
     <TableRow key={item.id}>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
           <Input
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className={`h-8 ${textAlign}`}
+            className="h-8 text-start"
             dir={direction}
             autoFocus
             onKeyDown={(e) => {
@@ -534,18 +529,18 @@ export default function OrgStructure() {
             }}
           />
         ) : (
-          <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
             {item.name}
           </div>
         )}
       </TableCell>
-      <TableCell className={`text-muted-foreground ${textAlign}`}>
+      <TableCell className="text-muted-foreground text-start">
         {item.branches?.name || '-'}
       </TableCell>
-      <TableCell className={textAlign}>
+      <TableCell className="text-start">
         {editingId === item.id ? (
-          <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex gap-2">
             <Input
               value={editingLatitude}
               onChange={(e) => setEditingLatitude(e.target.value)}
@@ -568,7 +563,7 @@ export default function OrgStructure() {
             <Button
               variant="ghost"
               size="sm"
-              className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+              className="gap-1"
               onClick={() => openInMaps(item.latitude!, item.longitude!)}
             >
               <MapPin className="h-3 w-3" />
@@ -579,8 +574,8 @@ export default function OrgStructure() {
           )
         )}
       </TableCell>
-      <TableCell className={isRTL ? 'text-start' : 'text-end'}>
-        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse justify-start' : 'justify-end'}`}>
+      <TableCell className="text-end">
+        <div className="flex gap-1 justify-end">
           {editingId === item.id ? (
             <>
               <Button variant="ghost" size="sm" onClick={() => handleUpdate('sites', item.id)} disabled={saving}>
@@ -614,7 +609,7 @@ export default function OrgStructure() {
       </div>
 
       <Tabs defaultValue="branches" className="w-full" dir={direction}>
-        <TabsList className={`grid w-full grid-cols-5 lg:w-[750px] ${isRTL ? 'ms-auto' : ''}`}>
+        <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
           <TabsTrigger value="sites">{t('orgStructure.sites')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
@@ -626,31 +621,31 @@ export default function OrgStructure() {
         <TabsContent value="branches">
           <Card>
             <CardHeader>
-              <CardTitle className={textAlign}>{t('orgStructure.manageBranches')}</CardTitle>
+              <CardTitle className="text-start">{t('orgStructure.manageBranches')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Branch Creation Form */}
               <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className={`grid gap-4 md:grid-cols-2 ${isRTL ? 'text-end' : 'text-start'}`}>
+                <div className="grid gap-4 md:grid-cols-2 text-start">
                   {/* Branch Name */}
                   <div className="space-y-2">
-                    <Label className={textAlign}>{t('orgStructure.branchName')}</Label>
+                    <Label className="text-start">{t('orgStructure.branchName')}</Label>
                     <Input 
                       placeholder={t('orgStructure.newBranchPlaceholder')}
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      className={textAlign}
+                      className="text-start"
                       dir={direction}
                     />
                   </div>
                   {/* Location Description */}
                   <div className="space-y-2">
-                    <Label className={textAlign}>{t('orgStructure.locationDescription')}</Label>
+                    <Label className="text-start">{t('orgStructure.locationDescription')}</Label>
                     <Input 
                       placeholder={t('orgStructure.locationPlaceholder')}
                       value={newBranchLocation}
                       onChange={(e) => setNewBranchLocation(e.target.value)}
-                      className={textAlign}
+                      className="text-start"
                       dir={direction}
                     />
                   </div>
@@ -658,8 +653,8 @@ export default function OrgStructure() {
 
                 {/* GPS Coordinates */}
                 <div className="space-y-2">
-                  <Label className={textAlign}>{t('orgStructure.gpsCoordinates')}</Label>
-                  <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Label className="text-start">{t('orgStructure.gpsCoordinates')}</Label>
+                  <div className="flex gap-4 items-end">
                     <div className="flex-1">
                       <Input 
                         placeholder={t('orgStructure.latitude')}
@@ -667,7 +662,7 @@ export default function OrgStructure() {
                         onChange={(e) => setNewBranchLatitude(e.target.value)}
                         type="number"
                         step="any"
-                        className={textAlign}
+                        className="text-start"
                       />
                     </div>
                     <div className="flex-1">
@@ -677,25 +672,25 @@ export default function OrgStructure() {
                         onChange={(e) => setNewBranchLongitude(e.target.value)}
                         type="number"
                         step="any"
-                        className={textAlign}
+                        className="text-start"
                       />
                     </div>
                     <Button 
                       variant="outline" 
                       onClick={getCurrentLocation}
                       disabled={gettingLocation}
-                      className={`shrink-0 ${isRTL ? 'flex-row-reverse' : ''}`}
+                      className="shrink-0"
                     >
                       {gettingLocation ? (
-                        <Loader2 className={`h-4 w-4 animate-spin ${isRTL ? 'ms-2' : 'me-2'}`} />
+                        <Loader2 className="h-4 w-4 animate-spin me-2" />
                       ) : (
-                        <Navigation className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                        <Navigation className="h-4 w-4 me-2" />
                       )}
                       {t('orgStructure.useCurrentLocation')}
                     </Button>
                   </div>
                   {newBranchLatitude && newBranchLongitude && (
-                    <p className={`text-xs text-muted-foreground ${textAlign}`}>
+                    <p className="text-xs text-muted-foreground text-start">
                       <a 
                         href={`https://www.google.com/maps?q=${newBranchLatitude},${newBranchLongitude}`}
                         target="_blank"
@@ -711,9 +706,9 @@ export default function OrgStructure() {
                 <Button 
                   onClick={() => handleCreate('branches')} 
                   disabled={creating || !newItemName.trim()} 
-                  className={`w-full md:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
+                  className="w-full md:w-auto"
                 >
-                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                  <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.addBranch')}
                 </Button>
               </div>
@@ -723,9 +718,9 @@ export default function OrgStructure() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.coordinates')}</TableHead>
-                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.coordinates')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -749,34 +744,34 @@ export default function OrgStructure() {
         <TabsContent value="sites">
           <Card>
             <CardHeader>
-              <CardTitle className={textAlign}>{t('orgStructure.manageSites')}</CardTitle>
+              <CardTitle className="text-start">{t('orgStructure.manageSites')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Site Creation Form */}
               <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className={`grid gap-4 md:grid-cols-2 ${isRTL ? 'text-end' : 'text-start'}`}>
+                <div className="grid gap-4 md:grid-cols-2 text-start">
                   {/* Parent Branch */}
                   <div className="space-y-2">
-                    <Label className={textAlign}>{t('orgStructure.parentBranch')}</Label>
+                    <Label className="text-start">{t('orgStructure.parentBranch')}</Label>
                     <Select onValueChange={setParentId} value={parentId}>
-                      <SelectTrigger className={textAlign} dir={direction}>
+                      <SelectTrigger className="text-start" dir={direction}>
                         <SelectValue placeholder={t('orgStructure.selectBranch')} />
                       </SelectTrigger>
                       <SelectContent dir={direction}>
                         {branches.map(b => (
-                          <SelectItem key={b.id} value={b.id} className={textAlign}>{b.name}</SelectItem>
+                          <SelectItem key={b.id} value={b.id} className="text-start">{b.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   {/* Site Name */}
                   <div className="space-y-2">
-                    <Label className={textAlign}>{t('orgStructure.siteName')}</Label>
+                    <Label className="text-start">{t('orgStructure.siteName')}</Label>
                     <Input 
                       placeholder={t('orgStructure.newSitePlaceholder')}
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      className={textAlign}
+                      className="text-start"
                       dir={direction}
                     />
                   </div>
@@ -784,8 +779,8 @@ export default function OrgStructure() {
 
                 {/* GPS Coordinates */}
                 <div className="space-y-2">
-                  <Label className={textAlign}>{t('orgStructure.gpsCoordinates')}</Label>
-                  <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Label className="text-start">{t('orgStructure.gpsCoordinates')}</Label>
+                  <div className="flex gap-4 items-end">
                     <div className="flex-1">
                       <Input 
                         placeholder={t('orgStructure.latitude')}
@@ -793,7 +788,7 @@ export default function OrgStructure() {
                         onChange={(e) => setNewSiteLatitude(e.target.value)}
                         type="number"
                         step="any"
-                        className={textAlign}
+                        className="text-start"
                       />
                     </div>
                     <div className="flex-1">
@@ -803,7 +798,7 @@ export default function OrgStructure() {
                         onChange={(e) => setNewSiteLongitude(e.target.value)}
                         type="number"
                         step="any"
-                        className={textAlign}
+                        className="text-start"
                       />
                     </div>
                     <Button 
@@ -833,18 +828,18 @@ export default function OrgStructure() {
                         );
                       }}
                       disabled={gettingSiteLocation}
-                      className={`shrink-0 ${isRTL ? 'flex-row-reverse' : ''}`}
+                      className="shrink-0"
                     >
                       {gettingSiteLocation ? (
-                        <Loader2 className={`h-4 w-4 animate-spin ${isRTL ? 'ms-2' : 'me-2'}`} />
+                        <Loader2 className="h-4 w-4 animate-spin me-2" />
                       ) : (
-                        <Navigation className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                        <Navigation className="h-4 w-4 me-2" />
                       )}
                       {t('orgStructure.useCurrentLocation')}
                     </Button>
                   </div>
                   {newSiteLatitude && newSiteLongitude && (
-                    <p className={`text-xs text-muted-foreground ${textAlign}`}>
+                    <p className="text-xs text-muted-foreground text-start">
                       <a 
                         href={`https://www.google.com/maps?q=${newSiteLatitude},${newSiteLongitude}`}
                         target="_blank"
@@ -860,21 +855,21 @@ export default function OrgStructure() {
                 <Button 
                   onClick={() => handleCreate('sites')} 
                   disabled={creating || !parentId || !newItemName.trim()} 
-                  className={`w-full md:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
+                  className="w-full md:w-auto"
                 >
-                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                  <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.addSite')}
                 </Button>
               </div>
 
               {/* Search Filter */}
-              <div className={`relative ${isRTL ? 'text-end' : 'text-start'}`}>
-                <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground ${isRTL ? 'end-3' : 'start-3'}`} />
+              <div className="relative text-start">
+                <Search className="absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground start-3" />
                 <Input
                   placeholder={t('orgStructure.searchSites')}
                   value={siteSearchQuery}
                   onChange={(e) => setSiteSearchQuery(e.target.value)}
-                  className={`${isRTL ? 'pe-10' : 'ps-10'} ${textAlign}`}
+                  className="ps-10 text-start"
                   dir={direction}
                 />
               </div>
@@ -884,10 +879,10 @@ export default function OrgStructure() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className={textAlign}>{t('orgStructure.siteName')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.parentBranch')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.coordinates')}</TableHead>
-                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.siteName')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.parentBranch')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.coordinates')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -922,19 +917,19 @@ export default function OrgStructure() {
         <TabsContent value="divisions">
           <Card>
             <CardHeader>
-              <CardTitle className={textAlign}>{t('orgStructure.manageDivisions')}</CardTitle>
+              <CardTitle className="text-start">{t('orgStructure.manageDivisions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className="flex gap-4">
                 <Input 
                   placeholder={t('orgStructure.newDivisionPlaceholder')}
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
-                  className={textAlign}
+                  className="text-start"
                   dir={direction}
                 />
-                <Button onClick={() => handleCreate('divisions')} disabled={creating} className={isRTL ? 'flex-row-reverse' : ''}>
-                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                <Button onClick={() => handleCreate('divisions')} disabled={creating}>
+                  <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.add')}
                 </Button>
               </div>
@@ -942,8 +937,8 @@ export default function OrgStructure() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className={textAlign}>{t('orgStructure.name')}</TableHead>
-                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.name')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -967,35 +962,35 @@ export default function OrgStructure() {
         <TabsContent value="departments">
           <Card>
             <CardHeader>
-              <CardTitle className={textAlign}>{t('orgStructure.manageDepartments')}</CardTitle>
+              <CardTitle className="text-start">{t('orgStructure.manageDepartments')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className="flex gap-4 items-end">
                 <div className="w-1/3">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentDivision')}</Label>
+                  <Label className="mb-2 block text-start">{t('orgStructure.parentDivision')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
-                    <SelectTrigger className={textAlign} dir={direction}>
+                    <SelectTrigger className="text-start" dir={direction}>
                       <SelectValue placeholder={t('orgStructure.selectDivision')} />
                     </SelectTrigger>
                     <SelectContent dir={direction}>
                       {divisions.map(d => (
-                        <SelectItem key={d.id} value={d.id} className={textAlign}>{d.name}</SelectItem>
+                        <SelectItem key={d.id} value={d.id} className="text-start">{d.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.departmentName')}</Label>
+                  <Label className="mb-2 block text-start">{t('orgStructure.departmentName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newDepartmentPlaceholder')}
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    className={textAlign}
+                    className="text-start"
                     dir={direction}
                   />
                 </div>
-                <Button onClick={() => handleCreate('departments')} disabled={creating || !parentId} className={isRTL ? 'flex-row-reverse' : ''}>
-                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                <Button onClick={() => handleCreate('departments')} disabled={creating || !parentId}>
+                  <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.add')}
                 </Button>
               </div>
@@ -1003,9 +998,9 @@ export default function OrgStructure() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className={textAlign}>{t('orgStructure.department')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.parentDivision')}</TableHead>
-                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.department')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.parentDivision')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1031,35 +1026,35 @@ export default function OrgStructure() {
         <TabsContent value="sections">
           <Card>
             <CardHeader>
-              <CardTitle className={textAlign}>{t('orgStructure.manageSections')}</CardTitle>
+              <CardTitle className="text-start">{t('orgStructure.manageSections')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={`flex gap-4 items-end ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className="flex gap-4 items-end">
                 <div className="w-1/3">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.parentDepartment')}</Label>
+                  <Label className="mb-2 block text-start">{t('orgStructure.parentDepartment')}</Label>
                   <Select onValueChange={setParentId} value={parentId}>
-                    <SelectTrigger className={textAlign} dir={direction}>
+                    <SelectTrigger className="text-start" dir={direction}>
                       <SelectValue placeholder={t('orgStructure.selectDepartment')} />
                     </SelectTrigger>
                     <SelectContent dir={direction}>
                       {departments.map(d => (
-                        <SelectItem key={d.id} value={d.id} className={textAlign}>{d.name}</SelectItem>
+                        <SelectItem key={d.id} value={d.id} className="text-start">{d.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <Label className={`mb-2 block ${textAlign}`}>{t('orgStructure.sectionName')}</Label>
+                  <Label className="mb-2 block text-start">{t('orgStructure.sectionName')}</Label>
                   <Input 
                     placeholder={t('orgStructure.newSectionPlaceholder')}
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    className={textAlign}
+                    className="text-start"
                     dir={direction}
                   />
                 </div>
-                <Button onClick={() => handleCreate('sections')} disabled={creating || !parentId} className={isRTL ? 'flex-row-reverse' : ''}>
-                  <Plus className={`h-4 w-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                <Button onClick={() => handleCreate('sections')} disabled={creating || !parentId}>
+                  <Plus className="h-4 w-4 me-2" />
                   {t('orgStructure.add')}
                 </Button>
               </div>
@@ -1067,9 +1062,9 @@ export default function OrgStructure() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className={textAlign}>{t('orgStructure.section')}</TableHead>
-                      <TableHead className={textAlign}>{t('orgStructure.parentDepartment')}</TableHead>
-                      <TableHead className={isRTL ? 'text-start' : 'text-end'}>{t('orgStructure.actions')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.section')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.parentDepartment')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

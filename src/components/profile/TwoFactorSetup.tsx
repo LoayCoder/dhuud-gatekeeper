@@ -12,7 +12,8 @@ import { BackupCodesDialog, BackupCodesStatus } from "./BackupCodesDialog";
 import { toast } from "@/hooks/use-toast";
 
 export function TwoFactorSetup() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const { isEnabled, isLoading, factors, refreshFactors } = useMFA();
   const { status, fetchStatus, generateCodes, isLoading: backupLoading } = useMFABackupCodes();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
@@ -52,27 +53,27 @@ export function TwoFactorSetup() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir={direction}>
       {/* Status Display */}
-      <div className="flex items-start gap-4 rtl:flex-row-reverse">
+      <div className="flex items-start gap-4">
         <div className={`rounded-full p-3 flex-shrink-0 ${isEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
           {isEnabled ? <ShieldCheck className="h-6 w-6 text-green-600" /> : <Shield className="h-6 w-6 text-muted-foreground" />}
         </div>
         <div className="flex-1 space-y-1 text-start">
-          <div className="flex items-center gap-2 rtl:flex-row-reverse">
+          <div className="flex items-center gap-2">
             <h4 className="font-medium">{t('twoFactorSetup.twoFactorAuth')}</h4>
             <Badge variant={isEnabled ? "default" : "secondary"}>
               {isEnabled ? t('twoFactorSetup.enabled') : t('twoFactorSetup.disabled')}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground ltr:text-left rtl:text-right">
+          <p className="text-sm text-muted-foreground text-start">
             {isEnabled ? t('twoFactorSetup.enabledMessage') : t('twoFactorSetup.disabledMessage')}
           </p>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end rtl:justify-start">
+      <div className="flex justify-end">
         {isEnabled ? (
           <Button variant="outline" onClick={() => setDisableDialogOpen(true)} className="text-destructive hover:text-destructive">
             {t('twoFactorSetup.disable2FA')}
