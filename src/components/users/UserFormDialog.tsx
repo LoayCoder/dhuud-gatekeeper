@@ -362,7 +362,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             </div>
 
             {/* Login & Status */}
-            <div className="flex items-center gap-8 mb-4" dir={direction}>
+            <div className="flex items-center gap-4 mb-4" dir={direction}>
               <FormField
                 control={form.control}
                 name="has_login"
