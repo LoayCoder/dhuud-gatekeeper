@@ -74,10 +74,14 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
             aria-expanded={open}
             className="w-full justify-between min-h-[40px] h-auto"
             disabled={disabled || isLoading}
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <div className="flex flex-wrap gap-1 flex-1">
+            <div className={cn(
+              "flex flex-wrap gap-1 flex-1",
+              isRTL ? "justify-end" : "justify-start"
+            )}>
               {selectedRoles.length === 0 ? (
-                <span className="text-muted-foreground">{t('roles.selectRoles')}</span>
+                <span className="text-muted-foreground text-start">{t('roles.selectRoles')}</span>
               ) : (
                 selectedRoles.slice(0, 3).map(role => (
                   <RoleBadge
@@ -95,7 +99,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                 </span>
               )}
             </div>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+            <ChevronDown className={cn("h-4 w-4 shrink-0 opacity-50", isRTL && "order-first me-2")} />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0" align={isRTL ? "end" : "start"}>
@@ -171,7 +175,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
 
       {/* Selected roles display */}
       {selectedRoles.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className={cn("flex flex-wrap gap-1", isRTL ? "justify-end" : "justify-start")}>
           {selectedRoles.map(role => (
             <RoleBadge
               key={role.id}

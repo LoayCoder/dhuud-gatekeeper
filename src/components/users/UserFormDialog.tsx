@@ -362,17 +362,15 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             </div>
 
             {/* Login & Status */}
-            <div className="flex items-center gap-8 mb-4" dir={direction}>
+            <div className="flex items-center gap-6" dir={direction}>
               <FormField
                 control={form.control}
                 name="has_login"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.hasLogin')}</FormLabel>
-                  </FormItem>
+                  <div className="flex flex-row items-center gap-3">
+                    <FormLabel className="cursor-pointer m-0">{t('userManagement.hasLogin')}</FormLabel>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </div>
                 )}
               />
 
@@ -380,12 +378,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.isActive')}</FormLabel>
-                  </FormItem>
+                  <div className="flex flex-row items-center gap-3">
+                    <FormLabel className="cursor-pointer m-0">{t('userManagement.isActive')}</FormLabel>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </div>
                 )}
               />
             </div>
