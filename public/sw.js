@@ -34,6 +34,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Handle skip waiting message for updates
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
   const { request } = event;

@@ -17,6 +17,7 @@ import { PageLoader } from "./components/ui/page-loader";
 import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
 import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
 import { InstallAppBanner } from "./components/InstallAppBanner";
+import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNotifier";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -59,6 +60,7 @@ const App = () => (
           <NetworkStatusIndicator />
           <OnlineRetryHandler />
           <InstallAppBanner />
+          <ServiceWorkerUpdateNotifier />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>
