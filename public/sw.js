@@ -1,5 +1,8 @@
 const CACHE_NAME = 'dhuud-cache-v1';
 const OFFLINE_URL = '/offline.html';
+const SYNC_TAG = 'offline-mutations-sync';
+const MUTATION_STORE_KEY = 'offline-mutation-queue';
+
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -39,7 +42,103 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  
+  // Handle manual sync trigger from the app
+  if (event.data && event.data.type === 'TRIGGER_SYNC') {
+    processMutationQueue().then((result) => {
+      // Notify all clients about sync result
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'SYNC_COMPLETE',
+            success: result.success,
+            failed: result.failed,
+          });
+        });
+      });
+    });
+  }
 });
+
+// Background Sync event handler
+self.addEventListener('sync', (event) => {
+  if (event.tag === SYNC_TAG) {
+    event.waitUntil(processMutationQueue());
+  }
+});
+
+// Process queued mutations
+async function processMutationQueue() {
+  const result = { success: 0, failed: 0 };
+  
+  try {
+    // Get mutations from IndexedDB or localStorage via client
+    const clients = await self.clients.matchAll();
+    if (clients.length === 0) return result;
+    
+    // Request mutation queue from the main thread
+    const client = clients[0];
+    
+    return new Promise((resolve) => {
+      const messageChannel = new MessageChannel();
+      
+      messageChannel.port1.onmessage = async (event) => {
+        const mutations = event.data.mutations || [];
+        
+        for (const mutation of mutations) {
+          try {
+            // Execute the mutation (simplified - actual implementation depends on mutation type)
+            const response = await executeMutation(mutation);
+            if (response.ok) {
+              result.success++;
+              // Notify client to remove successful mutation
+              client.postMessage({ 
+                type: 'MUTATION_SUCCESS', 
+                id: mutation.id 
+              });
+            } else {
+              result.failed++;
+            }
+          } catch (error) {
+            result.failed++;
+            console.error('Mutation failed:', error);
+          }
+        }
+        
+        resolve(result);
+      };
+      
+      client.postMessage(
+        { type: 'GET_MUTATIONS' },
+        [messageChannel.port2]
+      );
+      
+      // Timeout fallback
+      setTimeout(() => resolve(result), 30000);
+    });
+  } catch (error) {
+    console.error('Background sync failed:', error);
+    return result;
+  }
+}
+
+// Execute a single mutation
+async function executeMutation(mutation) {
+  // This is a placeholder - actual implementation would depend on mutation structure
+  // The mutation should contain the endpoint, method, and body
+  if (!mutation.endpoint) {
+    return { ok: false };
+  }
+  
+  return fetch(mutation.endpoint, {
+    method: mutation.method || 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...mutation.headers,
+    },
+    body: mutation.body ? JSON.stringify(mutation.body) : undefined,
+  });
+}
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {

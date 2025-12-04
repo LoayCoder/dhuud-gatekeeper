@@ -1349,6 +1349,9 @@
     "syncSuccess": "सिंक पूर्ण",
     "syncSuccessDesc": "{{count}} परिवर्तन सफलतापूर्वक सिंक हुए।",
     "syncFailed": "कुछ परिवर्तन विफल",
-    "syncFailedDesc": "{{count}} परिवर्तन सिंक नहीं हो सके।"
+    "syncFailedDesc": "{{count}} परिवर्तन सिंक नहीं हो सके।",
+    "savedOffline": "ऑफ़लाइन सहेजा गया",
+    "savedOfflineDesc": "आपके परिवर्तन वापस ऑनलाइन होने पर सिंक होंगे।",
+    "savedOfflineBackgroundDesc": "आपके परिवर्तन स्वचालित रूप से बैकग्राउंड में सिंक होंगे।"
   }
 }
