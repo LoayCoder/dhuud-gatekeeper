@@ -1365,7 +1365,11 @@
     "iosTapShare": "اضغط على",
     "iosShareButton": "زر المشاركة",
     "iosScrollAndTap": "مرر واضغط على",
-    "iosAddToHome": "إضافة إلى الشاشة الرئيسية"
+    "iosAddToHome": "إضافة إلى الشاشة الرئيسية",
+    "updateAvailable": "تحديث متوفر",
+    "updateDescription": "إصدار جديد من التطبيق جاهز. قم بالتحديث للحصول على أحدث الميزات.",
+    "updateNow": "تحديث الآن",
+    "later": "لاحقاً"
   },
   "network": {
     "offline": "أنت غير متصل",

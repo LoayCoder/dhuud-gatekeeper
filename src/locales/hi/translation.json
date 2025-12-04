@@ -1335,7 +1335,11 @@
     "iosTapShare": "पर टैप करें",
     "iosShareButton": "शेयर बटन",
     "iosScrollAndTap": "स्क्रॉल करें और टैप करें",
-    "iosAddToHome": "होम स्क्रीन पर जोड़ें"
+    "iosAddToHome": "होम स्क्रीन पर जोड़ें",
+    "updateAvailable": "अपडेट उपलब्ध",
+    "updateDescription": "ऐप का नया संस्करण तैयार है। नवीनतम सुविधाएं पाने के लिए रिफ्रेश करें।",
+    "updateNow": "अभी रिफ्रेश करें",
+    "later": "बाद में"
   },
   "network": {
     "offline": "आप ऑफ़लाइन हैं",

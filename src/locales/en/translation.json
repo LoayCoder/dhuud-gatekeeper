@@ -1355,7 +1355,11 @@
     "iosTapShare": "Tap the",
     "iosShareButton": "Share button",
     "iosScrollAndTap": "Scroll and tap",
-    "iosAddToHome": "Add to Home Screen"
+    "iosAddToHome": "Add to Home Screen",
+    "updateAvailable": "Update Available",
+    "updateDescription": "A new version of the app is ready. Refresh to get the latest features.",
+    "updateNow": "Refresh Now",
+    "later": "Later"
   },
   "network": {
     "offline": "You are offline",

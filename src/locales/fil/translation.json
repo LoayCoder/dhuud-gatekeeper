@@ -1335,7 +1335,11 @@
     "iosTapShare": "I-tap ang",
     "iosShareButton": "Share button",
     "iosScrollAndTap": "Mag-scroll at i-tap ang",
-    "iosAddToHome": "Add to Home Screen"
+    "iosAddToHome": "Add to Home Screen",
+    "updateAvailable": "May Available na Update",
+    "updateDescription": "Handa na ang bagong bersyon ng app. I-refresh para makuha ang pinakabagong features.",
+    "updateNow": "I-refresh Ngayon",
+    "later": "Mamaya"
   },
   "network": {
     "offline": "Ikaw ay offline",
