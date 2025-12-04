@@ -74,7 +74,8 @@
     "date": "Petsa",
     "time": "Oras",
     "noData": "Walang available na data",
-    "noResults": "Walang nahanap na resulta"
+    "noResults": "Walang nahanap na resulta",
+    "refresh": "I-refresh"
   },
   "auth": {
     "signIn": "Mag-sign In",

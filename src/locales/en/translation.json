@@ -20,7 +20,7 @@
     "pageNotFound": "Oops! Page not found",
     "returnHome": "Return to Home"
   },
-  "common": {
+"common": {
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -74,7 +74,8 @@
     "date": "Date",
     "time": "Time",
     "noData": "No data available",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "refresh": "Refresh"
   },
   "auth": {
     "signIn": "Sign In",
