@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { RTLWrapper } from "@/components/RTLWrapper";
+
+const RTL_LANGUAGES = ['ar', 'ur'];
 
 interface ActivityLog {
   id: string;
@@ -68,7 +69,8 @@ const USER_MANAGEMENT_EVENTS = ['user_created', 'user_updated', 'user_deactivate
 const SECURITY_EVENTS = ['login', 'logout', 'session_timeout', 'session_extended', 'mfa_enabled', 'mfa_disabled', 'mfa_verification_failed', 'backup_code_used'] as const;
 
 export default function SecurityAuditLog() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const [searchQuery, setSearchQuery] = useState("");
   const [accessTypeFilter, setAccessTypeFilter] = useState<string>("all");
   const [userEventFilter, setUserEventFilter] = useState<string>("all");
@@ -214,10 +216,13 @@ export default function SecurityAuditLog() {
       .join(", ");
   };
 
+  const textAlign = isRTL ? 'text-right' : 'text-left';
+
   return (
-    <RTLWrapper className="container max-w-7xl py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+    <div className="container max-w-7xl py-8 space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <div className={textAlign}>
+        <h1 className={`text-3xl font-bold tracking-tight flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
           <Shield className="h-8 w-8 text-primary" />
           {t("securityAudit.title", "Security Audit Log")}
         </h1>
@@ -227,25 +232,27 @@ export default function SecurityAuditLog() {
       </div>
 
       <Tabs defaultValue="security-events" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
-          <TabsTrigger value="security-events" className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" />
-            {t("securityAudit.securityEvents", "Security Events")}
-          </TabsTrigger>
-          <TabsTrigger value="user-management" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            {t("securityAudit.userManagement", "User Management")}
-          </TabsTrigger>
-          <TabsTrigger value="sensitive-access" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            {t("securityAudit.sensitiveAccess", "Data Access")}
-          </TabsTrigger>
-        </TabsList>
+        <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+            <TabsTrigger value="security-events" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <ShieldCheck className="h-4 w-4" />
+              {t("securityAudit.securityEvents", "Security Events")}
+            </TabsTrigger>
+            <TabsTrigger value="user-management" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <Users className="h-4 w-4" />
+              {t("securityAudit.userManagement", "User Management")}
+            </TabsTrigger>
+            <TabsTrigger value="sensitive-access" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <Lock className="h-4 w-4" />
+              {t("securityAudit.sensitiveAccess", "Data Access")}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Security Events Tab (Login, MFA, Backup Codes) */}
         <TabsContent value="security-events">
           <Card>
-            <CardHeader>
+            <CardHeader className={textAlign}>
               <CardTitle>{t("securityAudit.securityEventsTitle", "Security Events")}</CardTitle>
               <CardDescription>
                 {t("securityAudit.securityEventsDescription", "Track logins, MFA events, and backup code usage")}
@@ -253,14 +260,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
                   <Input
                     placeholder={t("securityAudit.searchUserPlaceholder", "Search by user...")}
                     value={securitySearchQuery}
                     onChange={(e) => setSecuritySearchQuery(e.target.value)}
-                    className="[padding-inline-start:2.25rem]"
+                    className={isRTL ? 'pr-10' : 'pl-10'}
                   />
                 </div>
                 <Select value={securityEventFilter} onValueChange={setSecurityEventFilter}>
@@ -281,7 +288,7 @@ export default function SecurityAuditLog() {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold">{securityEventLogs?.length || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       {t("securityAudit.totalEvents", "Total Events")}
@@ -289,7 +296,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-green-600">
                       {securityEventLogs?.filter(l => l.event_type === 'login').length || 0}
                     </div>
@@ -299,7 +306,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-amber-600">
                       {securityEventLogs?.filter(l => l.event_type === 'backup_code_used').length || 0}
                     </div>
@@ -309,7 +316,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-red-600">
                       {securityEventLogs?.filter(l => l.event_type === 'mfa_verification_failed').length || 0}
                     </div>
@@ -330,10 +337,10 @@ export default function SecurityAuditLog() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
-                        <TableHead>{t("securityAudit.user", "User")}</TableHead>
-                        <TableHead>{t("securityAudit.event", "Event")}</TableHead>
-                        <TableHead>{t("securityAudit.details", "Details")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.user", "User")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.event", "Event")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.details", "Details")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -346,21 +353,21 @@ export default function SecurityAuditLog() {
                         
                         return (
                           <TableRow key={log.id}>
-                            <TableCell className="font-mono text-sm whitespace-nowrap">
+                            <TableCell className={`font-mono text-sm whitespace-nowrap ${textAlign}`}>
                               {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className={textAlign}>
                               {log.user_name || t("common.unknown", "Unknown")}
                             </TableCell>
-                            <TableCell>
-                              <Badge variant={eventInfo.variant} className="gap-1">
+                            <TableCell className={textAlign}>
+                              <Badge variant={eventInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 {eventInfo.icon}
                                 {eventInfo.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
+                            <TableCell className={`text-sm text-muted-foreground ${textAlign}`}>
                               {log.metadata?.ip_address && (
-                                <span className="mr-2">IP: {log.metadata.ip_address}</span>
+                                <span className={isRTL ? 'ml-2' : 'mr-2'}>IP: {log.metadata.ip_address}</span>
                               )}
                               {log.session_duration_seconds && (
                                 <span>Duration: {Math.round(log.session_duration_seconds / 60)}min</span>
@@ -389,7 +396,7 @@ export default function SecurityAuditLog() {
         {/* User Management Tab */}
         <TabsContent value="user-management">
           <Card>
-            <CardHeader>
+            <CardHeader className={textAlign}>
               <CardTitle>{t("securityAudit.userActivityLog", "User Activity Log")}</CardTitle>
               <CardDescription>
                 {t("securityAudit.userActivityDescription", "Track user creation, updates, activation, and deactivation events")}
@@ -397,14 +404,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
                   <Input
                     placeholder={t("securityAudit.searchUserPlaceholder", "Search by admin or target user...")}
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
-                    className="[padding-inline-start:2.25rem]"
+                    className={isRTL ? 'pr-10' : 'pl-10'}
                   />
                 </div>
                 <Select value={userEventFilter} onValueChange={setUserEventFilter}>
@@ -425,7 +432,7 @@ export default function SecurityAuditLog() {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold">{userManagementLogs?.length || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       {t("securityAudit.totalEvents", "Total Events")}
@@ -433,7 +440,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-green-600">
                       {userManagementLogs?.filter(l => l.event_type === 'user_created').length || 0}
                     </div>
@@ -443,7 +450,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-blue-600">
                       {userManagementLogs?.filter(l => l.event_type === 'user_updated').length || 0}
                     </div>
@@ -453,7 +460,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-amber-600">
                       {userManagementLogs?.filter(l => l.event_type === 'user_activated').length || 0}
                     </div>
@@ -463,7 +470,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-red-600">
                       {userManagementLogs?.filter(l => l.event_type === 'user_deactivated').length || 0}
                     </div>
@@ -484,11 +491,11 @@ export default function SecurityAuditLog() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
-                        <TableHead>{t("securityAudit.performedBy", "Performed By")}</TableHead>
-                        <TableHead>{t("securityAudit.action", "Action")}</TableHead>
-                        <TableHead>{t("securityAudit.targetUser", "Target User")}</TableHead>
-                        <TableHead>{t("securityAudit.changes", "Changes")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.performedBy", "Performed By")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.action", "Action")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.targetUser", "Target User")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.changes", "Changes")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -501,19 +508,19 @@ export default function SecurityAuditLog() {
                         
                         return (
                           <TableRow key={log.id}>
-                            <TableCell className="font-mono text-sm whitespace-nowrap">
+                            <TableCell className={`font-mono text-sm whitespace-nowrap ${textAlign}`}>
                               {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className={textAlign}>
                               {log.user_name || t("common.unknown", "Unknown")}
                             </TableCell>
-                            <TableCell>
-                              <Badge variant={eventInfo.variant} className="gap-1">
+                            <TableCell className={textAlign}>
+                              <Badge variant={eventInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 {eventInfo.icon}
                                 {eventInfo.label}
                               </Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className={textAlign}>
                               <div className="flex flex-col">
                                 <span className="font-medium">
                                   {log.metadata?.target_user_name || "—"}
@@ -525,7 +532,7 @@ export default function SecurityAuditLog() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-[300px]">
+                            <TableCell className={`text-sm text-muted-foreground max-w-[300px] ${textAlign}`}>
                               <span className="line-clamp-2" title={formatChanges(log.metadata?.changes)}>
                                 {formatChanges(log.metadata?.changes)}
                               </span>
@@ -552,7 +559,7 @@ export default function SecurityAuditLog() {
         {/* Sensitive Data Access Tab */}
         <TabsContent value="sensitive-access">
           <Card>
-            <CardHeader>
+            <CardHeader className={textAlign}>
               <CardTitle>{t("securityAudit.sensitiveDataAccess", "Sensitive Data Access")}</CardTitle>
               <CardDescription>
                 {t("securityAudit.accessLogDescription", "Track who accessed sensitive information and when")}
@@ -560,14 +567,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
                   <Input
                     placeholder={t("securityAudit.searchPlaceholder", "Search by user or access type...")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="[padding-inline-start:2.25rem]"
+                    className={isRTL ? 'pr-10' : 'pl-10'}
                   />
                 </div>
                 <Select value={accessTypeFilter} onValueChange={setAccessTypeFilter}>
@@ -588,7 +595,7 @@ export default function SecurityAuditLog() {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold">{sensitiveDataLogs?.length || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       {t("securityAudit.totalAccesses", "Total Accesses")}
@@ -596,7 +603,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-green-600">
                       {sensitiveDataLogs?.filter(l => l.metadata?.access_granted).length || 0}
                     </div>
@@ -606,7 +613,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold text-red-600">
                       {sensitiveDataLogs?.filter(l => !l.metadata?.access_granted).length || 0}
                     </div>
@@ -616,7 +623,7 @@ export default function SecurityAuditLog() {
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-4">
+                  <CardContent className={`pt-4 ${textAlign}`}>
                     <div className="text-2xl font-bold">
                       {new Set(sensitiveDataLogs?.map(l => l.user_id)).size || 0}
                     </div>
@@ -637,11 +644,11 @@ export default function SecurityAuditLog() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
-                        <TableHead>{t("securityAudit.user", "User")}</TableHead>
-                        <TableHead>{t("securityAudit.accessType", "Access Type")}</TableHead>
-                        <TableHead>{t("securityAudit.status", "Status")}</TableHead>
-                        <TableHead>{t("securityAudit.details", "Details")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.user", "User")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.accessType", "Access Type")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.status", "Status")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.details", "Details")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -654,19 +661,19 @@ export default function SecurityAuditLog() {
                         
                         return (
                           <TableRow key={log.id}>
-                            <TableCell className="font-mono text-sm">
+                            <TableCell className={`font-mono text-sm ${textAlign}`}>
                               {format(new Date(log.created_at), "MMM dd, yyyy HH:mm:ss")}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className={textAlign}>
                               {log.user_name || t("common.unknown", "Unknown User")}
                             </TableCell>
-                            <TableCell>
-                              <Badge variant={accessInfo.variant} className="gap-1">
+                            <TableCell className={textAlign}>
+                              <Badge variant={accessInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 {accessInfo.icon}
                                 {accessInfo.label}
                               </Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className={textAlign}>
                               {log.metadata?.access_granted ? (
                                 <Badge variant="outline" className="text-green-600 border-green-600">
                                   {t("securityAudit.granted", "Granted")}
@@ -677,7 +684,7 @@ export default function SecurityAuditLog() {
                                 </Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                            <TableCell className={`text-sm text-muted-foreground max-w-[200px] truncate ${textAlign}`}>
                               {log.metadata?.reason || "—"}
                             </TableCell>
                           </TableRow>
@@ -699,6 +706,6 @@ export default function SecurityAuditLog() {
           </Card>
         </TabsContent>
       </Tabs>
-    </RTLWrapper>
+    </div>
   );
 }
