@@ -10,7 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { Shield, Smartphone, Copy, Check, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logUserActivity } from '@/lib/activity-logger';
-import industrialImage from '@/assets/industrial-safety.jpg';
+import { AuthHeroImage } from '@/components/ui/optimized-image';
 
 type Step = 'intro' | 'qrcode' | 'verify' | 'success';
 
@@ -126,20 +126,10 @@ export default function MFASetup() {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Industrial Image */}
-      <div className="relative hidden w-1/2 lg:block">
-        <img
-          src={industrialImage}
-          alt="Industrial Safety"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40" />
-        <div className="absolute bottom-8 left-8 right-8 text-white">
-          <h1 className="mb-2 text-4xl font-bold">{t('mfaSetup.secureYourAccount')}</h1>
-          <p className="text-lg text-white/90">
-            {t('mfaSetup.twoFactorRequired')}
-          </p>
-        </div>
-      </div>
+      <AuthHeroImage 
+        title={t('mfaSetup.secureYourAccount')} 
+        subtitle={t('mfaSetup.twoFactorRequired')} 
+      />
 
       {/* Right Side - MFA Setup */}
       <div className="flex w-full items-center justify-center bg-background p-8 lg:w-1/2">
