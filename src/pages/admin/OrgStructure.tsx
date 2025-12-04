@@ -52,11 +52,13 @@ interface Site {
 
 type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites';
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   
   // Data State
   const [branches, setBranches] = useState<Branch[]>([]);
