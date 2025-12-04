@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { useCursorPagination, CursorPosition, buildCursorCondition } from "@/hooks/use-cursor-pagination";
+import { CursorPagination } from "@/components/ui/cursor-pagination";
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -78,95 +79,135 @@ export default function SecurityAuditLog() {
   const [securityEventFilter, setSecurityEventFilter] = useState<string>("all");
   const [securitySearchQuery, setSecuritySearchQuery] = useState("");
 
-  // Fetch sensitive data access logs
-  const { data: sensitiveDataLogs, isLoading: isSensitiveLoading } = useQuery({
-    queryKey: ["security-audit-logs-sensitive"],
-    queryFn: async () => {
-      // Fetch sensitive data access logs - server-side JSONB filter
-      const { data: logsData, error } = await supabase
-        .from("user_activity_logs")
-        .select("id, user_id, event_type, metadata, created_at")
-        .filter('metadata->>sensitive_data_access', 'eq', 'true')
-        .order("created_at", { ascending: false })
-        .limit(500);
+  const PAGE_SIZE = 50;
 
-      if (error) throw error;
-      
-      // Server-side filtering applied - no client-side filtering needed
-      const sensitiveDataLogs = logsData || [];
+  // Helper to enrich logs with user names
+  const enrichLogsWithUserNames = async (logs: Array<{ id: string; user_id: string; event_type: string; metadata: unknown; created_at: string }>) => {
+    if (logs.length === 0) return [];
+    const userIds = [...new Set(logs.map(log => log.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
 
-      const userIds = [...new Set(sensitiveDataLogs.map(log => log.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", userIds);
+    const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+    return logs.map(log => ({
+      ...log,
+      user_name: profileMap.get(log.user_id) || null,
+      metadata: log.metadata as ActivityLog["metadata"],
+    })) as ActivityLog[];
+  };
 
-      return sensitiveDataLogs.map(log => ({
-        ...log,
-        user_name: profileMap.get(log.user_id) || null,
-        metadata: log.metadata as ActivityLog["metadata"],
-      })) as ActivityLog[];
-    },
+  // Cursor pagination for security events
+  const securityEventsQueryFn = useCallback(async (cursor?: CursorPosition) => {
+    let query = supabase
+      .from("user_activity_logs")
+      .select("id, user_id, event_type, metadata, created_at", { count: 'estimated' })
+      .in("event_type", [...SECURITY_EVENTS]);
+
+    const cursorCondition = buildCursorCondition(cursor, 'created_at', false);
+    if (cursorCondition) {
+      query = query.or(cursorCondition);
+    }
+
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(PAGE_SIZE + 1);
+
+    if (error) throw error;
+    const enriched = await enrichLogsWithUserNames(data || []);
+    return { data: enriched, count };
+  }, []);
+
+  const {
+    data: securityEventLogs,
+    isLoading: isSecurityLoading,
+    hasNextPage: securityHasNext,
+    hasPreviousPage: securityHasPrev,
+    goToNextPage: securityNextPage,
+    goToPreviousPage: securityPrevPage,
+    goToFirstPage: securityFirstPage,
+    totalEstimate: securityTotal,
+    currentPage: securityPage,
+  } = useCursorPagination<ActivityLog>({
+    queryFn: securityEventsQueryFn,
+    pageSize: PAGE_SIZE,
   });
 
-  // Fetch user management logs
-  const { data: userManagementLogs, isLoading: isUserMgmtLoading } = useQuery({
-    queryKey: ["security-audit-logs-user-management"],
-    queryFn: async () => {
-      const { data: logsData, error } = await supabase
-        .from("user_activity_logs")
-        .select("id, user_id, event_type, metadata, created_at")
-        .in("event_type", USER_MANAGEMENT_EVENTS)
-        .order("created_at", { ascending: false })
-        .limit(500);
+  // Cursor pagination for user management logs
+  const userMgmtQueryFn = useCallback(async (cursor?: CursorPosition) => {
+    let query = supabase
+      .from("user_activity_logs")
+      .select("id, user_id, event_type, metadata, created_at", { count: 'estimated' })
+      .in("event_type", [...USER_MANAGEMENT_EVENTS]);
 
-      if (error) throw error;
+    const cursorCondition = buildCursorCondition(cursor, 'created_at', false);
+    if (cursorCondition) {
+      query = query.or(cursorCondition);
+    }
 
-      const userIds = [...new Set(logsData.map(log => log.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", userIds);
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(PAGE_SIZE + 1);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+    if (error) throw error;
+    const enriched = await enrichLogsWithUserNames(data || []);
+    return { data: enriched, count };
+  }, []);
 
-      return logsData.map(log => ({
-        ...log,
-        user_name: profileMap.get(log.user_id) || null,
-        metadata: log.metadata as ActivityLog["metadata"],
-      })) as ActivityLog[];
-    },
+  const {
+    data: userManagementLogs,
+    isLoading: isUserMgmtLoading,
+    hasNextPage: userMgmtHasNext,
+    hasPreviousPage: userMgmtHasPrev,
+    goToNextPage: userMgmtNextPage,
+    goToPreviousPage: userMgmtPrevPage,
+    goToFirstPage: userMgmtFirstPage,
+    totalEstimate: userMgmtTotal,
+    currentPage: userMgmtPage,
+  } = useCursorPagination<ActivityLog>({
+    queryFn: userMgmtQueryFn,
+    pageSize: PAGE_SIZE,
   });
 
-  // Fetch security events logs (login, logout, MFA, backup codes)
-  const { data: securityEventLogs, isLoading: isSecurityLoading } = useQuery({
-    queryKey: ["security-audit-logs-security-events"],
-    queryFn: async () => {
-      const { data: logsData, error } = await supabase
-        .from("user_activity_logs")
-        .select("id, user_id, event_type, metadata, created_at")
-        .in("event_type", SECURITY_EVENTS)
-        .order("created_at", { ascending: false })
-        .limit(500);
+  // Cursor pagination for sensitive data access logs
+  const sensitiveQueryFn = useCallback(async (cursor?: CursorPosition) => {
+    let query = supabase
+      .from("user_activity_logs")
+      .select("id, user_id, event_type, metadata, created_at", { count: 'estimated' })
+      .filter('metadata->>sensitive_data_access', 'eq', 'true');
 
-      if (error) throw error;
+    const cursorCondition = buildCursorCondition(cursor, 'created_at', false);
+    if (cursorCondition) {
+      query = query.or(cursorCondition);
+    }
 
-      const userIds = [...new Set(logsData.map(log => log.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", userIds);
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(PAGE_SIZE + 1);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+    if (error) throw error;
+    const enriched = await enrichLogsWithUserNames(data || []);
+    return { data: enriched, count };
+  }, []);
 
-      return logsData.map(log => ({
-        ...log,
-        user_name: profileMap.get(log.user_id) || null,
-        metadata: log.metadata as ActivityLog["metadata"],
-      })) as ActivityLog[];
-    },
+  const {
+    data: sensitiveDataLogs,
+    isLoading: isSensitiveLoading,
+    hasNextPage: sensitiveHasNext,
+    hasPreviousPage: sensitiveHasPrev,
+    goToNextPage: sensitiveNextPage,
+    goToPreviousPage: sensitivePrevPage,
+    goToFirstPage: sensitiveFirstPage,
+    totalEstimate: sensitiveTotal,
+    currentPage: sensitivePage,
+  } = useCursorPagination<ActivityLog>({
+    queryFn: sensitiveQueryFn,
+    pageSize: PAGE_SIZE,
   });
 
   // Filter sensitive data logs
@@ -377,6 +418,17 @@ export default function SecurityAuditLog() {
                       })}
                     </TableBody>
                   </Table>
+                  <CursorPagination
+                    currentPage={securityPage}
+                    hasNextPage={securityHasNext}
+                    hasPreviousPage={securityHasPrev}
+                    isLoading={isSecurityLoading}
+                    onNextPage={securityNextPage}
+                    onPreviousPage={securityPrevPage}
+                    onFirstPage={securityFirstPage}
+                    totalEstimate={securityTotal}
+                    pageSize={PAGE_SIZE}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
@@ -540,6 +592,17 @@ export default function SecurityAuditLog() {
                       })}
                     </TableBody>
                   </Table>
+                  <CursorPagination
+                    currentPage={userMgmtPage}
+                    hasNextPage={userMgmtHasNext}
+                    hasPreviousPage={userMgmtHasPrev}
+                    isLoading={isUserMgmtLoading}
+                    onNextPage={userMgmtNextPage}
+                    onPreviousPage={userMgmtPrevPage}
+                    onFirstPage={userMgmtFirstPage}
+                    totalEstimate={userMgmtTotal}
+                    pageSize={PAGE_SIZE}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
@@ -690,6 +753,17 @@ export default function SecurityAuditLog() {
                       })}
                     </TableBody>
                   </Table>
+                  <CursorPagination
+                    currentPage={sensitivePage}
+                    hasNextPage={sensitiveHasNext}
+                    hasPreviousPage={sensitiveHasPrev}
+                    isLoading={isSensitiveLoading}
+                    onNextPage={sensitiveNextPage}
+                    onPreviousPage={sensitivePrevPage}
+                    onFirstPage={sensitiveFirstPage}
+                    totalEstimate={sensitiveTotal}
+                    pageSize={PAGE_SIZE}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
