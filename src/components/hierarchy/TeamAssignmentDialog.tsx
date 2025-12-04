@@ -39,6 +39,8 @@ interface ManagerOption {
   full_name: string | null;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function TeamAssignmentDialog({
   open,
   onOpenChange,
@@ -54,7 +56,7 @@ export function TeamAssignmentDialog({
   const [selectedManagerId, setSelectedManagerId] = useState<string | null>(currentManagerId || null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   // Fetch users who have the manager role - with proper role verification
   useEffect(() => {

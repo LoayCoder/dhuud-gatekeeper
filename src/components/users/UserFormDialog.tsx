@@ -75,6 +75,8 @@ interface UserFormDialogProps {
   onSave: (data: UserFormValues) => Promise<void>;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
@@ -84,7 +86,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [showTeamAssignment, setShowTeamAssignment] = useState(false);
   const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const textAlign = isRTL ? 'text-right' : 'text-left';
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
     divisions: any[];
@@ -269,12 +273,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={direction}>
+        <DialogHeader className={textAlign}>
+          <DialogTitle className={textAlign}>
             {user ? t('userManagement.editUser') : t('userManagement.addUser')}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className={textAlign}>
             {quota && (
               <span className="text-xs">
                 {t('userManagement.licensedUsers')}: {quota.current_licensed_users} / {quota.max_licensed_users}
@@ -358,12 +362,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             </div>
 
             {/* Login & Status */}
-            <div className="flex items-center gap-8">
+            <div className={`flex items-center gap-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <FormField
                 control={form.control}
                 name="has_login"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
+                  <FormItem className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
@@ -376,7 +380,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
+                  <FormItem className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
@@ -388,7 +392,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
             {/* Role Assignment (Admin Only) */}
             {isAdmin && (
-              <div className="space-y-2 p-4 border rounded-lg">
+              <div className={`space-y-2 p-4 border rounded-lg ${textAlign}`}>
                 <Label className="font-medium">{t('roles.roleAssignment')}</Label>
                 <p className="text-xs text-muted-foreground mb-2">{t('roles.roleAssignmentDescription')}</p>
                 <RoleSelector
@@ -535,7 +539,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             )}
 
             {/* Organizational Hierarchy */}
-            <div className="space-y-4 p-4 border rounded-lg">
+            <div className={`space-y-4 p-4 border rounded-lg ${textAlign}`}>
               <h4 className="font-medium">{t('userManagement.organizationalAssignment')}</h4>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -656,11 +660,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className={isRTL ? 'flex-row-reverse' : ''}>
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('common.save')}
               </Button>

@@ -67,12 +67,14 @@ interface HierarchyItem {
   name: string;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
   const textAlign = isRTL ? 'text-right' : 'text-left';
   
