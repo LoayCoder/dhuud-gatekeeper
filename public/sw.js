@@ -1,6 +1,8 @@
 const CACHE_NAME = 'dhuud-cache-v1';
+const OFFLINE_URL = '/offline.html';
 const STATIC_ASSETS = [
   '/',
+  '/offline.html',
   '/fonts/Rubik-Arabic.woff2',
   '/fonts/Rubik-Hebrew.woff2',
   '/fonts/Rubik-Latin.woff2',
@@ -87,6 +89,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match('/'))
+      .catch(() => caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL)))
   );
 });
