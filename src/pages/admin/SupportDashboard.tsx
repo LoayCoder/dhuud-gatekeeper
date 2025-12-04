@@ -49,12 +49,9 @@ const priorityColors: Record<TicketPriority, string> = {
   urgent: 'bg-destructive/10 text-destructive',
 };
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function SupportDashboard() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -131,7 +128,7 @@ export default function SupportDashboard() {
   return (
     <RTLWrapper>
       <div className="space-y-6">
-        <div className={isRTL ? 'text-end' : ''}>
+        <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('adminSupport.title')}</h1>
           <p className="text-muted-foreground">{t('adminSupport.description')}</p>
         </div>

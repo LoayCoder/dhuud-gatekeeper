@@ -27,12 +27,9 @@ interface Module {
   icon: string | null;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function ModuleManagement() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const [editModule, setEditModule] = useState<Module | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -154,9 +151,9 @@ export default function ModuleManagement() {
   };
 
   return (
-    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-        <div className={isRTL ? 'text-end' : ''}>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('adminModules.title')}</h1>
           <p className="text-muted-foreground">{t('adminModules.description')}</p>
         </div>
@@ -168,7 +165,7 @@ export default function ModuleManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
             {t('adminModules.allModules')}
           </CardTitle>

@@ -74,8 +74,7 @@
     "date": "Date",
     "time": "Time",
     "noData": "No data available",
-    "noResults": "No results found",
-    "refresh": "Refresh"
+    "noResults": "No results found"
   },
   "auth": {
     "signIn": "Sign In",

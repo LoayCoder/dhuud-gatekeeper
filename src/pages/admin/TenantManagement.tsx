@@ -17,13 +17,10 @@ import type { Tables } from '@/integrations/supabase/types';
 type Tenant = Tables<'tenants'>;
 type TenantStatus = 'active' | 'suspended' | 'disabled';
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function TenantManagement() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { profile } = useAuth();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const queryClient = useQueryClient();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -205,13 +202,13 @@ export default function TenantManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="p-6 space-y-6">
       <Card>
         <CardHeader>
-          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-            <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
               <Building2 className="h-6 w-6 text-primary" />
-              <div className={isRTL ? 'text-end' : ''}>
+              <div>
                 <CardTitle>{t('tenantManagement.title')}</CardTitle>
                 <CardDescription>{t('tenantManagement.description')}</CardDescription>
               </div>

@@ -67,10 +67,8 @@ const securityEventLabels: Record<string, { label: string; icon: React.ReactNode
 const USER_MANAGEMENT_EVENTS = ['user_created', 'user_updated', 'user_deactivated', 'user_activated', 'user_deleted'] as const;
 const SECURITY_EVENTS = ['login', 'logout', 'session_timeout', 'session_extended', 'mfa_enabled', 'mfa_disabled', 'mfa_verification_failed', 'backup_code_used'] as const;
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function SecurityAuditLog() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [accessTypeFilter, setAccessTypeFilter] = useState<string>("all");
   const [userEventFilter, setUserEventFilter] = useState<string>("all");
@@ -216,12 +214,10 @@ export default function SecurityAuditLog() {
       .join(", ");
   };
 
-  const isRTL = ['ar', 'ur'].includes(i18n?.language || 'en');
-  
   return (
     <RTLWrapper className="container max-w-7xl py-8 space-y-8">
-      <div className={isRTL ? 'text-end' : ''}>
-        <h1 className={`text-3xl font-bold tracking-tight flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Shield className="h-8 w-8 text-primary" />
           {t("securityAudit.title", "Security Audit Log")}
         </h1>
@@ -231,7 +227,7 @@ export default function SecurityAuditLog() {
       </div>
 
       <Tabs defaultValue="security-events" className="space-y-6">
-        <TabsList className={`grid w-full max-w-2xl grid-cols-3 ${isRTL ? 'direction-rtl' : ''}`}>
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
           <TabsTrigger value="security-events" className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
             {t("securityAudit.securityEvents", "Security Events")}
