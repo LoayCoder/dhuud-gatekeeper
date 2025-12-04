@@ -64,6 +64,18 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Store notification in history by sending to clients
+function storeNotificationInHistory(title, body, type) {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'STORE_NOTIFICATION',
+        notification: { title, body, type }
+      });
+    });
+  });
+}
+
 // Show notification for sync results
 async function showSyncNotification(result) {
   // Check if we have notification permission
@@ -84,6 +96,7 @@ async function showSyncNotification(result) {
     : `${success} change(s) synced successfully`;
   const icon = '/pwa-192x192.png';
   const tag = 'sync-notification';
+  const notificationType = failed > 0 ? 'error' : 'sync';
 
   try {
     await self.registration.showNotification(title, {
@@ -98,6 +111,9 @@ async function showSyncNotification(result) {
         { action: 'dismiss', title: 'Dismiss' }
       ] : []
     });
+    
+    // Store in notification history
+    storeNotificationInHistory(title, body, notificationType);
   } catch (error) {
     console.error('Failed to show notification:', error);
   }
@@ -205,9 +221,12 @@ async function showUpdateNotification() {
     return;
   }
 
+  const title = 'Update Available';
+  const body = 'A new version of the app is available. Tap to update.';
+
   try {
-    await self.registration.showNotification('Update Available', {
-      body: 'A new version of the app is available. Tap to update.',
+    await self.registration.showNotification(title, {
+      body,
       icon: '/pwa-192x192.png',
       tag: 'update-notification',
       badge: '/pwa-192x192.png',
@@ -218,6 +237,9 @@ async function showUpdateNotification() {
         { action: 'dismiss', title: 'Later' }
       ]
     });
+    
+    // Store in notification history
+    storeNotificationInHistory(title, body, 'update');
   } catch (error) {
     console.error('Failed to show update notification:', error);
   }

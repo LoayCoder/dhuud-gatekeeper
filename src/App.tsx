@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +19,7 @@ import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNotifier";
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
+import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -51,6 +52,12 @@ const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" *
 
 const queryClient = new QueryClient();
 
+// Component to initialize service worker notification listener
+function SwNotificationHandler() {
+  useSwNotificationListener();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -63,6 +70,7 @@ const App = () => (
           <InstallAppBanner />
           <ServiceWorkerUpdateNotifier />
           <NotificationPermissionPrompt />
+          <SwNotificationHandler />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>

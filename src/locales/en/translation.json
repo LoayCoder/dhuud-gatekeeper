@@ -1401,6 +1401,27 @@
     "syncNotificationsDescription": "Get notified when offline changes are synced to the server.",
     "periodicSync": "Background Updates",
     "periodicSyncDescription": "Automatically check for updates every few hours in the background.",
-    "blockedInstructions": "Notifications are currently blocked. To enable them, click the lock icon in your browser's address bar and change the notification setting to 'Allow'."
+    "blockedInstructions": "Notifications are currently blocked. To enable them, click the lock icon in your browser's address bar and change the notification setting to 'Allow'.",
+    "history": "Notification History",
+    "historyDescription": "View your past notifications.",
+    "noHistory": "No notifications yet",
+    "unread": "unread",
+    "markAllRead": "Mark all as read",
+    "clearHistory": "Clear history",
+    "soundSettings": "Sound Settings",
+    "soundSettingsDescription": "Choose custom sounds for different notification types.",
+    "soundType": {
+      "sync": "Sync Events",
+      "update": "App Updates",
+      "info": "Information",
+      "error": "Errors"
+    },
+    "sound": {
+      "default": "Default",
+      "chime": "Chime",
+      "bell": "Bell",
+      "ping": "Ping",
+      "none": "None"
+    }
   }
 }

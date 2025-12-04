@@ -5,8 +5,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { useNotificationPermission } from "@/hooks/use-notification-permission";
 import { toast } from "@/hooks/use-toast";
+import { NotificationHistory } from "./NotificationHistory";
+import { NotificationSoundSettings } from "./NotificationSoundSettings";
 
 export function NotificationPreferences() {
   const { t, i18n } = useTranslation();
@@ -173,6 +176,16 @@ export function NotificationPreferences() {
           </AlertDescription>
         </Alert>
       )}
+
+      <Separator className="my-6" />
+      
+      {/* Sound Settings */}
+      <NotificationSoundSettings />
+      
+      <Separator className="my-6" />
+      
+      {/* Notification History */}
+      <NotificationHistory />
     </div>
   );
 }

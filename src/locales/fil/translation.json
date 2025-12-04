@@ -1381,6 +1381,27 @@
     "syncNotificationsDescription": "Ma-notify kapag na-sync ang mga offline na pagbabago sa server.",
     "periodicSync": "Mga Background Update",
     "periodicSyncDescription": "Awtomatikong suriin ang mga update kada ilang oras sa background.",
-    "blockedInstructions": "Kasalukuyang naka-block ang mga notification. Para i-enable ang mga ito, i-click ang lock icon sa address bar ng iyong browser at palitan ang notification setting sa 'Allow'."
+    "blockedInstructions": "Kasalukuyang naka-block ang mga notification. Para i-enable ang mga ito, i-click ang lock icon sa address bar ng iyong browser at palitan ang notification setting sa 'Allow'.",
+    "history": "History ng Notification",
+    "historyDescription": "Tingnan ang iyong mga nakaraang notification.",
+    "noHistory": "Wala pang notification",
+    "unread": "hindi pa nabasa",
+    "markAllRead": "Markahan lahat bilang nabasa",
+    "clearHistory": "Burahin ang history",
+    "soundSettings": "Mga Setting ng Tunog",
+    "soundSettingsDescription": "Pumili ng mga custom na tunog para sa iba't ibang uri ng notification.",
+    "soundType": {
+      "sync": "Mga Sync Event",
+      "update": "Mga App Update",
+      "info": "Impormasyon",
+      "error": "Mga Error"
+    },
+    "sound": {
+      "default": "Default",
+      "chime": "Chime",
+      "bell": "Bell",
+      "ping": "Ping",
+      "none": "Wala"
+    }
   }
 }
