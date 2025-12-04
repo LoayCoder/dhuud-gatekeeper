@@ -140,10 +140,12 @@ export default function BillingOverview() {
 
       {/* Tabs for Usage vs Billing */}
       <Tabs defaultValue="billing" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
-          <TabsTrigger value="usage">{t('adminBilling.currentUsage')}</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-start">
+          <TabsList>
+            <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
+            <TabsTrigger value="usage">{t('adminBilling.currentUsage')}</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="billing">
           <Card>
