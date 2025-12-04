@@ -35,8 +35,11 @@ interface SubscriptionAuditLogProps {
   showTenantName?: boolean;
 }
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function SubscriptionAuditLog({ tenantId, limit = 50, showTenantName = true }: SubscriptionAuditLogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['subscription-events', tenantId, limit],
@@ -106,8 +109,8 @@ export function SubscriptionAuditLog({ tenantId, limit = 50, showTenantName = tr
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card dir={isRTL ? 'rtl' : 'ltr'}>
+      <CardHeader className={isRTL ? 'text-right' : 'text-left'}>
         <CardTitle>{t('subscriptionEvents.title')}</CardTitle>
         <CardDescription>{t('subscriptionEvents.description')}</CardDescription>
       </CardHeader>
@@ -126,13 +129,13 @@ export function SubscriptionAuditLog({ tenantId, limit = 50, showTenantName = tr
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                  className={`flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}
                 >
                   <div className="mt-0.5">
                     {getEventIcon(event.event_type)}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <div className={`flex-1 min-w-0 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <div className={`flex items-center gap-2 flex-wrap ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
                       <Badge variant={getEventBadgeVariant(event.event_type)}>
                         {formatEventType(event.event_type)}
                       </Badge>
@@ -146,7 +149,7 @@ export function SubscriptionAuditLog({ tenantId, limit = 50, showTenantName = tr
                       <p className="text-sm mt-1">{event.description}</p>
                     )}
                     {(event.previous_value || event.new_value) && (
-                      <div className="text-xs text-muted-foreground mt-1 flex gap-2">
+                      <div className={`text-xs text-muted-foreground mt-1 flex gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
                         {event.previous_value && (
                           <span>
                             {t('subscriptionEvents.from')}: {JSON.stringify(event.previous_value)}
