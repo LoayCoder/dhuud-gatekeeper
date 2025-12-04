@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, Users, UserCog, Briefcase, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LicensedUserQuota, UserTypeBreakdown } from '@/hooks/use-licensed-user-quota';
-import { cn } from '@/lib/utils';
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -26,15 +25,13 @@ export function LicensedUserQuotaCard({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
 
   if (isLoading) {
     return (
-      <Card dir={isRTL ? 'rtl' : 'ltr'}>
+      <Card dir={direction}>
         <CardHeader>
-          <CardTitle className={cn(
-            "flex items-center gap-2",
-            isRTL && "flex-row-reverse"
-          )}>
+          <CardTitle className="flex items-center gap-2">
             <UserCog className="h-5 w-5" />
             {t('userManagement.licensedUsers')}
           </CardTitle>
@@ -58,18 +55,12 @@ export function LicensedUserQuotaCard({
   return (
     <Card 
       className={isAtQuota ? 'border-destructive' : isNearQuota ? 'border-warning' : ''}
-      dir={isRTL ? 'rtl' : 'ltr'}
+      dir={direction}
     >
       <CardHeader>
-        <div className={cn(
-          "flex items-center justify-between",
-          isRTL && "flex-row-reverse"
-        )}>
-          <div className={isRTL ? 'text-right' : 'text-left'}>
-            <CardTitle className={cn(
-              "flex items-center gap-2",
-              isRTL && "flex-row-reverse"
-            )}>
+        <div className="flex items-center justify-between" dir={direction}>
+          <div className="text-start">
+            <CardTitle className="flex items-center gap-2">
               <UserCog className="h-5 w-5" />
               {t('userManagement.licensedUsers')}
             </CardTitle>
@@ -83,10 +74,7 @@ export function LicensedUserQuotaCard({
       <CardContent className="space-y-6">
         {/* Usage Progress */}
         <div className="space-y-2">
-          <div className={cn(
-            "flex items-center justify-between text-sm",
-            isRTL && "flex-row-reverse"
-          )}>
+          <div className="flex items-center justify-between text-sm" dir={direction}>
             <span>{t('userManagement.activeUsers')}</span>
             <span className={isAtQuota ? 'text-destructive font-medium' : ''}>
               {quota.current_licensed_users} / {quota.max_licensed_users}
@@ -94,14 +82,11 @@ export function LicensedUserQuotaCard({
           </div>
           <Progress 
             value={Math.min(usagePercentage, 100)} 
-            dir={isRTL ? 'rtl' : 'ltr'}
+            dir={direction}
             className={`h-3 ${isAtQuota ? '[&>div]:bg-destructive' : isNearQuota ? '[&>div]:bg-warning' : ''}`}
           />
           {isAtQuota && (
-            <p className={cn(
-              "text-xs text-destructive flex items-center gap-1",
-              isRTL && "flex-row-reverse"
-            )}>
+            <p className="text-xs text-destructive flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
               {t('userManagement.quotaReached')}
             </p>
