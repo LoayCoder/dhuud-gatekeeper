@@ -589,7 +589,10 @@
     "addSite": "Magdagdag ng Site",
     "noAddress": "Walang address",
     "searchSites": "Maghanap ayon sa pangalan ng site o branch...",
-    "noSearchResults": "Walang nahanap na site na tumutugma sa iyong paghahanap."
+    "noSearchResults": "Walang nahanap na site na tumutugma sa iyong paghahanap.",
+    "branch": "Branch",
+    "division": "Division",
+    "site": "Site"
   },
   "userManagement": {
     "title": "Pamamahala ng User",
