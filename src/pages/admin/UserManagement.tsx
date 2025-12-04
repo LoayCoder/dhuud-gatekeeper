@@ -184,13 +184,13 @@ export default function UserManagement() {
 
   return (
     <div className="container py-8 space-y-6" dir={direction}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex flex-col gap-1 items-start rtl:items-end">
-          <h1 className={`text-3xl font-bold tracking-tight ${textAlign}`}>{t('userManagement.title')}</h1>
-          <p className={`text-muted-foreground ${textAlign}`}>{t('userManagement.description')}</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4" dir={direction}>
+        <div className="flex flex-col gap-1 text-start">
+          <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
+          <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
-        <Button onClick={handleAddUser} className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-          <Plus className="h-4 w-4" />
+        <Button onClick={handleAddUser} className="gap-2">
+          <Plus className="h-4 w-4 rtl:order-last" />
           {t('userManagement.addUser')}
         </Button>
       </div>
