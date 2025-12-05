@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserFormDialog } from "@/components/users/UserFormDialog";
+import { UserFormDialog, UserDetailPopover } from "@/components/users";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
@@ -57,7 +57,7 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
   const { quota, breakdown, isLoading: quotaLoading, refetch: refetchQuota } = useLicensedUserQuota();
-  const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated } = useAdminAuditLog();
+  const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated, logUserDeleted } = useAdminAuditLog();
   const { roles } = useUserRoles();
 
   // Build filters object for the hook
@@ -174,6 +174,48 @@ export default function UserManagement() {
       case 'employee': return 'default';
       case 'contractor_longterm': case 'member': return 'secondary';
       default: return 'outline';
+    }
+  };
+
+  const handleToggleUserStatus = async (user: UserWithRoles) => {
+    const newStatus = !user.is_active;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_active: newStatus })
+      .eq('id', user.id);
+    
+    if (!error) {
+      if (newStatus) {
+        await logUserActivated(user.id, user.full_name || '');
+        toast({ title: t('userManagement.userActivated') });
+      } else {
+        await logUserDeactivated(user.id, user.full_name || '');
+        toast({ title: t('userManagement.userDeactivated') });
+      }
+      refetchUsers();
+      refetchQuota();
+    } else {
+      toast({ title: t('common.error'), variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    // Soft delete: set deleted_at and is_deleted
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        deleted_at: new Date().toISOString(), 
+        is_deleted: true 
+      })
+      .eq('id', userId);
+    
+    if (!error) {
+      await logUserDeleted(userId, userName);
+      toast({ title: t('userManagement.userDeleted') });
+      refetchUsers();
+      refetchQuota();
+    } else {
+      toast({ title: t('common.error'), variant: 'destructive' });
     }
   };
 
@@ -294,12 +336,12 @@ export default function UserManagement() {
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium text-start">
-                        <div className="flex flex-col">
-                          <span>{user.full_name || '-'}</span>
-                          {user.employee_id && (
-                            <span className="text-xs text-muted-foreground">#{user.employee_id}</span>
-                          )}
-                        </div>
+                        <UserDetailPopover
+                          user={user}
+                          onEdit={() => handleEditUser(user)}
+                          onToggleStatus={() => handleToggleUserStatus(user)}
+                          onDelete={() => handleDeleteUser(user.id, user.full_name || '')}
+                        />
                       </TableCell>
                       <TableCell className="text-start">
                         <Badge variant={getUserTypeBadgeVariant(user.user_type)}>

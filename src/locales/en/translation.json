@@ -665,6 +665,13 @@
     "status": "Status",
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
+    "userDeleted": "User deleted successfully",
+    "userActivated": "User activated successfully",
+    "userDeactivated": "User deactivated successfully",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "confirmDeleteTitle": "Delete User",
+    "confirmDeleteDesc": "Are you sure you want to delete \"{{userName}}\"? This action cannot be undone.",
     "showingUsers": "Showing {{count}} of {{total}} users",
     "hierarchy": "Hierarchy",
     "roles": "Roles"
