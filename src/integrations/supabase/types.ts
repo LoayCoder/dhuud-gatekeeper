@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_stats: {
+        Row: {
+          agent_id: string
+          avg_first_response_minutes: number | null
+          avg_resolution_minutes: number | null
+          created_at: string | null
+          id: string
+          sla_breaches: number | null
+          stats_date: string
+          tickets_assigned: number | null
+          tickets_closed: number | null
+          tickets_resolved: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          avg_first_response_minutes?: number | null
+          avg_resolution_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          sla_breaches?: number | null
+          stats_date?: string
+          tickets_assigned?: number | null
+          tickets_closed?: number | null
+          tickets_resolved?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          avg_first_response_minutes?: number | null
+          avg_resolution_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          sla_breaches?: number | null
+          stats_date?: string
+          tickets_assigned?: number | null
+          tickets_closed?: number | null
+          tickets_resolved?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       branches: {
         Row: {
           created_at: string | null
@@ -724,6 +766,36 @@ export type Database = {
           },
         ]
       }
+      sla_configs: {
+        Row: {
+          created_at: string | null
+          escalation_hours: number
+          first_response_hours: number
+          id: string
+          priority: string
+          resolution_hours: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          escalation_hours?: number
+          first_response_hours?: number
+          id?: string
+          priority: string
+          resolution_hours?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          escalation_hours?: number
+          first_response_hours?: number
+          id?: string
+          priority?: string
+          resolution_hours?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       subscription_events: {
         Row: {
           created_at: string
@@ -876,9 +948,16 @@ export type Database = {
           created_at: string | null
           created_by: string
           description: string
+          escalated_at: string | null
+          escalation_level: number | null
+          first_response_at: string | null
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"] | null
           resolved_at: string | null
+          sla_first_response_breached: boolean | null
+          sla_first_response_due: string | null
+          sla_resolution_breached: boolean | null
+          sla_resolution_due: string | null
           status: Database["public"]["Enums"]["ticket_status"] | null
           subject: string
           tenant_id: string
@@ -892,9 +971,16 @@ export type Database = {
           created_at?: string | null
           created_by: string
           description: string
+          escalated_at?: string | null
+          escalation_level?: number | null
+          first_response_at?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"] | null
           resolved_at?: string | null
+          sla_first_response_breached?: boolean | null
+          sla_first_response_due?: string | null
+          sla_resolution_breached?: boolean | null
+          sla_resolution_due?: string | null
           status?: Database["public"]["Enums"]["ticket_status"] | null
           subject: string
           tenant_id: string
@@ -908,9 +994,16 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           description?: string
+          escalated_at?: string | null
+          escalation_level?: number | null
+          first_response_at?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"] | null
           resolved_at?: string | null
+          sla_first_response_breached?: boolean | null
+          sla_first_response_due?: string | null
+          sla_resolution_breached?: boolean | null
+          sla_resolution_due?: string | null
           status?: Database["public"]["Enums"]["ticket_status"] | null
           subject?: string
           tenant_id?: string
@@ -1656,11 +1749,23 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: Json
       }
+      check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       generate_mfa_backup_codes: {
         Args: { p_code_hashes: string[]; p_user_id: string }
         Returns: undefined
+      }
+      get_agent_workload: {
+        Args: never
+        Returns: {
+          agent_id: string
+          agent_name: string
+          avg_resolution_hours: number
+          in_progress_tickets: number
+          open_tickets: number
+          total_active: number
+        }[]
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
