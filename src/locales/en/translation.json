@@ -25,7 +25,11 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next",
-    "morePages": "More pages"
+    "morePages": "More pages",
+    "showing": "Showing",
+    "of": "of",
+    "page": "Page",
+    "rowsPerPage": "Rows per page"
   },
   "accessibility": {
     "toggleSidebar": "Toggle Sidebar"

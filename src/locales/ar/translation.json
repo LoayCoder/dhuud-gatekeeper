@@ -25,7 +25,11 @@
   "pagination": {
     "previous": "السابق",
     "next": "التالي",
-    "morePages": "المزيد من الصفحات"
+    "morePages": "المزيد من الصفحات",
+    "showing": "عرض",
+    "of": "من",
+    "page": "صفحة",
+    "rowsPerPage": "صفوف لكل صفحة"
   },
   "accessibility": {
     "toggleSidebar": "تبديل الشريط الجانبي"

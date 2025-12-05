@@ -25,7 +25,11 @@
   "pagination": {
     "previous": "पिछला",
     "next": "अगला",
-    "morePages": "अधिक पृष्ठ"
+    "morePages": "अधिक पृष्ठ",
+    "showing": "दिखा रहा है",
+    "of": "में से",
+    "page": "पृष्ठ",
+    "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ"
   },
   "accessibility": {
     "toggleSidebar": "साइडबार टॉगल करें"

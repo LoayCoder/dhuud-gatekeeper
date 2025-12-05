@@ -228,8 +228,9 @@ export function usePriceCalculator(
   };
 }
 
-export function formatPrice(cents: number, currency = 'SAR'): string {
-  return new Intl.NumberFormat('en-SA', {
+export function formatPrice(cents: number, currency = 'SAR', locale?: string): string {
+  const effectiveLocale = locale || (document.documentElement.lang === 'ar' ? 'ar-SA' : 'en-SA');
+  return new Intl.NumberFormat(effectiveLocale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Users, CreditCard, TrendingUp, Clock, AlertTriangle, FileText, Inbox } from "lucide-react";
 import { format } from "date-fns";
+import { ar, enUS } from "date-fns/locale";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { SubscriptionAuditLog } from "@/components/SubscriptionAuditLog";
 import { SubscriptionRequestsTable } from "@/components/subscription/SubscriptionRequestsTable";
@@ -45,6 +46,8 @@ const RTL_LANGUAGES = ['ar', 'ur'];
 export default function SubscriptionOverview() {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const dateLocale = isRTL ? ar : enUS;
   const [selectedRequest, setSelectedRequest] = useState<SubscriptionRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -144,9 +147,9 @@ export default function SubscriptionOverview() {
   };
 
   return (
-    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-        <div className={isRTL ? 'text-right' : 'text-left'}>
+    <div className="space-y-6" dir={direction}>
+      <div className="flex items-center justify-between">
+        <div className="text-start">
           <h1 className="text-3xl font-bold tracking-tight">{t('subscriptionOverview.title')}</h1>
           <p className="text-muted-foreground">{t('subscriptionOverview.description')}</p>
         </div>
@@ -156,41 +159,41 @@ export default function SubscriptionOverview() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('subscriptionOverview.totalTenants')}</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={isRTL ? 'text-right' : 'text-left'}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{stats.totalTenants}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('subscriptionOverview.activeSubscriptions')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={isRTL ? 'text-right' : 'text-left'}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{stats.activeSubs}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('subscriptionOverview.inTrial')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={isRTL ? 'text-right' : 'text-left'}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{stats.trialingSubs}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('subscriptionOverview.monthlyRevenue')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={isRTL ? 'text-right' : 'text-left'}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">${stats.totalMRR}</div>
           </CardContent>
         </Card>
@@ -198,8 +201,8 @@ export default function SubscriptionOverview() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList className={isRTL ? 'justify-end' : 'justify-start'}>
-          <TabsTrigger value="requests" className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <TabsList className="justify-start">
+          <TabsTrigger value="requests" className="gap-2">
             <Inbox className="h-4 w-4" />
             {t('adminSubscription.requests')}
             {pendingCount > 0 && (
@@ -208,11 +211,11 @@ export default function SubscriptionOverview() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="tenants" className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <TabsTrigger value="tenants" className="gap-2">
             <Building2 className="h-4 w-4" />
             {t('subscriptionOverview.allTenants')}
           </TabsTrigger>
-          <TabsTrigger value="activity" className={`gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <TabsTrigger value="activity" className="gap-2">
             <FileText className="h-4 w-4" />
             {t('adminSubscription.activity')}
           </TabsTrigger>
@@ -220,12 +223,12 @@ export default function SubscriptionOverview() {
 
         {/* Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
-          <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <div className="flex items-center gap-4">
+            <Select value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder={t('adminSubscription.filterByStatus')} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent dir={direction}>
                 <SelectItem value="all">{t('adminSubscription.allRequests')}</SelectItem>
                 <SelectItem value="pending">{t('subscription.status.pending')}</SelectItem>
                 <SelectItem value="under_review">{t('subscription.status.under_review')}</SelectItem>
@@ -245,7 +248,7 @@ export default function SubscriptionOverview() {
         {/* Tenants Tab */}
         <TabsContent value="tenants">
           <Card>
-            <CardHeader className={isRTL ? 'text-right' : 'text-left'}>
+            <CardHeader className="text-start">
               <CardTitle>{t('subscriptionOverview.allTenants')}</CardTitle>
               <CardDescription>{t('subscriptionOverview.allTenantsDesc')}</CardDescription>
             </CardHeader>
@@ -253,11 +256,11 @@ export default function SubscriptionOverview() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('tenantManagement.columns.name')}</TableHead>
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('subscription.currentPlan')}</TableHead>
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('common.status')}</TableHead>
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('subscriptionOverview.userUsage')}</TableHead>
-                    <TableHead className={isRTL ? 'text-right' : 'text-left'}>{t('subscriptionOverview.trialEnds')}</TableHead>
+                    <TableHead className="text-start">{t('tenantManagement.columns.name')}</TableHead>
+                    <TableHead className="text-start">{t('subscription.currentPlan')}</TableHead>
+                    <TableHead className="text-start">{t('common.status')}</TableHead>
+                    <TableHead className="text-start">{t('subscriptionOverview.userUsage')}</TableHead>
+                    <TableHead className="text-start">{t('subscriptionOverview.trialEnds')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -280,14 +283,14 @@ export default function SubscriptionOverview() {
                       
                       return (
                         <TableRow key={tenant.id}>
-                          <TableCell className={`font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{tenant.name}</TableCell>
-                          <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+                          <TableCell className="font-medium text-start">{tenant.name}</TableCell>
+                          <TableCell className="text-start">
                             <Badge variant="outline">{tenant.planName}</Badge>
                           </TableCell>
-                          <TableCell className={isRTL ? 'text-right' : 'text-left'}>{getStatusBadge(tenant.subscription_status)}</TableCell>
-                          <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+                          <TableCell className="text-start">{getStatusBadge(tenant.subscription_status)}</TableCell>
+                          <TableCell className="text-start">
                             <div className="space-y-1 min-w-[120px]">
-                              <div className={`flex justify-between text-xs ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <div className="flex justify-between text-xs">
                                 <span>{tenant.userCount}/{tenant.maxUsers}</span>
                                 {usagePercent >= 90 && (
                                   <AlertTriangle className="h-3 w-3 text-destructive" />
@@ -299,14 +302,14 @@ export default function SubscriptionOverview() {
                               />
                             </div>
                           </TableCell>
-                          <TableCell className={isRTL ? 'text-right' : 'text-left'}>
+                          <TableCell className="text-start">
                             {tenant.subscription_status === 'trialing' && tenant.trial_end_date ? (
                               <div className="text-sm">
                                 <span className={trialDays && trialDays <= 3 ? 'text-destructive font-medium' : ''}>
                                   {trialDays} {t('subscriptionOverview.daysLeft')}
                                 </span>
                                 <div className="text-xs text-muted-foreground">
-                                  {format(new Date(tenant.trial_end_date), 'MMM d, yyyy')}
+                                  {format(new Date(tenant.trial_end_date), 'PPP', { locale: dateLocale })}
                                 </div>
                               </div>
                             ) : (
