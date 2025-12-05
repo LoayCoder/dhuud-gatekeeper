@@ -653,6 +653,7 @@
     "editUser": "I-edit ang User",
     "userType": "Uri ng User",
     "hasLogin": "May Login Access",
+    "noLogin": "Walang Login Access",
     "isActive": "Aktibo",
     "employeeId": "Employee ID",
     "jobTitle": "Posisyon",

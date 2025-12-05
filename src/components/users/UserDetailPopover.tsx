@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, UserX, UserCheck, Trash2, Phone, Briefcase, Building2, Hash } from 'lucide-react';
+import { Pencil, UserX, UserCheck, Trash2, Phone, Briefcase, Building2, Hash, LogIn, LogOut } from 'lucide-react';
 import { RoleBadge } from '@/components/roles/RoleBadge';
 import { RoleCategory } from '@/hooks/use-user-roles';
 import { UserWithRoles } from '@/hooks/use-users-paginated';
@@ -126,6 +126,20 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
                 </Badge>
               </div>
             )}
+
+            <div className="flex items-center gap-2 text-sm">
+              {user.has_login ? (
+                <>
+                  <LogIn className="h-4 w-4 text-primary shrink-0" />
+                  <span>{t('userManagement.hasLogin')}</span>
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">{t('userManagement.noLogin')}</span>
+                </>
+              )}
+            </div>
 
             {user.branch_name && (
               <div className="flex items-center gap-2 text-sm">

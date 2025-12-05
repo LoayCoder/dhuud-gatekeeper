@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, LogIn, LogOut } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -318,9 +318,7 @@ export default function UserManagement() {
                   <TableHead className="text-start">{t('profile.fullName')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.userType')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.status')}</TableHead>
-                  <TableHead className="text-start">{t('userManagement.login')}</TableHead>
                   <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
-                  <TableHead className="text-start">{t('userManagement.hierarchy')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.roles')}</TableHead>
                   <TableHead className="text-start">{t('common.actions')}</TableHead>
                 </TableRow>
@@ -328,7 +326,7 @@ export default function UserManagement() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       {t('common.noData')}
                     </TableCell>
                   </TableRow>
@@ -354,25 +352,7 @@ export default function UserManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-start">
-                        {user.has_login ? (
-                          <LogIn className="h-4 w-4 text-primary" />
-                        ) : (
-                          <LogOut className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </TableCell>
-                      <TableCell className="text-start">
                         {user.branch_name || '-'}
-                      </TableCell>
-                      <TableCell className="text-sm text-start">
-                        {user.division_name && (
-                          <span>{user.division_name}</span>
-                        )}
-                        {user.department_name && (
-                          <span className="text-muted-foreground"> {hierarchyArrow} {user.department_name}</span>
-                        )}
-                        {user.section_name && (
-                          <span className="text-muted-foreground"> {hierarchyArrow} {user.section_name}</span>
-                        )}
                       </TableCell>
                       <TableCell className="text-start">
                         <div className="flex flex-wrap gap-1">
