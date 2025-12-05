@@ -187,7 +187,7 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="mt-4">
+        <Tabs defaultValue="details" className="mt-4" dir={direction}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="details">{t('adminSubscription.requestDetails')}</TabsTrigger>
             {isReviewable && (
