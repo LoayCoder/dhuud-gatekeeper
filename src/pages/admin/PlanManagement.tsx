@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,11 +218,11 @@ export default function PlanManagement() {
   };
 
   // Set selected modules when editing
-  useState(() => {
+  useEffect(() => {
     if (planModules.length > 0) {
       setSelectedModules(planModules);
     }
-  });
+  }, [planModules]);
 
   const handleCreate = () => {
     resetForm();
