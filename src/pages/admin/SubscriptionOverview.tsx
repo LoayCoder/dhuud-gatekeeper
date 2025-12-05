@@ -8,10 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Users, CreditCard, TrendingUp, Clock, AlertTriangle, FileText, Inbox } from "lucide-react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale/ar";
-import { enUS } from "date-fns/locale/en-US";
+import { Building2, CreditCard, TrendingUp, Clock, AlertTriangle, FileText, Inbox } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { SubscriptionAuditLog } from "@/components/SubscriptionAuditLog";
 import { SubscriptionRequestsTable } from "@/components/subscription/SubscriptionRequestsTable";
@@ -48,7 +46,6 @@ export default function SubscriptionOverview() {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
-  const dateLocale = isRTL ? ar : enUS;
   const [selectedRequest, setSelectedRequest] = useState<SubscriptionRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -310,7 +307,7 @@ export default function SubscriptionOverview() {
                                   {trialDays} {t('subscriptionOverview.daysLeft')}
                                 </span>
                                 <div className="text-xs text-muted-foreground">
-                                  {format(new Date(tenant.trial_end_date), 'PPP', { locale: dateLocale })}
+                                  {formatDate(tenant.trial_end_date)}
                                 </div>
                               </div>
                             ) : (

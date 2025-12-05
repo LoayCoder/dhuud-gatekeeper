@@ -6,9 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Eye, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { ar } from 'date-fns/locale/ar';
-import { enUS } from 'date-fns/locale/en-US';
+import { formatDate, formatTime } from '@/lib/date-utils';
 import { formatPrice } from '@/hooks/use-price-calculator';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -42,7 +40,6 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
-  const dateLocale = isRTL ? ar : enUS;
 
   const {
     data: paginatedData,
@@ -213,9 +210,9 @@ export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: Sub
                   </TableCell>
                   <TableCell className="text-start">
                     <div className="text-sm">
-                      {format(new Date(request.created_at), 'PPP', { locale: dateLocale })}
+                      {formatDate(request.created_at)}
                       <span className="text-xs text-muted-foreground block">
-                        {format(new Date(request.created_at), 'HH:mm')}
+                        {formatTime(request.created_at)}
                       </span>
                     </div>
                   </TableCell>
