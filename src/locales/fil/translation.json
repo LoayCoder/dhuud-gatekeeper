@@ -678,7 +678,9 @@
     "status": "Status",
     "userCreated": "Matagumpay na nagawa ang user",
     "userUpdated": "Matagumpay na na-update ang user",
-    "showingUsers": "Nagpapakita ng {{count}} sa {{total}} user"
+    "showingUsers": "Nagpapakita ng {{count}} sa {{total}} user",
+    "hierarchy": "Hierarchy",
+    "roles": "Mga Tungkulin"
   },
   "tenantManagement": {
     "title": "Pamamahala ng Tenant",

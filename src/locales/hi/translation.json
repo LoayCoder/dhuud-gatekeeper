@@ -678,7 +678,9 @@
     "status": "स्थिति",
     "userCreated": "उपयोगकर्ता सफलतापूर्वक बनाया गया",
     "userUpdated": "उपयोगकर्ता सफलतापूर्वक अपडेट हुआ",
-    "showingUsers": "{{total}} में से {{count}} उपयोगकर्ता दिखा रहे हैं"
+    "showingUsers": "{{total}} में से {{count}} उपयोगकर्ता दिखा रहे हैं",
+    "hierarchy": "पदानुक्रम",
+    "roles": "भूमिकाएं"
   },
   "tenantManagement": {
     "title": "किरायेदार प्रबंधन",

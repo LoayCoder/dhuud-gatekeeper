@@ -28,7 +28,8 @@ import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
 import { useAdminAuditLog, detectUserChanges } from "@/hooks/use-admin-audit-log";
 import { ManagerTeamViewer } from "@/components/hierarchy/ManagerTeamViewer";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { useUserRoles, RoleCategory } from "@/hooks/use-user-roles";
+import { RoleBadge } from "@/components/roles/RoleBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
 
@@ -278,13 +279,14 @@ export default function UserManagement() {
                   <TableHead className="text-start">{t('userManagement.login')}</TableHead>
                   <TableHead className="text-start">{t('orgStructure.branch')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.hierarchy')}</TableHead>
+                  <TableHead className="text-start">{t('userManagement.roles')}</TableHead>
                   <TableHead className="text-start">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       {t('common.noData')}
                     </TableCell>
                   </TableRow>
@@ -329,6 +331,33 @@ export default function UserManagement() {
                         {user.section_name && (
                           <span className="text-muted-foreground"> {hierarchyArrow} {user.section_name}</span>
                         )}
+                      </TableCell>
+                      <TableCell className="text-start">
+                        <div className="flex flex-wrap gap-1">
+                          {user.role_assignments && user.role_assignments.length > 0 ? (
+                            <>
+                              {user.role_assignments
+                                .filter(r => r.role_code !== 'normal_user')
+                                .slice(0, 3)
+                                .map((role) => (
+                                  <RoleBadge
+                                    key={role.role_id}
+                                    code={role.role_code}
+                                    name={role.role_name}
+                                    category={role.category as RoleCategory}
+                                    size="sm"
+                                  />
+                                ))}
+                              {user.role_assignments.filter(r => r.role_code !== 'normal_user').length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{user.role_assignments.filter(r => r.role_code !== 'normal_user').length - 3}
+                                </Badge>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 justify-start">

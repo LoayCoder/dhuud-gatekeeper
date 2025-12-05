@@ -665,7 +665,9 @@
     "status": "Status",
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
-    "showingUsers": "Showing {{count}} of {{total}} users"
+    "showingUsers": "Showing {{count}} of {{total}} users",
+    "hierarchy": "Hierarchy",
+    "roles": "Roles"
   },
   "tenantManagement": {
     "title": "Tenant Management",

@@ -678,7 +678,9 @@
     "status": "حیثیت",
     "userCreated": "صارف کامیابی سے بنایا گیا",
     "userUpdated": "صارف کامیابی سے اپ ڈیٹ ہوا",
-    "showingUsers": "{{count}} میں سے {{total}} صارفین دکھا رہے ہیں"
+    "showingUsers": "{{count}} میں سے {{total}} صارفین دکھا رہے ہیں",
+    "hierarchy": "درجہ بندی",
+    "roles": "کردار"
   },
   "tenantManagement": {
     "title": "کرایہ داروں کا انتظام",
