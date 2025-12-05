@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,9 +22,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { formatPrice } from "@/hooks/use-price-calculator";
-import { Plus, Pencil, Trash2, Crown, Rocket, Building2, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Crown, Rocket, Building2, Sparkles, Loader2, ArrowUpDown } from "lucide-react";
+
+type StatusFilter = 'all' | 'active' | 'inactive';
+type SortField = 'sort_order' | 'price' | 'max_users';
+type SortDirection = 'asc' | 'desc';
 
 interface Plan {
   id: string;
@@ -56,6 +61,9 @@ export default function PlanManagement() {
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortField, setSortField] = useState<SortField>('sort_order');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [formData, setFormData] = useState({
     name: '',
     display_name: '',
@@ -333,6 +341,42 @@ export default function PlanManagement() {
     }
   };
 
+  // Filter and sort plans
+  const filteredPlans = useMemo(() => {
+    let result = [...plans];
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(plan => 
+        statusFilter === 'active' ? plan.is_active : !plan.is_active
+      );
+    }
+    
+    // Apply sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'price':
+          comparison = a.base_price_monthly - b.base_price_monthly;
+          break;
+        case 'max_users':
+          comparison = a.max_users - b.max_users;
+          break;
+        case 'sort_order':
+        default:
+          comparison = a.sort_order - b.sort_order;
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    
+    return result;
+  }, [plans, statusFilter, sortField, sortDirection]);
+
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -352,6 +396,40 @@ export default function PlanManagement() {
           <CardDescription>{t('adminPlans.allPlansDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filter and Sort Controls */}
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm whitespace-nowrap">{t('adminPlans.filterByStatus')}</Label>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
+                  <SelectItem value="active">{t('common.active')}</SelectItem>
+                  <SelectItem value="inactive">{t('adminPlans.inactive')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label className="text-sm whitespace-nowrap">{t('adminPlans.sortBy')}</Label>
+              <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sort_order">{t('adminPlans.defaultOrder')}</SelectItem>
+                  <SelectItem value="price">{t('adminPlans.pricing')}</SelectItem>
+                  <SelectItem value="max_users">{t('adminPlans.maxUsers')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="icon" onClick={toggleSortDirection} title={sortDirection === 'asc' ? t('adminPlans.ascending') : t('adminPlans.descending')}>
+                <ArrowUpDown className={`h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+              </Button>
+            </div>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -367,14 +445,14 @@ export default function PlanManagement() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">{t('common.loading')}</TableCell>
                 </TableRow>
-              ) : plans.length === 0 ? (
+              ) : filteredPlans.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     {t('adminPlans.noPlans')}
                   </TableCell>
                 </TableRow>
               ) : (
-                plans.map((plan) => (
+                filteredPlans.map((plan) => (
                   <TableRow key={plan.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">

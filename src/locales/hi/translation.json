@@ -58,6 +58,7 @@
     "no": "नहीं",
     "status": "स्थिति",
     "active": "सक्रिय",
+    "all": "सभी",
     "continue": "जारी रखें",
     "verify": "सत्यापित करें",
     "done": "हो गया",
@@ -1187,7 +1188,12 @@
     "confirmDeletePlan": "प्लान हटाएं",
     "confirmDeletePlanDesc": "क्या आप वाकई \"{{planName}}\" प्लान हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
     "deletePlan": "हटाएं",
-    "planDeleted": "प्लान सफलतापूर्वक हटा दिया गया।"
+    "planDeleted": "प्लान सफलतापूर्वक हटा दिया गया।",
+    "filterByStatus": "स्थिति",
+    "sortBy": "इसके द्वारा क्रमबद्ध करें",
+    "defaultOrder": "डिफ़ॉल्ट",
+    "ascending": "आरोही",
+    "descending": "अवरोही"
   },
   "analytics": {
     "title": "उपयोग विश्लेषिकी",

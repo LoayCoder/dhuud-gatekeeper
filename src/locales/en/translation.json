@@ -58,6 +58,7 @@
     "no": "No",
     "status": "Status",
     "active": "Active",
+    "all": "All",
     "continue": "Continue",
     "verify": "Verify",
     "done": "Done",
@@ -1180,7 +1181,12 @@
     "confirmDeletePlan": "Delete Plan",
     "confirmDeletePlanDesc": "Are you sure you want to delete the \"{{planName}}\" plan? This action cannot be undone.",
     "deletePlan": "Delete",
-    "planDeleted": "Plan deleted successfully."
+    "planDeleted": "Plan deleted successfully.",
+    "filterByStatus": "Status",
+    "sortBy": "Sort by",
+    "defaultOrder": "Default",
+    "ascending": "Ascending",
+    "descending": "Descending"
   },
   "analytics": {
     "title": "Usage Analytics",
