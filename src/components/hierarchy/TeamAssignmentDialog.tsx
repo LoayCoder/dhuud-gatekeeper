@@ -20,7 +20,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useManagerTeam } from '@/hooks/use-manager-team';
@@ -57,6 +56,7 @@ export function TeamAssignmentDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
 
   // Fetch users who have the manager role - with proper role verification
   useEffect(() => {
@@ -157,18 +157,18 @@ export function TeamAssignmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" dir={direction}>
         <DialogHeader>
-          <DialogTitle className={cn(isRTL && "text-right")}>
+          <DialogTitle className="text-start">
             {t('hierarchy.assignToTeam')}
           </DialogTitle>
-          <DialogDescription className={cn(isRTL && "text-right")}>
+          <DialogDescription className="text-start">
             {t('hierarchy.assignToTeamDescription', { name: userName })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className={cn("space-y-2", isRTL && "text-right")}>
+          <div className="space-y-2 text-start">
             <Label>{t('hierarchy.selectManager')}</Label>
             {isFetching ? (
               <div className="flex items-center justify-center py-4">
@@ -182,12 +182,12 @@ export function TeamAssignmentDialog({
               <Select
                 value={selectedManagerId || 'none'}
                 onValueChange={(v) => setSelectedManagerId(v === 'none' ? null : v)}
-                dir={isRTL ? 'rtl' : 'ltr'}
+                dir={direction}
               >
-                <SelectTrigger className={cn(isRTL && "text-right")}>
+                <SelectTrigger className="text-start">
                   <SelectValue placeholder={t('hierarchy.selectManagerPlaceholder')} />
                 </SelectTrigger>
-                <SelectContent className="bg-background">
+                <SelectContent className="bg-background" dir={direction}>
                   <SelectItem value="none">
                     <span className="text-muted-foreground">{t('hierarchy.noManager')}</span>
                   </SelectItem>
@@ -202,10 +202,7 @@ export function TeamAssignmentDialog({
           </div>
 
           {currentManagerId && (
-            <div className={cn(
-              "flex items-center gap-2 p-3 rounded-lg bg-muted/50",
-              isRTL && "flex-row-reverse"
-            )}>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">
                 {t('hierarchy.currentManager')}:
               </span>
@@ -224,7 +221,7 @@ export function TeamAssignmentDialog({
           )}
         </div>
 
-        <DialogFooter className={cn(isRTL && "flex-row-reverse")}>
+        <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>

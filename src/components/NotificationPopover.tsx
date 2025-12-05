@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 
 type NotificationType = 'all' | 'sync' | 'update' | 'info' | 'error';
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 const typeIcons = {
   sync: RefreshCw,
   update: Bell,
@@ -38,11 +40,9 @@ const typeColors = {
 function NotificationItem({ 
   item, 
   onMarkRead,
-  isRTL 
 }: { 
   item: NotificationHistoryItem; 
   onMarkRead: (id: string) => void;
-  isRTL: boolean;
 }) {
   const Icon = typeIcons[item.type] || Info;
   
@@ -50,15 +50,14 @@ function NotificationItem({
     <div 
       className={cn(
         "flex gap-2 p-2.5 border-b last:border-b-0 transition-colors hover:bg-muted/50",
-        !item.read && "bg-primary/5",
-        isRTL && "flex-row-reverse"
+        !item.read && "bg-primary/5"
       )}
       onClick={() => !item.read && onMarkRead(item.id)}
     >
       <div className={cn("mt-0.5 shrink-0", typeColors[item.type])}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className={cn("flex-1 min-w-0", isRTL && "text-right")}>
+      <div className="flex-1 min-w-0 text-start">
         <p className={cn("text-sm truncate", !item.read && "font-medium")}>
           {item.title}
         </p>
@@ -82,7 +81,8 @@ function NotificationItem({
 
 export function NotificationPopover() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
   const navigate = useNavigate();
   const { history, unreadCount, markAsRead, markAllAsRead } = useNotificationHistory();
   const [filter, setFilter] = useState<NotificationType>('all');
@@ -121,14 +121,12 @@ export function NotificationPopover() {
         className="w-80 p-0 bg-popover" 
         align={isRTL ? "start" : "end"}
         sideOffset={8}
+        dir={direction}
       >
         {/* Header */}
-        <div className={cn(
-          "flex items-center justify-between p-3 border-b",
-          isRTL && "flex-row-reverse"
-        )}>
+        <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold text-sm">{t('notifications.title')}</h4>
-          <div className={cn("flex items-center gap-1", isRTL && "flex-row-reverse")}>
+          <div className="flex items-center gap-1">
             {unreadCount > 0 && (
               <Button 
                 variant="ghost" 
@@ -177,7 +175,6 @@ export function NotificationPopover() {
                 key={item.id}
                 item={item}
                 onMarkRead={markAsRead}
-                isRTL={isRTL}
               />
             ))}
           </ScrollArea>
@@ -189,10 +186,7 @@ export function NotificationPopover() {
         )}
 
         {/* Footer */}
-        <div className={cn(
-          "flex items-center justify-between p-2 border-t bg-muted/30",
-          isRTL && "flex-row-reverse"
-        )}>
+        <div className="flex items-center justify-between p-2 border-t bg-muted/30">
           <Button 
             variant="ghost" 
             size="sm" 

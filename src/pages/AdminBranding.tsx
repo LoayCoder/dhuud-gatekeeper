@@ -240,7 +240,7 @@ export default function AdminBranding() {
           {saving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Save className="me-2 h-4 w-4" />}
           {saving ? t('adminBranding.saving') : t('adminBranding.saveChanges')}
         </Button>
-        <div className="ltr:text-left rtl:text-right">
+        <div className="text-start">
           <h1 className="text-3xl font-bold">{t('adminBranding.title')}</h1>
           <p className="text-muted-foreground">{t('adminBranding.subtitle')} {tenant?.name}</p>
         </div>
@@ -257,8 +257,8 @@ export default function AdminBranding() {
         <TabsContent value="visuals" className="w-full">
           <Card>
             <CardHeader>
-              <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.colors.title')}</CardTitle>
-              <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.colors.description')}</CardDescription>
+              <CardTitle className="text-start">{t('adminBranding.colors.title')}</CardTitle>
+              <CardDescription className="text-start">{t('adminBranding.colors.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col space-y-8 rtl:items-end">
               {/* Light Mode Colors */}
@@ -295,8 +295,8 @@ export default function AdminBranding() {
             {/* Login Page Logos */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.title')}</CardTitle>
-                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.loginLogos.description')}</CardDescription>
+                <CardTitle className="text-start">{t('adminBranding.assets.loginLogos.title')}</CardTitle>
+                <CardDescription className="text-start">{t('adminBranding.assets.loginLogos.description')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col rtl:items-end">
                 <div className="grid md:grid-cols-2 gap-6 w-full">
@@ -327,8 +327,8 @@ export default function AdminBranding() {
             {/* Sidebar Icons */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.title')}</CardTitle>
-                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.sidebarIcons.description')}</CardDescription>
+                <CardTitle className="text-start">{t('adminBranding.assets.sidebarIcons.title')}</CardTitle>
+                <CardDescription className="text-start">{t('adminBranding.assets.sidebarIcons.description')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col rtl:items-end">
                 <div className="grid md:grid-cols-2 gap-6 w-full">
@@ -359,8 +359,8 @@ export default function AdminBranding() {
             {/* App Icons (PWA) */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.title')}</CardTitle>
-                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.appIcons.description')}</CardDescription>
+                <CardTitle className="text-start">{t('adminBranding.assets.appIcons.title')}</CardTitle>
+                <CardDescription className="text-start">{t('adminBranding.assets.appIcons.description')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col rtl:items-end">
                 <div className="grid md:grid-cols-2 gap-6 w-full">
@@ -391,10 +391,10 @@ export default function AdminBranding() {
             {/* Favicon */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="ltr:text-left rtl:text-right">
+                <CardTitle className="text-start">
                    {t('adminBranding.assets.favicon.title')}
                 </CardTitle>
-                <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.assets.favicon.description')}</CardDescription>
+                <CardDescription className="text-start">{t('adminBranding.assets.favicon.description')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 rtl:items-end">
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[120px] w-full">
@@ -409,8 +409,8 @@ export default function AdminBranding() {
         <TabsContent value="theme" className="w-full">
           <Card>
             <CardHeader>
-              <CardTitle className="ltr:text-left rtl:text-right">{t('adminBranding.theme.title')}</CardTitle>
-              <CardDescription className="ltr:text-left rtl:text-right">{t('adminBranding.theme.description')}</CardDescription>
+              <CardTitle className="text-start">{t('adminBranding.theme.title')}</CardTitle>
+              <CardDescription className="text-start">{t('adminBranding.theme.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col space-y-6 rtl:items-end">
               <RadioGroup value={bgTheme} onValueChange={v => setBgTheme(v as 'color' | 'image')} className="flex gap-6 ltr:flex-row rtl:flex-row-reverse">
@@ -429,7 +429,7 @@ export default function AdminBranding() {
               {bgTheme === 'color' ? <div className="flex flex-col space-y-4 w-full rtl:items-end">
                   <HslColorPicker label={t('adminBranding.theme.backgroundColor')} value={bgColor} onChange={setBgColor} />
                 </div> : <div className="flex flex-col space-y-4 w-full rtl:items-end">
-                  <Label className="ltr:text-left rtl:text-right block">{t('adminBranding.theme.backgroundImage')}</Label>
+                  <Label className="text-start block">{t('adminBranding.theme.backgroundImage')}</Label>
                   <div className="border-2 border-dashed rounded-lg p-4 min-h-[200px] bg-cover bg-center relative group w-full" style={{
                   backgroundImage: bgPreview ? `url(${bgPreview})` : 'none'
                 }}>
@@ -441,7 +441,7 @@ export default function AdminBranding() {
                         <span className="text-muted-foreground text-sm">{t('adminBranding.theme.noImage')}</span>
                       </div>}
                   </div>
-                  <p className="text-xs text-muted-foreground ltr:text-left rtl:text-right w-full">{t('adminBranding.theme.imageDescription')}</p>
+                  <p className="text-xs text-muted-foreground text-start w-full">{t('adminBranding.theme.imageDescription')}</p>
                 </div>}
             </CardContent>
           </Card>

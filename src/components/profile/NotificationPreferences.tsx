@@ -12,9 +12,12 @@ import { NotificationHistory } from "./NotificationHistory";
 import { NotificationSoundSettings } from "./NotificationSoundSettings";
 import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
 
+const RTL_LANGUAGES = ['ar', 'ur'];
+
 export function NotificationPreferences() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
   const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
   
   const [syncNotifications, setSyncNotifications] = useState(() => {
@@ -89,7 +92,7 @@ export function NotificationPreferences() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir={direction}>
       <div>
         <h3 className="text-lg font-medium">{t('notifications.title')}</h3>
         <p className="text-sm text-muted-foreground">
@@ -99,14 +102,14 @@ export function NotificationPreferences() {
 
       {/* Permission Status */}
       <div className="rounded-lg border p-4 space-y-4">
-        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-          <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             {isGranted ? (
               <Bell className="h-5 w-5 text-green-600" />
             ) : (
               <BellOff className="h-5 w-5 text-muted-foreground" />
             )}
-            <div className={isRTL ? 'text-right' : ''}>
+            <div>
               <p className="font-medium">{t('notifications.browserPermission')}</p>
               <p className="text-sm text-muted-foreground">
                 {isGranted 
@@ -131,8 +134,8 @@ export function NotificationPreferences() {
 
         {/* Sync Notifications Toggle */}
         {isGranted && (
-          <div className={`flex items-center justify-between pt-2 border-t ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className={isRTL ? 'text-right' : ''}>
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div>
               <Label htmlFor="sync-notifications" className="font-medium">
                 {t('notifications.syncNotifications')}
               </Label>
@@ -149,10 +152,10 @@ export function NotificationPreferences() {
         )}
 
         {/* Periodic Sync Toggle */}
-        <div className={`flex items-center justify-between pt-2 border-t ${isRTL ? 'flex-row-reverse' : ''}`}>
-          <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="flex items-center gap-3">
             <RefreshCw className="h-5 w-5 text-muted-foreground" />
-            <div className={isRTL ? 'text-right' : ''}>
+            <div>
               <Label htmlFor="periodic-sync" className="font-medium">
                 {t('notifications.periodicSync')}
               </Label>

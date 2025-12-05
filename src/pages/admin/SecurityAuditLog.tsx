@@ -255,13 +255,14 @@ export default function SecurityAuditLog() {
       .join(", ");
   };
 
-  const textAlign = isRTL ? 'text-right' : 'text-left';
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const textAlign = 'text-start';
 
   return (
-    <div className="container max-w-7xl py-8 space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container max-w-7xl py-8 space-y-8" dir={direction}>
       {/* Header */}
-      <div className={textAlign}>
-        <h1 className={`text-3xl font-bold tracking-tight flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+      <div className="text-start">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Shield className="h-8 w-8 text-primary" />
           {t("securityAudit.title", "Security Audit Log")}
         </h1>
@@ -271,17 +272,17 @@ export default function SecurityAuditLog() {
       </div>
 
       <Tabs defaultValue="security-events" className="space-y-6">
-        <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
+        <div className="flex justify-start">
           <TabsList className="grid w-full max-w-2xl grid-cols-3">
-            <TabsTrigger value="security-events" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <TabsTrigger value="security-events" className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" />
               {t("securityAudit.securityEvents", "Security Events")}
             </TabsTrigger>
-            <TabsTrigger value="user-management" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <TabsTrigger value="user-management" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               {t("securityAudit.userManagement", "User Management")}
             </TabsTrigger>
-            <TabsTrigger value="sensitive-access" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <TabsTrigger value="sensitive-access" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               {t("securityAudit.sensitiveAccess", "Data Access")}
             </TabsTrigger>
@@ -291,7 +292,7 @@ export default function SecurityAuditLog() {
         {/* Security Events Tab (Login, MFA, Backup Codes) */}
         <TabsContent value="security-events">
           <Card>
-            <CardHeader className={textAlign}>
+            <CardHeader className="text-start">
               <CardTitle>{t("securityAudit.securityEventsTitle", "Security Events")}</CardTitle>
               <CardDescription>
                 {t("securityAudit.securityEventsDescription", "Track logins, MFA events, and backup code usage")}
@@ -299,14 +300,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
+                  <Search className="absolute top-3 start-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t("securityAudit.searchUserPlaceholder", "Search by user...")}
                     value={securitySearchQuery}
                     onChange={(e) => setSecuritySearchQuery(e.target.value)}
-                    className={isRTL ? 'pr-10' : 'pl-10'}
+                    className="ps-10"
                   />
                 </div>
                 <Select value={securityEventFilter} onValueChange={setSecurityEventFilter}>
