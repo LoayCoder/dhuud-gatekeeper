@@ -1186,7 +1186,14 @@
     "inactive": "غير نشط",
     "planSaved": "تم حفظ الخطة بنجاح.",
     "atLeastOneModule": "يرجى تحديد وحدة واحدة على الأقل لهذه الخطة.",
-    "displayNameRequired": "الاسم المعروض مطلوب."
+    "displayNameRequired": "الاسم المعروض مطلوب.",
+    "pricesMustBePositive": "يجب أن تكون جميع الأسعار صفر أو أرقام موجبة.",
+    "userLimitsMustBePositive": "يجب أن تكون حدود المستخدمين 1 على الأقل.",
+    "includedUsersMustNotExceedMax": "لا يمكن أن يتجاوز المستخدمون المشمولون الحد الأقصى للمستخدمين.",
+    "confirmDeletePlan": "حذف الخطة",
+    "confirmDeletePlanDesc": "هل أنت متأكد من حذف خطة \"{{planName}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deletePlan": "حذف",
+    "planDeleted": "تم حذف الخطة بنجاح."
   },
   "analytics": {
     "title": "تحليلات الاستخدام",

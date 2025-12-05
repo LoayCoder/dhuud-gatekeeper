@@ -1173,7 +1173,14 @@
     "inactive": "Inactive",
     "planSaved": "Plan saved successfully.",
     "atLeastOneModule": "Please select at least one module for this plan.",
-    "displayNameRequired": "Display name is required."
+    "displayNameRequired": "Display name is required.",
+    "pricesMustBePositive": "All prices must be zero or positive numbers.",
+    "userLimitsMustBePositive": "User limits must be at least 1.",
+    "includedUsersMustNotExceedMax": "Included users cannot exceed maximum users.",
+    "confirmDeletePlan": "Delete Plan",
+    "confirmDeletePlanDesc": "Are you sure you want to delete the \"{{planName}}\" plan? This action cannot be undone.",
+    "deletePlan": "Delete",
+    "planDeleted": "Plan deleted successfully."
   },
   "analytics": {
     "title": "Usage Analytics",
