@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Scale } from "lucide-react";
 import { ModuleCode } from "@/hooks/use-module-access";
+import { formatPrice } from "@/hooks/use-price-calculator";
 
 interface PlanComparisonModalProps {
   trigger?: React.ReactNode;
@@ -85,7 +86,7 @@ export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanCompari
                   <th key={plan.id} className="p-3 border-b text-center">
                     <div className="font-semibold">{plan.display_name}</div>
                     <div className="text-sm text-muted-foreground">
-                      ${plan.price_monthly}/{t('subscription.perMonth')}
+                      {formatPrice(plan.base_price_monthly ?? 0)}/{t('subscription.perMonth')}
                     </div>
                   </th>
                 ))}
