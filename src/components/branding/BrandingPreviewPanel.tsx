@@ -29,17 +29,18 @@ export function BrandingPreviewPanel({
   previewMode,
   onPreviewModeChange
 }: BrandingPreviewPanelProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const isDark = previewMode === 'dark';
   const activePrimaryColor = isDark ? primaryColorDark : primaryColorLight;
   const activeLogoUrl = isDark ? (logoDarkUrl || logoLightUrl) : logoLightUrl;
   const activeSidebarIconUrl = isDark ? (sidebarIconDarkUrl || sidebarIconLightUrl) : sidebarIconLightUrl;
 
   return (
-    <Card className="sticky top-6">
+    <Card className="sticky top-6" dir={direction}>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between ltr:flex-row rtl:flex-row-reverse">
-          <CardTitle className="flex items-center gap-2 text-base ltr:flex-row rtl:flex-row-reverse">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -62,7 +63,7 @@ export function BrandingPreviewPanel({
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="sidebar" className="w-full">
+        <Tabs defaultValue="sidebar" className="w-full" dir={direction}>
           <TabsList className="mb-4 ms-auto">
             <TabsTrigger value="sidebar" className="text-xs">{t('adminBranding.preview.sidebar')}</TabsTrigger>
             <TabsTrigger value="login" className="text-xs">{t('adminBranding.preview.loginPage')}</TabsTrigger>
