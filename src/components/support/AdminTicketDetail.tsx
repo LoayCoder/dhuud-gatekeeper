@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { RTLWrapper } from '@/components/RTLWrapper';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,8 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { ArrowLeft, Send, Loader2, User, Building2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, Send, Loader2, User, Building2, Clock, AlertTriangle } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { AgentAssignmentSelect } from '@/components/support/AgentAssignmentSelect';
+import { SLAIndicator } from '@/components/support/SLAIndicator';
 
 type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -34,6 +36,12 @@ interface Ticket {
   tenant_id: string;
   created_by: string;
   assigned_to: string | null;
+  first_response_at: string | null;
+  sla_first_response_due: string | null;
+  sla_resolution_due: string | null;
+  sla_first_response_breached: boolean;
+  sla_resolution_breached: boolean;
+  escalation_level: number;
   tenants?: { name: string };
 }
 
@@ -66,11 +74,13 @@ const priorityColors: Record<TicketPriority, string> = {
 };
 
 export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
-  const { t } = useTranslation();
-  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState('');
   const [isInternal, setIsInternal] = useState(false);
+  const [localTicket, setLocalTicket] = useState(ticket);
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['admin-ticket-messages', ticket.id],
@@ -86,6 +96,52 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
     },
   });
 
+  // Fetch customer email for notifications
+  const { data: customerData } = useQuery({
+    queryKey: ['ticket-customer', ticket.created_by],
+    queryFn: async () => {
+      const { data, error } = await supabase.auth.admin.getUserById(ticket.created_by);
+      if (error) {
+        // Fallback to profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', ticket.created_by)
+          .single();
+        return { email: null, name: profileData?.full_name };
+      }
+      return { email: data.user?.email, name: data.user?.user_metadata?.full_name };
+    },
+  });
+
+  const sendEmailNotification = async (type: string, extraData: Record<string, unknown> = {}) => {
+    try {
+      // Get tenant email
+      const { data: tenantData } = await supabase
+        .from('tenants')
+        .select('contact_email, name')
+        .eq('id', ticket.tenant_id)
+        .single();
+
+      const customerEmail = tenantData?.contact_email || customerData?.email;
+      if (!customerEmail) return;
+
+      await supabase.functions.invoke('send-support-email', {
+        body: {
+          type,
+          ticket_number: ticket.ticket_number,
+          ticket_subject: ticket.subject,
+          customer_email: customerEmail,
+          customer_name: tenantData?.name || customerData?.name,
+          agent_name: profile?.full_name,
+          ...extraData,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+    }
+  };
+
   const sendMutation = useMutation({
     mutationFn: async ({ message, isInternal }: { message: string; isInternal: boolean }) => {
       const { error } = await supabase.from('ticket_messages').insert({
@@ -93,15 +149,25 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
         sender_id: user?.id,
         message,
         is_internal: isInternal,
+        tenant_id: ticket.tenant_id,
       });
       if (error) throw error;
 
-      // Update ticket status if replying to customer
+      // Update ticket status and first_response_at if replying to customer
       if (!isInternal && ticket.status === 'open') {
+        const updates: Record<string, unknown> = { status: 'in_progress' };
+        if (!ticket.first_response_at) {
+          updates.first_response_at = new Date().toISOString();
+        }
         await supabase
           .from('support_tickets')
-          .update({ status: 'in_progress' })
+          .update(updates)
           .eq('id', ticket.id);
+      }
+
+      // Send email notification for non-internal messages
+      if (!isInternal) {
+        await sendEmailNotification('new_reply', { reply_message: message });
       }
     },
     onSuccess: () => {
@@ -123,10 +189,32 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
         .update(updates)
         .eq('id', ticket.id);
       if (error) throw error;
+      return updates;
     },
-    onSuccess: () => {
+    onSuccess: async (updates) => {
       queryClient.invalidateQueries({ queryKey: ['admin-support-tickets'] });
+      setLocalTicket(prev => ({ ...prev, ...updates }));
       toast.success(t('support.ticketUpdated'));
+
+      // Send notifications
+      if (updates.status && updates.status !== ticket.status) {
+        await sendEmailNotification('status_changed', {
+          old_status: ticket.status,
+          new_status: updates.status,
+        });
+      }
+      if (updates.assigned_to && updates.assigned_to !== ticket.assigned_to) {
+        // Get agent name
+        const { data: agentProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', updates.assigned_to)
+          .single();
+        
+        await sendEmailNotification('ticket_assigned', {
+          assigned_to_name: agentProfile?.full_name || 'Support Agent',
+        });
+      }
     },
     onError: (error) => {
       console.error('Error updating ticket:', error);
@@ -139,11 +227,15 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
     sendMutation.mutate({ message: newMessage, isInternal });
   };
 
+  const handleAssignmentChange = (agentId: string | null) => {
+    updateMutation.mutate({ assigned_to: agentId } as Partial<Ticket>);
+  };
+
   return (
     <RTLWrapper>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={onBack} className="rtl:rotate-180">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
@@ -151,17 +243,25 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
               <span className="text-sm text-muted-foreground">#{ticket.ticket_number}</span>
               <h1 className="text-2xl font-bold">{ticket.subject}</h1>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <Badge variant="outline" className="gap-1">
                 <Building2 className="h-3 w-3" />
                 {ticket.tenants?.name || '-'}
               </Badge>
-              <Badge variant="outline" className={statusColors[ticket.status]}>
-                {t(`support.statuses.${ticket.status}`)}
+              <Badge variant="outline" className={statusColors[localTicket.status]}>
+                {t(`support.statuses.${localTicket.status}`)}
               </Badge>
-              <Badge variant="outline" className={priorityColors[ticket.priority]}>
-                {t(`support.priorities.${ticket.priority}`)}
+              <Badge variant="outline" className={priorityColors[localTicket.priority]}>
+                {t(`support.priorities.${localTicket.priority}`)}
               </Badge>
+              <SLAIndicator
+                firstResponseDue={localTicket.sla_first_response_due}
+                resolutionDue={localTicket.sla_resolution_due}
+                firstResponseAt={localTicket.first_response_at}
+                firstResponseBreached={localTicket.sla_first_response_breached}
+                resolutionBreached={localTicket.sla_resolution_breached}
+                status={localTicket.status}
+              />
             </div>
           </div>
         </div>
@@ -280,15 +380,26 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
+                  <Label className="text-sm text-muted-foreground">{t('adminSupport.assignedTo')}</Label>
+                  <div className="mt-1">
+                    <AgentAssignmentSelect
+                      value={localTicket.assigned_to}
+                      onValueChange={handleAssignmentChange}
+                      disabled={updateMutation.isPending}
+                    />
+                  </div>
+                </div>
+                <Separator />
+                <div>
                   <Label className="text-sm text-muted-foreground">{t('adminSupport.status')}</Label>
                   <Select
-                    value={ticket.status}
+                    value={localTicket.status}
                     onValueChange={(status) => updateMutation.mutate({ status: status as TicketStatus })}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1" dir={direction}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={direction}>
                       <SelectItem value="open">{t('support.statuses.open')}</SelectItem>
                       <SelectItem value="in_progress">{t('support.statuses.in_progress')}</SelectItem>
                       <SelectItem value="waiting_customer">{t('support.statuses.waiting_customer')}</SelectItem>
@@ -301,13 +412,13 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
                 <div>
                   <Label className="text-sm text-muted-foreground">{t('adminSupport.priority')}</Label>
                   <Select
-                    value={ticket.priority}
+                    value={localTicket.priority}
                     onValueChange={(priority) => updateMutation.mutate({ priority: priority as TicketPriority })}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1" dir={direction}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir={direction}>
                       <SelectItem value="low">{t('support.priorities.low')}</SelectItem>
                       <SelectItem value="medium">{t('support.priorities.medium')}</SelectItem>
                       <SelectItem value="high">{t('support.priorities.high')}</SelectItem>
@@ -330,6 +441,58 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
                   <p className="text-sm text-muted-foreground">{t('support.lastUpdated')}</p>
                   <p className="text-sm font-medium">{format(new Date(ticket.updated_at), 'PPp')}</p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* SLA Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  {t('adminSupport.slaDetails')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('adminSupport.firstResponse')}</p>
+                  {localTicket.first_response_at ? (
+                    <p className="text-sm font-medium text-green-600">
+                      {t('adminSupport.respondedAt')} {format(new Date(localTicket.first_response_at), 'PPp')}
+                    </p>
+                  ) : localTicket.sla_first_response_due ? (
+                    <p className={`text-sm font-medium ${
+                      localTicket.sla_first_response_breached ? 'text-destructive' : ''
+                    }`}>
+                      {t('adminSupport.dueIn')} {formatDistanceToNow(new Date(localTicket.sla_first_response_due))}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">-</p>
+                  )}
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('adminSupport.resolution')}</p>
+                  {localTicket.status === 'resolved' || localTicket.status === 'closed' ? (
+                    <p className="text-sm font-medium text-green-600">{t('adminSupport.resolved')}</p>
+                  ) : localTicket.sla_resolution_due ? (
+                    <p className={`text-sm font-medium ${
+                      localTicket.sla_resolution_breached ? 'text-destructive' : ''
+                    }`}>
+                      {t('adminSupport.dueIn')} {formatDistanceToNow(new Date(localTicket.sla_resolution_due))}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">-</p>
+                  )}
+                </div>
+                {(localTicket.sla_first_response_breached || localTicket.sla_resolution_breached) && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="text-sm font-medium">{t('adminSupport.slaBreachedWarning')}</span>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
