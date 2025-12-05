@@ -653,6 +653,7 @@
     "editUser": "صارف میں ترمیم",
     "userType": "صارف کی قسم",
     "hasLogin": "لاگ ان رسائی ہے",
+    "noLogin": "لاگ ان رسائی نہیں ہے",
     "isActive": "فعال",
     "employeeId": "ملازم نمبر",
     "jobTitle": "عہدہ",

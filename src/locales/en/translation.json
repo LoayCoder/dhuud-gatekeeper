@@ -640,6 +640,7 @@
     "editUser": "Edit User",
     "userType": "User Type",
     "hasLogin": "Has Login Access",
+    "noLogin": "No Login Access",
     "isActive": "Active",
     "employeeId": "Employee ID",
     "jobTitle": "Job Title",
