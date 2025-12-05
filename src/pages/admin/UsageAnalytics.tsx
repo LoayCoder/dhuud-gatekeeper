@@ -11,23 +11,21 @@ import { Activity, Users, LogIn, Shield, Clock } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { useState } from 'react';
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 // RTL-aware custom legend component
-const CustomLegend = ({ payload, isRTL }: { payload?: Array<{ value: string; color: string }>; isRTL: boolean }) => {
+const CustomLegend = ({ payload, direction }: { payload?: Array<{ value: string; color: string }>; direction: 'rtl' | 'ltr' }) => {
   if (!payload) return null;
   
   return (
     <div 
-      className={`flex flex-wrap gap-4 justify-center mt-2 ${isRTL ? 'flex-row-reverse' : ''}`}
-      dir={isRTL ? 'rtl' : 'ltr'}
+      className="flex flex-wrap gap-4 justify-center mt-2"
+      dir={direction}
     >
       {payload.map((entry, index) => (
         <div 
           key={`legend-${index}`} 
-          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+          className="flex items-center gap-2"
         >
           <div 
             className="w-3 h-3 rounded-full shrink-0" 
@@ -43,9 +41,8 @@ const CustomLegend = ({ payload, isRTL }: { payload?: Array<{ value: string; col
 export default function UsageAnalytics() {
   const { t, i18n } = useTranslation();
   const [dateRange, setDateRange] = useState('7');
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
-  const textAlign = 'text-start';
+  const direction = i18n.dir();
+  const isRTL = direction === 'rtl';
 
   // Fetch activity summary
   const { data: activitySummary } = useQuery({
@@ -219,18 +216,18 @@ export default function UsageAnalytics() {
   };
 
   return (
-    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-6" dir={direction}>
       {/* Header */}
-      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
-        <div className={textAlign}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="text-start">
           <h1 className="text-3xl font-bold tracking-tight">{t('analytics.title')}</h1>
           <p className="text-muted-foreground">{t('analytics.description')}</p>
         </div>
-        <Select value={dateRange} onValueChange={setDateRange}>
+        <Select value={dateRange} onValueChange={setDateRange} dir={direction}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent dir={direction}>
             <SelectItem value="7">{t('analytics.last7Days')}</SelectItem>
             <SelectItem value="14">{t('analytics.last14Days')}</SelectItem>
             <SelectItem value="30">{t('analytics.last30Days')}</SelectItem>
@@ -242,41 +239,41 @@ export default function UsageAnalytics() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <CardTitle className={`text-sm font-medium ${textAlign}`}>{t('analytics.totalEvents')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-start">{t('analytics.totalEvents')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={textAlign}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{activitySummary?.total || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <CardTitle className={`text-sm font-medium ${textAlign}`}>{t('analytics.logins')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-start">{t('analytics.logins')}</CardTitle>
             <LogIn className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={textAlign}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{activitySummary?.logins || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <CardTitle className={`text-sm font-medium ${textAlign}`}>{t('analytics.sessionTimeouts')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-start">{t('analytics.sessionTimeouts')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={textAlign}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">{activitySummary?.sessionTimeouts || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <CardTitle className={`text-sm font-medium ${textAlign}`}>{t('analytics.mfaEvents')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-start">{t('analytics.mfaEvents')}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className={textAlign}>
+          <CardContent className="text-start">
             <div className="text-2xl font-bold">
               {(activitySummary?.mfaEnabled || 0) + (activitySummary?.mfaDisabled || 0) + (activitySummary?.mfaFailed || 0)}
             </div>
@@ -284,20 +281,18 @@ export default function UsageAnalytics() {
         </Card>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
-          <TabsList>
-            <TabsTrigger value="overview">{t('analytics.overview')}</TabsTrigger>
-            <TabsTrigger value="tenants">{t('analytics.tenantUsage')}</TabsTrigger>
-            <TabsTrigger value="logs">{t('analytics.activityLogs')}</TabsTrigger>
-          </TabsList>
-        </div>
+      <Tabs defaultValue="overview" className="space-y-4" dir={direction}>
+        <TabsList className="justify-start">
+          <TabsTrigger value="overview">{t('analytics.overview')}</TabsTrigger>
+          <TabsTrigger value="tenants">{t('analytics.tenantUsage')}</TabsTrigger>
+          <TabsTrigger value="logs">{t('analytics.activityLogs')}</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             {/* Login Trend Chart */}
             <Card>
-              <CardHeader className={textAlign}>
+              <CardHeader className="text-start">
                 <CardTitle className="text-base">{t('analytics.loginTrend')}</CardTitle>
                 <CardDescription>{t('analytics.loginTrendDesc')}</CardDescription>
               </CardHeader>
@@ -321,12 +316,12 @@ export default function UsageAnalytics() {
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
                         color: 'hsl(var(--foreground))',
-                        direction: isRTL ? 'rtl' : 'ltr',
+                        direction: direction,
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
                     <Legend 
-                      content={({ payload }) => <CustomLegend payload={payload?.map(p => ({ value: t('analytics.logins'), color: p.color as string }))} isRTL={isRTL} />}
+                      content={({ payload }) => <CustomLegend payload={payload?.map(p => ({ value: t('analytics.logins'), color: p.color as string }))} direction={direction} />}
                       verticalAlign="bottom"
                     />
                     <Line 
@@ -344,7 +339,7 @@ export default function UsageAnalytics() {
 
             {/* Event Type Distribution */}
             <Card>
-              <CardHeader className={textAlign}>
+              <CardHeader className="text-start">
                 <CardTitle className="text-base">{t('analytics.eventDistribution')}</CardTitle>
                 <CardDescription>{t('analytics.eventDistributionDesc')}</CardDescription>
               </CardHeader>
@@ -369,7 +364,7 @@ export default function UsageAnalytics() {
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
                         color: 'hsl(var(--foreground))',
-                        direction: isRTL ? 'rtl' : 'ltr',
+                        direction: direction,
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
@@ -380,7 +375,7 @@ export default function UsageAnalytics() {
                             value: eventTypeData[i]?.name || p.value as string, 
                             color: p.color as string 
                           }))} 
-                          isRTL={isRTL} 
+                          direction={direction} 
                         />
                       )}
                       verticalAlign="bottom"
@@ -394,8 +389,8 @@ export default function UsageAnalytics() {
 
         <TabsContent value="tenants">
           <Card>
-            <CardHeader className={textAlign}>
-              <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+            <CardHeader className="text-start">
+              <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 {t('analytics.tenantUsage')}
               </CardTitle>
@@ -424,7 +419,7 @@ export default function UsageAnalytics() {
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
                         color: 'hsl(var(--foreground))',
-                        direction: isRTL ? 'rtl' : 'ltr',
+                        direction: direction,
                         textAlign: isRTL ? 'right' : 'left',
                       }} 
                     />
@@ -435,7 +430,7 @@ export default function UsageAnalytics() {
                             value: p.value as string, 
                             color: p.color as string 
                           }))} 
-                          isRTL={isRTL} 
+                          direction={direction} 
                         />
                       )}
                       verticalAlign="bottom"
@@ -449,23 +444,23 @@ export default function UsageAnalytics() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className={textAlign}>{t('tenantManagement.columns.name')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.users')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.usage')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.logins30d')}</TableHead>
+                    <TableHead className="text-start">{t('tenantManagement.columns.name')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.users')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.usage')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.logins30d')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tenantStats.map((tenant) => (
                     <TableRow key={tenant.id}>
-                      <TableCell className={`font-medium ${textAlign}`}>{tenant.name}</TableCell>
-                      <TableCell className={textAlign}>{tenant.userCount} / {tenant.maxUsers}</TableCell>
-                      <TableCell className={textAlign}>
+                      <TableCell className="font-medium text-start">{tenant.name}</TableCell>
+                      <TableCell className="text-start">{tenant.userCount} / {tenant.maxUsers}</TableCell>
+                      <TableCell className="text-start">
                         <Badge variant={tenant.usagePercent >= 90 ? 'destructive' : tenant.usagePercent >= 70 ? 'secondary' : 'outline'}>
                           {tenant.usagePercent}%
                         </Badge>
                       </TableCell>
-                      <TableCell className={textAlign}>{tenant.loginCount}</TableCell>
+                      <TableCell className="text-start">{tenant.loginCount}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -476,7 +471,7 @@ export default function UsageAnalytics() {
 
         <TabsContent value="logs">
           <Card>
-            <CardHeader className={textAlign}>
+            <CardHeader className="text-start">
               <CardTitle>{t('analytics.recentActivity')}</CardTitle>
               <CardDescription>{t('analytics.recentActivityDesc')}</CardDescription>
             </CardHeader>
@@ -484,19 +479,19 @@ export default function UsageAnalytics() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className={textAlign}>{t('analytics.user')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.event')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.sessionDuration')}</TableHead>
-                    <TableHead className={textAlign}>{t('analytics.timestamp')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.user')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.event')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.sessionDuration')}</TableHead>
+                    <TableHead className="text-start">{t('analytics.timestamp')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className={`font-medium ${textAlign}`}>{log.user_name}</TableCell>
-                      <TableCell className={textAlign}>{getEventBadge(log.event_type)}</TableCell>
-                      <TableCell className={textAlign}>{formatDuration(log.session_duration_seconds)}</TableCell>
-                      <TableCell className={`text-muted-foreground ${textAlign}`}>
+                      <TableCell className="font-medium text-start">{log.user_name}</TableCell>
+                      <TableCell className="text-start">{getEventBadge(log.event_type)}</TableCell>
+                      <TableCell className="text-start">{formatDuration(log.session_duration_seconds)}</TableCell>
+                      <TableCell className="text-muted-foreground text-start">
                         {format(new Date(log.created_at), 'PPp')}
                       </TableCell>
                     </TableRow>

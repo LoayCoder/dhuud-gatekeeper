@@ -17,7 +17,7 @@ export function SidebarPreview({ sidebarIconUrl, primaryColor, tenantName, isDar
       "border rounded-lg p-4 transition-colors",
       isDark ? "bg-slate-900 border-slate-700" : "bg-sidebar"
     )}>
-      <div className="flex items-center gap-3 ltr:flex-row rtl:flex-row-reverse">
+      <div className="flex items-center gap-3">
         <div className="size-10 flex items-center justify-center">
           {sidebarIconUrl ? (
             <img src={sidebarIconUrl} alt="Icon" className="size-10 object-contain" />

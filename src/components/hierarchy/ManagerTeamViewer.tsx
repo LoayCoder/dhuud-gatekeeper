@@ -22,14 +22,11 @@ interface ManagerTeamViewerProps {
   compact?: boolean;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function ManagerTeamViewer({ managerId, managerName, compact }: ManagerTeamViewerProps) {
   const { t, i18n } = useTranslation();
   const { teamHierarchy, teamMembers, isLoading, isManager } = useManagerTeam(managerId);
   const [open, setOpen] = useState(false);
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
 
   if (!isManager && !isLoading) {
     return null;
@@ -70,7 +67,7 @@ export function ManagerTeamViewer({ managerId, managerName, compact }: ManagerTe
             ) : (
               <div className="space-y-1 p-2">
                 {teamHierarchy.map(node => (
-                  <TreeNode key={node.id} node={node} depth={0} isRTL={isRTL} />
+                  <TreeNode key={node.id} node={node} depth={0} />
                 ))}
               </div>
             )}
@@ -103,7 +100,7 @@ export function ManagerTeamViewer({ managerId, managerName, compact }: ManagerTe
         ) : (
           <div className="space-y-1">
             {teamHierarchy.map(node => (
-              <TreeNode key={node.id} node={node} depth={0} isRTL={isRTL} />
+              <TreeNode key={node.id} node={node} depth={0} />
             ))}
           </div>
         )}
@@ -115,10 +112,9 @@ export function ManagerTeamViewer({ managerId, managerName, compact }: ManagerTe
 interface TreeNodeProps {
   node: TeamHierarchyNode;
   depth: number;
-  isRTL: boolean;
 }
 
-function TreeNode({ node, depth, isRTL }: TreeNodeProps) {
+function TreeNode({ node, depth }: TreeNodeProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(depth < 2);
   const hasChildren = node.children && node.children.length > 0;
@@ -190,7 +186,7 @@ function TreeNode({ node, depth, isRTL }: TreeNodeProps) {
       {expanded && hasChildren && (
         <div>
           {node.children.map(child => (
-            <TreeNode key={child.id} node={child} depth={depth + 1} isRTL={isRTL} />
+            <TreeNode key={child.id} node={child} depth={depth + 1} />
           ))}
         </div>
       )}

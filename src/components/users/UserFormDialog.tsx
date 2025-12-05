@@ -75,8 +75,6 @@ interface UserFormDialogProps {
   onSave: (data: UserFormValues) => Promise<void>;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
   const { t, i18n } = useTranslation();
   const { profile, isAdmin } = useAuth();
@@ -86,8 +84,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [showTeamAssignment, setShowTeamAssignment] = useState(false);
   const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
     divisions: any[];

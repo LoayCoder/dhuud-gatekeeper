@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,13 +36,11 @@ const categoryOrder: RoleCategory[] = [
   'food_safety',
 ];
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelectorProps) {
   const { t, i18n } = useTranslation();
   const { roles, rolesByCategory, isLoading } = useUserRoles();
   const [open, setOpen] = useState(false);
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = i18n.dir();
 
   // Find the normal_user role to prevent its removal
   const normalUserRole = roles.find(r => r.code === 'normal_user');
@@ -65,7 +63,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
   const selectedRoles = roles.filter(r => selectedRoleIds.includes(r.id));
 
   return (
-    <div className="space-y-2" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-2" dir={direction}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -75,7 +73,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
             className="w-full justify-between min-h-[40px] h-auto"
             disabled={disabled || isLoading}
           >
-            <div className="flex flex-wrap gap-1 flex-1 justify-start" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="flex flex-wrap gap-1 flex-1 justify-start">
               {selectedRoles.length === 0 ? (
                 <span className="text-muted-foreground text-start">{t('roles.selectRoles')}</span>
               ) : (
@@ -98,7 +96,7 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0" align="start">
+        <PopoverContent className="w-[400px] p-0" align="start" dir={direction}>
           <Command>
             <CommandInput placeholder={t('roles.searchRoles')} />
             <CommandList>

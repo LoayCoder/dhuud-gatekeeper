@@ -37,13 +37,10 @@ interface HierarchyItem {
   name: string;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   
   const [branches, setBranches] = useState<HierarchyItem[]>([]);
   const [divisions, setDivisions] = useState<HierarchyItem[]>([]);
@@ -179,11 +176,11 @@ export default function UserManagement() {
     }
   };
 
-  const hierarchyArrow = isRTL ? '←' : '↳';
+  const hierarchyArrow = direction === 'rtl' ? '←' : '↳';
 
   return (
     <div className="container py-8 space-y-6" dir={direction}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4" dir={direction}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex flex-col gap-1 text-start">
           <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
           <p className="text-muted-foreground">{t('userManagement.description')}</p>

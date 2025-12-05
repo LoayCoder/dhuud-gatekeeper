@@ -33,13 +33,11 @@ interface SubscriptionRequestsTableProps {
   statusFilter?: string;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
 const PAGE_SIZE = 20;
 
 export function SubscriptionRequestsTable({ onReviewRequest, statusFilter }: SubscriptionRequestsTableProps) {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
 
   const {
     data: paginatedData,

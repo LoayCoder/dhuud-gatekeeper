@@ -22,8 +22,6 @@ import {
 const soundOptions: SoundOption[] = ['default', 'chime', 'bell', 'ping', 'none'];
 const eventTypes: NotificationSoundType[] = ['sync', 'update', 'info', 'error'];
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 interface SoundRowProps {
   type: NotificationSoundType;
   value: SoundOption;
@@ -84,8 +82,7 @@ function SoundRow({ type, value, onChange, direction, t }: SoundRowProps) {
 
 export function NotificationSoundSettings() {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   const [settings, setSettings] = useState<SoundSettings>(getSoundSettings);
 
   useEffect(() => {
