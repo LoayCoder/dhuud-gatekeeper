@@ -141,7 +141,7 @@ export default function BillingOverview() {
       </div>
 
       {/* Tabs for Usage vs Billing */}
-      <Tabs defaultValue="billing" className="space-y-4">
+      <Tabs defaultValue="billing" className="space-y-4" dir={direction}>
         <div className="flex justify-start">
           <TabsList>
             <TabsTrigger value="billing">{t('adminBilling.billingRecords')}</TabsTrigger>
