@@ -1178,7 +1178,9 @@
     "includedModules": "Mga Kasama na Module",
     "isActive": "Aktibo",
     "inactive": "Hindi Aktibo",
-    "planSaved": "Matagumpay na na-save ang plano."
+    "planSaved": "Matagumpay na na-save ang plano.",
+    "atLeastOneModule": "Mangyaring pumili ng kahit isang module para sa planong ito.",
+    "displayNameRequired": "Kailangan ang display name."
   },
   "analytics": {
     "title": "Usage Analytics",

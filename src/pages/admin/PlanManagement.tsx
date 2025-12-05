@@ -229,6 +229,28 @@ export default function PlanManagement() {
     setIsDialogOpen(true);
   };
 
+  const handleSave = () => {
+    if (!formData.display_name.trim()) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('adminPlans.displayNameRequired'), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    if (selectedModules.length === 0) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('adminPlans.atLeastOneModule'), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    saveMutation.mutate(editPlan ? { ...formData, id: editPlan.id } : formData);
+  };
+
   const getPlanIcon = (name: string) => {
     switch (name.toLowerCase()) {
       case 'starter': return <Rocket className="h-4 w-4" />;
@@ -469,7 +491,7 @@ export default function PlanManagement() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={() => saveMutation.mutate(editPlan ? { ...formData, id: editPlan.id } : formData)} disabled={saveMutation.isPending}>
+            <Button onClick={handleSave} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? t('common.saving') : t('common.save')}
             </Button>
           </DialogFooter>

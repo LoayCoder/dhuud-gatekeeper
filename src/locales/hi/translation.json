@@ -1178,7 +1178,9 @@
     "includedModules": "शामिल मॉड्यूल",
     "isActive": "सक्रिय",
     "inactive": "निष्क्रिय",
-    "planSaved": "प्लान सफलतापूर्वक सहेजा गया।"
+    "planSaved": "प्लान सफलतापूर्वक सहेजा गया।",
+    "atLeastOneModule": "कृपया इस प्लान के लिए कम से कम एक मॉड्यूल चुनें।",
+    "displayNameRequired": "प्रदर्शन नाम आवश्यक है।"
   },
   "analytics": {
     "title": "उपयोग विश्लेषिकी",
