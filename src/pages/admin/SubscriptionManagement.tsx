@@ -17,9 +17,8 @@ import { PlanComparisonModal } from "@/components/PlanComparisonModal";
 import { usePriceCalculator, formatPrice } from "@/hooks/use-price-calculator";
 import { PlanSelector, UserCountSlider, ModuleSelector, PriceBreakdown, BillingPeriodToggle } from "@/components/subscription";
 export default function SubscriptionManagement() {
-  const {
-    t
-  } = useTranslation();
+const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const {
     profile
   } = useAuth();
@@ -246,7 +245,7 @@ export default function SubscriptionManagement() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="configure" className="space-y-6">
+      <Tabs defaultValue="configure" className="space-y-6" dir={direction}>
         <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid">
           <TabsTrigger value="configure" className="gap-2">
             <FileText className="h-4 w-4" />
