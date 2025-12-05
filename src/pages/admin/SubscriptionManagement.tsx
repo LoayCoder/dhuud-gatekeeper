@@ -247,7 +247,7 @@ export default function SubscriptionManagement() {
       </Card>
 
       <Tabs defaultValue="configure" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid">
+        <TabsList className="justify-start">
           <TabsTrigger value="configure" className="gap-2">
             <FileText className="h-4 w-4" />
             {t('subscription.configurePlan')}
