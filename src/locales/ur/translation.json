@@ -25,7 +25,11 @@
   "pagination": {
     "previous": "پچھلا",
     "next": "اگلا",
-    "morePages": "مزید صفحات"
+    "morePages": "مزید صفحات",
+    "showing": "دکھا رہا ہے",
+    "of": "میں سے",
+    "page": "صفحہ",
+    "rowsPerPage": "فی صفحہ قطاریں"
   },
   "accessibility": {
     "toggleSidebar": "سائیڈبار ٹوگل کریں"

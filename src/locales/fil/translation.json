@@ -25,7 +25,11 @@
   "pagination": {
     "previous": "Nakaraan",
     "next": "Susunod",
-    "morePages": "Higit pang mga pahina"
+    "morePages": "Higit pang mga pahina",
+    "showing": "Ipinapakita",
+    "of": "ng",
+    "page": "Pahina",
+    "rowsPerPage": "Mga hilera bawat pahina"
   },
   "accessibility": {
     "toggleSidebar": "I-toggle ang Sidebar"
