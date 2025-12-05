@@ -22,7 +22,8 @@ export function BillingPeriodToggle({
   disabled,
   className,
 }: BillingPeriodToggleProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
 
   const isYearly = billingMonths === 12;
   const discountPercent = billingMonths >= 6 ? 10 : billingMonths >= 3 ? 5 : 0;
@@ -42,11 +43,12 @@ export function BillingPeriodToggle({
             value={billingMonths.toString()}
             onValueChange={(v) => onMonthsChange(Number(v))}
             disabled={disabled}
+            dir={direction}
           >
             <SelectTrigger id="billing-months" className="w-full">
               <SelectValue placeholder={t('subscription.selectMonths')} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent dir={direction}>
               {monthOptions.map((month) => (
                 <SelectItem key={month} value={month.toString()}>
                   <span className="flex items-center gap-2">
