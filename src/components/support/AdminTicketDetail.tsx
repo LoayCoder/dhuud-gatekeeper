@@ -126,6 +126,9 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
       const customerEmail = tenantData?.contact_email || customerData?.email;
       if (!customerEmail) return;
 
+      // Get current session for auth header
+      const { data: { session } } = await supabase.auth.getSession();
+
       await supabase.functions.invoke('send-support-email', {
         body: {
           type,
@@ -136,6 +139,9 @@ export function AdminTicketDetail({ ticket, onBack }: AdminTicketDetailProps) {
           agent_name: profile?.full_name,
           ...extraData,
         },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
       });
     } catch (error) {
       console.error('Failed to send email notification:', error);

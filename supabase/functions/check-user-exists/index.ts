@@ -21,19 +21,23 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Note: This function is intentionally public to support the invite flow
+    // where unauthenticated users validate invitation codes.
+    // The function only returns a boolean (exists/not exists) - no PII exposure.
+    // Rate limiting should be handled at the infrastructure level.
+    
     console.log('Checking if user exists:', email);
 
-    // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+    // Create Supabase admin client for user lookup
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     // Query auth.users to check if user exists
     const { data, error } = await supabaseAdmin.auth.admin.listUsers();
@@ -46,7 +50,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const userExists = data.users.some(user => user.email?.toLowerCase() === email.toLowerCase());
+    const userExists = data.users.some(u => u.email?.toLowerCase() === email.toLowerCase());
 
     console.log('User exists:', userExists);
 
