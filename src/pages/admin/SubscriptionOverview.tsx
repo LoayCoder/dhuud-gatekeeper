@@ -40,12 +40,9 @@ interface SubscriptionRequest {
   requested_plan: { display_name: string } | null;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export default function SubscriptionOverview() {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   const [selectedRequest, setSelectedRequest] = useState<SubscriptionRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
