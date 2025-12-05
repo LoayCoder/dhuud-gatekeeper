@@ -58,6 +58,7 @@
     "no": "Hindi",
     "status": "Katayuan",
     "active": "Aktibo",
+    "all": "Lahat",
     "continue": "Magpatuloy",
     "verify": "I-verify",
     "done": "Tapos na",
@@ -1187,7 +1188,12 @@
     "confirmDeletePlan": "Burahin ang Plano",
     "confirmDeletePlanDesc": "Sigurado ka bang gusto mong burahin ang planong \"{{planName}}\"? Hindi na maaaring ibalik ang aksyon na ito.",
     "deletePlan": "Burahin",
-    "planDeleted": "Matagumpay na nabura ang plano."
+    "planDeleted": "Matagumpay na nabura ang plano.",
+    "filterByStatus": "Katayuan",
+    "sortBy": "Pag-uri-uriin ayon sa",
+    "defaultOrder": "Default",
+    "ascending": "Pataas",
+    "descending": "Pababa"
   },
   "analytics": {
     "title": "Usage Analytics",

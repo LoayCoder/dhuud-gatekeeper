@@ -58,6 +58,7 @@
     "no": "نہیں",
     "status": "حیثیت",
     "active": "فعال",
+    "all": "سب",
     "continue": "جاری رکھیں",
     "verify": "تصدیق کریں",
     "done": "ہو گیا",
@@ -1187,7 +1188,12 @@
     "confirmDeletePlan": "پلان حذف کریں",
     "confirmDeletePlanDesc": "کیا آپ واقعی \"{{planName}}\" پلان کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں کیا جا سکتا۔",
     "deletePlan": "حذف کریں",
-    "planDeleted": "پلان کامیابی سے حذف ہو گیا۔"
+    "planDeleted": "پلان کامیابی سے حذف ہو گیا۔",
+    "filterByStatus": "حیثیت",
+    "sortBy": "ترتیب بہ",
+    "defaultOrder": "ڈیفالٹ",
+    "ascending": "صعودی",
+    "descending": "نزولی"
   },
   "analytics": {
     "title": "استعمال کے تجزیات",

@@ -58,6 +58,7 @@
     "no": "لا",
     "status": "الحالة",
     "active": "نشط",
+    "all": "الكل",
     "continue": "متابعة",
     "verify": "تحقق",
     "done": "تم",
@@ -1193,7 +1194,12 @@
     "confirmDeletePlan": "حذف الخطة",
     "confirmDeletePlanDesc": "هل أنت متأكد من حذف خطة \"{{planName}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
     "deletePlan": "حذف",
-    "planDeleted": "تم حذف الخطة بنجاح."
+    "planDeleted": "تم حذف الخطة بنجاح.",
+    "filterByStatus": "الحالة",
+    "sortBy": "ترتيب حسب",
+    "defaultOrder": "الترتيب الافتراضي",
+    "ascending": "تصاعدي",
+    "descending": "تنازلي"
   },
   "analytics": {
     "title": "تحليلات الاستخدام",
