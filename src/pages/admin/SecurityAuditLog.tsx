@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { useCursorPagination, CursorPosition, buildCursorCondition } from "@/hooks/use-cursor-pagination";
 import { CursorPagination } from "@/components/ui/cursor-pagination";
 
-const RTL_LANGUAGES = ['ar', 'ur'];
+
 
 interface ActivityLog {
   id: string;
@@ -71,7 +71,7 @@ const SECURITY_EVENTS = ['login', 'logout', 'session_timeout', 'session_extended
 
 export default function SecurityAuditLog() {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = i18n.dir();
   const [searchQuery, setSearchQuery] = useState("");
   const [accessTypeFilter, setAccessTypeFilter] = useState<string>("all");
   const [userEventFilter, setUserEventFilter] = useState<string>("all");
@@ -255,7 +255,6 @@ export default function SecurityAuditLog() {
       .join(", ");
   };
 
-  const direction = isRTL ? 'rtl' : 'ltr';
   const textAlign = 'text-start';
 
   return (
@@ -271,7 +270,7 @@ export default function SecurityAuditLog() {
         </p>
       </div>
 
-      <Tabs defaultValue="security-events" className="space-y-6">
+      <Tabs defaultValue="security-events" className="space-y-6" dir={direction}>
         <div className="flex justify-start">
           <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="security-events" className="flex items-center gap-2">
@@ -400,14 +399,14 @@ export default function SecurityAuditLog() {
                               {log.user_name || t("common.unknown", "Unknown")}
                             </TableCell>
                             <TableCell className={textAlign}>
-                              <Badge variant={eventInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <Badge variant={eventInfo.variant} className="gap-1">
                                 {eventInfo.icon}
                                 {eventInfo.label}
                               </Badge>
                             </TableCell>
                             <TableCell className={`text-sm text-muted-foreground ${textAlign}`}>
                               {log.metadata?.ip_address && (
-                                <span className={isRTL ? 'ml-2' : 'mr-2'}>IP: {log.metadata.ip_address}</span>
+                                <span className="me-2">IP: {log.metadata.ip_address}</span>
                               )}
                               {log.session_duration_seconds && (
                                 <span>Duration: {Math.round(log.session_duration_seconds / 60)}min</span>
@@ -455,14 +454,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
+                  <Search className="absolute top-3 start-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t("securityAudit.searchUserPlaceholder", "Search by admin or target user...")}
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
-                    className={isRTL ? 'pr-10' : 'pl-10'}
+                    className="ps-10"
                   />
                 </div>
                 <Select value={userEventFilter} onValueChange={setUserEventFilter}>
@@ -566,7 +565,7 @@ export default function SecurityAuditLog() {
                               {log.user_name || t("common.unknown", "Unknown")}
                             </TableCell>
                             <TableCell className={textAlign}>
-                              <Badge variant={eventInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <Badge variant={eventInfo.variant} className="gap-1">
                                 {eventInfo.icon}
                                 {eventInfo.label}
                               </Badge>
@@ -629,14 +628,14 @@ export default function SecurityAuditLog() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className={`flex flex-col sm:flex-row gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className={`absolute top-3 h-4 w-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
+                  <Search className="absolute top-3 start-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t("securityAudit.searchPlaceholder", "Search by user or access type...")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={isRTL ? 'pr-10' : 'pl-10'}
+                    className="ps-10"
                   />
                 </div>
                 <Select value={accessTypeFilter} onValueChange={setAccessTypeFilter}>
@@ -730,7 +729,7 @@ export default function SecurityAuditLog() {
                               {log.user_name || t("common.unknown", "Unknown User")}
                             </TableCell>
                             <TableCell className={textAlign}>
-                              <Badge variant={accessInfo.variant} className={`gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <Badge variant={accessInfo.variant} className="gap-1">
                                 {accessInfo.icon}
                                 {accessInfo.label}
                               </Badge>
