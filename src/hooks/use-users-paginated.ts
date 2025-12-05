@@ -35,6 +35,7 @@ export interface UseUsersPaginatedFilters {
   branchId?: string | null;
   divisionId?: string | null;
   roleCode?: string | null;
+  searchTerm?: string | null;
 }
 
 interface UseUsersPaginatedOptions {
@@ -81,6 +82,7 @@ export function useUsersPaginated(options: UseUsersPaginatedOptions = {}) {
         p_branch_id: filters.branchId || null,
         p_division_id: filters.divisionId || null,
         p_role_code: filters.roleCode || null,
+        p_search_term: filters.searchTerm || null,
         p_offset: offset,
         p_limit: pageSize,
       });

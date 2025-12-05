@@ -16,8 +16,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,11 +50,14 @@ import { useUserRoles, RoleCategory } from "@/hooks/use-user-roles";
 import { RoleBadge } from "@/components/roles/RoleBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
+import { exportToCSV, exportToExcel, ExportColumn } from "@/lib/export-utils";
 
 interface HierarchyItem {
   id: string;
   name: string;
 }
+
+type BulkActionType = 'activate' | 'deactivate' | 'delete' | null;
 
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
@@ -49,6 +70,19 @@ export default function UserManagement() {
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
 
+  // Search with debounce
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Bulk selection
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<BulkActionType>(null);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+
+  // Export loading
+  const [exporting, setExporting] = useState(false);
+
   // Filters
   const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -60,6 +94,14 @@ export default function UserManagement() {
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated, logUserDeleted } = useAdminAuditLog();
   const { roles, assignRoles } = useUserRoles();
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // Build filters object for the hook
   const filters: UseUsersPaginatedFilters = {
     userType: userTypeFilter !== 'all' ? userTypeFilter : null,
@@ -67,6 +109,7 @@ export default function UserManagement() {
     branchId: branchFilter !== 'all' ? branchFilter : null,
     divisionId: divisionFilter !== 'all' ? divisionFilter : null,
     roleCode: roleFilter !== 'all' ? roleFilter : null,
+    searchTerm: searchTerm || null,
   };
 
   // Use the optimized server-side paginated query
@@ -85,10 +128,15 @@ export default function UserManagement() {
     resetPage,
   } = useUsersPaginated({ filters, pageSize: 25 });
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters or search changes
   useEffect(() => {
     resetPage();
-  }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter, resetPage]);
+  }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter, searchTerm, resetPage]);
+
+  // Clear selection when users change
+  useEffect(() => {
+    setSelectedUsers(new Set());
+  }, [users]);
 
   // Fetch branches and divisions for filters (one-time)
   useEffect(() => {
@@ -129,22 +177,17 @@ export default function UserManagement() {
     };
 
     if (editingUser) {
-      // Detect changes for audit logging
       const changes = detectUserChanges(editingUser as unknown as Record<string, unknown>, updateData);
-      
-      // Check for status change
       const wasActive = editingUser.is_active;
       const isNowActive = data.is_active;
       
       const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
       if (error) throw error;
       
-      // Assign roles for existing user
       if (profile?.tenant_id) {
         await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
       }
       
-      // Log appropriate audit events
       if (wasActive && !isNowActive) {
         await logUserDeactivated(editingUser.id, data.full_name);
       } else if (!wasActive && isNowActive) {
@@ -165,14 +208,11 @@ export default function UserManagement() {
       });
       if (error) throw error;
       
-      // Assign roles for new user
       if (profile?.tenant_id) {
         await assignRoles(newUserId, selectedRoleIds, profile.tenant_id);
       }
       
-      // Log user creation
       await logUserCreated(newUserId, data.full_name, data.user_type);
-      
       toast({ title: t('userManagement.userCreated') });
     }
     refetchUsers();
@@ -210,7 +250,6 @@ export default function UserManagement() {
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    // Soft delete: set deleted_at and is_deleted
     const { error } = await supabase
       .from('profiles')
       .update({ 
@@ -229,7 +268,148 @@ export default function UserManagement() {
     }
   };
 
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(new Set(users.map(u => u.id)));
+    } else {
+      setSelectedUsers(new Set());
+    }
+  };
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSet = new Set(selectedUsers);
+    if (checked) {
+      newSet.add(userId);
+    } else {
+      newSet.delete(userId);
+    }
+    setSelectedUsers(newSet);
+  };
+
+  const handleBulkActionClick = (action: BulkActionType) => {
+    setBulkActionType(action);
+    setBulkActionDialogOpen(true);
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkActionType || selectedUsers.size === 0) return;
+    
+    setBulkActionLoading(true);
+    const userIds = Array.from(selectedUsers);
+    
+    try {
+      if (bulkActionType === 'delete') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ deleted_at: new Date().toISOString(), is_deleted: true })
+          .in('id', userIds);
+        
+        if (error) throw error;
+        
+        // Log each deletion
+        for (const userId of userIds) {
+          const user = users.find(u => u.id === userId);
+          if (user) await logUserDeleted(userId, user.full_name || '');
+        }
+        
+        toast({ title: t('userManagement.bulkDeleteSuccess', { count: userIds.length }) });
+      } else {
+        const newStatus = bulkActionType === 'activate';
+        const { error } = await supabase
+          .from('profiles')
+          .update({ is_active: newStatus })
+          .in('id', userIds);
+        
+        if (error) throw error;
+        
+        // Log each status change
+        for (const userId of userIds) {
+          const user = users.find(u => u.id === userId);
+          if (user) {
+            if (newStatus) {
+              await logUserActivated(userId, user.full_name || '');
+            } else {
+              await logUserDeactivated(userId, user.full_name || '');
+            }
+          }
+        }
+        
+        toast({ 
+          title: newStatus 
+            ? t('userManagement.bulkActivateSuccess', { count: userIds.length })
+            : t('userManagement.bulkDeactivateSuccess', { count: userIds.length })
+        });
+      }
+      
+      setSelectedUsers(new Set());
+      refetchUsers();
+      refetchQuota();
+    } catch (error) {
+      toast({ title: t('common.error'), variant: 'destructive' });
+    } finally {
+      setBulkActionLoading(false);
+      setBulkActionDialogOpen(false);
+      setBulkActionType(null);
+    }
+  };
+
+  // Export handlers
+  const handleExport = async (format: 'csv' | 'xlsx') => {
+    setExporting(true);
+    
+    try {
+      // Fetch all filtered users for export (high limit)
+      const { data, error } = await supabase.rpc('get_users_with_roles_paginated', {
+        p_tenant_id: profile?.tenant_id,
+        p_user_type: filters.userType || null,
+        p_is_active: filters.isActive ?? null,
+        p_branch_id: filters.branchId || null,
+        p_division_id: filters.divisionId || null,
+        p_role_code: filters.roleCode || null,
+        p_search_term: filters.searchTerm || null,
+        p_offset: 0,
+        p_limit: 10000,
+      });
+      
+      if (error) throw error;
+      
+      const columns: ExportColumn[] = [
+        { key: 'full_name', label: t('profile.fullName') },
+        { key: 'employee_id', label: t('userManagement.employeeId') },
+        { key: 'phone_number', label: t('profile.phone') },
+        { key: 'user_type', label: t('userManagement.userType'), formatter: (v) => v ? t(getUserTypeLabel(v as string)) : '' },
+        { key: 'is_active', label: t('userManagement.status'), formatter: (v) => v ? t('userManagement.active') : t('userManagement.inactive') },
+        { key: 'branch_name', label: t('orgStructure.branch') },
+        { key: 'division_name', label: t('orgStructure.division') },
+        { key: 'department_name', label: t('orgStructure.department') },
+        { key: 'section_name', label: t('orgStructure.section') },
+        { key: 'job_title', label: t('userManagement.jobTitle') },
+        { key: 'role_assignments', label: t('userManagement.roles'), formatter: (v) => {
+          if (!v || !Array.isArray(v)) return '';
+          return (v as Array<{role_name: string}>).map(r => r.role_name).join(', ');
+        }},
+      ];
+      
+      const filename = `users-export-${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(data || [], `${filename}.csv`, columns);
+      } else {
+        exportToExcel(data || [], `${filename}.xlsx`, columns);
+      }
+      
+      toast({ title: t('userManagement.exportSuccess') });
+    } catch (error) {
+      toast({ title: t('common.error'), variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const hierarchyArrow = direction === 'rtl' ? '←' : '↳';
+  const allSelected = users.length > 0 && users.every(u => selectedUsers.has(u.id));
+  const someSelected = users.some(u => selectedUsers.has(u.id)) && !allSelected;
 
   return (
     <div className="container py-8 space-y-6" dir={direction}>
@@ -238,10 +418,28 @@ export default function UserManagement() {
           <h1 className="text-3xl font-bold tracking-tight">{t('userManagement.title')}</h1>
           <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
-        <Button onClick={handleAddUser} className="gap-2">
-          <Plus className="h-4 w-4 rtl:order-last" />
-          {t('userManagement.addUser')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2" disabled={exporting}>
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {t('userManagement.export')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                {t('userManagement.exportCSV')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('xlsx')}>
+                {t('userManagement.exportExcel')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={handleAddUser} className="gap-2">
+            <Plus className="h-4 w-4 rtl:order-last" />
+            {t('userManagement.addUser')}
+          </Button>
+        </div>
       </div>
 
       <LicensedUserQuotaCard quota={quota} breakdown={breakdown} isLoading={quotaLoading} showUpgradeCta={true} />
@@ -250,7 +448,28 @@ export default function UserManagement() {
         <CardHeader className="pb-4">
           <CardTitle className="text-lg text-start">{t('userManagement.filters')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('userManagement.searchPlaceholder')}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="ps-10"
+            />
+            {searchInput && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchInput('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="space-y-2 text-start">
               <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
@@ -315,6 +534,47 @@ export default function UserManagement() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedUsers.size > 0 && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="py-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">
+                  {t('userManagement.selectedCount', { count: selectedUsers.size })}
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedUsers(new Set())}>
+                  {t('userManagement.clearSelection')}
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleBulkActionClick('activate')}
+                >
+                  {t('userManagement.bulkActivate')}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleBulkActionClick('deactivate')}
+                >
+                  {t('userManagement.bulkDeactivate')}
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={() => handleBulkActionClick('delete')}
+                >
+                  {t('userManagement.bulkDelete')}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-0">
           {loading ? (
@@ -325,6 +585,15 @@ export default function UserManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label={t('userManagement.selectAll')}
+                      className={someSelected ? 'data-[state=checked]:bg-primary/50' : ''}
+                      {...(someSelected ? { 'data-state': 'indeterminate' } : {})}
+                    />
+                  </TableHead>
                   <TableHead className="text-start">{t('profile.fullName')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.userType')}</TableHead>
                   <TableHead className="text-start">{t('userManagement.status')}</TableHead>
@@ -336,13 +605,20 @@ export default function UserManagement() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       {t('common.noData')}
                     </TableCell>
                   </TableRow>
                 ) : (
                   users.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={selectedUsers.has(user.id) ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUsers.has(user.id)}
+                          onCheckedChange={(checked) => handleSelectUser(user.id, checked as boolean)}
+                          aria-label={t('userManagement.selectUser', { name: user.full_name })}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium text-start">
                         <UserDetailPopover
                           user={user}
@@ -454,6 +730,36 @@ export default function UserManagement() {
         } : null}
         onSave={handleSaveUser}
       />
+
+      {/* Bulk Action Confirmation Dialog */}
+      <AlertDialog open={bulkActionDialogOpen} onOpenChange={setBulkActionDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-start">
+              {bulkActionType === 'delete' && t('userManagement.confirmBulkDelete', { count: selectedUsers.size })}
+              {bulkActionType === 'activate' && t('userManagement.confirmBulkActivate', { count: selectedUsers.size })}
+              {bulkActionType === 'deactivate' && t('userManagement.confirmBulkDeactivate', { count: selectedUsers.size })}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-start">
+              {bulkActionType === 'delete' && t('userManagement.bulkDeleteDesc')}
+              {bulkActionType === 'activate' && t('userManagement.bulkActivateDesc')}
+              {bulkActionType === 'deactivate' && t('userManagement.bulkDeactivateDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkActionLoading}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkAction}
+              disabled={bulkActionLoading}
+              className={bulkActionType === 'delete' ? 'bg-destructive hover:bg-destructive/90' : ''}
+            >
+              {bulkActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
