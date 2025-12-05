@@ -45,7 +45,7 @@ export function TenantBillingTable({
 }: TenantBillingTableProps) {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const { formatAmount } = useCurrencyFormatter();
+  const { renderAmount } = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -114,7 +114,7 @@ export function TenantBillingTable({
                     {tenant.currentBilling?.total_profiles || 0} {t('profileBilling.profiles')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatAmount((tenant.currentBilling?.profile_charges || 0) * 100)}
+                    {renderAmount((tenant.currentBilling?.profile_charges || 0) * 100)}
                   </p>
                 </div>
               </TableCell>
@@ -124,7 +124,7 @@ export function TenantBillingTable({
                     {tenant.lastBilling?.total_profiles || 0} {t('profileBilling.profiles')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatAmount((tenant.lastBilling?.profile_charges || 0) * 100)}
+                    {renderAmount((tenant.lastBilling?.profile_charges || 0) * 100)}
                   </p>
                 </div>
               </TableCell>

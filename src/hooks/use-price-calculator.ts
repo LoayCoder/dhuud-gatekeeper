@@ -231,6 +231,7 @@ export function usePriceCalculator(
 // Re-export formatCurrency as formatPrice for backward compatibility
 import { formatCurrency } from '@/lib/currency-utils';
 export { formatCurrency };
+export { FormattedCurrency } from '@/components/ui/currency-symbol';
 
 export function formatPrice(cents: number, currency = 'SAR', locale?: string): string {
   return formatCurrency(cents, currency, { locale });
