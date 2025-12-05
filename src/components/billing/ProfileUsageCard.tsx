@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, TrendingUp, Users, UserCheck, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProfileUsage } from '@/hooks/use-profile-usage';
-import { formatSAR } from '@/lib/pricing-engine';
+import { useCurrencyFormatter } from '@/hooks/use-tenant-currency';
 
 interface ProfileUsageCardProps {
   usage: ProfileUsage | null;
@@ -17,6 +17,7 @@ interface ProfileUsageCardProps {
 export function ProfileUsageCard({ usage, isLoading, showUpgradeCta = true }: ProfileUsageCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { formatAmount } = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -115,12 +116,12 @@ export function ProfileUsageCard({ usage, isLoading, showUpgradeCta = true }: Pr
           </div>
           <div className="flex justify-between text-sm">
             <span>{t('profileBilling.ratePerProfile')}</span>
-            <span>{formatSAR(usage.rate_per_profile)}</span>
+            <span>{formatAmount(usage.rate_per_profile * 100)}</span>
           </div>
           <div className="flex justify-between font-medium pt-2 border-t">
             <span>{t('profileBilling.estimatedCharge')}</span>
             <span className={usage.profile_charges > 0 ? 'text-primary' : ''}>
-              {formatSAR(usage.profile_charges)}
+              {formatAmount(usage.profile_charges * 100)}
             </span>
           </div>
         </div>

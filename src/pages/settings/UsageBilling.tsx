@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { formatSAR } from '@/lib/pricing-engine';
+import { useCurrencyFormatter } from '@/hooks/use-tenant-currency';
 import { History, TrendingUp, PieChart } from 'lucide-react';
 import { useMemo } from 'react';
 import {
@@ -33,6 +33,7 @@ export default function UsageBilling() {
   const { usage, isLoading: usageLoading } = useProfileUsage();
   const { quota, breakdown, isLoading: quotaLoading } = useLicensedUserQuota();
   const { billingRecords, isLoading: billingLoading } = useProfileBilling();
+  const { formatAmount } = useCurrencyFormatter();
 
   // Prepare trend data for line chart (last 6 months, sorted ascending)
   const trendData = useMemo(() => {
@@ -232,7 +233,7 @@ export default function UsageBilling() {
                     </TableCell>
                     <TableCell>{record.total_profiles}</TableCell>
                     <TableCell>{record.billable_profiles}</TableCell>
-                    <TableCell>{formatSAR(record.profile_charges)}</TableCell>
+                    <TableCell>{formatAmount(record.profile_charges * 100)}</TableCell>
                     <TableCell>
                       <Badge variant={record.status === 'paid' ? 'default' : 'secondary'}>
                         {record.status}

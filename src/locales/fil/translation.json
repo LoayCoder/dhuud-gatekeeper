@@ -709,8 +709,10 @@
       "contactPerson": "Contact Person",
       "contactEmail": "Contact Email",
       "contactPhone": "Contact Phone",
-      "notes": "Mga Tala"
+      "notes": "Mga Tala",
+      "preferredCurrency": "Gustong Pera"
     },
+    "selectCurrency": "Pumili ng pera",
     "placeholders": {
       "name": "Hal: Acme Corp",
       "slug": "Hal: acme-corp",
@@ -1493,5 +1495,15 @@
       "info": "Pangkalahatang impormasyon at mga update sa status",
       "error": "Mga security alert, error, at kritikal na babala"
     }
+  },
+  "currencies": {
+    "SAR": "Saudi Riyal",
+    "AED": "UAE Dirham",
+    "BHD": "Bahraini Dinar",
+    "KWD": "Kuwaiti Dinar",
+    "OMR": "Omani Rial",
+    "QAR": "Qatari Riyal",
+    "USD": "US Dollar",
+    "CNY": "Chinese Yuan"
   }
 }

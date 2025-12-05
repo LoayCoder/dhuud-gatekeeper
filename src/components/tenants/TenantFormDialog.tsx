@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { TenantCurrencySelect } from './TenantCurrencySelect';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Tenant = Tables<'tenants'>;
@@ -40,6 +41,7 @@ const formSchema = z.object({
   contact_email: z.string().email().optional().or(z.literal('')).nullable(),
   contact_phone: z.string().max(20).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
+  preferred_currency: z.string().min(1).max(3).default('SAR'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -71,6 +73,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       contact_email: '',
       contact_phone: '',
       notes: '',
+      preferred_currency: 'SAR',
     },
   });
 
@@ -89,6 +92,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         contact_email: tenant.contact_email || '',
         contact_phone: tenant.contact_phone || '',
         notes: tenant.notes || '',
+        preferred_currency: tenant.preferred_currency || 'SAR',
       });
     } else {
       form.reset({
@@ -104,6 +108,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         contact_email: '',
         contact_phone: '',
         notes: '',
+        preferred_currency: 'SAR',
       });
     }
   }, [tenant, form]);
@@ -122,6 +127,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       contact_email: values.contact_email || null,
       contact_phone: values.contact_phone || null,
       notes: values.notes || null,
+      preferred_currency: values.preferred_currency || 'SAR',
     };
     onSubmit(cleanedValues);
   };
@@ -326,6 +332,24 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
                     <FormLabel>{t('tenantManagement.fields.contactPhone')}</FormLabel>
                     <FormControl>
                       <Input {...field} value={field.value || ''} placeholder={t('tenantManagement.placeholders.contactPhone')} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Preferred Currency */}
+              <FormField
+                control={form.control}
+                name="preferred_currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('tenantManagement.fields.preferredCurrency')}</FormLabel>
+                    <FormControl>
+                      <TenantCurrencySelect 
+                        value={field.value || 'SAR'} 
+                        onChange={field.onChange} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Edit } from 'lucide-react';
-import { formatSAR } from '@/lib/pricing-engine';
+import { useCurrencyFormatter } from '@/hooks/use-tenant-currency';
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -45,6 +45,7 @@ export function TenantBillingTable({
 }: TenantBillingTableProps) {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const { formatAmount } = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -113,7 +114,7 @@ export function TenantBillingTable({
                     {tenant.currentBilling?.total_profiles || 0} {t('profileBilling.profiles')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatSAR(tenant.currentBilling?.profile_charges || 0)}
+                    {formatAmount((tenant.currentBilling?.profile_charges || 0) * 100)}
                   </p>
                 </div>
               </TableCell>
@@ -123,7 +124,7 @@ export function TenantBillingTable({
                     {tenant.lastBilling?.total_profiles || 0} {t('profileBilling.profiles')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatSAR(tenant.lastBilling?.profile_charges || 0)}
+                    {formatAmount((tenant.lastBilling?.profile_charges || 0) * 100)}
                   </p>
                 </div>
               </TableCell>

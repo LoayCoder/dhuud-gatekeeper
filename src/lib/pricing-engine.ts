@@ -1,6 +1,9 @@
 // Pure pricing utility functions - pricing data comes from database only
 // SECURITY: Never hardcode pricing values - always fetch from server
 
+// Re-export currency utilities for backward compatibility
+export { formatCurrency, formatCurrency as formatCurrencyAmount, getCurrencyDecimals, SUPPORTED_CURRENCIES } from './currency-utils';
+
 export interface PlanPricing {
   name: string;
   profileQuotaMonthly: number;
@@ -77,6 +80,7 @@ export function isOverQuota(used: number, quota: number): boolean {
 }
 
 /**
+ * @deprecated Use formatCurrency from currency-utils.ts instead
  * Format currency in SAR
  */
 export function formatSAR(amount: number): string {
@@ -88,6 +92,7 @@ export function formatSAR(amount: number): string {
 }
 
 /**
+ * @deprecated Use formatCurrency from currency-utils.ts instead
  * Format currency in SAR for Arabic
  */
 export function formatSARArabic(amount: number): string {

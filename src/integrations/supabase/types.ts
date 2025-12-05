@@ -1020,6 +1020,42 @@ export type Database = {
           },
         ]
       }
+      supported_currencies: {
+        Row: {
+          code: string
+          created_at: string | null
+          decimal_places: number
+          is_active: boolean
+          name: string
+          name_ar: string
+          sort_order: number
+          symbol: string
+          symbol_ar: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          decimal_places?: number
+          is_active?: boolean
+          name: string
+          name_ar: string
+          sort_order?: number
+          symbol: string
+          symbol_ar?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          decimal_places?: number
+          is_active?: boolean
+          name?: string
+          name_ar?: string
+          sort_order?: number
+          symbol?: string
+          symbol_ar?: string | null
+        }
+        Relationships: []
+      }
       tenant_billing_records: {
         Row: {
           billable_profiles: number | null
@@ -1317,6 +1353,7 @@ export type Database = {
           name: string
           notes: string | null
           plan_id: string | null
+          preferred_currency: string
           secondary_color: string | null
           secondary_color_dark: string | null
           sidebar_icon_dark_url: string | null
@@ -1358,6 +1395,7 @@ export type Database = {
           name: string
           notes?: string | null
           plan_id?: string | null
+          preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
@@ -1399,6 +1437,7 @@ export type Database = {
           name?: string
           notes?: string | null
           plan_id?: string | null
+          preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
           sidebar_icon_dark_url?: string | null
