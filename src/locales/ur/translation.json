@@ -678,6 +678,13 @@
     "status": "حیثیت",
     "userCreated": "صارف کامیابی سے بنایا گیا",
     "userUpdated": "صارف کامیابی سے اپ ڈیٹ ہوا",
+    "userDeleted": "صارف کامیابی سے حذف ہوا",
+    "userActivated": "صارف کامیابی سے فعال ہوا",
+    "userDeactivated": "صارف کامیابی سے غیر فعال ہوا",
+    "deactivate": "غیر فعال کریں",
+    "activate": "فعال کریں",
+    "confirmDeleteTitle": "صارف کو حذف کریں",
+    "confirmDeleteDesc": "کیا آپ واقعی \"{{userName}}\" کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں کیا جا سکتا۔",
     "showingUsers": "{{count}} میں سے {{total}} صارفین دکھا رہے ہیں",
     "hierarchy": "درجہ بندی",
     "roles": "کردار"

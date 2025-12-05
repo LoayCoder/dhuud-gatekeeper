@@ -678,6 +678,13 @@
     "status": "Status",
     "userCreated": "Matagumpay na nagawa ang user",
     "userUpdated": "Matagumpay na na-update ang user",
+    "userDeleted": "Matagumpay na nabura ang user",
+    "userActivated": "Matagumpay na na-activate ang user",
+    "userDeactivated": "Matagumpay na na-deactivate ang user",
+    "deactivate": "I-deactivate",
+    "activate": "I-activate",
+    "confirmDeleteTitle": "Burahin ang User",
+    "confirmDeleteDesc": "Sigurado ka bang gusto mong burahin si \"{{userName}}\"? Hindi na ito maaaring i-undo.",
     "showingUsers": "Nagpapakita ng {{count}} sa {{total}} user",
     "hierarchy": "Hierarchy",
     "roles": "Mga Tungkulin"

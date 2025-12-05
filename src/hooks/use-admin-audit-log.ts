@@ -84,12 +84,20 @@ export function useAdminAuditLog() {
     });
   }, [logEvent]);
 
+  const logUserDeleted = useCallback((targetUserId: string, targetUserName: string) => {
+    return logEvent('user_deleted', {
+      target_user_id: targetUserId,
+      target_user_name: targetUserName,
+    });
+  }, [logEvent]);
+
   return {
     logEvent,
     logUserCreated,
     logUserUpdated,
     logUserDeactivated,
     logUserActivated,
+    logUserDeleted,
   };
 }
 
