@@ -77,22 +77,22 @@ export default function TenantManagement() {
 
   const tenants = paginatedData?.data || [];
 
-  // Fetch user counts per tenant (for current page only)
+  // Fetch user counts per tenant using RPC (bypasses RLS for cross-tenant counts)
   const { data: userCounts = {} } = useQuery({
     queryKey: ['tenant-user-counts', tenants.map(t => t.id).join(',')],
     queryFn: async () => {
       if (tenants.length === 0) return {};
       
       const { data, error } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .in('tenant_id', tenants.map(t => t.id));
+        .rpc('get_tenant_user_counts', { 
+          p_tenant_ids: tenants.map(t => t.id) 
+        });
       if (error) throw error;
       
-      // Count users per tenant
+      // Convert array to record for easy lookup
       const counts: Record<string, number> = {};
-      data.forEach((profile) => {
-        counts[profile.tenant_id] = (counts[profile.tenant_id] || 0) + 1;
+      (data || []).forEach((row: { tenant_id: string; user_count: number }) => {
+        counts[row.tenant_id] = row.user_count;
       });
       return counts;
     },
