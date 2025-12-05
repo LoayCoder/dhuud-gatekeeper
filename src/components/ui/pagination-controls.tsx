@@ -20,8 +20,6 @@ interface PaginationControlsProps {
   className?: string;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function PaginationControls({
   page,
   totalPages,
@@ -39,8 +37,7 @@ export function PaginationControls({
   className = "",
 }: PaginationControlsProps) {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
 
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, totalCount);

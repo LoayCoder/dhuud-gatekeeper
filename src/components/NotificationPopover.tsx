@@ -21,8 +21,6 @@ import { useNavigate } from "react-router-dom";
 
 type NotificationType = 'all' | 'sync' | 'update' | 'info' | 'error';
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 const typeIcons = {
   sync: RefreshCw,
   update: Bell,
@@ -81,8 +79,7 @@ function NotificationItem({
 
 export function NotificationPopover() {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   const navigate = useNavigate();
   const { history, unreadCount, markAsRead, markAllAsRead } = useNotificationHistory();
   const [filter, setFilter] = useState<NotificationType>('all');
@@ -119,7 +116,7 @@ export function NotificationPopover() {
       </PopoverTrigger>
       <PopoverContent 
         className="w-80 p-0 bg-popover" 
-        align={isRTL ? "start" : "end"}
+        align={direction === 'rtl' ? "start" : "end"}
         sideOffset={8}
         dir={direction}
       >

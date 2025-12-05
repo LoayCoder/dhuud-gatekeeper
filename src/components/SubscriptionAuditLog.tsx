@@ -35,12 +35,9 @@ interface SubscriptionAuditLogProps {
   showTenantName?: boolean;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function SubscriptionAuditLog({ tenantId, limit = 50, showTenantName = true }: SubscriptionAuditLogProps) {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['subscription-events', tenantId, limit],

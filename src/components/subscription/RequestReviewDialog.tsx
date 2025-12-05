@@ -55,12 +55,9 @@ interface RequestReviewDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const RTL_LANGUAGES = ['ar', 'ur'];
-
 export function RequestReviewDialog({ request, open, onOpenChange }: RequestReviewDialogProps) {
   const { t, i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const direction = isRTL ? 'rtl' : 'ltr';
+  const direction = i18n.dir();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   

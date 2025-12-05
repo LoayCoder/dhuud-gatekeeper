@@ -45,7 +45,8 @@ function hsvToHsl(h: number, s: number, v: number): { h: number; s: number; l: n
 }
 
 export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const [hsl, setHsl] = useState(() => parseHsl(value));
   const [open, setOpen] = useState(false);
   const planeRef = useRef<HTMLDivElement>(null);
@@ -112,9 +113,9 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
   const colorPreview = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" dir={direction}>
       <Label className="text-start">{label}</Label>
-      <div className="flex gap-3 items-center ltr:flex-row rtl:flex-row-reverse">
+      <div className="flex gap-3 items-center">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -125,9 +126,9 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               <span className="sr-only">{t('adminBranding.colorPicker.pickColor')}</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4" align="start">
+          <PopoverContent className="w-72 p-4" align="start" dir={direction}>
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2 ltr:flex-row rtl:flex-row-reverse">
+              <div className="flex items-center gap-2 mb-2">
                 <Pipette className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium text-sm">{t('adminBranding.colorPicker.title')}</span>
               </div>
@@ -175,7 +176,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
               </div>
 
               {/* Color Preview & Values */}
-              <div className="flex gap-3 ltr:flex-row rtl:flex-row-reverse">
+              <div className="flex gap-3">
                 <div 
                   className="h-10 w-16 rounded-lg border shadow-inner flex-shrink-0"
                   style={{ backgroundColor: colorPreview }}

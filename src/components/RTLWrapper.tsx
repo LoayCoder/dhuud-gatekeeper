@@ -6,15 +6,13 @@ interface RTLWrapperProps {
   className?: string;
 }
 
-const RTL_LANGUAGES = ["ar", "ur"];
-
 export function RTLWrapper({ children, className }: RTLWrapperProps) {
   const { i18n } = useTranslation();
-  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = i18n.dir();
 
   return (
     <div
-      dir={isRTL ? "rtl" : "ltr"}
+      dir={direction}
       className={cn("text-start", className)}
     >
       {children}
