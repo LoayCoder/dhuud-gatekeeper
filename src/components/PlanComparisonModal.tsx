@@ -13,18 +13,9 @@ interface PlanComparisonModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const ALL_MODULES: { code: ModuleCode; key: string }[] = [
-  { code: 'hsse_core', key: 'modules.hsse_core' },
-  { code: 'visitor_management', key: 'modules.visitor_management' },
-  { code: 'incidents', key: 'modules.incidents' },
-  { code: 'audits', key: 'modules.audits' },
-  { code: 'reports_analytics', key: 'modules.reports_analytics' },
-  { code: 'api_access', key: 'modules.api_access' },
-  { code: 'priority_support', key: 'modules.priority_support' },
-];
-
 export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanComparisonModalProps) {
   const { t } = useTranslation();
+  const direction = document.documentElement.dir as 'ltr' | 'rtl' || 'ltr';
 
   const { data: plans = [] } = useQuery({
     queryKey: ['plans-with-modules'],
@@ -52,6 +43,20 @@ export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanCompari
     },
   });
 
+  const { data: modules = [] } = useQuery({
+    queryKey: ['comparison-modules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('id, code, name')
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const defaultTrigger = (
     <Button variant="outline" size="sm" className="gap-2">
       <Scale className="h-4 w-4" />
@@ -64,12 +69,12 @@ export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanCompari
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" dir={direction}>
         <DialogHeader>
           <DialogTitle>{t('subscription.planComparison')}</DialogTitle>
         </DialogHeader>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" dir={direction}>
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -89,7 +94,7 @@ export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanCompari
             <tbody>
               {/* User Limit Row */}
               <tr className="border-b">
-                <td className="p-3 font-medium">{t('subscription.maxUsers')}</td>
+                <td className="p-3 font-medium text-start">{t('subscription.maxUsers')}</td>
                 {plans.map(plan => (
                   <td key={plan.id} className="p-3 text-center">
                     <Badge variant="secondary">{plan.max_users}</Badge>
@@ -97,13 +102,13 @@ export function PlanComparisonModal({ trigger, open, onOpenChange }: PlanCompari
                 ))}
               </tr>
               
-              {/* Module Rows */}
-              {ALL_MODULES.map(module => (
-                <tr key={module.code} className="border-b hover:bg-muted/50">
-                  <td className="p-3">{t(module.key)}</td>
+              {/* Module Rows - Dynamic from database */}
+              {modules.map(module => (
+                <tr key={module.id} className="border-b hover:bg-muted/50">
+                  <td className="p-3 text-start">{module.name}</td>
                   {plans.map(plan => (
                     <td key={plan.id} className="p-3 text-center">
-                      {plan.modules?.includes(module.code) ? (
+                      {plan.modules?.includes(module.code as ModuleCode) ? (
                         <Check className="h-5 w-5 text-primary mx-auto" />
                       ) : (
                         <X className="h-5 w-5 text-muted-foreground/40 mx-auto" />
