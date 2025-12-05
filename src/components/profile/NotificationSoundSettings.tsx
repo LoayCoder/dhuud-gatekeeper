@@ -18,20 +18,21 @@ import {
   setSoundSettings,
   playNotificationSound,
 } from "@/lib/notification-history";
-import { cn } from "@/lib/utils";
 
 const soundOptions: SoundOption[] = ['default', 'chime', 'bell', 'ping', 'none'];
 const eventTypes: NotificationSoundType[] = ['sync', 'update', 'info', 'error'];
+
+const RTL_LANGUAGES = ['ar', 'ur'];
 
 interface SoundRowProps {
   type: NotificationSoundType;
   value: SoundOption;
   onChange: (type: NotificationSoundType, value: SoundOption) => void;
-  isRTL: boolean;
+  direction: 'rtl' | 'ltr';
   t: (key: string) => string;
 }
 
-function SoundRow({ type, value, onChange, isRTL, t }: SoundRowProps) {
+function SoundRow({ type, value, onChange, direction, t }: SoundRowProps) {
   const handlePreview = () => {
     if (value !== 'none') {
       playNotificationSound(type);
@@ -39,11 +40,8 @@ function SoundRow({ type, value, onChange, isRTL, t }: SoundRowProps) {
   };
 
   return (
-    <div className={cn(
-      "flex items-center justify-between py-3 border-b last:border-b-0",
-      isRTL && "flex-row-reverse"
-    )}>
-      <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+    <div className="flex items-center justify-between py-3 border-b last:border-b-0">
+      <div className="flex items-center gap-3">
         {value === 'none' ? (
           <VolumeX className="h-4 w-4 text-muted-foreground" />
         ) : (
@@ -53,15 +51,16 @@ function SoundRow({ type, value, onChange, isRTL, t }: SoundRowProps) {
           {t(`notifications.soundType.${type}`)}
         </Label>
       </div>
-      <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+      <div className="flex items-center gap-2">
         <Select
           value={value}
           onValueChange={(v) => onChange(type, v as SoundOption)}
+          dir={direction}
         >
           <SelectTrigger className="w-[130px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background" dir={direction}>
             {soundOptions.map((option) => (
               <SelectItem key={option} value={option}>
                 {t(`notifications.sound.${option}`)}
@@ -85,7 +84,8 @@ function SoundRow({ type, value, onChange, isRTL, t }: SoundRowProps) {
 
 export function NotificationSoundSettings() {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
   const [settings, setSettings] = useState<SoundSettings>(getSoundSettings);
 
   useEffect(() => {
@@ -99,8 +99,8 @@ export function NotificationSoundSettings() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className={isRTL ? "text-right" : ""}>
+    <div className="space-y-4" dir={direction}>
+      <div>
         <h3 className="text-lg font-medium">{t('notifications.soundSettings')}</h3>
         <p className="text-sm text-muted-foreground">
           {t('notifications.soundSettingsDescription')}
@@ -114,7 +114,7 @@ export function NotificationSoundSettings() {
             type={type}
             value={settings[type]}
             onChange={handleChange}
-            isRTL={isRTL}
+            direction={direction}
             t={t}
           />
         ))}

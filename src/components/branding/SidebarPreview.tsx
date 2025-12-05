@@ -25,7 +25,7 @@ export function SidebarPreview({ sidebarIconUrl, primaryColor, tenantName, isDar
             <Shield className="size-7 text-primary" style={{ color: primaryColor ? `hsl(${primaryColor})` : undefined }} />
           )}
         </div>
-        <div className="ltr:text-left rtl:text-right leading-tight">
+        <div className="text-start leading-tight">
           <span className={cn(
             "font-semibold text-sm block truncate max-w-[140px]",
             isDark ? "text-white" : "text-sidebar-foreground"

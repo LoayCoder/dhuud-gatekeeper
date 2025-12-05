@@ -113,7 +113,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
 
   return (
     <div className="space-y-2">
-      <Label className="ltr:text-left rtl:text-right">{label}</Label>
+      <Label className="text-start">{label}</Label>
       <div className="flex gap-3 items-center ltr:flex-row rtl:flex-row-reverse">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -198,7 +198,7 @@ export function HslColorPicker({ value, onChange, label }: HslColorPickerProps) 
 
               {/* Manual Input */}
               <div className="pt-2 border-t">
-                <Label className="text-xs text-muted-foreground ltr:text-left rtl:text-right">{t('adminBranding.colorPicker.hslValue')}</Label>
+                <Label className="text-xs text-muted-foreground text-start">{t('adminBranding.colorPicker.hslValue')}</Label>
                 <Input
                   value={value}
                   onChange={(e) => onChange(e.target.value)}

@@ -44,7 +44,8 @@ export default function UsageAnalytics() {
   const { t, i18n } = useTranslation();
   const [dateRange, setDateRange] = useState('7');
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
-  const textAlign = isRTL ? 'text-right' : 'text-left';
+  const direction = isRTL ? 'rtl' : 'ltr';
+  const textAlign = 'text-start';
 
   // Fetch activity summary
   const { data: activitySummary } = useQuery({

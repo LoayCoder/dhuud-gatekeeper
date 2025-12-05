@@ -15,10 +15,7 @@ export function RTLWrapper({ children, className }: RTLWrapperProps) {
   return (
     <div
       dir={isRTL ? "rtl" : "ltr"}
-      className={cn(
-        isRTL ? "text-right" : "text-left",
-        className
-      )}
+      className={cn("text-start", className)}
     >
       {children}
     </div>
