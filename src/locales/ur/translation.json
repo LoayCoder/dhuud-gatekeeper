@@ -1178,7 +1178,9 @@
     "includedModules": "شامل ماڈیولز",
     "isActive": "فعال",
     "inactive": "غیر فعال",
-    "planSaved": "پلان کامیابی سے محفوظ ہو گیا۔"
+    "planSaved": "پلان کامیابی سے محفوظ ہو گیا۔",
+    "atLeastOneModule": "براہ کرم اس پلان کے لیے کم از کم ایک ماڈیول منتخب کریں۔",
+    "displayNameRequired": "ڈسپلے نام ضروری ہے۔"
   },
   "analytics": {
     "title": "استعمال کے تجزیات",

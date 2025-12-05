@@ -1171,7 +1171,9 @@
     "includedModules": "Included Modules",
     "isActive": "Active",
     "inactive": "Inactive",
-    "planSaved": "Plan saved successfully."
+    "planSaved": "Plan saved successfully.",
+    "atLeastOneModule": "Please select at least one module for this plan.",
+    "displayNameRequired": "Display name is required."
   },
   "analytics": {
     "title": "Usage Analytics",
