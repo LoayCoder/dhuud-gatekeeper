@@ -681,7 +681,8 @@
     "showingUsers": "عرض {{count}} من {{total}} مستخدم",
     "filterByRole": "فلتر حسب الدور",
     "allRoles": "جميع الأدوار",
-    "hierarchy": "التسلسل الهرمي"
+    "hierarchy": "التسلسل الهرمي",
+    "roles": "الأدوار"
   },
   "tenantManagement": {
     "title": "إدارة المستأجرين",
