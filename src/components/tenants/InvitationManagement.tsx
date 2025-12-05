@@ -95,6 +95,9 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
       // Send email if enabled
       if (sendEmail) {
         try {
+          // Get current session for auth header
+          const { data: { session } } = await supabase.auth.getSession();
+          
           const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
             body: {
               email: email.toLowerCase().trim(),
@@ -102,6 +105,9 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
               tenantName: tenant.name,
               expiresAt: expires_at,
             },
+            headers: session?.access_token ? {
+              Authorization: `Bearer ${session.access_token}`,
+            } : undefined,
           });
           
           if (emailError) {
@@ -185,6 +191,9 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
   // Resend email mutation
   const resendMutation = useMutation({
     mutationFn: async (invitation: Invitation) => {
+      // Get current session for auth header
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { error } = await supabase.functions.invoke('send-invitation-email', {
         body: {
           email: invitation.email,
@@ -192,6 +201,9 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
           tenantName: tenant.name,
           expiresAt: invitation.expires_at,
         },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
       });
       if (error) throw error;
       return invitation;

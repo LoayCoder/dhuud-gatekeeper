@@ -145,6 +145,9 @@ const { t, i18n } = useTranslation();
           data: tenant
         } = await supabase.from('tenants').select('name, contact_email, billing_email').eq('id', profile?.tenant_id).maybeSingle();
         if (tenant) {
+          // Get current session for auth header
+          const { data: { session } } = await supabase.auth.getSession();
+          
           await supabase.functions.invoke('send-subscription-email', {
             body: {
               type: 'request_canceled',
@@ -155,7 +158,10 @@ const { t, i18n } = useTranslation();
               user_count: request.requested_user_limit,
               total_monthly: request.calculated_total_monthly,
               billing_period: request.billing_period || 'monthly'
-            }
+            },
+            headers: session?.access_token ? {
+              Authorization: `Bearer ${session.access_token}`,
+            } : undefined,
           });
         }
       } catch (emailError) {

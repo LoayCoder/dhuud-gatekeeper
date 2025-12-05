@@ -33,6 +33,9 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
   // Send email notification
   const sendEmailNotification = async (type: string, trialEndDate?: string, daysAdded?: number) => {
     try {
+      // Get current session for auth header
+      const { data: { session } } = await supabase.auth.getSession();
+      
       await supabase.functions.invoke('send-subscription-email', {
         body: {
           type,
@@ -41,6 +44,9 @@ export function TenantTrialControl({ tenant }: TenantTrialControlProps) {
           trial_end_date: trialEndDate,
           days_added: daysAdded,
         },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
       });
     } catch (error) {
       console.error('Failed to send email notification:', error);

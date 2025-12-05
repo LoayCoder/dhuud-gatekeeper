@@ -41,6 +41,9 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
   // Send email notification
   const sendEmailNotification = async (type: 'module_enabled' | 'module_disabled', moduleName: string) => {
     try {
+      // Get current session for auth header
+      const { data: { session } } = await supabase.auth.getSession();
+      
       await supabase.functions.invoke('send-subscription-email', {
         body: {
           type,
@@ -48,6 +51,9 @@ export function TenantModuleControl({ tenant }: TenantModuleControlProps) {
           tenant_email: tenant.contact_email || tenant.billing_email,
           module_name: moduleName,
         },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
       });
     } catch (error) {
       console.error('Failed to send email notification:', error);
