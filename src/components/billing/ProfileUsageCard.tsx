@@ -17,7 +17,7 @@ interface ProfileUsageCardProps {
 export function ProfileUsageCard({ usage, isLoading, showUpgradeCta = true }: ProfileUsageCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { formatAmount } = useCurrencyFormatter();
+  const { renderAmount } = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -116,12 +116,12 @@ export function ProfileUsageCard({ usage, isLoading, showUpgradeCta = true }: Pr
           </div>
           <div className="flex justify-between text-sm">
             <span>{t('profileBilling.ratePerProfile')}</span>
-            <span>{formatAmount(usage.rate_per_profile * 100)}</span>
+            <span>{renderAmount(usage.rate_per_profile * 100)}</span>
           </div>
           <div className="flex justify-between font-medium pt-2 border-t">
             <span>{t('profileBilling.estimatedCharge')}</span>
             <span className={usage.profile_charges > 0 ? 'text-primary' : ''}>
-              {formatAmount(usage.profile_charges * 100)}
+              {renderAmount(usage.profile_charges * 100)}
             </span>
           </div>
         </div>

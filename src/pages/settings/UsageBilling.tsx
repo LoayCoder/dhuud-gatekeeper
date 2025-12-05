@@ -33,7 +33,7 @@ export default function UsageBilling() {
   const { usage, isLoading: usageLoading } = useProfileUsage();
   const { quota, breakdown, isLoading: quotaLoading } = useLicensedUserQuota();
   const { billingRecords, isLoading: billingLoading } = useProfileBilling();
-  const { formatAmount } = useCurrencyFormatter();
+  const { renderAmount } = useCurrencyFormatter();
 
   // Prepare trend data for line chart (last 6 months, sorted ascending)
   const trendData = useMemo(() => {
@@ -233,7 +233,7 @@ export default function UsageBilling() {
                     </TableCell>
                     <TableCell>{record.total_profiles}</TableCell>
                     <TableCell>{record.billable_profiles}</TableCell>
-                    <TableCell>{formatAmount(record.profile_charges * 100)}</TableCell>
+                    <TableCell>{renderAmount(record.profile_charges * 100)}</TableCell>
                     <TableCell>
                       <Badge variant={record.status === 'paid' ? 'default' : 'secondary'}>
                         {record.status}

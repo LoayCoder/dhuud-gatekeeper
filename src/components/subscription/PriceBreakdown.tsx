@@ -4,7 +4,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Users, Package, Calculator, Sparkles, Percent } from 'lucide-react';
-import { formatPrice, type PriceBreakdown as PriceBreakdownType } from '@/hooks/use-price-calculator';
+import { type PriceBreakdown as PriceBreakdownType } from '@/hooks/use-price-calculator';
+import { FormattedCurrency } from '@/components/ui/currency-symbol';
 import { cn } from '@/lib/utils';
 
 interface PriceBreakdownProps {
@@ -110,7 +111,7 @@ export function PriceBreakdown({
               ({breakdown.includedUsers} {t('subscription.usersIncluded', 'users included')})
             </span>
           </div>
-          <span className="font-medium">{formatPrice(breakdown.basePrice)}</span>
+          <span className="font-medium"><FormattedCurrency amount={breakdown.basePrice} /></span>
         </div>
 
         {/* Extra Users */}
@@ -122,10 +123,10 @@ export function PriceBreakdown({
                 {t('subscription.additionalUsers', 'Additional Users')}
               </span>
               <span className="text-xs text-muted-foreground">
-                ({breakdown.extraUsers} × {formatPrice(breakdown.pricePerUser)})
+                ({breakdown.extraUsers} × <FormattedCurrency amount={breakdown.pricePerUser} />)
               </span>
             </div>
-            <span className="font-medium">{formatPrice(breakdown.userPrice)}</span>
+            <span className="font-medium"><FormattedCurrency amount={breakdown.userPrice} /></span>
           </div>
         )}
 
@@ -137,7 +138,7 @@ export function PriceBreakdown({
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{t('subscription.additionalModules', 'Additional Modules')}</span>
               </div>
-              <span className="font-medium">{formatPrice(breakdown.modulePrice)}</span>
+              <span className="font-medium"><FormattedCurrency amount={breakdown.modulePrice} /></span>
             </div>
             {!compact && breakdown.moduleDetails.length > 0 && (
               <div className="ms-6 space-y-1">
@@ -146,7 +147,7 @@ export function PriceBreakdown({
                   .map(mod => (
                     <div key={mod.id} className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{mod.name}</span>
-                      <span>{formatPrice(mod.price)}</span>
+                      <span><FormattedCurrency amount={mod.price} symbolSize="xs" /></span>
                     </div>
                   ))}
               </div>
@@ -157,7 +158,7 @@ export function PriceBreakdown({
         {/* Monthly Subtotal */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{t('subscription.monthlyRate', 'Monthly Rate')}</span>
-          <span>{formatPrice(breakdown.totalMonthly)}/{t('subscription.month', 'month')}</span>
+          <span><FormattedCurrency amount={breakdown.totalMonthly} />/{t('subscription.month', 'month')}</span>
         </div>
 
         <Separator />
@@ -174,14 +175,14 @@ export function PriceBreakdown({
             <>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t('subscription.originalPrice', 'Original Price')}</span>
-                <span className="line-through text-muted-foreground">{formatPrice(periodTotal)}</span>
+                <span className="line-through text-muted-foreground"><FormattedCurrency amount={periodTotal} /></span>
               </div>
               <div className="flex items-center justify-between text-sm text-green-600">
                 <span className="flex items-center gap-1">
                   <Percent className="h-3 w-3" />
                   {t('subscription.discountApplied', '{{percent}}% Discount', { percent: discountPercent })}
                 </span>
-                <span>-{formatPrice(discountAmount)}</span>
+                <span>-<FormattedCurrency amount={discountAmount} /></span>
               </div>
             </>
           )}
@@ -197,11 +198,11 @@ export function PriceBreakdown({
           </span>
           <div className="text-end">
             <span className="text-2xl font-bold text-primary">
-              {formatPrice(finalTotal)}
+              <FormattedCurrency amount={finalTotal} symbolSize="md" />
             </span>
             {billingMonths > 1 && (
               <span className="text-xs text-muted-foreground block">
-                ({formatPrice(finalTotal / billingMonths)}/{t('subscription.month', 'month')})
+                (<FormattedCurrency amount={finalTotal / billingMonths} symbolSize="xs" />/{t('subscription.month', 'month')})
               </span>
             )}
           </div>
@@ -211,7 +212,7 @@ export function PriceBreakdown({
         {!compact && discountPercent > 0 && (
           <div className="rounded-lg bg-green-500/10 p-3 text-center">
             <span className="text-sm text-green-600 font-medium">
-              {t('subscription.youSave', 'You save')} {formatPrice(discountAmount)} {t('subscription.comparedToMonthly', 'compared to monthly billing')}
+              {t('subscription.youSave', 'You save')} <FormattedCurrency amount={discountAmount} /> {t('subscription.comparedToMonthly', 'compared to monthly billing')}
             </span>
           </div>
         )}

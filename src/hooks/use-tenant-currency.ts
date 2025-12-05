@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, SUPPORTED_CURRENCIES, type CurrencyConfig } from '@/lib/currency-utils';
+import { FormattedCurrency } from '@/components/ui/currency-symbol';
+import { createElement } from 'react';
 
 export interface SupportedCurrency {
   code: string;
@@ -19,6 +21,10 @@ export interface UseTenantCurrencyReturn {
   currencyConfig: CurrencyConfig;
   isLoading: boolean;
   formatAmount: (amount: number) => string;
+  /** @deprecated Use FormattedCurrency component directly for official SAR symbol */
+  formatAmountText: (amount: number) => string;
+  /** Returns a FormattedCurrency React element with the official SAR symbol */
+  renderAmount: (amount: number) => React.ReactElement;
   supportedCurrencies: SupportedCurrency[];
   isLoadingCurrencies: boolean;
 }
@@ -65,15 +71,23 @@ export function useTenantCurrency(): UseTenantCurrencyReturn {
   const currency = tenantData?.preferred_currency || 'SAR';
   const currencyConfig = SUPPORTED_CURRENCIES[currency] || SUPPORTED_CURRENCIES.SAR;
 
-  const formatAmount = (amount: number): string => {
+  // Text-based format (for backward compatibility)
+  const formatAmountText = (amount: number): string => {
     return formatCurrency(amount, currency);
+  };
+
+  // React element with official SAR symbol
+  const renderAmount = (amount: number): React.ReactElement => {
+    return createElement(FormattedCurrency, { amount, currencyCode: currency });
   };
 
   return {
     currency,
     currencyConfig,
     isLoading: tenantLoading,
-    formatAmount,
+    formatAmount: formatAmountText, // Keep for backward compatibility
+    formatAmountText,
+    renderAmount,
     supportedCurrencies: currencies,
     isLoadingCurrencies: currenciesLoading,
   };
@@ -83,6 +97,6 @@ export function useTenantCurrency(): UseTenantCurrencyReturn {
  * Simplified hook for components that just need to format amounts
  */
 export function useCurrencyFormatter() {
-  const { currency, formatAmount } = useTenantCurrency();
-  return { currency, formatAmount };
+  const { currency, formatAmount, renderAmount } = useTenantCurrency();
+  return { currency, formatAmount, renderAmount };
 }

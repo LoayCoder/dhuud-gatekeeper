@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ClipboardList, Calendar, Package, Users, Sparkles } from 'lucide-react';
-import { formatPrice } from '@/hooks/use-price-calculator';
+import { FormattedCurrency } from '@/components/ui/currency-symbol';
 import { cn } from '@/lib/utils';
 
 interface SelectionSummaryProps {
@@ -103,7 +103,7 @@ export function SelectionSummary({
             {t('subscription.total', 'Total')}:
           </span>
           <span className="font-bold text-primary">
-            {formatPrice(totalPrice)}/{t('subscription.month', 'month')}
+            <FormattedCurrency amount={totalPrice} />/{t('subscription.month', 'month')}
           </span>
         </div>
       </CardContent>
