@@ -58,7 +58,7 @@ export default function UserManagement() {
 
   const { quota, breakdown, isLoading: quotaLoading, refetch: refetchQuota } = useLicensedUserQuota();
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated, logUserDeleted } = useAdminAuditLog();
-  const { roles } = useUserRoles();
+  const { roles, assignRoles } = useUserRoles();
 
   // Build filters object for the hook
   const filters: UseUsersPaginatedFilters = {
@@ -106,7 +106,7 @@ export default function UserManagement() {
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
 
-  const handleSaveUser = async (data: any) => {
+  const handleSaveUser = async (data: any, selectedRoleIds: string[]) => {
     const updateData = {
       full_name: data.full_name,
       phone_number: data.phone_number,
@@ -139,6 +139,11 @@ export default function UserManagement() {
       const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
       if (error) throw error;
       
+      // Assign roles for existing user
+      if (profile?.tenant_id) {
+        await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+      }
+      
       // Log appropriate audit events
       if (wasActive && !isNowActive) {
         await logUserDeactivated(editingUser.id, data.full_name);
@@ -159,6 +164,11 @@ export default function UserManagement() {
         ...updateData,
       });
       if (error) throw error;
+      
+      // Assign roles for new user
+      if (profile?.tenant_id) {
+        await assignRoles(newUserId, selectedRoleIds, profile.tenant_id);
+      }
       
       // Log user creation
       await logUserCreated(newUserId, data.full_name, data.user_type);

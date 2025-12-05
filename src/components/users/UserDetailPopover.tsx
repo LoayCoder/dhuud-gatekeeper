@@ -32,6 +32,7 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
   const direction = i18n.dir();
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 
   const hierarchyArrow = direction === 'rtl' ? '←' : '→';
 
@@ -40,7 +41,12 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
     onEdit();
   };
 
-  const handleToggleStatus = () => {
+  const handleStatusClick = () => {
+    setStatusDialogOpen(true);
+  };
+
+  const handleConfirmStatusChange = () => {
+    setStatusDialogOpen(false);
     setOpen(false);
     onToggleStatus();
   };
@@ -195,7 +201,7 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
               variant="ghost"
               size="sm"
               className="flex-1 gap-1.5"
-              onClick={handleToggleStatus}
+              onClick={handleStatusClick}
             >
               {user.is_active ? (
                 <>
@@ -221,6 +227,30 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-start">
+              {user.is_active 
+                ? t('userManagement.confirmDeactivateTitle') 
+                : t('userManagement.confirmActivateTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-start">
+              {user.is_active 
+                ? t('userManagement.confirmDeactivateDesc', { userName: user.full_name || '' })
+                : t('userManagement.confirmActivateDesc', { userName: user.full_name || '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse sm:flex-row-reverse gap-2">
+            <AlertDialogAction onClick={handleConfirmStatusChange}>
+              {user.is_active ? t('userManagement.deactivate') : t('userManagement.activate')}
+            </AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

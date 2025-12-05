@@ -686,6 +686,10 @@
     "activate": "I-activate",
     "confirmDeleteTitle": "Burahin ang User",
     "confirmDeleteDesc": "Sigurado ka bang gusto mong burahin si \"{{userName}}\"? Hindi na ito maaaring i-undo.",
+    "confirmDeactivateTitle": "I-deactivate ang User",
+    "confirmDeactivateDesc": "Sigurado ka bang gusto mong i-deactivate si \"{{userName}}\"? Mawawalan siya ng access sa sistema.",
+    "confirmActivateTitle": "I-activate ang User",
+    "confirmActivateDesc": "Sigurado ka bang gusto mong i-activate si \"{{userName}}\"? Magkakaroon siyang muli ng access sa sistema.",
     "showingUsers": "Nagpapakita ng {{count}} sa {{total}} user",
     "hierarchy": "Hierarchy",
     "roles": "Mga Tungkulin"
