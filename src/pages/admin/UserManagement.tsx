@@ -35,12 +35,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, Search, Download, X } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserFormDialog, UserDetailPopover } from "@/components/users";
+import { UserFormDialog, UserDetailPopover, UserImportDialog } from "@/components/users";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
@@ -82,6 +82,9 @@ export default function UserManagement() {
 
   // Export loading
   const [exporting, setExporting] = useState(false);
+  
+  // Import dialog
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Filters
   const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
@@ -435,6 +438,10 @@ export default function UserManagement() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            {t('userManagement.importUsers')}
+          </Button>
           <Button onClick={handleAddUser} className="gap-2">
             <Plus className="h-4 w-4 rtl:order-last" />
             {t('userManagement.addUser')}
@@ -760,6 +767,15 @@ export default function UserManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <UserImportDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImportComplete={() => {
+          refetchUsers();
+          refetchQuota();
+        }}
+      />
     </div>
   );
 }
