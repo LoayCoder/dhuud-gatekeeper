@@ -33,7 +33,8 @@ import {
   validateImportData, 
   mapUserToHierarchyIds,
   ImportUser,
-  ImportValidationResult 
+  ImportValidationResult,
+  TemplateHierarchyData
 } from '@/lib/import-utils';
 import { toast } from 'sonner';
 
@@ -68,6 +69,9 @@ export function UserImportDialog({ open, onOpenChange, onImportComplete }: UserI
     roles: Map<string, string>;
   } | null>(null);
   
+  // Hierarchy data for template dropdown lists (stores names)
+  const [hierarchyData, setHierarchyData] = useState<TemplateHierarchyData | null>(null);
+  
   const [existingEmployeeIds, setExistingEmployeeIds] = useState<Set<string>>(new Set());
   
   // Load hierarchy data when dialog opens
@@ -89,12 +93,22 @@ export function UserImportDialog({ open, onOpenChange, onImportComplete }: UserI
       supabase.from('profiles').select('employee_id').eq('tenant_id', profile.tenant_id).not('employee_id', 'is', null),
     ]);
     
+    // Store lookup maps for validation (lowercase keys)
     setLookup({
       branches: new Map((branchesRes.data || []).map(b => [b.name.toLowerCase(), b.id])),
       divisions: new Map((divisionsRes.data || []).map(d => [d.name.toLowerCase(), d.id])),
       departments: new Map((departmentsRes.data || []).map(d => [d.name.toLowerCase(), d.id])),
       sections: new Map((sectionsRes.data || []).map(s => [s.name.toLowerCase(), s.id])),
       roles: new Map((rolesRes.data || []).map(r => [r.code.toLowerCase(), r.id])),
+    });
+    
+    // Store hierarchy data for template dropdowns (original names)
+    setHierarchyData({
+      branches: (branchesRes.data || []).map(b => b.name),
+      divisions: (divisionsRes.data || []).map(d => d.name),
+      departments: (departmentsRes.data || []).map(d => d.name),
+      sections: (sectionsRes.data || []).map(s => s.name),
+      roles: (rolesRes.data || []).map(r => r.code),
     });
     
     setExistingEmployeeIds(new Set((profilesRes.data || []).map(p => p.employee_id!)));
@@ -273,16 +287,24 @@ export function UserImportDialog({ open, onOpenChange, onImportComplete }: UserI
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => generateImportTemplate(false)}
+                  onClick={() => generateImportTemplate({ 
+                    includeSamples: false, 
+                    hierarchyData: hierarchyData || undefined 
+                  })}
                   className="flex-1"
+                  disabled={!hierarchyData}
                 >
                   <Download className="h-4 w-4 me-2" />
                   {t('userManagement.import.downloadTemplate')}
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => generateImportTemplate(true)}
+                  onClick={() => generateImportTemplate({ 
+                    includeSamples: true, 
+                    hierarchyData: hierarchyData || undefined 
+                  })}
                   className="flex-1"
+                  disabled={!hierarchyData}
                 >
                   <Download className="h-4 w-4 me-2" />
                   {t('userManagement.import.downloadWithSamples')}

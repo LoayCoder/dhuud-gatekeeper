@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export interface ImportUser {
   full_name: string;
@@ -72,7 +73,257 @@ const SAMPLE_DATA = [
   ['Mohammed Ali', '', '+966507654321', 'visitor', '', '', 'FALSE', '', '', '', '', ''],
 ];
 
-export function generateImportTemplate(includeSamples: boolean = false): void {
+export interface TemplateHierarchyData {
+  branches: string[];
+  divisions: string[];
+  departments: string[];
+  sections: string[];
+  roles: string[];
+}
+
+export interface GenerateTemplateOptions {
+  includeSamples?: boolean;
+  hierarchyData?: TemplateHierarchyData;
+}
+
+export async function generateImportTemplate(options: GenerateTemplateOptions = {}): Promise<void> {
+  const { includeSamples = false, hierarchyData } = options;
+  
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'DHUUD Platform';
+  workbook.created = new Date();
+  
+  // Create main Users sheet
+  const usersSheet = workbook.addWorksheet('Users', {
+    views: [{ state: 'frozen', ySplit: 2 }]
+  });
+  
+  // Add headers (Row 1)
+  const headerRow = usersSheet.addRow(TEMPLATE_HEADERS);
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+  });
+  
+  // Add instructions (Row 2)
+  const instructionRow = usersSheet.addRow(TEMPLATE_INSTRUCTIONS);
+  instructionRow.eachCell((cell) => {
+    cell.font = { italic: true, size: 9, color: { argb: 'FF666666' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF2F2F2' }
+    };
+    cell.alignment = { wrapText: true, vertical: 'top' };
+  });
+  
+  // Add sample data if requested
+  if (includeSamples) {
+    SAMPLE_DATA.forEach(row => {
+      usersSheet.addRow(row);
+    });
+  }
+  
+  // Set column widths
+  usersSheet.columns = [
+    { width: 25 }, // Full Name
+    { width: 30 }, // Email
+    { width: 18 }, // Phone
+    { width: 22 }, // User Type
+    { width: 15 }, // Employee ID
+    { width: 20 }, // Job Title
+    { width: 12 }, // Has Login
+    { width: 20 }, // Branch
+    { width: 20 }, // Division
+    { width: 20 }, // Department
+    { width: 20 }, // Section
+    { width: 35 }, // Roles
+  ];
+  
+  // Create Lookup sheet if hierarchy data is provided
+  if (hierarchyData) {
+    const lookupSheet = workbook.addWorksheet('Lookup', {
+      state: 'veryHidden' // Hide the lookup sheet
+    });
+    
+    // Add headers to lookup sheet
+    lookupSheet.getCell('A1').value = 'Branches';
+    lookupSheet.getCell('B1').value = 'Divisions';
+    lookupSheet.getCell('C1').value = 'Departments';
+    lookupSheet.getCell('D1').value = 'Sections';
+    lookupSheet.getCell('E1').value = 'Roles';
+    
+    // Populate lookup data
+    const maxRows = Math.max(
+      hierarchyData.branches.length,
+      hierarchyData.divisions.length,
+      hierarchyData.departments.length,
+      hierarchyData.sections.length,
+      hierarchyData.roles.length
+    );
+    
+    for (let i = 0; i < maxRows; i++) {
+      if (hierarchyData.branches[i]) lookupSheet.getCell(`A${i + 2}`).value = hierarchyData.branches[i];
+      if (hierarchyData.divisions[i]) lookupSheet.getCell(`B${i + 2}`).value = hierarchyData.divisions[i];
+      if (hierarchyData.departments[i]) lookupSheet.getCell(`C${i + 2}`).value = hierarchyData.departments[i];
+      if (hierarchyData.sections[i]) lookupSheet.getCell(`D${i + 2}`).value = hierarchyData.sections[i];
+      if (hierarchyData.roles[i]) lookupSheet.getCell(`E${i + 2}`).value = hierarchyData.roles[i];
+    }
+    
+    // Define the range for data validation (rows 3 to 1000)
+    const dataStartRow = 3;
+    const dataEndRow = 1000;
+    
+    // Add data validation for User Type (Column D)
+    for (let row = dataStartRow; row <= dataEndRow; row++) {
+      usersSheet.getCell(`D${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"employee,contractor_longterm,contractor_shortterm,member,visitor"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid User Type',
+        error: 'Please select a valid user type from the dropdown list.'
+      };
+    }
+    
+    // Add data validation for Has Login (Column G)
+    for (let row = dataStartRow; row <= dataEndRow; row++) {
+      usersSheet.getCell(`G${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"TRUE,FALSE"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid Value',
+        error: 'Please select TRUE or FALSE.'
+      };
+    }
+    
+    // Add data validation for Branch (Column H)
+    if (hierarchyData.branches.length > 0) {
+      const branchRange = `Lookup!$A$2:$A$${hierarchyData.branches.length + 1}`;
+      for (let row = dataStartRow; row <= dataEndRow; row++) {
+        usersSheet.getCell(`H${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [branchRange],
+          showErrorMessage: true,
+          errorTitle: 'Invalid Branch',
+          error: 'Please select a valid branch from the dropdown list.'
+        };
+      }
+    }
+    
+    // Add data validation for Division (Column I)
+    if (hierarchyData.divisions.length > 0) {
+      const divisionRange = `Lookup!$B$2:$B$${hierarchyData.divisions.length + 1}`;
+      for (let row = dataStartRow; row <= dataEndRow; row++) {
+        usersSheet.getCell(`I${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [divisionRange],
+          showErrorMessage: true,
+          errorTitle: 'Invalid Division',
+          error: 'Please select a valid division from the dropdown list.'
+        };
+      }
+    }
+    
+    // Add data validation for Department (Column J)
+    if (hierarchyData.departments.length > 0) {
+      const deptRange = `Lookup!$C$2:$C$${hierarchyData.departments.length + 1}`;
+      for (let row = dataStartRow; row <= dataEndRow; row++) {
+        usersSheet.getCell(`J${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [deptRange],
+          showErrorMessage: true,
+          errorTitle: 'Invalid Department',
+          error: 'Please select a valid department from the dropdown list.'
+        };
+      }
+    }
+    
+    // Add data validation for Section (Column K)
+    if (hierarchyData.sections.length > 0) {
+      const sectionRange = `Lookup!$D$2:$D$${hierarchyData.sections.length + 1}`;
+      for (let row = dataStartRow; row <= dataEndRow; row++) {
+        usersSheet.getCell(`K${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [sectionRange],
+          showErrorMessage: true,
+          errorTitle: 'Invalid Section',
+          error: 'Please select a valid section from the dropdown list.'
+        };
+      }
+    }
+    
+    // Add data validation for Roles (Column L) - Note: roles are comma-separated, so we show list but allow manual entry
+    if (hierarchyData.roles.length > 0) {
+      const rolesRange = `Lookup!$E$2:$E$${hierarchyData.roles.length + 1}`;
+      for (let row = dataStartRow; row <= dataEndRow; row++) {
+        usersSheet.getCell(`L${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [rolesRange],
+          showErrorMessage: false, // Allow manual entry for comma-separated roles
+          promptTitle: 'Role Selection',
+          prompt: 'Select a role or type comma-separated role codes for multiple roles.'
+        };
+      }
+    }
+  } else {
+    // If no hierarchy data, still add static dropdowns for User Type and Has Login
+    const dataStartRow = 3;
+    const dataEndRow = 1000;
+    
+    for (let row = dataStartRow; row <= dataEndRow; row++) {
+      usersSheet.getCell(`D${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"employee,contractor_longterm,contractor_shortterm,member,visitor"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid User Type',
+        error: 'Please select a valid user type from the dropdown list.'
+      };
+      
+      usersSheet.getCell(`G${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"TRUE,FALSE"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid Value',
+        error: 'Please select TRUE or FALSE.'
+      };
+    }
+  }
+  
+  // Generate file and download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = includeSamples ? 'user_import_template_with_samples.xlsx' : 'user_import_template.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Legacy function for backward compatibility (deprecated)
+export function generateImportTemplateLegacy(includeSamples: boolean = false): void {
   const wb = XLSX.utils.book_new();
   
   const data: (string | boolean)[][] = [
