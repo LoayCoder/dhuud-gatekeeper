@@ -64,6 +64,7 @@ export default function PlanManagement() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortField, setSortField] = useState<SortField>('sort_order');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     display_name: '',
@@ -345,6 +346,15 @@ export default function PlanManagement() {
   const filteredPlans = useMemo(() => {
     let result = [...plans];
     
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(plan => 
+        plan.display_name.toLowerCase().includes(query) ||
+        plan.name.toLowerCase().includes(query)
+      );
+    }
+    
     // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter(plan => 
@@ -371,7 +381,7 @@ export default function PlanManagement() {
     });
     
     return result;
-  }, [plans, statusFilter, sortField, sortDirection]);
+  }, [plans, searchQuery, statusFilter, sortField, sortDirection]);
 
   const toggleSortDirection = () => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -398,6 +408,13 @@ export default function PlanManagement() {
         <CardContent>
           {/* Filter and Sort Controls */}
           <div className="flex flex-wrap items-center gap-4 mb-4">
+            <Input
+              placeholder={t('adminPlans.searchPlans')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-48"
+            />
+            
             <div className="flex items-center gap-2">
               <Label className="text-sm whitespace-nowrap">{t('adminPlans.filterByStatus')}</Label>
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>

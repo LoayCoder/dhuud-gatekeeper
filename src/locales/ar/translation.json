@@ -1195,6 +1195,7 @@
     "confirmDeletePlanDesc": "هل أنت متأكد من حذف خطة \"{{planName}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
     "deletePlan": "حذف",
     "planDeleted": "تم حذف الخطة بنجاح.",
+    "searchPlans": "البحث في الخطط...",
     "filterByStatus": "الحالة",
     "sortBy": "ترتيب حسب",
     "defaultOrder": "الترتيب الافتراضي",
