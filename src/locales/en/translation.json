@@ -673,6 +673,10 @@
     "activate": "Activate",
     "confirmDeleteTitle": "Delete User",
     "confirmDeleteDesc": "Are you sure you want to delete \"{{userName}}\"? This action cannot be undone.",
+    "confirmDeactivateTitle": "Deactivate User",
+    "confirmDeactivateDesc": "Are you sure you want to deactivate \"{{userName}}\"? They will lose access to the system.",
+    "confirmActivateTitle": "Activate User",
+    "confirmActivateDesc": "Are you sure you want to activate \"{{userName}}\"? They will regain access to the system.",
     "showingUsers": "Showing {{count}} of {{total}} users",
     "hierarchy": "Hierarchy",
     "roles": "Roles"

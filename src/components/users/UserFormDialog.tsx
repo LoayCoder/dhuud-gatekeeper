@@ -72,7 +72,7 @@ interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user?: any;
-  onSave: (data: UserFormValues) => Promise<void>;
+  onSave: (data: UserFormValues, selectedRoleIds: string[]) => Promise<void>;
 }
 
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
@@ -248,13 +248,8 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
     setIsLoading(true);
     try {
-      await onSave(data);
-      
-      // Assign roles after save (for existing users we have the ID)
-      if (user && profile?.tenant_id) {
-        await assignRoles(user.id, selectedRoleIds, profile.tenant_id);
-      }
-      
+      // Pass selectedRoleIds to parent for role assignment
+      await onSave(data, selectedRoleIds);
       onOpenChange(false);
     } finally {
       setIsLoading(false);

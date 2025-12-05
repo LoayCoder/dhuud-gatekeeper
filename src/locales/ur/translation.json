@@ -686,6 +686,10 @@
     "activate": "فعال کریں",
     "confirmDeleteTitle": "صارف کو حذف کریں",
     "confirmDeleteDesc": "کیا آپ واقعی \"{{userName}}\" کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں کیا جا سکتا۔",
+    "confirmDeactivateTitle": "صارف کو غیر فعال کریں",
+    "confirmDeactivateDesc": "کیا آپ واقعی \"{{userName}}\" کو غیر فعال کرنا چاہتے ہیں؟ سسٹم تک رسائی ختم ہو جائے گی۔",
+    "confirmActivateTitle": "صارف کو فعال کریں",
+    "confirmActivateDesc": "کیا آپ واقعی \"{{userName}}\" کو فعال کرنا چاہتے ہیں؟ سسٹم تک رسائی بحال ہو جائے گی۔",
     "showingUsers": "{{count}} میں سے {{total}} صارفین دکھا رہے ہیں",
     "hierarchy": "درجہ بندی",
     "roles": "کردار"

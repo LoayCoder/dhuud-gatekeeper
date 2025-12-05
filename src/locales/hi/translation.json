@@ -686,6 +686,10 @@
     "activate": "सक्रिय करें",
     "confirmDeleteTitle": "उपयोगकर्ता हटाएं",
     "confirmDeleteDesc": "क्या आप \"{{userName}}\" को हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।",
+    "confirmDeactivateTitle": "उपयोगकर्ता निष्क्रिय करें",
+    "confirmDeactivateDesc": "क्या आप वाकई \"{{userName}}\" को निष्क्रिय करना चाहते हैं? सिस्टम एक्सेस समाप्त हो जाएगी।",
+    "confirmActivateTitle": "उपयोगकर्ता सक्रिय करें",
+    "confirmActivateDesc": "क्या आप वाकई \"{{userName}}\" को सक्रिय करना चाहते हैं? सिस्टम एक्सेस बहाल हो जाएगी।",
     "showingUsers": "{{total}} में से {{count}} उपयोगकर्ता दिखा रहे हैं",
     "hierarchy": "पदानुक्रम",
     "roles": "भूमिकाएं"
