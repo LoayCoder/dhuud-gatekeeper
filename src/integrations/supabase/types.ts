@@ -1841,6 +1841,13 @@ export type Database = {
           source: string
         }[]
       }
+      get_tenant_user_counts: {
+        Args: { p_tenant_ids: string[] }
+        Returns: {
+          tenant_id: string
+          user_count: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
