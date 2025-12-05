@@ -18,7 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { formatPrice } from '@/hooks/use-price-calculator';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/date-utils';
 import {
   CheckCircle2, XCircle, Edit3, Clock, Building2, Users,
   Package, DollarSign, FileText, MessageSquare
@@ -60,6 +60,7 @@ const RTL_LANGUAGES = ['ar', 'ur'];
 export function RequestReviewDialog({ request, open, onOpenChange }: RequestReviewDialogProps) {
   const { t, i18n } = useTranslation();
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
+  const direction = isRTL ? 'rtl' : 'ltr';
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
@@ -175,9 +176,9 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={isRTL ? 'rtl' : 'ltr'}>
-        <DialogHeader className={isRTL ? 'text-right' : 'text-left'}>
-          <DialogTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={direction}>
+        <DialogHeader className="text-start">
+          <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             {t('adminSubscription.reviewRequest')}
           </DialogTitle>
@@ -187,7 +188,7 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
         </DialogHeader>
 
         <Tabs defaultValue="details" className="mt-4">
-          <TabsList className={`grid w-full grid-cols-2 ${isRTL ? 'direction-rtl' : ''}`}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="details">{t('adminSubscription.requestDetails')}</TabsTrigger>
             {isReviewable && (
               <TabsTrigger value="modify">{t('adminSubscription.modifyApprove')}</TabsTrigger>
@@ -199,18 +200,18 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
             <Card>
               <CardContent className="pt-4 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className="flex items-center gap-3">
                     <Building2 className="h-5 w-5 text-muted-foreground" />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className="text-start">
                       <p className="text-sm text-muted-foreground">{t('adminSubscription.tenant')}</p>
                       <p className="font-medium">{request.tenant?.name}</p>
                     </div>
                   </div>
-                  <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-muted-foreground" />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className="text-start">
                       <p className="text-sm text-muted-foreground">{t('adminSubscription.submitted')}</p>
-                      <p className="font-medium">{format(new Date(request.created_at), 'PPp')}</p>
+                      <p className="font-medium">{formatDate(request.created_at, 'PPp')}</p>
                     </div>
                   </div>
                 </div>
@@ -218,16 +219,16 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                 <Separator />
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className="flex items-center gap-3">
                     <Package className="h-5 w-5 text-muted-foreground" />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className="text-start">
                       <p className="text-sm text-muted-foreground">{t('subscription.requestedPlan')}</p>
                       <p className="font-medium">{request.requested_plan?.display_name || '-'}</p>
                     </div>
                   </div>
-                  <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className="flex items-center gap-3">
                     <Users className="h-5 w-5 text-muted-foreground" />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className="text-start">
                       <p className="text-sm text-muted-foreground">{t('subscription.requestedUsers')}</p>
                       <p className="font-medium">{request.requested_user_limit} {t('subscription.users')}</p>
                     </div>
@@ -237,9 +238,9 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                 {requestedModuleNames.length > 0 && (
                   <>
                     <Separator />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                    <div className="text-start">
                       <p className="text-sm text-muted-foreground mb-2">{t('subscription.requestedModules')}</p>
-                      <div className={`flex flex-wrap gap-2 ${isRTL ? 'justify-end' : ''}`}>
+                      <div className="flex flex-wrap gap-2">
                         {requestedModuleNames.map((name, i) => (
                           <Badge key={i} variant="secondary">{name}</Badge>
                         ))}
@@ -251,27 +252,27 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                 <Separator />
 
                 {/* Price Breakdown */}
-                <div className={isRTL ? 'text-right' : 'text-left'}>
+                <div className="text-start">
                   <p className="text-sm text-muted-foreground mb-2">{t('subscription.priceBreakdown')}</p>
                   <div className="space-y-2 text-sm">
-                    <div className={`flex justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex justify-between">
                       <span>{t('subscription.basePlan')}</span>
                       <span>{formatPrice(request.calculated_base_price)}</span>
                     </div>
                     {request.calculated_user_price > 0 && (
-                      <div className={`flex justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <div className="flex justify-between">
                         <span>{t('subscription.additionalUsers')}</span>
                         <span>{formatPrice(request.calculated_user_price)}</span>
                       </div>
                     )}
                     {request.calculated_module_price > 0 && (
-                      <div className={`flex justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <div className="flex justify-between">
                         <span>{t('subscription.additionalModules')}</span>
                         <span>{formatPrice(request.calculated_module_price)}</span>
                       </div>
                     )}
                     <Separator />
-                    <div className={`flex justify-between font-semibold ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex justify-between font-semibold">
                       <span>{t('subscription.totalMonthly')}</span>
                       <span className="text-primary">{formatPrice(request.calculated_total_monthly)}</span>
                     </div>
@@ -281,8 +282,8 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                 {request.tenant_notes && (
                   <>
                     <Separator />
-                    <div className={isRTL ? 'text-right' : 'text-left'}>
-                      <p className={`text-sm text-muted-foreground mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+                    <div className="text-start">
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                         <MessageSquare className="h-4 w-4" />
                         {t('subscription.yourNotes')}
                       </p>
@@ -295,20 +296,19 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
 
             {/* Admin Response */}
             {isReviewable && (
-              <div className={`space-y-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className="space-y-2 text-start">
                 <Label>{t('adminSubscription.adminResponse')}</Label>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder={t('adminSubscription.adminNotesPlaceholder')}
                   rows={3}
-                  className={isRTL ? 'text-right' : 'text-left'}
                 />
               </div>
             )}
 
             {request.admin_notes && !isReviewable && (
-              <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="text-start">
                 <p className="text-sm text-muted-foreground mb-1">{t('subscription.adminNotes')}</p>
                 <p className="text-sm bg-muted/50 p-3 rounded-lg">{request.admin_notes}</p>
               </div>
@@ -318,7 +318,7 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
           {isReviewable && (
             <TabsContent value="modify" className="space-y-4 mt-4">
               <Card>
-                <CardContent className={`pt-4 space-y-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <CardContent className="pt-4 space-y-4 text-start">
                   <p className="text-sm text-muted-foreground">
                     {t('adminSubscription.modifyDescription')}
                   </p>
@@ -326,11 +326,11 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>{t('subscription.plan')}</Label>
-                      <Select value={modifiedPlanId} onValueChange={setModifiedPlanId}>
-                        <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
+                      <Select value={modifiedPlanId} onValueChange={setModifiedPlanId} dir={direction}>
+                        <SelectTrigger>
                           <SelectValue placeholder={t('subscription.selectPlan')} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent dir={direction}>
                           {plans.map(plan => (
                             <SelectItem key={plan.id} value={plan.id}>
                               {plan.display_name} - {formatPrice(plan.base_price_monthly)}
@@ -348,13 +348,12 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                         onChange={(e) => setModifiedUserLimit(parseInt(e.target.value) || 1)}
                         min={1}
                         max={1000}
-                        className={isRTL ? 'text-right' : 'text-left'}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label>{t('adminSubscription.approvedPrice')}</Label>
-                      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <Input
                           type="number"
@@ -362,7 +361,6 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                           onChange={(e) => setModifiedTotal(parseFloat(e.target.value) * 100 || 0)}
                           step="0.01"
                           min={0}
-                          className={isRTL ? 'text-right' : 'text-left'}
                         />
                         <span className="text-sm text-muted-foreground">/{t('subscription.month')}</span>
                       </div>
@@ -371,47 +369,43 @@ export function RequestReviewDialog({ request, open, onOpenChange }: RequestRevi
                 </CardContent>
               </Card>
 
-              <div className={`space-y-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className="space-y-2 text-start">
                 <Label>{t('adminSubscription.adminResponse')}</Label>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder={t('adminSubscription.modifyNotesPlaceholder')}
                   rows={3}
-                  className={isRTL ? 'text-right' : 'text-left'}
                 />
               </div>
             </TabsContent>
           )}
         </Tabs>
 
-        <DialogFooter className={`gap-2 sm:gap-0 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <DialogFooter className="gap-2 sm:gap-0">
           {isReviewable ? (
             <>
               <Button
                 variant="destructive"
                 onClick={() => updateRequest.mutate({ status: 'declined' })}
                 disabled={updateRequest.isPending}
-                className={isRTL ? 'flex-row-reverse' : ''}
               >
-                <XCircle className={`h-4 w-4 ${isRTL ? 'ms-1' : 'me-1'}`} />
+                <XCircle className="h-4 w-4 me-1" />
                 {t('adminSubscription.decline')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => updateRequest.mutate({ status: 'approved', withModifications: true })}
                 disabled={updateRequest.isPending}
-                className={isRTL ? 'flex-row-reverse' : ''}
               >
-                <Edit3 className={`h-4 w-4 ${isRTL ? 'ms-1' : 'me-1'}`} />
+                <Edit3 className="h-4 w-4 me-1" />
                 {t('adminSubscription.approveWithChanges')}
               </Button>
               <Button
                 onClick={() => updateRequest.mutate({ status: 'approved' })}
                 disabled={updateRequest.isPending}
-                className={isRTL ? 'flex-row-reverse' : ''}
               >
-                <CheckCircle2 className={`h-4 w-4 ${isRTL ? 'ms-1' : 'me-1'}`} />
+                <CheckCircle2 className="h-4 w-4 me-1" />
                 {t('adminSubscription.approve')}
               </Button>
             </>
