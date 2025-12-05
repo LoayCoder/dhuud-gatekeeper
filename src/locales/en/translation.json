@@ -1182,6 +1182,7 @@
     "confirmDeletePlanDesc": "Are you sure you want to delete the \"{{planName}}\" plan? This action cannot be undone.",
     "deletePlan": "Delete",
     "planDeleted": "Plan deleted successfully.",
+    "searchPlans": "Search plans...",
     "filterByStatus": "Status",
     "sortBy": "Sort by",
     "defaultOrder": "Default",

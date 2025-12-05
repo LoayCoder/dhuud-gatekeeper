@@ -1189,6 +1189,7 @@
     "confirmDeletePlanDesc": "Sigurado ka bang gusto mong burahin ang planong \"{{planName}}\"? Hindi na maaaring ibalik ang aksyon na ito.",
     "deletePlan": "Burahin",
     "planDeleted": "Matagumpay na nabura ang plano.",
+    "searchPlans": "Maghanap ng plano...",
     "filterByStatus": "Katayuan",
     "sortBy": "Pag-uri-uriin ayon sa",
     "defaultOrder": "Default",

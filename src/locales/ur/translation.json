@@ -1189,6 +1189,7 @@
     "confirmDeletePlanDesc": "کیا آپ واقعی \"{{planName}}\" پلان کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں کیا جا سکتا۔",
     "deletePlan": "حذف کریں",
     "planDeleted": "پلان کامیابی سے حذف ہو گیا۔",
+    "searchPlans": "پلان تلاش کریں...",
     "filterByStatus": "حیثیت",
     "sortBy": "ترتیب بہ",
     "defaultOrder": "ڈیفالٹ",
