@@ -32,7 +32,8 @@ export function PlanSelector({
   className,
   currentPlanId,
 }: PlanSelectorProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
 
   if (isLoading) {
     return (
@@ -66,6 +67,7 @@ export function PlanSelector({
           onValueChange={onSelect}
           disabled={disabled}
           className="grid gap-4 md:grid-cols-3"
+          dir={direction}
         >
           {plans.map(plan => {
             const isSelected = selectedPlanId === plan.id;
