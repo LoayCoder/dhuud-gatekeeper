@@ -16,9 +16,8 @@ import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
 import { useTheme } from '@/contexts/ThemeContext';
 export default function AdminBranding() {
-  const {
-    t
-  } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
   const {
     refreshTenantData
   } = useTheme();
@@ -234,7 +233,7 @@ export default function AdminBranding() {
         </Card>
       </div>;
   }
-  return <div className="p-6 space-y-6 max-w-7xl mx-auto text-start">
+  return <div className="p-6 space-y-6 max-w-7xl mx-auto text-start" dir={direction}>
       <div className="flex flex-row-reverse justify-between items-center">
         <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Save className="me-2 h-4 w-4" />}
@@ -247,7 +246,7 @@ export default function AdminBranding() {
       </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-        <Tabs defaultValue="visuals" className="w-full flex flex-col rtl:items-end">
+        <Tabs defaultValue="visuals" className="w-full" dir={direction}>
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="visuals" className="gap-2 ltr:flex-row rtl:flex-row-reverse"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
           <TabsTrigger value="assets" className="gap-2 ltr:flex-row rtl:flex-row-reverse"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
