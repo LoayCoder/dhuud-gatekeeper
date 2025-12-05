@@ -696,8 +696,10 @@
       "contactPerson": "Contact Person",
       "contactEmail": "Contact Email",
       "contactPhone": "Contact Phone",
-      "notes": "Notes"
+      "notes": "Notes",
+      "preferredCurrency": "Preferred Currency"
     },
+    "selectCurrency": "Select currency",
     "placeholders": {
       "name": "e.g. Acme Corporation",
       "slug": "e.g. acme-corp",
@@ -1494,5 +1496,15 @@
       "info": "General information and status updates",
       "error": "Security alerts, errors, and critical warnings"
     }
+  },
+  "currencies": {
+    "SAR": "Saudi Riyal",
+    "AED": "UAE Dirham",
+    "BHD": "Bahraini Dinar",
+    "KWD": "Kuwaiti Dinar",
+    "OMR": "Omani Rial",
+    "QAR": "Qatari Riyal",
+    "USD": "US Dollar",
+    "CNY": "Chinese Yuan"
   }
 }

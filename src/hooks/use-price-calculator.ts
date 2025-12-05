@@ -228,12 +228,10 @@ export function usePriceCalculator(
   };
 }
 
+// Re-export formatCurrency as formatPrice for backward compatibility
+import { formatCurrency } from '@/lib/currency-utils';
+export { formatCurrency };
+
 export function formatPrice(cents: number, currency = 'SAR', locale?: string): string {
-  const effectiveLocale = locale || (document.documentElement.lang === 'ar' ? 'ar-SA' : 'en-SA');
-  return new Intl.NumberFormat(effectiveLocale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
+  return formatCurrency(cents, currency, { locale });
 }
