@@ -4,7 +4,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Crown, Rocket, Building2, Sparkles } from 'lucide-react';
-import { formatPrice, type Plan } from '@/hooks/use-price-calculator';
+import { type Plan } from '@/hooks/use-price-calculator';
+import { FormattedCurrency } from '@/components/ui/currency-symbol';
 import { cn } from '@/lib/utils';
 
 const planIcons: Record<string, React.ReactNode> = {
@@ -114,7 +115,7 @@ export function PlanSelector({
                 {/* Price */}
                 <div className="mb-3">
                   <span className="text-2xl font-bold">
-                    {formatPrice(plan.base_price_monthly)}
+                    <FormattedCurrency amount={plan.base_price_monthly} currencyCode="SAR" symbolSize="md" />
                   </span>
                   <span className="text-sm text-muted-foreground">
                     /{t('subscription.month', 'month')}
@@ -135,7 +136,7 @@ export function PlanSelector({
                   </div>
                   {plan.price_per_user > 0 && (
                     <div className="text-xs">
-                      +{formatPrice(plan.price_per_user)}/{t('subscription.additionalUser', 'additional user')}
+                      +<FormattedCurrency amount={plan.price_per_user} currencyCode="SAR" symbolSize="xs" />/{t('subscription.additionalUser', 'additional user')}
                     </div>
                   )}
                 </div>
