@@ -1180,7 +1180,14 @@
     "inactive": "निष्क्रिय",
     "planSaved": "प्लान सफलतापूर्वक सहेजा गया।",
     "atLeastOneModule": "कृपया इस प्लान के लिए कम से कम एक मॉड्यूल चुनें।",
-    "displayNameRequired": "प्रदर्शन नाम आवश्यक है।"
+    "displayNameRequired": "प्रदर्शन नाम आवश्यक है।",
+    "pricesMustBePositive": "सभी कीमतें शून्य या सकारात्मक संख्याएं होनी चाहिए।",
+    "userLimitsMustBePositive": "उपयोगकर्ता सीमा कम से कम 1 होनी चाहिए।",
+    "includedUsersMustNotExceedMax": "शामिल उपयोगकर्ता अधिकतम उपयोगकर्ताओं से अधिक नहीं हो सकते।",
+    "confirmDeletePlan": "प्लान हटाएं",
+    "confirmDeletePlanDesc": "क्या आप वाकई \"{{planName}}\" प्लान हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+    "deletePlan": "हटाएं",
+    "planDeleted": "प्लान सफलतापूर्वक हटा दिया गया।"
   },
   "analytics": {
     "title": "उपयोग विश्लेषिकी",

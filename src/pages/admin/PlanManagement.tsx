@@ -12,9 +12,19 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { formatPrice } from "@/hooks/use-price-calculator";
-import { Plus, Pencil, Crown, Rocket, Building2, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Crown, Rocket, Building2, Sparkles, Loader2 } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -44,6 +54,8 @@ export default function PlanManagement() {
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     display_name: '',
@@ -179,6 +191,25 @@ export default function PlanManagement() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      // First delete plan_modules associations
+      await supabase.from('plan_modules').delete().eq('plan_id', planId);
+      // Then delete the plan
+      const { error } = await supabase.from('plans').delete().eq('id', planId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: t('common.success'), description: t('adminPlans.planDeleted') });
+      queryClient.invalidateQueries({ queryKey: ['admin-plans'] });
+      setDeleteDialogOpen(false);
+      setPlanToDelete(null);
+    },
+    onError: (error) => {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -239,6 +270,37 @@ export default function PlanManagement() {
       return;
     }
 
+    // Price validation (prices can be 0 for free plans, but not negative)
+    if (formData.base_price_monthly < 0 || formData.price_yearly < 0 || 
+        formData.price_per_user < 0 || formData.price_per_user_yearly < 0) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('adminPlans.pricesMustBePositive'), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    // User limits validation (must be at least 1)
+    if (formData.included_users < 1 || formData.max_users < 1) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('adminPlans.userLimitsMustBePositive'), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    // Logical constraint (included ≤ max)
+    if (formData.included_users > formData.max_users) {
+      toast({ 
+        title: t('common.error'), 
+        description: t('adminPlans.includedUsersMustNotExceedMax'), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     if (selectedModules.length === 0) {
       toast({ 
         title: t('common.error'), 
@@ -249,6 +311,17 @@ export default function PlanManagement() {
     }
 
     saveMutation.mutate(editPlan ? { ...formData, id: editPlan.id } : formData);
+  };
+
+  const handleDeleteClick = (plan: Plan) => {
+    setPlanToDelete(plan);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (planToDelete) {
+      deleteMutation.mutate(planToDelete.id);
+    }
   };
 
   const getPlanIcon = (name: string) => {
@@ -342,6 +415,9 @@ export default function PlanManagement() {
                     <TableCell className="text-end">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(plan)}>
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(plan)} className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -497,6 +573,31 @@ export default function PlanManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('adminPlans.confirmDeletePlan')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('adminPlans.confirmDeletePlanDesc', { planName: planToDelete?.display_name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('adminPlans.deletePlan')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

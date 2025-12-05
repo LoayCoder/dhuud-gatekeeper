@@ -1180,7 +1180,14 @@
     "inactive": "Hindi Aktibo",
     "planSaved": "Matagumpay na na-save ang plano.",
     "atLeastOneModule": "Mangyaring pumili ng kahit isang module para sa planong ito.",
-    "displayNameRequired": "Kailangan ang display name."
+    "displayNameRequired": "Kailangan ang display name.",
+    "pricesMustBePositive": "Lahat ng presyo ay dapat zero o positibong numero.",
+    "userLimitsMustBePositive": "Ang mga limitasyon ng user ay dapat hindi bababa sa 1.",
+    "includedUsersMustNotExceedMax": "Ang mga kasama na user ay hindi dapat lumampas sa maximum na mga user.",
+    "confirmDeletePlan": "Burahin ang Plano",
+    "confirmDeletePlanDesc": "Sigurado ka bang gusto mong burahin ang planong \"{{planName}}\"? Hindi na maaaring ibalik ang aksyon na ito.",
+    "deletePlan": "Burahin",
+    "planDeleted": "Matagumpay na nabura ang plano."
   },
   "analytics": {
     "title": "Usage Analytics",

@@ -1180,7 +1180,14 @@
     "inactive": "غیر فعال",
     "planSaved": "پلان کامیابی سے محفوظ ہو گیا۔",
     "atLeastOneModule": "براہ کرم اس پلان کے لیے کم از کم ایک ماڈیول منتخب کریں۔",
-    "displayNameRequired": "ڈسپلے نام ضروری ہے۔"
+    "displayNameRequired": "ڈسپلے نام ضروری ہے۔",
+    "pricesMustBePositive": "تمام قیمتیں صفر یا مثبت نمبر ہونی چاہئیں۔",
+    "userLimitsMustBePositive": "صارف کی حدود کم از کم 1 ہونی چاہیے۔",
+    "includedUsersMustNotExceedMax": "شامل صارفین زیادہ سے زیادہ صارفین سے تجاوز نہیں کر سکتے۔",
+    "confirmDeletePlan": "پلان حذف کریں",
+    "confirmDeletePlanDesc": "کیا آپ واقعی \"{{planName}}\" پلان کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں کیا جا سکتا۔",
+    "deletePlan": "حذف کریں",
+    "planDeleted": "پلان کامیابی سے حذف ہو گیا۔"
   },
   "analytics": {
     "title": "استعمال کے تجزیات",
