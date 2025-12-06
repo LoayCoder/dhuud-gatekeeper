@@ -26,7 +26,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search, Trophy } from "lucide-react";
+import { MajorEventsTab } from "@/components/admin/MajorEventsTab";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -612,9 +613,11 @@ export default function OrgStructure() {
         <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
           <TabsTrigger value="sites">{t('orgStructure.sites')}</TabsTrigger>
+          <TabsTrigger value="sites" className="flex items-center gap-1"><Building2 className="h-4 w-4" />{t('orgStructure.sites')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
           <TabsTrigger value="departments">{t('orgStructure.departments')}</TabsTrigger>
           <TabsTrigger value="sections">{t('orgStructure.sections')}</TabsTrigger>
+          <TabsTrigger value="events" className="flex items-center gap-1"><Trophy className="h-4 w-4" />{t('specialEvents.tabTitle')}</TabsTrigger>
         </TabsList>
 
         {/* BRANCHES TAB */}
@@ -1082,6 +1085,18 @@ export default function OrgStructure() {
                   </TableBody>
                 </Table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* MAJOR EVENTS TAB */}
+        <TabsContent value="events">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-start">{t('specialEvents.manageEvents')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MajorEventsTab />
             </CardContent>
           </Card>
         </TabsContent>

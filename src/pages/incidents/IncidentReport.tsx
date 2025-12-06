@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MediaUploadSection from '@/components/incidents/MediaUploadSection';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +27,7 @@ import {
   type AISuggestion 
 } from '@/lib/incident-ai-assistant';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
+import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 
 // Schema moved inside component to access t() for translations
 const createIncidentFormSchema = (t: (key: string) => string) => z.object({
@@ -112,6 +113,7 @@ export default function IncidentReport() {
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -368,6 +370,8 @@ export default function IncidentReport() {
       department_id: values.department_id || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
+      // Include active major event if detected
+      special_event_id: activeEventId || undefined,
     };
 
     createIncident.mutate(formData, {
@@ -464,6 +468,9 @@ export default function IncidentReport() {
           {/* STEP 1: CAPTURE */}
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Active Event Banner */}
+              <ActiveEventBanner onEventDetected={setActiveEventId} />
+
               {/* Reference Number Preview */}
               <Card className="border-dashed">
                 <CardContent className="pt-6">

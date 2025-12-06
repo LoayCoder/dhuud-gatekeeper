@@ -1838,5 +1838,38 @@
     "QAR": "قطری ریال",
     "USD": "امریکی ڈالر",
     "CNY": "چینی یوآن"
+  },
+  "specialEvents": {
+    "tabTitle": "بڑے ایونٹس",
+    "manageEvents": "بڑے ایونٹس کا انتظام",
+    "addEvent": "ایونٹ شامل کریں",
+    "editEvent": "ایونٹ میں ترمیم کریں",
+    "eventName": "ایونٹ کا نام",
+    "eventNamePlaceholder": "مثال: ورلڈ کپ 2026",
+    "description": "تفصیل",
+    "descriptionPlaceholder": "اختیاری ایونٹ کی تفصیل...",
+    "eventDescription": "خاص مواقع کے دوران واقعات کو جوڑنے کے لیے ایونٹس بنائیں۔",
+    "startDate": "شروع کی تاریخ",
+    "endDate": "اختتام کی تاریخ",
+    "status": "حیثیت",
+    "statusActive": "فعال",
+    "statusUpcoming": "آنے والا",
+    "statusArchived": "محفوظ شدہ",
+    "activeToggle": "فعال",
+    "activeToggleDescription": "واقعہ لنکنگ کے لیے اس ایونٹ کو فعال کریں",
+    "noEvents": "ابھی تک کوئی بڑے ایونٹس نہیں بنائے گئے",
+    "eventCreated": "ایونٹ کامیابی سے بنایا گیا",
+    "eventUpdated": "ایونٹ کامیابی سے اپڈیٹ ہوا",
+    "eventDeleted": "ایونٹ کامیابی سے حذف ہوا",
+    "deleteConfirmTitle": "ایونٹ حذف کریں؟",
+    "deleteConfirmDescription": "یہ ایونٹ کو ہٹا دے گا۔ پہلے سے جڑے واقعات اپنا تعلق برقرار رکھیں گے۔",
+    "eventBannerTitle": "ایونٹ موڈ فعال",
+    "eventBannerNote": "یہ رپورٹ خود بخود اس ایونٹ سے جڑ جائے گی۔",
+    "validation": {
+      "nameRequired": "ایونٹ کا نام ضروری ہے",
+      "startRequired": "شروع کی تاریخ ضروری ہے",
+      "endRequired": "اختتام کی تاریخ ضروری ہے",
+      "endAfterStart": "اختتام کی تاریخ شروع کی تاریخ کے بعد ہونی چاہیے"
+    }
   }
 }
