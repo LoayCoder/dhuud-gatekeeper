@@ -2031,5 +2031,20 @@
       "endRequired": "समाप्ति तिथि आवश्यक है",
       "endAfterStart": "समाप्ति तिथि प्रारंभ तिथि के बाद होनी चाहिए"
     }
+  },
+  "documentSettings": {
+    "title": "दस्तावेज़ सेटिंग्स",
+    "description": "सभी निर्यातित दस्तावेज़ों के लिए ब्रांडिंग और लेआउट कॉन्फ़िगर करें",
+    "configuration": "कॉन्फ़िगरेशन",
+    "configurationHint": "अपने दस्तावेज़ों का रूप अनुकूलित करें",
+    "save": "सेटिंग्स सहेजें",
+    "reset": "डिफ़ॉल्ट पर रीसेट करें",
+    "saveSuccess": "दस्तावेज़ सेटिंग्स सफलतापूर्वक सहेजी गईं",
+    "saveError": "दस्तावेज़ सेटिंग्स सहेजने में विफल",
+    "tabs": { "header": "हेडर", "footer": "फ़ुटर", "watermark": "वॉटरमार्क" },
+    "header": { "primaryText": "प्राथमिक पाठ", "primaryTextPlaceholder": "उदा: सुरक्षा विभाग", "secondaryText": "द्वितीयक पाठ", "secondaryTextPlaceholder": "उदा: ISO 45001", "logoPosition": "लोगो स्थिति", "positionLeft": "बाएं", "positionCenter": "केंद्र", "positionRight": "दाएं", "showLogo": "लोगो दिखाएं", "bgColor": "पृष्ठभूमि रंग", "textColor": "पाठ रंग" },
+    "footer": { "text": "फ़ुटर पाठ", "textPlaceholder": "उदा: गोपनीय", "showPageNumbers": "पृष्ठ संख्या दिखाएं", "showDatePrinted": "प्रिंट तिथि दिखाएं", "bgColor": "पृष्ठभूमि रंग", "textColor": "पाठ रंग" },
+    "watermark": { "enabled": "वॉटरमार्क सक्षम करें", "text": "वॉटरमार्क पाठ", "textPlaceholder": "उदा: गोपनीय, ड्राफ्ट", "opacity": "अपारदर्शिता" },
+    "preview": { "title": "लाइव पूर्वावलोकन", "description": "देखें कि आपके दस्तावेज़ कैसे दिखेंगे", "sampleTitle": "नमूना दस्तावेज़ शीर्षक", "fieldLabel": "फ़ील्ड लेबल", "fieldValue": "नमूना मान", "dateLabel": "तिथि", "locationLabel": "स्थान", "locationValue": "नमूना स्थान", "signature": "हस्ताक्षर:", "date": "तिथि:", "pageNumber": "पृष्ठ {{page}}", "hint": "यह आपके दस्तावेज़ लेआउट का अनुमान दिखाता है" }
   }
 }

@@ -2093,5 +2093,61 @@
       "endRequired": "End date is required",
       "endAfterStart": "End date must be after start date"
     }
+  },
+  "documentSettings": {
+    "title": "Document Settings",
+    "description": "Configure branding and layout for all exported documents (PDF, Word)",
+    "configuration": "Configuration",
+    "configurationHint": "Customize how your documents look when exported",
+    "save": "Save Settings",
+    "reset": "Reset to Defaults",
+    "saveSuccess": "Document settings saved successfully",
+    "saveError": "Failed to save document settings",
+    "tabs": {
+      "header": "Header",
+      "footer": "Footer",
+      "watermark": "Watermark"
+    },
+    "header": {
+      "primaryText": "Primary Text",
+      "primaryTextPlaceholder": "e.g., HSSE Department",
+      "secondaryText": "Secondary Text",
+      "secondaryTextPlaceholder": "e.g., ISO 45001 Certified",
+      "logoPosition": "Logo Position",
+      "positionLeft": "Left",
+      "positionCenter": "Center",
+      "positionRight": "Right",
+      "showLogo": "Show Tenant Logo",
+      "bgColor": "Background Color",
+      "textColor": "Text Color"
+    },
+    "footer": {
+      "text": "Footer Text",
+      "textPlaceholder": "e.g., Confidential - Internal Use Only",
+      "showPageNumbers": "Show Page Numbers",
+      "showDatePrinted": "Show Print Date",
+      "bgColor": "Background Color",
+      "textColor": "Text Color"
+    },
+    "watermark": {
+      "enabled": "Enable Watermark",
+      "text": "Watermark Text",
+      "textPlaceholder": "e.g., CONFIDENTIAL, DRAFT",
+      "opacity": "Opacity"
+    },
+    "preview": {
+      "title": "Live Preview",
+      "description": "See how your documents will look with current settings",
+      "sampleTitle": "SAMPLE DOCUMENT TITLE",
+      "fieldLabel": "Field Label",
+      "fieldValue": "Sample Value",
+      "dateLabel": "Date",
+      "locationLabel": "Location",
+      "locationValue": "Sample Location",
+      "signature": "Signature:",
+      "date": "Date:",
+      "pageNumber": "Page {{page}}",
+      "hint": "This preview shows an approximation of your document layout"
+    }
   }
 }

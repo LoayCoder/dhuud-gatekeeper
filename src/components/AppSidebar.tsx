@@ -38,6 +38,7 @@ import {
   FileStack,
   BarChart3,
   ShieldAlert,
+  FileCog,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -197,6 +198,11 @@ export function AppSidebar() {
           title: t('navigation.securityAudit', 'Security Audit'),
           url: "/admin/security-audit",
           icon: ShieldAlert,
+        },
+        {
+          title: t('navigation.documentSettings', 'Document Settings'),
+          url: "/admin/document-settings",
+          icon: FileCog,
         },
         {
           title: t('navigation.billingOverview'),

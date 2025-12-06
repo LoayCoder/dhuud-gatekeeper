@@ -2083,5 +2083,34 @@
       "endRequired": "تاريخ الانتهاء مطلوب",
       "endAfterStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء"
     }
+  },
+  "documentSettings": {
+    "title": "إعدادات المستندات",
+    "description": "تكوين العلامة التجارية والتخطيط لجميع المستندات المصدرة (PDF، Word)",
+    "configuration": "التكوين",
+    "configurationHint": "خصص مظهر مستنداتك عند التصدير",
+    "save": "حفظ الإعدادات",
+    "reset": "إعادة التعيين للافتراضي",
+    "saveSuccess": "تم حفظ إعدادات المستندات بنجاح",
+    "saveError": "فشل في حفظ إعدادات المستندات",
+    "tabs": { "header": "الرأس", "footer": "التذييل", "watermark": "العلامة المائية" },
+    "header": {
+      "primaryText": "النص الرئيسي", "primaryTextPlaceholder": "مثال: قسم السلامة",
+      "secondaryText": "النص الثانوي", "secondaryTextPlaceholder": "مثال: ISO 45001",
+      "logoPosition": "موضع الشعار", "positionLeft": "يسار", "positionCenter": "وسط", "positionRight": "يمين",
+      "showLogo": "إظهار شعار المؤسسة", "bgColor": "لون الخلفية", "textColor": "لون النص"
+    },
+    "footer": {
+      "text": "نص التذييل", "textPlaceholder": "مثال: سري - للاستخدام الداخلي فقط",
+      "showPageNumbers": "إظهار أرقام الصفحات", "showDatePrinted": "إظهار تاريخ الطباعة",
+      "bgColor": "لون الخلفية", "textColor": "لون النص"
+    },
+    "watermark": { "enabled": "تفعيل العلامة المائية", "text": "نص العلامة المائية", "textPlaceholder": "مثال: سري، مسودة", "opacity": "الشفافية" },
+    "preview": {
+      "title": "معاينة حية", "description": "شاهد كيف ستبدو مستنداتك",
+      "sampleTitle": "عنوان المستند النموذجي", "fieldLabel": "تسمية الحقل", "fieldValue": "قيمة نموذجية",
+      "dateLabel": "التاريخ", "locationLabel": "الموقع", "locationValue": "موقع نموذجي",
+      "signature": "التوقيع:", "date": "التاريخ:", "pageNumber": "صفحة {{page}}", "hint": "هذه معاينة تقريبية لتخطيط المستند"
+    }
   }
 }
