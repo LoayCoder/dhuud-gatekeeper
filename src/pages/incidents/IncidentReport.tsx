@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,6 +24,7 @@ import {
   summarizeText,
   type AISuggestion 
 } from '@/lib/incident-ai-assistant';
+import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 
 const incidentFormSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(120),
@@ -92,6 +93,9 @@ export default function IncidentReport() {
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [autoDetectedBranch, setAutoDetectedBranch] = useState(false);
   const [autoDetectedSite, setAutoDetectedSite] = useState(false);
+  const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
+  const [gpsDetectedBranch, setGpsDetectedBranch] = useState(false);
+  const [noSiteNearby, setNoSiteNearby] = useState(false);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -163,6 +167,10 @@ export default function IncidentReport() {
     }
     
     setIsGettingLocation(true);
+    setNoSiteNearby(false);
+    setGpsDetectedSite(null);
+    setGpsDetectedBranch(false);
+    
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -170,6 +178,26 @@ export default function IncidentReport() {
         form.setValue('latitude', latitude);
         form.setValue('longitude', longitude);
         form.setValue('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        
+        // Find nearest site within 500m perimeter
+        const nearestResult = findNearestSite(latitude, longitude, sites, 500);
+        
+        if (nearestResult) {
+          // Auto-populate site
+          form.setValue('site_id', nearestResult.site.id);
+          setGpsDetectedSite(nearestResult);
+          setAutoDetectedSite(false); // Clear profile detection flag
+          
+          // Auto-populate branch from site
+          if (nearestResult.site.branch_id) {
+            form.setValue('branch_id', nearestResult.site.branch_id);
+            setGpsDetectedBranch(true);
+            setAutoDetectedBranch(false); // Clear profile detection flag
+          }
+        } else {
+          setNoSiteNearby(true);
+        }
+        
         setIsGettingLocation(false);
       },
       () => {
@@ -450,106 +478,18 @@ export default function IncidentReport() {
                 )}
               />
 
-              {/* Location - Site and Branch Dropdowns */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="site_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('incidents.site')}</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          setAutoDetectedSite(false);
-                        }} 
-                        value={field.value} 
-                        dir={direction}
-                        disabled={sitesLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={sitesLoading ? t('common.loading') : t('incidents.selectSite')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {sites.map((site) => (
-                            <SelectItem key={site.id} value={site.id}>
-                              {site.name}
-                              {site.branch_name && ` (${site.branch_name})`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {autoDetectedSite && field.value && (
-                        <FormDescription className="flex items-center gap-1 text-blue-600">
-                          <Info className="h-3 w-3" />
-                          {t('incidents.autoDetectedFromProfile')}
-                        </FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="branch_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('incidents.branch')}</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          setAutoDetectedBranch(false);
-                        }} 
-                        value={field.value} 
-                        dir={direction}
-                        disabled={branchesLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={branchesLoading ? t('common.loading') : t('incidents.selectBranch')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {branches.map((branch) => (
-                            <SelectItem key={branch.id} value={branch.id}>
-                              {branch.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {autoDetectedBranch && field.value && (
-                        <FormDescription className="flex items-center gap-1 text-blue-600">
-                          <Info className="h-3 w-3" />
-                          {t('incidents.autoDetectedFromProfile')}
-                        </FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* GPS Location */}
+              {/* Site with GPS Detection */}
               <FormField
                 control={form.control}
-                name="location"
+                name="site_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('incidents.gpsLocation')}</FormLabel>
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <Input 
-                          placeholder={t('incidents.locationPlaceholder')} 
-                          {...field} 
-                          readOnly
-                        />
-                      </FormControl>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>{t('incidents.site')}</FormLabel>
                       <Button
                         type="button"
                         variant="outline"
+                        size="sm"
                         onClick={handleGetLocation}
                         disabled={isGettingLocation}
                         className="gap-2"
@@ -557,16 +497,140 @@ export default function IncidentReport() {
                         {isGettingLocation ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <MapPin className="h-4 w-4" />
+                          <Navigation className="h-4 w-4" />
                         )}
                         {t('incidents.detectGPS')}
                       </Button>
                     </div>
-                    {coordinates && (
-                      <FormDescription>
-                        GPS: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setAutoDetectedSite(false);
+                        setGpsDetectedSite(null);
+                      }} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={sitesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={sitesLoading ? t('common.loading') : t('incidents.selectSite')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.name}
+                            {site.branch_name && ` (${site.branch_name})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* GPS Detection Indicators */}
+                    {gpsDetectedSite && field.value && (
+                      <div className="space-y-1">
+                        <FormDescription className="flex items-center gap-1 text-green-600">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t('incidents.gpsDetectedSite')} — {t('incidents.withinMeters', { distance: gpsDetectedSite.distanceMeters })}
+                        </FormDescription>
+                        {coordinates && (
+                          <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
+                            <MapPin className="h-3 w-3" />
+                            {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                          </FormDescription>
+                        )}
+                      </div>
+                    )}
+                    
+                    {autoDetectedSite && !gpsDetectedSite && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-blue-600">
+                        <Info className="h-3 w-3" />
+                        {t('incidents.autoDetectedFromProfile')}
                       </FormDescription>
                     )}
+                    
+                    {noSiteNearby && coordinates && (
+                      <div className="space-y-1">
+                        <FormDescription className="flex items-center gap-1 text-amber-600">
+                          <AlertTriangle className="h-3 w-3" />
+                          {t('incidents.noSiteNearby')}
+                        </FormDescription>
+                        <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
+                          <MapPin className="h-3 w-3" />
+                          {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                        </FormDescription>
+                      </div>
+                    )}
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Branch */}
+              <FormField
+                control={form.control}
+                name="branch_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.branch')}</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setAutoDetectedBranch(false);
+                        setGpsDetectedBranch(false);
+                      }} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={branchesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={branchesLoading ? t('common.loading') : t('incidents.selectBranch')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {gpsDetectedBranch && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t('incidents.gpsDetectedFromSite')}
+                      </FormDescription>
+                    )}
+                    {autoDetectedBranch && !gpsDetectedBranch && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-blue-600">
+                        <Info className="h-3 w-3" />
+                        {t('incidents.autoDetectedFromProfile')}
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Additional Location Details */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.locationDetails')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={t('incidents.locationDetailsPlaceholder')} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('incidents.locationDetailsDescription')}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
