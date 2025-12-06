@@ -8,12 +8,9 @@ import type { Database } from '@/integrations/supabase/types';
 type Incident = Database['public']['Tables']['incidents']['Row'];
 type IncidentInsert = Database['public']['Tables']['incidents']['Insert'];
 
-export interface ImmediateActionDataPayload {
-  description: string;
-  photo_path?: string;
-  is_closed: boolean;
-  closed_by_reporter: boolean;
-  hsse_action_required: boolean;
+export interface ClosedOnSpotPayload {
+  closed_on_spot: boolean;
+  photo_paths?: string[];
 }
 
 export interface IncidentFormData {
@@ -27,7 +24,7 @@ export interface IncidentFormData {
   severity?: 'low' | 'medium' | 'high' | 'critical';
   risk_rating?: 'low' | 'medium' | 'high'; // For observations only
   immediate_actions?: string;
-  immediate_actions_data?: ImmediateActionDataPayload; // For observations with structured data
+  closed_on_spot_data?: ClosedOnSpotPayload; // For observations closed on the spot
   has_injury: boolean;
   injury_details?: {
     count?: number;
@@ -100,9 +97,13 @@ export function useCreateIncident() {
         (insertData as Record<string, unknown>).risk_rating = data.risk_rating;
       }
 
-      // Add immediate_actions_data for observations with structured data
-      if (isObservation && data.immediate_actions_data) {
-        (insertData as Record<string, unknown>).immediate_actions_data = data.immediate_actions_data;
+      // Add closed_on_spot_data for observations marked as closed on the spot
+      if (isObservation && data.closed_on_spot_data) {
+        (insertData as Record<string, unknown>).immediate_actions_data = data.closed_on_spot_data;
+        // Set status to 'closed' if closed on spot
+        if (data.closed_on_spot_data.closed_on_spot) {
+          insertData.status = 'closed';
+        }
       }
 
       const { data: incident, error } = await supabase

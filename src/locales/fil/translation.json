@@ -72,6 +72,16 @@
       "investigation_in_progress": "Sinisiyasat",
       "closed": "Sarado"
     },
+    "closedOnSpot": {
+      "label": "Naareglo sa Lugar",
+      "description": "I-enable kung naareglo mo na ang panganib sa oras ng pag-ulat",
+      "addPhotos": "Magdagdag ng Mga Larawang Ebidensya",
+      "photosAdded": "mga larawan",
+      "photoEvidence": "Larawang ebidensya",
+      "confirmTitle": "Kumpirmahin ang Pagtapos",
+      "confirmMessage": "Kinukumpirma mo na ang obserbasyon na ito ay ganap nang naareglo at ang panganib ay naalis na.\n\nSa pagpapatuloy, ang obserbasyon na ito ay mamarkahang Tapos na.",
+      "confirm": "Kumpirmahin at Isumite"
+    },
     "immediateActions": "Agarang Aksyon na Ginawa",
     "immediateActionsPlaceholder": "Ano ang mga aksyon na ginawa sa lugar?",
     "aiAssistant": "AI Assistant",
