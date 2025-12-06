@@ -249,7 +249,8 @@
       },
       "security": {
         "session": "Session"
-      }
+      },
+      "lockedClosed": "This incident is closed. Evidence cannot be modified."
     },
     "witnesses": {
       "title": "Witness Statements",
