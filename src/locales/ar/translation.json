@@ -255,10 +255,30 @@
       "statement": "الإفادة",
       "statementPlaceholder": "سجل إفادة الشاهد...",
       "statementDate": "تاريخ الإفادة",
-      "noWitnesses": "لم يتم تسجيل إفادات شهود",
+      "noWitnesses": "لم يتم تسجيل أي إفادات شهود بعد.",
+      "selectMethod": "اختر طريقة الجمع أعلاه لإضافة إفادة.",
+      "statementsList": "الإفادات",
+      "documentUpload": "رفع",
+      "directEntry": "إدخال مباشر",
+      "voiceRecording": "صوتي",
       "addFirst": "أضف إفادات الشهود لتوثيق الشهادات",
       "addSuccess": "تمت إضافة إفادة الشاهد",
-      "addError": "فشل في إضافة إفادة الشاهد"
+      "addError": "فشل في إضافة إفادة الشاهد",
+      "downloadForm": "تحميل النموذج",
+      "formDownloaded": "تم تحميل نموذج إفادة الشاهد بنجاح",
+      "formError": "فشل في إنشاء نموذج إفادة الشاهد",
+      "noIncidentData": "بيانات الحادث غير متوفرة",
+      "aiAnalysis": "تحليل الذكاء الاصطناعي",
+      "type": {
+        "document_upload": "رفع مستند",
+        "direct_entry": "إدخال مباشر",
+        "voice_recording": "تسجيل صوتي"
+      },
+      "status": {
+        "pending": "معلق",
+        "submitted": "مقدم",
+        "approved": "معتمد"
+      }
     },
     "rca": {
       "title": "تحليل السبب الجذري",

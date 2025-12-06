@@ -255,10 +255,30 @@
       "statement": "बयान",
       "statementPlaceholder": "गवाह का बयान दर्ज करें...",
       "statementDate": "बयान की तारीख",
-      "noWitnesses": "कोई गवाह बयान दर्ज नहीं",
+      "noWitnesses": "अभी तक कोई गवाह बयान दर्ज नहीं हुआ।",
+      "selectMethod": "बयान जोड़ने के लिए ऊपर संग्रह विधि चुनें।",
+      "statementsList": "बयान",
+      "documentUpload": "अपलोड",
+      "directEntry": "सीधा प्रवेश",
+      "voiceRecording": "आवाज़",
       "addFirst": "गवाहियों को दर्ज करने के लिए गवाह बयान जोड़ें",
       "addSuccess": "गवाह बयान जोड़ा गया",
-      "addError": "गवाह बयान जोड़ने में विफल"
+      "addError": "गवाह बयान जोड़ने में विफल",
+      "downloadForm": "फॉर्म डाउनलोड करें",
+      "formDownloaded": "गवाह बयान फॉर्म सफलतापूर्वक डाउनलोड हुआ",
+      "formError": "गवाह बयान फॉर्म बनाने में विफल",
+      "noIncidentData": "घटना डेटा उपलब्ध नहीं",
+      "aiAnalysis": "AI विश्लेषण",
+      "type": {
+        "document_upload": "दस्तावेज़ अपलोड",
+        "direct_entry": "सीधा प्रवेश",
+        "voice_recording": "आवाज़ रिकॉर्डिंग"
+      },
+      "status": {
+        "pending": "लंबित",
+        "submitted": "सबमिट किया गया",
+        "approved": "स्वीकृत"
+      }
     },
     "rca": {
       "title": "मूल कारण विश्लेषण",

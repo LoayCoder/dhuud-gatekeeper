@@ -147,7 +147,7 @@ export default function InvestigationWorkspace() {
             </TabsContent>
 
             <TabsContent value="witnesses" className="mt-4">
-              <WitnessPanel incidentId={selectedIncidentId} />
+              <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} />
             </TabsContent>
 
             <TabsContent value="rca" className="mt-4">

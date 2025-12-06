@@ -255,10 +255,30 @@
       "statement": "بیان",
       "statementPlaceholder": "گواہ کا بیان ریکارڈ کریں...",
       "statementDate": "بیان کی تاریخ",
-      "noWitnesses": "کوئی گواہ بیان ریکارڈ نہیں",
+      "noWitnesses": "ابھی تک کوئی گواہ بیان ریکارڈ نہیں ہوا۔",
+      "selectMethod": "بیان شامل کرنے کے لیے اوپر جمع کرنے کا طریقہ منتخب کریں۔",
+      "statementsList": "بیانات",
+      "documentUpload": "اپ لوڈ",
+      "directEntry": "براہ راست اندراج",
+      "voiceRecording": "آواز",
       "addFirst": "گواہیوں کو دستاویزی شکل دینے کے لیے گواہ بیانات شامل کریں",
       "addSuccess": "گواہ کا بیان شامل ہو گیا",
-      "addError": "گواہ کا بیان شامل کرنے میں ناکام"
+      "addError": "گواہ کا بیان شامل کرنے میں ناکام",
+      "downloadForm": "فارم ڈاؤن لوڈ کریں",
+      "formDownloaded": "گواہ بیان فارم کامیابی سے ڈاؤن لوڈ ہو گیا",
+      "formError": "گواہ بیان فارم بنانے میں ناکام",
+      "noIncidentData": "واقعہ کا ڈیٹا دستیاب نہیں",
+      "aiAnalysis": "AI تجزیہ",
+      "type": {
+        "document_upload": "دستاویز اپ لوڈ",
+        "direct_entry": "براہ راست اندراج",
+        "voice_recording": "آواز ریکارڈنگ"
+      },
+      "status": {
+        "pending": "زیر التواء",
+        "submitted": "جمع کرایا گیا",
+        "approved": "منظور شدہ"
+      }
     },
     "rca": {
       "title": "بنیادی وجہ کا تجزیہ",
