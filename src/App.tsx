@@ -41,7 +41,7 @@ const IncidentList = lazy(() => import(/* webpackChunkName: "incidents-list" */ 
 const IncidentReport = lazy(() => import(/* webpackChunkName: "incidents-report" */ "./pages/incidents/IncidentReport"));
 const IncidentDetail = lazy(() => import(/* webpackChunkName: "incidents-detail" */ "./pages/incidents/IncidentDetail"));
 const InvestigationWorkspace = lazy(() => import(/* webpackChunkName: "incidents-investigate" */ "./pages/incidents/InvestigationWorkspace"));
-
+const MyActions = lazy(() => import(/* webpackChunkName: "incidents-my-actions" */ "./pages/incidents/MyActions"));
 // Admin pages - lazy loaded with named chunks for better caching
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
 const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
@@ -109,6 +109,7 @@ const App = () => (
                       <Route path="/incidents/report" element={<IncidentReport />} />
                       <Route path="/incidents/:id" element={<IncidentDetail />} />
                       <Route path="/incidents/investigate" element={<HSSERoute><InvestigationWorkspace /></HSSERoute>} />
+                      <Route path="/incidents/my-actions" element={<MyActions />} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
                       <Route path="/visitors" element={<PlaceholderPage titleKey="pages.visitors.title" descriptionKey="pages.visitors.description" />} />
 

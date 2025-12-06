@@ -134,3 +134,67 @@ export function useIncident(id: string | undefined) {
     enabled: !!id && !!profile?.tenant_id,
   });
 }
+
+// Hook to get corrective actions assigned to the current user
+export function useMyCorrectiveActions() {
+  const { user, profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['my-corrective-actions', user?.id],
+    queryFn: async () => {
+      if (!user?.id || !profile?.tenant_id) return [];
+
+      const { data, error } = await supabase
+        .from('corrective_actions')
+        .select('id, title, description, status, priority, due_date, incident_id, created_at, completed_date')
+        .eq('assigned_to', user.id)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
+        .order('due_date', { ascending: true, nullsFirst: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!profile?.tenant_id,
+  });
+}
+
+// Hook to update action status (for assigned users)
+export function useUpdateMyActionStatus() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: Record<string, unknown> = { status };
+      
+      // If marking as completed, set the completed_date
+      if (status === 'completed') {
+        updateData.completed_date = new Date().toISOString().split('T')[0];
+      }
+
+      const { error } = await supabase
+        .from('corrective_actions')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
+      toast({
+        title: t('common.success'),
+        description: t('investigation.actionStatusUpdated'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}

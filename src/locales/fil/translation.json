@@ -187,6 +187,30 @@
       "actor": "Isinagawa Ni",
       "timestamp": "Oras",
       "details": "Mga Detalye"
+    },
+    "myActions": "Mga Aksyon Ko na Natalaga",
+    "myActionsDescription": "Tingnan at i-update ang mga corrective action na natalaga sa iyo",
+    "pendingActions": "Nakabinbin",
+    "inProgressActions": "Isinasagawa",
+    "completedActions": "Nakumpleto",
+    "noActionsAssigned": "Walang Natalangang Aksyon",
+    "noActionsDescription": "Wala kang mga corrective action na natalaga sa iyo.",
+    "updateStatus": "I-update ang Status",
+    "viewIncident": "Tingnan ang Insidente",
+    "actionStatusUpdated": "Matagumpay na na-update ang status ng aksyon",
+    "dueDate": "Due Date",
+    "priority": {
+      "low": "Mababa",
+      "medium": "Katamtaman",
+      "high": "Mataas",
+      "critical": "Kritikal"
+    },
+    "actionStatus": {
+      "assigned": "Natalaga",
+      "pending": "Nakabinbin",
+      "in_progress": "Isinasagawa",
+      "completed": "Nakumpleto",
+      "verified": "Naberipika"
     }
   },
   "pages": {
@@ -572,6 +596,8 @@
     "dashboard": "Dashboard",
     "hsseManagement": "Pamamahala ng HSSE",
     "incidents": "Mga Insidente",
+    "investigationWorkspace": "Investigation Workspace",
+    "myActions": "Mga Aksyon Ko",
     "auditsInspections": "Mga Audit at Inspeksyon",
     "visitorGatekeeper": "Visitor Gatekeeper",
     "administration": "Administrasyon",

@@ -115,6 +115,16 @@ export function AppSidebar() {
           icon: FileWarning,
         },
         {
+          title: t('navigation.investigationWorkspace'),
+          url: "/incidents/investigate",
+          icon: ClipboardCheck,
+        },
+        {
+          title: t('navigation.myActions'),
+          url: "/incidents/my-actions",
+          icon: ClipboardCheck,
+        },
+        {
           title: t('navigation.auditsInspections'),
           url: "/audits",
           icon: ClipboardCheck,

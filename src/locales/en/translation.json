@@ -187,6 +187,30 @@
       "actor": "Performed By",
       "timestamp": "Timestamp",
       "details": "Details"
+    },
+    "myActions": "My Assigned Actions",
+    "myActionsDescription": "View and update corrective actions assigned to you",
+    "pendingActions": "Pending",
+    "inProgressActions": "In Progress",
+    "completedActions": "Completed",
+    "noActionsAssigned": "No Actions Assigned",
+    "noActionsDescription": "You don't have any corrective actions assigned to you.",
+    "updateStatus": "Update Status",
+    "viewIncident": "View Incident",
+    "actionStatusUpdated": "Action status updated successfully",
+    "dueDate": "Due Date",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "actionStatus": {
+      "assigned": "Assigned",
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "verified": "Verified"
     }
   },
   "pages": {
@@ -315,6 +339,8 @@
     "dashboard": "Dashboard",
     "hsseManagement": "HSSE Management",
     "incidents": "Incidents",
+    "investigationWorkspace": "Investigation Workspace",
+    "myActions": "My Actions",
     "auditsInspections": "Audits & Inspections",
     "visitorGatekeeper": "Visitor Gatekeeper",
     "administration": "Administration",

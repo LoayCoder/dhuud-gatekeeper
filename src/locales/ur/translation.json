@@ -187,6 +187,30 @@
       "actor": "کی طرف سے",
       "timestamp": "وقت",
       "details": "تفصیلات"
+    },
+    "myActions": "میرے سپرد اقدامات",
+    "myActionsDescription": "اپنے سپرد اصلاحی اقدامات دیکھیں اور اپڈیٹ کریں",
+    "pendingActions": "زیر التواء",
+    "inProgressActions": "جاری",
+    "completedActions": "مکمل",
+    "noActionsAssigned": "کوئی اقدامات سپرد نہیں",
+    "noActionsDescription": "آپ کو کوئی اصلاحی اقدامات سپرد نہیں ہیں۔",
+    "updateStatus": "حیثیت اپڈیٹ کریں",
+    "viewIncident": "واقعہ دیکھیں",
+    "actionStatusUpdated": "اقدام کی حیثیت کامیابی سے اپڈیٹ ہو گئی",
+    "dueDate": "آخری تاریخ",
+    "priority": {
+      "low": "کم",
+      "medium": "درمیانی",
+      "high": "زیادہ",
+      "critical": "نازک"
+    },
+    "actionStatus": {
+      "assigned": "سپرد",
+      "pending": "زیر التواء",
+      "in_progress": "جاری",
+      "completed": "مکمل",
+      "verified": "تصدیق شدہ"
     }
   },
   "pages": {
@@ -572,6 +596,8 @@
     "dashboard": "ڈیش بورڈ",
     "hsseManagement": "صحت و حفاظت کا انتظام",
     "incidents": "واقعات",
+    "investigationWorkspace": "تحقیقاتی ورک سپیس",
+    "myActions": "میرے اقدامات",
     "auditsInspections": "آڈٹ اور معائنہ",
     "visitorGatekeeper": "مہمانوں کا گیٹ کیپر",
     "administration": "انتظامیہ",
