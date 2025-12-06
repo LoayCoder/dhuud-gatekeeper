@@ -21,6 +21,10 @@ export interface Investigation {
   tenant_id: string;
   created_at: string;
   updated_at: string;
+  // Investigator assignment fields
+  assigned_by: string | null;
+  assignment_date: string | null;
+  assignment_notes: string | null;
 }
 
 export interface FiveWhyEntry {
@@ -87,7 +91,11 @@ export function useInvestigation(incidentId: string | null) {
       
       return {
         ...data,
-        five_whys: parsedWhys
+        five_whys: parsedWhys,
+        // New fields - may not exist in types yet
+        assigned_by: (data as Record<string, unknown>).assigned_by as string | null ?? null,
+        assignment_date: (data as Record<string, unknown>).assignment_date as string | null ?? null,
+        assignment_notes: (data as Record<string, unknown>).assignment_notes as string | null ?? null,
       } as Investigation;
     },
     enabled: !!incidentId,

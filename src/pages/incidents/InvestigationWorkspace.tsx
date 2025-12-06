@@ -1,18 +1,31 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileSearch, Users, Search, ListChecks } from "lucide-react";
-import { useIncidents } from "@/hooks/use-incidents";
-import { EvidencePanel, WitnessPanel, RCAPanel, ActionsPanel, AuditLogPanel } from "@/components/investigation";
+import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard } from "lucide-react";
+import { useIncidents, useIncident } from "@/hooks/use-incidents";
+import { useInvestigation } from "@/hooks/use-investigation";
+import { EvidencePanel, WitnessPanel, RCAPanel, ActionsPanel, AuditLogPanel, OverviewPanel } from "@/components/investigation";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("rca");
+  const [searchParams] = useSearchParams();
+  const urlIncidentId = searchParams.get('incident');
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const { data: incidents, isLoading: loadingIncidents } = useIncidents();
+  const { data: selectedIncident, refetch: refetchIncident } = useIncident(selectedIncidentId || undefined);
+  const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
+
+  const handleRefresh = () => {
+    refetchIncident();
+    refetchInvestigation();
+  };
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
 
@@ -20,26 +33,21 @@ export default function InvestigationWorkspace() {
   const investigableIncidents = incidents?.filter(
     (inc) => inc.status !== 'closed'
   );
-
-  const selectedIncident = incidents?.find((inc) => inc.id === selectedIncidentId);
-
   const getStatusVariant = (status: string | null) => {
     switch (status) {
+      case 'investigation_in_progress':
       case 'under_investigation':
         return 'default';
       case 'submitted':
         return 'secondary';
+      case 'investigation_pending':
+        return 'outline';
       case 'closed':
         return 'outline';
       default:
         return 'secondary';
     }
   };
-
-  return (
-    <div className="container mx-auto py-6 space-y-6" dir={direction}>
-      {/* Header */}
-      <div>
         <h1 className="text-2xl font-bold text-foreground">
           {t('investigation.title', 'Investigation Workspace')}
         </h1>
@@ -123,6 +131,10 @@ export default function InvestigationWorkspace() {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
             <TabsList className="flex flex-wrap h-auto gap-1 w-full">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('investigation.tabs.overview', 'Overview')}</span>
+              </TabsTrigger>
               <TabsTrigger value="evidence" className="flex items-center gap-2">
                 <FileSearch className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('investigation.tabs.evidence', 'Evidence')}</span>
@@ -141,6 +153,14 @@ export default function InvestigationWorkspace() {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="overview" className="mt-4">
+              <OverviewPanel 
+                incident={selectedIncident} 
+                investigation={investigation ?? null}
+                onRefresh={handleRefresh}
+              />
+            </TabsContent>
+
             <TabsContent value="evidence" className="mt-4">
               <EvidencePanel incidentId={selectedIncidentId} />
             </TabsContent>
@@ -157,10 +177,24 @@ export default function InvestigationWorkspace() {
               <ActionsPanel incidentId={selectedIncidentId} />
             </TabsContent>
           </Tabs>
+            </TabsList>
 
           {/* Audit Log */}
           <AuditLogPanel incidentId={selectedIncidentId} />
         </>
+      ) : (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground">
+              {t('investigation.selectToStart', 'Select an incident above to begin investigation')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
       ) : (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
