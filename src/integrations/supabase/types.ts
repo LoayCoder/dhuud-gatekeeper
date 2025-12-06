@@ -2882,6 +2882,7 @@ export type Database = {
         | "reports_analytics"
         | "api_access"
         | "priority_support"
+        | "asset_management"
       profile_type: "visitor" | "member" | "contractor"
       role_category:
         | "general"
@@ -3100,6 +3101,7 @@ export const Constants = {
         "reports_analytics",
         "api_access",
         "priority_support",
+        "asset_management",
       ],
       profile_type: ["visitor", "member", "contractor"],
       role_category: [
