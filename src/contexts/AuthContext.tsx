@@ -8,6 +8,8 @@ interface Profile {
   avatar_url: string | null;
   tenant_id: string;
   preferred_language: string | null;
+  assigned_branch_id: string | null;
+  assigned_site_id: string | null;
 }
 
 type UserRole = 'admin' | 'user';
@@ -50,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url, tenant_id, preferred_language')
+      .select('full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id')
       .eq('id', userId)
       .single();
     

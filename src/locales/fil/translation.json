@@ -61,7 +61,43 @@
     "noIncidentsYet": "Wala pang naiuulat na insidente.",
     "reportFirstIncident": "Mag-ulat ng Unang Insidente",
     "notFound": "Hindi nahanap ang insidente",
-    "backToList": "Bumalik sa Listahan ng mga Insidente"
+    "backToList": "Bumalik sa Listahan ng mga Insidente",
+    "referenceNumber": "Numero ng Sanggunian",
+    "referenceWillBeAssigned": "Ang sanggunian ay itatalaga pagkatapos isumite",
+    "preview": "Preview",
+    "rewriteWithAI": "I-rewrite gamit ang AI",
+    "summarizeWithAI": "Mag-summarize gamit ang AI",
+    "detectType": "Tukuyin ang Uri",
+    "suggestSeverity": "Imungkahi ang Kalubhaan",
+    "suggestedType": "Iminungkahing Uri",
+    "site": "Site",
+    "selectSite": "Pumili ng site",
+    "branch": "Branch",
+    "selectBranch": "Pumili ng branch",
+    "gpsLocation": "GPS Location",
+    "detectGPS": "Tukuyin ang GPS",
+    "autoDetectedFromProfile": "Awtomatikong natukoy mula sa iyong profile",
+    "responsibleDepartment": "Responsableng Departamento",
+    "selectDepartment": "Pumili ng departamento",
+    "observationType": "Uri ng Obserbasyon",
+    "incidentType": "Uri ng Insidente",
+    "eventCategories": {
+      "observation": "Obserbasyon",
+      "incident": "Insidente"
+    },
+    "observationTypes": {
+      "unsafeAct": "Hindi Ligtas na Gawain",
+      "unsafeCondition": "Hindi Ligtas na Kondisyon"
+    },
+    "incidentTypes": {
+      "nearMiss": "Halos Aksidente",
+      "propertyDamage": "Pinsala sa Ari-arian",
+      "environmental": "Pangkalikasan na Kaso",
+      "firstAid": "First Aid",
+      "medicalTreatment": "Medical Treatment",
+      "fire": "Sunog",
+      "security": "Seguridad"
+    }
   },
   "investigation": {
     "title": "Investigation Workspace",
