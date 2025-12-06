@@ -111,18 +111,25 @@ export function AppSidebar() {
       items: [
         {
           title: t('navigation.incidents'),
-          url: "/incidents",
           icon: FileWarning,
-        },
-        {
-          title: t('navigation.investigationWorkspace'),
-          url: "/incidents/investigate",
-          icon: ClipboardCheck,
-        },
-        {
-          title: t('navigation.myActions'),
-          url: "/incidents/my-actions",
-          icon: ClipboardCheck,
+          isActive: location.pathname.startsWith("/incidents"),
+          subItems: [
+            {
+              title: t('navigation.incidentList'),
+              url: "/incidents",
+              icon: FileWarning,
+            },
+            {
+              title: t('navigation.investigationWorkspace'),
+              url: "/incidents/investigate",
+              icon: ClipboardCheck,
+            },
+            {
+              title: t('navigation.myActions'),
+              url: "/incidents/my-actions",
+              icon: ClipboardCheck,
+            },
+          ],
         },
         {
           title: t('navigation.auditsInspections'),
@@ -296,24 +303,74 @@ export function AppSidebar() {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
+                          {item.items.map((subItem) =>
+                            subItem.subItems ? (
+                              // Nested collapsible for sub-items (e.g., Incidents)
+                              <Collapsible
+                                key={subItem.title}
                                 asChild
-                                isActive={location.pathname === subItem.url}
+                                defaultOpen={subItem.isActive}
+                                className="group/nested"
                               >
-                                <NavLink 
-                                  to={subItem.url}
-                                  onMouseEnter={() => prefetchRoute(subItem.url)}
+                                <SidebarMenuSubItem>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton
+                                      className="cursor-pointer"
+                                      onMouseEnter={() => {
+                                        prefetchRoutes(subItem.subItems.map((s: { url: string }) => s.url));
+                                      }}
+                                    >
+                                      {subItem.icon && (
+                                        <subItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                      )}
+                                      <span>{subItem.title}</span>
+                                      <ChevronRight className="ms-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/nested:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/nested:rotate-90" />
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <SidebarMenuSub className="ms-4 border-s ps-2">
+                                      {subItem.subItems.map((nestedItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
+                                        <SidebarMenuSubItem key={nestedItem.title}>
+                                          <SidebarMenuSubButton
+                                            asChild
+                                            isActive={location.pathname === nestedItem.url}
+                                          >
+                                            <NavLink
+                                              to={nestedItem.url}
+                                              onMouseEnter={() => prefetchRoute(nestedItem.url)}
+                                            >
+                                              {nestedItem.icon && (
+                                                <nestedItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                              )}
+                                              <span>{nestedItem.title}</span>
+                                            </NavLink>
+                                          </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                      ))}
+                                    </SidebarMenuSub>
+                                  </CollapsibleContent>
+                                </SidebarMenuSubItem>
+                              </Collapsible>
+                            ) : (
+                              // Regular sub-item
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={location.pathname === subItem.url}
                                 >
-                                  {subItem.icon && (
-                                    <subItem.icon className="me-2 h-4 w-4 opacity-70" />
-                                  )}
-                                  <span>{subItem.title}</span>
-                                </NavLink>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
+                                  <NavLink 
+                                    to={subItem.url}
+                                    onMouseEnter={() => prefetchRoute(subItem.url)}
+                                  >
+                                    {subItem.icon && (
+                                      <subItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                    )}
+                                    <span>{subItem.title}</span>
+                                  </NavLink>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            )
+                          )}
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
