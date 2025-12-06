@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2 } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User } from "lucide-react";
 import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction } from "@/hooks/use-investigation";
 import { useInvestigation } from "@/hooks/use-investigation";
+import { useTenantDepartments } from "@/hooks/use-org-hierarchy";
+import { useDepartmentUsers, useTenantUsers } from "@/hooks/use-department-users";
 import { format } from "date-fns";
 import { ActionEvidenceSection } from "./ActionEvidenceSection";
 
@@ -23,15 +25,22 @@ interface RootCause {
   text: string;
 }
 
+interface ContributingFactor {
+  id: string;
+  text: string;
+}
+
 const actionSchema = z.object({
   title: z.string().min(3, 'Title is required'),
   description: z.string().optional(),
+  responsible_department_id: z.string().optional(),
   assigned_to: z.string().optional(),
   start_date: z.string().optional(),
   due_date: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   action_type: z.enum(['corrective', 'preventive', 'improvement']).default('corrective'),
   category: z.enum(['engineering', 'administrative', 'ppe', 'training', 'procedure_update']).default('administrative'),
+  linked_cause_type: z.enum(['root_cause', 'contributing_factor']).optional(),
   linked_root_cause_id: z.string().optional(),
 });
 
@@ -46,15 +55,23 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
   const direction = i18n.dir();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set());
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
 
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
+  const { data: departments } = useTenantDepartments();
+  const { data: departmentUsers } = useDepartmentUsers(selectedDepartmentId);
+  const { data: allUsers } = useTenantUsers();
   const createAction = useCreateCorrectiveAction();
   const updateAction = useUpdateCorrectiveAction();
 
-  // Parse root causes from investigation - using type assertion for new field
-  const investigationData = investigation as unknown as { root_causes?: RootCause[] } | null;
+  // Parse root causes and contributing factors from investigation
+  const investigationData = investigation as unknown as { 
+    root_causes?: RootCause[]; 
+    contributing_factors_list?: ContributingFactor[];
+  } | null;
   const rootCauses: RootCause[] = investigationData?.root_causes || [];
+  const contributingFactors: ContributingFactor[] = investigationData?.contributing_factors_list || [];
 
   const form = useForm<ActionFormValues>({
     resolver: zodResolver(actionSchema),
@@ -67,6 +84,17 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
     },
   });
 
+  const selectedCauseType = form.watch('linked_cause_type');
+
+  // Get the appropriate list based on selected cause type
+  const causesForSelection = useMemo(() => {
+    if (selectedCauseType === 'root_cause') return rootCauses;
+    if (selectedCauseType === 'contributing_factor') return contributingFactors;
+    return [];
+  }, [selectedCauseType, rootCauses, contributingFactors]);
+
+  // Users to show in assignment dropdown
+  const usersForAssignment = selectedDepartmentId ? departmentUsers : allUsers;
   const onSubmit = async (data: ActionFormValues) => {
     if (!data.title) return;
     await createAction.mutateAsync({
@@ -79,8 +107,12 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
       start_date: data.start_date,
       category: data.category,
       linked_root_cause_id: data.linked_root_cause_id,
+      linked_cause_type: data.linked_cause_type,
+      responsible_department_id: data.responsible_department_id,
+      assigned_to: data.assigned_to,
     });
     form.reset();
+    setSelectedDepartmentId(null);
     setDialogOpen(false);
   };
 
@@ -151,10 +183,21 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
     }
   };
 
-  const getLinkedCauseText = (linkedId: string | null) => {
+  const getLinkedCauseText = (linkedId: string | null, causeType: string | null) => {
     if (!linkedId) return null;
+    if (causeType === 'contributing_factor') {
+      const factor = contributingFactors.find(c => c.id === linkedId);
+      return factor?.text;
+    }
     const cause = rootCauses.find(c => c.id === linkedId);
     return cause?.text;
+  };
+
+  const getLinkedCauseLabel = (causeType: string | null) => {
+    if (causeType === 'contributing_factor') {
+      return t('investigation.rca.contributingFactor', 'Contributing Factor');
+    }
+    return t('investigation.rca.rootCause', 'Root Cause');
   };
 
   if (isLoading) {
@@ -212,38 +255,80 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
                   )}
                 />
 
-                {rootCauses.length > 0 && (
-                  <FormField
-                    control={form.control}
-                    name="linked_root_cause_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Link2 className="h-4 w-4" />
-                          {t('investigation.actions.linkedRootCause', 'Linked Root Cause')}
-                        </FormLabel>
-                        <Select 
-                          onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
-                          value={field.value || "_none_"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('investigation.actions.selectRootCause', 'Select root cause...')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent dir={direction}>
-                            <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
-                            {rootCauses.filter(cause => cause.id).map((cause, idx) => (
-                              <SelectItem key={cause.id} value={cause.id}>
-                                {t('investigation.rca.rootCause', 'Root Cause')} {idx + 1}: {cause.text.substring(0, 50)}...
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                {/* Linked Cause Type Selector */}
+                {(rootCauses.length > 0 || contributingFactors.length > 0) && (
+                  <div className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="linked_cause_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Link2 className="h-4 w-4" />
+                            {t('investigation.actions.linkedCauseType', 'Link to Cause')}
+                          </FormLabel>
+                          <Select 
+                            onValueChange={(val) => {
+                              field.onChange(val === "_none_" ? undefined : val);
+                              form.setValue('linked_root_cause_id', undefined);
+                            }} 
+                            value={field.value || "_none_"}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('investigation.actions.selectCauseType', 'Select cause type...')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent dir={direction}>
+                              <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
+                              {rootCauses.length > 0 && (
+                                <SelectItem value="root_cause">{t('investigation.rca.rootCause', 'Root Cause')}</SelectItem>
+                              )}
+                              {contributingFactors.length > 0 && (
+                                <SelectItem value="contributing_factor">{t('investigation.rca.contributingFactor', 'Contributing Factor')}</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {selectedCauseType && causesForSelection.length > 0 && (
+                      <FormField
+                        control={form.control}
+                        name="linked_root_cause_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {selectedCauseType === 'root_cause' 
+                                ? t('investigation.actions.selectRootCause', 'Select Root Cause')
+                                : t('investigation.actions.selectContributingFactor', 'Select Contributing Factor')}
+                            </FormLabel>
+                            <Select 
+                              onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
+                              value={field.value || "_none_"}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('investigation.actions.selectCause', 'Select cause...')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent dir={direction}>
+                                <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
+                                {causesForSelection.filter(cause => cause.id).map((cause, idx) => (
+                                  <SelectItem key={cause.id} value={cause.id}>
+                                    {idx + 1}: {cause.text.length > 50 ? cause.text.substring(0, 50) + '...' : cause.text}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
+                  </div>
                 )}
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -336,6 +421,78 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
                   />
                 </div>
 
+                {/* Department and User Assignment */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="responsible_department_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          {t('investigation.actions.department', 'Department')}
+                        </FormLabel>
+                        <Select 
+                          onValueChange={(val) => {
+                            const newVal = val === "_none_" ? undefined : val;
+                            field.onChange(newVal);
+                            setSelectedDepartmentId(newVal || null);
+                            form.setValue('assigned_to', undefined);
+                          }} 
+                          value={field.value || "_none_"}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('investigation.actions.selectDepartment', 'Select department...')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent dir={direction}>
+                            <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
+                            {departments?.map((dept) => (
+                              <SelectItem key={dept.id} value={dept.id}>
+                                {dept.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="assigned_to"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          {t('investigation.actions.assignedTo', 'Assigned To')}
+                        </FormLabel>
+                        <Select 
+                          onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
+                          value={field.value || "_none_"}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('investigation.actions.selectAssignee', 'Select assignee...')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent dir={direction}>
+                            <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
+                            {usersForAssignment?.map((user) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.full_name || user.employee_id || 'Unknown'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="due_date"
@@ -374,9 +531,16 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
       ) : (
         <div className="space-y-3">
           {actions?.map((action) => {
-            const linkedCauseText = getLinkedCauseText((action as unknown as { linked_root_cause_id: string | null }).linked_root_cause_id);
-            const category = (action as unknown as { category: string | null }).category;
-            const startDate = (action as unknown as { start_date: string | null }).start_date;
+            const actionData = action as unknown as { 
+              linked_root_cause_id: string | null;
+              linked_cause_type: string | null;
+              category: string | null;
+              start_date: string | null;
+            };
+            const linkedCauseText = getLinkedCauseText(actionData.linked_root_cause_id, actionData.linked_cause_type);
+            const linkedCauseLabel = getLinkedCauseLabel(actionData.linked_cause_type);
+            const category = actionData.category;
+            const startDate = actionData.start_date;
             const isExpanded = expandedActions.has(action.id);
 
             return (
@@ -424,6 +588,7 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
                           {linkedCauseText && (
                             <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                               <Link2 className="h-3 w-3" />
+                              <Badge variant="outline" className="text-xs">{linkedCauseLabel}</Badge>
                               <span className="truncate">{linkedCauseText}</span>
                             </div>
                           )}

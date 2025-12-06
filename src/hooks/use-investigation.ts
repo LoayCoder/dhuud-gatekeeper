@@ -38,6 +38,7 @@ export interface CorrectiveAction {
   title: string;
   description: string | null;
   assigned_to: string | null;
+  responsible_department_id: string | null;
   start_date: string | null;
   due_date: string | null;
   priority: string | null;
@@ -45,6 +46,7 @@ export interface CorrectiveAction {
   action_type: string | null;
   category: string | null;
   linked_root_cause_id: string | null;
+  linked_cause_type: string | null;
   completed_date: string | null;
   verified_by: string | null;
   verified_at: string | null;
@@ -241,12 +243,14 @@ export function useCreateCorrectiveAction() {
       title: string;
       description?: string;
       assigned_to?: string;
+      responsible_department_id?: string;
       start_date?: string;
       due_date?: string;
       priority?: string;
       action_type?: string;
       category?: string;
       linked_root_cause_id?: string;
+      linked_cause_type?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) {
         throw new Error('User not authenticated');
