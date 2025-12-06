@@ -258,7 +258,29 @@
       "in_progress": "In Progress",
       "completed": "Completed",
       "verified": "Verified"
-    }
+    },
+    "tabCapture": "Capture & AI",
+    "tabCategorize": "Categorize",
+    "tabSubmit": "Location & Submit",
+    "uploadMedia": "Upload Photos or Video",
+    "tapToUpload": "Tap to upload photos or video",
+    "maxPhotos": "Max 3 photos",
+    "maxVideo": "Max 1 video (10s)",
+    "analyzingHazard": "Analyzing hazard...",
+    "aiAnalysisComplete": "AI Analysis Complete",
+    "aiSuggestedDetails": "AI Suggested Details",
+    "aiSuggested": "AI Suggested",
+    "categorizeIncident": "Categorize Incident",
+    "nextStep": "Next",
+    "previousStep": "Previous",
+    "reviewSummary": "Review Summary",
+    "mediaAttached": "Media Attached",
+    "unsupportedFileType": "Unsupported file type",
+    "maxPhotosReached": "Maximum 3 photos allowed",
+    "maxVideoReached": "Maximum 1 video allowed",
+    "imageTooLarge": "Image must be less than 5MB",
+    "videoTooLarge": "Video must be less than 20MB",
+    "videoDurationError": "Video must be 10 seconds or less"
   },
   "pages": {
     "incidents": {
@@ -355,7 +377,8 @@
     "time": "Time",
     "noData": "No data available",
     "noResults": "No results found",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "files": "files"
   },
   "auth": {
     "signIn": "Sign In",

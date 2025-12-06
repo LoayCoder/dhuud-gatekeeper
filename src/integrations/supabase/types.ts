@@ -323,6 +323,7 @@ export type Database = {
       }
       incidents: {
         Row: {
+          ai_analysis_result: Json | null
           branch_id: string | null
           created_at: string | null
           damage_details: Json | null
@@ -339,6 +340,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          media_attachments: Json | null
           occurred_at: string | null
           reference_id: string | null
           reporter_id: string | null
@@ -351,6 +353,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          ai_analysis_result?: Json | null
           branch_id?: string | null
           created_at?: string | null
           damage_details?: Json | null
@@ -367,6 +370,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          media_attachments?: Json | null
           occurred_at?: string | null
           reference_id?: string | null
           reporter_id?: string | null
@@ -379,6 +383,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          ai_analysis_result?: Json | null
           branch_id?: string | null
           created_at?: string | null
           damage_details?: Json | null
@@ -395,6 +400,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          media_attachments?: Json | null
           occurred_at?: string | null
           reference_id?: string | null
           reporter_id?: string | null
