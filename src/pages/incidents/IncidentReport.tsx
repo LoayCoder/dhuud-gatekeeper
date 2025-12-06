@@ -167,13 +167,14 @@ export default function IncidentReport() {
     }
   }, [profile?.assigned_site_id, form]);
 
-  // Generate reference preview
+  // Generate reference preview based on event type
   const getReferencePreview = () => {
     if (!eventType) {
       return t('incidents.referenceWillBeAssigned');
     }
     const year = new Date().getFullYear();
-    return `INC-${year}-XXXX (${t('incidents.preview')})`;
+    const prefix = eventType === 'incident' ? 'INC' : 'OBS';
+    return `${prefix}-${year}-XXXX (${t('incidents.preview')})`;
   };
 
   // Step validation
