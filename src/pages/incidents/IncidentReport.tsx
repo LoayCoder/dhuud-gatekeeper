@@ -394,6 +394,125 @@ export default function IncidentReport() {
                 )}
               />
 
+              {/* Description with AI Assistant */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.description')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t('incidents.descriptionPlaceholder')}
+                        className="min-h-[150px] resize-y"
+                        {...field}
+                      />
+                    </FormControl>
+                    <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
+                      <span>{field.value.length} / 5000</span>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRewriteDescription}
+                          disabled={isRewritingDesc || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                          {t('incidents.rewriteWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSummarizeDescription}
+                          disabled={isSummarizing || field.value.length < 50}
+                          className="gap-1"
+                        >
+                          {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
+                          {t('incidents.summarizeWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDetectType}
+                          disabled={isDetectingType || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isDetectingType ? <Loader2 className="h-3 w-3 animate-spin" /> : <ListFilter className="h-3 w-3" />}
+                          {t('incidents.detectType')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAnalyzeDescription}
+                          disabled={isAnalyzing || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          {t('incidents.suggestSeverity')}
+                        </Button>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* AI Suggestion Panel */}
+              {aiSuggestion && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <span className="font-medium">{t('incidents.aiAssistant')}</span>
+                    <Badge variant="outline" className="ms-auto">
+                      {t('incidents.confidence')}: {Math.round(aiSuggestion.confidence * 100)}%
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">{t('incidents.suggestedSeverity')}:</span>
+                      <Badge variant={getSeverityBadgeVariant(aiSuggestion.suggestedSeverity)}>
+                        {t(`incidents.severityLevels.${aiSuggestion.suggestedSeverity}`)}
+                      </Badge>
+                    </div>
+                    
+                    {aiSuggestion.suggestedEventType && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">{t('incidents.suggestedType')}:</span>
+                        <Badge variant="secondary">
+                          {t(`incidents.eventCategories.${aiSuggestion.suggestedEventType}`)}
+                          {aiSuggestion.suggestedSubtype && ` → ${aiSuggestion.suggestedSubtype}`}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {aiSuggestion.keyRisks.map((risk, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {risk}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleApplySuggestions}
+                    className="w-full gap-2"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {t('incidents.applyAiSuggestions')}
+                  </Button>
+                </div>
+              )}
+
               {/* Event Type and Subtype */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
@@ -667,131 +786,6 @@ export default function IncidentReport() {
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
-
-          {/* Description with AI Assistant */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('incidents.description')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder={t('incidents.descriptionPlaceholder')}
-                        className="min-h-[150px] resize-y"
-                        {...field}
-                      />
-                    </FormControl>
-                    <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
-                      <span>{field.value.length} / 5000</span>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRewriteDescription}
-                          disabled={isRewritingDesc || field.value.length < 20}
-                          className="gap-1"
-                        >
-                          {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
-                          {t('incidents.rewriteWithAI')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSummarizeDescription}
-                          disabled={isSummarizing || field.value.length < 50}
-                          className="gap-1"
-                        >
-                          {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
-                          {t('incidents.summarizeWithAI')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleDetectType}
-                          disabled={isDetectingType || field.value.length < 20}
-                          className="gap-1"
-                        >
-                          {isDetectingType ? <Loader2 className="h-3 w-3 animate-spin" /> : <ListFilter className="h-3 w-3" />}
-                          {t('incidents.detectType')}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleAnalyzeDescription}
-                          disabled={isAnalyzing || field.value.length < 20}
-                          className="gap-1"
-                        >
-                          {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                          {t('incidents.suggestSeverity')}
-                        </Button>
-                      </div>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* AI Suggestion Panel */}
-              {aiSuggestion && (
-                <div className="rounded-lg border bg-muted/50 p-4 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <span className="font-medium">{t('incidents.aiAssistant')}</span>
-                    <Badge variant="outline" className="ms-auto">
-                      {t('incidents.confidence')}: {Math.round(aiSuggestion.confidence * 100)}%
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">{t('incidents.suggestedSeverity')}:</span>
-                      <Badge variant={getSeverityBadgeVariant(aiSuggestion.suggestedSeverity)}>
-                        {t(`incidents.severityLevels.${aiSuggestion.suggestedSeverity}`)}
-                      </Badge>
-                    </div>
-                    
-                    {aiSuggestion.suggestedEventType && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">{t('incidents.suggestedType')}:</span>
-                        <Badge variant="secondary">
-                          {t(`incidents.eventCategories.${aiSuggestion.suggestedEventType}`)}
-                          {aiSuggestion.suggestedSubtype && ` → ${aiSuggestion.suggestedSubtype}`}
-                        </Badge>
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-wrap gap-1">
-                      {aiSuggestion.keyRisks.map((risk, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs">
-                          {risk}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleApplySuggestions}
-                    className="w-full gap-2"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    {t('incidents.applyAiSuggestions')}
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
 
