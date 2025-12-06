@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,16 +15,27 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCreateIncident, type IncidentFormData } from '@/hooks/use-incidents';
-import { analyzeIncidentDescription, type AISuggestion } from '@/lib/incident-ai-assistant';
+import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { 
+  analyzeIncidentDescription, 
+  detectEventType,
+  rewriteText,
+  summarizeText,
+  type AISuggestion 
+} from '@/lib/incident-ai-assistant';
 
 const incidentFormSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(200),
+  title: z.string().min(5, 'Title must be at least 5 characters').max(120),
   description: z.string().min(20, 'Description must be at least 20 characters').max(5000),
-  event_type: z.string().min(1, 'Event type is required'),
-  subtype: z.string().optional(),
+  event_type: z.enum(['observation', 'incident'], { required_error: 'Event type is required' }),
+  subtype: z.string().min(1, 'Subtype is required'),
   occurred_at: z.string().min(1, 'Date/time is required'),
+  site_id: z.string().optional(),
+  branch_id: z.string().optional(),
+  department_id: z.string().optional(),
   location: z.string().optional(),
-  department: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   immediate_actions: z.string().optional(),
   has_injury: z.boolean().default(false),
@@ -37,14 +48,24 @@ const incidentFormSchema = z.object({
 
 type FormValues = z.infer<typeof incidentFormSchema>;
 
-const EVENT_TYPES = [
-  { value: 'injury', labelKey: 'incidents.eventTypes.injury' },
-  { value: 'near_miss', labelKey: 'incidents.eventTypes.nearMiss' },
-  { value: 'property_damage', labelKey: 'incidents.eventTypes.propertyDamage' },
-  { value: 'environmental', labelKey: 'incidents.eventTypes.environmental' },
-  { value: 'fire', labelKey: 'incidents.eventTypes.fire' },
-  { value: 'security', labelKey: 'incidents.eventTypes.security' },
-  { value: 'other', labelKey: 'incidents.eventTypes.other' },
+const EVENT_CATEGORIES = [
+  { value: 'observation', labelKey: 'incidents.eventCategories.observation' },
+  { value: 'incident', labelKey: 'incidents.eventCategories.incident' },
+];
+
+const OBSERVATION_TYPES = [
+  { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct' },
+  { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition' },
+];
+
+const INCIDENT_TYPES = [
+  { value: 'near_miss', labelKey: 'incidents.incidentTypes.nearMiss' },
+  { value: 'property_damage', labelKey: 'incidents.incidentTypes.propertyDamage' },
+  { value: 'environmental', labelKey: 'incidents.incidentTypes.environmental' },
+  { value: 'first_aid', labelKey: 'incidents.incidentTypes.firstAid' },
+  { value: 'medical_treatment', labelKey: 'incidents.incidentTypes.medicalTreatment' },
+  { value: 'fire', labelKey: 'incidents.incidentTypes.fire' },
+  { value: 'security', labelKey: 'incidents.incidentTypes.security' },
 ];
 
 const SEVERITY_LEVELS = [
@@ -62,20 +83,31 @@ export default function IncidentReport() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isRewritingTitle, setIsRewritingTitle] = useState(false);
+  const [isRewritingDesc, setIsRewritingDesc] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isDetectingType, setIsDetectingType] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   
   const createIncident = useCreateIncident();
+  const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
+  const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
+  const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(incidentFormSchema),
     defaultValues: {
       title: '',
       description: '',
-      event_type: '',
+      event_type: undefined,
       subtype: '',
       occurred_at: new Date().toISOString().slice(0, 16),
+      site_id: '',
+      branch_id: '',
+      department_id: '',
       location: '',
-      department: '',
+      latitude: undefined,
+      longitude: undefined,
       severity: undefined,
       immediate_actions: '',
       has_injury: false,
@@ -90,6 +122,21 @@ export default function IncidentReport() {
   const hasInjury = form.watch('has_injury');
   const hasDamage = form.watch('has_damage');
   const description = form.watch('description');
+  const title = form.watch('title');
+  const eventType = form.watch('event_type');
+  const subtype = form.watch('subtype');
+
+  // Get subtype options based on event type
+  const subtypeOptions = eventType === 'observation' ? OBSERVATION_TYPES : INCIDENT_TYPES;
+
+  // Generate reference preview
+  const getReferencePreview = () => {
+    if (!eventType || !subtype) {
+      return t('incidents.referenceWillBeAssigned');
+    }
+    const year = new Date().getFullYear();
+    return `INC-${year}-XXXX (${t('incidents.preview')})`;
+  };
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -101,6 +148,8 @@ export default function IncidentReport() {
       (position) => {
         const { latitude, longitude } = position.coords;
         setCoordinates({ lat: latitude, lng: longitude });
+        form.setValue('latitude', latitude);
+        form.setValue('longitude', longitude);
         form.setValue('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         setIsGettingLocation(false);
       },
@@ -123,10 +172,69 @@ export default function IncidentReport() {
     }
   };
 
+  const handleRewriteTitle = async () => {
+    if (title.length < 5) return;
+    
+    setIsRewritingTitle(true);
+    try {
+      const result = await rewriteText(title, 'title');
+      form.setValue('title', result.text);
+    } finally {
+      setIsRewritingTitle(false);
+    }
+  };
+
+  const handleRewriteDescription = async () => {
+    if (description.length < 20) return;
+    
+    setIsRewritingDesc(true);
+    try {
+      const result = await rewriteText(description, 'description');
+      form.setValue('description', result.text);
+    } finally {
+      setIsRewritingDesc(false);
+    }
+  };
+
+  const handleSummarizeDescription = async () => {
+    if (description.length < 50) return;
+    
+    setIsSummarizing(true);
+    try {
+      const result = await summarizeText(description);
+      form.setValue('description', result.text);
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  const handleDetectType = async () => {
+    if (description.length < 20) return;
+    
+    setIsDetectingType(true);
+    try {
+      const result = await detectEventType(description);
+      if (result.eventType) {
+        form.setValue('event_type', result.eventType);
+        if (result.subtype) {
+          form.setValue('subtype', result.subtype);
+        }
+      }
+    } finally {
+      setIsDetectingType(false);
+    }
+  };
+
   const handleApplySuggestions = () => {
     if (!aiSuggestion) return;
     form.setValue('severity', aiSuggestion.suggestedSeverity);
     form.setValue('description', aiSuggestion.refinedDescription);
+    if (aiSuggestion.suggestedEventType) {
+      form.setValue('event_type', aiSuggestion.suggestedEventType);
+    }
+    if (aiSuggestion.suggestedSubtype) {
+      form.setValue('subtype', aiSuggestion.suggestedSubtype);
+    }
     setAiSuggestion(null);
   };
 
@@ -138,7 +246,7 @@ export default function IncidentReport() {
       subtype: values.subtype,
       occurred_at: values.occurred_at,
       location: values.location,
-      department: values.department,
+      department: values.department_id, // Keep for backward compatibility
       severity: values.severity,
       immediate_actions: values.immediate_actions,
       has_injury: values.has_injury,
@@ -151,6 +259,12 @@ export default function IncidentReport() {
         description: values.damage_description,
         estimated_cost: values.damage_cost,
       } : undefined,
+      // New fields
+      site_id: values.site_id || undefined,
+      branch_id: values.branch_id || undefined,
+      department_id: values.department_id || undefined,
+      latitude: values.latitude,
+      longitude: values.longitude,
     };
 
     createIncident.mutate(formData, {
@@ -178,29 +292,62 @@ export default function IncidentReport() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Reference Number Preview */}
+          <Card className="border-dashed">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">{t('incidents.referenceNumber')}</p>
+                  <p className="text-lg font-mono text-muted-foreground">{getReferencePreview()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>{t('incidents.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Title with AI Rewrite */}
               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('incidents.title')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('incidents.titlePlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input 
+                          placeholder={t('incidents.titlePlaceholder')} 
+                          maxLength={120}
+                          {...field} 
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleRewriteTitle}
+                        disabled={isRewritingTitle || field.value.length < 5}
+                        title={t('incidents.rewriteWithAI')}
+                      >
+                        {isRewritingTitle ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <FormDescription>{field.value.length}/120</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* Event Type and Subtype */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -208,14 +355,21 @@ export default function IncidentReport() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('incidents.eventType')}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue('subtype', ''); // Reset subtype when event type changes
+                        }} 
+                        value={field.value} 
+                        dir={direction}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={t('incidents.selectEventType')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {EVENT_TYPES.map((type) => (
+                          {EVENT_CATEGORIES.map((type) => (
                             <SelectItem key={type.value} value={type.value}>
                               {t(type.labelKey)}
                             </SelectItem>
@@ -229,52 +383,82 @@ export default function IncidentReport() {
 
                 <FormField
                   control={form.control}
-                  name="occurred_at"
+                  name="subtype"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('incidents.occurredAt')}</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
+                      <FormLabel>
+                        {eventType === 'observation' 
+                          ? t('incidents.observationType') 
+                          : t('incidents.incidentType')}
+                      </FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        dir={direction}
+                        disabled={!eventType}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.select')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subtypeOptions.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {t(type.labelKey)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
+              {/* Date/Time */}
+              <FormField
+                control={form.control}
+                name="occurred_at"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.occurredAt')}</FormLabel>
+                    <FormControl>
+                      <Input type="datetime-local" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Location - Site and Branch Dropdowns */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="location"
+                  name="site_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('incidents.location')}</FormLabel>
-                      <div className="flex gap-2">
+                      <FormLabel>{t('incidents.site')}</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        dir={direction}
+                        disabled={sitesLoading}
+                      >
                         <FormControl>
-                          <Input 
-                            placeholder={t('incidents.locationPlaceholder')} 
-                            {...field} 
-                          />
+                          <SelectTrigger>
+                            <SelectValue placeholder={sitesLoading ? t('common.loading') : t('incidents.selectSite')} />
+                          </SelectTrigger>
                         </FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={handleGetLocation}
-                          disabled={isGettingLocation}
-                        >
-                          {isGettingLocation ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <MapPin className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      {coordinates && (
-                        <FormDescription>
-                          GPS: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
-                        </FormDescription>
-                      )}
+                        <SelectContent>
+                          {sites.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.name}
+                              {site.branch_name && ` (${site.branch_name})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -282,18 +466,106 @@ export default function IncidentReport() {
 
                 <FormField
                   control={form.control}
-                  name="department"
+                  name="branch_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('incidents.department')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
+                      <FormLabel>{t('incidents.branch')}</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        dir={direction}
+                        disabled={branchesLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={branchesLoading ? t('common.loading') : t('incidents.selectBranch')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch.id} value={branch.id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              {/* GPS Location */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.gpsLocation')}</FormLabel>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input 
+                          placeholder={t('incidents.locationPlaceholder')} 
+                          {...field} 
+                          readOnly
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleGetLocation}
+                        disabled={isGettingLocation}
+                        className="gap-2"
+                      >
+                        {isGettingLocation ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MapPin className="h-4 w-4" />
+                        )}
+                        {t('incidents.detectGPS')}
+                      </Button>
+                    </div>
+                    {coordinates && (
+                      <FormDescription>
+                        GPS: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Responsible Department */}
+              <FormField
+                control={form.control}
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.responsibleDepartment')}</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={departmentsLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={departmentsLoading ? t('common.loading') : t('incidents.selectDepartment')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                            {dept.division_name && ` (${dept.division_name})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
@@ -315,23 +587,54 @@ export default function IncidentReport() {
                         {...field}
                       />
                     </FormControl>
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                    <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
                       <span>{field.value.length} / 5000</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleAnalyzeDescription}
-                        disabled={isAnalyzing || field.value.length < 20}
-                        className="gap-2"
-                      >
-                        {isAnalyzing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4" />
-                        )}
-                        {isAnalyzing ? t('incidents.analyzing') : t('incidents.analyzeDescription')}
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRewriteDescription}
+                          disabled={isRewritingDesc || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                          {t('incidents.rewriteWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSummarizeDescription}
+                          disabled={isSummarizing || field.value.length < 50}
+                          className="gap-1"
+                        >
+                          {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
+                          {t('incidents.summarizeWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDetectType}
+                          disabled={isDetectingType || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isDetectingType ? <Loader2 className="h-3 w-3 animate-spin" /> : <ListFilter className="h-3 w-3" />}
+                          {t('incidents.detectType')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAnalyzeDescription}
+                          disabled={isAnalyzing || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          {t('incidents.suggestSeverity')}
+                        </Button>
+                      </div>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -356,6 +659,16 @@ export default function IncidentReport() {
                         {t(`incidents.severityLevels.${aiSuggestion.suggestedSeverity}`)}
                       </Badge>
                     </div>
+                    
+                    {aiSuggestion.suggestedEventType && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">{t('incidents.suggestedType')}:</span>
+                        <Badge variant="secondary">
+                          {t(`incidents.eventCategories.${aiSuggestion.suggestedEventType}`)}
+                          {aiSuggestion.suggestedSubtype && ` → ${aiSuggestion.suggestedSubtype}`}
+                        </Badge>
+                      </div>
+                    )}
                     
                     <div className="flex flex-wrap gap-1">
                       {aiSuggestion.keyRisks.map((risk, i) => (
