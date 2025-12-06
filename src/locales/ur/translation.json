@@ -1,5 +1,12 @@
 {
   "incidents": {
+    "wizard": {
+      "stepCapture": "کیپچر",
+      "stepLocation": "مقام",
+      "stepDetails": "تفصیلات",
+      "next": "اگلا",
+      "previous": "پچھلا"
+    },
     "reportIncident": "واقعہ رپورٹ کریں",
     "reportDescription": "نیا حفاظتی واقعہ رپورٹ جمع کریں",
     "basicInfo": "بنیادی معلومات",
