@@ -65,8 +65,12 @@
   },
   "investigation": {
     "title": "जांच कार्यक्षेत्र",
+    "description": "घटनाओं की जांच करें, साक्ष्य एकत्र करें, और सुधारात्मक कार्रवाइयों को ट्रैक करें",
     "selectIncident": "जांच के लिए घटना चुनें",
+    "selectIncidentPlaceholder": "घटना चुनें...",
     "noIncidentSelected": "जांच शुरू करने के लिए घटना चुनें",
+    "noIncidents": "जांच के लिए कोई घटना उपलब्ध नहीं",
+    "selectToStart": "जांच शुरू करने के लिए ऊपर घटना चुनें",
     "startInvestigation": "जांच शुरू करें",
     "accessDenied": "पहुँच अस्वीकृत",
     "hsseAccessRequired": "केवल प्रशासक, प्रबंधक, या HSSE कर्मचारी इस पृष्ठ तक पहुँच सकते हैं।",
