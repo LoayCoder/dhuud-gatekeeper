@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode, MaintenanceScheduleList } from '@/components/assets';
+import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory } from '@/components/assets';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
@@ -163,7 +163,7 @@ function AssetDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="gap-2">
             <Package className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.overview')}
@@ -175,6 +175,10 @@ function AssetDetailContent() {
           <TabsTrigger value="maintenance" className="gap-2">
             <Wrench className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.maintenance')}
+          </TabsTrigger>
+          <TabsTrigger value="incidents" className="gap-2">
+            <ShieldAlert className="h-4 w-4 hidden sm:block" />
+            {t('assets.tabs.incidents')}
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-2">
             <History className="h-4 w-4 hidden sm:block" />
@@ -450,6 +454,19 @@ function AssetDetailContent() {
             </CardHeader>
             <CardContent>
               <MaintenanceScheduleList assetId={id!} canManage={canManage} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Incidents Tab */}
+        <TabsContent value="incidents">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('assets.tabs.incidents')}</CardTitle>
+              <CardDescription>{t('assets.incidentHistoryDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AssetIncidentHistory assetId={id!} />
             </CardContent>
           </Card>
         </TabsContent>
