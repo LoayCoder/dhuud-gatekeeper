@@ -8,22 +8,22 @@ export type AssignmentStatus = "pending" | "in_progress" | "completed" | "approv
 
 export interface WitnessStatement {
   id: string;
-  incident_id: string;
+  incident_id: string | null;
   tenant_id: string;
   name: string;
   contact: string | null;
   relationship: string | null;
-  statement: string | null;
-  statement_type: StatementType;
+  statement: string;
+  statement_type: string;
   audio_url: string | null;
   original_transcription: string | null;
   transcription_edited: boolean;
   transcription_approved: boolean;
   ai_analysis: Record<string, unknown> | null;
   assigned_witness_id: string | null;
-  assignment_status: AssignmentStatus | null;
-  recorded_by: string | null;
-  recorded_at: string;
+  assignment_status: string | null;
+  created_by: string | null;
+  created_at: string | null;
   deleted_at: string | null;
 }
 
@@ -35,10 +35,10 @@ export function useWitnessStatements(incidentId: string | null) {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, recorded_by, recorded_at, deleted_at")
+        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at")
         .eq("incident_id", incidentId)
         .is("deleted_at", null)
-        .order("recorded_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       
@@ -51,16 +51,16 @@ export function useWitnessStatements(incidentId: string | null) {
         contact: row.witness_contact,
         relationship: row.relationship,
         statement: row.statement_text,
-        statement_type: row.statement_type as StatementType,
+        statement_type: row.statement_type,
         audio_url: row.audio_url,
         original_transcription: row.original_transcription,
         transcription_edited: row.transcription_edited || false,
         transcription_approved: row.transcription_approved || false,
         ai_analysis: row.ai_analysis as Record<string, unknown> | null,
         assigned_witness_id: row.assigned_witness_id,
-        assignment_status: row.assignment_status as AssignmentStatus | null,
-        recorded_by: row.recorded_by,
-        recorded_at: row.recorded_at,
+        assignment_status: row.assignment_status,
+        created_by: row.created_by,
+        created_at: row.created_at,
         deleted_at: row.deleted_at,
       })) as WitnessStatement[];
     },
@@ -85,7 +85,7 @@ export function useCreateWitnessStatement() {
       name: string;
       contact?: string;
       relationship?: string;
-      statement?: string;
+      statement: string;
       statement_type: StatementType;
       audio_url?: string;
       original_transcription?: string;
@@ -108,7 +108,7 @@ export function useCreateWitnessStatement() {
           assigned_witness_id: input.assigned_witness_id,
           assignment_status: input.assignment_status,
           tenant_id: profile.tenant_id,
-          recorded_by: user?.id,
+          created_by: user?.id,
         })
         .select()
         .single();
@@ -180,10 +180,10 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, recorded_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, created_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
-        .order("recorded_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       
@@ -195,7 +195,7 @@ export function useMyAssignedWitnessStatements() {
         statement: row.statement_text,
         statement_type: row.statement_type,
         assignment_status: row.assignment_status,
-        recorded_at: row.recorded_at,
+        created_at: row.created_at,
       }));
     },
     enabled: !!user?.id,
