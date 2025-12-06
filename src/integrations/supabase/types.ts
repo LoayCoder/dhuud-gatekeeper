@@ -3604,6 +3604,10 @@ export type Database = {
               user_type: string
             }[]
           }
+      has_asset_management_access: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
