@@ -1672,6 +1672,77 @@ export type Database = {
           },
         ]
       }
+      tenant_document_settings: {
+        Row: {
+          created_at: string | null
+          footer_bg_color: string | null
+          footer_text: string | null
+          footer_text_color: string | null
+          header_bg_color: string | null
+          header_logo_position: string | null
+          header_text_color: string | null
+          header_text_primary: string | null
+          header_text_secondary: string | null
+          id: string
+          show_date_printed: boolean | null
+          show_logo: boolean | null
+          show_page_numbers: boolean | null
+          tenant_id: string
+          updated_at: string | null
+          watermark_enabled: boolean | null
+          watermark_opacity: number | null
+          watermark_text: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          footer_bg_color?: string | null
+          footer_text?: string | null
+          footer_text_color?: string | null
+          header_bg_color?: string | null
+          header_logo_position?: string | null
+          header_text_color?: string | null
+          header_text_primary?: string | null
+          header_text_secondary?: string | null
+          id?: string
+          show_date_printed?: boolean | null
+          show_logo?: boolean | null
+          show_page_numbers?: boolean | null
+          tenant_id: string
+          updated_at?: string | null
+          watermark_enabled?: boolean | null
+          watermark_opacity?: number | null
+          watermark_text?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          footer_bg_color?: string | null
+          footer_text?: string | null
+          footer_text_color?: string | null
+          header_bg_color?: string | null
+          header_logo_position?: string | null
+          header_text_color?: string | null
+          header_text_primary?: string | null
+          header_text_secondary?: string | null
+          id?: string
+          show_date_printed?: boolean | null
+          show_logo?: boolean | null
+          show_page_numbers?: boolean | null
+          tenant_id?: string
+          updated_at?: string | null
+          watermark_enabled?: boolean | null
+          watermark_opacity?: number | null
+          watermark_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_document_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_modules: {
         Row: {
           created_at: string

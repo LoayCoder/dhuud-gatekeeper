@@ -11,10 +11,9 @@ import {
   BorderStyle,
   HeadingLevel,
   ShadingType,
-  ImageRun,
-  Header,
 } from "docx";
 import { format } from "date-fns";
+import { DocumentBrandingSettings, DEFAULT_DOCUMENT_SETTINGS } from "@/types/document-branding";
 
 export interface WitnessFormData {
   referenceId: string;
@@ -25,6 +24,10 @@ export interface WitnessFormData {
   siteName?: string | null;
   tenantName: string;
   logoUrl?: string | null;
+}
+
+export interface WitnessFormOptions {
+  documentSettings?: Partial<DocumentBrandingSettings> | null;
 }
 
 const createLabelCell = (text: string): TableCell => {
@@ -102,7 +105,18 @@ const createSectionTitle = (text: string): Paragraph => {
   });
 };
 
-export async function generateWitnessWordDoc(data: WitnessFormData): Promise<void> {
+export async function generateWitnessWordDoc(
+  data: WitnessFormData,
+  options: WitnessFormOptions = {}
+): Promise<void> {
+  const { documentSettings } = options;
+  
+  // Merge with defaults
+  const settings = {
+    ...DEFAULT_DOCUMENT_SETTINGS,
+    ...documentSettings,
+  };
+
   const locationText = [data.location, data.siteName, data.branchName]
     .filter(Boolean)
     .join(", ") || "Not specified";
@@ -111,7 +125,7 @@ export async function generateWitnessWordDoc(data: WitnessFormData): Promise<voi
     ? format(new Date(data.occurredAt), "PPpp")
     : "Not specified";
 
-  // Create the document
+  // Create the document with branding settings
   const doc = new Document({
     creator: data.tenantName,
     title: "Witness Statement Form",

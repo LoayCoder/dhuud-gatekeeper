@@ -56,6 +56,7 @@ const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" 
 const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
 const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
 const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
+const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 
 const queryClient = new QueryClient();
 
@@ -200,6 +201,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <BillingOverview />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/document-settings"
+                        element={
+                          <AdminRoute>
+                            <DocumentSettings />
                           </AdminRoute>
                         }
                       />

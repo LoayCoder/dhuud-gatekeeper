@@ -13,6 +13,7 @@ import { WitnessVoiceRecording } from "./WitnessVoiceRecording";
 import { WitnessTaskAssignment } from "./WitnessTaskAssignment";
 import { generateWitnessWordDoc, WitnessFormData } from "@/lib/generate-witness-word-doc";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useDocumentBranding } from "@/hooks/use-document-branding";
 import { toast } from "sonner";
 
 interface WitnessPanelProps {
@@ -49,6 +50,7 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { tenantName } = useTheme();
+  const { settings: documentSettings } = useDocumentBranding();
   const [activeTab, setActiveTab] = useState<string>("list");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -77,7 +79,7 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
         tenantName: tenantName || 'HSSE Platform',
       };
 
-      await generateWitnessWordDoc(formData);
+      await generateWitnessWordDoc(formData, { documentSettings });
       toast.success(t('investigation.witnesses.formDownloaded', 'Form downloaded successfully'));
     } catch (error) {
       console.error('Error generating witness form:', error);

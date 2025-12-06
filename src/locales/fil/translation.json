@@ -2031,5 +2031,20 @@
       "endRequired": "Kinakailangan ang petsa ng pagtatapos",
       "endAfterStart": "Ang petsa ng pagtatapos ay dapat pagkatapos ng petsa ng simula"
     }
+  },
+  "documentSettings": {
+    "title": "Mga Setting ng Dokumento",
+    "description": "I-configure ang branding at layout para sa lahat ng na-export na dokumento",
+    "configuration": "Configuration",
+    "configurationHint": "I-customize kung paano magmumukhang ang iyong mga dokumento",
+    "save": "I-save ang Settings",
+    "reset": "I-reset sa Default",
+    "saveSuccess": "Matagumpay na na-save ang mga setting ng dokumento",
+    "saveError": "Nabigong i-save ang mga setting ng dokumento",
+    "tabs": { "header": "Header", "footer": "Footer", "watermark": "Watermark" },
+    "header": { "primaryText": "Pangunahing Text", "primaryTextPlaceholder": "hal. Safety Department", "secondaryText": "Pangalawang Text", "secondaryTextPlaceholder": "hal. ISO 45001", "logoPosition": "Posisyon ng Logo", "positionLeft": "Kaliwa", "positionCenter": "Gitna", "positionRight": "Kanan", "showLogo": "Ipakita ang Logo", "bgColor": "Kulay ng Background", "textColor": "Kulay ng Text" },
+    "footer": { "text": "Text ng Footer", "textPlaceholder": "hal. Confidential", "showPageNumbers": "Ipakita ang Numero ng Pahina", "showDatePrinted": "Ipakita ang Petsa ng Print", "bgColor": "Kulay ng Background", "textColor": "Kulay ng Text" },
+    "watermark": { "enabled": "I-enable ang Watermark", "text": "Text ng Watermark", "textPlaceholder": "hal. CONFIDENTIAL, DRAFT", "opacity": "Opacity" },
+    "preview": { "title": "Live na Preview", "description": "Tingnan kung paano magmumukhang ang iyong mga dokumento", "sampleTitle": "SAMPLE NA PAMAGAT NG DOKUMENTO", "fieldLabel": "Label ng Field", "fieldValue": "Sample na Halaga", "dateLabel": "Petsa", "locationLabel": "Lokasyon", "locationValue": "Sample na Lokasyon", "signature": "Lagda:", "date": "Petsa:", "pageNumber": "Pahina {{page}}", "hint": "Ipinapakita ng preview na ito ang tantiya ng layout ng iyong dokumento" }
   }
 }

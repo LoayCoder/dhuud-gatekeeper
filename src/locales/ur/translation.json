@@ -2031,5 +2031,20 @@
       "endRequired": "اختتام کی تاریخ ضروری ہے",
       "endAfterStart": "اختتام کی تاریخ شروع کی تاریخ کے بعد ہونی چاہیے"
     }
+  },
+  "documentSettings": {
+    "title": "دستاویز کی ترتیبات",
+    "description": "تمام برآمد شدہ دستاویزات کے لیے برانڈنگ اور ترتیب مرتب کریں",
+    "configuration": "ترتیب",
+    "configurationHint": "اپنی دستاویزات کی شکل کو حسب ضرورت بنائیں",
+    "save": "ترتیبات محفوظ کریں",
+    "reset": "ڈیفالٹ پر ری سیٹ کریں",
+    "saveSuccess": "دستاویز کی ترتیبات کامیابی سے محفوظ ہو گئیں",
+    "saveError": "دستاویز کی ترتیبات محفوظ کرنے میں ناکامی",
+    "tabs": { "header": "ہیڈر", "footer": "فوٹر", "watermark": "واٹر مارک" },
+    "header": { "primaryText": "بنیادی متن", "primaryTextPlaceholder": "مثال: سیفٹی ڈیپارٹمنٹ", "secondaryText": "ثانوی متن", "secondaryTextPlaceholder": "مثال: ISO 45001", "logoPosition": "لوگو کی پوزیشن", "positionLeft": "بائیں", "positionCenter": "درمیان", "positionRight": "دائیں", "showLogo": "لوگو دکھائیں", "bgColor": "پس منظر کا رنگ", "textColor": "متن کا رنگ" },
+    "footer": { "text": "فوٹر متن", "textPlaceholder": "مثال: خفیہ", "showPageNumbers": "صفحہ نمبر دکھائیں", "showDatePrinted": "پرنٹ کی تاریخ دکھائیں", "bgColor": "پس منظر کا رنگ", "textColor": "متن کا رنگ" },
+    "watermark": { "enabled": "واٹر مارک فعال کریں", "text": "واٹر مارک متن", "textPlaceholder": "مثال: خفیہ، ڈرافٹ", "opacity": "شفافیت" },
+    "preview": { "title": "لائیو پیش نظارہ", "description": "دیکھیں کہ آپ کی دستاویزات کیسی نظر آئیں گی", "sampleTitle": "نمونہ دستاویز عنوان", "fieldLabel": "فیلڈ لیبل", "fieldValue": "نمونہ قدر", "dateLabel": "تاریخ", "locationLabel": "مقام", "locationValue": "نمونہ مقام", "signature": "دستخط:", "date": "تاریخ:", "pageNumber": "صفحہ {{page}}", "hint": "یہ آپ کی دستاویز کی ترتیب کا تخمینہ دکھاتا ہے" }
   }
 }
