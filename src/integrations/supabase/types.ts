@@ -554,6 +554,7 @@ export type Database = {
             | null
           reference_id: string | null
           reporter_id: string | null
+          risk_rating: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at: string | null
           severity_approved_by: string | null
@@ -592,6 +593,7 @@ export type Database = {
             | null
           reference_id?: string | null
           reporter_id?: string | null
+          risk_rating?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null
@@ -630,6 +632,7 @@ export type Database = {
             | null
           reference_id?: string | null
           reporter_id?: string | null
+          risk_rating?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null

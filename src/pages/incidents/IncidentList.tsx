@@ -90,8 +90,8 @@ export default function IncidentList() {
     <div className="container py-6 space-y-6" dir={direction}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('pages.incidents.title')}</h1>
-          <p className="text-muted-foreground">{t('pages.incidents.description')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('pages.hsseEvents.title')}</h1>
+          <p className="text-muted-foreground">{t('pages.hsseEvents.description')}</p>
         </div>
         <div className="flex items-center gap-2">
           {hasHSSEAccess && (

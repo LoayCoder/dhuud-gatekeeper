@@ -15,6 +15,7 @@
       "dateTimeRequired": "التاريخ/الوقت مطلوب"
     },
     "reportIncident": "الإبلاغ عن حادث",
+    "reportObservation": "الإبلاغ عن ملاحظة",
     "reportDescription": "تقديم بلاغ حادث سلامة جديد",
     "basicInfo": "المعلومات الأساسية",
     "title": "عنوان الحادث",
@@ -65,6 +66,15 @@
       "high": "عالي",
       "critical": "حرج"
     },
+    "riskRating": {
+      "low": "خطر منخفض",
+      "medium": "خطر متوسط",
+      "high": "خطر عالي"
+    },
+    "riskRatingTitle": "تقييم المخاطر",
+    "riskRatingLabel": "تصنيف الخطر",
+    "riskRatingDescription": "تقييم مستوى الخطر المحتمل لهذه الملاحظة",
+    "observationSimplified": "الملاحظات لها سير عمل مبسط - لا يتطلب التحقيق",
     "status": {
       "submitted": "مقدم",
       "pending_review": "قيد المراجعة",
@@ -834,6 +844,9 @@
   "navigation": {
     "dashboard": "لوحة المعلومات",
     "hsseManagement": "إدارة الصحة والسلامة",
+    "hsseEvents": "أحداث الصحة والسلامة",
+    "eventList": "قائمة الأحداث",
+    "reportEvent": "الإبلاغ عن حدث",
     "incidents": "الحوادث",
     "incidentList": "قائمة الحوادث",
     "investigationWorkspace": "مساحة التحقيق",
