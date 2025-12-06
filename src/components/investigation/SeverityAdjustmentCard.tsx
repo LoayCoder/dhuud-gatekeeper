@@ -21,6 +21,31 @@ interface SeverityAdjustmentCardProps {
   onRefresh: () => void;
 }
 
+// Helper to send notification email
+async function sendSeverityNotification(payload: {
+  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected';
+  incident_id: string;
+  incident_title: string;
+  incident_reference: string;
+  current_severity: string;
+  proposed_severity?: string;
+  original_severity?: string;
+  justification?: string;
+  actor_name: string;
+  tenant_id: string;
+}) {
+  try {
+    const { error } = await supabase.functions.invoke('send-incident-email', {
+      body: payload,
+    });
+    if (error) {
+      console.error('Failed to send notification:', error);
+    }
+  } catch (err) {
+    console.error('Error invoking email function:', err);
+  }
+}
+
 export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustmentCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -61,9 +86,13 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
       if (!newSeverity) throw new Error('No severity selected');
       if (!justification.trim()) throw new Error('Justification required');
 
+      // Store original severity before change
+      const originalSev = incident.severity;
+
       const { error } = await supabase
         .from('incidents')
         .update({
+          original_severity: originalSev,
           severity: newSeverity,
           severity_change_justification: justification,
           severity_pending_approval: true,
@@ -79,8 +108,21 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: 'severity_change_proposed',
-        old_value: { severity: incident.severity },
+        old_value: { severity: originalSev },
         new_value: { severity: newSeverity, justification },
+      });
+
+      // Send email notification
+      await sendSeverityNotification({
+        type: 'severity_proposed',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: originalSev || 'unknown',
+        proposed_severity: newSeverity,
+        justification,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
       });
     },
     onSuccess: () => {
@@ -123,6 +165,18 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
           original_severity: originalSeverity 
         },
       });
+
+      // Send email notification
+      await sendSeverityNotification({
+        type: 'severity_approved',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: incident.severity || 'unknown',
+        original_severity: originalSeverity || undefined,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['incident', incident.id] });
@@ -138,6 +192,8 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
   const rejectMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
+
+      const proposedSev = incident.severity;
 
       // Revert to original severity
       const { error } = await supabase
@@ -158,8 +214,21 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: 'severity_change_rejected',
-        old_value: { proposed_severity: incident.severity },
+        old_value: { proposed_severity: proposedSev },
         new_value: { reverted_to: originalSeverity },
+      });
+
+      // Send email notification
+      await sendSeverityNotification({
+        type: 'severity_rejected',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: originalSeverity || 'unknown',
+        proposed_severity: proposedSev || undefined,
+        original_severity: originalSeverity || undefined,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
       });
     },
     onSuccess: () => {
