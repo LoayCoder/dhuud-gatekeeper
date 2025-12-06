@@ -14,7 +14,7 @@ export default function MainLayout() {
         <AppSidebar />
         <SidebarInset>
           {/* Header with Trigger */}
-          <header className="h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row">
+          <header className="sticky top-0 z-10 bg-background h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row">
             <div className="items-center gap-2 flex flex-row">
               <SidebarTrigger className="-ms-1" />
               <Separator orientation="vertical" className="me-2 h-4" />
