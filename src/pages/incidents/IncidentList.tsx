@@ -1,11 +1,28 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { Plus, FileText, AlertTriangle, Search } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, FileText, AlertTriangle, Search, MoreHorizontal, Pencil, Trash2, PlayCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useIncidents } from '@/hooks/use-incidents';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
@@ -32,9 +49,15 @@ const getStatusBadgeVariant = (status: string | null) => {
 export default function IncidentList() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const navigate = useNavigate();
   const { data: incidents, isLoading } = useIncidents();
   const { user } = useAuth();
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [incidentToDelete, setIncidentToDelete] = useState<string | null>(null);
+
+  const deleteIncident = useDeleteIncident();
+  const updateStatus = useUpdateIncidentStatus();
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -44,6 +67,24 @@ export default function IncidentList() {
     };
     checkAccess();
   }, [user?.id]);
+
+  const handleStartInvestigation = async (incidentId: string) => {
+    await updateStatus.mutateAsync({ id: incidentId, status: 'investigation_in_progress' });
+    navigate(`/incidents/investigate?incident=${incidentId}`);
+  };
+
+  const handleDeleteClick = (incidentId: string) => {
+    setIncidentToDelete(incidentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (incidentToDelete) {
+      await deleteIncident.mutateAsync(incidentToDelete);
+      setDeleteDialogOpen(false);
+      setIncidentToDelete(null);
+    }
+  };
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
@@ -90,14 +131,47 @@ export default function IncidentList() {
             <Card key={incident.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base line-clamp-1">
+                  <CardTitle className="text-base line-clamp-1 flex-1">
                     {incident.title}
                   </CardTitle>
-                  {incident.severity && (
-                    <Badge variant={getSeverityBadgeVariant(incident.severity)}>
-                      {t(`incidents.severityLevels.${incident.severity}`)}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {incident.severity && (
+                      <Badge variant={getSeverityBadgeVariant(incident.severity)}>
+                        {t(`incidents.severityLevels.${incident.severity}`)}
+                      </Badge>
+                    )}
+                    {hasHSSEAccess && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          {incident.status === 'submitted' && (
+                            <DropdownMenuItem onClick={() => handleStartInvestigation(incident.id)}>
+                              <PlayCircle className="h-4 w-4 me-2" />
+                              {t('incidents.startInvestigation')}
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem asChild>
+                            <Link to={`/incidents/${incident.id}`}>
+                              <Pencil className="h-4 w-4 me-2" />
+                              {t('common.view')} {t('common.details')}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteClick(incident.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 me-2" />
+                            {t('incidents.delete')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
                 <CardDescription className="flex items-center gap-2">
                   <FileText className="h-3 w-3" />
@@ -143,6 +217,27 @@ export default function IncidentList() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('incidents.delete')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('incidents.deleteConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
