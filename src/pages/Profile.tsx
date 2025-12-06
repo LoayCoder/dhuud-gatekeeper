@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { SecuritySettings } from "@/components/profile/SecuritySettings";
 import { TenantInfo } from "@/components/profile/TenantInfo";
@@ -12,74 +9,36 @@ import { AssignmentInfo } from "@/components/profile/AssignmentInfo";
 import { RoleInfo } from "@/components/profile/RoleInfo";
 import { ProfileData } from "@/components/profile/types";
 import { RTLWrapper } from "@/components/RTLWrapper";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCachedProfile, useCachedUserRole } from "@/hooks/use-cached-profile";
 
 export default function Profile() {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string>("user");
+  const { user } = useAuth();
+  
+  // Use cached profile - prevents refetch for 5 minutes
+  const { data: cachedProfile, isLoading: profileLoading, refetch } = useCachedProfile();
+  const { data: userRole = 'user', isLoading: roleLoading } = useCachedUserRole();
 
-  const getProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      setUser(user);
-
-      // Fetch profile with branch and site joins - explicit columns only
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          id, full_name, phone_number, avatar_url, preferred_language,
-          emergency_contact_name, emergency_contact_phone,
-          assigned_branch_id, assigned_site_id,
-          assigned_division_id, assigned_department_id, assigned_section_id,
-          user_type, job_title, employee_id, created_at, tenant_id,
-          branches:assigned_branch_id(name, location),
-          sites:assigned_site_id(name, address)
-        `)
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Error loading profile:', profileError);
-      }
-
-      if (profileData) {
-        setProfile(profileData as ProfileData);
-      }
-
-      // Fetch user role from user_roles table
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (roleData) {
-        setUserRole(roleData.role);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getProfile();
-  }, []);
+  const loading = profileLoading || roleLoading;
+  const profile = cachedProfile as ProfileData | null;
 
   if (loading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <RTLWrapper className="container max-w-5xl py-8 space-y-8">
+        <div>
+          <Skeleton className="h-9 w-48 mb-2" />
+          <Skeleton className="h-5 w-64" />
+        </div>
+        <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+          <Skeleton className="h-96" />
+          <div className="space-y-6">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-24" />
+          </div>
+        </div>
+      </RTLWrapper>
     );
   }
 
@@ -114,7 +73,7 @@ export default function Profile() {
                     <ProfileForm 
                       user={user} 
                       profile={profile} 
-                      onUpdate={getProfile} 
+                      onUpdate={() => refetch()} 
                     />
                   )}
                 </TabsContent>

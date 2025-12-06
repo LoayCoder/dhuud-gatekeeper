@@ -38,6 +38,8 @@ import {
 import { useIncidentAI } from '@/hooks/use-incident-ai';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
+import { uploadFilesParallel } from '@/lib/upload-utils';
+import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 
 // Schema moved inside component to access t() for translations
 const createIncidentFormSchema = (t: (key: string) => string) => z.object({
@@ -432,18 +434,26 @@ export default function IncidentReport() {
 
     createIncident.mutate(formData, {
       onSuccess: async (data) => {
-        // Upload media attachments
+        // Upload media attachments in parallel with compression
         if ((uploadedPhotos.length > 0 || uploadedVideo || closedOnSpotPhotos.length > 0) && profile?.tenant_id && data?.id) {
           setIsUploading(true);
           const uploadedPaths: string[] = [];
           try {
-            for (const photo of uploadedPhotos) {
-              const fileName = `${Date.now()}-${photo.name}`;
-              await supabase.storage
-                .from('incident-attachments')
-                .upload(`${profile.tenant_id}/${data.id}/photos/${fileName}`, photo);
+            // Upload photos in parallel with image compression
+            if (uploadedPhotos.length > 0) {
+              await uploadFilesParallel(
+                uploadedPhotos,
+                async (file, index) => {
+                  const fileName = `${Date.now()}-${index}-${file.name}`;
+                  await supabase.storage
+                    .from('incident-attachments')
+                    .upload(`${profile.tenant_id}/${data.id}/photos/${fileName}`, file);
+                },
+                { compressImages: true, maxWidth: 1920, quality: 0.85 }
+              );
             }
             
+            // Upload video (no compression)
             if (uploadedVideo) {
               const fileName = `${Date.now()}-${uploadedVideo.name}`;
               await supabase.storage
@@ -451,14 +461,21 @@ export default function IncidentReport() {
                 .upload(`${profile.tenant_id}/${data.id}/video/${fileName}`, uploadedVideo);
             }
 
-            // Upload "Closed on the Spot" photos for observations
-            for (const photo of closedOnSpotPhotos) {
-              const fileName = `${Date.now()}-${photo.name}`;
-              const photoPath = `${profile.tenant_id}/${data.id}/closed-on-spot/${fileName}`;
-              await supabase.storage
-                .from('incident-attachments')
-                .upload(photoPath, photo);
-              uploadedPaths.push(photoPath);
+            // Upload "Closed on the Spot" photos in parallel
+            if (closedOnSpotPhotos.length > 0) {
+              const paths = await uploadFilesParallel(
+                closedOnSpotPhotos,
+                async (file, index) => {
+                  const fileName = `${Date.now()}-${index}-${file.name}`;
+                  const photoPath = `${profile.tenant_id}/${data.id}/closed-on-spot/${fileName}`;
+                  await supabase.storage
+                    .from('incident-attachments')
+                    .upload(photoPath, file);
+                  return photoPath;
+                },
+                { compressImages: true, maxWidth: 1920, quality: 0.85 }
+              );
+              uploadedPaths.push(...paths);
             }
 
             // Update the incident with the photo paths if we have any

@@ -90,10 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (newSession?.user) {
           // Defer Supabase calls with setTimeout to prevent deadlock
+          // Use Promise.all for parallel fetching
           setTimeout(() => {
-            fetchProfile(newSession.user.id);
-            fetchUserRole(newSession.user.id);
-            checkMFA();
+            Promise.all([
+              fetchProfile(newSession.user.id),
+              fetchUserRole(newSession.user.id),
+              checkMFA()
+            ]);
           }, 0);
         } else {
           setProfile(null);
@@ -111,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(existingSession?.user ?? null);
       
       if (existingSession?.user) {
+        // Parallel fetch all data at once
         await Promise.all([
           fetchProfile(existingSession.user.id),
           fetchUserRole(existingSession.user.id),
