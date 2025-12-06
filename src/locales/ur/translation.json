@@ -136,6 +136,7 @@
     "incidentTypes": {
       "nearMiss": "قریب حادثہ",
       "unsafeAct": "غیر محفوظ عمل",
+      "unsafe_act": "غیر محفوظ عمل",
       "propertyDamage": "املاک کا نقصان",
       "environmental": "ماحولیاتی کیس",
       "firstAid": "ابتدائی طبی امداد",
