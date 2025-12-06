@@ -2149,5 +2149,11 @@
       "dateLabel": "التاريخ", "locationLabel": "الموقع", "locationValue": "موقع نموذجي",
       "signature": "التوقيع:", "date": "التاريخ:", "pageNumber": "صفحة {{page}}", "hint": "هذه معاينة تقريبية لتخطيط المستند"
     }
+  },
+  "upload": {
+    "uploading": "جاري الرفع...",
+    "complete": "اكتمل الرفع",
+    "processingFiles": "جاري معالجة الملفات...",
+    "filesUploaded": "ملفات تم رفعها"
   }
 }

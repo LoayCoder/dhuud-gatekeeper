@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +21,7 @@ import { InstallAppBanner } from "./components/InstallAppBanner";
 import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNotifier";
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
+import { usePrefetchOnIdle } from "./hooks/use-prefetch";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -60,9 +61,10 @@ const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents
 
 const queryClient = new QueryClient();
 
-// Component to initialize service worker notification listener
-function SwNotificationHandler() {
+// Component to initialize service worker notification listener and prefetching
+function AppInitializer() {
   useSwNotificationListener();
+  usePrefetchOnIdle(); // Prefetch priority routes on idle
   return null;
 }
 
@@ -78,7 +80,7 @@ const App = () => (
           <InstallAppBanner />
           <ServiceWorkerUpdateNotifier />
           <NotificationPermissionPrompt />
-          <SwNotificationHandler />
+          <AppInitializer />
           <BrowserRouter>
             <AuthProvider>
               <SessionTimeoutProvider>

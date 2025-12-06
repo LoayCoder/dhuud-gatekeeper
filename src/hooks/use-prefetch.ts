@@ -2,6 +2,14 @@ import { useCallback, useRef } from 'react';
 
 // Map of routes to their lazy component imports
 const routeModules: Record<string, () => Promise<unknown>> = {
+  // Core user routes (high priority prefetch)
+  '/profile': () => import('@/pages/Profile'),
+  '/support': () => import('@/pages/Support'),
+  '/': () => import('@/pages/Dashboard'),
+  // Incident routes
+  '/incidents': () => import('@/pages/incidents/IncidentList'),
+  '/incidents/report': () => import('@/pages/incidents/IncidentReport'),
+  '/incidents/my-actions': () => import('@/pages/incidents/MyActions'),
   // Admin routes
   '/admin/branding': () => import('@/pages/AdminBranding'),
   '/admin/users': () => import('@/pages/admin/UserManagement'),
@@ -14,12 +22,13 @@ const routeModules: Record<string, () => Promise<unknown>> = {
   '/admin/analytics': () => import('@/pages/admin/UsageAnalytics'),
   '/admin/security-audit': () => import('@/pages/admin/SecurityAuditLog'),
   '/admin/billing': () => import('@/pages/admin/BillingOverview'),
-  // User routes
-  '/profile': () => import('@/pages/Profile'),
-  '/support': () => import('@/pages/Support'),
+  // Settings routes
   '/settings/subscription': () => import('@/pages/admin/SubscriptionManagement'),
   '/settings/usage-billing': () => import('@/pages/settings/UsageBilling'),
 };
+
+// High-priority routes to prefetch on app idle
+const PRIORITY_ROUTES = ['/profile', '/incidents', '/incidents/report', '/'];
 
 // Track which routes have been prefetched to avoid duplicate requests
 const prefetchedRoutes = new Set<string>();
@@ -88,4 +97,30 @@ export function usePrefetch(path: string) {
  */
 export function prefetchRoutes(paths: string[]): void {
   paths.forEach(prefetchRoute);
+}
+
+/**
+ * Prefetch priority routes on idle
+ * Call this after app initialization
+ */
+export function prefetchPriorityRoutes(): void {
+  const schedulePreload = window.requestIdleCallback || ((cb) => setTimeout(cb, 100));
+  
+  schedulePreload(() => {
+    prefetchRoutes(PRIORITY_ROUTES);
+  });
+}
+
+/**
+ * Hook to trigger priority route prefetching on mount
+ */
+export function usePrefetchOnIdle() {
+  const hasRun = useRef(false);
+  
+  // Run once on mount
+  if (!hasRun.current) {
+    hasRun.current = true;
+    // Delay slightly to not interfere with initial render
+    setTimeout(prefetchPriorityRoutes, 2000);
+  }
 }

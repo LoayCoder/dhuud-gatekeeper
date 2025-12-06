@@ -2215,5 +2215,11 @@
       "pageNumber": "Page {{page}}",
       "hint": "This preview shows an approximation of your document layout"
     }
+  },
+  "upload": {
+    "uploading": "Uploading...",
+    "complete": "Upload complete",
+    "processingFiles": "Processing files...",
+    "filesUploaded": "files uploaded"
   }
 }

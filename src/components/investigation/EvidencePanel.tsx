@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Upload, Image, FileText, Video, Camera, ClipboardList, Shield, MessageSquare, Download, Trash2, User, Calendar, Link, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { compressImage } from '@/lib/upload-utils';
 import { 
   useEvidenceItems, 
   useCreateEvidence, 
@@ -70,10 +71,13 @@ export function EvidencePanel({ incidentId, incidentStatus }: EvidencePanelProps
     let mimeType: string | undefined;
 
     if (file) {
-      const filePath = `${storagePath}/${Date.now()}-${file.name}`;
+      // Compress images before upload
+      const processedFile = await compressImage(file, 1920, 0.85);
+      
+      const filePath = `${storagePath}/${Date.now()}-${processedFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('incident-attachments')
-        .upload(filePath, file);
+        .upload(filePath, processedFile);
 
       if (uploadError) {
         toast.error(t('common.error', 'Error: ') + uploadError.message);
@@ -81,9 +85,9 @@ export function EvidencePanel({ incidentId, incidentStatus }: EvidencePanelProps
       }
 
       uploadedPath = filePath;
-      fileName = file.name;
-      fileSize = file.size;
-      mimeType = file.type;
+      fileName = file.name; // Keep original name
+      fileSize = processedFile.size;
+      mimeType = processedFile.type;
     }
 
     await createEvidence.mutateAsync({
