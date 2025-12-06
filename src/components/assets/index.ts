@@ -4,3 +4,6 @@ export { MaintenanceScheduleForm } from './MaintenanceScheduleForm';
 export { MaintenanceCompleteDialog } from './MaintenanceCompleteDialog';
 export { MaintenanceScheduleList } from './MaintenanceScheduleList';
 export { AssetIncidentHistory } from './AssetIncidentHistory';
+export { AssetPhotoUpload } from './AssetPhotoUpload';
+export { AssetDocumentUpload } from './AssetDocumentUpload';
+export { AssetScanResult } from './AssetScanResult';

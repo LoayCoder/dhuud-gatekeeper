@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory } from '@/components/assets';
+import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload } from '@/components/assets';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
@@ -163,10 +163,14 @@ function AssetDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="gap-2">
             <Package className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.overview')}
+          </TabsTrigger>
+          <TabsTrigger value="photos" className="gap-2">
+            <ImageIcon className="h-4 w-4 hidden sm:block" />
+            {t('assets.tabs.photos')}
           </TabsTrigger>
           <TabsTrigger value="documents" className="gap-2">
             <FileText className="h-4 w-4 hidden sm:block" />
@@ -409,6 +413,23 @@ function AssetDetailContent() {
           </div>
         </TabsContent>
 
+        {/* Photos Tab */}
+        <TabsContent value="photos">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('assets.tabs.photos')}</CardTitle>
+              <CardDescription>{t('assets.photosDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AssetPhotoUpload 
+                assetId={id!} 
+                photos={photos || []} 
+                canManage={canManage} 
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Documents Tab */}
         <TabsContent value="documents">
           <Card>
@@ -417,30 +438,11 @@ function AssetDetailContent() {
               <CardDescription>{t('assets.documentsDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
-              {documents?.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{t('assets.noDocuments')}</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {documents?.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{doc.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {t(`assets.documentTypes.${doc.document_type}`)}
-                            {doc.expiry_date && ` • ${t('assets.expires')}: ${format(new Date(doc.expiry_date), 'PP')}`}
-                          </p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm">{t('common.download')}</Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <AssetDocumentUpload 
+                assetId={id!} 
+                documents={documents || []} 
+                canManage={canManage} 
+              />
             </CardContent>
           </Card>
         </TabsContent>
