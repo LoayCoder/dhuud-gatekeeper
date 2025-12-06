@@ -12,10 +12,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreateWitnessStatement, useCreateWitnessAttachment } from "@/hooks/use-witness-statements";
 import { toast } from "sonner";
 
-interface WitnessDocumentUploadProps {
+export interface WitnessDocumentUploadProps {
   incidentId: string;
   onSuccess: () => void;
-  onCancel: () => void;
 }
 
 const ACCEPTED_TYPES = {
@@ -26,7 +25,7 @@ const ACCEPTED_TYPES = {
   "image/png": [".png"],
 };
 
-export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: WitnessDocumentUploadProps) {
+export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocumentUploadProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const createStatement = useCreateWitnessStatement();
@@ -66,11 +65,11 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
 
   const handleSubmit = async () => {
     if (!witnessName.trim()) {
-      toast.error(t("investigation.witnesses.nameRequired"));
+      toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
       return;
     }
     if (files.length === 0) {
-      toast.error(t("investigation.witnesses.fileRequired"));
+      toast.error(t("investigation.witnesses.fileRequired", "At least one file is required"));
       return;
     }
     if (!profile?.tenant_id) {
@@ -84,10 +83,10 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
       // 1. Create the witness statement
       const statement = await createStatement.mutateAsync({
         incident_id: incidentId,
-        witness_name: witnessName,
-        witness_contact: witnessContact || undefined,
+        name: witnessName,
+        contact: witnessContact || undefined,
         relationship: relationship || undefined,
-        statement_text: notes || undefined,
+        statement: notes || undefined,
         statement_type: "document_upload",
       });
 
@@ -117,7 +116,7 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
       onSuccess();
     } catch (error) {
       console.error("Error creating witness statement:", error);
-      toast.error(t("investigation.witnesses.createError"));
+      toast.error(t("investigation.witnesses.createError", "Failed to create witness statement"));
     } finally {
       setIsUploading(false);
     }
@@ -127,32 +126,32 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="witnessName">{t("investigation.witnesses.name")} *</Label>
+          <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
           <Input
             id="witnessName"
             value={witnessName}
             onChange={(e) => setWitnessName(e.target.value)}
-            placeholder={t("investigation.witnesses.namePlaceholder")}
+            placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="witnessContact">{t("investigation.witnesses.contact")}</Label>
+          <Label htmlFor="witnessContact">{t("investigation.witnesses.contact", "Contact Info")}</Label>
           <Input
             id="witnessContact"
             value={witnessContact}
             onChange={(e) => setWitnessContact(e.target.value)}
-            placeholder={t("investigation.witnesses.contactPlaceholder")}
+            placeholder={t("investigation.witnesses.contactPlaceholder", "Phone or email...")}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="relationship">{t("investigation.witnesses.relationship")}</Label>
+        <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
         <Input
           id="relationship"
           value={relationship}
           onChange={(e) => setRelationship(e.target.value)}
-          placeholder={t("investigation.witnesses.relationshipPlaceholder")}
+          placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
         />
       </div>
 
@@ -169,18 +168,18 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
         <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
           {isDragActive
-            ? t("investigation.witnesses.dropHere")
-            : t("investigation.witnesses.dragOrClick")}
+            ? t("investigation.witnesses.dropHere", "Drop the files here...")
+            : t("investigation.witnesses.dragOrClick", "Drag & drop files here, or click to select")}
         </p>
         <p className="text-xs text-muted-foreground mt-2">
-          {t("investigation.witnesses.acceptedFormats")}
+          {t("investigation.witnesses.acceptedFormats", "PDF, Word, or Image files (max 10MB each)")}
         </p>
       </div>
 
       {/* Selected Files */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <Label>{t("investigation.witnesses.selectedFiles")}</Label>
+          <Label>{t("investigation.witnesses.selectedFiles", "Selected Files")}</Label>
           <div className="space-y-2">
             {files.map((file, index) => (
               <Card key={index}>
@@ -211,24 +210,21 @@ export function WitnessDocumentUpload({ incidentId, onSuccess, onCancel }: Witne
 
       {/* Additional Notes */}
       <div className="space-y-2">
-        <Label htmlFor="notes">{t("investigation.witnesses.additionalNotes")}</Label>
+        <Label htmlFor="notes">{t("investigation.witnesses.additionalNotes", "Additional Notes")}</Label>
         <Textarea
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder={t("investigation.witnesses.notesPlaceholder")}
+          placeholder={t("investigation.witnesses.notesPlaceholder", "Any additional notes about this witness...")}
           rows={3}
         />
       </div>
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel} disabled={isUploading}>
-          {t("common.cancel")}
-        </Button>
         <Button onClick={handleSubmit} disabled={isUploading || !witnessName.trim() || files.length === 0}>
           {isUploading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-          {t("investigation.witnesses.uploadStatement")}
+          {t("investigation.witnesses.uploadStatement", "Upload Statement")}
         </Button>
       </div>
     </div>
