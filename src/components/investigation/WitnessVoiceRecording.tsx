@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Mic, Square, Play, Pause, Check, X, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { Mic, Square, Play, Pause, Check, RefreshCw, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface WitnessVoiceRecordingProps {
+export interface WitnessVoiceRecordingProps {
   incidentId: string;
   incidentContext?: string;
   onSuccess: () => void;
-  onCancel: () => void;
 }
 
 const MIN_DURATION = 30; // seconds
@@ -26,8 +25,7 @@ const MAX_DURATION = 180; // seconds
 export function WitnessVoiceRecording({ 
   incidentId, 
   incidentContext,
-  onSuccess, 
-  onCancel 
+  onSuccess
 }: WitnessVoiceRecordingProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
@@ -101,7 +99,7 @@ export function WitnessVoiceRecording({
       }, 1000);
     } catch (error) {
       console.error("Error starting recording:", error);
-      toast.error(t("investigation.witnesses.microphoneError"));
+      toast.error(t("investigation.witnesses.microphoneError", "Microphone access denied"));
     }
   };
 
@@ -166,10 +164,10 @@ export function WitnessVoiceRecording({
       
       setTranscription(result.transcription);
       setOriginalTranscription(result.transcription);
-      toast.success(t("investigation.witnesses.transcribeSuccess"));
+      toast.success(t("investigation.witnesses.transcribeSuccess", "Audio transcribed"));
     } catch (error) {
       console.error("Transcription error:", error);
-      toast.error(t("investigation.witnesses.transcribeError"));
+      toast.error(t("investigation.witnesses.transcribeError", "Transcription failed"));
     } finally {
       setIsTranscribing(false);
     }
@@ -184,11 +182,11 @@ export function WitnessVoiceRecording({
       const result = await analyzeStatement(transcription, "full_analysis", incidentContext);
       if (result.analysis) {
         setAiAnalysis(result.analysis);
-        toast.success(t("investigation.witnesses.analysisComplete"));
+        toast.success(t("investigation.witnesses.analysisComplete", "Analysis complete"));
       }
     } catch (error) {
       console.error("Analysis error:", error);
-      toast.error(t("investigation.witnesses.analysisError"));
+      toast.error(t("investigation.witnesses.analysisError", "Analysis failed"));
     } finally {
       setIsAnalyzing(false);
     }
@@ -201,20 +199,20 @@ export function WitnessVoiceRecording({
 
   const handleApprove = () => {
     setIsApproved(true);
-    toast.success(t("investigation.witnesses.transcriptionApproved"));
+    toast.success(t("investigation.witnesses.transcriptionApproved", "Transcription approved"));
   };
 
   const handleSubmit = async () => {
     if (!witnessName.trim()) {
-      toast.error(t("investigation.witnesses.nameRequired"));
+      toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
       return;
     }
     if (!transcription.trim()) {
-      toast.error(t("investigation.witnesses.transcriptionRequired"));
+      toast.error(t("investigation.witnesses.transcriptionRequired", "Transcription is required"));
       return;
     }
     if (!isApproved) {
-      toast.error(t("investigation.witnesses.approveFirst"));
+      toast.error(t("investigation.witnesses.approveFirst", "Please approve the transcription first"));
       return;
     }
     if (!profile?.tenant_id || !audioBlob) return;
@@ -233,10 +231,10 @@ export function WitnessVoiceRecording({
       // Create statement
       await createStatement.mutateAsync({
         incident_id: incidentId,
-        witness_name: witnessName,
-        witness_contact: witnessContact || undefined,
+        name: witnessName,
+        contact: witnessContact || undefined,
         relationship: relationship || undefined,
-        statement_text: transcription,
+        statement: transcription,
         statement_type: "voice_recording",
         audio_url: audioPath,
         original_transcription: originalTranscription,
@@ -245,7 +243,7 @@ export function WitnessVoiceRecording({
       onSuccess();
     } catch (error) {
       console.error("Error saving statement:", error);
-      toast.error(t("investigation.witnesses.saveError"));
+      toast.error(t("investigation.witnesses.saveError", "Failed to save statement"));
     } finally {
       setIsSubmitting(false);
     }
@@ -265,32 +263,32 @@ export function WitnessVoiceRecording({
       {/* Witness Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="witnessName">{t("investigation.witnesses.name")} *</Label>
+          <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
           <Input
             id="witnessName"
             value={witnessName}
             onChange={(e) => setWitnessName(e.target.value)}
-            placeholder={t("investigation.witnesses.namePlaceholder")}
+            placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="witnessContact">{t("investigation.witnesses.contact")}</Label>
+          <Label htmlFor="witnessContact">{t("investigation.witnesses.contact", "Contact Info")}</Label>
           <Input
             id="witnessContact"
             value={witnessContact}
             onChange={(e) => setWitnessContact(e.target.value)}
-            placeholder={t("investigation.witnesses.contactPlaceholder")}
+            placeholder={t("investigation.witnesses.contactPlaceholder", "Phone or email...")}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="relationship">{t("investigation.witnesses.relationship")}</Label>
+        <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
         <Input
           id="relationship"
           value={relationship}
           onChange={(e) => setRelationship(e.target.value)}
-          placeholder={t("investigation.witnesses.relationshipPlaceholder")}
+          placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
         />
       </div>
 
@@ -300,7 +298,7 @@ export function WitnessVoiceRecording({
           <CardTitle className="text-sm flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Mic className="h-4 w-4" />
-              {t("investigation.witnesses.voiceRecording")}
+              {t("investigation.witnesses.voiceRecording", "Voice Recording")}
             </span>
             <Badge variant={isRecording ? "destructive" : "secondary"}>
               {formatTime(recordingTime)} / {formatTime(MAX_DURATION)}
@@ -311,7 +309,7 @@ export function WitnessVoiceRecording({
           <Progress value={progressPercent} className="h-2" />
           
           <p className="text-xs text-muted-foreground text-center">
-            {t("investigation.witnesses.recordingLimit", { min: MIN_DURATION, max: MAX_DURATION })}
+            {t("investigation.witnesses.recordingLimit", "Recording: {{min}}-{{max}} seconds", { min: MIN_DURATION, max: MAX_DURATION })}
           </p>
 
           <div className="flex justify-center gap-2">
@@ -320,7 +318,7 @@ export function WitnessVoiceRecording({
                 {!isRecording ? (
                   <Button onClick={startRecording} variant="destructive">
                     <Mic className="me-2 h-4 w-4" />
-                    {t("investigation.witnesses.startRecording")}
+                    {t("investigation.witnesses.startRecording", "Start Recording")}
                   </Button>
                 ) : (
                   <>
@@ -333,7 +331,7 @@ export function WitnessVoiceRecording({
                       disabled={!isValidDuration}
                     >
                       <Square className="me-2 h-4 w-4" />
-                      {t("investigation.witnesses.stopRecording")}
+                      {t("investigation.witnesses.stopRecording", "Stop Recording")}
                     </Button>
                   </>
                 )}
@@ -356,7 +354,7 @@ export function WitnessVoiceRecording({
                 ) : (
                   <Sparkles className="me-2 h-4 w-4" />
                 )}
-                {t("investigation.witnesses.transcribe")}
+                {t("investigation.witnesses.transcribe", "Transcribe Audio")}
               </Button>
             </div>
           )}
@@ -367,17 +365,17 @@ export function WitnessVoiceRecording({
       {transcription && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>{t("investigation.witnesses.transcription")}</Label>
+            <Label>{t("investigation.witnesses.transcription", "Transcription")}</Label>
             <div className="flex gap-2">
               {isEdited && (
-                <Badge variant="outline" className="text-warning">
-                  {t("investigation.witnesses.edited")}
+                <Badge variant="outline" className="text-amber-500">
+                  {t("investigation.witnesses.edited", "Edited")}
                 </Badge>
               )}
               {isApproved && (
                 <Badge variant="outline" className="text-green-600">
                   <Check className="me-1 h-3 w-3" />
-                  {t("investigation.witnesses.approved")}
+                  {t("investigation.witnesses.approved", "Approved")}
                 </Badge>
               )}
             </div>
@@ -401,13 +399,13 @@ export function WitnessVoiceRecording({
               ) : (
                 <Sparkles className="me-1 h-3 w-3" />
               )}
-              {t("investigation.witnesses.analyzeStatement")}
+              {t("investigation.witnesses.analyzeStatement", "Analyze")}
             </Button>
             
             {!isApproved && (
               <Button onClick={handleApprove} variant="default">
                 <Check className="me-2 h-4 w-4" />
-                {t("investigation.witnesses.approveTranscription")}
+                {t("investigation.witnesses.approveTranscription", "Approve Transcription")}
               </Button>
             )}
           </div>
@@ -420,13 +418,13 @@ export function WitnessVoiceRecording({
           <CardHeader className="py-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              {t("investigation.witnesses.aiAnalysisResults")}
+              {t("investigation.witnesses.aiAnalysisResults", "AI Analysis")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {(aiAnalysis as Record<string, unknown>).emotionalCues && (
               <div>
-                <p className="font-medium">{t("investigation.witnesses.emotionalCues")}:</p>
+                <p className="font-medium">{t("investigation.witnesses.emotionalCues", "Emotional Cues")}:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {((aiAnalysis as Record<string, { detected?: string[] }>).emotionalCues?.detected || []).map((cue: string, i: number) => (
                     <Badge key={i} variant="outline" className="text-xs">{cue}</Badge>
@@ -436,8 +434,8 @@ export function WitnessVoiceRecording({
             )}
             {(aiAnalysis as Record<string, unknown>).summary && (
               <div>
-                <p className="font-medium">{t("investigation.witnesses.aiSummary")}:</p>
-                <p className="text-muted-foreground">{(aiAnalysis as Record<string, string>).summary}</p>
+                <p className="font-medium">{t("investigation.witnesses.aiSummary", "Summary")}:</p>
+                <p className="text-muted-foreground">{String((aiAnalysis as Record<string, unknown>).summary)}</p>
               </div>
             )}
           </CardContent>
@@ -446,15 +444,12 @@ export function WitnessVoiceRecording({
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-          {t("common.cancel")}
-        </Button>
         <Button 
           onClick={handleSubmit} 
           disabled={isSubmitting || !witnessName.trim() || !transcription.trim() || !isApproved}
         >
           {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-          {t("investigation.witnesses.saveStatement")}
+          {t("investigation.witnesses.saveStatement", "Save Statement")}
         </Button>
       </div>
     </div>

@@ -27,12 +27,12 @@ import { useCreateWitnessStatement } from "@/hooks/use-witness-statements";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 
-interface WitnessTaskAssignmentProps {
+export interface WitnessTaskAssignmentProps {
   incidentId: string;
-  onSuccess?: () => void;
+  onAssigned?: () => void;
 }
 
-export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssignmentProps) {
+export function WitnessTaskAssignment({ incidentId, onAssigned }: WitnessTaskAssignmentProps) {
   const { t } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
@@ -75,11 +75,11 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
 
   const handleSubmit = async () => {
     if (!selectedUserId) {
-      toast.error(t("investigation.witnesses.selectUser"));
+      toast.error(t("investigation.witnesses.selectUser", "Please select a user"));
       return;
     }
     if (!witnessName.trim()) {
-      toast.error(t("investigation.witnesses.nameRequired"));
+      toast.error(t("investigation.witnesses.nameRequired", "Witness name is required"));
       return;
     }
 
@@ -88,18 +88,18 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
     try {
       await createStatement.mutateAsync({
         incident_id: incidentId,
-        witness_name: witnessName,
+        name: witnessName,
         relationship: relationship || undefined,
-        statement_text: notes || undefined,
+        statement: notes || undefined,
         statement_type: "direct_entry",
         assigned_witness_id: selectedUserId,
         assignment_status: "pending",
       });
 
-      toast.success(t("investigation.witnesses.taskAssigned"));
+      toast.success(t("investigation.witnesses.taskAssigned", "Task assigned successfully"));
       setOpen(false);
       resetForm();
-      onSuccess?.();
+      onAssigned?.();
     } catch (error) {
       console.error("Error assigning task:", error);
     } finally {
@@ -119,24 +119,24 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <UserPlus className="me-2 h-4 w-4" />
-          {t("investigation.witnesses.assignWitness")}
+          {t("investigation.witnesses.assignWitness", "Assign Witness")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]" dir={direction}>
         <DialogHeader>
-          <DialogTitle>{t("investigation.witnesses.assignWitnessTask")}</DialogTitle>
+          <DialogTitle>{t("investigation.witnesses.assignWitnessTask", "Assign Witness Task")}</DialogTitle>
           <DialogDescription>
-            {t("investigation.witnesses.assignDescription")}
+            {t("investigation.witnesses.assignDescription", "Select an employee to provide a witness statement for this incident.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* User Selection */}
           <div className="space-y-2">
-            <Label>{t("investigation.witnesses.selectEmployee")} *</Label>
+            <Label>{t("investigation.witnesses.selectEmployee", "Select Employee")} *</Label>
             <Select value={selectedUserId} onValueChange={handleUserSelect} dir={direction}>
               <SelectTrigger>
-                <SelectValue placeholder={t("investigation.witnesses.selectEmployeePlaceholder")} />
+                <SelectValue placeholder={t("investigation.witnesses.selectEmployeePlaceholder", "Choose employee...")} />
               </SelectTrigger>
               <SelectContent>
                 {isLoadingUsers ? (
@@ -161,34 +161,34 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
 
           {/* Witness Name */}
           <div className="space-y-2">
-            <Label htmlFor="witnessName">{t("investigation.witnesses.name")} *</Label>
+            <Label htmlFor="witnessName">{t("investigation.witnesses.name", "Witness Name")} *</Label>
             <Input
               id="witnessName"
               value={witnessName}
               onChange={(e) => setWitnessName(e.target.value)}
-              placeholder={t("investigation.witnesses.namePlaceholder")}
+              placeholder={t("investigation.witnesses.namePlaceholder", "Enter witness name...")}
             />
           </div>
 
           {/* Relationship */}
           <div className="space-y-2">
-            <Label htmlFor="relationship">{t("investigation.witnesses.relationship")}</Label>
+            <Label htmlFor="relationship">{t("investigation.witnesses.relationship", "Relationship")}</Label>
             <Input
               id="relationship"
               value={relationship}
               onChange={(e) => setRelationship(e.target.value)}
-              placeholder={t("investigation.witnesses.relationshipPlaceholder")}
+              placeholder={t("investigation.witnesses.relationshipPlaceholder", "e.g., Colleague, Supervisor...")}
             />
           </div>
 
           {/* Notes for Witness */}
           <div className="space-y-2">
-            <Label htmlFor="notes">{t("investigation.witnesses.instructionsForWitness")}</Label>
+            <Label htmlFor="notes">{t("investigation.witnesses.instructionsForWitness", "Instructions for Witness")}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("investigation.witnesses.instructionsPlaceholder")}
+              placeholder={t("investigation.witnesses.instructionsPlaceholder", "Any specific instructions for the witness...")}
               rows={3}
             />
           </div>
@@ -196,7 +196,7 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
-            {t("common.cancel")}
+            {t("common.cancel", "Cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || !selectedUserId}>
             {isSubmitting ? (
@@ -204,7 +204,7 @@ export function WitnessTaskAssignment({ incidentId, onSuccess }: WitnessTaskAssi
             ) : (
               <Send className="me-2 h-4 w-4" />
             )}
-            {t("investigation.witnesses.sendRequest")}
+            {t("investigation.witnesses.sendRequest", "Send Request")}
           </Button>
         </div>
       </DialogContent>

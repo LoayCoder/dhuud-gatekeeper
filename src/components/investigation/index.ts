@@ -10,3 +10,7 @@ export { IncidentInfoCard } from './IncidentInfoCard';
 export { InvestigatorAssignmentCard } from './InvestigatorAssignmentCard';
 export { SeverityAdjustmentCard } from './SeverityAdjustmentCard';
 export { ApprovalWorkflowBanner } from './ApprovalWorkflowBanner';
+export { WitnessDocumentUpload } from './WitnessDocumentUpload';
+export { WitnessDirectEntry } from './WitnessDirectEntry';
+export { WitnessVoiceRecording } from './WitnessVoiceRecording';
+export { WitnessTaskAssignment } from './WitnessTaskAssignment';
