@@ -28,12 +28,13 @@ import {
 } from '@/lib/incident-ai-assistant';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 
-const incidentFormSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(120),
-  description: z.string().min(20, 'Description must be at least 20 characters').max(5000),
-  event_type: z.enum(['observation', 'incident'], { required_error: 'Event type is required' }),
-  subtype: z.string().min(1, 'Subtype is required'),
-  occurred_at: z.string().min(1, 'Date/time is required'),
+// Schema moved inside component to access t() for translations
+const createIncidentFormSchema = (t: (key: string) => string) => z.object({
+  title: z.string().min(5, t('incidents.validation.titleMinLength')).max(120),
+  description: z.string().min(20, t('incidents.validation.descriptionMinLength')).max(5000),
+  event_type: z.enum(['observation', 'incident'], { required_error: t('incidents.validation.eventTypeRequired') }),
+  subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
+  occurred_at: z.string().min(1, t('incidents.validation.dateTimeRequired')),
   site_id: z.string().optional(),
   branch_id: z.string().optional(),
   department_id: z.string().optional(),
@@ -50,7 +51,7 @@ const incidentFormSchema = z.object({
   damage_cost: z.number().optional(),
 });
 
-type FormValues = z.infer<typeof incidentFormSchema>;
+type FormValues = z.infer<ReturnType<typeof createIncidentFormSchema>>;
 
 const EVENT_CATEGORIES = [
   { value: 'observation', labelKey: 'incidents.eventCategories.observation' },
@@ -90,6 +91,9 @@ export default function IncidentReport() {
   const navigate = useNavigate();
   const direction = i18n.dir();
   const { profile } = useAuth();
+  
+  // Create schema with translated messages
+  const incidentFormSchema = createIncidentFormSchema(t);
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
