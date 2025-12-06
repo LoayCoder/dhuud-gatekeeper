@@ -2557,6 +2557,10 @@ export type Database = {
         Args: { p_manager_id: string; p_user_id: string }
         Returns: boolean
       }
+      is_incident_editable: {
+        Args: { p_incident_id: string }
+        Returns: boolean
+      }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
       verify_mfa_backup_code: {
         Args: { p_code_hash: string; p_user_id: string }

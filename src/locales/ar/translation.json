@@ -198,7 +198,8 @@
       "uploadSuccess": "تم رفع الدليل بنجاح",
       "uploadError": "فشل في رفع الدليل",
       "deleteSuccess": "تم حذف الدليل",
-      "deleteError": "فشل في حذف الدليل"
+      "deleteError": "فشل في حذف الدليل",
+      "lockedClosed": "تم إغلاق هذه الحادثة. لا يمكن تعديل الأدلة."
     },
     "witnesses": {
       "title": "إفادات الشهود",

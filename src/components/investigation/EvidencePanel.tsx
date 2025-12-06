@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Upload, Image, FileText, Video, Camera, ClipboardList, Shield, MessageSquare, Download, Trash2, User, Calendar, Link } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Upload, Image, FileText, Video, Camera, ClipboardList, Shield, MessageSquare, Download, Trash2, User, Calendar, Link, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { 
@@ -31,6 +32,7 @@ import {
 
 interface EvidencePanelProps {
   incidentId: string;
+  incidentStatus?: string | null;
 }
 
 const evidenceTypeIcons: Record<string, React.ReactNode> = {
@@ -42,7 +44,7 @@ const evidenceTypeIcons: Record<string, React.ReactNode> = {
   video_clip: <Video className="h-5 w-5" />,
 };
 
-export function EvidencePanel({ incidentId }: EvidencePanelProps) {
+export function EvidencePanel({ incidentId, incidentStatus }: EvidencePanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
@@ -51,6 +53,8 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem | null>(null);
+
+  const isLocked = incidentStatus === 'closed';
 
   const { data: evidenceItems, isLoading } = useEvidenceItems(incidentId);
   const createEvidence = useCreateEvidence();
@@ -151,6 +155,16 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
 
   return (
     <div className="space-y-4" dir={direction}>
+      {/* Locked Banner */}
+      {isLocked && (
+        <Alert variant="default" className="bg-muted border-muted-foreground/20">
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            {t('investigation.evidence.lockedClosed', 'This incident is closed. Evidence cannot be modified.')}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -161,7 +175,7 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
             {t('investigation.evidence.subtitle', 'Upload and manage investigation evidence')}
           </p>
         </div>
-        <Button onClick={() => setUploadDialogOpen(true)}>
+        <Button onClick={() => setUploadDialogOpen(true)} disabled={isLocked}>
           <Upload className="h-4 w-4 me-2" />
           {t('investigation.evidence.upload.button', 'Add Evidence')}
         </Button>
@@ -285,17 +299,19 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
                     <MessageSquare className="h-4 w-4 me-1" />
                     {t('investigation.evidence.review.button', 'Review')}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive ms-auto"
-                    onClick={() => {
-                      setSelectedEvidence(evidence);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {!isLocked && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive ms-auto"
+                      onClick={() => {
+                        setSelectedEvidence(evidence);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
