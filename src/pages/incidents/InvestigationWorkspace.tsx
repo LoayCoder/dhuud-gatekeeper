@@ -108,7 +108,7 @@ export default function InvestigationWorkspace() {
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusVariant(selectedIncident.status)}>
-                    {selectedIncident.status}
+                    {t(`incidents.status.${selectedIncident.status}`)}
                   </Badge>
                 </div>
               </CardHeader>
