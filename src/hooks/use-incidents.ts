@@ -8,6 +8,14 @@ import type { Database } from '@/integrations/supabase/types';
 type Incident = Database['public']['Tables']['incidents']['Row'];
 type IncidentInsert = Database['public']['Tables']['incidents']['Insert'];
 
+export interface ImmediateActionDataPayload {
+  description: string;
+  photo_path?: string;
+  is_closed: boolean;
+  closed_by_reporter: boolean;
+  hsse_action_required: boolean;
+}
+
 export interface IncidentFormData {
   title: string;
   description: string;
@@ -19,6 +27,7 @@ export interface IncidentFormData {
   severity?: 'low' | 'medium' | 'high' | 'critical';
   risk_rating?: 'low' | 'medium' | 'high'; // For observations only
   immediate_actions?: string;
+  immediate_actions_data?: ImmediateActionDataPayload; // For observations with structured data
   has_injury: boolean;
   injury_details?: {
     count?: number;
@@ -89,6 +98,11 @@ export function useCreateIncident() {
       // Add risk_rating for observations (cast to any to bypass type check for new column)
       if (isObservation && data.risk_rating) {
         (insertData as Record<string, unknown>).risk_rating = data.risk_rating;
+      }
+
+      // Add immediate_actions_data for observations with structured data
+      if (isObservation && data.immediate_actions_data) {
+        (insertData as Record<string, unknown>).immediate_actions_data = data.immediate_actions_data;
       }
 
       const { data: incident, error } = await supabase

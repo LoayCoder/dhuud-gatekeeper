@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import MediaUploadSection from '@/components/incidents/MediaUploadSection';
+import { ImmediateActionSection, ImmediateActionStatusDialog } from '@/components/incidents/ImmediateActionSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -27,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useCreateIncident, type IncidentFormData } from '@/hooks/use-incidents';
+import { useCreateIncident, type IncidentFormData, type ImmediateActionDataPayload } from '@/hooks/use-incidents';
 import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { 
   analyzeIncidentDescription, 
@@ -132,6 +133,11 @@ export default function IncidentReport() {
   const [isUploading, setIsUploading] = useState(false);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  // Observation immediate action state
+  const [immediateActionPhoto, setImmediateActionPhoto] = useState<File | null>(null);
+  const [showActionStatusDialog, setShowActionStatusDialog] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<FormValues | null>(null);
+  const [actionStatus, setActionStatus] = useState<{ is_closed: boolean; closed_by_reporter: boolean; hsse_action_required: boolean } | null>(null);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -366,9 +372,51 @@ export default function IncidentReport() {
     setAiSuggestion(null);
   };
 
-  const onSubmit = async (values: FormValues) => {
+  // Handle observation with immediate actions - show status dialog
+  const handleObservationSubmit = async (values: FormValues) => {
+    const hasImmediateActions = values.immediate_actions && values.immediate_actions.trim().length > 0;
+    
+    if (values.event_type === 'observation' && hasImmediateActions) {
+      // Store pending data and show action status dialog
+      setPendingSubmitData(values);
+      setShowActionStatusDialog(true);
+      return;
+    }
+    
+    // No immediate actions or not observation - proceed directly
+    await performSubmit(values, null);
+  };
+
+  const handleActionClosed = async () => {
+    setActionStatus({ is_closed: true, closed_by_reporter: true, hsse_action_required: false });
+    setShowActionStatusDialog(false);
+    if (pendingSubmitData) {
+      await performSubmit(pendingSubmitData, { is_closed: true, closed_by_reporter: true, hsse_action_required: false });
+    }
+  };
+
+  const handleSubmitToHSSE = async () => {
+    setActionStatus({ is_closed: false, closed_by_reporter: false, hsse_action_required: true });
+    setShowActionStatusDialog(false);
+    if (pendingSubmitData) {
+      await performSubmit(pendingSubmitData, { is_closed: false, closed_by_reporter: false, hsse_action_required: true });
+    }
+  };
+
+  const performSubmit = async (values: FormValues, actionStatusData: { is_closed: boolean; closed_by_reporter: boolean; hsse_action_required: boolean } | null) => {
     const isObs = values.event_type === 'observation';
     
+    // Build immediate_actions_data for observations
+    let immediateActionsData: ImmediateActionDataPayload | undefined = undefined;
+    if (isObs && values.immediate_actions && values.immediate_actions.trim().length > 0 && actionStatusData) {
+      immediateActionsData = {
+        description: values.immediate_actions,
+        is_closed: actionStatusData.is_closed,
+        closed_by_reporter: actionStatusData.closed_by_reporter,
+        hsse_action_required: actionStatusData.hsse_action_required,
+      };
+    }
+
     const formData: IncidentFormData = {
       title: values.title,
       description: values.description,
@@ -381,6 +429,7 @@ export default function IncidentReport() {
       severity: isObs ? undefined : values.severity,
       risk_rating: isObs ? values.risk_rating : undefined,
       immediate_actions: values.immediate_actions,
+      immediate_actions_data: immediateActionsData,
       // Observations don't have injury/damage
       has_injury: isObs ? false : values.has_injury,
       injury_details: isObs ? undefined : (values.has_injury ? {
@@ -403,7 +452,8 @@ export default function IncidentReport() {
 
     createIncident.mutate(formData, {
       onSuccess: async (data) => {
-        if ((uploadedPhotos.length > 0 || uploadedVideo) && profile?.tenant_id && data?.id) {
+        // Upload media attachments
+        if ((uploadedPhotos.length > 0 || uploadedVideo || immediateActionPhoto) && profile?.tenant_id && data?.id) {
           setIsUploading(true);
           try {
             for (const photo of uploadedPhotos) {
@@ -419,6 +469,26 @@ export default function IncidentReport() {
                 .from('incident-attachments')
                 .upload(`${profile.tenant_id}/${data.id}/video/${fileName}`, uploadedVideo);
             }
+
+            // Upload immediate action photo for observations
+            if (immediateActionPhoto) {
+              const fileName = `${Date.now()}-${immediateActionPhoto.name}`;
+              const photoPath = `${profile.tenant_id}/${data.id}/immediate-actions/${fileName}`;
+              await supabase.storage
+                .from('incident-attachments')
+                .upload(photoPath, immediateActionPhoto);
+              
+              // Update the incident with the photo path
+              await supabase
+                .from('incidents')
+                .update({
+                  immediate_actions_data: {
+                    ...immediateActionsData,
+                    photo_path: photoPath,
+                  }
+                })
+                .eq('id', data.id);
+            }
           } catch (error) {
             console.error('Media upload error:', error);
           } finally {
@@ -428,6 +498,10 @@ export default function IncidentReport() {
         navigate('/incidents');
       },
     });
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    await handleObservationSubmit(values);
   };
 
   const getSeverityBadgeVariant = (severity: string) => {
@@ -1036,17 +1110,13 @@ export default function IncidentReport() {
                       control={form.control}
                       name="immediate_actions"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('incidents.immediateActions')}</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder={t('incidents.immediateActionsPlaceholder')}
-                              className="min-h-[100px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                        <ImmediateActionSection
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          onPhotoChange={setImmediateActionPhoto}
+                          photo={immediateActionPhoto}
+                          direction={direction}
+                        />
                       )}
                     />
                   </CardContent>
@@ -1301,6 +1371,15 @@ export default function IncidentReport() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Immediate Action Status Dialog (Observation Only) */}
+      <ImmediateActionStatusDialog
+        open={showActionStatusDialog}
+        onOpenChange={setShowActionStatusDialog}
+        onActionClosed={handleActionClosed}
+        onSubmitToHSSE={handleSubmitToHSSE}
+        direction={direction}
+      />
     </div>
   );
 }
