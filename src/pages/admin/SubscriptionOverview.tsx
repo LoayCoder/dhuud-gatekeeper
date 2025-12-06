@@ -196,7 +196,7 @@ export default function SubscriptionOverview() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="requests" className="space-y-4" dir={direction}>
-        <TabsList className="justify-start">
+        <TabsList className="flex flex-wrap h-auto gap-1 justify-start">
           <TabsTrigger value="requests" className="gap-2">
             <Inbox className="h-4 w-4" />
             {t('adminSubscription.requests')}
