@@ -45,6 +45,7 @@ const InvestigationWorkspace = lazy(() => import(/* webpackChunkName: "incidents
 const MyActions = lazy(() => import(/* webpackChunkName: "incidents-my-actions" */ "./pages/incidents/MyActions"));
 
 // Asset pages - lazy loaded
+const AssetDashboard = lazy(() => import(/* webpackChunkName: "assets-dashboard" */ "./pages/assets/AssetDashboard"));
 const AssetList = lazy(() => import(/* webpackChunkName: "assets-list" */ "./pages/assets/AssetList"));
 const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ "./pages/assets/AssetDetail"));
 const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
@@ -124,6 +125,7 @@ const App = () => (
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
+                      <Route path="/assets/dashboard" element={<AssetDashboard />} />
                       <Route path="/assets/register" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/scan" element={<AssetScanner />} />
                       <Route path="/assets/:id" element={<AssetDetail />} />

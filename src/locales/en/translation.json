@@ -672,6 +672,7 @@
     "auditsInspections": "Audits & Inspections",
     "visitorGatekeeper": "Visitor Gatekeeper",
     "assetManagement": "Asset Management",
+    "assetDashboard": "Asset Dashboard",
     "assetList": "Asset List",
     "registerAsset": "Register Asset",
     "scanAsset": "Scan Asset",
@@ -2334,6 +2335,45 @@
       "low": "Low",
       "medium": "Medium",
       "high": "High",
+      "critical": "Critical"
+    },
+    "dashboard": {
+      "title": "Asset Dashboard",
+      "description": "Overview of asset status, conditions, and alerts",
+      "viewAllAssets": "View All Assets",
+      "totalAssets": "Total Assets",
+      "activeAssets": "Active Assets",
+      "underMaintenance": "Under Maintenance",
+      "inactive": "Inactive/Retired",
+      "conditionDistribution": "Condition Distribution",
+      "conditionDescription": "Asset health by condition rating",
+      "categoryDistribution": "Assets by Category",
+      "categoryDescription": "Distribution of assets across categories",
+      "overdueInspections": "Overdue Inspections",
+      "overdueInspectionsDescription": "Assets requiring immediate inspection",
+      "overdueMaintenance": "Overdue Maintenance",
+      "overdueMaintenanceDescription": "Maintenance tasks past their due date",
+      "noOverdueInspections": "All inspections are up to date",
+      "noOverdueMaintenance": "All maintenance is up to date",
+      "daysOverdue": "{{count}} days overdue",
+      "recentActivity": "Recent Activity",
+      "recentActivityDescription": "Latest changes to assets",
+      "noRecentActivity": "No recent activity",
+      "noData": "No data available",
+      "actions": {
+        "created": "created",
+        "updated": "updated",
+        "status_changed": "changed status of",
+        "deleted": "deleted",
+        "inspection_completed": "completed inspection for",
+        "maintenance_completed": "completed maintenance for"
+      }
+    },
+    "condition": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
       "critical": "Critical"
     }
   },

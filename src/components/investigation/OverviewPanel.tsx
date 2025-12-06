@@ -5,6 +5,7 @@ import { IncidentInfoCard } from "./IncidentInfoCard";
 import { InvestigatorAssignmentCard } from "./InvestigatorAssignmentCard";
 import { SeverityAdjustmentCard } from "./SeverityAdjustmentCard";
 import { ApprovalWorkflowBanner } from "./ApprovalWorkflowBanner";
+import { LinkedAssetsCard } from "./LinkedAssetsCard";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import type { Investigation } from "@/hooks/use-investigation";
 
@@ -53,6 +54,9 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
 
       {/* Incident Information - Full width, read-only when locked */}
       <IncidentInfoCard incident={incident} isLocked={isLocked} />
+
+      {/* Linked Assets Card */}
+      <LinkedAssetsCard incidentId={incident.id} canEdit={!isLocked} />
 
       {/* Severity Adjustment - Only for investigator after assignment */}
       {investigation && (
