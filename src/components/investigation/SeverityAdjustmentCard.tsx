@@ -196,7 +196,7 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
               {t('investigation.overview.currentSeverity', 'Current Severity')}
             </p>
             <Badge variant={getSeverityVariant(incident.severity)} className="text-sm">
-              {incident.severity ? t(`incidents.severity.${incident.severity}`) : t('common.notSet')}
+              {incident.severity ? t(`incidents.severityLevels.${incident.severity}`) : t('common.notSet')}
             </Badge>
           </div>
           {originalSeverity && originalSeverity !== incident.severity && (
@@ -205,7 +205,7 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
                 {t('investigation.overview.originalSeverity', 'Original')}
               </p>
               <Badge variant="outline" className="text-sm">
-                {t(`incidents.severity.${originalSeverity}`)}
+                {t(`incidents.severityLevels.${originalSeverity}`)}
               </Badge>
             </div>
           )}
@@ -264,7 +264,7 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
                       disabled={sev === incident.severity}
                     >
                       <Badge variant={getSeverityVariant(sev)} className="me-2">
-                        {t(`incidents.severity.${sev}`)}
+                        {t(`incidents.severityLevels.${sev}`)}
                       </Badge>
                     </SelectItem>
                   ))}
