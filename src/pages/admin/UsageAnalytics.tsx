@@ -282,7 +282,7 @@ export default function UsageAnalytics() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4" dir={direction}>
-        <TabsList className="justify-start">
+        <TabsList className="flex flex-wrap h-auto gap-1 justify-start">
           <TabsTrigger value="overview">{t('analytics.overview')}</TabsTrigger>
           <TabsTrigger value="tenants">{t('analytics.tenantUsage')}</TabsTrigger>
           <TabsTrigger value="logs">{t('analytics.activityLogs')}</TabsTrigger>

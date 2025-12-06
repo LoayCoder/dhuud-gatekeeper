@@ -272,7 +272,7 @@ export default function SecurityAuditLog() {
 
       <Tabs defaultValue="security-events" className="space-y-6" dir={direction}>
         <div className="flex justify-start">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-2xl">
             <TabsTrigger value="security-events" className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" />
               {t("securityAudit.securityEvents", "Security Events")}

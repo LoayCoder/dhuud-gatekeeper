@@ -264,7 +264,7 @@ export default function AdminBranding() {
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <Tabs defaultValue="visuals" className="w-full" dir={direction}>
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full lg:w-[400px]">
             <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
             <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
             <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4" /> {t('adminBranding.tabs.theme')}</TabsTrigger>
