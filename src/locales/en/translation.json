@@ -278,10 +278,30 @@
       "statement": "Statement",
       "statementPlaceholder": "Record the witness statement...",
       "statementDate": "Statement Date",
-      "noWitnesses": "No witness statements recorded",
+      "noWitnesses": "No witness statements recorded yet.",
+      "selectMethod": "Select a collection method above to add a statement.",
+      "statementsList": "Statements",
+      "documentUpload": "Upload",
+      "directEntry": "Direct Entry",
+      "voiceRecording": "Voice",
       "addFirst": "Add witness statements to document testimonies",
       "addSuccess": "Witness statement added",
-      "addError": "Failed to add witness statement"
+      "addError": "Failed to add witness statement",
+      "downloadForm": "Download Form",
+      "formDownloaded": "Witness statement form downloaded successfully",
+      "formError": "Failed to generate witness statement form",
+      "noIncidentData": "Incident data not available",
+      "aiAnalysis": "AI Analysis",
+      "type": {
+        "document_upload": "Document Upload",
+        "direct_entry": "Direct Entry",
+        "voice_recording": "Voice Recording"
+      },
+      "status": {
+        "pending": "Pending",
+        "submitted": "Submitted",
+        "approved": "Approved"
+      }
     },
     "rca": {
       "title": "Root Cause Analysis",

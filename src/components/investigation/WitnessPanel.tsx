@@ -1,20 +1,30 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Loader2, User, Phone, MessageSquare, FileText, Mic, Edit, Upload } from "lucide-react";
+import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { useWitnessStatements } from "@/hooks/use-witness-statements";
 import { WitnessDocumentUpload } from "./WitnessDocumentUpload";
 import { WitnessDirectEntry } from "./WitnessDirectEntry";
 import { WitnessVoiceRecording } from "./WitnessVoiceRecording";
 import { WitnessTaskAssignment } from "./WitnessTaskAssignment";
+import { generateWitnessWordDoc, WitnessFormData } from "@/lib/generate-witness-word-doc";
+import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "sonner";
 
 interface WitnessPanelProps {
   incidentId: string;
+  incident?: {
+    reference_id: string | null;
+    title: string;
+    occurred_at: string | null;
+    location: string | null;
+    branches?: { name: string } | null;
+    sites?: { name: string } | null;
+  } | null;
 }
 
 type StatementType = 'document_upload' | 'direct_entry' | 'voice_recording';
@@ -35,16 +45,46 @@ const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "defau
   }
 };
 
-export function WitnessPanel({ incidentId }: WitnessPanelProps) {
+export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const { tenantName } = useTheme();
   const [activeTab, setActiveTab] = useState<string>("list");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const { statements, isLoading, refetch } = useWitnessStatements(incidentId);
 
   const handleStatementAdded = () => {
     refetch();
     setActiveTab("list");
+  };
+
+  const handleDownloadForm = async () => {
+    if (!incident) {
+      toast.error(t('investigation.witnesses.noIncidentData', 'Incident data not available'));
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const formData: WitnessFormData = {
+        referenceId: incident.reference_id || 'N/A',
+        title: incident.title,
+        occurredAt: incident.occurred_at,
+        location: incident.location,
+        branchName: incident.branches?.name,
+        siteName: incident.sites?.name,
+        tenantName: tenantName || 'HSSE Platform',
+      };
+
+      await generateWitnessWordDoc(formData);
+      toast.success(t('investigation.witnesses.formDownloaded', 'Form downloaded successfully'));
+    } catch (error) {
+      console.error('Error generating witness form:', error);
+      toast.error(t('investigation.witnesses.formError', 'Failed to generate form'));
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (isLoading) {
@@ -57,14 +97,29 @@ export function WitnessPanel({ incidentId }: WitnessPanelProps) {
 
   return (
     <div className="space-y-4" dir={direction}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-lg font-medium">
           {t('investigation.witnesses.title', 'Witness Statements')}
         </h3>
-        <WitnessTaskAssignment 
-          incidentId={incidentId} 
-          onAssigned={refetch}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadForm}
+            disabled={isGenerating || !incident}
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 me-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 me-2" />
+            )}
+            {t('investigation.witnesses.downloadForm', 'Download Form')}
+          </Button>
+          <WitnessTaskAssignment 
+            incidentId={incidentId} 
+            onAssigned={refetch}
+          />
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>

@@ -255,10 +255,30 @@
       "statement": "Pahayag",
       "statementPlaceholder": "I-record ang pahayag ng saksi...",
       "statementDate": "Petsa ng Pahayag",
-      "noWitnesses": "Walang naitala na mga pahayag ng saksi",
+      "noWitnesses": "Wala pang naitala na mga pahayag ng saksi.",
+      "selectMethod": "Pumili ng paraan ng koleksyon sa itaas para magdagdag ng pahayag.",
+      "statementsList": "Mga Pahayag",
+      "documentUpload": "I-upload",
+      "directEntry": "Direktang Entry",
+      "voiceRecording": "Boses",
       "addFirst": "Magdagdag ng mga pahayag ng saksi para i-dokumento ang mga testimonya",
       "addSuccess": "Naidagdag ang pahayag ng saksi",
-      "addError": "Nabigo sa pagdagdag ng pahayag ng saksi"
+      "addError": "Nabigo sa pagdagdag ng pahayag ng saksi",
+      "downloadForm": "I-download ang Form",
+      "formDownloaded": "Matagumpay na na-download ang form ng pahayag ng saksi",
+      "formError": "Nabigo sa paggawa ng form ng pahayag ng saksi",
+      "noIncidentData": "Hindi available ang data ng insidente",
+      "aiAnalysis": "AI Analysis",
+      "type": {
+        "document_upload": "Pag-upload ng Dokumento",
+        "direct_entry": "Direktang Entry",
+        "voice_recording": "Voice Recording"
+      },
+      "status": {
+        "pending": "Nakabinbin",
+        "submitted": "Isinumite",
+        "approved": "Naaprubahan"
+      }
     },
     "rca": {
       "title": "Root Cause Analysis",
