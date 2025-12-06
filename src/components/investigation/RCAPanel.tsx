@@ -115,6 +115,26 @@ export function RCAPanel({ incidentId }: RCAPanelProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" dir={direction}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">
+              {t('investigation.rca.fiveWhys', '5 Whys Analysis')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="five_whys"
+              render={({ field }) => (
+                <FiveWhysBuilder
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -170,26 +190,6 @@ export function RCAPanel({ incidentId }: RCAPanelProps) {
             </FormItem>
           )}
         />
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              {t('investigation.rca.fiveWhys', '5 Whys Analysis')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FormField
-              control={form.control}
-              name="five_whys"
-              render={({ field }) => (
-                <FiveWhysBuilder
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          </CardContent>
-        </Card>
 
         <FormField
           control={form.control}
