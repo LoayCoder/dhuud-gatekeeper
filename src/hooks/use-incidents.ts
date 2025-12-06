@@ -156,6 +156,17 @@ export interface IncidentWithDetails {
   site_id: string | null;
   department_id: string | null;
   special_event_id: string | null;
+  // Approval workflow fields
+  approved_by: string | null;
+  approved_at: string | null;
+  approval_notes: string | null;
+  investigation_locked: boolean | null;
+  // Severity tracking fields
+  original_severity: 'low' | 'medium' | 'high' | 'critical' | null;
+  severity_change_justification: string | null;
+  severity_approved_by: string | null;
+  severity_approved_at: string | null;
+  severity_pending_approval: boolean | null;
   // Joined relations
   reporter?: { id: string; full_name: string | null } | null;
   branch?: { id: string; name: string } | null;
@@ -193,7 +204,21 @@ export function useIncident(id: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as IncidentWithDetails;
+      
+      // Cast and add new fields that may not be in types yet
+      const extended = data as unknown as Record<string, unknown>;
+      return {
+        ...data,
+        approved_by: extended.approved_by ?? null,
+        approved_at: extended.approved_at ?? null,
+        approval_notes: extended.approval_notes ?? null,
+        investigation_locked: extended.investigation_locked ?? false,
+        original_severity: extended.original_severity ?? null,
+        severity_change_justification: extended.severity_change_justification ?? null,
+        severity_approved_by: extended.severity_approved_by ?? null,
+        severity_approved_at: extended.severity_approved_at ?? null,
+        severity_pending_approval: extended.severity_pending_approval ?? false,
+      } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,
   });

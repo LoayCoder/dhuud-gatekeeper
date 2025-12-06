@@ -1,0 +1,161 @@
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Lock, AlertTriangle, Calendar, MapPin, FileText, Shield, Zap } from "lucide-react";
+import { format } from "date-fns";
+import type { IncidentWithDetails } from "@/hooks/use-incidents";
+
+interface IncidentInfoCardProps {
+  incident: IncidentWithDetails;
+  isLocked: boolean;
+}
+
+export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) {
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
+
+  const getSeverityVariant = (severity: string | null) => {
+    switch (severity) {
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const InfoItem = ({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) => (
+    <div className="space-y-1">
+      <p className="text-xs text-muted-foreground flex items-center gap-1">
+        {Icon && <Icon className="h-3 w-3" />}
+        {label}
+      </p>
+      <div className="text-sm">{value || '—'}</div>
+    </div>
+  );
+
+  return (
+    <Card className={isLocked ? 'border-muted bg-muted/30' : ''}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            {t('investigation.overview.incidentInfo', 'Incident Information')}
+          </CardTitle>
+          {isLocked && (
+            <Badge variant="outline" className="gap-1">
+              <Lock className="h-3 w-3" />
+              {t('investigation.overview.readOnly', 'Read-only')}
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent dir={direction}>
+        <div className="space-y-6">
+          {/* Title and Reference */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="font-mono">
+                {incident.reference_id}
+              </Badge>
+              <Badge variant={getSeverityVariant(incident.severity)}>
+                {incident.severity ? t(`incidents.severity.${incident.severity}`) : t('common.unknown')}
+              </Badge>
+              <Badge variant="secondary">
+                {t(`incidents.status.${incident.status}`)}
+              </Badge>
+            </div>
+            <h3 className="text-lg font-semibold">{incident.title}</h3>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">{t('incidents.description', 'Description')}</p>
+            <p className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded-md">
+              {incident.description}
+            </p>
+          </div>
+
+          {/* Key Details Grid */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <InfoItem 
+              icon={AlertTriangle}
+              label={t('incidents.eventType', 'Event Type')} 
+              value={t(`incidents.eventTypes.${incident.event_type}`, incident.event_type)}
+            />
+            {incident.subtype && (
+              <InfoItem 
+                label={t('incidents.subtype', 'Subtype')} 
+                value={incident.subtype}
+              />
+            )}
+            <InfoItem 
+              icon={Calendar}
+              label={t('incidents.occurredAt', 'Date & Time')} 
+              value={incident.occurred_at ? format(new Date(incident.occurred_at), 'PPp') : null}
+            />
+            <InfoItem 
+              icon={MapPin}
+              label={t('incidents.location', 'Location')} 
+              value={incident.site?.name || incident.branch?.name || incident.location}
+            />
+          </div>
+
+          {/* Injury & Damage */}
+          {(incident.has_injury || incident.has_damage) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {incident.has_injury && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                  <div className="flex items-center gap-2 text-destructive mb-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="font-medium text-sm">{t('incidents.injuryReported', 'Injury Reported')}</span>
+                  </div>
+                  {incident.injury_details && (
+                    <p className="text-sm text-muted-foreground">
+                      {(incident.injury_details as Record<string, unknown>).description as string || 
+                       `${t('incidents.injuryCount', 'Count')}: ${(incident.injury_details as Record<string, unknown>).count || 'N/A'}`}
+                    </p>
+                  )}
+                </div>
+              )}
+              {incident.has_damage && (
+                <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
+                  <div className="flex items-center gap-2 text-warning mb-2">
+                    <Shield className="h-4 w-4" />
+                    <span className="font-medium text-sm">{t('incidents.damageReported', 'Damage Reported')}</span>
+                  </div>
+                  {incident.damage_details && (
+                    <p className="text-sm text-muted-foreground">
+                      {(incident.damage_details as Record<string, unknown>).description as string}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Immediate Actions */}
+          {incident.immediate_actions && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Zap className="h-3 w-3" />
+                {t('incidents.immediateActions', 'Immediate Actions Taken')}
+              </p>
+              <p className="text-sm bg-muted/50 p-3 rounded-md">
+                {incident.immediate_actions}
+              </p>
+            </div>
+          )}
+
+          {/* Special Event */}
+          {incident.special_event && (
+            <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
+              <p className="text-xs text-muted-foreground mb-1">{t('incidents.linkedEvent', 'Linked Major Event')}</p>
+              <p className="text-sm font-medium text-primary">{incident.special_event.name}</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
