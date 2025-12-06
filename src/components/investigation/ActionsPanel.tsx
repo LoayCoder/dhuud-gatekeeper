@@ -222,15 +222,18 @@ export function ActionsPanel({ incidentId }: ActionsPanelProps) {
                           <Link2 className="h-4 w-4" />
                           {t('investigation.actions.linkedRootCause', 'Linked Root Cause')}
                         </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <Select 
+                          onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
+                          value={field.value || "_none_"}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder={t('investigation.actions.selectRootCause', 'Select root cause...')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent dir={direction}>
-                            <SelectItem value="">{t('common.none', 'None')}</SelectItem>
-                            {rootCauses.map((cause, idx) => (
+                            <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
+                            {rootCauses.filter(cause => cause.id).map((cause, idx) => (
                               <SelectItem key={cause.id} value={cause.id}>
                                 {t('investigation.rca.rootCause', 'Root Cause')} {idx + 1}: {cause.text.substring(0, 50)}...
                               </SelectItem>
