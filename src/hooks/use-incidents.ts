@@ -145,12 +145,15 @@ export function useIncidents() {
         .select('id, reference_id, title, event_type, severity, status, occurred_at, created_at')
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, 99); // Limit to first 100 incidents for performance
 
       if (error) throw error;
       return data as Incident[];
     },
     enabled: !!profile?.tenant_id,
+    staleTime: 2 * 60 * 1000, // 2 minutes before refetch
+    gcTime: 10 * 60 * 1000, // 10 minutes in cache
   });
 }
 
@@ -247,6 +250,8 @@ export function useIncident(id: string | undefined) {
       } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes in cache
   });
 }
 

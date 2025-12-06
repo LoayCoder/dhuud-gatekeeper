@@ -10,6 +10,7 @@ const routeModules: Record<string, () => Promise<unknown>> = {
   '/incidents': () => import('@/pages/incidents/IncidentList'),
   '/incidents/report': () => import('@/pages/incidents/IncidentReport'),
   '/incidents/my-actions': () => import('@/pages/incidents/MyActions'),
+  '/incidents/investigate': () => import('@/pages/incidents/InvestigationWorkspace'),
   // Admin routes
   '/admin/branding': () => import('@/pages/AdminBranding'),
   '/admin/users': () => import('@/pages/admin/UserManagement'),
@@ -22,6 +23,7 @@ const routeModules: Record<string, () => Promise<unknown>> = {
   '/admin/analytics': () => import('@/pages/admin/UsageAnalytics'),
   '/admin/security-audit': () => import('@/pages/admin/SecurityAuditLog'),
   '/admin/billing': () => import('@/pages/admin/BillingOverview'),
+  '/admin/document-settings': () => import('@/pages/admin/DocumentSettings'),
   // Settings routes
   '/settings/subscription': () => import('@/pages/admin/SubscriptionManagement'),
   '/settings/usage-billing': () => import('@/pages/settings/UsageBilling'),
@@ -37,7 +39,10 @@ const prefetchedRoutes = new Set<string>();
  * Prefetch a route's JavaScript bundle
  * This loads the module in the background so it's cached when user navigates
  */
-export function prefetchRoute(path: string): void {
+export function prefetchRoute(path: string | undefined): void {
+  // Guard against undefined/null paths
+  if (!path) return;
+  
   // Normalize path
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   
@@ -95,8 +100,8 @@ export function usePrefetch(path: string) {
 /**
  * Prefetch multiple routes at once (e.g., on idle)
  */
-export function prefetchRoutes(paths: string[]): void {
-  paths.forEach(prefetchRoute);
+export function prefetchRoutes(paths: (string | undefined)[]): void {
+  paths.filter(Boolean).forEach((path) => prefetchRoute(path));
 }
 
 /**

@@ -158,6 +158,8 @@ export function useInvestigation(incidentId: string | null) {
       } as Investigation;
     },
     enabled: !!incidentId,
+    staleTime: 60 * 1000, // 1 minute before refetch
+    gcTime: 5 * 60 * 1000, // 5 minutes in cache
   });
 }
 
@@ -290,6 +292,8 @@ export function useCorrectiveActions(incidentId: string | null) {
       return data as CorrectiveAction[];
     },
     enabled: !!incidentId,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
@@ -419,5 +423,7 @@ export function useIncidentAuditLogs(incidentId: string | null) {
       return data as IncidentAuditLog[];
     },
     enabled: !!incidentId,
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 }

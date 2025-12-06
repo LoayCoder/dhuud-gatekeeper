@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileInputButton } from '@/components/ui/file-input-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -15,11 +14,14 @@ import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { FileInputButton } from '@/components/ui/file-input-button';
 
 export default function AdminBranding() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { refreshTenantData } = useTheme();
+  const { profile } = useAuth();
   const { uploadAsset, uploading } = useBrandAssets();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,29 +55,19 @@ export default function AdminBranding() {
   const [previewMode, setPreviewMode] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    loadTenantData();
-  }, []);
+    if (profile?.tenant_id) {
+      loadTenantData();
+    }
+  }, [profile?.tenant_id]);
 
   const loadTenantData = async () => {
+    if (!profile?.tenant_id) {
+      setError(t('adminBranding.errors.noTenant'));
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setError(t('adminBranding.errors.notAuthenticated'));
-        setLoading(false);
-        return;
-      }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.tenant_id) {
-        setError(t('adminBranding.errors.noTenant'));
-        setLoading(false);
-        return;
-      }
-
       const { data: tenantData, error: tenantError } = await supabase
         .from('tenants')
         .select(`
