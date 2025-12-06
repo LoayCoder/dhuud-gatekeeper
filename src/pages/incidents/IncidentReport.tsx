@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -79,6 +80,7 @@ export default function IncidentReport() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const direction = i18n.dir();
+  const { profile } = useAuth();
   
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -88,6 +90,8 @@ export default function IncidentReport() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isDetectingType, setIsDetectingType] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [autoDetectedBranch, setAutoDetectedBranch] = useState(false);
+  const [autoDetectedSite, setAutoDetectedSite] = useState(false);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -128,6 +132,21 @@ export default function IncidentReport() {
 
   // Get subtype options based on event type
   const subtypeOptions = eventType === 'observation' ? OBSERVATION_TYPES : INCIDENT_TYPES;
+
+  // Auto-detect branch and site from user profile
+  useEffect(() => {
+    if (profile?.assigned_branch_id && !form.getValues('branch_id')) {
+      form.setValue('branch_id', profile.assigned_branch_id);
+      setAutoDetectedBranch(true);
+    }
+  }, [profile?.assigned_branch_id, form]);
+
+  useEffect(() => {
+    if (profile?.assigned_site_id && !form.getValues('site_id')) {
+      form.setValue('site_id', profile.assigned_site_id);
+      setAutoDetectedSite(true);
+    }
+  }, [profile?.assigned_site_id, form]);
 
   // Generate reference preview
   const getReferencePreview = () => {
@@ -440,7 +459,10 @@ export default function IncidentReport() {
                     <FormItem>
                       <FormLabel>{t('incidents.site')}</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setAutoDetectedSite(false);
+                        }} 
                         value={field.value} 
                         dir={direction}
                         disabled={sitesLoading}
@@ -459,6 +481,12 @@ export default function IncidentReport() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {autoDetectedSite && field.value && (
+                        <FormDescription className="flex items-center gap-1 text-blue-600">
+                          <Info className="h-3 w-3" />
+                          {t('incidents.autoDetectedFromProfile')}
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -471,7 +499,10 @@ export default function IncidentReport() {
                     <FormItem>
                       <FormLabel>{t('incidents.branch')}</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setAutoDetectedBranch(false);
+                        }} 
                         value={field.value} 
                         dir={direction}
                         disabled={branchesLoading}
@@ -489,6 +520,12 @@ export default function IncidentReport() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {autoDetectedBranch && field.value && (
+                        <FormDescription className="flex items-center gap-1 text-blue-600">
+                          <Info className="h-3 w-3" />
+                          {t('incidents.autoDetectedFromProfile')}
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

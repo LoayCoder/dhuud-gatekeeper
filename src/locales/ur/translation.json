@@ -61,7 +61,43 @@
     "noIncidentsYet": "ابھی تک کوئی واقعہ رپورٹ نہیں ہوا۔",
     "reportFirstIncident": "پہلا واقعہ رپورٹ کریں",
     "notFound": "واقعہ نہیں ملا",
-    "backToList": "واقعات کی فہرست پر واپس"
+    "backToList": "واقعات کی فہرست پر واپس",
+    "referenceNumber": "حوالہ نمبر",
+    "referenceWillBeAssigned": "جمع کرانے کے بعد حوالہ تفویض کیا جائے گا",
+    "preview": "پیش نظارہ",
+    "rewriteWithAI": "AI سے دوبارہ لکھیں",
+    "summarizeWithAI": "AI سے خلاصہ کریں",
+    "detectType": "قسم کا پتہ لگائیں",
+    "suggestSeverity": "شدت تجویز کریں",
+    "suggestedType": "تجویز کردہ قسم",
+    "site": "سائٹ",
+    "selectSite": "سائٹ منتخب کریں",
+    "branch": "شاخ",
+    "selectBranch": "شاخ منتخب کریں",
+    "gpsLocation": "GPS مقام",
+    "detectGPS": "GPS کا پتہ لگائیں",
+    "autoDetectedFromProfile": "آپ کی پروفائل سے خودکار طور پر پتہ لگایا گیا",
+    "responsibleDepartment": "ذمہ دار محکمہ",
+    "selectDepartment": "محکمہ منتخب کریں",
+    "observationType": "مشاہدے کی قسم",
+    "incidentType": "واقعہ کی قسم",
+    "eventCategories": {
+      "observation": "مشاہدہ",
+      "incident": "واقعہ"
+    },
+    "observationTypes": {
+      "unsafeAct": "غیر محفوظ عمل",
+      "unsafeCondition": "غیر محفوظ حالت"
+    },
+    "incidentTypes": {
+      "nearMiss": "قریب حادثہ",
+      "propertyDamage": "املاک کا نقصان",
+      "environmental": "ماحولیاتی کیس",
+      "firstAid": "ابتدائی طبی امداد",
+      "medicalTreatment": "طبی علاج",
+      "fire": "آگ",
+      "security": "سیکیورٹی"
+    }
   },
   "investigation": {
     "title": "تحقیقاتی ورک سپیس",

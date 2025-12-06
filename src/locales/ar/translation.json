@@ -61,7 +61,43 @@
     "noIncidentsYet": "لم يتم الإبلاغ عن أي حوادث بعد.",
     "reportFirstIncident": "الإبلاغ عن أول حادث",
     "notFound": "الحادث غير موجود",
-    "backToList": "العودة إلى الحوادث"
+    "backToList": "العودة إلى الحوادث",
+    "referenceNumber": "الرقم المرجعي",
+    "referenceWillBeAssigned": "سيتم تعيين المرجع بعد الإرسال",
+    "preview": "معاينة",
+    "rewriteWithAI": "إعادة الكتابة بالذكاء الاصطناعي",
+    "summarizeWithAI": "تلخيص بالذكاء الاصطناعي",
+    "detectType": "اكتشاف النوع",
+    "suggestSeverity": "اقتراح الخطورة",
+    "suggestedType": "النوع المقترح",
+    "site": "الموقع",
+    "selectSite": "اختر الموقع",
+    "branch": "الفرع",
+    "selectBranch": "اختر الفرع",
+    "gpsLocation": "إحداثيات GPS",
+    "detectGPS": "تحديد GPS",
+    "autoDetectedFromProfile": "تم اكتشافه تلقائياً من ملفك الشخصي",
+    "responsibleDepartment": "القسم المسؤول",
+    "selectDepartment": "اختر القسم",
+    "observationType": "نوع الملاحظة",
+    "incidentType": "نوع الحادث",
+    "eventCategories": {
+      "observation": "ملاحظة",
+      "incident": "حادث"
+    },
+    "observationTypes": {
+      "unsafeAct": "تصرف غير آمن",
+      "unsafeCondition": "حالة غير آمنة"
+    },
+    "incidentTypes": {
+      "nearMiss": "حادث وشيك",
+      "propertyDamage": "تلف في الممتلكات",
+      "environmental": "حالة بيئية",
+      "firstAid": "إسعافات أولية",
+      "medicalTreatment": "علاج طبي",
+      "fire": "حريق",
+      "security": "أمني"
+    }
   },
   "investigation": {
     "title": "مساحة عمل التحقيق",

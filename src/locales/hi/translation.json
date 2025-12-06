@@ -61,7 +61,43 @@
     "noIncidentsYet": "अभी तक कोई घटना रिपोर्ट नहीं हुई।",
     "reportFirstIncident": "पहली घटना रिपोर्ट करें",
     "notFound": "घटना नहीं मिली",
-    "backToList": "घटनाओं की सूची पर वापस"
+    "backToList": "घटनाओं की सूची पर वापस",
+    "referenceNumber": "संदर्भ संख्या",
+    "referenceWillBeAssigned": "जमा करने के बाद संदर्भ दिया जाएगा",
+    "preview": "पूर्वावलोकन",
+    "rewriteWithAI": "AI से पुनर्लेखन करें",
+    "summarizeWithAI": "AI से सारांश करें",
+    "detectType": "प्रकार पहचानें",
+    "suggestSeverity": "गंभीरता सुझाएं",
+    "suggestedType": "सुझाया गया प्रकार",
+    "site": "साइट",
+    "selectSite": "साइट चुनें",
+    "branch": "शाखा",
+    "selectBranch": "शाखा चुनें",
+    "gpsLocation": "GPS स्थान",
+    "detectGPS": "GPS पहचानें",
+    "autoDetectedFromProfile": "आपकी प्रोफ़ाइल से स्वचालित रूप से पहचाना गया",
+    "responsibleDepartment": "जिम्मेदार विभाग",
+    "selectDepartment": "विभाग चुनें",
+    "observationType": "अवलोकन प्रकार",
+    "incidentType": "घटना प्रकार",
+    "eventCategories": {
+      "observation": "अवलोकन",
+      "incident": "घटना"
+    },
+    "observationTypes": {
+      "unsafeAct": "असुरक्षित कार्य",
+      "unsafeCondition": "असुरक्षित स्थिति"
+    },
+    "incidentTypes": {
+      "nearMiss": "निकट दुर्घटना",
+      "propertyDamage": "संपत्ति क्षति",
+      "environmental": "पर्यावरण मामला",
+      "firstAid": "प्राथमिक चिकित्सा",
+      "medicalTreatment": "चिकित्सा उपचार",
+      "fire": "आग",
+      "security": "सुरक्षा"
+    }
   },
   "investigation": {
     "title": "जांच कार्यक्षेत्र",

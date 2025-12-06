@@ -50,6 +50,7 @@
     "selectBranch": "Select branch",
     "gpsLocation": "GPS Location",
     "detectGPS": "Detect GPS",
+    "autoDetectedFromProfile": "Auto-detected from your profile",
     "responsibleDepartment": "Responsible Department",
     "selectDepartment": "Select department",
     "observationType": "Observation Type",
