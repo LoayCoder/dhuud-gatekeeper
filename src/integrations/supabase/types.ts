@@ -543,6 +543,7 @@ export type Database = {
           has_injury: boolean | null
           id: string
           immediate_actions: string | null
+          immediate_actions_data: Json | null
           injury_details: Json | null
           latitude: number | null
           location: string | null
@@ -582,6 +583,7 @@ export type Database = {
           has_injury?: boolean | null
           id?: string
           immediate_actions?: string | null
+          immediate_actions_data?: Json | null
           injury_details?: Json | null
           latitude?: number | null
           location?: string | null
@@ -621,6 +623,7 @@ export type Database = {
           has_injury?: boolean | null
           id?: string
           immediate_actions?: string | null
+          immediate_actions_data?: Json | null
           injury_details?: Json | null
           latitude?: number | null
           location?: string | null

@@ -149,6 +149,15 @@
       "medium": "Medium Risk",
       "high": "High Risk"
     },
+    "immediateAction": {
+      "addPhoto": "Add Photo Evidence",
+      "photoPreview": "Immediate action photo",
+      "description": "Describe any immediate corrective or preventive actions you have taken",
+      "confirmTitle": "Immediate Action Status",
+      "confirmMessage": "You have described an immediate action. Is this action now closed, or should it be submitted to HSSE for follow-up?",
+      "actionClosed": "Yes, Action Closed",
+      "submitToHSSE": "No, Submit to HSSE"
+    },
     "riskRatingTitle": "Risk Assessment",
     "riskRatingLabel": "Risk Rating",
     "riskRatingDescription": "Assess the potential risk level of this observation",
