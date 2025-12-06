@@ -27,12 +27,11 @@ export default function InvestigationWorkspace() {
     refetchInvestigation();
   };
 
-  const { data: incidents, isLoading: loadingIncidents } = useIncidents();
-
   // Filter incidents that need investigation (not closed status)
   const investigableIncidents = incidents?.filter(
     (inc) => inc.status !== 'closed'
   );
+
   const getStatusVariant = (status: string | null) => {
     switch (status) {
       case 'investigation_in_progress':
@@ -48,6 +47,11 @@ export default function InvestigationWorkspace() {
         return 'secondary';
     }
   };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
         <h1 className="text-2xl font-bold text-foreground">
           {t('investigation.title', 'Investigation Workspace')}
         </h1>
@@ -177,24 +181,10 @@ export default function InvestigationWorkspace() {
               <ActionsPanel incidentId={selectedIncidentId} />
             </TabsContent>
           </Tabs>
-            </TabsList>
 
           {/* Audit Log */}
           <AuditLogPanel incidentId={selectedIncidentId} />
         </>
-      ) : (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">
-              {t('investigation.selectToStart', 'Select an incident above to begin investigation')}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
       ) : (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
