@@ -212,16 +212,18 @@ export function useCreateAsset() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
+  const { user } = useAuth();
+
   return useMutation({
     mutationFn: async (asset: Omit<AssetInsert, 'tenant_id' | 'created_by'>) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
 
       const { data, error } = await supabase
         .from('hsse_assets')
         .insert({
           ...asset,
           tenant_id: profile.tenant_id,
-          created_by: profile.id,
+          created_by: user.id,
         })
         .select('id, asset_code')
         .single();
@@ -245,15 +247,17 @@ export function useUpdateAsset() {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
+  const { user } = useAuth();
+
   return useMutation({
     mutationFn: async ({ id, ...updates }: AssetUpdate & { id: string }) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
 
       const { data, error } = await supabase
         .from('hsse_assets')
         .update({
           ...updates,
-          updated_by: profile.id,
+          updated_by: user.id,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)

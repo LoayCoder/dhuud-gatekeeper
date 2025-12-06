@@ -304,11 +304,11 @@ function AssetListContent() {
       {/* Pagination */}
       {data && data.count > 0 && (
         <PaginationControls
-          currentPage={page}
+          page={page}
           totalPages={data.totalPages}
-          totalItems={data.count}
+          totalCount={data.count}
           pageSize={20}
-          onPageChange={goToPage}
+          onFirstPage={() => goToPage(1)}
           onNextPage={goToNextPage}
           onPreviousPage={goToPreviousPage}
           hasNextPage={data.hasNextPage}
