@@ -136,6 +136,7 @@
     "incidentTypes": {
       "nearMiss": "حادث وشيك",
       "unsafeAct": "فعل غير آمن",
+      "unsafe_act": "فعل غير آمن",
       "propertyDamage": "تلف في الممتلكات",
       "environmental": "حالة بيئية",
       "firstAid": "إسعافات أولية",

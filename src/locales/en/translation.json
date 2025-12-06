@@ -91,6 +91,7 @@
     "incidentTypes": {
       "nearMiss": "Near Miss",
       "unsafeAct": "Unsafe Act",
+      "unsafe_act": "Unsafe Act",
       "propertyDamage": "Property Damage",
       "environmental": "Environmental Case",
       "firstAid": "First Aid",

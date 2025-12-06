@@ -136,6 +136,7 @@
     "incidentTypes": {
       "nearMiss": "Halos Aksidente",
       "unsafeAct": "Hindi Ligtas na Gawain",
+      "unsafe_act": "Hindi Ligtas na Gawain",
       "propertyDamage": "Pinsala sa Ari-arian",
       "environmental": "Pangkalikasan na Kaso",
       "firstAid": "First Aid",

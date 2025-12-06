@@ -136,6 +136,7 @@
     "incidentTypes": {
       "nearMiss": "निकट दुर्घटना",
       "unsafeAct": "असुरक्षित कार्य",
+      "unsafe_act": "असुरक्षित कार्य",
       "propertyDamage": "संपत्ति क्षति",
       "environmental": "पर्यावरण मामला",
       "firstAid": "प्राथमिक चिकित्सा",
