@@ -7,6 +7,13 @@
       "next": "التالي",
       "previous": "السابق"
     },
+    "validation": {
+      "titleMinLength": "يجب أن يكون العنوان 5 أحرف على الأقل",
+      "descriptionMinLength": "يجب أن يكون الوصف 20 حرفاً على الأقل",
+      "eventTypeRequired": "نوع الحدث مطلوب",
+      "subtypeRequired": "النوع الفرعي مطلوب",
+      "dateTimeRequired": "التاريخ/الوقت مطلوب"
+    },
     "reportIncident": "الإبلاغ عن حادث",
     "reportDescription": "تقديم بلاغ حادث سلامة جديد",
     "basicInfo": "المعلومات الأساسية",

@@ -7,6 +7,13 @@
       "next": "अगला",
       "previous": "पिछला"
     },
+    "validation": {
+      "titleMinLength": "शीर्षक कम से कम 5 अक्षर का होना चाहिए",
+      "descriptionMinLength": "विवरण कम से कम 20 अक्षर का होना चाहिए",
+      "eventTypeRequired": "घटना प्रकार आवश्यक है",
+      "subtypeRequired": "उप-प्रकार आवश्यक है",
+      "dateTimeRequired": "तारीख/समय आवश्यक है"
+    },
     "reportIncident": "घटना की रिपोर्ट करें",
     "reportDescription": "नई सुरक्षा घटना रिपोर्ट जमा करें",
     "basicInfo": "मूल जानकारी",

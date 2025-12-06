@@ -7,6 +7,13 @@
       "next": "اگلا",
       "previous": "پچھلا"
     },
+    "validation": {
+      "titleMinLength": "عنوان کم از کم 5 حروف ہونا چاہیے",
+      "descriptionMinLength": "تفصیل کم از کم 20 حروف ہونی چاہیے",
+      "eventTypeRequired": "واقعہ کی قسم ضروری ہے",
+      "subtypeRequired": "ذیلی قسم ضروری ہے",
+      "dateTimeRequired": "تاریخ/وقت ضروری ہے"
+    },
     "reportIncident": "واقعہ رپورٹ کریں",
     "reportDescription": "نیا حفاظتی واقعہ رپورٹ جمع کریں",
     "basicInfo": "بنیادی معلومات",

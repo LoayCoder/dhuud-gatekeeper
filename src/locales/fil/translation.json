@@ -7,6 +7,13 @@
       "next": "Susunod",
       "previous": "Nakaraan"
     },
+    "validation": {
+      "titleMinLength": "Ang pamagat ay dapat may hindi bababa sa 5 karakter",
+      "descriptionMinLength": "Ang paglalarawan ay dapat may hindi bababa sa 20 karakter",
+      "eventTypeRequired": "Kinakailangan ang uri ng pangyayari",
+      "subtypeRequired": "Kinakailangan ang subtype",
+      "dateTimeRequired": "Kinakailangan ang petsa/oras"
+    },
     "reportIncident": "Mag-ulat ng Insidente",
     "reportDescription": "Magsumite ng bagong ulat ng insidente sa kaligtasan",
     "basicInfo": "Pangunahing Impormasyon",

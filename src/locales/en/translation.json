@@ -7,6 +7,13 @@
       "next": "Next",
       "previous": "Previous"
     },
+    "validation": {
+      "titleMinLength": "Title must be at least 5 characters",
+      "descriptionMinLength": "Description must be at least 20 characters",
+      "eventTypeRequired": "Event type is required",
+      "subtypeRequired": "Subtype is required",
+      "dateTimeRequired": "Date/time is required"
+    },
     "reportIncident": "Report Safety Incident",
     "reportDescription": "Use this form to report any safety incidents, near misses, or observations.",
     "basicInfo": "Basic Information",
