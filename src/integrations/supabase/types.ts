@@ -323,10 +323,12 @@ export type Database = {
       }
       incidents: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           damage_details: Json | null
           deleted_at: string | null
           department: string | null
+          department_id: string | null
           description: string
           event_type: string
           has_damage: boolean | null
@@ -334,11 +336,14 @@ export type Database = {
           id: string
           immediate_actions: string | null
           injury_details: Json | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           occurred_at: string | null
           reference_id: string | null
           reporter_id: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
+          site_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
           subtype: string | null
           tenant_id: string
@@ -346,10 +351,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
           department?: string | null
+          department_id?: string | null
           description: string
           event_type: string
           has_damage?: boolean | null
@@ -357,11 +364,14 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           injury_details?: Json | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           occurred_at?: string | null
           reference_id?: string | null
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
+          site_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id: string
@@ -369,10 +379,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
           department?: string | null
+          department_id?: string | null
           description?: string
           event_type?: string
           has_damage?: boolean | null
@@ -380,11 +392,14 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           injury_details?: Json | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           occurred_at?: string | null
           reference_id?: string | null
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
+          site_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id?: string
@@ -393,10 +408,31 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "incidents_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_reporter_id_fkey"
             columns: ["reporter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
