@@ -15,6 +15,7 @@
       "dateTimeRequired": "Date/time is required"
     },
     "reportIncident": "Report Safety Incident",
+    "reportObservation": "Report Observation",
     "reportDescription": "Use this form to report any safety incidents, near misses, or observations.",
     "basicInfo": "Basic Information",
     "title": "Incident Title",
@@ -143,6 +144,15 @@
       "high": "High",
       "critical": "Critical"
     },
+    "riskRating": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "riskRatingTitle": "Risk Assessment",
+    "riskRatingLabel": "Risk Rating",
+    "riskRatingDescription": "Assess the potential risk level of this observation",
+    "observationSimplified": "Observations have a simplified workflow - no investigation required",
     "status": {
       "submitted": "Submitted",
       "pending_review": "Pending Review",
@@ -471,6 +481,10 @@
     "started": "Investigation started"
   },
   "pages": {
+    "hsseEvents": {
+      "title": "HSSE Events",
+      "description": "Report and track safety observations and incidents."
+    },
     "incidents": {
       "title": "Incidents",
       "description": "Report and track safety incidents."
@@ -600,6 +614,9 @@
   "navigation": {
     "dashboard": "Dashboard",
     "hsseManagement": "HSSE Management",
+    "hsseEvents": "HSSE Events",
+    "eventList": "Event List",
+    "reportEvent": "Report Event",
     "incidents": "Incidents",
     "incidentList": "Incident List",
     "investigationWorkspace": "Investigation Workspace",

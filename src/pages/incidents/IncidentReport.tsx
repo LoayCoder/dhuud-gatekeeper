@@ -53,6 +53,7 @@ const createIncidentFormSchema = (t: (key: string) => string) => z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  risk_rating: z.enum(['low', 'medium', 'high']).optional(), // For observations only
   immediate_actions: z.string().optional(),
   has_injury: z.boolean().default(false),
   injury_count: z.number().optional(),
@@ -89,6 +90,12 @@ const SEVERITY_LEVELS = [
   { value: 'medium', labelKey: 'incidents.severityLevels.medium', color: 'bg-yellow-500' },
   { value: 'high', labelKey: 'incidents.severityLevels.high', color: 'bg-orange-500' },
   { value: 'critical', labelKey: 'incidents.severityLevels.critical', color: 'bg-red-500' },
+];
+
+const RISK_RATING_LEVELS = [
+  { value: 'low', labelKey: 'incidents.riskRating.low', color: 'bg-green-500' },
+  { value: 'medium', labelKey: 'incidents.riskRating.medium', color: 'bg-yellow-500' },
+  { value: 'high', labelKey: 'incidents.riskRating.high', color: 'bg-red-500' },
 ];
 
 const WIZARD_STEPS = [
@@ -146,6 +153,7 @@ export default function IncidentReport() {
       latitude: undefined,
       longitude: undefined,
       severity: undefined,
+      risk_rating: undefined,
       immediate_actions: '',
       has_injury: false,
       injury_count: undefined,
@@ -161,6 +169,9 @@ export default function IncidentReport() {
   const description = form.watch('description');
   const title = form.watch('title');
   const eventType = form.watch('event_type');
+  
+  // Helper: Is this an observation (simplified workflow)?
+  const isObservation = eventType === 'observation';
 
   // Get subtype options based on event type
   const subtypeOptions = eventType === 'observation' ? OBSERVATION_TYPES : INCIDENT_TYPES;
@@ -356,6 +367,8 @@ export default function IncidentReport() {
   };
 
   const onSubmit = async (values: FormValues) => {
+    const isObs = values.event_type === 'observation';
+    
     const formData: IncidentFormData = {
       title: values.title,
       description: values.description,
@@ -364,18 +377,21 @@ export default function IncidentReport() {
       occurred_at: values.occurred_at,
       location: values.location,
       department: values.department_id,
-      severity: values.severity,
+      // Observations use risk_rating, incidents use severity
+      severity: isObs ? undefined : values.severity,
+      risk_rating: isObs ? values.risk_rating : undefined,
       immediate_actions: values.immediate_actions,
-      has_injury: values.has_injury,
-      injury_details: values.has_injury ? {
+      // Observations don't have injury/damage
+      has_injury: isObs ? false : values.has_injury,
+      injury_details: isObs ? undefined : (values.has_injury ? {
         count: values.injury_count,
         description: values.injury_description,
-      } : undefined,
-      has_damage: values.has_damage,
-      damage_details: values.has_damage ? {
+      } : undefined),
+      has_damage: isObs ? false : values.has_damage,
+      damage_details: isObs ? undefined : (values.has_damage ? {
         description: values.damage_description,
         estimated_cost: values.damage_cost,
-      } : undefined,
+      } : undefined),
       site_id: values.site_id || undefined,
       branch_id: values.branch_id || undefined,
       department_id: values.department_id || undefined,
@@ -468,7 +484,9 @@ export default function IncidentReport() {
   return (
     <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">{t('incidents.reportIncident')}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isObservation ? t('incidents.reportObservation') : t('incidents.reportIncident')}
+        </h1>
         <p className="text-muted-foreground">{t('incidents.reportDescription')}</p>
       </div>
 
@@ -978,188 +996,249 @@ export default function IncidentReport() {
           {/* STEP 3: DETAILS */}
           {currentStep === 3 && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              {/* Severity & Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('incidents.severity')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="severity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.severity')}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+              {/* Observation: Risk Rating (instead of Severity) */}
+              {isObservation ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('incidents.riskRatingTitle')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="risk_rating"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('incidents.riskRatingLabel')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.select')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {RISK_RATING_LEVELS.map((level) => (
+                                <SelectItem key={level.value} value={level.value}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`h-2 w-2 rounded-full ${level.color}`} />
+                                    {t(level.labelKey)}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>{t('incidents.riskRatingDescription')}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="immediate_actions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('incidents.immediateActions')}</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('common.select')} />
-                            </SelectTrigger>
+                            <Textarea
+                              placeholder={t('incidents.immediateActionsPlaceholder')}
+                              className="min-h-[100px]"
+                              {...field}
+                            />
                           </FormControl>
-                          <SelectContent>
-                            {SEVERITY_LEVELS.map((level) => (
-                              <SelectItem key={level.value} value={level.value}>
-                                <div className="flex items-center gap-2">
-                                  <div className={`h-2 w-2 rounded-full ${level.color}`} />
-                                  {t(level.labelKey)}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="immediate_actions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.immediateActions')}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t('incidents.immediateActionsPlaceholder')}
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Injury Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                    {t('incidents.injuryDetails')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="has_injury"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">{t('incidents.hasInjury')}</FormLabel>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {hasInjury && (
-                    <div className="space-y-4 ps-4 border-s-2 border-yellow-500">
-                      <FormField
-                        control={form.control}
-                        name="injury_count"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('incidents.injuryCount')}</FormLabel>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Incident: Severity & Actions */
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('incidents.severity')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="severity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('incidents.severity')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
                             <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                              />
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.select')} />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            <SelectContent>
+                              {SEVERITY_LEVELS.map((level) => (
+                                <SelectItem key={level.value} value={level.value}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`h-2 w-2 rounded-full ${level.color}`} />
+                                    {t(level.labelKey)}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="injury_description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('incidents.injuryDescription')}</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    <FormField
+                      control={form.control}
+                      name="immediate_actions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('incidents.immediateActions')}</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder={t('incidents.immediateActionsPlaceholder')}
+                              className="min-h-[100px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Damage Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('incidents.damageDetails')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="has_damage"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">{t('incidents.hasDamage')}</FormLabel>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
+              {/* Injury Details - Only for Incidents */}
+              {!isObservation && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                      {t('incidents.injuryDetails')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="has_injury"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">{t('incidents.hasInjury')}</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {hasInjury && (
+                      <div className="space-y-4 ps-4 border-s-2 border-yellow-500">
+                        <FormField
+                          control={form.control}
+                          name="injury_count"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('incidents.injuryCount')}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  {...field}
+                                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="injury_description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('incidents.injuryDescription')}</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )}
-                  />
+                  </CardContent>
+                </Card>
+              )}
 
-                  {hasDamage && (
-                    <div className="space-y-4 ps-4 border-s-2 border-orange-500">
-                      <FormField
-                        control={form.control}
-                        name="damage_description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('incidents.damageDescription')}</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              {/* Damage Details - Only for Incidents */}
+              {!isObservation && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('incidents.damageDetails')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="has_damage"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">{t('incidents.hasDamage')}</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="damage_cost"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('incidents.estimatedCost')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    {hasDamage && (
+                      <div className="space-y-4 ps-4 border-s-2 border-orange-500">
+                        <FormField
+                          control={form.control}
+                          name="damage_description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('incidents.damageDescription')}</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="damage_cost"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('incidents.estimatedCost')}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  {...field}
+                                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 

@@ -111,13 +111,18 @@ export function AppSidebar() {
                 location.pathname.startsWith("/visitors"),
       items: [
         {
-          title: t('navigation.incidents'),
+          title: t('navigation.hsseEvents'),
           icon: FileWarning,
           isActive: location.pathname.startsWith("/incidents"),
           subItems: [
             {
-              title: t('navigation.incidentList'),
+              title: t('navigation.eventList'),
               url: "/incidents",
+              icon: FileWarning,
+            },
+            {
+              title: t('navigation.reportEvent'),
+              url: "/incidents/report",
               icon: FileWarning,
             },
             {

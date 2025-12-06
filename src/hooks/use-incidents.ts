@@ -17,6 +17,7 @@ export interface IncidentFormData {
   location?: string;
   department?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  risk_rating?: 'low' | 'medium' | 'high'; // For observations only
   immediate_actions?: string;
   has_injury: boolean;
   injury_details?: {
@@ -53,7 +54,10 @@ export function useCreateIncident() {
         throw new Error('User not authenticated');
       }
 
-      const insertData: IncidentInsert = {
+      // Determine if this is an observation (simplified workflow)
+      const isObservation = data.event_type === 'observation';
+      
+      const insertData: IncidentInsert & { risk_rating?: string } = {
         tenant_id: profile.tenant_id,
         reporter_id: user.id,
         title: data.title,
@@ -63,12 +67,14 @@ export function useCreateIncident() {
         occurred_at: data.occurred_at,
         location: data.location || null,
         department: data.department || null,
-        severity: data.severity || null,
+        // Observations use risk_rating, incidents use severity
+        severity: isObservation ? null : (data.severity || null),
         immediate_actions: data.immediate_actions || null,
-        has_injury: data.has_injury,
-        injury_details: data.has_injury ? data.injury_details : null,
-        has_damage: data.has_damage,
-        damage_details: data.has_damage ? data.damage_details : null,
+        // Observations don't have injury/damage details
+        has_injury: isObservation ? false : data.has_injury,
+        injury_details: isObservation ? null : (data.has_injury ? data.injury_details : null),
+        has_damage: isObservation ? false : data.has_damage,
+        damage_details: isObservation ? null : (data.has_damage ? data.damage_details : null),
         status: 'submitted',
         // Location fields
         site_id: data.site_id || null,
@@ -79,6 +85,11 @@ export function useCreateIncident() {
         // Major event linkage
         special_event_id: data.special_event_id || null,
       };
+      
+      // Add risk_rating for observations (cast to any to bypass type check for new column)
+      if (isObservation && data.risk_rating) {
+        (insertData as Record<string, unknown>).risk_rating = data.risk_rating;
+      }
 
       const { data: incident, error } = await supabase
         .from('incidents')
