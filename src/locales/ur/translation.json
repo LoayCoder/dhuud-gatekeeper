@@ -296,7 +296,8 @@
       "action": "عمل",
       "actor": "کی طرف سے",
       "timestamp": "وقت",
-      "details": "تفصیلات"
+      "details": "تفصیلات",
+      "evidenceDeleted": "ثبوت حذف کر دیا گیا"
     },
     "myActions": "میرے سپرد اقدامات",
     "myActionsDescription": "اپنے سپرد اصلاحی اقدامات دیکھیں اور اپڈیٹ کریں",

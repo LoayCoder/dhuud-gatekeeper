@@ -348,7 +348,8 @@
       "action": "Action",
       "actor": "Performed By",
       "timestamp": "Timestamp",
-      "details": "Details"
+      "details": "Details",
+      "evidenceDeleted": "Evidence Deleted"
     },
     "myActions": "My Assigned Actions",
     "myActionsDescription": "View and update corrective actions assigned to you",

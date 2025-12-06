@@ -263,28 +263,51 @@ export function useDeleteEvidence() {
         throw new Error('User not authenticated');
       }
 
-      // Get evidence details first
-      const { data: evidence } = await supabase
+      if (!profile?.tenant_id) {
+        throw new Error('Tenant not found');
+      }
+
+      // Get full evidence details first for audit trail (HSSA compliance: old_value capture)
+      const { data: evidence, error: fetchError } = await supabase
         .from('evidence_items')
-        .select('incident_id, evidence_type, file_name')
+        .select(`
+          id,
+          incident_id,
+          tenant_id,
+          evidence_type,
+          storage_path,
+          file_name,
+          file_size,
+          mime_type,
+          description,
+          created_at,
+          uploaded_by
+        `)
         .eq('id', id)
+        .is('deleted_at', null)
         .single();
 
-      // Soft delete
-      const { error } = await supabase
-        .from('evidence_items')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+      if (fetchError || !evidence) {
+        throw new Error('Evidence not found or already deleted');
+      }
 
-      if (error) throw error;
-
-      // Log to incident audit
-      if (evidence) {
-        await supabase.from('incident_audit_logs').insert({
+      // Log to incident audit BEFORE the soft delete (ensures audit trail even if delete fails)
+      try {
+        const { error: auditError } = await supabase.from('incident_audit_logs').insert({
           incident_id: evidence.incident_id,
-          tenant_id: profile?.tenant_id,
+          tenant_id: profile.tenant_id,
           actor_id: user.id,
           action: 'evidence_deleted',
+          old_value: {
+            id: evidence.id,
+            evidence_type: evidence.evidence_type,
+            file_name: evidence.file_name,
+            file_size: evidence.file_size,
+            storage_path: evidence.storage_path,
+            description: evidence.description,
+            uploaded_by: evidence.uploaded_by,
+            created_at: evidence.created_at,
+          } as Json,
           details: {
             evidence_id: id,
             evidence_type: evidence.evidence_type,
@@ -292,17 +315,37 @@ export function useDeleteEvidence() {
             session_id: sessionId,
           } as Json,
         });
+
+        if (auditError) {
+          console.error('Failed to write audit log:', auditError);
+          // Continue with deletion even if audit fails - but log the error
+        }
+      } catch (auditErr) {
+        console.error('Audit log error:', auditErr);
       }
 
-      return evidence?.incident_id;
+      // Soft delete
+      const { error: deleteError } = await supabase
+        .from('evidence_items')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (deleteError) {
+        console.error('Evidence delete error:', deleteError);
+        throw deleteError;
+      }
+
+      return evidence.incident_id;
     },
     onSuccess: (incidentId) => {
       if (incidentId) {
         queryClient.invalidateQueries({ queryKey: ['evidence-items', incidentId] });
+        queryClient.invalidateQueries({ queryKey: ['incident-audit-logs', incidentId] });
       }
       toast.success(t('investigation.evidence.deleted', 'Evidence deleted'));
     },
     onError: (error) => {
+      console.error('Delete evidence mutation error:', error);
       toast.error(t('common.error', 'Error: ') + error.message);
     },
   });
