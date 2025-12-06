@@ -1,110 +1,125 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload, Loader2, FileText, Image, Trash2, Download } from "lucide-react";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Upload, Image, FileText, Video, Camera, ClipboardList, Shield, MessageSquare, Download, Trash2, User, Calendar, Link } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { 
+  useEvidenceItems, 
+  useCreateEvidence, 
+  useUpdateEvidenceReview, 
+  useDeleteEvidence,
+  type EvidenceItem,
+  type CreateEvidenceParams
+} from '@/hooks/use-evidence-items';
+import { EvidenceUploadDialog } from './EvidenceUploadDialog';
+import { EvidenceReviewDialog } from './EvidenceReviewDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface EvidencePanelProps {
   incidentId: string;
 }
 
-interface EvidenceFile {
-  name: string;
-  id: string;
-  created_at: string;
-  metadata?: {
-    size?: number;
-    mimetype?: string;
-  } | null;
-}
+const evidenceTypeIcons: Record<string, React.ReactNode> = {
+  photo: <Image className="h-5 w-5" />,
+  document: <FileText className="h-5 w-5" />,
+  cctv: <Camera className="h-5 w-5" />,
+  ptw: <Shield className="h-5 w-5" />,
+  checklist: <ClipboardList className="h-5 w-5" />,
+  video_clip: <Video className="h-5 w-5" />,
+};
 
 export function EvidencePanel({ incidentId }: EvidencePanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
+
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem | null>(null);
+
+  const { data: evidenceItems, isLoading } = useEvidenceItems(incidentId);
+  const createEvidence = useCreateEvidence();
+  const updateReview = useUpdateEvidenceReview();
+  const deleteEvidence = useDeleteEvidence();
 
   const storagePath = `${profile?.tenant_id}/${incidentId}`;
 
-  const { data: files, isLoading } = useQuery({
-    queryKey: ['incident-evidence', incidentId],
-    queryFn: async () => {
-      const { data, error } = await supabase.storage
-        .from('incident-attachments')
-        .list(storagePath);
+  const handleUpload = async (params: CreateEvidenceParams, file?: File) => {
+    let uploadedPath: string | undefined;
+    let fileName: string | undefined;
+    let fileSize: number | undefined;
+    let mimeType: string | undefined;
 
-      if (error) throw error;
-      return data as EvidenceFile[];
-    },
-    enabled: !!profile?.tenant_id && !!incidentId,
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    if (file) {
       const filePath = `${storagePath}/${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('incident-attachments')
         .upload(filePath, file);
 
-      if (error) throw error;
-      return filePath;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident-evidence', incidentId] });
-      toast.success(t('investigation.evidence.uploaded', 'File uploaded successfully'));
-    },
-    onError: (error) => {
-      toast.error(t('common.error', 'Error: ') + error.message);
-    },
-  });
+      if (uploadError) {
+        toast.error(t('common.error', 'Error: ') + uploadError.message);
+        return;
+      }
 
-  const deleteMutation = useMutation({
-    mutationFn: async (fileName: string) => {
-      const { error } = await supabase.storage
-        .from('incident-attachments')
-        .remove([`${storagePath}/${fileName}`]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident-evidence', incidentId] });
-      toast.success(t('investigation.evidence.deleted', 'File deleted'));
-    },
-    onError: (error) => {
-      toast.error(t('common.error', 'Error: ') + error.message);
-    },
-  });
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (50MB limit)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error(t('investigation.evidence.fileTooLarge', 'File must be less than 50MB'));
-      return;
+      uploadedPath = filePath;
+      fileName = file.name;
+      fileSize = file.size;
+      mimeType = file.type;
     }
 
-    setUploading(true);
-    try {
-      await uploadMutation.mutateAsync(file);
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
+    await createEvidence.mutateAsync({
+      ...params,
+      storage_path: uploadedPath,
+      file_name: fileName,
+      file_size: fileSize,
+      mime_type: mimeType,
+    });
   };
 
-  const handleDownload = async (fileName: string) => {
+  const handleReview = async (comment: string) => {
+    if (!selectedEvidence) return;
+    await updateReview.mutateAsync({
+      id: selectedEvidence.id,
+      review_comment: comment,
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedEvidence) return;
+
+    // Delete file from storage if exists
+    if (selectedEvidence.storage_path) {
+      await supabase.storage
+        .from('incident-attachments')
+        .remove([selectedEvidence.storage_path]);
+    }
+
+    await deleteEvidence.mutateAsync(selectedEvidence.id);
+    setDeleteDialogOpen(false);
+    setSelectedEvidence(null);
+  };
+
+  const handleDownload = async (evidence: EvidenceItem) => {
+    if (!evidence.storage_path) return;
+
     const { data, error } = await supabase.storage
       .from('incident-attachments')
-      .download(`${storagePath}/${fileName}`);
+      .download(evidence.storage_path);
 
     if (error) {
       toast.error(t('common.error', 'Error: ') + error.message);
@@ -114,19 +129,13 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
     const url = URL.createObjectURL(data);
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName;
+    a.download = evidence.file_name || 'download';
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const getFileIcon = (mimetype: string) => {
-    if (mimetype?.startsWith('image/')) {
-      return <Image className="h-8 w-8 text-primary" />;
-    }
-    return <FileText className="h-8 w-8 text-muted-foreground" />;
-  };
-
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '';
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
@@ -142,81 +151,204 @@ export function EvidencePanel({ incidentId }: EvidencePanelProps) {
 
   return (
     <div className="space-y-4" dir={direction}>
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">
-          {t('investigation.evidence.title', 'Evidence Files')}
-        </h3>
-        <div className="relative">
-          <Input
-            type="file"
-            onChange={handleFileUpload}
-            disabled={uploading}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-          />
-          <Button disabled={uploading}>
-            {uploading ? (
-              <Loader2 className="h-4 w-4 me-2 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 me-2" />
-            )}
-            {t('investigation.evidence.upload', 'Upload Evidence')}
-          </Button>
+        <div>
+          <h3 className="text-lg font-medium">
+            {t('investigation.evidence.title', 'Evidence Management')}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t('investigation.evidence.subtitle', 'Upload and manage investigation evidence')}
+          </p>
         </div>
+        <Button onClick={() => setUploadDialogOpen(true)}>
+          <Upload className="h-4 w-4 me-2" />
+          {t('investigation.evidence.upload.button', 'Add Evidence')}
+        </Button>
       </div>
 
-      {files?.length === 0 ? (
+      {/* Evidence Grid */}
+      {(!evidenceItems || evidenceItems.length === 0) ? (
         <Card className="border-dashed">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Upload className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>{t('investigation.evidence.noFiles', 'No evidence files uploaded yet.')}</p>
+            <p>{t('investigation.evidence.noItems', 'No evidence uploaded yet.')}</p>
             <p className="text-sm mt-1">
-              {t('investigation.evidence.dragDrop', 'Click the button above to upload files')}
+              {t('investigation.evidence.noItemsHint', 'Click "Add Evidence" to upload photos, documents, CCTV data, and more.')}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {files?.map((file) => (
-            <Card key={file.id}>
-              <CardContent className="pt-4">
-                <div className="flex items-start gap-3">
-                  {getFileIcon(file.metadata?.mimetype)}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate" title={file.name}>
-                      {file.name.replace(/^\d+-/, '')}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.metadata?.size || 0)}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {evidenceItems.map((evidence) => (
+            <Card key={evidence.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      {evidenceTypeIcons[evidence.evidence_type]}
+                    </div>
+                    <div>
+                      <Badge variant="outline" className="text-xs">
+                        {t(`investigation.evidence.types.${evidence.evidence_type}`, evidence.evidence_type)}
+                      </Badge>
+                      {evidence.review_comment && (
+                        <Badge variant="secondary" className="ms-1 text-xs">
+                          <MessageSquare className="h-3 w-3 me-1" />
+                          {t('investigation.evidence.reviewed', 'Reviewed')}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-3">
+                {/* File/Reference Info */}
+                {evidence.file_name && (
+                  <div>
+                    <p className="font-medium truncate text-sm" title={evidence.file_name}>
+                      {evidence.file_name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(file.created_at), 'MMM d, yyyy')}
+                      {formatFileSize(evidence.file_size)}
                     </p>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDownload(file.name)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => deleteMutation.mutate(file.name)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                )}
+
+                {evidence.reference_id && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Link className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-mono">{evidence.reference_id}</span>
                   </div>
+                )}
+
+                {/* CCTV Data Summary */}
+                {evidence.evidence_type === 'cctv' && evidence.cctv_data && (
+                  <div className="text-sm space-y-1">
+                    {(evidence.cctv_data as any[]).map((cam: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 text-muted-foreground">
+                        <Camera className="h-3 w-3" />
+                        <span>{cam.camera_id} - {cam.location}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Description */}
+                {evidence.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {evidence.description}
+                  </p>
+                )}
+
+                {/* Uploader & Session Info */}
+                <div className="pt-2 border-t space-y-1">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    <span>{evidence.uploader_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span>{format(new Date(evidence.created_at), 'MMM d, yyyy HH:mm')}</span>
+                  </div>
+                  {evidence.upload_session_id && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Shield className="h-3 w-3" />
+                      <span className="font-mono truncate" title={evidence.upload_session_id}>
+                        {t('investigation.evidence.security.session', 'Session')}: {evidence.upload_session_id.slice(0, 8)}...
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2">
+                  {evidence.storage_path && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(evidence)}
+                    >
+                      <Download className="h-4 w-4 me-1" />
+                      {t('common.download', 'Download')}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedEvidence(evidence);
+                      setReviewDialogOpen(true);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 me-1" />
+                    {t('investigation.evidence.review.button', 'Review')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive ms-auto"
+                    onClick={() => {
+                      setSelectedEvidence(evidence);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Upload Dialog */}
+      <EvidenceUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        incidentId={incidentId}
+        onSubmit={handleUpload}
+        isSubmitting={createEvidence.isPending}
+      />
+
+      {/* Review Dialog */}
+      <EvidenceReviewDialog
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        evidence={selectedEvidence}
+        onSubmit={handleReview}
+        isSubmitting={updateReview.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('investigation.evidence.delete.title', 'Delete Evidence')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('investigation.evidence.delete.description', 'Are you sure you want to delete this evidence? This action cannot be undone.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t('common.cancel', 'Cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteEvidence.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                t('common.delete', 'Delete')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
