@@ -33,10 +33,9 @@ import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks
 import { 
   analyzeIncidentDescription, 
   detectEventType,
-  rewriteText,
-  summarizeText,
   type AISuggestion 
 } from '@/lib/incident-ai-assistant';
+import { useIncidentAI } from '@/hooks/use-incident-ai';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 
@@ -120,8 +119,10 @@ export default function IncidentReport() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRewritingTitle, setIsRewritingTitle] = useState(false);
   const [isRewritingDesc, setIsRewritingDesc] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [isDetectingType, setIsDetectingType] = useState(false);
+  
+  // Real AI hook for translate & rewrite
+  const incidentAI = useIncidentAI();
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [autoDetectedBranch, setAutoDetectedBranch] = useState(false);
   const [autoDetectedSite, setAutoDetectedSite] = useState(false);
@@ -311,8 +312,10 @@ export default function IncidentReport() {
     
     setIsRewritingTitle(true);
     try {
-      const result = await rewriteText(title, 'title');
-      form.setValue('title', result.text);
+      const result = await incidentAI.translateAndRewrite(title, 'title');
+      if (result) {
+        form.setValue('title', result);
+      }
     } finally {
       setIsRewritingTitle(false);
     }
@@ -323,22 +326,12 @@ export default function IncidentReport() {
     
     setIsRewritingDesc(true);
     try {
-      const result = await rewriteText(description, 'description');
-      form.setValue('description', result.text);
+      const result = await incidentAI.translateAndRewrite(description, 'description');
+      if (result) {
+        form.setValue('description', result);
+      }
     } finally {
       setIsRewritingDesc(false);
-    }
-  };
-
-  const handleSummarizeDescription = async () => {
-    if (description.length < 50) return;
-    
-    setIsSummarizing(true);
-    try {
-      const result = await summarizeText(description);
-      form.setValue('description', result.text);
-    } finally {
-      setIsSummarizing(false);
     }
   };
 
@@ -674,17 +667,6 @@ export default function IncidentReport() {
                             >
                               {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
                               {t('incidents.rewriteWithAI')}
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleSummarizeDescription}
-                              disabled={isSummarizing || field.value.length < 50}
-                              className="gap-1"
-                            >
-                              {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
-                              {t('incidents.summarizeWithAI')}
                             </Button>
                             <Button
                               type="button"

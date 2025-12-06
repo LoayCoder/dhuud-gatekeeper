@@ -19,7 +19,7 @@ interface RCAData {
   incident_title?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite';
 
 interface RequestPayload {
   action: ActionType;
@@ -237,6 +237,36 @@ Return ONLY the translated text without any explanation or notes.`;
   return await callAI(systemPrompt, userPrompt);
 }
 
+// Translate any language to English and rewrite in professional HSSE style
+async function handleTranslateAndRewrite(text: string, fieldType: string): Promise<string> {
+  const fieldGuidelines = fieldType === 'title' 
+    ? `- Keep the result under 100 characters
+- Be concise but descriptive
+- Start with action verb or clear subject`
+    : `- Be comprehensive but clear
+- Include relevant safety context
+- Describe what happened, contributing factors, and immediate context
+- Aim for 2-4 sentences`;
+
+  const systemPrompt = `You are an expert HSSE (Health, Safety, Security, Environment) professional and technical writer.
+
+Your task:
+1. If the input text is NOT in English, translate it to English first
+2. Then rewrite it in clear, professional HSSE documentation style
+
+Guidelines:
+- Use professional ISO 45001 / OSHA-aligned terminology
+- Be concise and factual
+- Use active voice
+- Remove ambiguity and vague language
+- Focus on objective observations
+${fieldGuidelines}
+
+Return ONLY the final English text without any explanation, preamble, or quotes.`;
+
+  return await callAI(systemPrompt, text);
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -275,6 +305,11 @@ serve(async (req) => {
       case 'translate':
         if (!text || !target_language) throw new Error('Text and target_language are required for translate action');
         result = await handleTranslate(text, target_language);
+        break;
+
+      case 'translate_and_rewrite':
+        if (!text) throw new Error('Text is required for translate_and_rewrite action');
+        result = await handleTranslateAndRewrite(text, context || 'description');
         break;
 
       default:
