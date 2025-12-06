@@ -151,7 +151,15 @@
     "noIncidentsYet": "No incidents have been reported yet.",
     "reportFirstIncident": "Report First Incident",
     "notFound": "Incident not found",
-    "backToList": "Back to Incidents"
+    "backToList": "Back to Incidents",
+    "reportedBy": "Reported By",
+    "locationDetails": "Location Details",
+    "viewOnMap": "View on Map",
+    "linkedEvent": "Linked to Special Event",
+    "attachments": "Attachments",
+    "metadata": "Record Information",
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated"
   },
   "investigation": {
     "title": "Investigation Workspace",
