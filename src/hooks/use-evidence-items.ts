@@ -250,7 +250,7 @@ export function useUpdateEvidenceReview() {
   });
 }
 
-// Soft delete evidence item
+// Soft delete evidence item via SECURITY DEFINER RPC
 export function useDeleteEvidence() {
   const { t } = useTranslation();
   const { profile, user } = useAuth();
@@ -318,21 +318,18 @@ export function useDeleteEvidence() {
 
         if (auditError) {
           console.error('Failed to write audit log:', auditError);
-          // Continue with deletion even if audit fails - but log the error
         }
       } catch (auditErr) {
         console.error('Audit log error:', auditErr);
       }
 
-      // Soft delete
+      // Soft delete via SECURITY DEFINER RPC (bypasses RLS WITH CHECK issues)
       const { error: deleteError } = await supabase
-        .from('evidence_items')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .rpc('soft_delete_evidence', { p_evidence_id: id });
 
       if (deleteError) {
         console.error('Evidence delete error:', deleteError);
-        throw deleteError;
+        throw new Error(deleteError.message || 'Failed to delete evidence');
       }
 
       return evidence.incident_id;
