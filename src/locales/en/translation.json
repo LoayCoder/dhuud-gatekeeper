@@ -178,6 +178,9 @@
     "locationDetails": "Location Details",
     "viewOnMap": "View on Map",
     "linkedEvent": "Linked to Special Event",
+    "linkedAsset": "Asset Involved",
+    "searchAsset": "Search by asset name or code...",
+    "assetSelectionHint": "Optionally link an asset related to this event. You can also scan a QR code.",
     "attachments": "Attachments",
     "allAttachments": "All Attachments",
     "initialMedia": "Initial",
@@ -2367,6 +2370,13 @@
         "deleted": "deleted",
         "inspection_completed": "completed inspection for",
         "maintenance_completed": "completed maintenance for"
+      },
+      "scanner": {
+        "assetFound": "Asset Found",
+        "assetNotFound": "Asset not found",
+        "viewDetails": "View Asset Details",
+        "reportEvent": "Report HSSE Event",
+        "scanAgain": "Scan Another"
       }
     },
     "condition": {

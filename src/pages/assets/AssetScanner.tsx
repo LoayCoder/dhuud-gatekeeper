@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { AssetQRScanner } from '@/components/assets/AssetQRScanner';
+import { AssetScanResult } from '@/components/assets/AssetScanResult';
 import { ModuleGate } from '@/components/ModuleGate';
 import { useState } from 'react';
 
@@ -12,12 +13,20 @@ function AssetScannerContent() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [manualCode, setManualCode] = useState('');
+  const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
 
   const handleManualSearch = () => {
     if (manualCode.trim()) {
-      // Navigate to asset list with search filter
       navigate(`/assets?search=${encodeURIComponent(manualCode.trim())}`);
     }
+  };
+
+  const handleScanSuccess = (assetId: string) => {
+    setScannedAssetId(assetId);
+  };
+
+  const handleClearScan = () => {
+    setScannedAssetId(null);
   };
 
   return (
@@ -33,7 +42,18 @@ function AssetScannerContent() {
       </div>
 
       <div className="space-y-6">
-        <AssetQRScanner autoNavigate />
+        {scannedAssetId ? (
+          <AssetScanResult 
+            assetId={scannedAssetId} 
+            onClear={handleClearScan}
+            mode="navigate"
+          />
+        ) : (
+          <AssetQRScanner 
+            onScanSuccess={handleScanSuccess} 
+            autoNavigate={false} 
+          />
+        )}
         
         <Card>
           <CardHeader>

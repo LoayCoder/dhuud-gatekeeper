@@ -2201,6 +2201,13 @@
         "maintenance_completed": "रखरखाव पूरा किया"
       }
     },
+    "scanner": {
+      "assetFound": "संपत्ति मिली",
+      "assetNotFound": "संपत्ति नहीं मिली",
+      "viewDetails": "विवरण देखें",
+      "reportEvent": "घटना रिपोर्ट करें",
+      "scanAgain": "फिर से स्कैन करें"
+    },
     "condition": {
       "excellent": "उत्कृष्ट",
       "good": "अच्छी",
