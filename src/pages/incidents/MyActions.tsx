@@ -259,10 +259,10 @@ export default function MyActions() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      {statement.recorded_at && (
+                      {statement.created_at && (
                         <div>
                           <span className="font-medium">{t('common.createdAt', 'Created')}:</span>{' '}
-                          {formatDistanceToNow(new Date(statement.recorded_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(statement.created_at), { addSuffix: true })}
                         </div>
                       )}
                     </div>

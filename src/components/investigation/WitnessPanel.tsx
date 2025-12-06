@@ -120,7 +120,7 @@ export function WitnessPanel({ incidentId }: WitnessPanelProps) {
                           </Badge>
                         )}
                         <span className="text-sm text-muted-foreground">
-                          {format(new Date(witness.recorded_at), 'MMM d, yyyy')}
+                          {witness.created_at && format(new Date(witness.created_at), 'MMM d, yyyy')}
                         </span>
                       </div>
                     </div>
