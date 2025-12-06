@@ -104,6 +104,24 @@
       "medicalTreatment": "Medical Treatment",
       "fire": "Sunog",
       "security": "Seguridad"
+    },
+    "quickCapture": {
+      "title": "Quick Capture",
+      "aiComingSoon": "AI Powered - Coming Soon",
+      "description": "Mag-upload ng mga larawan o video - sa tulong ng AI para auto-detect ng mga panganib",
+      "photos": "Mga Larawan",
+      "photo": "Larawan",
+      "video": "Video",
+      "addPhoto": "Magdagdag ng Larawan",
+      "addVideo": "Magdagdag ng Video",
+      "photosCount": "{{count}}/3 Mga Larawan",
+      "maxVideoDuration": "Max 10 segundo",
+      "videoTooLong": "Dapat 10 segundo o mas mababa ang video",
+      "videoTooLarge": "Dapat mas mababa sa 50MB ang video",
+      "photoTooLarge": "Dapat mas mababa sa 10MB ang larawan",
+      "invalidPhotoType": "JPG, PNG, o HEIC na larawan lang ang allowed",
+      "invalidVideoType": "MP4, MOV, o WebM na video lang ang allowed",
+      "uploadNote": "Ang mga larawan at video ay ia-upload kasama ng iyong incident report"
     }
   },
   "investigation": {

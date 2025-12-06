@@ -80,6 +80,24 @@
       "fire": "Fire",
       "security": "Security Incident"
     },
+    "quickCapture": {
+      "title": "Quick Capture",
+      "aiComingSoon": "AI Powered - Coming Soon",
+      "description": "Upload photos or video - with power of AI to auto-detect hazards",
+      "photos": "Photos",
+      "photo": "Photo",
+      "video": "Video",
+      "addPhoto": "Add Photo",
+      "addVideo": "Add Video",
+      "photosCount": "{{count}}/3 Photos",
+      "maxVideoDuration": "Max 10 seconds",
+      "videoTooLong": "Video must be 10 seconds or less",
+      "videoTooLarge": "Video must be less than 50MB",
+      "photoTooLarge": "Photo must be less than 10MB",
+      "invalidPhotoType": "Only JPG, PNG, or HEIC photos allowed",
+      "invalidVideoType": "Only MP4, MOV, or WebM videos allowed",
+      "uploadNote": "Photos and videos will be uploaded with your incident report"
+    },
     "eventTypes": {
       "injury": "Injury",
       "near_miss": "Near Miss",

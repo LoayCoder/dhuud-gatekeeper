@@ -104,6 +104,24 @@
       "medicalTreatment": "طبی علاج",
       "fire": "آگ",
       "security": "سیکیورٹی"
+    },
+    "quickCapture": {
+      "title": "فوری کیپچر",
+      "aiComingSoon": "AI سے چلنے والا - جلد آ رہا ہے",
+      "description": "فوٹو یا ویڈیو اپ لوڈ کریں - AI کی طاقت سے خطرات کا خودکار پتہ لگانا",
+      "photos": "تصاویر",
+      "photo": "تصویر",
+      "video": "ویڈیو",
+      "addPhoto": "تصویر شامل کریں",
+      "addVideo": "ویڈیو شامل کریں",
+      "photosCount": "{{count}}/3 تصاویر",
+      "maxVideoDuration": "زیادہ سے زیادہ 10 سیکنڈ",
+      "videoTooLong": "ویڈیو 10 سیکنڈ یا کم ہونی چاہیے",
+      "videoTooLarge": "ویڈیو 50MB سے کم ہونی چاہیے",
+      "photoTooLarge": "تصویر 10MB سے کم ہونی چاہیے",
+      "invalidPhotoType": "صرف JPG، PNG، یا HEIC تصاویر کی اجازت ہے",
+      "invalidVideoType": "صرف MP4، MOV، یا WebM ویڈیوز کی اجازت ہے",
+      "uploadNote": "تصاویر اور ویڈیوز آپ کی واقعہ رپورٹ کے ساتھ اپ لوڈ ہوں گی"
     }
   },
   "investigation": {

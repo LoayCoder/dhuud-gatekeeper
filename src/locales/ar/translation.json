@@ -104,6 +104,24 @@
       "medicalTreatment": "علاج طبي",
       "fire": "حريق",
       "security": "أمني"
+    },
+    "quickCapture": {
+      "title": "التقاط سريع",
+      "aiComingSoon": "مدعوم بالذكاء الاصطناعي - قريباً",
+      "description": "ارفع صور أو فيديو - بقوة الذكاء الاصطناعي للكشف التلقائي عن المخاطر",
+      "photos": "الصور",
+      "photo": "صورة",
+      "video": "فيديو",
+      "addPhoto": "إضافة صورة",
+      "addVideo": "إضافة فيديو",
+      "photosCount": "{{count}}/3 صور",
+      "maxVideoDuration": "أقصى مدة 10 ثوانٍ",
+      "videoTooLong": "يجب أن يكون الفيديو 10 ثوانٍ أو أقل",
+      "videoTooLarge": "يجب أن يكون الفيديو أقل من 50 ميجابايت",
+      "photoTooLarge": "يجب أن تكون الصورة أقل من 10 ميجابايت",
+      "invalidPhotoType": "يسمح فقط بصور JPG أو PNG أو HEIC",
+      "invalidVideoType": "يسمح فقط بفيديوهات MP4 أو MOV أو WebM",
+      "uploadNote": "سيتم رفع الصور والفيديوهات مع تقرير الحادث"
     }
   },
   "investigation": {
