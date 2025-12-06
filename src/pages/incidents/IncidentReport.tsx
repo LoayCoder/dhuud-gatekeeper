@@ -1,73 +1,51 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import {
-  Camera,
-  Video,
-  Upload,
-  Loader2,
-  Sparkles,
-  MapPin,
-  ChevronRight,
-  ChevronLeft,
-  X,
-  CheckCircle2,
-  AlertTriangle,
-  FileText,
-  Navigation,
-} from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { useCreateIncident, type IncidentFormData } from '@/hooks/use-incidents';
 import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
-import { useIncidentMedia, type MediaAttachment } from '@/hooks/use-incident-media';
-import { analyzeIncidentImage, type AIVisionResult } from '@/lib/ai-vision-mock';
+import { 
+  analyzeIncidentDescription, 
+  detectEventType,
+  rewriteText,
+  summarizeText,
+  type AISuggestion 
+} from '@/lib/incident-ai-assistant';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 
-// Form schema for the 3-tab stepper
 const incidentFormSchema = z.object({
-  // Tab 1: Capture & AI
   title: z.string().min(5, 'Title must be at least 5 characters').max(120),
   description: z.string().min(20, 'Description must be at least 20 characters').max(5000),
-
-  // Tab 2: Categorize
   event_type: z.enum(['observation', 'incident'], { required_error: 'Event type is required' }),
   subtype: z.string().min(1, 'Subtype is required'),
-  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-  department_id: z.string().optional(),
-
-  // Tab 3: Location & Submit
+  occurred_at: z.string().min(1, 'Date/time is required'),
   site_id: z.string().optional(),
   branch_id: z.string().optional(),
+  department_id: z.string().optional(),
   location: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  occurred_at: z.string().min(1, 'Date/time is required'),
+  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  immediate_actions: z.string().optional(),
+  has_injury: z.boolean().default(false),
+  injury_count: z.number().optional(),
+  injury_description: z.string().optional(),
+  has_damage: z.boolean().default(false),
+  damage_description: z.string().optional(),
+  damage_cost: z.number().optional(),
 });
 
 type FormValues = z.infer<typeof incidentFormSchema>;
@@ -104,36 +82,26 @@ export default function IncidentReport() {
   const navigate = useNavigate();
   const direction = i18n.dir();
   const { profile } = useAuth();
-
-  // Tab navigation
-  const [activeTab, setActiveTab] = useState('capture');
-  const [tab1Valid, setTab1Valid] = useState(false);
-  const [tab2Valid, setTab2Valid] = useState(false);
-
-  // AI Analysis state
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiResult, setAiResult] = useState<AIVisionResult | null>(null);
-
-  // GPS state
+  
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isRewritingTitle, setIsRewritingTitle] = useState(false);
+  const [isRewritingDesc, setIsRewritingDesc] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isDetectingType, setIsDetectingType] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [autoDetectedBranch, setAutoDetectedBranch] = useState(false);
+  const [autoDetectedSite, setAutoDetectedSite] = useState(false);
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
-
-  // Hooks
+  const [gpsDetectedBranch, setGpsDetectedBranch] = useState(false);
+  const [noSiteNearby, setNoSiteNearby] = useState(false);
+  
   const createIncident = useCreateIncident();
-  const { data: sites = [] } = useTenantSites();
-  const { data: branches = [] } = useTenantBranches();
-  const { data: departments = [] } = useTenantDepartments();
-  const {
-    mediaFiles,
-    addFiles,
-    removeFile,
-    uploadAllFiles,
-    isUploading,
-    canAddImage,
-    canAddVideo,
-    hasMedia,
-  } = useIncidentMedia();
-
+  const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
+  const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
+  const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(incidentFormSchema),
     defaultValues: {
@@ -141,106 +109,95 @@ export default function IncidentReport() {
       description: '',
       event_type: undefined,
       subtype: '',
-      severity: undefined,
-      department_id: '',
+      occurred_at: new Date().toISOString().slice(0, 16),
       site_id: '',
       branch_id: '',
+      department_id: '',
       location: '',
       latitude: undefined,
       longitude: undefined,
-      occurred_at: new Date().toISOString().slice(0, 16),
+      severity: undefined,
+      immediate_actions: '',
+      has_injury: false,
+      injury_count: undefined,
+      injury_description: '',
+      has_damage: false,
+      damage_description: '',
+      damage_cost: undefined,
     },
   });
 
-  const title = form.watch('title');
+  const hasInjury = form.watch('has_injury');
+  const hasDamage = form.watch('has_damage');
   const description = form.watch('description');
+  const title = form.watch('title');
   const eventType = form.watch('event_type');
   const subtype = form.watch('subtype');
-  const severity = form.watch('severity');
-
-  // Validate tabs
-  useEffect(() => {
-    setTab1Valid(title.length >= 5 && description.length >= 20);
-  }, [title, description]);
-
-  useEffect(() => {
-    setTab2Valid(!!eventType && !!subtype);
-  }, [eventType, subtype]);
 
   // Get subtype options based on event type
   const subtypeOptions = eventType === 'observation' ? OBSERVATION_TYPES : INCIDENT_TYPES;
 
-  // Handle file drop/select
-  const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) {
-        addFiles(e.target.files);
-      }
-    },
-    [addFiles]
-  );
-
-  // Trigger AI analysis when media is added
-  const handleAnalyzeMedia = useCallback(async () => {
-    if (mediaFiles.length === 0) return;
-
-    const imageFile = mediaFiles.find((f) => f.type === 'image');
-    if (!imageFile) return;
-
-    setIsAnalyzing(true);
-    try {
-      const result = await analyzeIncidentImage(imageFile.file);
-      setAiResult(result);
-
-      // Auto-fill form fields
-      form.setValue('title', result.suggestedTitle);
-      form.setValue('description', result.suggestedDescription);
-      form.setValue('severity', result.suggestedSeverity);
-
-      // Auto-select event type based on severity
-      if (result.suggestedSeverity === 'critical' || result.suggestedSeverity === 'high') {
-        form.setValue('event_type', 'incident');
-      } else {
-        form.setValue('event_type', 'observation');
-      }
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [mediaFiles, form]);
-
-  // Auto-analyze when first image is added
+  // Auto-detect branch and site from user profile
   useEffect(() => {
-    if (mediaFiles.length === 1 && !aiResult && !isAnalyzing) {
-      handleAnalyzeMedia();
+    if (profile?.assigned_branch_id && !form.getValues('branch_id')) {
+      form.setValue('branch_id', profile.assigned_branch_id);
+      setAutoDetectedBranch(true);
     }
-  }, [mediaFiles.length, aiResult, isAnalyzing, handleAnalyzeMedia]);
+  }, [profile?.assigned_branch_id, form]);
 
-  // Handle GPS detection
+  useEffect(() => {
+    if (profile?.assigned_site_id && !form.getValues('site_id')) {
+      form.setValue('site_id', profile.assigned_site_id);
+      setAutoDetectedSite(true);
+    }
+  }, [profile?.assigned_site_id, form]);
+
+  // Generate reference preview
+  const getReferencePreview = () => {
+    if (!eventType || !subtype) {
+      return t('incidents.referenceWillBeAssigned');
+    }
+    const year = new Date().getFullYear();
+    return `INC-${year}-XXXX (${t('incidents.preview')})`;
+  };
+
   const handleGetLocation = () => {
-    if (!navigator.geolocation) return;
-
+    if (!navigator.geolocation) {
+      return;
+    }
+    
     setIsGettingLocation(true);
+    setNoSiteNearby(false);
     setGpsDetectedSite(null);
-
+    setGpsDetectedBranch(false);
+    
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        setCoordinates({ lat: latitude, lng: longitude });
         form.setValue('latitude', latitude);
         form.setValue('longitude', longitude);
         form.setValue('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-
-        // Find nearest site within 500m
+        
+        // Find nearest site within 500m perimeter
         const nearestResult = findNearestSite(latitude, longitude, sites, 500);
-
+        
         if (nearestResult) {
+          // Auto-populate site
           form.setValue('site_id', nearestResult.site.id);
           setGpsDetectedSite(nearestResult);
-
+          setAutoDetectedSite(false); // Clear profile detection flag
+          
+          // Auto-populate branch from site
           if (nearestResult.site.branch_id) {
             form.setValue('branch_id', nearestResult.site.branch_id);
+            setGpsDetectedBranch(true);
+            setAutoDetectedBranch(false); // Clear profile detection flag
           }
+        } else {
+          setNoSiteNearby(true);
         }
-
+        
         setIsGettingLocation(false);
       },
       () => {
@@ -250,51 +207,111 @@ export default function IncidentReport() {
     );
   };
 
-  // Navigate to next tab
-  const goToNextTab = async () => {
-    if (activeTab === 'capture') {
-      const valid = await form.trigger(['title', 'description']);
-      if (valid) setActiveTab('categorize');
-    } else if (activeTab === 'categorize') {
-      const valid = await form.trigger(['event_type', 'subtype']);
-      if (valid) setActiveTab('submit');
+  const handleAnalyzeDescription = async () => {
+    if (description.length < 20) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const suggestion = await analyzeIncidentDescription(description);
+      setAiSuggestion(suggestion);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
-  // Navigate to previous tab
-  const goToPrevTab = () => {
-    if (activeTab === 'categorize') setActiveTab('capture');
-    else if (activeTab === 'submit') setActiveTab('categorize');
+  const handleRewriteTitle = async () => {
+    if (title.length < 5) return;
+    
+    setIsRewritingTitle(true);
+    try {
+      const result = await rewriteText(title, 'title');
+      form.setValue('title', result.text);
+    } finally {
+      setIsRewritingTitle(false);
+    }
   };
 
-  // Submit form
-  const onSubmit = async (values: FormValues) => {
-    // First upload media files
-    let attachments: MediaAttachment[] = [];
-
-    if (hasMedia) {
-      // We'll upload after getting the incident ID, so we generate a temp ID
-      const tempId = `temp-${Date.now()}`;
-      attachments = await uploadAllFiles(tempId);
+  const handleRewriteDescription = async () => {
+    if (description.length < 20) return;
+    
+    setIsRewritingDesc(true);
+    try {
+      const result = await rewriteText(description, 'description');
+      form.setValue('description', result.text);
+    } finally {
+      setIsRewritingDesc(false);
     }
+  };
 
+  const handleSummarizeDescription = async () => {
+    if (description.length < 50) return;
+    
+    setIsSummarizing(true);
+    try {
+      const result = await summarizeText(description);
+      form.setValue('description', result.text);
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  const handleDetectType = async () => {
+    if (description.length < 20) return;
+    
+    setIsDetectingType(true);
+    try {
+      const result = await detectEventType(description);
+      if (result.eventType) {
+        form.setValue('event_type', result.eventType);
+        if (result.subtype) {
+          form.setValue('subtype', result.subtype);
+        }
+      }
+    } finally {
+      setIsDetectingType(false);
+    }
+  };
+
+  const handleApplySuggestions = () => {
+    if (!aiSuggestion) return;
+    form.setValue('severity', aiSuggestion.suggestedSeverity);
+    form.setValue('description', aiSuggestion.refinedDescription);
+    if (aiSuggestion.suggestedEventType) {
+      form.setValue('event_type', aiSuggestion.suggestedEventType);
+    }
+    if (aiSuggestion.suggestedSubtype) {
+      form.setValue('subtype', aiSuggestion.suggestedSubtype);
+    }
+    setAiSuggestion(null);
+  };
+
+  const onSubmit = (values: FormValues) => {
     const formData: IncidentFormData = {
       title: values.title,
       description: values.description,
       event_type: values.event_type,
       subtype: values.subtype,
       occurred_at: values.occurred_at,
+      location: values.location,
+      department: values.department_id, // Keep for backward compatibility
       severity: values.severity,
+      immediate_actions: values.immediate_actions,
+      has_injury: values.has_injury,
+      injury_details: values.has_injury ? {
+        count: values.injury_count,
+        description: values.injury_description,
+      } : undefined,
+      has_damage: values.has_damage,
+      damage_details: values.has_damage ? {
+        description: values.damage_description,
+        estimated_cost: values.damage_cost,
+      } : undefined,
+      // New fields
       site_id: values.site_id || undefined,
       branch_id: values.branch_id || undefined,
       department_id: values.department_id || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
-      location: values.location,
-      has_injury: false,
-      has_damage: false,
-      media_attachments: attachments,
-      ai_analysis_result: aiResult || undefined,
     };
 
     createIncident.mutate(formData, {
@@ -304,510 +321,683 @@ export default function IncidentReport() {
     });
   };
 
-  const getSeverityColor = (sev: string) => {
-    return SEVERITY_LEVELS.find((s) => s.value === sev)?.color || 'bg-muted';
+  const getSeverityBadgeVariant = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      default: return 'outline';
+    }
   };
 
   return (
-    <div className="container max-w-2xl py-6" dir={direction}>
-      <div className="space-y-2 mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{t('incidents.reportIncident')}</h1>
-        <p className="text-muted-foreground text-sm">{t('incidents.reportDescription')}</p>
+    <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">{t('incidents.reportIncident')}</h1>
+        <p className="text-muted-foreground">{t('incidents.reportDescription')}</p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="capture" className="gap-2">
-                <Camera className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('incidents.tabCapture')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="categorize" disabled={!tab1Valid} className="gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('incidents.tabCategorize')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="submit" disabled={!tab2Valid} className="gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('incidents.tabSubmit')}</span>
-              </TabsTrigger>
-            </TabsList>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Reference Number Preview */}
+          <Card className="border-dashed">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">{t('incidents.referenceNumber')}</p>
+                  <p className="text-lg font-mono text-muted-foreground">{getReferencePreview()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Tab 1: Capture & AI Analysis */}
-            <TabsContent value="capture" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Camera className="h-5 w-5" />
-                    {t('incidents.uploadMedia')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Media Upload Area */}
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="media-upload"
-                    />
-                    <label htmlFor="media-upload" className="cursor-pointer">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="flex gap-4">
-                          <div className="p-3 rounded-full bg-primary/10">
-                            <Camera className="h-6 w-6 text-primary" />
-                          </div>
-                          <div className="p-3 rounded-full bg-primary/10">
-                            <Video className="h-6 w-6 text-primary" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className="font-medium">{t('incidents.tapToUpload')}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {t('incidents.maxPhotos')} • {t('incidents.maxVideo')}
-                          </p>
-                        </div>
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('incidents.basicInfo')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Title with AI Rewrite */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.title')}</FormLabel>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input 
+                          placeholder={t('incidents.titlePlaceholder')} 
+                          maxLength={120}
+                          {...field} 
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleRewriteTitle}
+                        disabled={isRewritingTitle || field.value.length < 5}
+                        title={t('incidents.rewriteWithAI')}
+                      >
+                        {isRewritingTitle ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <FormDescription>{field.value.length}/120</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description with AI Assistant */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.description')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t('incidents.descriptionPlaceholder')}
+                        className="min-h-[150px] resize-y"
+                        {...field}
+                      />
+                    </FormControl>
+                    <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
+                      <span>{field.value.length} / 5000</span>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRewriteDescription}
+                          disabled={isRewritingDesc || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                          {t('incidents.rewriteWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSummarizeDescription}
+                          disabled={isSummarizing || field.value.length < 50}
+                          className="gap-1"
+                        >
+                          {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
+                          {t('incidents.summarizeWithAI')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDetectType}
+                          disabled={isDetectingType || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isDetectingType ? <Loader2 className="h-3 w-3 animate-spin" /> : <ListFilter className="h-3 w-3" />}
+                          {t('incidents.detectType')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAnalyzeDescription}
+                          disabled={isAnalyzing || field.value.length < 20}
+                          className="gap-1"
+                        >
+                          {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          {t('incidents.suggestSeverity')}
+                        </Button>
                       </div>
-                    </label>
-                  </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  {/* Media Preview Grid */}
-                  {mediaFiles.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {mediaFiles.map((media) => (
-                        <div key={media.id} className="relative group aspect-square">
-                          {media.type === 'image' ? (
-                            <img
-                              src={media.preview}
-                              alt=""
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <video
-                              src={media.preview}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => removeFile(media.id)}
-                            className="absolute top-1 end-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                          {media.type === 'video' && (
-                            <Badge className="absolute bottom-1 start-1" variant="secondary">
-                              <Video className="h-3 w-3 me-1" />
-                              Video
-                            </Badge>
-                          )}
-                        </div>
+              {/* AI Suggestion Panel */}
+              {aiSuggestion && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <span className="font-medium">{t('incidents.aiAssistant')}</span>
+                    <Badge variant="outline" className="ms-auto">
+                      {t('incidents.confidence')}: {Math.round(aiSuggestion.confidence * 100)}%
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">{t('incidents.suggestedSeverity')}:</span>
+                      <Badge variant={getSeverityBadgeVariant(aiSuggestion.suggestedSeverity)}>
+                        {t(`incidents.severityLevels.${aiSuggestion.suggestedSeverity}`)}
+                      </Badge>
+                    </div>
+                    
+                    {aiSuggestion.suggestedEventType && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">{t('incidents.suggestedType')}:</span>
+                        <Badge variant="secondary">
+                          {t(`incidents.eventCategories.${aiSuggestion.suggestedEventType}`)}
+                          {aiSuggestion.suggestedSubtype && ` → ${aiSuggestion.suggestedSubtype}`}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {aiSuggestion.keyRisks.map((risk, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {risk}
+                        </Badge>
                       ))}
                     </div>
-                  )}
-
-                  {/* AI Analysis Status */}
-                  {isAnalyzing && (
-                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-lg">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <div>
-                        <p className="font-medium flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-primary" />
-                          {t('incidents.analyzingHazard')}
-                        </p>
-                        <Progress value={66} className="h-1 mt-2 w-48" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* AI Result Badge */}
-                  {aiResult && !isAnalyzing && (
-                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                        {t('incidents.aiAnalysisComplete')} ({Math.round(aiResult.confidence * 100)}% {t('incidents.confidence')})
-                      </span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Title & Description - Auto-filled by AI */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    {t('incidents.aiSuggestedDetails')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.title')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t('incidents.titlePlaceholder')}
-                            maxLength={120}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>{field.value.length}/120</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.description')}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t('incidents.descriptionPlaceholder')}
-                            className="min-h-[120px] resize-y"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>{field.value.length}/5000</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Next Button */}
-              <div className="flex justify-end">
-                <Button type="button" onClick={goToNextTab} disabled={!tab1Valid}>
-                  {t('incidents.nextStep')}
-                  <ChevronRight className="h-4 w-4 ms-2 rtl:rotate-180" />
-                </Button>
-              </div>
-            </TabsContent>
-
-            {/* Tab 2: Categorize & Severity */}
-            <TabsContent value="categorize" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('incidents.categorizeIncident')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="event_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.eventType')}</FormLabel>
-                        <Select
-                          dir={direction}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('incidents.selectEventType')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {EVENT_CATEGORIES.map((cat) => (
-                              <SelectItem key={cat.value} value={cat.value}>
-                                {t(cat.labelKey)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="subtype"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.subtype')}</FormLabel>
-                        <Select
-                          dir={direction}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={!eventType}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  eventType === 'observation'
-                                    ? t('incidents.observationType')
-                                    : t('incidents.incidentType')
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {subtypeOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {t(opt.labelKey)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Severity with AI suggestion badge */}
-                  <FormField
-                    control={form.control}
-                    name="severity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          {t('incidents.severity')}
-                          {aiResult && (
-                            <Badge variant="outline" className="text-xs gap-1">
-                              <Sparkles className="h-3 w-3" />
-                              {t('incidents.aiSuggested')}
-                            </Badge>
-                          )}
-                        </FormLabel>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {SEVERITY_LEVELS.map((level) => (
-                            <button
-                              key={level.value}
-                              type="button"
-                              onClick={() => field.onChange(level.value)}
-                              className={`p-3 rounded-lg border-2 transition-all ${
-                                field.value === level.value
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              <div
-                                className={`w-3 h-3 rounded-full ${level.color} mx-auto mb-2`}
-                              />
-                              <span className="text-sm font-medium">{t(level.labelKey)}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="department_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.responsibleDepartment')}</FormLabel>
-                        <Select
-                          dir={direction}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('incidents.selectDepartment')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.id}>
-                                {dept.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between">
-                <Button type="button" variant="outline" onClick={goToPrevTab}>
-                  <ChevronLeft className="h-4 w-4 me-2 rtl:rotate-180" />
-                  {t('incidents.previousStep')}
-                </Button>
-                <Button type="button" onClick={goToNextTab} disabled={!tab2Valid}>
-                  {t('incidents.nextStep')}
-                  <ChevronRight className="h-4 w-4 ms-2 rtl:rotate-180" />
-                </Button>
-              </div>
-            </TabsContent>
-
-            {/* Tab 3: Location & Submit */}
-            <TabsContent value="submit" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    {t('incidents.locationDetails')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* GPS Detection */}
+                  </div>
+                  
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={handleGetLocation}
-                    disabled={isGettingLocation}
-                    className="w-full"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleApplySuggestions}
+                    className="w-full gap-2"
                   >
-                    {isGettingLocation ? (
-                      <Loader2 className="h-4 w-4 animate-spin me-2" />
-                    ) : (
-                      <Navigation className="h-4 w-4 me-2" />
-                    )}
-                    {t('incidents.detectGPS')}
+                    <CheckCircle2 className="h-4 w-4" />
+                    {t('incidents.applyAiSuggestions')}
                   </Button>
+                </div>
+              )}
 
-                  {/* GPS Result */}
-                  {gpsDetectedSite && (
-                    <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
-                      <p className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
-                        {gpsDetectedSite.site.name}
-                        <Badge variant="outline" className="text-xs">
-                          {t('incidents.withinMeters', { distance: gpsDetectedSite.distanceMeters })}
-                        </Badge>
-                      </p>
-                    </div>
-                  )}
-
-                  <FormField
-                    control={form.control}
-                    name="site_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.site')}</FormLabel>
-                        <Select
-                          dir={direction}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('incidents.selectSite')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sites.map((site) => (
-                              <SelectItem key={site.id} value={site.id}>
-                                {site.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="branch_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.branch')}</FormLabel>
-                        <Select
-                          dir={direction}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('incidents.selectBranch')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {branches.map((branch) => (
-                              <SelectItem key={branch.id} value={branch.id}>
-                                {branch.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="occurred_at"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.occurredAt')}</FormLabel>
+              {/* Event Type and Subtype */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="event_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('incidents.eventType')}</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue('subtype', ''); // Reset subtype when event type changes
+                        }} 
+                        value={field.value} 
+                        dir={direction}
+                      >
                         <FormControl>
-                          <Input type="datetime-local" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('incidents.selectEventType')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EVENT_CATEGORIES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {t(type.labelKey)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subtype"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {eventType === 'observation' 
+                          ? t('incidents.observationType') 
+                          : t('incidents.incidentType')}
+                      </FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        dir={direction}
+                        disabled={!eventType}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.select')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subtypeOptions.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {t(type.labelKey)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Date/Time */}
+              <FormField
+                control={form.control}
+                name="occurred_at"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.occurredAt')}</FormLabel>
+                    <FormControl>
+                      <Input type="datetime-local" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Site with GPS Detection */}
+              <FormField
+                control={form.control}
+                name="site_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>{t('incidents.site')}</FormLabel>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGetLocation}
+                        disabled={isGettingLocation}
+                        className="gap-2"
+                      >
+                        {isGettingLocation ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Navigation className="h-4 w-4" />
+                        )}
+                        {t('incidents.detectGPS')}
+                      </Button>
+                    </div>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setAutoDetectedSite(false);
+                        setGpsDetectedSite(null);
+                      }} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={sitesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={sitesLoading ? t('common.loading') : t('incidents.selectSite')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.name}
+                            {site.branch_name && ` (${site.branch_name})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* GPS Detection Indicators */}
+                    {gpsDetectedSite && field.value && (
+                      <div className="space-y-1">
+                        <FormDescription className="flex items-center gap-1 text-green-600">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t('incidents.gpsDetectedSite')} — {t('incidents.withinMeters', { distance: gpsDetectedSite.distanceMeters })}
+                        </FormDescription>
+                        {coordinates && (
+                          <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
+                            <MapPin className="h-3 w-3" />
+                            {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                          </FormDescription>
+                        )}
+                      </div>
+                    )}
+                    
+                    {autoDetectedSite && !gpsDetectedSite && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-blue-600">
+                        <Info className="h-3 w-3" />
+                        {t('incidents.autoDetectedFromProfile')}
+                      </FormDescription>
+                    )}
+                    
+                    {noSiteNearby && coordinates && (
+                      <div className="space-y-1">
+                        <FormDescription className="flex items-center gap-1 text-amber-600">
+                          <AlertTriangle className="h-3 w-3" />
+                          {t('incidents.noSiteNearby')}
+                        </FormDescription>
+                        <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
+                          <MapPin className="h-3 w-3" />
+                          {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                        </FormDescription>
+                      </div>
+                    )}
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Branch */}
+              <FormField
+                control={form.control}
+                name="branch_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.branch')}</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setAutoDetectedBranch(false);
+                        setGpsDetectedBranch(false);
+                      }} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={branchesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={branchesLoading ? t('common.loading') : t('incidents.selectBranch')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {gpsDetectedBranch && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t('incidents.gpsDetectedFromSite')}
+                      </FormDescription>
+                    )}
+                    {autoDetectedBranch && !gpsDetectedBranch && field.value && (
+                      <FormDescription className="flex items-center gap-1 text-blue-600">
+                        <Info className="h-3 w-3" />
+                        {t('incidents.autoDetectedFromProfile')}
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Additional Location Details */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.locationDetails')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={t('incidents.locationDetailsPlaceholder')} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('incidents.locationDetailsDescription')}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Responsible Department */}
+              <FormField
+                control={form.control}
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.responsibleDepartment')}</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value} 
+                      dir={direction}
+                      disabled={departmentsLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={departmentsLoading ? t('common.loading') : t('incidents.selectDepartment')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                            {dept.division_name && ` (${dept.division_name})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Severity & Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('incidents.severity')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="severity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.severity')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('common.select')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SEVERITY_LEVELS.map((level) => (
+                          <SelectItem key={level.value} value={level.value}>
+                            <div className="flex items-center gap-2">
+                              <div className={`h-2 w-2 rounded-full ${level.color}`} />
+                              {t(level.labelKey)}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="immediate_actions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('incidents.immediateActions')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t('incidents.immediateActionsPlaceholder')}
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Injury Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                {t('incidents.injuryDetails')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="has_injury"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">{t('incidents.hasInjury')}</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {hasInjury && (
+                <div className="space-y-4 ps-4 border-s-2 border-yellow-500">
+                  <FormField
+                    control={form.control}
+                    name="injury_count"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.injuryCount')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1}
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </CardContent>
-              </Card>
 
-              {/* Review Summary */}
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {t('incidents.reviewSummary')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t('incidents.title')}</span>
-                    <span className="text-sm font-medium truncate max-w-[200px]">{title}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t('incidents.severity')}</span>
-                    {severity && (
-                      <Badge className={`${getSeverityColor(severity)} text-white`}>
-                        {t(`incidents.severityLevels.${severity}`)}
-                      </Badge>
+                  <FormField
+                    control={form.control}
+                    name="injury_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.injuryDescription')}</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t('incidents.mediaAttached')}</span>
-                    <span className="text-sm font-medium">
-                      {mediaFiles.length} {t('common.files')}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              {/* Navigation & Submit */}
-              <div className="flex justify-between">
-                <Button type="button" variant="outline" onClick={goToPrevTab}>
-                  <ChevronLeft className="h-4 w-4 me-2 rtl:rotate-180" />
-                  {t('incidents.previousStep')}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createIncident.isPending || isUploading}
-                >
-                  {(createIncident.isPending || isUploading) && (
-                    <Loader2 className="h-4 w-4 animate-spin me-2" />
-                  )}
-                  {t('incidents.submitIncident')}
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+          {/* Damage Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('incidents.damageDetails')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="has_damage"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">{t('incidents.hasDamage')}</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {hasDamage && (
+                <div className="space-y-4 ps-4 border-s-2 border-orange-500">
+                  <FormField
+                    control={form.control}
+                    name="damage_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.damageDescription')}</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="damage_cost"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.estimatedCost')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Submit */}
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/incidents')}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              disabled={createIncident.isPending}
+              className="min-w-[150px]"
+            >
+              {createIncident.isPending ? (
+                <>
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  {t('common.submitting')}
+                </>
+              ) : (
+                t('incidents.submitIncident')
+              )}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
