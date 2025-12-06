@@ -2293,50 +2293,135 @@ export type Database = {
           },
         ]
       }
+      witness_attachments: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          statement_id: string
+          storage_path: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          statement_id: string
+          storage_path: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          statement_id?: string
+          storage_path?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "witness_attachments_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "witness_statements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_attachments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       witness_statements: {
         Row: {
+          ai_analysis: Json | null
+          assigned_witness_id: string | null
+          assignment_status: string | null
           attachment_url: string | null
+          audio_url: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
           id: string
           incident_id: string | null
+          original_transcription: string | null
+          relationship: string | null
           statement_date: string | null
           statement_text: string
+          statement_type: string
           tenant_id: string
+          transcription_approved: boolean | null
+          transcription_edited: boolean | null
           updated_at: string | null
           witness_contact: string | null
           witness_name: string
         }
         Insert: {
+          ai_analysis?: Json | null
+          assigned_witness_id?: string | null
+          assignment_status?: string | null
           attachment_url?: string | null
+          audio_url?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           id?: string
           incident_id?: string | null
+          original_transcription?: string | null
+          relationship?: string | null
           statement_date?: string | null
           statement_text: string
+          statement_type?: string
           tenant_id: string
+          transcription_approved?: boolean | null
+          transcription_edited?: boolean | null
           updated_at?: string | null
           witness_contact?: string | null
           witness_name: string
         }
         Update: {
+          ai_analysis?: Json | null
+          assigned_witness_id?: string | null
+          assignment_status?: string | null
           attachment_url?: string | null
+          audio_url?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           id?: string
           incident_id?: string | null
+          original_transcription?: string | null
+          relationship?: string | null
           statement_date?: string | null
           statement_text?: string
+          statement_type?: string
           tenant_id?: string
+          transcription_approved?: boolean | null
+          transcription_edited?: boolean | null
           updated_at?: string | null
           witness_contact?: string | null
           witness_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "witness_statements_assigned_witness_id_fkey"
+            columns: ["assigned_witness_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "witness_statements_created_by_fkey"
             columns: ["created_by"]
