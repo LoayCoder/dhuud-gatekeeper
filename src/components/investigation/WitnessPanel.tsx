@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown } from "lucide-react";
+import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown, Printer, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { useWitnessStatements } from "@/hooks/use-witness-statements";
+import { useWitnessStatements, WitnessStatement } from "@/hooks/use-witness-statements";
 import { WitnessDocumentUpload } from "./WitnessDocumentUpload";
 import { WitnessDirectEntry } from "./WitnessDirectEntry";
 import { WitnessVoiceRecording } from "./WitnessVoiceRecording";
 import { WitnessTaskAssignment } from "./WitnessTaskAssignment";
+import { WitnessDetailDialog } from "./WitnessDetailDialog";
 import { generateWitnessWordDoc, WitnessFormData } from "@/lib/generate-witness-word-doc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
@@ -53,6 +54,8 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
   const { settings: documentSettings } = useDocumentBranding();
   const [activeTab, setActiveTab] = useState<string>("list");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedStatement, setSelectedStatement] = useState<WitnessStatement | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   const { statements, isLoading, refetch } = useWitnessStatements(incidentId);
 
@@ -87,6 +90,11 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleStatementClick = (statement: WitnessStatement) => {
+    setSelectedStatement(statement);
+    setShowDetailDialog(true);
   };
 
   if (isLoading) {
@@ -157,7 +165,11 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
           ) : (
             <div className="space-y-3">
               {statements.map((witness) => (
-                <Card key={witness.id}>
+                <Card 
+                  key={witness.id} 
+                  className="cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => handleStatementClick(witness)}
+                >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -179,6 +191,7 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
                         <span className="text-sm text-muted-foreground">
                           {witness.created_at && format(new Date(witness.created_at), 'MMM d, yyyy')}
                         </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                       </div>
                     </div>
                     {(witness.contact || witness.relationship) && (
@@ -198,7 +211,7 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
                   <CardContent>
                     <div className="flex items-start gap-2">
                       <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <p className="text-sm whitespace-pre-wrap">{witness.statement}</p>
+                      <p className="text-sm whitespace-pre-wrap line-clamp-3">{witness.statement}</p>
                     </div>
                     {witness.ai_analysis && (
                       <div className="mt-3 p-3 bg-muted/50 rounded-md">
@@ -206,16 +219,7 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
                           {t('investigation.witnesses.aiAnalysis', 'AI Analysis')}
                         </p>
                         {(witness.ai_analysis as Record<string, unknown>).summary && (
-                          <p className="text-sm">{String((witness.ai_analysis as Record<string, unknown>).summary)}</p>
-                        )}
-                        {(witness.ai_analysis as Record<string, { detected?: string[] }>).emotional_cues?.detected?.length > 0 && (
-                          <div className="flex gap-1 mt-2">
-                            {(witness.ai_analysis as Record<string, { detected?: string[] }>).emotional_cues?.detected?.map((cue: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {cue}
-                              </Badge>
-                            ))}
-                          </div>
+                          <p className="text-sm line-clamp-2">{String((witness.ai_analysis as Record<string, unknown>).summary)}</p>
                         )}
                       </div>
                     )}
@@ -247,6 +251,13 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
           />
         </TabsContent>
       </Tabs>
+
+      <WitnessDetailDialog
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        statement={selectedStatement}
+        incident={incident}
+      />
     </div>
   );
 }
