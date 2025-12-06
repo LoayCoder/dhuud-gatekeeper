@@ -5,6 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import MediaUploadSection from '@/components/incidents/MediaUploadSection';
 import { useAuth } from '@/contexts/AuthContext';
@@ -114,6 +124,7 @@ export default function IncidentReport() {
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -464,7 +475,7 @@ export default function IncidentReport() {
       <StepIndicator />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
           {/* STEP 1: CAPTURE */}
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in duration-300">
@@ -1175,7 +1186,8 @@ export default function IncidentReport() {
               </Button>
             ) : (
               <Button
-                type="submit"
+                type="button"
+                onClick={() => setShowConfirmation(true)}
                 disabled={createIncident.isPending || isUploading}
                 className="min-w-[150px]"
               >
@@ -1192,6 +1204,24 @@ export default function IncidentReport() {
           </div>
         </form>
       </Form>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('incidents.confirmSubmission')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('incidents.confirmSubmissionDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+              {t('incidents.confirmAndSubmit')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
