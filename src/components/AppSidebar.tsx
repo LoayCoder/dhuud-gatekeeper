@@ -42,6 +42,7 @@ import {
   Package,
   List,
   Plus,
+  QrCode,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -164,6 +165,11 @@ export function AppSidebar() {
               title: t('navigation.registerAsset'),
               url: "/assets/register",
               icon: Plus,
+            },
+            {
+              title: t('navigation.scanAsset'),
+              url: "/assets/scan",
+              icon: QrCode,
             },
           ],
         },
