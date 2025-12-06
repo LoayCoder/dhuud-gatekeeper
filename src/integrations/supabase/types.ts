@@ -120,6 +120,453 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          asset_id: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          asset_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          asset_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_audit_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_categories: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          deleted_at: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_documents: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          deleted_at: string | null
+          document_type: Database["public"]["Enums"]["asset_document_type"]
+          expiry_date: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          title: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          document_type: Database["public"]["Enums"]["asset_document_type"]
+          expiry_date?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          title: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          document_type?: Database["public"]["Enums"]["asset_document_type"]
+          expiry_date?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          title?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_documents_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance_schedules: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          estimated_duration_hours: number | null
+          frequency_type: Database["public"]["Enums"]["maintenance_frequency"]
+          frequency_value: number | null
+          id: string
+          is_active: boolean | null
+          last_performed: string | null
+          next_due: string | null
+          schedule_type: Database["public"]["Enums"]["maintenance_type"]
+          tenant_id: string
+          updated_at: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_type: Database["public"]["Enums"]["maintenance_frequency"]
+          frequency_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_performed?: string | null
+          next_due?: string | null
+          schedule_type: Database["public"]["Enums"]["maintenance_type"]
+          tenant_id: string
+          updated_at?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_type?: Database["public"]["Enums"]["maintenance_frequency"]
+          frequency_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_performed?: string | null
+          next_due?: string | null
+          schedule_type?: Database["public"]["Enums"]["maintenance_type"]
+          tenant_id?: string
+          updated_at?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_photos: {
+        Row: {
+          asset_id: string
+          caption: string | null
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          is_primary: boolean | null
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          caption?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          is_primary?: boolean | null
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          caption?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          is_primary?: boolean | null
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_photos_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_photos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_subtypes: {
+        Row: {
+          code: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          tenant_id: string | null
+          type_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          tenant_id?: string | null
+          type_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string | null
+          type_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_subtypes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_subtypes_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_types: {
+        Row: {
+          category_id: string
+          code: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          inspection_interval_days: number | null
+          is_active: boolean | null
+          is_system: boolean | null
+          name: string
+          name_ar: string | null
+          requires_certification: boolean | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          code: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          inspection_interval_days?: number | null
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name: string
+          name_ar?: string | null
+          requires_certification?: boolean | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          code?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          inspection_interval_days?: number | null
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          name_ar?: string | null
+          requires_certification?: boolean | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           created_at: string | null
@@ -154,6 +601,69 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      buildings: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          deleted_at: string | null
+          floor_count: number | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          name_ar: string | null
+          site_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          floor_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          name_ar?: string | null
+          site_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          floor_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          name_ar?: string | null
+          site_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buildings_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buildings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -461,6 +971,278 @@ export type Database = {
           {
             foreignKeyName: "evidence_items_uploaded_by_fkey"
             columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      floors_zones: {
+        Row: {
+          building_id: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          level_number: number | null
+          name: string
+          name_ar: string | null
+          tenant_id: string
+          updated_at: string | null
+          zone_type: string | null
+        }
+        Insert: {
+          building_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_number?: number | null
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          zone_type?: string | null
+        }
+        Update: {
+          building_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_number?: number | null
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          zone_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "floors_zones_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "floors_zones_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hsse_assets: {
+        Row: {
+          asset_code: string
+          branch_id: string | null
+          building_id: string | null
+          category_id: string
+          commissioning_date: string | null
+          condition_rating:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          created_at: string | null
+          created_by: string | null
+          criticality_level:
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
+          custom_fields: Json | null
+          deleted_at: string | null
+          description: string | null
+          expected_lifespan_years: number | null
+          floor_zone_id: string | null
+          id: string
+          inspection_interval_days: number | null
+          installation_date: string | null
+          last_inspection_date: string | null
+          latitude: number | null
+          location_details: string | null
+          longitude: number | null
+          maintenance_contract_id: string | null
+          maintenance_vendor: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          next_inspection_due: string | null
+          ownership: Database["public"]["Enums"]["asset_ownership"] | null
+          qr_code_data: string | null
+          replacement_due_date: string | null
+          risk_score: number | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"] | null
+          subtype_id: string | null
+          tags: string[] | null
+          tenant_id: string
+          type_id: string
+          updated_at: string | null
+          updated_by: string | null
+          warranty_expiry_date: string | null
+        }
+        Insert: {
+          asset_code: string
+          branch_id?: string | null
+          building_id?: string | null
+          category_id: string
+          commissioning_date?: string | null
+          condition_rating?:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          created_at?: string | null
+          created_by?: string | null
+          criticality_level?:
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          description?: string | null
+          expected_lifespan_years?: number | null
+          floor_zone_id?: string | null
+          id?: string
+          inspection_interval_days?: number | null
+          installation_date?: string | null
+          last_inspection_date?: string | null
+          latitude?: number | null
+          location_details?: string | null
+          longitude?: number | null
+          maintenance_contract_id?: string | null
+          maintenance_vendor?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          next_inspection_due?: string | null
+          ownership?: Database["public"]["Enums"]["asset_ownership"] | null
+          qr_code_data?: string | null
+          replacement_due_date?: string | null
+          risk_score?: number | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"] | null
+          subtype_id?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          type_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+          warranty_expiry_date?: string | null
+        }
+        Update: {
+          asset_code?: string
+          branch_id?: string | null
+          building_id?: string | null
+          category_id?: string
+          commissioning_date?: string | null
+          condition_rating?:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          created_at?: string | null
+          created_by?: string | null
+          criticality_level?:
+            | Database["public"]["Enums"]["asset_criticality"]
+            | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          description?: string | null
+          expected_lifespan_years?: number | null
+          floor_zone_id?: string | null
+          id?: string
+          inspection_interval_days?: number | null
+          installation_date?: string | null
+          last_inspection_date?: string | null
+          latitude?: number | null
+          location_details?: string | null
+          longitude?: number | null
+          maintenance_contract_id?: string | null
+          maintenance_vendor?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          next_inspection_due?: string | null
+          ownership?: Database["public"]["Enums"]["asset_ownership"] | null
+          qr_code_data?: string | null
+          replacement_due_date?: string | null
+          risk_score?: number | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"] | null
+          subtype_id?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          type_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          warranty_expiry_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_assets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_floor_zone_id_fkey"
+            columns: ["floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2867,6 +3649,25 @@ export type Database = {
         | "user_deleted"
         | "backup_code_used"
       app_role: "admin" | "user"
+      asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
+      asset_criticality: "low" | "medium" | "high" | "critical"
+      asset_document_type:
+        | "manual"
+        | "certificate"
+        | "purchase_order"
+        | "warranty"
+        | "compliance"
+        | "inspection_report"
+        | "maintenance_record"
+        | "other"
+      asset_ownership: "company" | "contractor" | "leased" | "rented"
+      asset_status:
+        | "active"
+        | "out_of_service"
+        | "under_maintenance"
+        | "retired"
+        | "missing"
+        | "pending_inspection"
       contractor_type: "long_term" | "short_term"
       incident_status:
         | "submitted"
@@ -2874,6 +3675,19 @@ export type Database = {
         | "investigation_pending"
         | "investigation_in_progress"
         | "closed"
+      maintenance_frequency:
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "quarterly"
+        | "semi_annually"
+        | "annually"
+        | "custom"
+      maintenance_type:
+        | "preventive"
+        | "predictive"
+        | "condition_based"
+        | "corrective"
       module_code:
         | "hsse_core"
         | "visitor_management"
@@ -3085,6 +3899,27 @@ export const Constants = {
         "backup_code_used",
       ],
       app_role: ["admin", "user"],
+      asset_condition: ["excellent", "good", "fair", "poor", "critical"],
+      asset_criticality: ["low", "medium", "high", "critical"],
+      asset_document_type: [
+        "manual",
+        "certificate",
+        "purchase_order",
+        "warranty",
+        "compliance",
+        "inspection_report",
+        "maintenance_record",
+        "other",
+      ],
+      asset_ownership: ["company", "contractor", "leased", "rented"],
+      asset_status: [
+        "active",
+        "out_of_service",
+        "under_maintenance",
+        "retired",
+        "missing",
+        "pending_inspection",
+      ],
       contractor_type: ["long_term", "short_term"],
       incident_status: [
         "submitted",
@@ -3092,6 +3927,21 @@ export const Constants = {
         "investigation_pending",
         "investigation_in_progress",
         "closed",
+      ],
+      maintenance_frequency: [
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "semi_annually",
+        "annually",
+        "custom",
+      ],
+      maintenance_type: [
+        "preventive",
+        "predictive",
+        "condition_based",
+        "corrective",
       ],
       module_code: [
         "hsse_core",
