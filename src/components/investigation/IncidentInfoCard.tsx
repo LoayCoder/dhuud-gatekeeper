@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Lock, AlertTriangle, Calendar, MapPin, FileText, Shield, Zap } from "lucide-react";
 import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
+import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
 
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
@@ -154,6 +155,13 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               <p className="text-sm font-medium text-primary">{incident.special_event.name}</p>
             </div>
           )}
+
+          {/* Attachments Section */}
+          <IncidentAttachmentsSection 
+            incidentId={incident.id}
+            mediaAttachments={incident.media_attachments as Array<{ url: string; type: string; name: string }> | null}
+            compact
+          />
         </div>
       </CardContent>
     </Card>

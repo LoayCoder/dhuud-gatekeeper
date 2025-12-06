@@ -159,6 +159,12 @@
     "viewOnMap": "View on Map",
     "linkedEvent": "Linked to Special Event",
     "attachments": "Attachments",
+    "allAttachments": "All Attachments",
+    "initialMedia": "Initial",
+    "evidenceFiles": "Evidence",
+    "noAttachments": "No attachments",
+    "viewFullSize": "View full size",
+    "downloadFile": "Download file",
     "metadata": "Record Information",
     "createdAt": "Created At",
     "updatedAt": "Last Updated"
