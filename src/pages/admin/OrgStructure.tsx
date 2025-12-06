@@ -610,9 +610,8 @@ export default function OrgStructure() {
       </div>
 
       <Tabs defaultValue="branches" className="w-full" dir={direction}>
-        <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
+        <TabsList className="grid w-full grid-cols-6 lg:w-[900px]">
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
-          <TabsTrigger value="sites">{t('orgStructure.sites')}</TabsTrigger>
           <TabsTrigger value="sites" className="flex items-center gap-1"><Building2 className="h-4 w-4" />{t('orgStructure.sites')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
           <TabsTrigger value="departments">{t('orgStructure.departments')}</TabsTrigger>
