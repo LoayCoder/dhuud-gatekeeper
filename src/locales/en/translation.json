@@ -1877,5 +1877,38 @@
     "QAR": "Qatari Riyal",
     "USD": "US Dollar",
     "CNY": "Chinese Yuan"
+  },
+  "specialEvents": {
+    "tabTitle": "Major Events",
+    "manageEvents": "Manage Major Events",
+    "addEvent": "Add Event",
+    "editEvent": "Edit Event",
+    "eventName": "Event Name",
+    "eventNamePlaceholder": "e.g., World Cup 2026",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional event description...",
+    "eventDescription": "Create events to link incidents during special occasions.",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusUpcoming": "Upcoming",
+    "statusArchived": "Archived",
+    "activeToggle": "Active",
+    "activeToggleDescription": "Enable this event for incident linking",
+    "noEvents": "No major events created yet",
+    "eventCreated": "Event created successfully",
+    "eventUpdated": "Event updated successfully",
+    "eventDeleted": "Event deleted successfully",
+    "deleteConfirmTitle": "Delete Event?",
+    "deleteConfirmDescription": "This will remove the event. Incidents already linked will retain their association.",
+    "eventBannerTitle": "Event Mode Active",
+    "eventBannerNote": "This report will be automatically linked to this event.",
+    "validation": {
+      "nameRequired": "Event name is required",
+      "startRequired": "Start date is required",
+      "endRequired": "End date is required",
+      "endAfterStart": "End date must be after start date"
+    }
   }
 }

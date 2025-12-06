@@ -28,12 +28,14 @@ export interface IncidentFormData {
     description?: string;
     estimated_cost?: number;
   };
-  // New location fields
+  // Location fields
   site_id?: string;
   branch_id?: string;
   department_id?: string;
   latitude?: number;
   longitude?: number;
+  // Major event linkage
+  special_event_id?: string;
 }
 
 export function useCreateIncident() {
@@ -68,12 +70,14 @@ export function useCreateIncident() {
         has_damage: data.has_damage,
         damage_details: data.has_damage ? data.damage_details : null,
         status: 'submitted',
-        // New location fields
+        // Location fields
         site_id: data.site_id || null,
         branch_id: data.branch_id || null,
         department_id: data.department_id || null,
         latitude: data.latitude || null,
         longitude: data.longitude || null,
+        // Major event linkage
+        special_event_id: data.special_event_id || null,
       };
 
       const { data: incident, error } = await supabase

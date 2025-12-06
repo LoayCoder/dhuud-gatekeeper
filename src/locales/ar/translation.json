@@ -1890,5 +1890,38 @@
     "QAR": "ريال قطري",
     "USD": "دولار أمريكي",
     "CNY": "يوان صيني"
+  },
+  "specialEvents": {
+    "tabTitle": "الفعاليات الكبرى",
+    "manageEvents": "إدارة الفعاليات الكبرى",
+    "addEvent": "إضافة فعالية",
+    "editEvent": "تعديل الفعالية",
+    "eventName": "اسم الفعالية",
+    "eventNamePlaceholder": "مثال: كأس العالم 2026",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري للفعالية...",
+    "eventDescription": "إنشاء فعاليات لربط الحوادث خلال المناسبات الخاصة.",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "status": "الحالة",
+    "statusActive": "نشط",
+    "statusUpcoming": "قادم",
+    "statusArchived": "مؤرشف",
+    "activeToggle": "نشط",
+    "activeToggleDescription": "تفعيل هذه الفعالية لربط الحوادث",
+    "noEvents": "لم يتم إنشاء فعاليات كبرى بعد",
+    "eventCreated": "تم إنشاء الفعالية بنجاح",
+    "eventUpdated": "تم تحديث الفعالية بنجاح",
+    "eventDeleted": "تم حذف الفعالية بنجاح",
+    "deleteConfirmTitle": "حذف الفعالية؟",
+    "deleteConfirmDescription": "سيتم إزالة الفعالية. ستحتفظ الحوادث المرتبطة مسبقاً بارتباطها.",
+    "eventBannerTitle": "وضع الفعالية نشط",
+    "eventBannerNote": "سيتم ربط هذا التقرير تلقائياً بهذه الفعالية.",
+    "validation": {
+      "nameRequired": "اسم الفعالية مطلوب",
+      "startRequired": "تاريخ البدء مطلوب",
+      "endRequired": "تاريخ الانتهاء مطلوب",
+      "endAfterStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء"
+    }
   }
 }

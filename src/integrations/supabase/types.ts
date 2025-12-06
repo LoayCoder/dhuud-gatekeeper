@@ -346,6 +346,7 @@ export type Database = {
           reporter_id: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
           site_id: string | null
+          special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
           subtype: string | null
           tenant_id: string
@@ -376,6 +377,7 @@ export type Database = {
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           site_id?: string | null
+          special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id: string
@@ -406,6 +408,7 @@ export type Database = {
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           site_id?: string | null
+          special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id?: string
@@ -439,6 +442,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_special_event_id_fkey"
+            columns: ["special_event_id"]
+            isOneToOne: false
+            referencedRelation: "special_events"
             referencedColumns: ["id"]
           },
           {
@@ -1150,6 +1160,56 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      special_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_at: string
+          id: string
+          is_active: boolean
+          name: string
+          start_at: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_at: string
+          id?: string
+          is_active?: boolean
+          name: string
+          start_at: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_at?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "special_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_events: {
         Row: {

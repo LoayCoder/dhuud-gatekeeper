@@ -1838,5 +1838,38 @@
     "QAR": "कतरी रियाल",
     "USD": "अमेरिकी डॉलर",
     "CNY": "चीनी युआन"
+  },
+  "specialEvents": {
+    "tabTitle": "प्रमुख कार्यक्रम",
+    "manageEvents": "प्रमुख कार्यक्रमों का प्रबंधन",
+    "addEvent": "कार्यक्रम जोड़ें",
+    "editEvent": "कार्यक्रम संपादित करें",
+    "eventName": "कार्यक्रम का नाम",
+    "eventNamePlaceholder": "उदा., विश्व कप 2026",
+    "description": "विवरण",
+    "descriptionPlaceholder": "वैकल्पिक कार्यक्रम विवरण...",
+    "eventDescription": "विशेष अवसरों पर घटनाओं को जोड़ने के लिए कार्यक्रम बनाएं।",
+    "startDate": "प्रारंभ तिथि",
+    "endDate": "समाप्ति तिथि",
+    "status": "स्थिति",
+    "statusActive": "सक्रिय",
+    "statusUpcoming": "आगामी",
+    "statusArchived": "संग्रहीत",
+    "activeToggle": "सक्रिय",
+    "activeToggleDescription": "घटना लिंकिंग के लिए इस कार्यक्रम को सक्षम करें",
+    "noEvents": "अभी तक कोई प्रमुख कार्यक्रम नहीं बनाया गया",
+    "eventCreated": "कार्यक्रम सफलतापूर्वक बनाया गया",
+    "eventUpdated": "कार्यक्रम सफलतापूर्वक अपडेट किया गया",
+    "eventDeleted": "कार्यक्रम सफलतापूर्वक हटाया गया",
+    "deleteConfirmTitle": "कार्यक्रम हटाएं?",
+    "deleteConfirmDescription": "यह कार्यक्रम को हटा देगा। पहले से जुड़ी घटनाएं अपना जुड़ाव बनाए रखेंगी।",
+    "eventBannerTitle": "कार्यक्रम मोड सक्रिय",
+    "eventBannerNote": "यह रिपोर्ट स्वचालित रूप से इस कार्यक्रम से जुड़ जाएगी।",
+    "validation": {
+      "nameRequired": "कार्यक्रम का नाम आवश्यक है",
+      "startRequired": "प्रारंभ तिथि आवश्यक है",
+      "endRequired": "समाप्ति तिथि आवश्यक है",
+      "endAfterStart": "समाप्ति तिथि प्रारंभ तिथि के बाद होनी चाहिए"
+    }
   }
 }

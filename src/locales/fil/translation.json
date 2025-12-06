@@ -1838,5 +1838,38 @@
     "QAR": "Qatari Riyal",
     "USD": "US Dollar",
     "CNY": "Chinese Yuan"
+  },
+  "specialEvents": {
+    "tabTitle": "Malalaking Kaganapan",
+    "manageEvents": "Pamahalaan ang Malalaking Kaganapan",
+    "addEvent": "Magdagdag ng Kaganapan",
+    "editEvent": "I-edit ang Kaganapan",
+    "eventName": "Pangalan ng Kaganapan",
+    "eventNamePlaceholder": "hal., World Cup 2026",
+    "description": "Paglalarawan",
+    "descriptionPlaceholder": "Opsyonal na paglalarawan ng kaganapan...",
+    "eventDescription": "Gumawa ng mga kaganapan para iugnay ang mga insidente sa mga espesyal na okasyon.",
+    "startDate": "Petsa ng Simula",
+    "endDate": "Petsa ng Pagtatapos",
+    "status": "Katayuan",
+    "statusActive": "Aktibo",
+    "statusUpcoming": "Paparating",
+    "statusArchived": "Naka-archive",
+    "activeToggle": "Aktibo",
+    "activeToggleDescription": "I-enable ang kaganapang ito para sa pag-uugnay ng insidente",
+    "noEvents": "Wala pang nalikhang malalaking kaganapan",
+    "eventCreated": "Matagumpay na nalikha ang kaganapan",
+    "eventUpdated": "Matagumpay na na-update ang kaganapan",
+    "eventDeleted": "Matagumpay na natanggal ang kaganapan",
+    "deleteConfirmTitle": "Tanggalin ang Kaganapan?",
+    "deleteConfirmDescription": "Tatanggalin nito ang kaganapan. Ang mga insidenteng naka-link na ay mananatiling konektado.",
+    "eventBannerTitle": "Aktibo ang Event Mode",
+    "eventBannerNote": "Awtomatikong maiuugnay ang ulat na ito sa kaganapang ito.",
+    "validation": {
+      "nameRequired": "Kinakailangan ang pangalan ng kaganapan",
+      "startRequired": "Kinakailangan ang petsa ng simula",
+      "endRequired": "Kinakailangan ang petsa ng pagtatapos",
+      "endAfterStart": "Ang petsa ng pagtatapos ay dapat pagkatapos ng petsa ng simula"
+    }
   }
 }
