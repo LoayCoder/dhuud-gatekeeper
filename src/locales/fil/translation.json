@@ -296,7 +296,8 @@
       "action": "Aksyon",
       "actor": "Isinagawa Ni",
       "timestamp": "Oras",
-      "details": "Mga Detalye"
+      "details": "Mga Detalye",
+      "evidenceDeleted": "Tinanggal ang Ebidensya"
     },
     "myActions": "Mga Aksyon Ko na Natalaga",
     "myActionsDescription": "Tingnan at i-update ang mga corrective action na natalaga sa iyo",

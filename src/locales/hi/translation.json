@@ -296,7 +296,8 @@
       "action": "कार्रवाई",
       "actor": "द्वारा",
       "timestamp": "समय",
-      "details": "विवरण"
+      "details": "विवरण",
+      "evidenceDeleted": "साक्ष्य हटाया गया"
     },
     "myActions": "मेरे सौंपे गए कार्य",
     "myActionsDescription": "अपने सौंपे गए सुधारात्मक कार्यों को देखें और अपडेट करें",

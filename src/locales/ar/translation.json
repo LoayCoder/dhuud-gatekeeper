@@ -297,7 +297,8 @@
       "action": "الإجراء",
       "actor": "بواسطة",
       "timestamp": "الوقت",
-      "details": "التفاصيل"
+      "details": "التفاصيل",
+      "evidenceDeleted": "تم حذف الدليل"
     },
     "myActions": "إجراءاتي المسندة",
     "myActionsDescription": "عرض وتحديث الإجراءات التصحيحية المسندة إليك",

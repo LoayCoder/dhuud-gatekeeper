@@ -26,15 +26,18 @@ export function AuditLogPanel({ incidentId }: AuditLogPanelProps) {
       'action_created': t('investigation.audit.actionCreated', 'Action Created'),
       'action_updated': t('investigation.audit.actionUpdated', 'Action Updated'),
       'evidence_uploaded': t('investigation.audit.evidenceUploaded', 'Evidence Uploaded'),
+      'evidence_reviewed': t('investigation.audit.evidenceReviewed', 'Evidence Reviewed'),
+      'evidence_deleted': t('investigation.auditLog.evidenceDeleted', 'Evidence Deleted'),
       'witness_added': t('investigation.audit.witnessAdded', 'Witness Statement Added'),
       'status_changed': t('investigation.audit.statusChanged', 'Status Changed'),
     };
     return actionLabels[action] || action;
   };
 
-  const getActionVariant = (action: string): "default" | "secondary" | "outline" => {
+  const getActionVariant = (action: string): "default" | "secondary" | "outline" | "destructive" => {
     if (action.includes('started')) return 'default';
-    if (action.includes('created')) return 'secondary';
+    if (action.includes('deleted')) return 'destructive';
+    if (action.includes('created') || action.includes('uploaded')) return 'secondary';
     return 'outline';
   };
 
