@@ -342,9 +342,16 @@ export type Database = {
           longitude: number | null
           media_attachments: Json | null
           occurred_at: string | null
+          original_severity:
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           reference_id: string | null
           reporter_id: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
+          severity_approved_at: string | null
+          severity_approved_by: string | null
+          severity_change_justification: string | null
+          severity_pending_approval: boolean | null
           site_id: string | null
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
@@ -373,9 +380,16 @@ export type Database = {
           longitude?: number | null
           media_attachments?: Json | null
           occurred_at?: string | null
+          original_severity?:
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           reference_id?: string | null
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
+          severity_approved_at?: string | null
+          severity_approved_by?: string | null
+          severity_change_justification?: string | null
+          severity_pending_approval?: boolean | null
           site_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -404,9 +418,16 @@ export type Database = {
           longitude?: number | null
           media_attachments?: Json | null
           occurred_at?: string | null
+          original_severity?:
+            | Database["public"]["Enums"]["severity_level"]
+            | null
           reference_id?: string | null
           reporter_id?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
+          severity_approved_at?: string | null
+          severity_approved_by?: string | null
+          severity_change_justification?: string | null
+          severity_pending_approval?: boolean | null
           site_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
