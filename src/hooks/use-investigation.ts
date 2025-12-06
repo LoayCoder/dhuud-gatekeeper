@@ -38,14 +38,20 @@ export interface CorrectiveAction {
   title: string;
   description: string | null;
   assigned_to: string | null;
+  start_date: string | null;
   due_date: string | null;
   priority: string | null;
   status: string | null;
   action_type: string | null;
+  category: string | null;
+  linked_root_cause_id: string | null;
   completed_date: string | null;
   verified_by: string | null;
   verified_at: string | null;
   verification_notes: string | null;
+  rejected_by: string | null;
+  rejected_at: string | null;
+  rejection_notes: string | null;
   tenant_id: string;
   created_at: string;
 }
@@ -235,9 +241,12 @@ export function useCreateCorrectiveAction() {
       title: string;
       description?: string;
       assigned_to?: string;
+      start_date?: string;
       due_date?: string;
       priority?: string;
       action_type?: string;
+      category?: string;
+      linked_root_cause_id?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) {
         throw new Error('User not authenticated');
