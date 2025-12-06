@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Loader2 } from "lucide-react";
 import { ReporterInfoCard } from "./ReporterInfoCard";
 import { IncidentInfoCard } from "./IncidentInfoCard";
 import { InvestigatorAssignmentCard } from "./InvestigatorAssignmentCard";
@@ -8,15 +9,24 @@ import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import type { Investigation } from "@/hooks/use-investigation";
 
 interface OverviewPanelProps {
-  incident: IncidentWithDetails;
+  incident: IncidentWithDetails | undefined;
   investigation: Investigation | null;
   onRefresh: () => void;
 }
 
 export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPanelProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   
+  // Show loading state if incident is not yet loaded
+  if (!incident) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   const isLocked = (incident as IncidentWithDetails & { investigation_locked?: boolean }).investigation_locked ?? false;
 
   return (
