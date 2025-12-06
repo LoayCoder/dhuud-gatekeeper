@@ -65,8 +65,12 @@
   },
   "investigation": {
     "title": "مساحة عمل التحقيق",
+    "description": "التحقيق في الحوادث وجمع الأدلة وتتبع الإجراءات التصحيحية",
     "selectIncident": "اختر الحادث للتحقيق",
+    "selectIncidentPlaceholder": "اختر حادثاً...",
     "noIncidentSelected": "اختر حادثاً لبدء التحقيق",
+    "noIncidents": "لا توجد حوادث متاحة للتحقيق",
+    "selectToStart": "اختر حادثاً أعلاه لبدء التحقيق",
     "startInvestigation": "بدء التحقيق",
     "accessDenied": "الوصول مرفوض",
     "hsseAccessRequired": "فقط المسؤولون والمديرون أو موظفو الصحة والسلامة يمكنهم الوصول لهذه الصفحة.",

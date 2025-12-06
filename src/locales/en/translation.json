@@ -65,8 +65,12 @@
   },
   "investigation": {
     "title": "Investigation Workspace",
+    "description": "Investigate incidents, collect evidence, and track corrective actions",
     "selectIncident": "Select Incident to Investigate",
+    "selectIncidentPlaceholder": "Choose an incident...",
     "noIncidentSelected": "Select an incident to begin investigation",
+    "noIncidents": "No incidents available for investigation",
+    "selectToStart": "Select an incident above to begin investigation",
     "startInvestigation": "Start Investigation",
     "accessDenied": "Access Denied",
     "hsseAccessRequired": "Only administrators, managers, or HSSE personnel can access this page.",

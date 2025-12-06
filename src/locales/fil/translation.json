@@ -65,8 +65,12 @@
   },
   "investigation": {
     "title": "Investigation Workspace",
+    "description": "Mag-imbestiga ng mga insidente, mangolekta ng ebidensya, at subaybayan ang mga corrective action",
     "selectIncident": "Pumili ng Insidente para sa Imbestigasyon",
+    "selectIncidentPlaceholder": "Pumili ng insidente...",
     "noIncidentSelected": "Pumili ng insidente para magsimula ng imbestigasyon",
+    "noIncidents": "Walang mga insidente na available para sa imbestigasyon",
+    "selectToStart": "Pumili ng insidente sa itaas para magsimula ng imbestigasyon",
     "startInvestigation": "Simulan ang Imbestigasyon",
     "accessDenied": "Tinanggihan ang Access",
     "hsseAccessRequired": "Tanging mga administrator, manager, o HSSE personnel lang ang makakapag-access sa pahinang ito.",
