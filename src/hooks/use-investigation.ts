@@ -6,6 +6,18 @@ import { useTranslation } from "react-i18next";
 import type { Json } from "@/integrations/supabase/types";
 
 // Types
+export interface RootCauseEntry {
+  id: string;
+  text: string;
+  added_at?: string;
+  added_by?: string;
+}
+
+export interface ContributingFactorEntry {
+  id: string;
+  text: string;
+}
+
 export interface Investigation {
   id: string;
   incident_id: string;
@@ -18,6 +30,11 @@ export interface Investigation {
   contributing_factors: string | null;
   findings_summary: string | null;
   five_whys: FiveWhyEntry[] | null;
+  root_causes: RootCauseEntry[] | null;
+  contributing_factors_list: ContributingFactorEntry[] | null;
+  ai_summary: string | null;
+  ai_summary_generated_at: string | null;
+  ai_summary_language: string | null;
   tenant_id: string;
   created_at: string;
   updated_at: string;
@@ -96,14 +113,48 @@ export function useInvestigation(incidentId: string | null) {
             typeof item === 'object' && item !== null && 'why' in item && 'answer' in item
         );
       }
+
+      // Parse root_causes from Json
+      let parsedRootCauses: RootCauseEntry[] = [];
+      if (Array.isArray(data.root_causes)) {
+        parsedRootCauses = (data.root_causes as unknown as RootCauseEntry[]).filter(
+          (item): item is RootCauseEntry => 
+            typeof item === 'object' && item !== null && 'id' in item && 'text' in item
+        );
+      }
+
+      // Parse contributing_factors_list from Json
+      let parsedContributingFactors: ContributingFactorEntry[] = [];
+      if (Array.isArray(data.contributing_factors_list)) {
+        parsedContributingFactors = (data.contributing_factors_list as unknown as ContributingFactorEntry[]).filter(
+          (item): item is ContributingFactorEntry => 
+            typeof item === 'object' && item !== null && 'id' in item && 'text' in item
+        );
+      }
       
       return {
-        ...data,
+        id: data.id,
+        incident_id: data.incident_id,
+        investigator_id: data.investigator_id,
+        started_at: data.started_at,
+        completed_at: data.completed_at,
+        immediate_cause: data.immediate_cause,
+        underlying_cause: data.underlying_cause,
+        root_cause: data.root_cause,
+        contributing_factors: data.contributing_factors,
+        findings_summary: data.findings_summary,
         five_whys: parsedWhys,
-        // New fields - may not exist in types yet
-        assigned_by: (data as Record<string, unknown>).assigned_by as string | null ?? null,
-        assignment_date: (data as Record<string, unknown>).assignment_date as string | null ?? null,
-        assignment_notes: (data as Record<string, unknown>).assignment_notes as string | null ?? null,
+        root_causes: parsedRootCauses,
+        contributing_factors_list: parsedContributingFactors,
+        ai_summary: data.ai_summary ?? null,
+        ai_summary_generated_at: data.ai_summary_generated_at ?? null,
+        ai_summary_language: data.ai_summary_language ?? null,
+        tenant_id: data.tenant_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        assigned_by: null,
+        assignment_date: null,
+        assignment_notes: null,
       } as Investigation;
     },
     enabled: !!incidentId,
@@ -174,12 +225,22 @@ export function useUpdateInvestigation() {
         throw new Error('User not authenticated');
       }
 
-      // Convert five_whys to Json type for database
-      const dbUpdates = {
+      // Convert typed arrays to Json for database
+      const dbUpdates: Record<string, unknown> = {
         ...updates,
-        five_whys: updates.five_whys as unknown as Json,
         updated_at: new Date().toISOString(),
       };
+      
+      // Explicitly cast complex types to Json
+      if (updates.five_whys !== undefined) {
+        dbUpdates.five_whys = updates.five_whys as unknown as Json;
+      }
+      if (updates.root_causes !== undefined) {
+        dbUpdates.root_causes = updates.root_causes as unknown as Json;
+      }
+      if (updates.contributing_factors_list !== undefined) {
+        dbUpdates.contributing_factors_list = updates.contributing_factors_list as unknown as Json;
+      }
 
       const { data, error } = await supabase
         .from('investigations')

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save, Loader2, Wand2, Check } from "lucide-react";
+import { Save, Loader2, Wand2, Check, Pencil, Lock } from "lucide-react";
 import { FiveWhysBuilder } from "./FiveWhysBuilder";
 import { RootCausesBuilder, type RootCauseEntry } from "./RootCausesBuilder";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
@@ -74,6 +74,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   const { rewriteText, isLoading: isAILoading } = useRCAAI();
   const [rewritingField, setRewritingField] = useState<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [isLocked, setIsLocked] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
 
@@ -96,15 +97,10 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   // Parse and set form data when investigation loads
   useEffect(() => {
     if (investigation) {
-      let parsedRootCauses: RootCauseEntry[] = [];
-      const rawRootCauses = (investigation as unknown as Record<string, unknown>).root_causes;
-      if (Array.isArray(rawRootCauses)) {
-        parsedRootCauses = rawRootCauses.filter(
-          (item): item is RootCauseEntry => 
-            typeof item === 'object' && item !== null && 'id' in item && 'text' in item
-        );
-      }
+      // Use already-parsed data from the hook
+      let parsedRootCauses: RootCauseEntry[] = investigation.root_causes || [];
 
+      // Fallback: if root_causes is empty but root_cause text exists, migrate it
       if (parsedRootCauses.length === 0 && investigation.root_cause) {
         parsedRootCauses = [{
           id: crypto.randomUUID(),
@@ -113,14 +109,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         }];
       }
 
-      let parsedContributingFactors: ContributingFactorEntry[] = [];
-      const rawContributingFactors = (investigation as unknown as Record<string, unknown>).contributing_factors_list;
-      if (Array.isArray(rawContributingFactors)) {
-        parsedContributingFactors = rawContributingFactors.filter(
-          (item): item is ContributingFactorEntry => 
-            typeof item === 'object' && item !== null && 'id' in item && 'text' in item
-        );
-      }
+      const parsedContributingFactors: ContributingFactorEntry[] = investigation.contributing_factors_list || [];
 
       const formData = {
         immediate_cause: investigation.immediate_cause || '',
@@ -131,9 +120,9 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         five_whys: investigation.five_whys || [],
         root_causes: parsedRootCauses,
         contributing_factors_list: parsedContributingFactors,
-        ai_summary: (investigation as unknown as Record<string, unknown>).ai_summary as string || '',
-        ai_summary_generated_at: (investigation as unknown as Record<string, unknown>).ai_summary_generated_at as string || null,
-        ai_summary_language: (investigation as unknown as Record<string, unknown>).ai_summary_language as string || 'en',
+        ai_summary: investigation.ai_summary || '',
+        ai_summary_generated_at: investigation.ai_summary_generated_at || null,
+        ai_summary_language: investigation.ai_summary_language || 'en',
       };
       
       form.reset(formData);
@@ -183,11 +172,12 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
     }
   }, [investigation?.id, incidentId, updateInvestigation]);
 
-  // Watch form values for auto-save
+  // Watch form values for auto-save (only when not locked)
   const formValues = form.watch();
   
   useEffect(() => {
-    if (!investigation?.id) return;
+    // Skip auto-save when locked
+    if (!investigation?.id || isLocked) return;
     
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
@@ -202,13 +192,19 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [formValues, investigation?.id, performAutoSave]);
+  }, [formValues, investigation?.id, performAutoSave, isLocked]);
 
   const onSubmit = async (data: RCAFormValues) => {
     if (!investigation) {
       await createInvestigation.mutateAsync(incidentId);
     }
     await performAutoSave(data);
+    // Lock after saving
+    setIsLocked(true);
+  };
+
+  const handleUnlock = () => {
+    setIsLocked(false);
   };
   const handleStartInvestigation = async () => {
     await createInvestigation.mutateAsync(incidentId);
@@ -280,9 +276,10 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
               control={form.control}
               name="five_whys"
               render={({ field }) => (
-                <FiveWhysBuilder
+              <FiveWhysBuilder
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={isLocked}
                   incidentTitle={incidentTitle}
                   incidentDescription={incidentDescription}
                 />
@@ -309,6 +306,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
                     <FormLabel className="text-muted-foreground text-sm">
                       {t('investigation.rca.immediateCauseDesc', 'What directly caused the incident?')}
                     </FormLabel>
+                    {!isLocked && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -324,10 +322,12 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
                       )}
                       {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
                     </Button>
+                    )}
                   </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      disabled={isLocked}
                       placeholder={t('investigation.rca.immediateCausePlaceholder', 'Describe the immediate cause that triggered the incident...')}
                       rows={3}
                     />
@@ -357,6 +357,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
                     <FormLabel className="text-muted-foreground text-sm">
                       {t('investigation.rca.underlyingCauseDesc', 'What conditions or circumstances allowed this to happen?')}
                     </FormLabel>
+                    {!isLocked && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -372,10 +373,12 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
                       )}
                       {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
                     </Button>
+                    )}
                   </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      disabled={isLocked}
                       placeholder={t('investigation.rca.underlyingCausePlaceholder', 'Describe the underlying conditions that enabled this incident...')}
                       rows={3}
                     />
@@ -400,9 +403,10 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
               control={form.control}
               name="root_causes"
               render={({ field }) => (
-                <RootCausesBuilder
+              <RootCausesBuilder
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={isLocked}
                   fiveWhys={fiveWhysValue}
                   immediateCause={immediateCauseValue}
                   underlyingCause={underlyingCauseValue}
@@ -422,6 +426,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
             <ContributingFactorsBuilder
               value={field.value}
               onChange={field.onChange}
+              disabled={isLocked}
               incidentTitle={incidentTitle}
               incidentDescription={incidentDescription}
               immediateCause={immediateCauseValue}
@@ -444,6 +449,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
               <AISummaryPanel
                 value={field.value || ''}
                 onChange={field.onChange}
+                disabled={isLocked}
                 fiveWhys={fiveWhysValue}
                 immediateCause={immediateCauseValue}
                 underlyingCause={underlyingCauseValue}
@@ -458,27 +464,45 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
           />
         </div>
 
-        {/* Save Button with Auto-save Status */}
+        {/* Save/Edit Button with Status */}
         <div className="flex items-center justify-between sticky bottom-0 bg-background py-4 border-t">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {autoSaveStatus === 'saving' && (
+            {isLocked ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>{t('investigation.rca.autoSaving', 'Auto-saving...')}</span>
+                <Lock className="h-4 w-4 text-amber-500" />
+                <span>{t('investigation.rca.analysisLocked', 'Analysis is locked')}</span>
               </>
-            )}
-            {autoSaveStatus === 'saved' && (
+            ) : (
               <>
-                <Check className="h-4 w-4 text-green-500" />
-                <span>{t('investigation.rca.autoSaved', 'Auto-saved')}</span>
+                {autoSaveStatus === 'saving' && (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{t('investigation.rca.autoSaving', 'Auto-saving...')}</span>
+                  </>
+                )}
+                {autoSaveStatus === 'saved' && (
+                  <>
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span>{t('investigation.rca.autoSaved', 'Auto-saved')}</span>
+                  </>
+                )}
               </>
             )}
           </div>
-          <Button type="submit" disabled={updateInvestigation.isPending} size="lg">
-            {updateInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            <Save className="h-4 w-4 me-2" />
-            {t('investigation.rca.saveAnalysis', 'Save RCA Analysis')}
-          </Button>
+          <div className="flex items-center gap-2">
+            {isLocked ? (
+              <Button type="button" variant="outline" size="lg" onClick={handleUnlock}>
+                <Pencil className="h-4 w-4 me-2" />
+                {t('investigation.rca.editAnalysis', 'Edit Analysis')}
+              </Button>
+            ) : (
+              <Button type="submit" disabled={updateInvestigation.isPending} size="lg">
+                {updateInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+                <Save className="h-4 w-4 me-2" />
+                {t('investigation.rca.saveAnalysis', 'Save RCA Analysis')}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </Form>
