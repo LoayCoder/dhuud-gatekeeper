@@ -13,7 +13,8 @@ export type ModuleCode =
   | 'ptw'
   | 'security'
   | 'food_safety'
-  | 'environmental';
+  | 'environmental'
+  | 'asset_management';
 
 interface TenantSubscription {
   planId: string | null;

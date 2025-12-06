@@ -45,7 +45,7 @@ const assetSchema = z.object({
   longitude: z.number().optional().nullable(),
   
   // Status
-  status: z.enum(['active', 'inactive', 'under_maintenance', 'out_of_service', 'disposed']).default('active'),
+  status: z.enum(['active', 'missing', 'out_of_service', 'pending_inspection', 'retired', 'under_maintenance']).default('active'),
   condition_rating: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']).optional().nullable(),
   criticality_level: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   ownership: z.enum(['company', 'leased', 'rented', 'contractor']).default('company'),
@@ -217,10 +217,19 @@ function AssetRegisterContent() {
 
   const onSubmit = async (values: AssetFormValues) => {
     try {
+      // Zod validation ensures these are present
+      const assetData = {
+        ...values,
+        asset_code: values.asset_code!,
+        category_id: values.category_id!,
+        type_id: values.type_id!,
+        name: values.name!,
+      };
+      
       if (editId) {
-        await updateAsset.mutateAsync({ id: editId, ...values });
+        await updateAsset.mutateAsync({ id: editId, ...assetData });
       } else {
-        await createAsset.mutateAsync(values);
+        await createAsset.mutateAsync(assetData);
       }
       navigate('/assets');
     } catch (error) {
