@@ -149,14 +149,15 @@
       "medium": "Medium Risk",
       "high": "High Risk"
     },
-    "immediateAction": {
-      "addPhoto": "Add Photo Evidence",
-      "photoPreview": "Immediate action photo",
-      "description": "Describe any immediate corrective or preventive actions you have taken",
-      "confirmTitle": "Immediate Action Status",
-      "confirmMessage": "You have described an immediate action. Is this action now closed, or should it be submitted to HSSE for follow-up?",
-      "actionClosed": "Yes, Action Closed",
-      "submitToHSSE": "No, Submit to HSSE"
+    "closedOnSpot": {
+      "label": "Closed on the Spot",
+      "description": "Enable if you have already mitigated this hazard at the time of reporting",
+      "addPhotos": "Add Evidence Photos",
+      "photosAdded": "photos",
+      "photoEvidence": "Evidence photo",
+      "confirmTitle": "Confirm Completion",
+      "confirmMessage": "You are confirming that this observation has been fully mitigated and the risk has been eliminated.\n\nBy proceeding, this observation will be marked as Completed.",
+      "confirm": "Confirm & Submit"
     },
     "riskRatingTitle": "Risk Assessment",
     "riskRatingLabel": "Risk Rating",
