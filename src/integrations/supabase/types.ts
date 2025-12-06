@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_evidence: {
+        Row: {
+          action_id: string
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          action_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          action_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_evidence_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "corrective_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_evidence_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_evidence_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_stats: {
         Row: {
           agent_id: string
@@ -101,6 +165,7 @@ export type Database = {
         Row: {
           action_type: string | null
           assigned_to: string | null
+          category: string | null
           completed_date: string | null
           created_at: string | null
           deleted_at: string | null
@@ -108,7 +173,13 @@ export type Database = {
           due_date: string | null
           id: string
           incident_id: string | null
+          linked_root_cause_id: string | null
           priority: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_notes: string | null
+          responsible_department_id: string | null
+          start_date: string | null
           status: string | null
           tenant_id: string
           title: string
@@ -120,6 +191,7 @@ export type Database = {
         Insert: {
           action_type?: string | null
           assigned_to?: string | null
+          category?: string | null
           completed_date?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -127,7 +199,13 @@ export type Database = {
           due_date?: string | null
           id?: string
           incident_id?: string | null
+          linked_root_cause_id?: string | null
           priority?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_notes?: string | null
+          responsible_department_id?: string | null
+          start_date?: string | null
           status?: string | null
           tenant_id: string
           title: string
@@ -139,6 +217,7 @@ export type Database = {
         Update: {
           action_type?: string | null
           assigned_to?: string | null
+          category?: string | null
           completed_date?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -146,7 +225,13 @@ export type Database = {
           due_date?: string | null
           id?: string
           incident_id?: string | null
+          linked_root_cause_id?: string | null
           priority?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_notes?: string | null
+          responsible_department_id?: string | null
+          start_date?: string | null
           status?: string | null
           tenant_id?: string
           title?: string
@@ -168,6 +253,20 @@ export type Database = {
             columns: ["incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_responsible_department_id_fkey"
+            columns: ["responsible_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -588,6 +687,9 @@ export type Database = {
       }
       investigations: {
         Row: {
+          ai_summary: string | null
+          ai_summary_generated_at: string | null
+          ai_summary_language: string | null
           completed_at: string | null
           contributing_factors: string | null
           created_at: string | null
@@ -599,12 +701,16 @@ export type Database = {
           incident_id: string | null
           investigator_id: string | null
           root_cause: string | null
+          root_causes: Json | null
           started_at: string | null
           tenant_id: string
           underlying_cause: string | null
           updated_at: string | null
         }
         Insert: {
+          ai_summary?: string | null
+          ai_summary_generated_at?: string | null
+          ai_summary_language?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
           created_at?: string | null
@@ -616,12 +722,16 @@ export type Database = {
           incident_id?: string | null
           investigator_id?: string | null
           root_cause?: string | null
+          root_causes?: Json | null
           started_at?: string | null
           tenant_id: string
           underlying_cause?: string | null
           updated_at?: string | null
         }
         Update: {
+          ai_summary?: string | null
+          ai_summary_generated_at?: string | null
+          ai_summary_language?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
           created_at?: string | null
@@ -633,6 +743,7 @@ export type Database = {
           incident_id?: string | null
           investigator_id?: string | null
           root_cause?: string | null
+          root_causes?: Json | null
           started_at?: string | null
           tenant_id?: string
           underlying_cause?: string | null
@@ -2543,6 +2654,10 @@ export type Database = {
             }
             Returns: Json
           }
+      can_close_investigation: {
+        Args: { p_incident_id: string }
+        Returns: Json
+      }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
         Returns: boolean
