@@ -97,6 +97,95 @@ export type Database = {
           },
         ]
       }
+      corrective_actions: {
+        Row: {
+          action_type: string | null
+          assigned_to: string | null
+          completed_date: string | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          incident_id: string | null
+          priority: string | null
+          status: string | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          incident_id?: string | null
+          priority?: string | null
+          status?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          incident_id?: string | null
+          priority?: string | null
+          status?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corrective_actions_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string | null
@@ -164,6 +253,230 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "divisions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          incident_id: string | null
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          incident_id?: string | null
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          incident_id?: string | null
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_audit_logs_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          created_at: string | null
+          damage_details: Json | null
+          deleted_at: string | null
+          department: string | null
+          description: string
+          event_type: string
+          has_damage: boolean | null
+          has_injury: boolean | null
+          id: string
+          immediate_actions: string | null
+          injury_details: Json | null
+          location: string | null
+          occurred_at: string | null
+          reference_id: string | null
+          reporter_id: string | null
+          severity: Database["public"]["Enums"]["severity_level"] | null
+          status: Database["public"]["Enums"]["incident_status"] | null
+          subtype: string | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          damage_details?: Json | null
+          deleted_at?: string | null
+          department?: string | null
+          description: string
+          event_type: string
+          has_damage?: boolean | null
+          has_injury?: boolean | null
+          id?: string
+          immediate_actions?: string | null
+          injury_details?: Json | null
+          location?: string | null
+          occurred_at?: string | null
+          reference_id?: string | null
+          reporter_id?: string | null
+          severity?: Database["public"]["Enums"]["severity_level"] | null
+          status?: Database["public"]["Enums"]["incident_status"] | null
+          subtype?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          damage_details?: Json | null
+          deleted_at?: string | null
+          department?: string | null
+          description?: string
+          event_type?: string
+          has_damage?: boolean | null
+          has_injury?: boolean | null
+          id?: string
+          immediate_actions?: string | null
+          injury_details?: Json | null
+          location?: string | null
+          occurred_at?: string | null
+          reference_id?: string | null
+          reporter_id?: string | null
+          severity?: Database["public"]["Enums"]["severity_level"] | null
+          status?: Database["public"]["Enums"]["incident_status"] | null
+          subtype?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigations: {
+        Row: {
+          completed_at: string | null
+          contributing_factors: string | null
+          created_at: string | null
+          deleted_at: string | null
+          findings_summary: string | null
+          five_whys: Json | null
+          id: string
+          immediate_cause: string | null
+          incident_id: string | null
+          investigator_id: string | null
+          root_cause: string | null
+          started_at: string | null
+          tenant_id: string
+          underlying_cause: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          contributing_factors?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          findings_summary?: string | null
+          five_whys?: Json | null
+          id?: string
+          immediate_cause?: string | null
+          incident_id?: string | null
+          investigator_id?: string | null
+          root_cause?: string | null
+          started_at?: string | null
+          tenant_id: string
+          underlying_cause?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          contributing_factors?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          findings_summary?: string | null
+          five_whys?: Json | null
+          id?: string
+          immediate_cause?: string | null
+          incident_id?: string | null
+          investigator_id?: string | null
+          root_cause?: string | null
+          started_at?: string | null
+          tenant_id?: string
+          underlying_cause?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_investigator_id_fkey"
+            columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1752,6 +2065,73 @@ export type Database = {
           },
         ]
       }
+      witness_statements: {
+        Row: {
+          attachment_url: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          incident_id: string | null
+          statement_date: string | null
+          statement_text: string
+          tenant_id: string
+          updated_at: string | null
+          witness_contact: string | null
+          witness_name: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          incident_id?: string | null
+          statement_date?: string | null
+          statement_text: string
+          tenant_id: string
+          updated_at?: string | null
+          witness_contact?: string | null
+          witness_name: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          incident_id?: string | null
+          statement_date?: string | null
+          statement_text?: string
+          tenant_id?: string
+          updated_at?: string | null
+          witness_contact?: string | null
+          witness_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "witness_statements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1927,6 +2307,7 @@ export type Database = {
               user_type: string
             }[]
           }
+      has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1967,6 +2348,12 @@ export type Database = {
         | "backup_code_used"
       app_role: "admin" | "user"
       contractor_type: "long_term" | "short_term"
+      incident_status:
+        | "submitted"
+        | "pending_review"
+        | "investigation_pending"
+        | "investigation_in_progress"
+        | "closed"
       module_code:
         | "hsse_core"
         | "visitor_management"
@@ -1984,6 +2371,7 @@ export type Database = {
         | "security"
         | "audit"
         | "food_safety"
+      severity_level: "low" | "medium" | "high" | "critical"
       subscription_event_type:
         | "plan_changed"
         | "trial_started"
@@ -2177,6 +2565,13 @@ export const Constants = {
       ],
       app_role: ["admin", "user"],
       contractor_type: ["long_term", "short_term"],
+      incident_status: [
+        "submitted",
+        "pending_review",
+        "investigation_pending",
+        "investigation_in_progress",
+        "closed",
+      ],
       module_code: [
         "hsse_core",
         "visitor_management",
@@ -2196,6 +2591,7 @@ export const Constants = {
         "audit",
         "food_safety",
       ],
+      severity_level: ["low", "medium", "high", "critical"],
       subscription_event_type: [
         "plan_changed",
         "trial_started",
