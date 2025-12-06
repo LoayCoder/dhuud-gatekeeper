@@ -108,29 +108,6 @@ export default function InvestigationWorkspace() {
       {/* Investigation Tabs */}
       {selectedIncidentId ? (
         <>
-          {/* Selected Incident Info */}
-          {selectedIncident && (
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{selectedIncident.title}</CardTitle>
-                    <CardDescription className="font-mono">
-                      {selectedIncident.reference_id}
-                    </CardDescription>
-                  </div>
-                  <Badge variant={getStatusVariant(selectedIncident.status)}>
-                    {t(`incidents.status.${selectedIncident.status}`)}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {selectedIncident.description}
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
