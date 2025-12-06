@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import MediaUploadSection from '@/components/incidents/MediaUploadSection';
 import { ClosedOnSpotSection, ClosedOnSpotConfirmDialog } from '@/components/incidents/ClosedOnSpotSection';
+import { AssetSelectionSection, SelectedAsset } from '@/components/incidents/AssetSelectionSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -30,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
 import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { 
   analyzeIncidentDescription, 
   detectEventType,
@@ -109,8 +111,12 @@ const WIZARD_STEPS = [
 export default function IncidentReport() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const direction = i18n.dir();
   const { profile } = useAuth();
+  
+  // Get assetId from URL if present (from QR scan)
+  const preselectedAssetId = searchParams.get('assetId');
   
   // Create schema with translated messages
   const incidentFormSchema = createIncidentFormSchema(t);
@@ -141,8 +147,11 @@ export default function IncidentReport() {
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [showClosedOnSpotConfirm, setShowClosedOnSpotConfirm] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<FormValues | null>(null);
+  // Asset selection state
+  const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
   
   const createIncident = useCreateIncident();
+  const linkAsset = useLinkAssetToIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
   const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
@@ -199,6 +208,53 @@ export default function IncidentReport() {
       setAutoDetectedSite(true);
     }
   }, [profile?.assigned_site_id, form]);
+
+  // Handle preselected asset from URL (QR scan)
+  useEffect(() => {
+    if (preselectedAssetId && !selectedAsset) {
+      // Fetch the asset and select it
+      supabase
+        .from('hsse_assets')
+        .select(`
+          id,
+          asset_code,
+          name,
+          site_id,
+          branch_id,
+          site:sites(id, name),
+          building:buildings(name),
+          category:asset_categories(name, name_ar)
+        `)
+        .eq('id', preselectedAssetId)
+        .is('deleted_at', null)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data) {
+            handleAssetSelect(data as SelectedAsset);
+          }
+        });
+    }
+  }, [preselectedAssetId]);
+
+  // Handle asset selection and auto-populate location
+  const handleAssetSelect = (asset: SelectedAsset | null) => {
+    setSelectedAsset(asset);
+    
+    if (asset) {
+      // Auto-populate site if available
+      if (asset.site_id && !form.getValues('site_id')) {
+        form.setValue('site_id', asset.site_id);
+        setAutoDetectedSite(false);
+        setGpsDetectedSite(null);
+      }
+      // Auto-populate branch if available
+      if (asset.branch_id && !form.getValues('branch_id')) {
+        form.setValue('branch_id', asset.branch_id);
+        setAutoDetectedBranch(false);
+        setGpsDetectedBranch(false);
+      }
+    }
+  };
 
   // Generate reference preview based on event type
   const getReferencePreview = () => {
@@ -496,6 +552,20 @@ export default function IncidentReport() {
             setIsUploading(false);
           }
         }
+        
+        // Link selected asset to the incident
+        if (selectedAsset && data?.id) {
+          try {
+            await linkAsset.mutateAsync({
+              incidentId: data.id,
+              assetId: selectedAsset.id,
+              linkType: 'involved',
+            });
+          } catch (error) {
+            console.error('Asset linking error:', error);
+          }
+        }
+        
         navigate('/incidents');
       },
     });
@@ -1054,6 +1124,12 @@ export default function IncidentReport() {
                   />
                 </CardContent>
               </Card>
+
+              {/* Asset Selection */}
+              <AssetSelectionSection 
+                selectedAssetId={selectedAsset?.id || null}
+                onAssetSelect={handleAssetSelect}
+              />
             </div>
           )}
 

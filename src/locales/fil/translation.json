@@ -2201,6 +2201,13 @@
         "maintenance_completed": "natapos ang maintenance para sa"
       }
     },
+    "scanner": {
+      "assetFound": "Nahanap ang Asset",
+      "assetNotFound": "Hindi nahanap ang asset",
+      "viewDetails": "Tingnan ang Detalye",
+      "reportEvent": "I-report ang Event",
+      "scanAgain": "Mag-scan Ulit"
+    },
     "condition": {
       "excellent": "Napakahusay",
       "good": "Mabuti",

@@ -76,13 +76,20 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
   const handleScanSuccess = async (decodedText: string) => {
     await stopScanning();
     
-    // Extract asset ID from URL
+    // Extract asset ID from URL or raw UUID
     const urlPattern = /\/assets\/([a-f0-9-]{36})/i;
-    const match = decodedText.match(urlPattern);
+    const uuidPattern = /^[a-f0-9-]{36}$/i;
     
-    if (match && match[1]) {
-      const assetId = match[1];
-      
+    let assetId: string | null = null;
+    
+    const urlMatch = decodedText.match(urlPattern);
+    if (urlMatch && urlMatch[1]) {
+      assetId = urlMatch[1];
+    } else if (uuidPattern.test(decodedText.trim())) {
+      assetId = decodedText.trim();
+    }
+    
+    if (assetId) {
       if (onScanSuccess) {
         onScanSuccess(assetId);
       }

@@ -2250,6 +2250,13 @@
     },
     "noIncidentHistory": "لا يوجد سجل حوادث",
     "noIncidentHistoryDescription": "لم يتم ربط هذا الأصل بأي حوادث",
+    "scanner": {
+      "assetFound": "تم العثور على الأصل",
+      "assetNotFound": "الأصل غير موجود",
+      "viewDetails": "عرض تفاصيل الأصل",
+      "reportEvent": "الإبلاغ عن حدث",
+      "scanAgain": "مسح آخر"
+    },
     "status": {
       "active": "نشط",
       "missing": "مفقود",

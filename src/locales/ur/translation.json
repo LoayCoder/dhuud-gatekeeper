@@ -2201,6 +2201,13 @@
         "maintenance_completed": "دیکھ بھال مکمل کی"
       }
     },
+    "scanner": {
+      "assetFound": "اثاثہ مل گیا",
+      "assetNotFound": "اثاثہ نہیں ملا",
+      "viewDetails": "تفصیلات دیکھیں",
+      "reportEvent": "واقعہ رپورٹ کریں",
+      "scanAgain": "دوبارہ سکین کریں"
+    },
     "condition": {
       "excellent": "بہترین",
       "good": "اچھی",
