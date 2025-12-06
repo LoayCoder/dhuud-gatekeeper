@@ -104,7 +104,29 @@
       "medicalTreatment": "علاج طبي",
       "fire": "حريق",
       "security": "أمني"
-    }
+    },
+    "tabCapture": "التقاط وتحليل",
+    "tabCategorize": "التصنيف",
+    "tabSubmit": "الموقع والإرسال",
+    "uploadMedia": "رفع صور أو فيديو",
+    "tapToUpload": "اضغط لرفع صور أو فيديو",
+    "maxPhotos": "بحد أقصى 3 صور",
+    "maxVideo": "فيديو واحد (10 ثواني)",
+    "analyzingHazard": "جاري تحليل المخاطر...",
+    "aiAnalysisComplete": "اكتمل تحليل الذكاء الاصطناعي",
+    "aiSuggestedDetails": "تفاصيل مقترحة من الذكاء الاصطناعي",
+    "aiSuggested": "مقترح من AI",
+    "categorizeIncident": "تصنيف الحادث",
+    "nextStep": "التالي",
+    "previousStep": "السابق",
+    "reviewSummary": "ملخص المراجعة",
+    "mediaAttached": "ملفات مرفقة",
+    "unsupportedFileType": "نوع ملف غير مدعوم",
+    "maxPhotosReached": "الحد الأقصى 3 صور",
+    "maxVideoReached": "الحد الأقصى فيديو واحد",
+    "imageTooLarge": "الصورة يجب أن تكون أقل من 5MB",
+    "videoTooLarge": "الفيديو يجب أن يكون أقل من 20MB",
+    "videoDurationError": "الفيديو يجب أن يكون 10 ثوانٍ أو أقل"
   },
   "investigation": {
     "title": "مساحة عمل التحقيق",
@@ -355,7 +377,8 @@
     "time": "الوقت",
     "noData": "لا توجد بيانات",
     "noResults": "لا توجد نتائج",
-    "refresh": "تحديث"
+    "refresh": "تحديث",
+    "files": "ملفات"
   },
   "auth": {
     "signIn": "تسجيل الدخول",

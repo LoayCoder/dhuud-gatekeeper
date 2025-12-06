@@ -8,6 +8,12 @@ import type { Database } from '@/integrations/supabase/types';
 type Incident = Database['public']['Tables']['incidents']['Row'];
 type IncidentInsert = Database['public']['Tables']['incidents']['Insert'];
 
+export interface MediaAttachment {
+  type: 'image' | 'video';
+  url: string;
+  path: string;
+}
+
 export interface IncidentFormData {
   title: string;
   description: string;
@@ -28,12 +34,15 @@ export interface IncidentFormData {
     description?: string;
     estimated_cost?: number;
   };
-  // New location fields
+  // Location fields
   site_id?: string;
   branch_id?: string;
   department_id?: string;
   latitude?: number;
   longitude?: number;
+  // Media & AI fields
+  media_attachments?: MediaAttachment[];
+  ai_analysis_result?: object;
 }
 
 export function useCreateIncident() {
@@ -68,12 +77,15 @@ export function useCreateIncident() {
         has_damage: data.has_damage,
         damage_details: data.has_damage ? data.damage_details : null,
         status: 'submitted',
-        // New location fields
+        // Location fields
         site_id: data.site_id || null,
         branch_id: data.branch_id || null,
         department_id: data.department_id || null,
         latitude: data.latitude || null,
         longitude: data.longitude || null,
+        // Media & AI fields
+        media_attachments: (data.media_attachments || []) as unknown as Database['public']['Tables']['incidents']['Insert']['media_attachments'],
+        ai_analysis_result: (data.ai_analysis_result || null) as unknown as Database['public']['Tables']['incidents']['Insert']['ai_analysis_result'],
       };
 
       const { data: incident, error } = await supabase
