@@ -315,7 +315,65 @@
       "in_progress": "قيد التنفيذ",
       "completed": "مكتمل",
       "verified": "تم التحقق"
-    }
+    },
+    "overview": {
+      "reporterInfo": "معلومات المُبلّغ",
+      "fullName": "الاسم الكامل",
+      "employeeId": "رقم الموظف",
+      "jobTitle": "المسمى الوظيفي",
+      "contact": "الاتصال",
+      "department": "القسم",
+      "branch": "الفرع",
+      "reporterUnavailable": "معلومات المُبلّغ غير متوفرة",
+      "incidentInfo": "معلومات الحادث",
+      "referenceId": "الرقم المرجعي",
+      "eventType": "نوع الحدث",
+      "subtype": "النوع الفرعي",
+      "occurredAt": "وقت الحدوث",
+      "location": "الموقع",
+      "site": "الموقع",
+      "investigatorAssignment": "تعيين المحقق",
+      "assignInvestigator": "تعيين محقق",
+      "selectInvestigator": "اختر محققاً",
+      "currentInvestigator": "المحقق الحالي",
+      "noInvestigator": "لم يتم تعيين محقق",
+      "reassign": "إعادة التعيين",
+      "severityAdjustment": "تعديل الخطورة",
+      "currentSeverity": "الخطورة الحالية",
+      "proposedSeverity": "الخطورة المقترحة",
+      "proposeSeverityChange": "اقتراح تغيير الخطورة",
+      "selectNewSeverity": "اختر خطورة جديدة",
+      "justification": "المبرر",
+      "justificationPlaceholder": "اشرح لماذا يجب تغيير الخطورة...",
+      "submitProposal": "إرسال الاقتراح",
+      "pendingApproval": "في انتظار الموافقة",
+      "awaitingApproval": "في انتظار موافقة مدير السلامة",
+      "approveChange": "موافقة",
+      "rejectChange": "رفض",
+      "proposedBy": "مقترح من",
+      "noSeverityChange": "لا يوجد تغيير خطورة معلق"
+    },
+    "workflow": {
+      "inProgress": "التحقيق جارٍ",
+      "locked": "بيانات المُبلّغ مقفلة أثناء التحقيق",
+      "completed": "اكتمل التحقيق",
+      "notStarted": "لم يبدأ التحقيق",
+      "approvalRequired": "الموافقة مطلوبة",
+      "approvalRequiredDescription": "هذا الحادث يتطلب موافقة مدير السلامة قبل بدء التحقيق.",
+      "approveIncident": "موافقة وقفل للتحقيق",
+      "startInvestigation": "بدء التحقيق",
+      "completeInvestigation": "إكمال التحقيق",
+      "reopenInvestigation": "إعادة فتح التحقيق"
+    },
+    "tabs": {
+      "overview": "نظرة عامة"
+    },
+    "severityChangeProposed": "تم اقتراح تغيير الخطورة. في انتظار موافقة مدير السلامة.",
+    "severityChangeApproved": "تمت الموافقة على تغيير الخطورة",
+    "severityChangeRejected": "تم رفض تغيير الخطورة",
+    "investigatorAssigned": "تم تعيين المحقق بنجاح",
+    "incidentApproved": "تمت الموافقة على الحادث وقفله للتحقيق",
+    "started": "بدأ التحقيق"
   },
   "pages": {
     "incidents": {
@@ -412,7 +470,12 @@
     "time": "الوقت",
     "noData": "لا توجد بيانات",
     "noResults": "لا توجد نتائج",
-    "refresh": "تحديث"
+    "refresh": "تحديث",
+    "notSet": "غير محدد",
+    "unknown": "غير معروف",
+    "pending": "قيد الانتظار",
+    "approved": "تمت الموافقة",
+    "rejected": "مرفوض"
   },
   "auth": {
     "signIn": "تسجيل الدخول",

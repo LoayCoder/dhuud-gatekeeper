@@ -315,7 +315,65 @@
       "in_progress": "In Progress",
       "completed": "Completed",
       "verified": "Verified"
-    }
+    },
+    "overview": {
+      "reporterInfo": "Reporter Information",
+      "fullName": "Full Name",
+      "employeeId": "Employee ID",
+      "jobTitle": "Job Title",
+      "contact": "Contact",
+      "department": "Department",
+      "branch": "Branch",
+      "reporterUnavailable": "Reporter information unavailable",
+      "incidentInfo": "Incident Information",
+      "referenceId": "Reference ID",
+      "eventType": "Event Type",
+      "subtype": "Subtype",
+      "occurredAt": "Occurred At",
+      "location": "Location",
+      "site": "Site",
+      "investigatorAssignment": "Investigator Assignment",
+      "assignInvestigator": "Assign Investigator",
+      "selectInvestigator": "Select an investigator",
+      "currentInvestigator": "Current Investigator",
+      "noInvestigator": "No investigator assigned",
+      "reassign": "Reassign",
+      "severityAdjustment": "Severity Adjustment",
+      "currentSeverity": "Current Severity",
+      "proposedSeverity": "Proposed Severity",
+      "proposeSeverityChange": "Propose Severity Change",
+      "selectNewSeverity": "Select new severity",
+      "justification": "Justification",
+      "justificationPlaceholder": "Explain why severity should be changed...",
+      "submitProposal": "Submit Proposal",
+      "pendingApproval": "Pending Approval",
+      "awaitingApproval": "Awaiting HSSE Manager Approval",
+      "approveChange": "Approve",
+      "rejectChange": "Reject",
+      "proposedBy": "Proposed by",
+      "noSeverityChange": "No severity change pending"
+    },
+    "workflow": {
+      "inProgress": "Investigation In Progress",
+      "locked": "Reporter data is locked during investigation",
+      "completed": "Investigation Completed",
+      "notStarted": "Investigation Not Started",
+      "approvalRequired": "Approval Required",
+      "approvalRequiredDescription": "This incident requires HSSE Manager approval before investigation can begin.",
+      "approveIncident": "Approve & Lock for Investigation",
+      "startInvestigation": "Start Investigation",
+      "completeInvestigation": "Complete Investigation",
+      "reopenInvestigation": "Reopen Investigation"
+    },
+    "tabs": {
+      "overview": "Overview"
+    },
+    "severityChangeProposed": "Severity change proposed. Awaiting HSSE Manager approval.",
+    "severityChangeApproved": "Severity change approved",
+    "severityChangeRejected": "Severity change rejected",
+    "investigatorAssigned": "Investigator assigned successfully",
+    "incidentApproved": "Incident approved and locked for investigation",
+    "started": "Investigation started"
   },
   "pages": {
     "incidents": {
@@ -412,7 +470,12 @@
     "time": "Time",
     "noData": "No data available",
     "noResults": "No results found",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "notSet": "Not Set",
+    "unknown": "Unknown",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
   },
   "auth": {
     "signIn": "Sign In",

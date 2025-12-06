@@ -315,7 +315,65 @@
       "in_progress": "प्रगति में",
       "completed": "पूर्ण",
       "verified": "सत्यापित"
-    }
+    },
+    "overview": {
+      "reporterInfo": "रिपोर्टर जानकारी",
+      "fullName": "पूरा नाम",
+      "employeeId": "कर्मचारी आईडी",
+      "jobTitle": "पद",
+      "contact": "संपर्क",
+      "department": "विभाग",
+      "branch": "शाखा",
+      "reporterUnavailable": "रिपोर्टर जानकारी उपलब्ध नहीं",
+      "incidentInfo": "घटना की जानकारी",
+      "referenceId": "संदर्भ आईडी",
+      "eventType": "घटना प्रकार",
+      "subtype": "उपप्रकार",
+      "occurredAt": "घटना का समय",
+      "location": "स्थान",
+      "site": "साइट",
+      "investigatorAssignment": "जांचकर्ता नियुक्ति",
+      "assignInvestigator": "जांचकर्ता नियुक्त करें",
+      "selectInvestigator": "जांचकर्ता चुनें",
+      "currentInvestigator": "वर्तमान जांचकर्ता",
+      "noInvestigator": "कोई जांचकर्ता नियुक्त नहीं",
+      "reassign": "पुनः नियुक्त करें",
+      "severityAdjustment": "गंभीरता समायोजन",
+      "currentSeverity": "वर्तमान गंभीरता",
+      "proposedSeverity": "प्रस्तावित गंभीरता",
+      "proposeSeverityChange": "गंभीरता परिवर्तन प्रस्तावित करें",
+      "selectNewSeverity": "नई गंभीरता चुनें",
+      "justification": "औचित्य",
+      "justificationPlaceholder": "समझाएं कि गंभीरता क्यों बदलनी चाहिए...",
+      "submitProposal": "प्रस्ताव सबमिट करें",
+      "pendingApproval": "अनुमोदन लंबित",
+      "awaitingApproval": "HSSE प्रबंधक अनुमोदन की प्रतीक्षा",
+      "approveChange": "स्वीकृत करें",
+      "rejectChange": "अस्वीकृत करें",
+      "proposedBy": "प्रस्तावक",
+      "noSeverityChange": "कोई गंभीरता परिवर्तन लंबित नहीं"
+    },
+    "workflow": {
+      "inProgress": "जांच प्रगति में",
+      "locked": "जांच के दौरान रिपोर्टर डेटा लॉक है",
+      "completed": "जांच पूर्ण",
+      "notStarted": "जांच शुरू नहीं हुई",
+      "approvalRequired": "अनुमोदन आवश्यक",
+      "approvalRequiredDescription": "जांच शुरू होने से पहले इस घटना को HSSE प्रबंधक अनुमोदन की आवश्यकता है।",
+      "approveIncident": "जांच के लिए स्वीकृत और लॉक करें",
+      "startInvestigation": "जांच शुरू करें",
+      "completeInvestigation": "जांच पूर्ण करें",
+      "reopenInvestigation": "जांच फिर से खोलें"
+    },
+    "tabs": {
+      "overview": "अवलोकन"
+    },
+    "severityChangeProposed": "गंभीरता परिवर्तन प्रस्तावित। HSSE प्रबंधक अनुमोदन की प्रतीक्षा।",
+    "severityChangeApproved": "गंभीरता परिवर्तन स्वीकृत",
+    "severityChangeRejected": "गंभीरता परिवर्तन अस्वीकृत",
+    "investigatorAssigned": "जांचकर्ता सफलतापूर्वक नियुक्त",
+    "incidentApproved": "घटना स्वीकृत और जांच के लिए लॉक",
+    "started": "जांच शुरू हुई"
   },
   "pages": {
     "incidents": {
@@ -412,7 +470,12 @@
     "time": "समय",
     "noData": "कोई डेटा उपलब्ध नहीं",
     "noResults": "कोई परिणाम नहीं मिला",
-    "refresh": "रिफ्रेश करें"
+    "refresh": "रिफ्रेश करें",
+    "notSet": "सेट नहीं है",
+    "unknown": "अज्ञात",
+    "pending": "लंबित",
+    "approved": "स्वीकृत",
+    "rejected": "अस्वीकृत"
   },
   "auth": {
     "signIn": "साइन इन करें",

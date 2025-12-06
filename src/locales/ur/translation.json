@@ -315,7 +315,65 @@
       "in_progress": "جاری",
       "completed": "مکمل",
       "verified": "تصدیق شدہ"
-    }
+    },
+    "overview": {
+      "reporterInfo": "رپورٹر کی معلومات",
+      "fullName": "پورا نام",
+      "employeeId": "ملازم نمبر",
+      "jobTitle": "عہدہ",
+      "contact": "رابطہ",
+      "department": "شعبہ",
+      "branch": "شاخ",
+      "reporterUnavailable": "رپورٹر کی معلومات دستیاب نہیں",
+      "incidentInfo": "واقعہ کی معلومات",
+      "referenceId": "حوالہ نمبر",
+      "eventType": "واقعہ کی قسم",
+      "subtype": "ذیلی قسم",
+      "occurredAt": "واقعہ کا وقت",
+      "location": "مقام",
+      "site": "سائٹ",
+      "investigatorAssignment": "تفتیش کار کی تفویض",
+      "assignInvestigator": "تفتیش کار مقرر کریں",
+      "selectInvestigator": "تفتیش کار منتخب کریں",
+      "currentInvestigator": "موجودہ تفتیش کار",
+      "noInvestigator": "کوئی تفتیش کار مقرر نہیں",
+      "reassign": "دوبارہ مقرر کریں",
+      "severityAdjustment": "شدت کی تبدیلی",
+      "currentSeverity": "موجودہ شدت",
+      "proposedSeverity": "تجویز کردہ شدت",
+      "proposeSeverityChange": "شدت کی تبدیلی تجویز کریں",
+      "selectNewSeverity": "نئی شدت منتخب کریں",
+      "justification": "جواز",
+      "justificationPlaceholder": "وضاحت کریں کہ شدت کیوں تبدیل ہونی چاہیے...",
+      "submitProposal": "تجویز جمع کرائیں",
+      "pendingApproval": "منظوری زیر التواء",
+      "awaitingApproval": "HSSE مینیجر کی منظوری کا انتظار",
+      "approveChange": "منظور کریں",
+      "rejectChange": "مسترد کریں",
+      "proposedBy": "تجویز کنندہ",
+      "noSeverityChange": "کوئی شدت کی تبدیلی زیر التواء نہیں"
+    },
+    "workflow": {
+      "inProgress": "تحقیقات جاری ہیں",
+      "locked": "تحقیقات کے دوران رپورٹر کا ڈیٹا مقفل ہے",
+      "completed": "تحقیقات مکمل",
+      "notStarted": "تحقیقات شروع نہیں ہوئیں",
+      "approvalRequired": "منظوری ضروری ہے",
+      "approvalRequiredDescription": "اس واقعے کے لیے تحقیقات شروع ہونے سے پہلے HSSE مینیجر کی منظوری ضروری ہے۔",
+      "approveIncident": "منظور کریں اور تحقیقات کے لیے مقفل کریں",
+      "startInvestigation": "تحقیقات شروع کریں",
+      "completeInvestigation": "تحقیقات مکمل کریں",
+      "reopenInvestigation": "تحقیقات دوبارہ کھولیں"
+    },
+    "tabs": {
+      "overview": "جائزہ"
+    },
+    "severityChangeProposed": "شدت کی تبدیلی تجویز کی گئی۔ HSSE مینیجر کی منظوری کا انتظار۔",
+    "severityChangeApproved": "شدت کی تبدیلی منظور ہوگئی",
+    "severityChangeRejected": "شدت کی تبدیلی مسترد ہوگئی",
+    "investigatorAssigned": "تفتیش کار کامیابی سے مقرر ہو گیا",
+    "incidentApproved": "واقعہ منظور اور تحقیقات کے لیے مقفل",
+    "started": "تحقیقات شروع ہو گئیں"
   },
   "pages": {
     "incidents": {
@@ -412,7 +470,12 @@
     "time": "وقت",
     "noData": "کوئی ڈیٹا دستیاب نہیں",
     "noResults": "کوئی نتائج نہیں ملے",
-    "refresh": "تازہ کریں"
+    "refresh": "تازہ کریں",
+    "notSet": "سیٹ نہیں ہے",
+    "unknown": "نامعلوم",
+    "pending": "زیر التواء",
+    "approved": "منظور شدہ",
+    "rejected": "مسترد"
   },
   "auth": {
     "signIn": "سائن ان",
