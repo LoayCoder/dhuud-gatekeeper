@@ -315,7 +315,65 @@
       "in_progress": "Isinasagawa",
       "completed": "Nakumpleto",
       "verified": "Naberipika"
-    }
+    },
+    "overview": {
+      "reporterInfo": "Impormasyon ng Reporter",
+      "fullName": "Buong Pangalan",
+      "employeeId": "Employee ID",
+      "jobTitle": "Posisyon",
+      "contact": "Kontak",
+      "department": "Departamento",
+      "branch": "Sangay",
+      "reporterUnavailable": "Hindi available ang impormasyon ng reporter",
+      "incidentInfo": "Impormasyon ng Insidente",
+      "referenceId": "Reference ID",
+      "eventType": "Uri ng Event",
+      "subtype": "Subtype",
+      "occurredAt": "Oras ng Pangyayari",
+      "location": "Lokasyon",
+      "site": "Site",
+      "investigatorAssignment": "Pagtatalaga ng Imbestigador",
+      "assignInvestigator": "Italaga ang Imbestigador",
+      "selectInvestigator": "Pumili ng imbestigador",
+      "currentInvestigator": "Kasalukuyang Imbestigador",
+      "noInvestigator": "Walang natalangang imbestigador",
+      "reassign": "Muling Italaga",
+      "severityAdjustment": "Pagbabago ng Kalubhaan",
+      "currentSeverity": "Kasalukuyang Kalubhaan",
+      "proposedSeverity": "Iminumungkahing Kalubhaan",
+      "proposeSeverityChange": "Imungkahi ang Pagbabago ng Kalubhaan",
+      "selectNewSeverity": "Pumili ng bagong kalubhaan",
+      "justification": "Katwiran",
+      "justificationPlaceholder": "Ipaliwanag kung bakit dapat baguhin ang kalubhaan...",
+      "submitProposal": "Isumite ang Mungkahi",
+      "pendingApproval": "Nakabinbing Pag-apruba",
+      "awaitingApproval": "Naghihintay ng Pag-apruba ng HSSE Manager",
+      "approveChange": "Aprubahan",
+      "rejectChange": "Tanggihan",
+      "proposedBy": "Iminungkahi ni",
+      "noSeverityChange": "Walang nakabinbing pagbabago ng kalubhaan"
+    },
+    "workflow": {
+      "inProgress": "Isinasagawa ang Imbestigasyon",
+      "locked": "Naka-lock ang data ng reporter habang isinasagawa ang imbestigasyon",
+      "completed": "Nakumpleto ang Imbestigasyon",
+      "notStarted": "Hindi Pa Nagsisimula ang Imbestigasyon",
+      "approvalRequired": "Kinakailangan ang Pag-apruba",
+      "approvalRequiredDescription": "Ang insidenteng ito ay nangangailangan ng pag-apruba ng HSSE Manager bago magsimula ang imbestigasyon.",
+      "approveIncident": "Aprubahan at I-lock para sa Imbestigasyon",
+      "startInvestigation": "Simulan ang Imbestigasyon",
+      "completeInvestigation": "Kumpletuhin ang Imbestigasyon",
+      "reopenInvestigation": "Muling Buksan ang Imbestigasyon"
+    },
+    "tabs": {
+      "overview": "Pangkalahatang-tanaw"
+    },
+    "severityChangeProposed": "Iminungkahi ang pagbabago ng kalubhaan. Naghihintay ng pag-apruba ng HSSE Manager.",
+    "severityChangeApproved": "Naaprobahan ang pagbabago ng kalubhaan",
+    "severityChangeRejected": "Tinanggihan ang pagbabago ng kalubhaan",
+    "investigatorAssigned": "Matagumpay na natalaga ang imbestigador",
+    "incidentApproved": "Naaprobahan ang insidente at naka-lock para sa imbestigasyon",
+    "started": "Nagsimula ang imbestigasyon"
   },
   "pages": {
     "incidents": {
@@ -412,7 +470,12 @@
     "time": "Oras",
     "noData": "Walang available na data",
     "noResults": "Walang nahanap na resulta",
-    "refresh": "I-refresh"
+    "refresh": "I-refresh",
+    "notSet": "Hindi nakatakda",
+    "unknown": "Hindi kilala",
+    "pending": "Nakabinbin",
+    "approved": "Aprubado",
+    "rejected": "Tinanggihan"
   },
   "auth": {
     "signIn": "Mag-sign In",
