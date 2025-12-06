@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, QrCode, MapPin, Calendar, AlertTriangle, FileText, Wrench, History } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
+import { AssetQRCode } from '@/components/assets/AssetQRCode';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetMaintenanceSchedules, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
@@ -184,7 +185,16 @@ function AssetDetailContent() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* QR Code - appears first on right side in larger screens */}
+            <div className="lg:col-start-3 lg:row-span-2">
+              <AssetQRCode 
+                assetId={asset.id} 
+                assetCode={asset.asset_code} 
+                assetName={asset.name}
+                size={180}
+              />
+            </div>
             {/* Classification */}
             <Card>
               <CardHeader>
@@ -247,15 +257,6 @@ function AssetDetailContent() {
                     <span className="text-muted-foreground">{t('assets.model')}</span>
                     <span className="font-medium">{asset.model}</span>
                   </div>
-                )}
-                {asset.qr_code_data && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{t('assets.qrCode')}</span>
-                      <QrCode className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  </>
                 )}
               </CardContent>
             </Card>
