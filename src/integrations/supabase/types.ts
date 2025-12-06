@@ -173,6 +173,7 @@ export type Database = {
           due_date: string | null
           id: string
           incident_id: string | null
+          linked_cause_type: string | null
           linked_root_cause_id: string | null
           priority: string | null
           rejected_at: string | null
@@ -199,6 +200,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           incident_id?: string | null
+          linked_cause_type?: string | null
           linked_root_cause_id?: string | null
           priority?: string | null
           rejected_at?: string | null
@@ -225,6 +227,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           incident_id?: string | null
+          linked_cause_type?: string | null
           linked_root_cause_id?: string | null
           priority?: string | null
           rejected_at?: string | null
@@ -692,6 +695,7 @@ export type Database = {
           ai_summary_language: string | null
           completed_at: string | null
           contributing_factors: string | null
+          contributing_factors_list: Json | null
           created_at: string | null
           deleted_at: string | null
           findings_summary: string | null
@@ -713,6 +717,7 @@ export type Database = {
           ai_summary_language?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
+          contributing_factors_list?: Json | null
           created_at?: string | null
           deleted_at?: string | null
           findings_summary?: string | null
@@ -734,6 +739,7 @@ export type Database = {
           ai_summary_language?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
+          contributing_factors_list?: Json | null
           created_at?: string | null
           deleted_at?: string | null
           findings_summary?: string | null

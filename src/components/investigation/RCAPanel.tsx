@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save, Loader2, Wand2 } from "lucide-react";
+import { Save, Loader2, Wand2, Check } from "lucide-react";
 import { FiveWhysBuilder } from "./FiveWhysBuilder";
 import { RootCausesBuilder, type RootCauseEntry } from "./RootCausesBuilder";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
@@ -19,7 +19,7 @@ import type { Json } from "@/integrations/supabase/types";
 const rcaSchema = z.object({
   immediate_cause: z.string().optional(),
   underlying_cause: z.string().optional(),
-  root_cause: z.string().optional(), // Legacy single root cause
+  root_cause: z.string().optional(),
   contributing_factors: z.string().optional(),
   findings_summary: z.string().optional(),
   five_whys: z.array(z.object({
@@ -61,6 +61,9 @@ interface RCAPanelProps {
   incidentDescription?: string;
 }
 
+// Debounce delay for auto-save (2 seconds)
+const AUTO_SAVE_DELAY = 2000;
+
 export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCAPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -70,6 +73,9 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   const updateInvestigation = useUpdateInvestigation();
   const { rewriteText, isLoading: isAILoading } = useRCAAI();
   const [rewritingField, setRewritingField] = useState<string | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<string>('');
 
   const form = useForm<RCAFormValues>({
     resolver: zodResolver(rcaSchema),
@@ -87,10 +93,9 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
       ai_summary_language: 'en',
     },
   });
-
+  // Parse and set form data when investigation loads
   useEffect(() => {
     if (investigation) {
-      // Parse root_causes from investigation
       let parsedRootCauses: RootCauseEntry[] = [];
       const rawRootCauses = (investigation as unknown as Record<string, unknown>).root_causes;
       if (Array.isArray(rawRootCauses)) {
@@ -100,7 +105,6 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         );
       }
 
-      // If no root_causes array but has legacy root_cause string, convert it
       if (parsedRootCauses.length === 0 && investigation.root_cause) {
         parsedRootCauses = [{
           id: crypto.randomUUID(),
@@ -109,12 +113,16 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         }];
       }
 
-      // Parse contributing_factors_list if stored
       let parsedContributingFactors: ContributingFactorEntry[] = [];
-      // For now, if there's a contributing_factors string, we'll keep it as text
-      // The list is optional and will be empty initially
+      const rawContributingFactors = (investigation as unknown as Record<string, unknown>).contributing_factors_list;
+      if (Array.isArray(rawContributingFactors)) {
+        parsedContributingFactors = rawContributingFactors.filter(
+          (item): item is ContributingFactorEntry => 
+            typeof item === 'object' && item !== null && 'id' in item && 'text' in item
+        );
+      }
 
-      form.reset({
+      const formData = {
         immediate_cause: investigation.immediate_cause || '',
         underlying_cause: investigation.underlying_cause || '',
         root_cause: investigation.root_cause || '',
@@ -126,17 +134,23 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         ai_summary: (investigation as unknown as Record<string, unknown>).ai_summary as string || '',
         ai_summary_generated_at: (investigation as unknown as Record<string, unknown>).ai_summary_generated_at as string || null,
         ai_summary_language: (investigation as unknown as Record<string, unknown>).ai_summary_language as string || 'en',
-      });
+      };
+      
+      form.reset(formData);
+      lastSavedDataRef.current = JSON.stringify(formData);
     }
   }, [investigation, form]);
 
-  const onSubmit = async (data: RCAFormValues) => {
-    if (!investigation) {
-      await createInvestigation.mutateAsync(incidentId);
-    }
+  // Auto-save handler
+  const performAutoSave = useCallback(async (data: RCAFormValues) => {
+    if (!investigation?.id) return;
     
-    if (investigation?.id) {
-      // Prepare data for update
+    const currentDataStr = JSON.stringify(data);
+    if (currentDataStr === lastSavedDataRef.current) return;
+
+    setAutoSaveStatus('saving');
+    
+    try {
       const updates: Record<string, unknown> = {
         immediate_cause: data.immediate_cause,
         underlying_cause: data.underlying_cause,
@@ -144,12 +158,12 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         findings_summary: data.findings_summary,
         five_whys: data.five_whys as unknown as Json,
         root_causes: data.root_causes as unknown as Json,
+        contributing_factors_list: data.contributing_factors_list as unknown as Json,
         ai_summary: data.ai_summary,
         ai_summary_generated_at: data.ai_summary ? new Date().toISOString() : null,
         ai_summary_language: data.ai_summary_language,
       };
 
-      // Also update legacy root_cause field with first root cause for backwards compatibility
       if (data.root_causes.length > 0) {
         updates.root_cause = data.root_causes[0].text;
       }
@@ -159,9 +173,43 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
         incidentId,
         updates: updates as Partial<typeof investigation>,
       });
+      
+      lastSavedDataRef.current = currentDataStr;
+      setAutoSaveStatus('saved');
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      setAutoSaveStatus('idle');
     }
-  };
+  }, [investigation?.id, incidentId, updateInvestigation]);
 
+  // Watch form values for auto-save
+  const formValues = form.watch();
+  
+  useEffect(() => {
+    if (!investigation?.id) return;
+    
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave(formValues);
+    }, AUTO_SAVE_DELAY);
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formValues, investigation?.id, performAutoSave]);
+
+  const onSubmit = async (data: RCAFormValues) => {
+    if (!investigation) {
+      await createInvestigation.mutateAsync(incidentId);
+    }
+    await performAutoSave(data);
+  };
   const handleStartInvestigation = async () => {
     await createInvestigation.mutateAsync(incidentId);
   };
@@ -211,7 +259,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   const immediateCauseValue = form.watch('immediate_cause');
   const underlyingCauseValue = form.watch('underlying_cause');
   const rootCausesValue = form.watch('root_causes');
-  const contributingFactorsValue = form.watch('contributing_factors');
+  const contributingFactorsListValue = form.watch('contributing_factors_list');
 
   return (
     <Form {...form}>
@@ -366,34 +414,20 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
           </CardContent>
         </Card>
 
-        {/* Step 5: Contributing Factors */}
+        {/* Step 5: Contributing Factors - Now using multi-entry builder */}
         <FormField
           control={form.control}
-          name="contributing_factors"
+          name="contributing_factors_list"
           render={({ field }) => (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-bold">5</span>
-                  {t('investigation.rca.contributingFactors', 'Contributing Factors')}
-                  <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                    {t('common.optional', 'Optional')}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder={t('investigation.rca.contributingFactorsPlaceholder', 'List other factors that contributed to the incident...')}
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </CardContent>
-            </Card>
+            <ContributingFactorsBuilder
+              value={field.value}
+              onChange={field.onChange}
+              incidentTitle={incidentTitle}
+              incidentDescription={incidentDescription}
+              immediateCause={immediateCauseValue}
+              underlyingCause={underlyingCauseValue}
+              rootCauses={rootCausesValue}
+            />
           )}
         />
 
@@ -414,7 +448,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
                 immediateCause={immediateCauseValue}
                 underlyingCause={underlyingCauseValue}
                 rootCauses={rootCausesValue}
-                contributingFactors={contributingFactorsValue}
+                contributingFactors={contributingFactorsListValue?.map(c => c.text).join(', ') || ''}
                 incidentTitle={incidentTitle}
                 incidentDescription={incidentDescription}
                 generatedAt={form.watch('ai_summary_generated_at')}
@@ -424,8 +458,22 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
           />
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end sticky bottom-0 bg-background py-4 border-t">
+        {/* Save Button with Auto-save Status */}
+        <div className="flex items-center justify-between sticky bottom-0 bg-background py-4 border-t">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {autoSaveStatus === 'saving' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t('investigation.rca.autoSaving', 'Auto-saving...')}</span>
+              </>
+            )}
+            {autoSaveStatus === 'saved' && (
+              <>
+                <Check className="h-4 w-4 text-green-500" />
+                <span>{t('investigation.rca.autoSaved', 'Auto-saved')}</span>
+              </>
+            )}
+          </div>
           <Button type="submit" disabled={updateInvestigation.isPending} size="lg">
             {updateInvestigation.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
             <Save className="h-4 w-4 me-2" />
