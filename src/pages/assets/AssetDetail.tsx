@@ -9,8 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode } from '@/components/assets/AssetQRCode';
-import { useAsset, useAssetPhotos, useAssetDocuments, useAssetMaintenanceSchedules, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
+import { AssetQRCode, MaintenanceScheduleList } from '@/components/assets';
+import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -48,7 +48,6 @@ function AssetDetailContent() {
   const { data: asset, isLoading } = useAsset(id);
   const { data: photos } = useAssetPhotos(id);
   const { data: documents } = useAssetDocuments(id);
-  const { data: maintenance } = useAssetMaintenanceSchedules(id);
   const { data: auditLogs } = useAssetAuditLogs(id);
   const deleteAsset = useDeleteAsset();
 
@@ -450,50 +449,7 @@ function AssetDetailContent() {
               <CardDescription>{t('assets.maintenanceDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
-              {maintenance?.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{t('assets.noMaintenance')}</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {maintenance?.map((schedule) => (
-                    <Card key={schedule.id}>
-                      <CardContent className="pt-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="font-medium">{t(`assets.maintenanceTypes.${schedule.schedule_type}`)}</p>
-                            <p className="text-sm text-muted-foreground">{schedule.description}</p>
-                          </div>
-                          <Badge variant={schedule.is_active ? 'default' : 'secondary'}>
-                            {schedule.is_active ? t('common.active') : t('common.inactive')}
-                          </Badge>
-                        </div>
-                        <div className="mt-4 grid gap-2 sm:grid-cols-3 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">{t('assets.frequency')}</span>
-                            <p>{schedule.frequency_value} {t(`assets.frequencyTypes.${schedule.frequency_type}`)}</p>
-                          </div>
-                          {schedule.next_due && (
-                            <div>
-                              <span className="text-muted-foreground">{t('assets.nextDue')}</span>
-                              <p className={cn(isPast(new Date(schedule.next_due)) && 'text-destructive')}>
-                                {format(new Date(schedule.next_due), 'PP')}
-                              </p>
-                            </div>
-                          )}
-                          {schedule.last_performed && (
-                            <div>
-                              <span className="text-muted-foreground">{t('assets.lastPerformed')}</span>
-                              <p>{format(new Date(schedule.last_performed), 'PP')}</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <MaintenanceScheduleList assetId={id!} canManage={canManage} />
             </CardContent>
           </Card>
         </TabsContent>
