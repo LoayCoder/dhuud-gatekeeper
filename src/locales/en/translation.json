@@ -343,6 +343,7 @@
     "dashboard": "Dashboard",
     "hsseManagement": "HSSE Management",
     "incidents": "Incidents",
+    "incidentList": "Incident List",
     "investigationWorkspace": "Investigation Workspace",
     "myActions": "My Actions",
     "auditsInspections": "Audits & Inspections",
