@@ -188,17 +188,68 @@
     },
     "evidence": {
       "title": "Evidence Management",
+      "subtitle": "Upload and manage investigation evidence",
       "upload": "Upload Evidence",
+      "uploaded": "Evidence uploaded successfully",
       "uploading": "Uploading...",
-      "gallery": "Evidence Gallery",
-      "noFiles": "No evidence files uploaded yet",
-      "uploadFirst": "Upload evidence files to support the investigation",
-      "delete": "Delete",
-      "deleteConfirm": "Are you sure you want to delete this evidence file?",
-      "uploadSuccess": "Evidence uploaded successfully",
-      "uploadError": "Failed to upload evidence",
-      "deleteSuccess": "Evidence deleted",
-      "deleteError": "Failed to delete evidence"
+      "deleted": "Evidence deleted",
+      "noItems": "No evidence uploaded yet.",
+      "noItemsHint": "Click \"Add Evidence\" to upload photos, documents, CCTV data, and more.",
+      "reviewed": "Reviewed",
+      "reviewSaved": "Review saved successfully",
+      "type": "Evidence Type",
+      "description": "Description",
+      "descriptionPlaceholder": "Add notes about this evidence...",
+      "types": {
+        "photo": "Photo",
+        "document": "Document",
+        "cctv": "CCTV Footage",
+        "ptw": "PTW ID",
+        "checklist": "Inspection Checklist",
+        "video_clip": "Video Clip"
+      },
+      "upload": {
+        "button": "Add Evidence",
+        "title": "Upload Evidence",
+        "description": "Add supporting materials for this investigation.",
+        "file": "File",
+        "optionalFile": "Attached Document (Optional)",
+        "submit": "Upload Evidence"
+      },
+      "cctv": {
+        "noCameras": "No cameras added yet",
+        "camera": "Camera",
+        "cameraId": "Camera ID",
+        "cameraIdPlaceholder": "e.g., CAM-001",
+        "location": "Location",
+        "locationPlaceholder": "e.g., Main Entrance",
+        "date": "Date",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "addCamera": "Add Camera"
+      },
+      "references": {
+        "ptwId": "PTW ID",
+        "checklistId": "Inspection Checklist ID",
+        "ptwPlaceholder": "e.g., PTW-2024-0001",
+        "checklistPlaceholder": "e.g., CHK-2024-0001"
+      },
+      "review": {
+        "button": "Review",
+        "title": "Review Evidence",
+        "description": "Add your review comment for this evidence item.",
+        "comment": "Review Comment",
+        "placeholder": "Enter your review comment...",
+        "submit": "Save Review",
+        "previousReview": "Previous Review"
+      },
+      "delete": {
+        "title": "Delete Evidence",
+        "description": "Are you sure you want to delete this evidence? This action cannot be undone."
+      },
+      "security": {
+        "session": "Session"
+      }
     },
     "witnesses": {
       "title": "Witness Statements",

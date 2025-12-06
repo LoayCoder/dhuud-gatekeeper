@@ -260,6 +260,111 @@ export type Database = {
           },
         ]
       }
+      evidence_items: {
+        Row: {
+          cctv_data: Json | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          evidence_type: string
+          file_name: string | null
+          file_size: number | null
+          id: string
+          incident_id: string
+          mime_type: string | null
+          reference_id: string | null
+          reference_type: string | null
+          review_comment: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          storage_path: string | null
+          tenant_id: string
+          updated_at: string | null
+          upload_session_id: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          cctv_data?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          evidence_type: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          incident_id: string
+          mime_type?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          storage_path?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          upload_session_id?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          cctv_data?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          evidence_type?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          incident_id?: string
+          mime_type?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          storage_path?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          upload_session_id?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_items_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_upload_session_id_fkey"
+            columns: ["upload_session_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_audit_logs: {
         Row: {
           action: string
