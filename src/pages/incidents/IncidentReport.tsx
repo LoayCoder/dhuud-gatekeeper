@@ -4,7 +4,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation, Camera } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import MediaUploadSection from '@/components/incidents/MediaUploadSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -96,6 +98,9 @@ export default function IncidentReport() {
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
   const [gpsDetectedBranch, setGpsDetectedBranch] = useState(false);
   const [noSiteNearby, setNoSiteNearby] = useState(false);
+  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const createIncident = useCreateIncident();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
@@ -285,7 +290,7 @@ export default function IncidentReport() {
     setAiSuggestion(null);
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     const formData: IncidentFormData = {
       title: values.title,
       description: values.description,
@@ -315,7 +320,32 @@ export default function IncidentReport() {
     };
 
     createIncident.mutate(formData, {
-      onSuccess: () => {
+      onSuccess: async (data) => {
+        // Upload media files after incident is created
+        if ((uploadedPhotos.length > 0 || uploadedVideo) && profile?.tenant_id && data?.id) {
+          setIsUploading(true);
+          try {
+            // Upload photos
+            for (const photo of uploadedPhotos) {
+              const fileName = `${Date.now()}-${photo.name}`;
+              await supabase.storage
+                .from('incident-attachments')
+                .upload(`${profile.tenant_id}/${data.id}/photos/${fileName}`, photo);
+            }
+            
+            // Upload video
+            if (uploadedVideo) {
+              const fileName = `${Date.now()}-${uploadedVideo.name}`;
+              await supabase.storage
+                .from('incident-attachments')
+                .upload(`${profile.tenant_id}/${data.id}/video/${fileName}`, uploadedVideo);
+            }
+          } catch (error) {
+            console.error('Media upload error:', error);
+          } finally {
+            setIsUploading(false);
+          }
+        }
         navigate('/incidents');
       },
     });
@@ -339,6 +369,33 @@ export default function IncidentReport() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Quick Capture - Media Upload */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  {t('incidents.quickCapture.title')}
+                </CardTitle>
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <Sparkles className="h-3 w-3" />
+                  {t('incidents.quickCapture.aiComingSoon')}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('incidents.quickCapture.description')}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <MediaUploadSection
+                photos={uploadedPhotos}
+                video={uploadedVideo}
+                onPhotosChange={setUploadedPhotos}
+                onVideoChange={setUploadedVideo}
+              />
+            </CardContent>
+          </Card>
+
           {/* Reference Number Preview */}
           <Card className="border-dashed">
             <CardContent className="pt-6">
