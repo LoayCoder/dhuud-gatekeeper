@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2 } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,9 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
+import { usePendingActionApprovals, usePendingSeverityApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
+import { ActionVerificationDialog } from '@/components/investigation/ActionVerificationDialog';
+import { SeverityApprovalCard } from '@/components/investigation/SeverityApprovalCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -44,6 +47,12 @@ export default function MyActions() {
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
 
+  // Pending approvals data
+  const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
+  const { data: pendingApprovals, isLoading: approvalsLoading } = usePendingActionApprovals();
+  const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
+  const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
+
   const handleStatusChange = (actionId: string, newStatus: string) => {
     updateStatus.mutate({ id: actionId, status: newStatus });
   };
@@ -59,6 +68,8 @@ export default function MyActions() {
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
+  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0);
+
   const isLoading = actionsLoading || witnessLoading;
 
   return (
@@ -71,7 +82,7 @@ export default function MyActions() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className={`grid gap-4 ${canAccessApprovals ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -112,6 +123,20 @@ export default function MyActions() {
             <div className="text-2xl font-bold text-purple-500">{pendingWitness.length}</div>
           </CardContent>
         </Card>
+        {canAccessApprovals && (
+          <Card className={totalPendingApprovals > 0 ? 'border-amber-200 dark:border-amber-900' : ''}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t('investigation.approvals.pendingApprovals', 'Pending Approvals')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${totalPendingApprovals > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                {totalPendingApprovals}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
@@ -123,6 +148,17 @@ export default function MyActions() {
             <MessageSquare className="h-4 w-4 me-2" />
             {t('investigation.witnesses.title', 'Witness Statements')} ({witnessStatements?.length || 0})
           </TabsTrigger>
+          {canAccessApprovals && (
+            <TabsTrigger value="approvals" className="gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              {t('investigation.approvals.pendingApprovals', 'Pending Approvals')}
+              {totalPendingApprovals > 0 && (
+                <Badge variant="secondary" className="ms-1">
+                  {totalPendingApprovals}
+                </Badge>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="actions" className="mt-4">
@@ -293,6 +329,133 @@ export default function MyActions() {
             </Card>
           )}
         </TabsContent>
+
+        {canAccessApprovals && (
+          <TabsContent value="approvals" className="mt-4 space-y-6">
+            {(approvalsLoading || severityLoading) ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-4 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Severity Changes Section (Admin/HSSE Manager only) */}
+                {canApproveSeverity && pendingSeverity && pendingSeverity.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      {t('investigation.approvals.severityChanges', 'Severity Changes')}
+                      <Badge variant="secondary">{pendingSeverity.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingSeverity.map((incident) => (
+                        <SeverityApprovalCard key={incident.id} incident={incident} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Verifications Section */}
+                {pendingApprovals && pendingApprovals.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <ShieldCheck className="h-5 w-5 text-primary" />
+                      {t('investigation.approvals.actionVerifications', 'Action Verifications')}
+                      <Badge variant="secondary">{pendingApprovals.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingApprovals.map((action) => (
+                        <Card key={action.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                <CardTitle className="text-base">{action.title}</CardTitle>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {action.priority && (
+                                  <Badge variant={getPriorityBadgeVariant(action.priority)}>
+                                    {t(`investigation.priority.${action.priority}`, action.priority)}
+                                  </Badge>
+                                )}
+                                <Badge variant="outline">
+                                  {t('investigation.actionStatus.completed', 'Completed')}
+                                </Badge>
+                              </div>
+                            </div>
+                            <CardDescription>{action.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {action.assigned_user && (
+                                <div>
+                                  <span className="font-medium">{t('investigation.assignedTo', 'Assigned To')}:</span>{' '}
+                                  {action.assigned_user.full_name}
+                                </div>
+                              )}
+                              {action.department && (
+                                <div>
+                                  <span className="font-medium">{t('investigation.department', 'Department')}:</span>{' '}
+                                  {action.department.name}
+                                </div>
+                              )}
+                              {action.completed_date && (
+                                <div>
+                                  <span className="font-medium">{t('investigation.completedOn', 'Completed')}:</span>{' '}
+                                  {new Date(action.completed_date).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" onClick={() => setSelectedActionForVerification(action)}>
+                                <ShieldCheck className="h-4 w-4 me-2" />
+                                {t('investigation.approvals.reviewAction', 'Review & Verify')}
+                              </Button>
+                              {action.incident_id && (
+                                <Button asChild variant="ghost" size="sm">
+                                  <Link to={`/incidents/${action.incident_id}`} className="gap-2">
+                                    {t('investigation.viewIncident', 'View Incident')}
+                                    <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                                  </Link>
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {(!pendingApprovals || pendingApprovals.length === 0) && 
+                 (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) && (
+                  <Card className="py-12">
+                    <CardContent className="flex flex-col items-center justify-center text-center">
+                      <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">
+                        {t('investigation.approvals.noApprovals', 'No Pending Approvals')}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {t('investigation.approvals.noApprovalsDescription', 'There are no actions or changes awaiting your approval.')}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Dialog for entering witness statement */}
@@ -310,6 +473,13 @@ export default function MyActions() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Action Verification Dialog */}
+      <ActionVerificationDialog
+        action={selectedActionForVerification}
+        open={!!selectedActionForVerification}
+        onOpenChange={(open) => !open && setSelectedActionForVerification(null)}
+      />
     </div>
   );
 }
