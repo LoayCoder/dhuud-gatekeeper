@@ -214,3 +214,69 @@ export function useUpdateMyActionStatus() {
     },
   });
 }
+
+// Hook to update incident status (for HSSE/admin users)
+export function useUpdateIncidentStatus() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Database['public']['Enums']['incident_status'] }) => {
+      const { error } = await supabase
+        .from('incidents')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      queryClient.invalidateQueries({ queryKey: ['incident'] });
+      toast({
+        title: t('common.success'),
+        description: t('incidents.statusUpdated'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+// Hook to soft-delete incident (admin only)
+export function useDeleteIncident() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Soft delete: set deleted_at timestamp
+      const { error } = await supabase
+        .from('incidents')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      toast({
+        title: t('common.success'),
+        description: t('incidents.deleteSuccess'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}

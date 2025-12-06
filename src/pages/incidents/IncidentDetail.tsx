@@ -1,13 +1,39 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, User, AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { useIncident } from '@/hooks/use-incidents';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useIncident, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 const getSeverityBadgeVariant = (severity: string | null) => {
   switch (severity) {
@@ -22,7 +48,44 @@ export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const navigate = useNavigate();
   const { data: incident, isLoading } = useIncident(id);
+  const { user } = useAuth();
+  
+  const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const deleteIncident = useDeleteIncident();
+  const updateStatus = useUpdateIncidentStatus();
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase.rpc('has_hsse_incident_access', { _user_id: user.id });
+      setHasHSSEAccess(data === true);
+    };
+    checkAccess();
+  }, [user?.id]);
+
+  const handleStartInvestigation = async () => {
+    if (!id) return;
+    await updateStatus.mutateAsync({ id, status: 'investigation_in_progress' });
+    navigate(`/incidents/investigate?incident=${id}`);
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!id) return;
+    await updateStatus.mutateAsync({ 
+      id, 
+      status: newStatus as 'submitted' | 'pending_review' | 'investigation_pending' | 'investigation_in_progress' | 'closed' 
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!id) return;
+    await deleteIncident.mutateAsync(id);
+    navigate('/incidents');
+  };
 
   if (isLoading) {
     return (
@@ -63,28 +126,76 @@ export default function IncidentDetail() {
 
   return (
     <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon">
-          <Link to="/incidents">
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{incident.title}</h1>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <FileText className="h-4 w-4" />
-            <span>{incident.reference_id}</span>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="icon">
+            <Link to="/incidents">
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">{incident.title}</h1>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              <span>{incident.reference_id}</span>
+            </div>
           </div>
         </div>
+
+        {hasHSSEAccess && (
+          <div className="flex items-center gap-2">
+            {incident.status === 'submitted' && (
+              <Button onClick={handleStartInvestigation} className="gap-2">
+                <PlayCircle className="h-4 w-4" />
+                {t('incidents.startInvestigation')}
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuItem asChild>
+                  <Link to={`/incidents/investigate?incident=${id}`}>
+                    {t('navigation.investigationWorkspace')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 me-2" />
+                  {t('incidents.delete')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {incident.severity && (
           <Badge variant={getSeverityBadgeVariant(incident.severity)} className="text-sm">
             {t(`incidents.severityLevels.${incident.severity}`)}
           </Badge>
         )}
-        {incident.status && (
+        {hasHSSEAccess && incident.status ? (
+          <Select value={incident.status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-auto h-7 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent dir={direction}>
+              <SelectItem value="submitted">{t('incidents.status.submitted')}</SelectItem>
+              <SelectItem value="pending_review">{t('incidents.status.pending_review')}</SelectItem>
+              <SelectItem value="investigation_pending">{t('incidents.status.investigation_pending')}</SelectItem>
+              <SelectItem value="investigation_in_progress">{t('incidents.status.investigation_in_progress')}</SelectItem>
+              <SelectItem value="closed">{t('incidents.status.closed')}</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : incident.status && (
           <Badge variant="outline" className="text-sm">
             {t(`incidents.status.${incident.status}`)}
           </Badge>
@@ -172,6 +283,27 @@ export default function IncidentDetail() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('incidents.delete')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('incidents.deleteConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
