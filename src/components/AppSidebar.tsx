@@ -157,6 +157,11 @@ export function AppSidebar() {
           isActive: location.pathname.startsWith("/assets"),
           subItems: [
             {
+              title: t('navigation.assetDashboard'),
+              url: "/assets/dashboard",
+              icon: BarChart3,
+            },
+            {
               title: t('navigation.assetList'),
               url: "/assets",
               icon: List,

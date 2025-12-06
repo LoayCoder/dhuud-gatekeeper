@@ -877,6 +877,7 @@
     "auditsInspections": "التدقيق والتفتيش",
     "visitorGatekeeper": "بوابة الزوار",
     "assetManagement": "إدارة الأصول",
+    "assetDashboard": "لوحة الأصول",
     "assetList": "قائمة الأصول",
     "registerAsset": "تسجيل أصل",
     "scanAsset": "مسح الأصل",
@@ -2268,6 +2269,45 @@
       "low": "منخفض",
       "medium": "متوسط",
       "high": "مرتفع",
+      "critical": "حرج"
+    },
+    "dashboard": {
+      "title": "لوحة معلومات الأصول",
+      "description": "نظرة عامة على حالة الأصول والتنبيهات",
+      "viewAllAssets": "عرض جميع الأصول",
+      "totalAssets": "إجمالي الأصول",
+      "activeAssets": "الأصول النشطة",
+      "underMaintenance": "تحت الصيانة",
+      "inactive": "غير نشط/متقاعد",
+      "conditionDistribution": "توزيع الحالة",
+      "conditionDescription": "صحة الأصول حسب تصنيف الحالة",
+      "categoryDistribution": "الأصول حسب الفئة",
+      "categoryDescription": "توزيع الأصول عبر الفئات",
+      "overdueInspections": "فحوصات متأخرة",
+      "overdueInspectionsDescription": "أصول تتطلب فحصاً فورياً",
+      "overdueMaintenance": "صيانة متأخرة",
+      "overdueMaintenanceDescription": "مهام صيانة تجاوزت موعدها",
+      "noOverdueInspections": "جميع الفحوصات محدثة",
+      "noOverdueMaintenance": "جميع الصيانة محدثة",
+      "daysOverdue": "{{count}} يوم تأخير",
+      "recentActivity": "النشاط الأخير",
+      "recentActivityDescription": "آخر التغييرات على الأصول",
+      "noRecentActivity": "لا يوجد نشاط حديث",
+      "noData": "لا توجد بيانات متاحة",
+      "actions": {
+        "created": "أنشأ",
+        "updated": "حدّث",
+        "status_changed": "غيّر حالة",
+        "deleted": "حذف",
+        "inspection_completed": "أكمل فحص",
+        "maintenance_completed": "أكمل صيانة"
+      }
+    },
+    "condition": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "fair": "مقبول",
+      "poor": "ضعيف",
       "critical": "حرج"
     }
   },
