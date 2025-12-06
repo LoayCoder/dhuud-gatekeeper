@@ -2155,5 +2155,11 @@
     "complete": "اكتمل الرفع",
     "processingFiles": "جاري معالجة الملفات...",
     "filesUploaded": "ملفات تم رفعها"
+  },
+  "documents": {
+    "generatingPdf": "جاري إنشاء PDF...",
+    "pdfDownloaded": "تم تنزيل PDF بنجاح",
+    "pdfError": "فشل في إنشاء PDF",
+    "downloadPdf": "تنزيل PDF"
   }
 }
