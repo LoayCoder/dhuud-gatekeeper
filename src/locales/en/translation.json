@@ -1,5 +1,12 @@
 {
   "incidents": {
+    "wizard": {
+      "stepCapture": "Capture",
+      "stepLocation": "Location",
+      "stepDetails": "Details",
+      "next": "Next",
+      "previous": "Previous"
+    },
     "reportIncident": "Report Safety Incident",
     "reportDescription": "Use this form to report any safety incidents, near misses, or observations.",
     "basicInfo": "Basic Information",

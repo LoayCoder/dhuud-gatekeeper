@@ -1,5 +1,12 @@
 {
   "incidents": {
+    "wizard": {
+      "stepCapture": "التقاط",
+      "stepLocation": "الموقع",
+      "stepDetails": "التفاصيل",
+      "next": "التالي",
+      "previous": "السابق"
+    },
     "reportIncident": "الإبلاغ عن حادث",
     "reportDescription": "تقديم بلاغ حادث سلامة جديد",
     "basicInfo": "المعلومات الأساسية",

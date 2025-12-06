@@ -1,5 +1,12 @@
 {
   "incidents": {
+    "wizard": {
+      "stepCapture": "Kukunan",
+      "stepLocation": "Lokasyon",
+      "stepDetails": "Mga Detalye",
+      "next": "Susunod",
+      "previous": "Nakaraan"
+    },
     "reportIncident": "Mag-ulat ng Insidente",
     "reportDescription": "Magsumite ng bagong ulat ng insidente sa kaligtasan",
     "basicInfo": "Pangunahing Impormasyon",
