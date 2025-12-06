@@ -35,6 +35,11 @@ const Profile = lazy(() => import(/* webpackChunkName: "user-profile" */ "./page
 const MFASetup = lazy(() => import(/* webpackChunkName: "auth-mfa" */ "./pages/MFASetup"));
 const Support = lazy(() => import(/* webpackChunkName: "user-support" */ "./pages/Support"));
 
+// Incident pages - lazy loaded
+const IncidentList = lazy(() => import(/* webpackChunkName: "incidents-list" */ "./pages/incidents/IncidentList"));
+const IncidentReport = lazy(() => import(/* webpackChunkName: "incidents-report" */ "./pages/incidents/IncidentReport"));
+const IncidentDetail = lazy(() => import(/* webpackChunkName: "incidents-detail" */ "./pages/incidents/IncidentDetail"));
+
 // Admin pages - lazy loaded with named chunks for better caching
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
 const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
@@ -98,7 +103,9 @@ const App = () => (
                       <Route path="/profile" element={<Profile />} />
                       
                       {/* HSSE Management Routes */}
-                      <Route path="/incidents" element={<PlaceholderPage titleKey="pages.incidents.title" descriptionKey="pages.incidents.description" />} />
+                      <Route path="/incidents" element={<IncidentList />} />
+                      <Route path="/incidents/report" element={<IncidentReport />} />
+                      <Route path="/incidents/:id" element={<IncidentDetail />} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
                       <Route path="/visitors" element={<PlaceholderPage titleKey="pages.visitors.title" descriptionKey="pages.visitors.description" />} />
 
