@@ -1,10 +1,11 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2, User, Building, ExternalLink, Clock, Image, Tag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,6 +88,9 @@ export default function IncidentDetail() {
     navigate('/incidents');
   };
 
+  // Parse media attachments
+  const mediaAttachments = incident?.media_attachments as Array<{ url: string; type: string; name: string }> | null;
+
   if (isLoading) {
     return (
       <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
@@ -126,6 +130,7 @@ export default function IncidentDetail() {
 
   return (
     <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
+      {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" size="icon">
@@ -176,6 +181,7 @@ export default function IncidentDetail() {
         )}
       </div>
 
+      {/* Status and Type Badges */}
       <div className="flex flex-wrap gap-2 items-center">
         {incident.severity && (
           <Badge variant={getSeverityBadgeVariant(incident.severity)} className="text-sm">
@@ -203,8 +209,15 @@ export default function IncidentDetail() {
         <Badge variant="secondary" className="text-sm">
           {t(`incidents.eventTypes.${incident.event_type}`)}
         </Badge>
+        {incident.subtype && (
+          <Badge variant="outline" className="text-sm">
+            <Tag className="h-3 w-3 me-1" />
+            {t(`incidents.incidentTypes.${incident.subtype}`) || incident.subtype}
+          </Badge>
+        )}
       </div>
 
+      {/* Description Card */}
       <Card>
         <CardHeader>
           <CardTitle>{t('incidents.description')}</CardTitle>
@@ -214,7 +227,9 @@ export default function IncidentDetail() {
         </CardContent>
       </Card>
 
+      {/* Info Grid */}
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Date/Time Card */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -227,21 +242,102 @@ export default function IncidentDetail() {
           </CardContent>
         </Card>
 
-        {incident.location && (
+        {/* Reporter Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              {t('incidents.reportedBy')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {incident.reporter?.full_name || t('common.unknown')}
+          </CardContent>
+        </Card>
+
+        {/* Location Card */}
+        {(incident.location || incident.branch || incident.site || incident.department_info) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                {t('incidents.locationDetails')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {incident.branch && (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">{t('incidents.branch')}: </span>
+                  {incident.branch.name}
+                </div>
+              )}
+              {incident.site && (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">{t('incidents.site')}: </span>
+                  {incident.site.name}
+                </div>
+              )}
+              {incident.department_info && (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">{t('incidents.responsibleDepartment')}: </span>
+                  {incident.department_info.name}
+                </div>
+              )}
+              {incident.location && (
+                <div className="text-sm mt-2">
+                  <span className="text-muted-foreground">{t('incidents.location')}: </span>
+                  {incident.location}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* GPS Coordinates Card */}
+        {(incident.latitude && incident.longitude) && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                {t('incidents.location')}
+                {t('incidents.gpsLocation')}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {incident.location}
+            <CardContent className="space-y-2">
+              <div className="text-sm font-mono">
+                {incident.latitude.toFixed(6)}, {incident.longitude.toFixed(6)}
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <a 
+                  href={`https://www.google.com/maps?q=${incident.latitude},${incident.longitude}`}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="gap-2"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {t('incidents.viewOnMap')}
+                </a>
+              </Button>
             </CardContent>
           </Card>
         )}
       </div>
 
+      {/* Special Event Linkage */}
+      {incident.special_event && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              {t('incidents.linkedEvent')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Badge variant="secondary">{incident.special_event.name}</Badge>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Immediate Actions */}
       {incident.immediate_actions && (
         <Card>
           <CardHeader>
@@ -253,6 +349,7 @@ export default function IncidentDetail() {
         </Card>
       )}
 
+      {/* Injury Details */}
       {incident.has_injury && incident.injury_details && (
         <Card className="border-yellow-500/50">
           <CardHeader>
@@ -269,6 +366,7 @@ export default function IncidentDetail() {
         </Card>
       )}
 
+      {/* Damage Details */}
       {incident.has_damage && incident.damage_details && (
         <Card className="border-orange-500/50">
           <CardHeader>
@@ -283,6 +381,68 @@ export default function IncidentDetail() {
           </CardContent>
         </Card>
       )}
+
+      {/* Media Attachments */}
+      {mediaAttachments && mediaAttachments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Image className="h-5 w-5" />
+              {t('incidents.attachments')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {mediaAttachments.map((attachment, index) => (
+                <a 
+                  key={index}
+                  href={attachment.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative group aspect-video bg-muted rounded-lg overflow-hidden"
+                >
+                  {attachment.type?.startsWith('image/') ? (
+                    <img 
+                      src={attachment.url} 
+                      alt={attachment.name || `Attachment ${index + 1}`}
+                      className="object-cover w-full h-full group-hover:opacity-80 transition-opacity"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 start-0 end-0 bg-black/60 text-white text-xs p-1 truncate">
+                    {attachment.name || `File ${index + 1}`}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Metadata */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            {t('incidents.metadata')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t('incidents.createdAt')}:</span>
+            <span>{incident.created_at && format(new Date(incident.created_at), 'PPpp')}</span>
+          </div>
+          {incident.updated_at && incident.updated_at !== incident.created_at && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('incidents.updatedAt')}:</span>
+              <span>{format(new Date(incident.updated_at), 'PPpp')}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

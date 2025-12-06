@@ -128,6 +128,42 @@ export function useIncidents() {
   });
 }
 
+export interface IncidentWithDetails {
+  id: string;
+  reference_id: string | null;
+  title: string;
+  description: string;
+  event_type: string;
+  subtype: string | null;
+  occurred_at: string | null;
+  location: string | null;
+  severity: 'low' | 'medium' | 'high' | 'critical' | null;
+  status: 'submitted' | 'pending_review' | 'investigation_pending' | 'investigation_in_progress' | 'closed' | null;
+  immediate_actions: string | null;
+  has_injury: boolean | null;
+  injury_details: Record<string, unknown> | null;
+  has_damage: boolean | null;
+  damage_details: Record<string, unknown> | null;
+  latitude: number | null;
+  longitude: number | null;
+  media_attachments: unknown[] | null;
+  ai_analysis_result: Record<string, unknown> | null;
+  created_at: string | null;
+  updated_at: string | null;
+  tenant_id: string;
+  reporter_id: string | null;
+  branch_id: string | null;
+  site_id: string | null;
+  department_id: string | null;
+  special_event_id: string | null;
+  // Joined relations
+  reporter?: { id: string; full_name: string | null } | null;
+  branch?: { id: string; name: string } | null;
+  site?: { id: string; name: string } | null;
+  department_info?: { id: string; name: string } | null;
+  special_event?: { id: string; name: string } | null;
+}
+
 export function useIncident(id: string | undefined) {
   const { profile } = useAuth();
 
@@ -138,14 +174,26 @@ export function useIncident(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('incidents')
-        .select('*')
+        .select(`
+          id, reference_id, title, description, event_type, subtype, 
+          occurred_at, location, severity, status, immediate_actions,
+          has_injury, injury_details, has_damage, damage_details,
+          latitude, longitude, media_attachments, ai_analysis_result,
+          created_at, updated_at, tenant_id, reporter_id,
+          branch_id, site_id, department_id, special_event_id,
+          reporter:profiles!incidents_reporter_id_fkey(id, full_name),
+          branch:branches!incidents_branch_id_fkey(id, name),
+          site:sites!incidents_site_id_fkey(id, name),
+          department_info:departments!incidents_department_id_fkey(id, name),
+          special_event:special_events!incidents_special_event_id_fkey(id, name)
+        `)
         .eq('id', id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .single();
 
       if (error) throw error;
-      return data as Incident;
+      return data as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,
   });

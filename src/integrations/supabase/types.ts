@@ -2261,6 +2261,10 @@ export type Database = {
             }
             Returns: Json
           }
+      can_view_incident: {
+        Args: { _incident_reporter_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_view_sensitive_profile_data: {
         Args: { profile_user_id: string }
         Returns: boolean
