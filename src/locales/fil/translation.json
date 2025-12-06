@@ -198,7 +198,52 @@
       "uploadSuccess": "Matagumpay na na-upload ang ebidensya",
       "uploadError": "Nabigo sa pag-upload ng ebidensya",
       "deleteSuccess": "Natanggal ang ebidensya",
-      "deleteError": "Nabigo sa pagtanggal ng ebidensya"
+      "deleteError": "Nabigo sa pagtanggal ng ebidensya",
+      "lockedClosed": "Nakasara ang insidenteng ito. Hindi maaaring baguhin ang ebidensya.",
+      "type": "Uri ng Ebidensya",
+      "description": "Paglalarawan",
+      "types": {
+        "photo": "Larawan",
+        "document": "Dokumento",
+        "cctv": "CCTV",
+        "ptw": "Permit to Work",
+        "checklist": "Inspection Checklist",
+        "video_clip": "Video Clip"
+      },
+      "review": {
+        "button": "Rebyuhin",
+        "title": "Rebyuhin ang Ebidensya",
+        "description": "Magdagdag ng iyong komentong rebyu para sa ebidensyang ito.",
+        "fullDescription": "Rebyuhin ang lahat ng detalye ng ebidensya at magdagdag ng iyong mga komento.",
+        "comment": "Komentong Rebyu",
+        "placeholder": "Ilagay ang iyong komentong rebyu...",
+        "submit": "I-save ang Rebyu",
+        "previousReview": "Nakaraang Rebyu",
+        "details": "Mga Detalye ng Ebidensya",
+        "fileName": "Pangalan ng File",
+        "fileSize": "Laki ng File",
+        "mimeType": "Uri ng MIME",
+        "referenceId": "Reference ID",
+        "referenceType": "Uri ng Reference",
+        "evidenceId": "Evidence ID",
+        "sessionId": "Session ID",
+        "cctvCameras": "Mga CCTV Camera",
+        "uploadedBy": "Na-upload Ni",
+        "createdAt": "Nilikha",
+        "updatedAt": "Na-update",
+        "download": "I-download",
+        "videoNotSupported": "Hindi sinusuportahan ng iyong browser ang video playback.",
+        "documentFile": "Document File"
+      },
+      "cctv": {
+        "noCameras": "Wala pang mga camera na naidagdag",
+        "camera": "Camera",
+        "cameraId": "Camera ID",
+        "location": "Lokasyon",
+        "date": "Petsa",
+        "startTime": "Oras ng Simula",
+        "endTime": "Oras ng Pagtatapos"
+      }
     },
     "witnesses": {
       "title": "Mga Pahayag ng Saksi",

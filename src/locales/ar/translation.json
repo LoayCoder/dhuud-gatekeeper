@@ -199,7 +199,51 @@
       "uploadError": "فشل في رفع الدليل",
       "deleteSuccess": "تم حذف الدليل",
       "deleteError": "فشل في حذف الدليل",
-      "lockedClosed": "تم إغلاق هذه الحادثة. لا يمكن تعديل الأدلة."
+      "lockedClosed": "تم إغلاق هذه الحادثة. لا يمكن تعديل الأدلة.",
+      "type": "نوع الدليل",
+      "description": "الوصف",
+      "types": {
+        "photo": "صورة",
+        "document": "مستند",
+        "cctv": "كاميرات مراقبة",
+        "ptw": "تصريح العمل",
+        "checklist": "قائمة التفتيش",
+        "video_clip": "مقطع فيديو"
+      },
+      "review": {
+        "button": "مراجعة",
+        "title": "مراجعة الدليل",
+        "description": "أضف تعليق المراجعة لهذا الدليل.",
+        "fullDescription": "راجع جميع تفاصيل الدليل وأضف تعليقاتك.",
+        "comment": "تعليق المراجعة",
+        "placeholder": "أدخل تعليق المراجعة...",
+        "submit": "حفظ المراجعة",
+        "previousReview": "المراجعة السابقة",
+        "details": "تفاصيل الدليل",
+        "fileName": "اسم الملف",
+        "fileSize": "حجم الملف",
+        "mimeType": "نوع MIME",
+        "referenceId": "رقم المرجع",
+        "referenceType": "نوع المرجع",
+        "evidenceId": "معرف الدليل",
+        "sessionId": "معرف الجلسة",
+        "cctvCameras": "كاميرات المراقبة",
+        "uploadedBy": "رفع بواسطة",
+        "createdAt": "تاريخ الإنشاء",
+        "updatedAt": "تاريخ التحديث",
+        "download": "تنزيل",
+        "videoNotSupported": "المتصفح لا يدعم تشغيل الفيديو.",
+        "documentFile": "ملف مستند"
+      },
+      "cctv": {
+        "noCameras": "لم تتم إضافة كاميرات بعد",
+        "camera": "كاميرا",
+        "cameraId": "معرف الكاميرا",
+        "location": "الموقع",
+        "date": "التاريخ",
+        "startTime": "وقت البدء",
+        "endTime": "وقت الانتهاء"
+      }
     },
     "witnesses": {
       "title": "إفادات الشهود",
