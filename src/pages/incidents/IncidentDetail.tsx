@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2, User, Building, ExternalLink, Clock, Image, Tag } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2, User, Building, ExternalLink, Clock, Tag } from 'lucide-react';
+import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -382,45 +383,15 @@ export default function IncidentDetail() {
         </Card>
       )}
 
-      {/* Media Attachments */}
-      {mediaAttachments && mediaAttachments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              {t('incidents.attachments')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {mediaAttachments.map((attachment, index) => (
-                <a 
-                  key={index}
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative group aspect-video bg-muted rounded-lg overflow-hidden"
-                >
-                  {attachment.type?.startsWith('image/') ? (
-                    <img 
-                      src={attachment.url} 
-                      alt={attachment.name || `Attachment ${index + 1}`}
-                      className="object-cover w-full h-full group-hover:opacity-80 transition-opacity"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 start-0 end-0 bg-black/60 text-white text-xs p-1 truncate">
-                    {attachment.name || `File ${index + 1}`}
-                  </div>
-                </a>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* All Attachments (Initial + Evidence) */}
+      <Card>
+        <CardContent className="pt-6">
+          <IncidentAttachmentsSection 
+            incidentId={id!}
+            mediaAttachments={mediaAttachments}
+          />
+        </CardContent>
+      </Card>
 
       {/* Metadata */}
       <Card>
