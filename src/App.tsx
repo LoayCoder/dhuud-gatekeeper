@@ -43,6 +43,11 @@ const IncidentReport = lazy(() => import(/* webpackChunkName: "incidents-report"
 const IncidentDetail = lazy(() => import(/* webpackChunkName: "incidents-detail" */ "./pages/incidents/IncidentDetail"));
 const InvestigationWorkspace = lazy(() => import(/* webpackChunkName: "incidents-investigate" */ "./pages/incidents/InvestigationWorkspace"));
 const MyActions = lazy(() => import(/* webpackChunkName: "incidents-my-actions" */ "./pages/incidents/MyActions"));
+
+// Asset pages - lazy loaded
+const AssetList = lazy(() => import(/* webpackChunkName: "assets-list" */ "./pages/assets/AssetList"));
+const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ "./pages/assets/AssetDetail"));
+const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
 // Admin pages - lazy loaded with named chunks for better caching
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
 const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
@@ -115,6 +120,12 @@ const App = () => (
                       <Route path="/incidents/my-actions" element={<MyActions />} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
                       <Route path="/visitors" element={<PlaceholderPage titleKey="pages.visitors.title" descriptionKey="pages.visitors.description" />} />
+
+                      {/* Asset Routes */}
+                      <Route path="/assets" element={<AssetList />} />
+                      <Route path="/assets/register" element={<HSSERoute><AssetRegister /></HSSERoute>} />
+                      <Route path="/assets/:id" element={<AssetDetail />} />
+                      <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
 
                       {/* Admin Routes */}
                       <Route

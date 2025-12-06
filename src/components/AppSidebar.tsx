@@ -39,6 +39,9 @@ import {
   BarChart3,
   ShieldAlert,
   FileCog,
+  Package,
+  List,
+  Plus,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -146,6 +149,23 @@ export function AppSidebar() {
           title: t('navigation.visitorGatekeeper'),
           url: "/visitors",
           icon: Users,
+        },
+        {
+          title: t('navigation.assetManagement'),
+          icon: Package,
+          isActive: location.pathname.startsWith("/assets"),
+          subItems: [
+            {
+              title: t('navigation.assetList'),
+              url: "/assets",
+              icon: List,
+            },
+            {
+              title: t('navigation.registerAsset'),
+              url: "/assets/register",
+              icon: Plus,
+            },
+          ],
         },
       ],
     },
