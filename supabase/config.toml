@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.send-incident-email]
 verify_jwt = false
+
+[functions.transcribe-audio]
+verify_jwt = true
+
+[functions.analyze-witness-statement]
+verify_jwt = true
