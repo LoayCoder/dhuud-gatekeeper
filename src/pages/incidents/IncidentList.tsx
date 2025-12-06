@@ -1,12 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Plus, FileText, AlertTriangle } from 'lucide-react';
+import { Plus, FileText, AlertTriangle, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIncidents } from '@/hooks/use-incidents';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const getSeverityBadgeVariant = (severity: string | null) => {
   switch (severity) {
@@ -30,6 +33,17 @@ export default function IncidentList() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { data: incidents, isLoading } = useIncidents();
+  const { user } = useAuth();
+  const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase.rpc('has_hsse_incident_access', { _user_id: user.id });
+      setHasHSSEAccess(data === true);
+    };
+    checkAccess();
+  }, [user?.id]);
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
@@ -38,12 +52,22 @@ export default function IncidentList() {
           <h1 className="text-3xl font-bold tracking-tight">{t('pages.incidents.title')}</h1>
           <p className="text-muted-foreground">{t('pages.incidents.description')}</p>
         </div>
-        <Button asChild>
-          <Link to="/incidents/report" className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t('incidents.reportIncident')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasHSSEAccess && (
+            <Button asChild variant="outline">
+              <Link to="/incidents/investigate" className="gap-2">
+                <Search className="h-4 w-4" />
+                {t('navigation.investigationWorkspace')}
+              </Link>
+            </Button>
+          )}
+          <Button asChild>
+            <Link to="/incidents/report" className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('incidents.reportIncident')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (

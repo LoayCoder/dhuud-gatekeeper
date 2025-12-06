@@ -187,6 +187,30 @@
       "actor": "بواسطة",
       "timestamp": "الوقت",
       "details": "التفاصيل"
+    },
+    "myActions": "إجراءاتي المسندة",
+    "myActionsDescription": "عرض وتحديث الإجراءات التصحيحية المسندة إليك",
+    "pendingActions": "معلق",
+    "inProgressActions": "قيد التنفيذ",
+    "completedActions": "مكتمل",
+    "noActionsAssigned": "لا توجد إجراءات مسندة",
+    "noActionsDescription": "ليس لديك أي إجراءات تصحيحية مسندة إليك.",
+    "updateStatus": "تحديث الحالة",
+    "viewIncident": "عرض الحادث",
+    "actionStatusUpdated": "تم تحديث حالة الإجراء بنجاح",
+    "dueDate": "تاريخ الاستحقاق",
+    "priority": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    },
+    "actionStatus": {
+      "assigned": "مسند",
+      "pending": "معلق",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "verified": "تم التحقق"
     }
   },
   "pages": {
@@ -572,6 +596,8 @@
     "dashboard": "لوحة المعلومات",
     "hsseManagement": "إدارة الصحة والسلامة",
     "incidents": "الحوادث",
+    "investigationWorkspace": "مساحة التحقيق",
+    "myActions": "إجراءاتي",
     "auditsInspections": "التدقيق والتفتيش",
     "visitorGatekeeper": "بوابة الزوار",
     "administration": "الإدارة",

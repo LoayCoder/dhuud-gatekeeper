@@ -187,6 +187,30 @@
       "actor": "द्वारा",
       "timestamp": "समय",
       "details": "विवरण"
+    },
+    "myActions": "मेरे सौंपे गए कार्य",
+    "myActionsDescription": "अपने सौंपे गए सुधारात्मक कार्यों को देखें और अपडेट करें",
+    "pendingActions": "लंबित",
+    "inProgressActions": "प्रगति में",
+    "completedActions": "पूर्ण",
+    "noActionsAssigned": "कोई कार्य सौंपा नहीं",
+    "noActionsDescription": "आपको कोई सुधारात्मक कार्रवाई सौंपी नहीं गई है।",
+    "updateStatus": "स्थिति अपडेट करें",
+    "viewIncident": "घटना देखें",
+    "actionStatusUpdated": "कार्रवाई की स्थिति सफलतापूर्वक अपडेट हुई",
+    "dueDate": "नियत तारीख",
+    "priority": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च",
+      "critical": "गंभीर"
+    },
+    "actionStatus": {
+      "assigned": "सौंपा गया",
+      "pending": "लंबित",
+      "in_progress": "प्रगति में",
+      "completed": "पूर्ण",
+      "verified": "सत्यापित"
     }
   },
   "pages": {
@@ -572,6 +596,8 @@
     "dashboard": "डैशबोर्ड",
     "hsseManagement": "HSSE प्रबंधन",
     "incidents": "घटनाएं",
+    "investigationWorkspace": "जांच कार्यक्षेत्र",
+    "myActions": "मेरे कार्य",
     "auditsInspections": "ऑडिट और निरीक्षण",
     "visitorGatekeeper": "विज़िटर गेटकीपर",
     "administration": "प्रशासन",
