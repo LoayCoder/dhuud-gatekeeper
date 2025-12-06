@@ -198,7 +198,52 @@
       "uploadSuccess": "ثبوت کامیابی سے اپ لوڈ ہو گیا",
       "uploadError": "ثبوت اپ لوڈ کرنے میں ناکام",
       "deleteSuccess": "ثبوت حذف ہو گیا",
-      "deleteError": "ثبوت حذف کرنے میں ناکام"
+      "deleteError": "ثبوت حذف کرنے میں ناکام",
+      "lockedClosed": "یہ واقعہ بند ہے۔ ثبوت میں ترمیم نہیں ہو سکتی۔",
+      "type": "ثبوت کی قسم",
+      "description": "تفصیل",
+      "types": {
+        "photo": "تصویر",
+        "document": "دستاویز",
+        "cctv": "سی سی ٹی وی",
+        "ptw": "کام کی اجازت",
+        "checklist": "معائنہ چیک لسٹ",
+        "video_clip": "ویڈیو کلپ"
+      },
+      "review": {
+        "button": "جائزہ",
+        "title": "ثبوت کا جائزہ",
+        "description": "اس ثبوت کے لیے اپنا جائزہ تبصرہ شامل کریں۔",
+        "fullDescription": "تمام ثبوت کی تفصیلات کا جائزہ لیں اور اپنے تبصرے شامل کریں۔",
+        "comment": "جائزہ تبصرہ",
+        "placeholder": "اپنا جائزہ تبصرہ درج کریں...",
+        "submit": "جائزہ محفوظ کریں",
+        "previousReview": "پچھلا جائزہ",
+        "details": "ثبوت کی تفصیلات",
+        "fileName": "فائل کا نام",
+        "fileSize": "فائل کا سائز",
+        "mimeType": "MIME قسم",
+        "referenceId": "حوالہ نمبر",
+        "referenceType": "حوالہ کی قسم",
+        "evidenceId": "ثبوت شناخت",
+        "sessionId": "سیشن شناخت",
+        "cctvCameras": "سی سی ٹی وی کیمرے",
+        "uploadedBy": "اپ لوڈ کنندہ",
+        "createdAt": "بنایا گیا",
+        "updatedAt": "اپڈیٹ کیا گیا",
+        "download": "ڈاؤن لوڈ",
+        "videoNotSupported": "آپ کا براؤزر ویڈیو پلے بیک کی حمایت نہیں کرتا۔",
+        "documentFile": "دستاویز فائل"
+      },
+      "cctv": {
+        "noCameras": "ابھی تک کوئی کیمرے شامل نہیں کیے گئے",
+        "camera": "کیمرا",
+        "cameraId": "کیمرا شناخت",
+        "location": "مقام",
+        "date": "تاریخ",
+        "startTime": "شروع کا وقت",
+        "endTime": "ختم ہونے کا وقت"
+      }
     },
     "witnesses": {
       "title": "گواہوں کے بیانات",
