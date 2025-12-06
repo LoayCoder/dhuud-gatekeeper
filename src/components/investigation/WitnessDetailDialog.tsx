@@ -31,7 +31,7 @@ import {
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { WitnessStatement } from "@/hooks/use-witness-statements";
-import { generateFilledWitnessDoc } from "@/lib/generate-witness-statement-doc";
+import { generateFilledWitnessPDF } from "@/lib/generate-witness-statement-pdf";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
@@ -126,7 +126,7 @@ export function WitnessDetailDialog({
 
     setIsGenerating(true);
     try {
-      await generateFilledWitnessDoc(
+      await generateFilledWitnessPDF(
         {
           referenceId: incident.reference_id || "N/A",
           title: incident.title,
@@ -146,10 +146,10 @@ export function WitnessDetailDialog({
         },
         { documentSettings }
       );
-      toast.success(t("investigation.witnesses.printSuccess", "Document downloaded"));
+      toast.success(t("documents.pdfDownloaded", "PDF downloaded successfully"));
     } catch (error) {
-      console.error("Error generating document:", error);
-      toast.error(t("investigation.witnesses.printError", "Failed to generate document"));
+      console.error("Error generating PDF:", error);
+      toast.error(t("documents.pdfError", "Failed to generate PDF"));
     } finally {
       setIsGenerating(false);
     }
