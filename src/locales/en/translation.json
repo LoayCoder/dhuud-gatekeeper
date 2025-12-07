@@ -3133,11 +3133,23 @@
       "critical": "Critical",
       "major": "Major",
       "minor": "Minor"
+    },
+    "types": {
+      "asset": "Asset Inspection",
+      "area": "Area Inspection",
+      "audit": "Audit"
     }
   },
   "schedules": {
     "title": "Inspection Schedules",
     "description": "Manage recurring inspection schedules",
+    "allSites": "All Sites",
+    "allBuildings": "All Buildings",
+    "timing": "Timing",
+    "pickDate": "Pick a date",
+    "daysSimple": "days",
+    "nextOccurrences": "Next Occurrences",
+    "create": "Create",
     "calendar": "Calendar",
     "createSchedule": "Create Schedule",
     "editSchedule": "Edit Schedule",

@@ -2998,6 +2998,11 @@
       "minorNc": "Minor NC",
       "majorNc": "Major NC",
       "criticalNc": "Critical NC"
+    },
+    "types": {
+      "asset": "Inspeksyon ng Asset",
+      "area": "Inspeksyon ng Lugar",
+      "audit": "Audit"
     }
   },
   "myInspections": {
@@ -3011,6 +3016,13 @@
   "schedules": {
     "title": "Mga Iskedyul ng Inspeksyon",
     "description": "Pamahalaan ang mga umuulit na iskedyul ng inspeksyon",
+    "allSites": "Lahat ng Site",
+    "allBuildings": "Lahat ng Gusali",
+    "timing": "Oras",
+    "pickDate": "Pumili ng petsa",
+    "daysSimple": "araw",
+    "nextOccurrences": "Mga Susunod na Petsa",
+    "create": "Lumikha",
     "calendar": "Kalendaryo",
     "createSchedule": "Lumikha ng Iskedyul",
     "editSchedule": "I-edit ang Iskedyul",

@@ -631,7 +631,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t('schedules.reminderDays')}: {field.value} {t('schedules.days')}
+                      {t('schedules.reminderDays')}: {field.value} {t('schedules.daysSimple')}
                     </FormLabel>
                     <FormControl>
                       <Slider

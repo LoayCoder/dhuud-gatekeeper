@@ -2998,6 +2998,11 @@
       "minorNc": "मामूली गैर-अनुरूपता",
       "majorNc": "बड़ी गैर-अनुरूपता",
       "criticalNc": "गंभीर गैर-अनुरूपता"
+    },
+    "types": {
+      "asset": "संपत्ति निरीक्षण",
+      "area": "क्षेत्र निरीक्षण",
+      "audit": "ऑडिट"
     }
   },
   "myInspections": {
@@ -3011,6 +3016,13 @@
   "schedules": {
     "title": "निरीक्षण अनुसूचियां",
     "description": "आवर्ती निरीक्षण अनुसूचियों का प्रबंधन करें",
+    "allSites": "सभी साइट",
+    "allBuildings": "सभी भवन",
+    "timing": "समय",
+    "pickDate": "तिथि चुनें",
+    "daysSimple": "दिन",
+    "nextOccurrences": "आगामी तिथियां",
+    "create": "बनाएं",
     "calendar": "कैलेंडर",
     "createSchedule": "अनुसूची बनाएं",
     "editSchedule": "अनुसूची संपादित करें",
