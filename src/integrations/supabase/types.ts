@@ -3312,6 +3312,9 @@ export type Database = {
           contractor_type: Database["public"]["Enums"]["contractor_type"] | null
           created_at: string | null
           deleted_at: string | null
+          digest_opt_in: boolean | null
+          digest_preferred_time: string | null
+          digest_timezone: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           employee_id: string | null
@@ -3345,6 +3348,9 @@ export type Database = {
             | null
           created_at?: string | null
           deleted_at?: string | null
+          digest_opt_in?: boolean | null
+          digest_preferred_time?: string | null
+          digest_timezone?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employee_id?: string | null
@@ -3378,6 +3384,9 @@ export type Database = {
             | null
           created_at?: string | null
           deleted_at?: string | null
+          digest_opt_in?: boolean | null
+          digest_preferred_time?: string | null
+          digest_timezone?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employee_id?: string | null

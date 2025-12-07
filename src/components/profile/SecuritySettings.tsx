@@ -13,6 +13,7 @@ import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
 import { TrustedDevicesSection } from "./TrustedDevicesSection";
 import { NotificationPreferences } from "./NotificationPreferences";
+import { HSSEManagerSettings } from "./HSSEManagerSettings";
 
 interface PasswordRequirement {
   label: string;
@@ -127,6 +128,9 @@ export function SecuritySettings() {
 
       {/* Notification Preferences Section */}
       <NotificationPreferences />
+
+      {/* HSSE Manager Settings (only for managers/admins) */}
+      <HSSEManagerSettings />
 
       <Separator />
 

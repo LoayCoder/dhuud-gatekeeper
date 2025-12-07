@@ -273,6 +273,16 @@ export function AppSidebar() {
           url: "/admin/billing",
           icon: Receipt,
         },
+        {
+          title: t('navigation.slaDashboard', 'SLA Dashboard'),
+          url: "/admin/sla-dashboard",
+          icon: BarChart3,
+        },
+        {
+          title: t('navigation.actionSlaSettings', 'Action SLA Settings'),
+          url: "/admin/action-sla",
+          icon: ClipboardList,
+        },
       ],
     },
     {

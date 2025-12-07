@@ -4,7 +4,7 @@ export interface NotificationHistoryItem {
   id: string;
   title: string;
   body?: string;
-  type: 'sync' | 'update' | 'info' | 'error';
+  type: 'sync' | 'update' | 'info' | 'error' | 'urgent';
   timestamp: number;
   read: boolean;
 }
@@ -67,8 +67,8 @@ export function getUnreadCount(): number {
 }
 
 // Sound management
-export type NotificationSoundType = 'sync' | 'update' | 'info' | 'error';
-export type SoundOption = 'default' | 'chime' | 'bell' | 'ping' | 'none';
+export type NotificationSoundType = 'sync' | 'update' | 'info' | 'error' | 'urgent';
+export type SoundOption = 'default' | 'chime' | 'bell' | 'ping' | 'urgent' | 'none';
 
 const SOUND_SETTINGS_KEY = 'notification-sounds';
 const CATEGORY_PREFS_KEY = 'notification-category-prefs';
@@ -78,6 +78,7 @@ export interface SoundSettings {
   update: SoundOption;
   info: SoundOption;
   error: SoundOption;
+  urgent: SoundOption;
 }
 
 export interface CategoryPreferences {
@@ -85,6 +86,7 @@ export interface CategoryPreferences {
   update: boolean;
   info: boolean;
   error: boolean;
+  urgent: boolean;
 }
 
 const DEFAULT_SOUND_SETTINGS: SoundSettings = {
@@ -92,6 +94,7 @@ const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   update: 'chime',
   info: 'ping',
   error: 'bell',
+  urgent: 'urgent',
 };
 
 const DEFAULT_CATEGORY_PREFS: CategoryPreferences = {
@@ -99,6 +102,7 @@ const DEFAULT_CATEGORY_PREFS: CategoryPreferences = {
   update: true,
   info: true,
   error: true,
+  urgent: true,
 };
 
 export function getSoundSettings(): SoundSettings {
@@ -167,7 +171,7 @@ export async function sendPushNotification(
       body,
       icon: '/pwa-192x192.png',
       tag: `${type}-${Date.now()}`,
-      requireInteraction: type === 'error',
+      requireInteraction: type === 'error' || type === 'urgent',
     });
 
     notification.onclick = () => {
@@ -231,6 +235,18 @@ export function playNotificationSound(type: NotificationSoundType): void {
         gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
         oscillator.start(ctx.currentTime);
         oscillator.stop(ctx.currentTime + 0.15);
+        break;
+      case 'urgent':
+        // Two-tone urgent alert
+        oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+        oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.15);
+        oscillator.frequency.setValueAtTime(800, ctx.currentTime + 0.3);
+        oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.45);
+        oscillator.type = 'square';
+        gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.6);
         break;
       default: // 'default'
         oscillator.frequency.setValueAtTime(440, ctx.currentTime);
