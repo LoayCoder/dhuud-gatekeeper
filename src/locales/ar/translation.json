@@ -3090,6 +3090,7 @@
   "schedules": {
     "title": "جداول الفحص",
     "description": "إدارة جداول الفحص المتكررة",
+    "calendar": "التقويم",
     "createSchedule": "إنشاء جدول",
     "editSchedule": "تعديل الجدول",
     "noSchedules": "لا توجد جداول",

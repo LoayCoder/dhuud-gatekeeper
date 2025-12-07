@@ -3135,6 +3135,7 @@
   "schedules": {
     "title": "Inspection Schedules",
     "description": "Manage recurring inspection schedules",
+    "calendar": "Calendar",
     "createSchedule": "Create Schedule",
     "editSchedule": "Edit Schedule",
     "noSchedules": "No Schedules Found",
