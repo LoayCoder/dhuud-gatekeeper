@@ -11,6 +11,13 @@ export interface InspectionTemplate {
   name: string;
   name_ar: string | null;
   description: string | null;
+  // Area inspection fields
+  template_type: 'asset' | 'area' | 'audit';
+  scope_description: string | null;
+  estimated_duration_minutes: number | null;
+  requires_photos: boolean;
+  requires_gps: boolean;
+  // Location filters
   category_id: string | null;
   type_id: string | null;
   branch_id: string | null;
@@ -80,16 +87,21 @@ export interface InspectionResponse {
 
 // ============= Template Hooks =============
 
-export function useInspectionTemplates() {
+/**
+ * Fetch inspection templates with optional type filter
+ * @param templateType - Optional filter: 'asset' | 'area' | 'audit'
+ */
+export function useInspectionTemplates(templateType?: 'asset' | 'area' | 'audit') {
   const { profile } = useAuth();
   
   return useQuery({
-    queryKey: ['inspection-templates', profile?.tenant_id],
+    queryKey: ['inspection-templates', profile?.tenant_id, templateType],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('inspection_templates')
         .select(`
           id, tenant_id, code, name, name_ar, description,
+          template_type, scope_description, estimated_duration_minutes, requires_photos, requires_gps,
           category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
           type:asset_types(name, name_ar),
@@ -99,6 +111,12 @@ export function useInspectionTemplates() {
         .is('deleted_at', null)
         .order('name');
       
+      // Apply template type filter if provided
+      if (templateType) {
+        query = query.eq('template_type', templateType);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data as unknown as InspectionTemplate[];
     },
