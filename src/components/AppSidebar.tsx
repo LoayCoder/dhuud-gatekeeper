@@ -279,6 +279,16 @@ export function AppSidebar() {
           icon: BarChart3,
         },
         {
+          title: t('navigation.teamPerformance', 'Team Performance'),
+          url: "/admin/team-performance",
+          icon: Users,
+        },
+        {
+          title: t('navigation.executiveReport', 'Executive Report'),
+          url: "/admin/executive-report",
+          icon: FileStack,
+        },
+        {
           title: t('navigation.actionSlaSettings', 'Action SLA Settings'),
           url: "/admin/action-sla",
           icon: ClipboardList,

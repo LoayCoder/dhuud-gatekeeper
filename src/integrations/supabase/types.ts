@@ -2328,6 +2328,7 @@ export type Database = {
         Row: {
           assigned_inspector_id: string | null
           assigned_team: Json | null
+          auto_generate_session: boolean | null
           building_id: string | null
           category_id: string | null
           created_at: string
@@ -2342,6 +2343,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_generated: string | null
+          last_generated_at: string | null
           last_reminder_sent: string | null
           month_of_year: number | null
           name: string
@@ -2350,6 +2352,7 @@ export type Database = {
           reference_id: string
           reminder_days_before: number
           schedule_type: string
+          sessions_generated_count: number | null
           site_id: string | null
           start_date: string
           template_id: string
@@ -2360,6 +2363,7 @@ export type Database = {
         Insert: {
           assigned_inspector_id?: string | null
           assigned_team?: Json | null
+          auto_generate_session?: boolean | null
           building_id?: string | null
           category_id?: string | null
           created_at?: string
@@ -2374,6 +2378,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_generated?: string | null
+          last_generated_at?: string | null
           last_reminder_sent?: string | null
           month_of_year?: number | null
           name: string
@@ -2382,6 +2387,7 @@ export type Database = {
           reference_id: string
           reminder_days_before?: number
           schedule_type?: string
+          sessions_generated_count?: number | null
           site_id?: string | null
           start_date?: string
           template_id: string
@@ -2392,6 +2398,7 @@ export type Database = {
         Update: {
           assigned_inspector_id?: string | null
           assigned_team?: Json | null
+          auto_generate_session?: boolean | null
           building_id?: string | null
           category_id?: string | null
           created_at?: string
@@ -2406,6 +2413,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_generated?: string | null
+          last_generated_at?: string | null
           last_reminder_sent?: string | null
           month_of_year?: number | null
           name?: string
@@ -2414,6 +2422,7 @@ export type Database = {
           reference_id?: string
           reminder_days_before?: number
           schedule_type?: string
+          sessions_generated_count?: number | null
           site_id?: string | null
           start_date?: string
           template_id?: string
@@ -4960,6 +4969,10 @@ export type Database = {
       get_findings_distribution: { Args: never; Returns: Json }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
+      get_monthly_hsse_summary: {
+        Args: { p_month?: string; p_tenant_id: string }
+        Returns: Json
+      }
       get_overdue_inspections_count: { Args: never; Returns: number }
       get_overdue_schedules_count: { Args: never; Returns: number }
       get_team_hierarchy: {
@@ -4980,6 +4993,14 @@ export type Database = {
           user_id: string
           user_type: string
         }[]
+      }
+      get_team_performance_metrics: {
+        Args: {
+          p_end_date?: string
+          p_start_date?: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       get_tenant_modules: {
         Args: { p_tenant_id: string }
@@ -5121,6 +5142,10 @@ export type Database = {
         Returns: boolean
       }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
+      process_due_inspection_schedules: {
+        Args: { p_tenant_id?: string }
+        Returns: Json
+      }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       verify_mfa_backup_code: {
         Args: { p_code_hash: string; p_user_id: string }

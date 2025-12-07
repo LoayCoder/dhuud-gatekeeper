@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.hsse-manager-digest]
 verify_jwt = false
+
+[functions.process-scheduled-inspections]
+verify_jwt = false
