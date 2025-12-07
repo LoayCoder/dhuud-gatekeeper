@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Ban, MapPin, Clock, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/hooks/use-inspection-sessions';
+import { type SessionAsset, useRecordAssetInspection, useCreateFinding } from '@/hooks/use-inspection-sessions';
 import { FailureReasonDialog } from './FailureReasonDialog';
 
 interface QuickInspectionCardProps {
