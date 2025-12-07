@@ -1,0 +1,173 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
+import { Plus, ClipboardList, Calendar, User, MapPin } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ModuleGate } from '@/components/ModuleGate';
+import { useInspectionSessions } from '@/hooks/use-inspection-sessions';
+import { CreateSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
+
+function InspectionSessionsDashboardContent() {
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  
+  const { data: sessions = [], isLoading } = useInspectionSessions(
+    statusFilter !== 'all' ? { status: statusFilter } : undefined
+  );
+  
+  const statusCounts = {
+    all: sessions.length,
+    in_progress: sessions.filter(s => s.status === 'in_progress').length,
+    completed_with_open_actions: sessions.filter(s => s.status === 'completed_with_open_actions').length,
+    closed: sessions.filter(s => s.status === 'closed').length,
+  };
+  
+  return (
+    <div className="container mx-auto py-6 space-y-6" dir={direction}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">{t('inspectionSessions.title')}</h1>
+          <p className="text-muted-foreground">{t('inspectionSessions.description')}</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="me-2 h-4 w-4" />
+          {t('inspectionSessions.createSession')}
+        </Button>
+      </div>
+      
+      {/* Status Tabs */}
+      <Tabs value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
+        <TabsList>
+          <TabsTrigger value="all">
+            {t('common.all')} ({statusCounts.all})
+          </TabsTrigger>
+          <TabsTrigger value="in_progress">
+            {t('inspectionSessions.status.inProgress')} ({statusCounts.in_progress})
+          </TabsTrigger>
+          <TabsTrigger value="completed_with_open_actions">
+            {t('inspectionSessions.status.completedWithActions')} ({statusCounts.completed_with_open_actions})
+          </TabsTrigger>
+          <TabsTrigger value="closed">
+            {t('inspectionSessions.status.closed')} ({statusCounts.closed})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={statusFilter} className="mt-4">
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-20 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : sessions.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">{t('inspectionSessions.noSessions')}</p>
+                <Button className="mt-4" onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="me-2 h-4 w-4" />
+                  {t('inspectionSessions.createFirst')}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {sessions.map((session) => (
+                <Link key={session.id} to={`/inspections/sessions/${session.id}`}>
+                  <Card className="hover:border-primary transition-colors h-full">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{session.reference_id}</CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {i18n.language === 'ar' && session.template?.name_ar 
+                              ? session.template.name_ar 
+                              : session.template?.name}
+                          </p>
+                        </div>
+                        <SessionStatusBadge status={session.status} />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {/* Period */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{session.period}</span>
+                      </div>
+                      
+                      {/* Site */}
+                      {session.site && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{session.site.name}</span>
+                        </div>
+                      )}
+                      
+                      {/* Inspector */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>{session.inspector?.full_name}</span>
+                      </div>
+                      
+                      {/* Progress */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-secondary rounded-full h-2">
+                          <div 
+                            className="bg-primary rounded-full h-2 transition-all"
+                            style={{ 
+                              width: `${session.total_assets > 0 
+                                ? Math.round((session.inspected_count / session.total_assets) * 100) 
+                                : 0}%` 
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {session.inspected_count}/{session.total_assets}
+                        </span>
+                      </div>
+                      
+                      {/* Compliance */}
+                      {session.compliance_percentage !== null && (
+                        <Badge 
+                          variant={session.compliance_percentage >= 90 ? 'default' : session.compliance_percentage >= 70 ? 'secondary' : 'destructive'}
+                        >
+                          {session.compliance_percentage}% {t('inspectionSessions.complianceRate')}
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+      
+      <CreateSessionDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+    </div>
+  );
+}
+
+export default function InspectionSessionsDashboard() {
+  return (
+    <ModuleGate module="asset_management">
+      <InspectionSessionsDashboardContent />
+    </ModuleGate>
+  );
+}

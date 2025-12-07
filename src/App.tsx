@@ -51,6 +51,8 @@ const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ ".
 const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
 const AssetScanner = lazy(() => import(/* webpackChunkName: "assets-scanner" */ "./pages/assets/AssetScanner"));
 const InspectionWorkspaceAsset = lazy(() => import(/* webpackChunkName: "assets-inspection" */ "./pages/assets/InspectionWorkspace"));
+const InspectionSessionsDashboard = lazy(() => import(/* webpackChunkName: "inspections-sessions" */ "./pages/inspections/InspectionSessionsDashboard"));
+const SessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-session-workspace" */ "./pages/inspections/SessionWorkspace"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -134,6 +136,10 @@ const App = () => (
                       <Route path="/assets/:id" element={<AssetDetail />} />
                       <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
+
+                      {/* Inspection Sessions Routes */}
+                      <Route path="/inspections/sessions" element={<HSSERoute><InspectionSessionsDashboard /></HSSERoute>} />
+                      <Route path="/inspections/sessions/:sessionId" element={<HSSERoute><SessionWorkspace /></HSSERoute>} />
 
                       {/* Admin Routes */}
                       <Route
