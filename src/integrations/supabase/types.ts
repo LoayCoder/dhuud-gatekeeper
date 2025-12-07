@@ -504,6 +504,194 @@ export type Database = {
           },
         ]
       }
+      asset_transfers: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          asset_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          deleted_at: string | null
+          disposal_certificate_path: string | null
+          disposal_method: string | null
+          disposal_notes: string | null
+          disposal_value: number | null
+          from_branch_id: string | null
+          from_building_id: string | null
+          from_floor_zone_id: string | null
+          from_site_id: string | null
+          id: string
+          notes: string | null
+          reason: string
+          rejection_reason: string | null
+          requested_at: string | null
+          requested_by: string
+          status: string
+          tenant_id: string
+          to_branch_id: string | null
+          to_building_id: string | null
+          to_floor_zone_id: string | null
+          to_site_id: string | null
+          transfer_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          disposal_certificate_path?: string | null
+          disposal_method?: string | null
+          disposal_notes?: string | null
+          disposal_value?: number | null
+          from_branch_id?: string | null
+          from_building_id?: string | null
+          from_floor_zone_id?: string | null
+          from_site_id?: string | null
+          id?: string
+          notes?: string | null
+          reason: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          requested_by: string
+          status?: string
+          tenant_id: string
+          to_branch_id?: string | null
+          to_building_id?: string | null
+          to_floor_zone_id?: string | null
+          to_site_id?: string | null
+          transfer_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          disposal_certificate_path?: string | null
+          disposal_method?: string | null
+          disposal_notes?: string | null
+          disposal_value?: number | null
+          from_branch_id?: string | null
+          from_building_id?: string | null
+          from_floor_zone_id?: string | null
+          from_site_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          requested_by?: string
+          status?: string
+          tenant_id?: string
+          to_branch_id?: string | null
+          to_building_id?: string | null
+          to_floor_zone_id?: string | null
+          to_site_id?: string | null
+          transfer_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_transfers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_from_branch_id_fkey"
+            columns: ["from_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_from_building_id_fkey"
+            columns: ["from_building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_from_floor_zone_id_fkey"
+            columns: ["from_floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_from_site_id_fkey"
+            columns: ["from_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_to_branch_id_fkey"
+            columns: ["to_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_to_building_id_fkey"
+            columns: ["to_building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_to_floor_zone_id_fkey"
+            columns: ["to_floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_to_site_id_fkey"
+            columns: ["to_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_types: {
         Row: {
           category_id: string
