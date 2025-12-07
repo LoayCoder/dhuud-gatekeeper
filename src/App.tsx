@@ -56,6 +56,7 @@ const SessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-ses
 const AreaSessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-area-workspace" */ "./pages/inspections/AreaSessionWorkspace"));
 const InspectionDashboard = lazy(() => import(/* webpackChunkName: "inspections-dashboard" */ "./pages/inspections/InspectionDashboard"));
 const InspectionSchedules = lazy(() => import(/* webpackChunkName: "inspections-schedules" */ "./pages/inspections/InspectionSchedules"));
+const MyInspectionActions = lazy(() => import(/* webpackChunkName: "inspections-my-actions" */ "./pages/inspections/MyInspectionActions"));
 const AuditSessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-audit-workspace" */ "./pages/inspections/AuditSessionWorkspace"));
 
 // Admin pages - lazy loaded with named chunks for better caching
@@ -148,6 +149,7 @@ const App = () => (
                       <Route path="/inspections/sessions/area/:sessionId" element={<HSSERoute><AreaSessionWorkspace /></HSSERoute>} />
                       <Route path="/inspections/sessions/audit/:sessionId" element={<HSSERoute><AuditSessionWorkspace /></HSSERoute>} />
                       <Route path="/inspections/schedules" element={<HSSERoute><InspectionSchedules /></HSSERoute>} />
+                      <Route path="/inspections/my-actions" element={<MyInspectionActions />} />
 
                       {/* Admin Routes */}
                       <Route

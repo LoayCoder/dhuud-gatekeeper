@@ -158,6 +158,16 @@ export function AppSidebar() {
               icon: ClipboardList,
             },
             {
+              title: t('navigation.inspectionSchedules'),
+              url: "/inspections/schedules",
+              icon: ClipboardList,
+            },
+            {
+              title: t('navigation.myInspectionActions'),
+              url: "/inspections/my-actions",
+              icon: ClipboardCheck,
+            },
+            {
               title: t('navigation.auditsInspections'),
               url: "/audits",
               icon: ClipboardCheck,
