@@ -2861,6 +2861,90 @@
       "pendingActions": "زیر التوا کارروائیاں",
       "warningItemsIncomplete": "کچھ چیک لسٹ آئٹمز کے جوابات نہیں دیے گئے۔",
       "warningOpenFindings": "تصدیق شدہ کارروائیوں کے بغیر کھلے نتائج ہیں۔"
+    },
+    "export": {
+      "title": "سیشن رپورٹ برآمد کریں",
+      "exportPdf": "PDF برآمد کریں",
+      "exportCsv": "CSV برآمد کریں",
+      "exportExcel": "Excel برآمد کریں",
+      "generating": "رپورٹ بنائی جا رہی ہے...",
+      "success": "رپورٹ کامیابی سے برآمد ہوگئی",
+      "error": "رپورٹ برآمد کرنے میں ناکام",
+      "reportTitle": "معائنہ رپورٹ",
+      "sessionInfo": "سیشن کی معلومات",
+      "inspector": "معائنہ کنندہ",
+      "period": "مدت",
+      "progressSummary": "پیشرفت کا خلاصہ",
+      "totalItems": "کل آئٹمز",
+      "passed": "کامیاب",
+      "failed": "ناکام",
+      "notApplicable": "لاگو نہیں",
+      "complianceRate": "تعمیل کی شرح",
+      "checklistResults": "چیک لسٹ کے نتائج",
+      "findingsSummary": "نتائج کا خلاصہ"
+    }
+  },
+  "inspectionDashboard": {
+    "title": "معائنہ ڈیش بورڈ",
+    "description": "معائنہ کی سرگرمیوں اور تعمیل کے میٹرکس کا جائزہ",
+    "openSessions": "کھلے سیشنز",
+    "overdueInspections": "تاخیر شدہ معائنے",
+    "avgCompliance": "اوسط تعمیل",
+    "openFindings": "کھلے نتائج",
+    "complianceTrend": "تعمیل کا رجحان",
+    "last6Months": "پچھلے 6 ماہ",
+    "findingsDistribution": "نتائج کی تقسیم",
+    "byClassification": "درجہ بندی کے مطابق",
+    "recentFindings": "حالیہ نتائج",
+    "noData": "کوئی ڈیٹا دستیاب نہیں",
+    "loading": "لوڈ ہو رہا ہے...",
+    "viewAll": "سب دیکھیں",
+    "noOpenSessions": "کوئی کھلے سیشن نہیں",
+    "noOverdueInspections": "کوئی تاخیر شدہ معائنے نہیں",
+    "noOpenFindings": "کوئی کھلے نتائج نہیں"
+  },
+  "audits": {
+    "title": "آڈٹ ٹیمپلیٹس",
+    "description": "تعمیل آڈٹ ٹیمپلیٹس بنائیں اور منظم کریں",
+    "createTemplate": "آڈٹ ٹیمپلیٹ بنائیں",
+    "templateType": "ٹیمپلیٹ کی قسم",
+    "types": {
+      "asset": "اثاثہ",
+      "area": "علاقہ/سائٹ",
+      "audit": "تعمیل آڈٹ"
+    },
+    "standardReference": "معیار کا حوالہ",
+    "standards": {
+      "iso45001": "ISO 45001",
+      "iso14001": "ISO 14001",
+      "osha": "OSHA",
+      "internal": "اندرونی",
+      "custom": "اپنی مرضی کا"
+    },
+    "passingScore": "پاس مارکس (%)",
+    "passingScoreDescription": "آڈٹ پاس کرنے کے لیے کم از کم فیصد درکار",
+    "clauseReference": "شق کا حوالہ",
+    "clauseReferencePlaceholder": "مثلاً: 4.1.2",
+    "scoringWeight": "سکورنگ وزن",
+    "scoringWeightDescription": "اس آئٹم کی نسبتی اہمیت (1-10)",
+    "ncCategory": "عدم مطابقت کی قسم",
+    "ncCategories": {
+      "minor": "معمولی",
+      "major": "بڑی",
+      "critical": "نازک"
+    },
+    "auditScoring": {
+      "title": "آڈٹ سکورنگ",
+      "weightedScore": "موزوں سکور",
+      "passingThreshold": "پاس کی حد",
+      "status": "حیثیت",
+      "passed": "پاس",
+      "failed": "ناکام",
+      "inProgress": "جاری ہے",
+      "ncSummary": "عدم مطابقت کا خلاصہ",
+      "minorNc": "معمولی عدم مطابقت",
+      "majorNc": "بڑی عدم مطابقت",
+      "criticalNc": "نازک عدم مطابقت"
     }
   }
 }
