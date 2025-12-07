@@ -20,3 +20,5 @@ export { SessionCompletionDialog } from './SessionCompletionDialog';
 export { CreateActionFromFindingDialog } from './CreateActionFromFindingDialog';
 export { SessionExportDropdown } from './SessionExportDropdown';
 export { AuditScoringCard } from './AuditScoringCard';
+export { ActionVerificationDialog } from './ActionVerificationDialog';
+export { SessionActionsPanel } from './SessionActionsPanel';
