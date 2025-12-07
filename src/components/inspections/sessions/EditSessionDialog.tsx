@@ -158,8 +158,8 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.filterBySite')}</FormLabel>
                   <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
+                    value={field.value || "__all__"} 
+                    onValueChange={(val) => field.onChange(val === "__all__" ? "" : val)}
                     dir={direction}
                     disabled={isLocked}
                   >
@@ -169,7 +169,7 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">{t('common.all')}</SelectItem>
+                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
                       {sites.map((site) => (
                         <SelectItem key={site.id} value={site.id}>
                           {site.name}
@@ -189,9 +189,9 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.filterByCategory')}</FormLabel>
                   <Select 
-                    value={field.value} 
+                    value={field.value || "__all__"} 
                     onValueChange={(val) => {
-                      field.onChange(val);
+                      field.onChange(val === "__all__" ? "" : val);
                       form.setValue('type_id', '');
                     }}
                     dir={direction}
@@ -203,7 +203,7 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">{t('common.all')}</SelectItem>
+                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {i18n.language === 'ar' && cat.name_ar ? cat.name_ar : cat.name}
@@ -223,8 +223,8 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                 <FormItem>
                   <FormLabel>{t('inspectionSessions.filterByType')}</FormLabel>
                   <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
+                    value={field.value || "__all__"} 
+                    onValueChange={(val) => field.onChange(val === "__all__" ? "" : val)}
                     dir={direction}
                     disabled={isLocked || !selectedCategoryId}
                   >
@@ -234,7 +234,7 @@ export function EditSessionDialog({ open, onOpenChange, session }: EditSessionDi
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">{t('common.all')}</SelectItem>
+                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
                       {types.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
                           {i18n.language === 'ar' && type.name_ar ? type.name_ar : type.name}
