@@ -15,6 +15,7 @@ import { useExecutiveSummary } from "@/hooks/use-executive-summary";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { generatePDFFromElement, createPDFRenderContainer, removePDFRenderContainer } from "@/lib/pdf-utils";
+import { fetchDocumentSettings } from "@/hooks/use-document-branding";
 import { toast } from "sonner";
 import {
   PieChart,
@@ -58,17 +59,65 @@ export default function ExecutiveReport() {
   const { data, isLoading } = useExecutiveSummary(new Date(selectedMonth));
 
   const handleGeneratePDF = async () => {
-    if (!reportRef.current || !data) return;
+    if (!reportRef.current || !data || !profile?.tenant_id) return;
 
     setIsGenerating(true);
     try {
+      // Fetch document branding settings
+      const settings = await fetchDocumentSettings(profile.tenant_id);
+      
       const container = createPDFRenderContainer();
-      container.innerHTML = reportRef.current.innerHTML;
       container.dir = direction;
+      
+      // Build branded header
+      const headerHtml = settings?.showLogo ? `
+        <div style="display: flex; justify-content: ${settings.headerLogoPosition === 'center' ? 'center' : settings.headerLogoPosition === 'right' ? 'flex-end' : 'flex-start'}; margin-bottom: 16px;">
+        </div>
+      ` : '';
+      
+      const primaryText = settings?.headerTextPrimary || tenantName || 'Organization';
+      const secondaryText = settings?.headerTextSecondary || t('executiveReport.reportTitle');
+      
+      // Build branded footer
+      const footerHtml = (settings?.showPageNumbers || settings?.showDatePrinted || settings?.footerText) ? `
+        <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 10px; color: #666; display: flex; justify-content: space-between;">
+          <span>${settings?.footerText || ''}</span>
+          <span>${settings?.showDatePrinted ? format(new Date(), 'PPP') : ''}</span>
+        </div>
+      ` : '';
+      
+      // Build watermark if enabled
+      const watermarkStyle = settings?.watermarkEnabled ? `
+        position: relative;
+      ` : '';
+      
+      const watermarkOverlay = settings?.watermarkEnabled ? `
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 60px; color: rgba(0,0,0,${(settings.watermarkOpacity || 15) / 100}); pointer-events: none; white-space: nowrap; z-index: 0;">
+          ${settings.watermarkText || tenantName || ''}
+        </div>
+      ` : '';
+      
+      // Wrap report content with branding
+      container.innerHTML = `
+        <div style="font-family: 'Rubik', Arial, sans-serif; color: #333; padding: 20px; ${watermarkStyle}">
+          ${watermarkOverlay}
+          <div style="position: relative; z-index: 1;">
+            ${headerHtml}
+            <div style="text-align: center; margin-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 20px; font-weight: bold;">${primaryText}</h1>
+              <p style="margin: 4px 0 0; font-size: 14px; color: #666;">${secondaryText}</p>
+              <p style="margin: 4px 0 0; font-size: 12px; color: #999;">${format(new Date(selectedMonth), 'MMMM yyyy')}</p>
+            </div>
+            ${reportRef.current.innerHTML}
+            ${footerHtml}
+          </div>
+        </div>
+      `;
       
       await generatePDFFromElement(container, {
         filename: `HSSE-Executive-Report-${format(new Date(selectedMonth), 'yyyy-MM')}.pdf`,
         quality: 2,
+        margin: 15,
       });
       
       removePDFRenderContainer(container);

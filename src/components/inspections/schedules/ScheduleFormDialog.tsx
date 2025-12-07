@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Info } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, RefreshCw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useInspectionTemplates } from '@/hooks/use-inspections';
@@ -61,6 +62,7 @@ const scheduleSchema = z.object({
   start_date: z.date(),
   end_date: z.date().nullable().optional(),
   reminder_days_before: z.number().min(1).max(30),
+  auto_generate_session: z.boolean(),
 });
 
 type ScheduleFormData = z.infer<typeof scheduleSchema>;
@@ -128,6 +130,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
       start_date: new Date(),
       end_date: null,
       reminder_days_before: 3,
+      auto_generate_session: true,
     },
   });
   
@@ -166,6 +169,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
         start_date: new Date(schedule.start_date),
         end_date: schedule.end_date ? new Date(schedule.end_date) : null,
         reminder_days_before: schedule.reminder_days_before,
+        auto_generate_session: schedule.auto_generate_session ?? true,
       });
     }
   }, [schedule, form]);
@@ -194,6 +198,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
       start_date: format(formData.start_date, 'yyyy-MM-dd'),
       end_date: formData.end_date ? format(formData.end_date, 'yyyy-MM-dd') : null,
       reminder_days_before: formData.reminder_days_before,
+      auto_generate_session: formData.auto_generate_session,
     };
     
     if (isEditing && schedule) {
@@ -647,6 +652,61 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                   </FormItem>
                 )}
               />
+            </div>
+            
+            <Separator />
+            
+            {/* Automation Settings */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-sm text-muted-foreground">
+                {t('schedules.automationSettings')}
+              </h3>
+              
+              <FormField
+                control={form.control}
+                name="auto_generate_session"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        {t('schedules.autoGenerateSession')}
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {t('schedules.autoGenerateSessionDescription')}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {isEditing && schedule && (
+                <div className="rounded-lg border p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{t('schedules.generationStats')}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">{t('schedules.sessionsGenerated')}:</span>
+                      <span className="ms-2 font-medium">{schedule.sessions_generated_count || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">{t('schedules.lastGenerated')}:</span>
+                      <span className="ms-2 font-medium">
+                        {schedule.last_generated 
+                          ? format(new Date(schedule.last_generated), 'PPp') 
+                          : t('common.never')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <Separator />
