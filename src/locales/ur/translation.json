@@ -2696,6 +2696,11 @@
   },
   "inspections": {
     "title": "معائنے",
+    "types": {
+      "asset": "اثاثہ معائنہ",
+      "area": "علاقہ معائنہ",
+      "audit": "آڈٹ"
+    },
     "templates": "معائنہ ٹیمپلیٹس",
     "templatesDescription": "تعمیل کے لیے معائنہ چیک لسٹیں بنائیں اور منظم کریں",
     "createTemplate": "ٹیمپلیٹ بنائیں",

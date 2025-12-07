@@ -2778,6 +2778,11 @@
   },
   "inspections": {
     "title": "الفحوصات",
+    "types": {
+      "asset": "فحص الأصول",
+      "area": "فحص المنطقة",
+      "audit": "التدقيق"
+    },
     "templates": "قوالب الفحص",
     "templatesDescription": "إنشاء وإدارة قوائم التحقق للامتثال",
     "createTemplate": "إنشاء قالب",
