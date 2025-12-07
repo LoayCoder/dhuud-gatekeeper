@@ -174,20 +174,20 @@ interface CreateScheduleInput {
 
 export function useCreateInspectionSchedule() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   
   return useMutation({
     mutationFn: async (input: CreateScheduleInput) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      if (!profile?.tenant_id || !user?.id) throw new Error('No tenant');
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('inspection_schedules') as any)
         .insert({
           ...input,
           tenant_id: profile.tenant_id,
-          created_by: profile.id,
+          created_by: user.id,
           assigned_team: input.assigned_team || [],
         })
         .select()
