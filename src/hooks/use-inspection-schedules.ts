@@ -30,6 +30,8 @@ export interface InspectionSchedule {
   last_generated: string | null;
   reminder_days_before: number;
   is_active: boolean;
+  auto_generate_session: boolean;
+  sessions_generated_count: number;
   created_at: string;
   template?: {
     id: string;
