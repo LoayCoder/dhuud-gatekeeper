@@ -570,7 +570,9 @@
     "unknown": "نامعلوم",
     "pending": "زیر التواء",
     "approved": "منظور شدہ",
-    "rejected": "مسترد"
+    "rejected": "مسترد",
+    "download": "ڈاؤن لوڈ",
+    "print": "پرنٹ"
   },
   "auth": {
     "signIn": "سائن ان",
@@ -2291,8 +2293,20 @@
     "floorZone": "منزل/زون",
     "locationDetails": "مقام کی تفصیلات",
     "condition": "حالت",
-    "criticality": "اہمیت",
-    "ownership": "ملکیت",
+    "criticality": {
+      "label": "اہمیت",
+      "low": "کم",
+      "medium": "درمیانی",
+      "high": "زیادہ",
+      "critical": "نازک"
+    },
+    "ownership": {
+      "label": "ملکیت",
+      "company": "کمپنی کی ملکیت",
+      "leased": "لیز پر",
+      "rented": "کرایے پر",
+      "contractor": "ٹھیکیدار کی طرف سے"
+    },
     "installationDate": "تنصیب کی تاریخ",
     "commissioningDate": "کمیشننگ کی تاریخ",
     "warrantyExpiry": "وارنٹی کی میعاد",

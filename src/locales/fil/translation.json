@@ -570,7 +570,9 @@
     "unknown": "Hindi kilala",
     "pending": "Nakabinbin",
     "approved": "Aprubado",
-    "rejected": "Tinanggihan"
+    "rejected": "Tinanggihan",
+    "download": "I-download",
+    "print": "I-print"
   },
   "auth": {
     "signIn": "Mag-sign In",
@@ -2291,8 +2293,20 @@
     "floorZone": "Palapag/Zone",
     "locationDetails": "Mga Detalye ng Lokasyon",
     "condition": "Kondisyon",
-    "criticality": "Criticality",
-    "ownership": "Pagmamay-ari",
+    "criticality": {
+      "label": "Criticality",
+      "low": "Mababa",
+      "medium": "Katamtaman",
+      "high": "Mataas",
+      "critical": "Kritikal"
+    },
+    "ownership": {
+      "label": "Pagmamay-ari",
+      "company": "Pag-aari ng Kompanya",
+      "leased": "Leased",
+      "rented": "Rentado",
+      "contractor": "Mula sa Contractor"
+    },
     "installationDate": "Petsa ng Pag-install",
     "commissioningDate": "Petsa ng Commissioning",
     "warrantyExpiry": "Expiry ng Warranty",
