@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
-import { useAssetMaintenanceSchedules, useDeleteMaintenanceSchedule, MaintenanceSchedule } from '@/hooks/use-maintenance';
+import { useAssetMaintenanceSchedules, useDeleteMaintenanceSchedule, type MaintenanceSchedule } from '@/hooks/use-maintenance';
 import { MaintenanceScheduleForm } from './MaintenanceScheduleForm';
 import { MaintenanceCompleteDialog } from './MaintenanceCompleteDialog';
 

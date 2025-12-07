@@ -636,7 +636,10 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "download": "Download",
-    "print": "Print"
+    "print": "Print",
+    "notes": "Notes",
+    "location": "Location",
+    "inspect": "Inspect"
   },
   "auth": {
     "signIn": "Sign In",

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePendingTransfers, AssetTransfer } from '@/hooks/use-asset-transfers';
+import { usePendingTransfers, type AssetTransfer } from '@/hooks/use-asset-transfers';
 import { TransferApprovalDialog } from './TransferApprovalDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { useCompleteMaintenanceTask, MaintenanceSchedule } from '@/hooks/use-maintenance';
+import { useCompleteMaintenanceTask, type MaintenanceSchedule } from '@/hooks/use-maintenance';
 
 interface MaintenanceCompleteDialogProps {
   schedule: MaintenanceSchedule | null;

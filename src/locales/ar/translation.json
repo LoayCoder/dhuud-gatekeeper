@@ -582,7 +582,10 @@
     "approved": "تمت الموافقة",
     "rejected": "مرفوض",
     "download": "تحميل",
-    "print": "طباعة"
+    "print": "طباعة",
+    "notes": "ملاحظات",
+    "location": "الموقع",
+    "inspect": "فحص"
   },
   "auth": {
     "signIn": "تسجيل الدخول",

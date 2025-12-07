@@ -572,7 +572,10 @@
     "approved": "स्वीकृत",
     "rejected": "अस्वीकृत",
     "download": "डाउनलोड",
-    "print": "प्रिंट"
+    "print": "प्रिंट",
+    "notes": "टिप्पणियाँ",
+    "location": "स्थान",
+    "inspect": "निरीक्षण"
   },
   "auth": {
     "signIn": "साइन इन करें",
