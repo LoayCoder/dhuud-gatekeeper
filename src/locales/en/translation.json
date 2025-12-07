@@ -2845,6 +2845,11 @@
   },
   "inspections": {
     "title": "Inspections",
+    "types": {
+      "asset": "Asset Inspection",
+      "area": "Area Inspection",
+      "audit": "Audit"
+    },
     "templates": "Inspection Templates",
     "templatesDescription": "Create and manage inspection checklists for asset compliance",
     "createTemplate": "Create Template",

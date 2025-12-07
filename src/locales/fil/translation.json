@@ -2696,6 +2696,11 @@
   },
   "inspections": {
     "title": "Mga Inspeksyon",
+    "types": {
+      "asset": "Inspeksyon ng Asset",
+      "area": "Inspeksyon ng Lugar",
+      "audit": "Audit"
+    },
     "templates": "Mga Template ng Inspeksyon",
     "templatesDescription": "Gumawa at pamahalaan ang mga inspection checklist para sa compliance",
     "createTemplate": "Gumawa ng Template",
