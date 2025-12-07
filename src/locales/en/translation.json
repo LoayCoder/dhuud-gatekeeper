@@ -2956,6 +2956,31 @@
       "riskLevel.medium": "Medium",
       "riskLevel.high": "High",
       "riskLevel.critical": "Critical"
+    },
+    "session": {
+      "status": "Session Status",
+      "statusDraft": "Draft",
+      "statusInProgress": "In Progress",
+      "statusCompleted": "Completed - Actions Pending",
+      "statusClosed": "Closed",
+      "complete": "Complete Inspection",
+      "close": "Close Session",
+      "start": "Start Inspection",
+      "cannotClose": "Cannot close: pending actions",
+      "confirmComplete": "Complete Inspection?",
+      "confirmClose": "Close Session?",
+      "completeDescription": "This will mark the inspection as completed. You can still manage findings and actions.",
+      "closeDescription": "This will lock the session. No further changes will be allowed.",
+      "itemsProgress": "Items Progress",
+      "itemsLabel": "Items",
+      "findingsOpen": "{{count}} open finding(s)",
+      "actionsVerified": "All actions verified",
+      "sessionLocked": "This session is locked and cannot be modified",
+      "reopenSession": "Reopen Session",
+      "noActionAssigned": "No action assigned",
+      "pendingActions": "Pending Actions",
+      "warningItemsIncomplete": "Some checklist items have not been answered.",
+      "warningOpenFindings": "There are open findings without verified actions."
     }
   }
 }

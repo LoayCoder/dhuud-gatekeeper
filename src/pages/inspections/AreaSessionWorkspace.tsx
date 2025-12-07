@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CheckCircle, Loader2, Pencil, Trash2, MapPin, Cloud, Users, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,14 +21,15 @@ import {
 import {
   useInspectionSession,
   useDeleteSession,
+  useStartSession,
 } from '@/hooks/use-inspection-sessions';
 import {
   useAreaChecklistProgress,
   useAreaInspectionResponses,
-  useCompleteAreaSession,
   useAreaTemplate,
 } from '@/hooks/use-area-inspections';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
+import { useCanCloseSession, useCompleteAreaSession, useCloseAreaSession } from '@/hooks/use-session-lifecycle';
 import { useTemplateItems } from '@/hooks/use-inspections';
 import {
   SessionStatusBadge,
@@ -36,6 +37,8 @@ import {
   AreaProgressCard,
   AreaChecklistItem,
   FindingsPanel,
+  SessionStatusCard,
+  SessionCompletionDialog,
 } from '@/components/inspections/sessions';
 
 function AreaSessionWorkspaceContent() {
@@ -46,6 +49,8 @@ function AreaSessionWorkspaceContent() {
   
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [completionMode, setCompletionMode] = useState<'complete' | 'close'>('complete');
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: progress } = useAreaChecklistProgress(sessionId);
@@ -53,18 +58,43 @@ function AreaSessionWorkspaceContent() {
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
   const { data: findingsCount } = useAreaFindingsCount(sessionId);
+  const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId);
   
+  const startSession = useStartSession();
   const completeSession = useCompleteAreaSession();
+  const closeSession = useCloseAreaSession();
   const deleteSession = useDeleteSession();
   
   // Create a map of responses by template_item_id for quick lookup
   const responseMap = new Map(responses.map(r => [r.template_item_id, r]));
   
+  const handleStartSession = async () => {
+    if (!sessionId) return;
+    try {
+      await startSession.mutateAsync(sessionId);
+      toast.success(t('inspectionSessions.sessionStarted'));
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   const handleCompleteSession = async () => {
     if (!sessionId) return;
-    
     try {
-      await completeSession.mutateAsync(sessionId);
+      await completeSession.mutateAsync({ sessionId });
+      toast.success(t('inspectionSessions.sessionCompleted'));
+      setShowCompletionDialog(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleCloseSession = async () => {
+    if (!sessionId) return;
+    try {
+      await closeSession.mutateAsync({ sessionId });
+      toast.success(t('inspectionSessions.sessionClosed'));
+      setShowCompletionDialog(false);
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -141,13 +171,6 @@ function AreaSessionWorkspaceContent() {
         </div>
         
         <div className="flex items-center gap-2">
-          {session.status === 'in_progress' && canComplete && (
-            <Button onClick={handleCompleteSession} disabled={completeSession.isPending}>
-              {completeSession.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-              <CheckCircle className="me-2 h-4 w-4" />
-              {t('inspectionSessions.completeSession')}
-            </Button>
-          )}
           {session.status !== 'closed' && (
             <>
               <Button variant="outline" size="icon" onClick={() => setShowEditDialog(true)}>
@@ -188,10 +211,20 @@ function AreaSessionWorkspaceContent() {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Progress Card & Session Metadata */}
+      {/* Session Completion Dialog */}
+      <SessionCompletionDialog
+        open={showCompletionDialog}
+        onOpenChange={setShowCompletionDialog}
+        mode={completionMode}
+        closureStatus={closureStatus}
+        onConfirm={completionMode === 'complete' ? handleCompleteSession : handleCloseSession}
+        isLoading={completeSession.isPending || closeSession.isPending}
+      />
+      
+      {/* Progress Card, Status Card & Session Metadata */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Progress */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           {progress && (
             <AreaProgressCard
               total={progress.total}
@@ -202,6 +235,18 @@ function AreaSessionWorkspaceContent() {
               percentage={progress.percentage}
             />
           )}
+          
+          {/* Status Card */}
+          <SessionStatusCard
+            status={session.status}
+            closureStatus={closureStatus}
+            isLoading={closureLoading}
+            onComplete={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
+            onClose={() => { setCompletionMode('close'); setShowCompletionDialog(true); }}
+            onStart={session.status === 'draft' ? handleStartSession : undefined}
+            isCompleting={completeSession.isPending}
+            isClosing={closeSession.isPending}
+          />
         </div>
         
         {/* Session Metadata */}

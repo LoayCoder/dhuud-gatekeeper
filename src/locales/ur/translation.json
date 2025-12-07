@@ -2810,6 +2810,31 @@
       "riskLevel.medium": "درمیانہ",
       "riskLevel.high": "زیادہ",
       "riskLevel.critical": "نازک"
+    },
+    "session": {
+      "status": "سیشن کی حیثیت",
+      "statusDraft": "مسودہ",
+      "statusInProgress": "جاری ہے",
+      "statusCompleted": "مکمل - کارروائیاں زیر التوا",
+      "statusClosed": "بند",
+      "complete": "معائنہ مکمل کریں",
+      "close": "سیشن بند کریں",
+      "start": "معائنہ شروع کریں",
+      "cannotClose": "بند نہیں ہو سکتا: کارروائیاں زیر التوا ہیں",
+      "confirmComplete": "معائنہ مکمل کریں؟",
+      "confirmClose": "سیشن بند کریں؟",
+      "completeDescription": "اس سے معائنہ کو مکمل کے طور پر نشان زد کیا جائے گا۔ آپ نتائج اور کارروائیوں کا انتظام جاری رکھ سکتے ہیں۔",
+      "closeDescription": "اس سے سیشن لاک ہو جائے گا۔ مزید کوئی تبدیلی کی اجازت نہیں ہوگی۔",
+      "itemsProgress": "آئٹمز کی پیشرفت",
+      "itemsLabel": "آئٹمز",
+      "findingsOpen": "{{count}} کھلے نتائج",
+      "actionsVerified": "تمام کارروائیوں کی تصدیق ہوگئی",
+      "sessionLocked": "یہ سیشن لاک ہے اور تبدیل نہیں کیا جا سکتا",
+      "reopenSession": "سیشن دوبارہ کھولیں",
+      "noActionAssigned": "کوئی کارروائی تفویض نہیں",
+      "pendingActions": "زیر التوا کارروائیاں",
+      "warningItemsIncomplete": "کچھ چیک لسٹ آئٹمز کے جوابات نہیں دیے گئے۔",
+      "warningOpenFindings": "تصدیق شدہ کارروائیوں کے بغیر کھلے نتائج ہیں۔"
     }
   }
 }

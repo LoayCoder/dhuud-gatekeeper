@@ -2810,6 +2810,31 @@
       "riskLevel.medium": "मध्यम",
       "riskLevel.high": "उच्च",
       "riskLevel.critical": "गंभीर"
+    },
+    "session": {
+      "status": "सत्र की स्थिति",
+      "statusDraft": "ड्राफ्ट",
+      "statusInProgress": "प्रगति में",
+      "statusCompleted": "पूर्ण - कार्रवाई लंबित",
+      "statusClosed": "बंद",
+      "complete": "निरीक्षण पूरा करें",
+      "close": "सत्र बंद करें",
+      "start": "निरीक्षण शुरू करें",
+      "cannotClose": "बंद नहीं हो सकता: कार्रवाई लंबित है",
+      "confirmComplete": "निरीक्षण पूरा करें?",
+      "confirmClose": "सत्र बंद करें?",
+      "completeDescription": "इससे निरीक्षण को पूर्ण के रूप में चिह्नित किया जाएगा। आप निष्कर्षों और कार्रवाइयों का प्रबंधन जारी रख सकते हैं।",
+      "closeDescription": "इससे सत्र लॉक हो जाएगा। कोई और परिवर्तन की अनुमति नहीं होगी।",
+      "itemsProgress": "आइटम प्रगति",
+      "itemsLabel": "आइटम",
+      "findingsOpen": "{{count}} खुले निष्कर्ष",
+      "actionsVerified": "सभी कार्रवाइयाँ सत्यापित",
+      "sessionLocked": "यह सत्र लॉक है और संशोधित नहीं किया जा सकता",
+      "reopenSession": "सत्र फिर से खोलें",
+      "noActionAssigned": "कोई कार्रवाई नहीं सौंपी गई",
+      "pendingActions": "लंबित कार्रवाइयाँ",
+      "warningItemsIncomplete": "कुछ चेकलिस्ट आइटम का उत्तर नहीं दिया गया है।",
+      "warningOpenFindings": "सत्यापित कार्रवाइयों के बिना खुले निष्कर्ष हैं।"
     }
   }
 }
