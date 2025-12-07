@@ -572,7 +572,10 @@
     "approved": "Aprubado",
     "rejected": "Tinanggihan",
     "download": "I-download",
-    "print": "I-print"
+    "print": "I-print",
+    "notes": "Mga Tala",
+    "location": "Lokasyon",
+    "inspect": "Inspeksyunin"
   },
   "auth": {
     "signIn": "Mag-sign In",

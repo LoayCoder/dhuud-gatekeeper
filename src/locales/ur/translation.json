@@ -572,7 +572,10 @@
     "approved": "منظور شدہ",
     "rejected": "مسترد",
     "download": "ڈاؤن لوڈ",
-    "print": "پرنٹ"
+    "print": "پرنٹ",
+    "notes": "نوٹس",
+    "location": "مقام",
+    "inspect": "معائنہ"
   },
   "auth": {
     "signIn": "سائن ان",

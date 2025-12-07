@@ -15,7 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { useCreateMaintenanceSchedule, useUpdateMaintenanceSchedule, MaintenanceSchedule } from '@/hooks/use-maintenance';
+import { useCreateMaintenanceSchedule, useUpdateMaintenanceSchedule, type MaintenanceSchedule } from '@/hooks/use-maintenance';
 
 const MAINTENANCE_TYPES = ['preventive', 'predictive', 'corrective', 'condition_based'] as const;
 const FREQUENCY_TYPES = ['daily', 'weekly', 'monthly', 'quarterly', 'semi_annually', 'annually', 'custom'] as const;
