@@ -144,8 +144,20 @@ export function AppSidebar() {
         },
         {
           title: t('navigation.auditsInspections'),
-          url: "/audits",
           icon: ClipboardCheck,
+          isActive: location.pathname.startsWith("/inspections") || location.pathname.startsWith("/audits"),
+          subItems: [
+            {
+              title: t('navigation.inspectionSessions'),
+              url: "/inspections/sessions",
+              icon: ClipboardList,
+            },
+            {
+              title: t('navigation.auditsInspections'),
+              url: "/audits",
+              icon: ClipboardCheck,
+            },
+          ],
         },
         {
           title: t('navigation.visitorGatekeeper'),
