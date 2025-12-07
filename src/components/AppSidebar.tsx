@@ -43,6 +43,7 @@ import {
   List,
   Plus,
   QrCode,
+  ClipboardList,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -239,6 +240,11 @@ export function AppSidebar() {
           title: t('navigation.documentSettings', 'Document Settings'),
           url: "/admin/document-settings",
           icon: FileCog,
+        },
+        {
+          title: t('navigation.inspectionTemplates', 'Inspection Templates'),
+          url: "/admin/inspection-templates",
+          icon: ClipboardList,
         },
         {
           title: t('navigation.billingOverview'),

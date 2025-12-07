@@ -24,6 +24,7 @@ import {
   useRecentAssetActivity,
 } from "@/hooks/use-asset-dashboard";
 import { PendingTransfersCard } from "@/components/assets";
+import { RecentInspectionsCard, InspectionStatsCard } from "@/components/inspections";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -212,6 +213,12 @@ export default function AssetDashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Inspection Stats & Recent Inspections */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <InspectionStatsCard />
+        <RecentInspectionsCard />
       </div>
 
       {/* Pending Transfers */}

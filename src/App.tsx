@@ -50,7 +50,10 @@ const AssetList = lazy(() => import(/* webpackChunkName: "assets-list" */ "./pag
 const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ "./pages/assets/AssetDetail"));
 const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
 const AssetScanner = lazy(() => import(/* webpackChunkName: "assets-scanner" */ "./pages/assets/AssetScanner"));
+const InspectionWorkspaceAsset = lazy(() => import(/* webpackChunkName: "assets-inspection" */ "./pages/assets/InspectionWorkspace"));
+
 // Admin pages - lazy loaded with named chunks for better caching
+const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
 const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
 const UserManagement = lazy(() => import(/* webpackChunkName: "admin-users" */ "./pages/admin/UserManagement"));
@@ -130,6 +133,7 @@ const App = () => (
                       <Route path="/assets/scan" element={<AssetScanner />} />
                       <Route path="/assets/:id" element={<AssetDetail />} />
                       <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
+                      <Route path="/assets/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
 
                       {/* Admin Routes */}
                       <Route
@@ -226,6 +230,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <DocumentSettings />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/inspection-templates"
+                        element={
+                          <AdminRoute>
+                            <InspectionTemplates />
                           </AdminRoute>
                         }
                       />
