@@ -814,7 +814,17 @@
     "assetsRefreshed": "{{count}} new assets added to the session",
     "noNewAssetsFound": "No new matching assets found",
     "assetNotFound": "Asset not found",
-    "assetDoesNotMatchFilters": "This asset does not match the session filters"
+    "assetDoesNotMatchFilters": "This asset does not match the session filters",
+    "editSession": "Edit Session",
+    "deleteSession": "Delete Session",
+    "confirmDeleteSession": "Are you sure you want to delete this session? This will remove all inspection records and cannot be undone.",
+    "sessionDeleted": "Session deleted successfully",
+    "sessionUpdated": "Session updated successfully",
+    "cannotDeleteClosedSession": "Cannot delete a closed session",
+    "cannotEditClosedSession": "Cannot edit a closed or completed session",
+    "filterBySite": "Filter by Site",
+    "filterByCategory": "Filter by Category",
+    "filterByType": "Filter by Type"
   },
   "securityAudit": {
     "title": "Security Audit Log",

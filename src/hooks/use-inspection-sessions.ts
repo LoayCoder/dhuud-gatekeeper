@@ -484,10 +484,7 @@ export function useCloseSession() {
     mutationFn: async (sessionId: string) => {
       const { data, error } = await supabase
         .from('inspection_sessions')
-        .update({
-          status: 'closed',
-          closed_at: new Date().toISOString(),
-        })
+        .update({ status: 'closed', updated_at: new Date().toISOString() })
         .eq('id', sessionId)
         .select()
         .single();
@@ -498,6 +495,61 @@ export function useCloseSession() {
     onSuccess: (_, sessionId) => {
       queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+    },
+  });
+}
+
+// Update an existing inspection session
+export function useUpdateSession() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      sessionId, 
+      updates 
+    }: { 
+      sessionId: string; 
+      updates: Partial<{
+        period: string;
+        site_id: string | null;
+        category_id: string | null;
+        type_id: string | null;
+      }>;
+    }) => {
+      const { data, error } = await supabase
+        .from('inspection_sessions')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', sessionId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-session', sessionId] });
+    },
+  });
+}
+
+// Soft delete an inspection session
+export function useDeleteSession() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      // Soft delete the session
+      const { error } = await supabase
+        .from('inspection_sessions')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', sessionId);
+      
+      if (error) throw error;
+      return sessionId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inspection-sessions'] });
     },
   });
 }

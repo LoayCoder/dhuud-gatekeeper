@@ -1,4 +1,5 @@
 export { CreateSessionDialog } from './CreateSessionDialog';
+export { EditSessionDialog } from './EditSessionDialog';
 export { SessionProgressCard } from './SessionProgressCard';
 export { QuickInspectionCard } from './QuickInspectionCard';
 export { FailureReasonDialog } from './FailureReasonDialog';

@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Plus, ClipboardList, Calendar, User, MapPin } from 'lucide-react';
+import { Plus, ClipboardList, Calendar, User, MapPin, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { useInspectionSessions } from '@/hooks/use-inspection-sessions';
-import { CreateSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
+import { useInspectionSessions, useDeleteSession, InspectionSession } from '@/hooks/use-inspection-sessions';
+import { CreateSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
+import { toast } from 'sonner';
 
 function InspectionSessionsDashboardContent() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<InspectionSession | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  
+  const deleteSession = useDeleteSession();
   
   const { data: sessions = [], isLoading } = useInspectionSessions(
     statusFilter !== 'all' ? { status: statusFilter } : undefined
@@ -27,6 +36,36 @@ function InspectionSessionsDashboardContent() {
     in_progress: sessions.filter(s => s.status === 'in_progress').length,
     completed_with_open_actions: sessions.filter(s => s.status === 'completed_with_open_actions').length,
     closed: sessions.filter(s => s.status === 'closed').length,
+  };
+
+  const handleEditClick = (e: React.MouseEvent, session: InspectionSession) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedSession(session);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, session: InspectionSession) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (session.status === 'closed') {
+      toast.error(t('inspectionSessions.cannotDeleteClosedSession'));
+      return;
+    }
+    setSelectedSession(session);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedSession) return;
+    try {
+      await deleteSession.mutateAsync(selectedSession.id);
+      toast.success(t('inspectionSessions.sessionDeleted'));
+      setShowDeleteDialog(false);
+      setSelectedSession(null);
+    } catch (error) {
+      toast.error(t('common.error'));
+    }
   };
   
   return (
@@ -89,8 +128,8 @@ function InspectionSessionsDashboardContent() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {sessions.map((session) => (
-                <Link key={session.id} to={`/inspections/sessions/${session.id}`}>
-                  <Card className="hover:border-primary transition-colors h-full">
+                <Card key={session.id} className="hover:border-primary transition-colors h-full relative">
+                  <Link to={`/inspections/sessions/${session.id}`} className="block">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div>
@@ -101,7 +140,30 @@ function InspectionSessionsDashboardContent() {
                               : session.template?.name}
                           </p>
                         </div>
-                        <SessionStatusBadge status={session.status} />
+                        <div className="flex items-center gap-2">
+                          <SessionStatusBadge status={session.status} />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => handleEditClick(e, session)}>
+                                <Pencil className="me-2 h-4 w-4" />
+                                {t('inspectionSessions.editSession')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => handleDeleteClick(e, session)}
+                                className="text-destructive"
+                                disabled={session.status === 'closed'}
+                              >
+                                <Trash2 className="me-2 h-4 w-4" />
+                                {t('inspectionSessions.deleteSession')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -151,8 +213,8 @@ function InspectionSessionsDashboardContent() {
                         </Badge>
                       )}
                     </CardContent>
-                  </Card>
-                </Link>
+                  </Link>
+                </Card>
               ))}
             </div>
           )}
@@ -160,6 +222,31 @@ function InspectionSessionsDashboardContent() {
       </Tabs>
       
       <CreateSessionDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+      
+      {selectedSession && (
+        <EditSessionDialog 
+          open={showEditDialog} 
+          onOpenChange={setShowEditDialog} 
+          session={selectedSession}
+        />
+      )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('inspectionSessions.deleteSession')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('inspectionSessions.confirmDeleteSession')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
