@@ -2,10 +2,15 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
+import { OverdueActionsWidget } from '@/components/dashboard/OverdueActionsWidget';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { hasModule } = useModuleAccess();
+
+  const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -44,6 +49,8 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {hasHSSEAccess && <OverdueActionsWidget />}
       </div>
 
       <div className="min-h-[200px] flex-1 rounded-xl bg-muted/50" />
