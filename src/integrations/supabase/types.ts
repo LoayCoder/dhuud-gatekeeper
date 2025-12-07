@@ -2494,6 +2494,7 @@ export type Database = {
       }
       inspection_template_items: {
         Row: {
+          clause_reference: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -2503,15 +2504,18 @@ export type Database = {
           is_required: boolean | null
           max_value: number | null
           min_value: number | null
+          nc_category: string | null
           question: string
           question_ar: string | null
           rating_scale: number | null
           response_type: string
+          scoring_weight: number | null
           sort_order: number
           template_id: string
           tenant_id: string
         }
         Insert: {
+          clause_reference?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -2521,15 +2525,18 @@ export type Database = {
           is_required?: boolean | null
           max_value?: number | null
           min_value?: number | null
+          nc_category?: string | null
           question: string
           question_ar?: string | null
           rating_scale?: number | null
           response_type: string
+          scoring_weight?: number | null
           sort_order?: number
           template_id: string
           tenant_id: string
         }
         Update: {
+          clause_reference?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -2539,10 +2546,12 @@ export type Database = {
           is_required?: boolean | null
           max_value?: number | null
           min_value?: number | null
+          nc_category?: string | null
           question?: string
           question_ar?: string | null
           rating_scale?: number | null
           response_type?: string
+          scoring_weight?: number | null
           sort_order?: number
           template_id?: string
           tenant_id?: string
@@ -2578,10 +2587,12 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_ar: string | null
+          passing_score_percentage: number | null
           requires_gps: boolean | null
           requires_photos: boolean | null
           scope_description: string | null
           site_id: string | null
+          standard_reference: string | null
           template_type: string
           tenant_id: string
           type_id: string | null
@@ -2601,10 +2612,12 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_ar?: string | null
+          passing_score_percentage?: number | null
           requires_gps?: boolean | null
           requires_photos?: boolean | null
           scope_description?: string | null
           site_id?: string | null
+          standard_reference?: string | null
           template_type?: string
           tenant_id: string
           type_id?: string | null
@@ -2624,10 +2637,12 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_ar?: string | null
+          passing_score_percentage?: number | null
           requires_gps?: boolean | null
           requires_photos?: boolean | null
           scope_description?: string | null
           site_id?: string | null
+          standard_reference?: string | null
           template_type?: string
           tenant_id?: string
           type_id?: string | null
@@ -4689,6 +4704,10 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
+      get_findings_distribution: { Args: never; Returns: Json }
+      get_inspection_compliance_trend: { Args: never; Returns: Json }
+      get_inspection_session_stats: { Args: never; Returns: Json }
+      get_overdue_inspections_count: { Args: never; Returns: number }
       get_team_hierarchy: {
         Args: { p_manager_id: string }
         Returns: {

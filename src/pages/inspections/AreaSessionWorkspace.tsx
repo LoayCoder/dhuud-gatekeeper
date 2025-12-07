@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, MapPin, Cloud, Users, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,6 +39,7 @@ import {
   FindingsPanel,
   SessionStatusCard,
   SessionCompletionDialog,
+  SessionExportDropdown,
 } from '@/components/inspections/sessions';
 
 function AreaSessionWorkspaceContent() {
@@ -171,6 +172,13 @@ function AreaSessionWorkspaceContent() {
         </div>
         
         <div className="flex items-center gap-2">
+          {session.status !== 'draft' && (
+            <SessionExportDropdown
+              session={session}
+              responses={responses}
+              findings={[]}
+            />
+          )}
           {session.status !== 'closed' && (
             <>
               <Button variant="outline" size="icon" onClick={() => setShowEditDialog(true)}>

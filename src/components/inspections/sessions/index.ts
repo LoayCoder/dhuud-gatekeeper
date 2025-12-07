@@ -14,3 +14,5 @@ export { FindingsPanel } from './FindingsPanel';
 export { SessionStatusCard } from './SessionStatusCard';
 export { SessionCompletionDialog } from './SessionCompletionDialog';
 export { CreateActionFromFindingDialog } from './CreateActionFromFindingDialog';
+export { SessionExportDropdown } from './SessionExportDropdown';
+export { AuditScoringCard } from './AuditScoringCard';
