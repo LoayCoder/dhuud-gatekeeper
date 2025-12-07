@@ -2736,6 +2736,34 @@
     "codePlaceholder": "उदा: FE-MONTHLY",
     "assetInfo": "संपत्ति जानकारी",
     "inspectionInfo": "निरीक्षण जानकारी",
-    "checklistItems": "चेकलिस्ट आइटम"
+    "checklistItems": "चेकलिस्ट आइटम",
+    "areaInspection": "क्षेत्र निरीक्षण",
+    "checklistProgress": "चेकलिस्ट प्रगति",
+    "remainingItems": "{{count}} आइटम शेष",
+    "totalItems": "कुल",
+    "sessionInfo": "सत्र जानकारी",
+    "noItems": "कोई चेकलिस्ट आइटम नहीं मिला",
+    "autoSaving": "सहेजा जा रहा है...",
+    "captureGPS": "GPS कैप्चर करें",
+    "gpsRecorded": "GPS रिकॉर्ड हुआ",
+    "gpsNotSupported": "GPS समर्थित नहीं",
+    "gpsError": "GPS कैप्चर में त्रुटि",
+    "gpsCaptured": "GPS स्थान कैप्चर हुआ",
+    "selectRating": "रेटिंग चुनें",
+    "enterValue": "मान दर्ज करें",
+    "rangeHint": "मान {{min}} और {{max}} के बीच होना चाहिए",
+    "minHint": "न्यूनतम मान: {{min}}",
+    "maxHint": "अधिकतम मान: {{max}}",
+    "enterResponse": "अपना जवाब दर्ज करें...",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "weather": {
+      "clear": "साफ",
+      "cloudy": "बादल",
+      "rainy": "बारिश",
+      "windy": "हवादार",
+      "hot": "गर्म",
+      "cold": "ठंडा"
+    }
   }
 }

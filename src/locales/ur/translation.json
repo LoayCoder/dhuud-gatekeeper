@@ -2736,6 +2736,34 @@
     "codePlaceholder": "مثال: FE-MONTHLY",
     "assetInfo": "اثاثہ معلومات",
     "inspectionInfo": "معائنہ معلومات",
-    "checklistItems": "چیک لسٹ آئٹمز"
+    "checklistItems": "چیک لسٹ آئٹمز",
+    "areaInspection": "علاقے کا معائنہ",
+    "checklistProgress": "چیک لسٹ پیشرفت",
+    "remainingItems": "{{count}} آئٹمز باقی",
+    "totalItems": "کل",
+    "sessionInfo": "سیشن معلومات",
+    "noItems": "کوئی چیک لسٹ آئٹمز نہیں ملے",
+    "autoSaving": "محفوظ ہو رہا ہے...",
+    "captureGPS": "GPS حاصل کریں",
+    "gpsRecorded": "GPS ریکارڈ ہوا",
+    "gpsNotSupported": "GPS سپورٹ نہیں ہے",
+    "gpsError": "GPS حاصل کرنے میں خرابی",
+    "gpsCaptured": "GPS مقام حاصل ہوا",
+    "selectRating": "درجہ بندی منتخب کریں",
+    "enterValue": "قیمت درج کریں",
+    "rangeHint": "قیمت {{min}} اور {{max}} کے درمیان ہونی چاہیے",
+    "minHint": "کم از کم قیمت: {{min}}",
+    "maxHint": "زیادہ سے زیادہ قیمت: {{max}}",
+    "enterResponse": "اپنا جواب درج کریں...",
+    "yes": "ہاں",
+    "no": "نہیں",
+    "weather": {
+      "clear": "صاف",
+      "cloudy": "ابر آلود",
+      "rainy": "بارش",
+      "windy": "ہوا دار",
+      "hot": "گرم",
+      "cold": "سرد"
+    }
   }
 }

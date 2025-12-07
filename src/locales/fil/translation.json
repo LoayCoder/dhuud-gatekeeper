@@ -2736,6 +2736,34 @@
     "codePlaceholder": "hal: FE-MONTHLY",
     "assetInfo": "Impormasyon ng Asset",
     "inspectionInfo": "Impormasyon ng Inspeksyon",
-    "checklistItems": "Mga Checklist Item"
+    "checklistItems": "Mga Checklist Item",
+    "areaInspection": "Area Inspection",
+    "checklistProgress": "Checklist Progress",
+    "remainingItems": "{{count}} items na natitira",
+    "totalItems": "Kabuuan",
+    "sessionInfo": "Session Info",
+    "noItems": "Walang nahanap na checklist items",
+    "autoSaving": "Sine-save...",
+    "captureGPS": "Kumuha ng GPS",
+    "gpsRecorded": "Narekord ang GPS",
+    "gpsNotSupported": "Hindi suportado ang GPS",
+    "gpsError": "Error sa pagkuha ng GPS",
+    "gpsCaptured": "Nakuha ang lokasyon ng GPS",
+    "selectRating": "Pumili ng rating",
+    "enterValue": "Ilagay ang halaga",
+    "rangeHint": "Ang halaga ay dapat sa pagitan ng {{min}} at {{max}}",
+    "minHint": "Minimum na halaga: {{min}}",
+    "maxHint": "Maximum na halaga: {{max}}",
+    "enterResponse": "Ilagay ang iyong sagot...",
+    "yes": "Oo",
+    "no": "Hindi",
+    "weather": {
+      "clear": "Malinaw",
+      "cloudy": "Maulap",
+      "rainy": "Maulan",
+      "windy": "Mahangin",
+      "hot": "Mainit",
+      "cold": "Malamig"
+    }
   }
 }

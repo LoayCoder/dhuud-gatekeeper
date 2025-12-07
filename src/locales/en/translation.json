@@ -2882,6 +2882,34 @@
     "codePlaceholder": "e.g., FE-MONTHLY",
     "assetInfo": "Asset Information",
     "inspectionInfo": "Inspection Information",
-    "checklistItems": "Checklist Items"
+    "checklistItems": "Checklist Items",
+    "areaInspection": "Area Inspection",
+    "checklistProgress": "Checklist Progress",
+    "remainingItems": "{{count}} items remaining",
+    "totalItems": "Total",
+    "sessionInfo": "Session Info",
+    "noItems": "No checklist items found",
+    "autoSaving": "Saving...",
+    "captureGPS": "Capture GPS",
+    "gpsRecorded": "GPS Recorded",
+    "gpsNotSupported": "GPS not supported",
+    "gpsError": "Error capturing GPS",
+    "gpsCaptured": "GPS location captured",
+    "selectRating": "Select rating",
+    "enterValue": "Enter value",
+    "rangeHint": "Value must be between {{min}} and {{max}}",
+    "minHint": "Minimum value: {{min}}",
+    "maxHint": "Maximum value: {{max}}",
+    "enterResponse": "Enter your response...",
+    "yes": "Yes",
+    "no": "No",
+    "weather": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "rainy": "Rainy",
+      "windy": "Windy",
+      "hot": "Hot",
+      "cold": "Cold"
+    }
   }
 }

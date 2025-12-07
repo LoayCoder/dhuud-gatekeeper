@@ -2,6 +2,8 @@ export { CreateSessionDialog } from './CreateSessionDialog';
 export { CreateAreaSessionDialog } from './CreateAreaSessionDialog';
 export { EditSessionDialog } from './EditSessionDialog';
 export { SessionProgressCard } from './SessionProgressCard';
+export { AreaProgressCard } from './AreaProgressCard';
+export { AreaChecklistItem } from './AreaChecklistItem';
 export { QuickInspectionCard } from './QuickInspectionCard';
 export { FailureReasonDialog } from './FailureReasonDialog';
 export { UninspectedAssetsList } from './UninspectedAssetsList';
