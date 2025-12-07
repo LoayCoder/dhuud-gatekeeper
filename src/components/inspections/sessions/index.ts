@@ -9,6 +9,7 @@ export { AreaChecklistItem } from './AreaChecklistItem';
 export { AuditChecklistItem } from './AuditChecklistItem';
 export { QuickInspectionCard } from './QuickInspectionCard';
 export { FailureReasonDialog } from './FailureReasonDialog';
+export { FailurePhotoUpload } from './FailurePhotoUpload';
 export { NCClassificationDialog } from './NCClassificationDialog';
 export { UninspectedAssetsList } from './UninspectedAssetsList';
 export { BulkInspectionScanner } from './BulkInspectionScanner';

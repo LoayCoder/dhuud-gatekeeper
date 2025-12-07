@@ -2993,5 +2993,13 @@
       "majorNc": "بڑی عدم مطابقت",
       "criticalNc": "نازک عدم مطابقت"
     }
+  },
+  "myInspections": {
+    "title": "میرے معائنے",
+    "upcomingScheduled": "آئندہ شیڈول",
+    "pendingActions": "میرے زیر التوا اقدامات",
+    "awaitingVerification": "تصدیق کے منتظر",
+    "viewMyActions": "میرے اقدامات",
+    "viewSchedules": "شیڈولز"
   }
 }
