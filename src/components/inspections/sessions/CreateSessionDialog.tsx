@@ -164,12 +164,12 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
           {/* Site Filter (optional) */}
           <div className="space-y-2">
             <Label>{t('inspectionSessions.selectSite')} ({t('common.optional')})</Label>
-            <Select value={siteId} onValueChange={setSiteId} dir={direction}>
+          <Select value={siteId || "__all__"} onValueChange={(v) => setSiteId(v === "__all__" ? "" : v)} dir={direction}>
               <SelectTrigger>
                 <SelectValue placeholder={t('inspectionSessions.allSites')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('inspectionSessions.allSites')}</SelectItem>
+                <SelectItem value="__all__">{t('inspectionSessions.allSites')}</SelectItem>
                 {sites.map((site) => (
                   <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
                 ))}
@@ -180,12 +180,12 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
           {/* Category Filter (optional) */}
           <div className="space-y-2">
             <Label>{t('assets.category')} ({t('common.optional')})</Label>
-            <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setTypeId(''); }} dir={direction}>
+            <Select value={categoryId || "__all__"} onValueChange={(v) => { setCategoryId(v === "__all__" ? "" : v); setTypeId(''); }} dir={direction}>
               <SelectTrigger>
                 <SelectValue placeholder={t('inspectionSessions.allCategories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('inspectionSessions.allCategories')}</SelectItem>
+                <SelectItem value="__all__">{t('inspectionSessions.allCategories')}</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {i18n.language === 'ar' && cat.name_ar ? cat.name_ar : cat.name}
@@ -198,12 +198,12 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
           {/* Type Filter (optional) */}
           <div className="space-y-2">
             <Label>{t('assets.type')} ({t('common.optional')})</Label>
-            <Select value={typeId} onValueChange={setTypeId} dir={direction} disabled={!categoryId}>
+            <Select value={typeId || "__all__"} onValueChange={(v) => setTypeId(v === "__all__" ? "" : v)} dir={direction} disabled={!categoryId}>
               <SelectTrigger>
                 <SelectValue placeholder={t('inspectionSessions.allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('inspectionSessions.allTypes')}</SelectItem>
+                <SelectItem value="__all__">{t('inspectionSessions.allTypes')}</SelectItem>
                 {filteredTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
                     {i18n.language === 'ar' && type.name_ar ? type.name_ar : type.name}
