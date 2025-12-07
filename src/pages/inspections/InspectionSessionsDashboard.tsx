@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 import { Plus, ClipboardList, Calendar, User, MapPin, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,14 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { useInspectionSessions, useDeleteSession, InspectionSession } from '@/hooks/use-inspection-sessions';
+import { useInspectionSessions, useDeleteSession, type InspectionSession } from '@/hooks/use-inspection-sessions';
 import { CreateSessionDialog, EditSessionDialog, SessionStatusBadge } from '@/components/inspections/sessions';
 import { toast } from 'sonner';
 
 function InspectionSessionsDashboardContent() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -63,7 +61,7 @@ function InspectionSessionsDashboardContent() {
       toast.success(t('inspectionSessions.sessionDeleted'));
       setShowDeleteDialog(false);
       setSelectedSession(null);
-    } catch (error) {
+    } catch {
       toast.error(t('common.error'));
     }
   };
