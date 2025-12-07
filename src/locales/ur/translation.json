@@ -2998,6 +2998,11 @@
       "minorNc": "معمولی عدم مطابقت",
       "majorNc": "بڑی عدم مطابقت",
       "criticalNc": "نازک عدم مطابقت"
+    },
+    "types": {
+      "asset": "اثاثہ معائنہ",
+      "area": "علاقہ معائنہ",
+      "audit": "آڈٹ"
     }
   },
   "myInspections": {
@@ -3011,6 +3016,13 @@
   "schedules": {
     "title": "معائنہ شیڈولز",
     "description": "بار بار معائنہ کے شیڈولز کا انتظام کریں",
+    "allSites": "تمام سائٹس",
+    "allBuildings": "تمام عمارتیں",
+    "timing": "وقت",
+    "pickDate": "تاریخ منتخب کریں",
+    "daysSimple": "دن",
+    "nextOccurrences": "آئندہ تاریخیں",
+    "create": "بنائیں",
     "calendar": "کیلنڈر",
     "createSchedule": "شیڈول بنائیں",
     "editSchedule": "شیڈول میں ترمیم کریں",

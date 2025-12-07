@@ -3080,6 +3080,11 @@
       "minorNc": "عدم مطابقة بسيط",
       "majorNc": "عدم مطابقة كبير",
       "criticalNc": "عدم مطابقة حرج"
+    },
+    "types": {
+      "asset": "فحص الأصول",
+      "area": "فحص المنطقة",
+      "audit": "التدقيق"
     }
   },
   "myInspections": {
@@ -3093,6 +3098,13 @@
   "schedules": {
     "title": "جداول الفحص",
     "description": "إدارة جداول الفحص المتكررة",
+    "allSites": "جميع المواقع",
+    "allBuildings": "جميع المباني",
+    "timing": "التوقيت",
+    "pickDate": "اختر تاريخاً",
+    "daysSimple": "أيام",
+    "nextOccurrences": "المواعيد القادمة",
+    "create": "إنشاء",
     "calendar": "التقويم",
     "createSchedule": "إنشاء جدول",
     "editSchedule": "تعديل الجدول",
