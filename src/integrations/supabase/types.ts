@@ -2253,6 +2253,169 @@ export type Database = {
           },
         ]
       }
+      inspection_schedules: {
+        Row: {
+          assigned_inspector_id: string | null
+          assigned_team: Json | null
+          building_id: string | null
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          day_of_month: number | null
+          day_of_week: number | null
+          deleted_at: string | null
+          end_date: string | null
+          floor_zone_id: string | null
+          frequency_type: string
+          frequency_value: number
+          id: string
+          is_active: boolean
+          last_generated: string | null
+          last_reminder_sent: string | null
+          month_of_year: number | null
+          name: string
+          name_ar: string | null
+          next_due: string | null
+          reference_id: string
+          reminder_days_before: number
+          schedule_type: string
+          site_id: string | null
+          start_date: string
+          template_id: string
+          tenant_id: string
+          type_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_inspector_id?: string | null
+          assigned_team?: Json | null
+          building_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          deleted_at?: string | null
+          end_date?: string | null
+          floor_zone_id?: string | null
+          frequency_type?: string
+          frequency_value?: number
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          last_reminder_sent?: string | null
+          month_of_year?: number | null
+          name: string
+          name_ar?: string | null
+          next_due?: string | null
+          reference_id: string
+          reminder_days_before?: number
+          schedule_type?: string
+          site_id?: string | null
+          start_date?: string
+          template_id: string
+          tenant_id: string
+          type_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_inspector_id?: string | null
+          assigned_team?: Json | null
+          building_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          deleted_at?: string | null
+          end_date?: string | null
+          floor_zone_id?: string | null
+          frequency_type?: string
+          frequency_value?: number
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          last_reminder_sent?: string | null
+          month_of_year?: number | null
+          name?: string
+          name_ar?: string | null
+          next_due?: string | null
+          reference_id?: string
+          reminder_days_before?: number
+          schedule_type?: string
+          site_id?: string | null
+          start_date?: string
+          template_id?: string
+          tenant_id?: string
+          type_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_schedules_assigned_inspector_id_fkey"
+            columns: ["assigned_inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_floor_zone_id_fkey"
+            columns: ["floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_session_assets: {
         Row: {
           asset_id: string
@@ -4644,6 +4807,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_inspection_due: {
+        Args: {
+          p_day_of_month?: number
+          p_day_of_week?: number
+          p_frequency_type: string
+          p_frequency_value: number
+          p_last_due: string
+        }
+        Returns: string
+      }
       calculate_profile_billing: {
         Args: { p_billing_month: string; p_tenant_id: string }
         Returns: Json
@@ -4708,6 +4881,7 @@ export type Database = {
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
       get_overdue_inspections_count: { Args: never; Returns: number }
+      get_overdue_schedules_count: { Args: never; Returns: number }
       get_team_hierarchy: {
         Args: { p_manager_id: string }
         Returns: {
@@ -4746,6 +4920,19 @@ export type Database = {
         Returns: {
           tenant_id: string
           user_count: number
+        }[]
+      }
+      get_upcoming_inspection_schedules: {
+        Args: { p_days_ahead?: number }
+        Returns: {
+          assigned_inspector_id: string
+          days_until: number
+          id: string
+          name: string
+          next_due: string
+          reference_id: string
+          schedule_type: string
+          template_id: string
         }[]
       }
       get_user_role: {
