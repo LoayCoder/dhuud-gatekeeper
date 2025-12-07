@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload } from '@/components/assets';
+import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog } from '@/components/assets';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20',
@@ -53,6 +54,7 @@ function AssetDetailContent() {
 
   const { hasModuleAccess } = useUserRoles();
   const canManage = hasModuleAccess('asset_management');
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -163,7 +165,7 @@ function AssetDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="gap-2">
             <Package className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.overview')}
@@ -183,6 +185,10 @@ function AssetDetailContent() {
           <TabsTrigger value="incidents" className="gap-2">
             <ShieldAlert className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.incidents')}
+          </TabsTrigger>
+          <TabsTrigger value="transfers" className="gap-2">
+            <ArrowRightLeft className="h-4 w-4 hidden sm:block" />
+            {t('assets.tabs.transfers')}
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-2">
             <History className="h-4 w-4 hidden sm:block" />
@@ -473,6 +479,27 @@ function AssetDetailContent() {
           </Card>
         </TabsContent>
 
+        {/* Transfers Tab */}
+        <TabsContent value="transfers">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>{t('assets.tabs.transfers')}</CardTitle>
+                <CardDescription>{t('assets.transfer.noTransfers')}</CardDescription>
+              </div>
+              {canManage && (
+                <Button onClick={() => setTransferDialogOpen(true)} className="gap-2">
+                  <ArrowRightLeft className="h-4 w-4" />
+                  {t('assets.transfer.requestTransfer')}
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              <TransferHistoryTab assetId={id!} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Audit Tab */}
         <TabsContent value="audit">
           <Card>
@@ -509,6 +536,15 @@ function AssetDetailContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Transfer Dialog */}
+      {asset && (
+        <AssetTransferDialog
+          open={transferDialogOpen}
+          onOpenChange={setTransferDialogOpen}
+          asset={asset}
+        />
+      )}
     </div>
   );
 }
