@@ -357,7 +357,7 @@ function AssetDetailContent() {
                 {asset.criticality_level && (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">{t('assets.criticality')}</span>
+                      <span className="text-muted-foreground">{t('assets.criticality.label')}</span>
                       <Badge variant="outline" className={CRITICALITY_COLORS[asset.criticality_level]}>
                         {t(`assets.criticality.${asset.criticality_level}`)}
                       </Badge>
@@ -367,7 +367,7 @@ function AssetDetailContent() {
                 )}
                 {asset.ownership && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t('assets.ownership')}</span>
+                    <span className="text-muted-foreground">{t('assets.ownership.label')}</span>
                     <span className="font-medium">{t(`assets.ownership.${asset.ownership}`)}</span>
                   </div>
                 )}

@@ -618,7 +618,6 @@
     "update": "Update",
     "view": "View",
     "details": "Details",
-    "all": "All",
     "none": "None",
     "select": "Select",
     "selected": "Selected",
@@ -635,7 +634,9 @@
     "unknown": "Unknown",
     "pending": "Pending",
     "approved": "Approved",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "download": "Download",
+    "print": "Print"
   },
   "auth": {
     "signIn": "Sign In",
@@ -2436,8 +2437,20 @@
     "floorZone": "Floor/Zone",
     "locationDetails": "Location Details",
     "condition": "Condition",
-    "criticality": "Criticality",
-    "ownership": "Ownership",
+    "criticality": {
+      "label": "Criticality",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "ownership": {
+      "label": "Ownership",
+      "company": "Company Owned",
+      "leased": "Leased",
+      "rented": "Rented",
+      "contractor": "Contractor Provided"
+    },
     "installationDate": "Installation Date",
     "commissioningDate": "Commissioning Date",
     "warrantyExpiry": "Warranty Expiry",

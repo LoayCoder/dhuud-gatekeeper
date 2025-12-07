@@ -580,7 +580,9 @@
     "unknown": "غير معروف",
     "pending": "قيد الانتظار",
     "approved": "تمت الموافقة",
-    "rejected": "مرفوض"
+    "rejected": "مرفوض",
+    "download": "تحميل",
+    "print": "طباعة"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -2367,8 +2369,20 @@
     "floorZone": "الطابق/المنطقة",
     "locationDetails": "تفاصيل الموقع",
     "condition": "الحالة",
-    "criticality": "الأهمية",
-    "ownership": "الملكية",
+    "criticality": {
+      "label": "الأهمية",
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "عالي",
+      "critical": "حرج"
+    },
+    "ownership": {
+      "label": "الملكية",
+      "company": "مملوك للشركة",
+      "leased": "مؤجر",
+      "rented": "مستأجر",
+      "contractor": "مقدم من المقاول"
+    },
     "installationDate": "تاريخ التركيب",
     "commissioningDate": "تاريخ التشغيل",
     "warrantyExpiry": "انتهاء الضمان",

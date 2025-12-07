@@ -570,7 +570,9 @@
     "unknown": "अज्ञात",
     "pending": "लंबित",
     "approved": "स्वीकृत",
-    "rejected": "अस्वीकृत"
+    "rejected": "अस्वीकृत",
+    "download": "डाउनलोड",
+    "print": "प्रिंट"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -2291,8 +2293,20 @@
     "floorZone": "मंजिल/क्षेत्र",
     "locationDetails": "स्थान विवरण",
     "condition": "हालत",
-    "criticality": "महत्व",
-    "ownership": "स्वामित्व",
+    "criticality": {
+      "label": "महत्व",
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च",
+      "critical": "गंभीर"
+    },
+    "ownership": {
+      "label": "स्वामित्व",
+      "company": "कंपनी के स्वामित्व में",
+      "leased": "लीज पर",
+      "rented": "किराये पर",
+      "contractor": "ठेकेदार द्वारा प्रदत्त"
+    },
     "installationDate": "स्थापना तिथि",
     "commissioningDate": "कमीशनिंग तिथि",
     "warrantyExpiry": "वारंटी समाप्ति",
