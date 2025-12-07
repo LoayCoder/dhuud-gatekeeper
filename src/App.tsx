@@ -74,8 +74,8 @@ const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" 
 const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
 const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
 const ActionSLASettings = lazy(() => import(/* webpackChunkName: "admin-action-sla" */ "./pages/admin/ActionSLASettings"));
+const SLADashboard = lazy(() => import(/* webpackChunkName: "admin-sla-dashboard" */ "./pages/admin/SLADashboard"));
 const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
-const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 
 const queryClient = new QueryClient();
@@ -148,8 +148,8 @@ const App = () => (
                       <Route path="/inspections/dashboard" element={<HSSERoute><InspectionDashboard /></HSSERoute>} />
                       <Route path="/inspections/sessions" element={<HSSERoute><InspectionSessionsDashboard /></HSSERoute>} />
                       <Route path="/inspections/sessions/:sessionId" element={<HSSERoute><SessionWorkspace /></HSSERoute>} />
-                      <Route path="/inspections/sessions/area/:sessionId" element={<HSSERoute><AreaSessionWorkspace /></HSSERoute>} />
-                      <Route path="/inspections/sessions/audit/:sessionId" element={<HSSERoute><AuditSessionWorkspace /></HSSERoute>} />
+                      <Route path="/inspections/sessions/:sessionId/area" element={<HSSERoute><AreaSessionWorkspace /></HSSERoute>} />
+                      <Route path="/inspections/sessions/:sessionId/audit" element={<HSSERoute><AuditSessionWorkspace /></HSSERoute>} />
                       <Route path="/inspections/schedules" element={<HSSERoute><InspectionSchedules /></HSSERoute>} />
                       <Route path="/inspections/my-actions" element={<MyInspectionActions />} />
 
@@ -234,7 +234,6 @@ const App = () => (
                           </AdminRoute>
                         }
                       />
-
                       <Route
                         path="/admin/billing"
                         element={
@@ -251,10 +250,12 @@ const App = () => (
                           </AdminRoute>
                         }
                       />
+                      <Route
+                        path="/admin/sla-dashboard"
                         element={
-                          <AdminRoute>
-                            <BillingOverview />
-                          </AdminRoute>
+                          <HSSERoute>
+                            <SLADashboard />
+                          </HSSERoute>
                         }
                       />
                       <Route

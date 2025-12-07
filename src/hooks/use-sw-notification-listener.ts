@@ -11,7 +11,7 @@ export function useSwNotificationListener() {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'STORE_NOTIFICATION') {
         const { title, body, type } = event.data.notification;
-        const notificationType = type as NotificationSoundType || 'info';
+        const notificationType = (type as NotificationSoundType) || 'info';
         
         // Check if this category is enabled
         if (!isCategoryEnabled(notificationType)) {

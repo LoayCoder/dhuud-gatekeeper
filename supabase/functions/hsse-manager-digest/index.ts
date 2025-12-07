@@ -107,15 +107,16 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Get HSSE managers for this tenant
+      // Get HSSE managers for this tenant (respecting digest preferences)
       const { data: hsseManagers } = await supabase
         .from("user_role_assignments")
         .select(`
           user_id,
-          profiles!inner(id, full_name, tenant_id),
+          profiles!inner(id, full_name, tenant_id, digest_opt_in, digest_preferred_time, digest_timezone),
           roles!inner(code)
         `)
         .eq("profiles.tenant_id", tenant.id)
+        .eq("profiles.digest_opt_in", true)
         .in("roles.code", ["hsse_manager", "admin"]);
 
       for (const manager of hsseManagers || []) {

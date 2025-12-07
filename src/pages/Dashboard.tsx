@@ -5,11 +5,13 @@ import { Shield } from 'lucide-react';
 import { OverdueActionsWidget } from '@/components/dashboard/OverdueActionsWidget';
 import { PendingClosureRequestsWidget } from '@/components/dashboard/PendingClosureRequestsWidget';
 import { useModuleAccess } from '@/hooks/use-module-access';
+import { useUserRoles } from '@/hooks/use-user-roles';
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { user, isHSSEManager } = useAuth();
+  const { user } = useAuth();
   const { hasModule } = useModuleAccess();
+  const { hasRole } = useUserRoles();
 
   const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
 
@@ -52,7 +54,7 @@ export default function Dashboard() {
         </Card>
 
         {hasHSSEAccess && <OverdueActionsWidget />}
-        {isHSSEManager && <PendingClosureRequestsWidget />}
+        {(hasRole('hsse_manager') || hasRole('admin')) && <PendingClosureRequestsWidget />}
       </div>
 
       <div className="min-h-[200px] flex-1 rounded-xl bg-muted/50" />
