@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar } from 'lucide-react';
+import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { ModuleGate } from '@/components/ModuleGate';
+import { AssetImportDialog } from '@/components/assets';
 import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, isFuture, addDays } from 'date-fns';
@@ -114,14 +115,16 @@ function AssetListContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<AssetFilters>({});
   const [searchInput, setSearchInput] = useState('');
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const { hasModuleAccess } = useUserRoles();
   const canManage = hasModuleAccess('asset_management');
 
-  const { data: categories } = useAssetCategories();
+  const { data: categories, refetch: refetchCategories } = useAssetCategories();
   const { 
     data, 
-    isLoading, 
+    isLoading,
+    refetch: refetchAssets,
     page, 
     goToPage, 
     goToNextPage, 
@@ -135,6 +138,10 @@ function AssetListContent() {
       setFilters(prev => ({ ...prev, search: value || undefined }));
     }, 300);
     return () => clearTimeout(timeout);
+  };
+  
+  const handleImportComplete = () => {
+    refetchAssets();
   };
 
   const handleFilterChange = (key: keyof AssetFilters, value: string | null) => {
@@ -150,12 +157,25 @@ function AssetListContent() {
           <p className="text-muted-foreground">{t('assets.description')}</p>
         </div>
         {canManage && (
-          <Button onClick={() => navigate('/assets/register')} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t('assets.registerAsset')}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2">
+              <Upload className="h-4 w-4" />
+              {t('assets.import.title')}
+            </Button>
+            <Button onClick={() => navigate('/assets/register')} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('assets.registerAsset')}
+            </Button>
+          </div>
         )}
       </div>
+      
+      {/* Import Dialog */}
+      <AssetImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImportComplete={handleImportComplete}
+      />
 
       {/* Filters */}
       <Card>
