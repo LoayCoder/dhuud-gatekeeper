@@ -41,6 +41,26 @@ export function useCanCloseIncident(incidentId: string | null) {
   });
 }
 
+// Alias for useCanCloseIncident for compatibility
+export const useIncidentClosureEligibility = useCanCloseIncident;
+
+// Combined hook for approval actions
+export function useIncidentClosureApproval(incidentId: string) {
+  const approveMutation = useApproveIncidentClosure();
+  const rejectMutation = useRejectIncidentClosure();
+  
+  return {
+    approveClosureMutation: {
+      mutate: ({ notes }: { notes?: string }) => approveMutation.mutate({ incidentId }),
+      isPending: approveMutation.isPending,
+    },
+    rejectClosureMutation: {
+      mutate: ({ notes }: { notes?: string }) => rejectMutation.mutate({ incidentId, rejectionNotes: notes || '' }),
+      isPending: rejectMutation.isPending,
+    },
+  };
+}
+
 // Request incident closure
 export function useRequestIncidentClosure() {
   const { profile, user } = useAuth();

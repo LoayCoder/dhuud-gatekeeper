@@ -468,7 +468,31 @@
     "severityChangeRejected": "Tinanggihan ang pagbabago ng kalubhaan",
     "investigatorAssigned": "Matagumpay na natalaga ang imbestigador",
     "incidentApproved": "Naaprobahan ang insidente at naka-lock para sa imbestigasyon",
-    "started": "Nagsimula ang imbestigasyon"
+    "started": "Nagsimula ang imbestigasyon",
+    "closure": {
+      "readyToClose": "Handa na para sa Pagsara",
+      "allActionsVerified": "Naberipika na ang lahat ng corrective action.",
+      "requestClosure": "Humiling ng Pagsara",
+      "requestTitle": "Humiling ng Pagsara ng Insidente",
+      "requestDescription": "Magsumite ng kahilingan sa pagsara para sa insidenteng ito. Susuriin ito ng HSSE management.",
+      "closureNotes": "Mga Tala sa Pagsara",
+      "closureNotesPlaceholder": "Magdagdag ng anumang mga tala tungkol sa pagsara...",
+      "submitRequest": "Isumite ang Kahilingan sa Pagsara",
+      "pendingApproval": "Nakabinbin ang Pagsara para sa Pag-apruba",
+      "requestedBy": "Hiniling ni",
+      "requestedAt": "Hiniling noong",
+      "approveTitle": "Aprubahan ang Pagsara",
+      "rejectTitle": "Tanggihan ang Pagsara",
+      "approveDescription": "Aprubahan ang kahilingan sa pagsara ng insidenteng ito?",
+      "rejectDescription": "Tanggihan ang kahilingan sa pagsara ng insidenteng ito?",
+      "rejectionNotes": "Mga Tala sa Pagtanggi",
+      "rejectionNotesPlaceholder": "Ipaliwanag kung bakit tinanggihan ang pagsara...",
+      "approve": "Aprubahan ang Pagsara",
+      "reject": "Tanggihan ang Pagsara",
+      "requestSuccess": "Matagumpay na naisumite ang kahilingan sa pagsara",
+      "approveSuccess": "Matagumpay na naisara ang insidente",
+      "rejectSuccess": "Tinanggihan ang kahilingan sa pagsara"
+    }
   },
   "pages": {
     "incidents": {

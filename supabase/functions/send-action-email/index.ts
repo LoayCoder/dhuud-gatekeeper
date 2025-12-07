@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -203,16 +202,25 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error(`Unknown email type: ${data.type}`);
     }
 
-    const emailResponse = await resend.emails.send({
-      from: "DHUUD HSSE Platform <onboarding@resend.dev>",
-      to: [data.recipient_email],
-      subject: emailContent.subject,
-      html: emailContent.html,
+    // Use fetch to call Resend API directly
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "DHUUD HSSE Platform <onboarding@resend.dev>",
+        to: [data.recipient_email],
+        subject: emailContent.subject,
+        html: emailContent.html,
+      }),
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    const responseData = await emailResponse.json();
+    console.log("Email sent successfully:", responseData);
 
-    return new Response(JSON.stringify({ success: true, id: emailResponse.data?.id }), {
+    return new Response(JSON.stringify({ success: true, data: responseData }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

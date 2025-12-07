@@ -529,7 +529,31 @@
     "severityChangeRejected": "Severity change rejected",
     "investigatorAssigned": "Investigator assigned successfully",
     "incidentApproved": "Incident approved and locked for investigation",
-    "started": "Investigation started"
+    "started": "Investigation started",
+    "closure": {
+      "readyToClose": "Ready for Closure",
+      "allActionsVerified": "All corrective actions have been verified.",
+      "requestClosure": "Request Closure",
+      "requestTitle": "Request Incident Closure",
+      "requestDescription": "Submit a closure request for this incident. This will be reviewed by HSSE management.",
+      "closureNotes": "Closure Notes",
+      "closureNotesPlaceholder": "Add any notes about the closure...",
+      "submitRequest": "Submit Closure Request",
+      "pendingApproval": "Closure Pending Approval",
+      "requestedBy": "Requested by",
+      "requestedAt": "Requested at",
+      "approveTitle": "Approve Closure",
+      "rejectTitle": "Reject Closure",
+      "approveDescription": "Approve this incident closure request?",
+      "rejectDescription": "Reject this incident closure request?",
+      "rejectionNotes": "Rejection Notes",
+      "rejectionNotesPlaceholder": "Explain why the closure is rejected...",
+      "approve": "Approve Closure",
+      "reject": "Reject Closure",
+      "requestSuccess": "Closure request submitted successfully",
+      "approveSuccess": "Incident closed successfully",
+      "rejectSuccess": "Closure request rejected"
+    }
   },
   "pages": {
     "hsseEvents": {

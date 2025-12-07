@@ -468,7 +468,31 @@
     "severityChangeRejected": "شدت کی تبدیلی مسترد ہوگئی",
     "investigatorAssigned": "تفتیش کار کامیابی سے مقرر ہو گیا",
     "incidentApproved": "واقعہ منظور اور تحقیقات کے لیے مقفل",
-    "started": "تحقیقات شروع ہو گئیں"
+    "started": "تحقیقات شروع ہو گئیں",
+    "closure": {
+      "readyToClose": "بند کرنے کے لیے تیار",
+      "allActionsVerified": "تمام اصلاحی اقدامات کی تصدیق ہو گئی۔",
+      "requestClosure": "بندش کی درخواست",
+      "requestTitle": "واقعہ بند کرنے کی درخواست",
+      "requestDescription": "اس واقعے کے لیے بندش کی درخواست جمع کروائیں۔ اس کا جائزہ HSSE انتظامیہ لے گی۔",
+      "closureNotes": "بندش کے نوٹس",
+      "closureNotesPlaceholder": "بندش کے بارے میں کوئی نوٹس شامل کریں...",
+      "submitRequest": "بندش کی درخواست جمع کروائیں",
+      "pendingApproval": "بندش منظوری زیر التواء",
+      "requestedBy": "درخواست کنندہ",
+      "requestedAt": "درخواست کا وقت",
+      "approveTitle": "بندش منظور کریں",
+      "rejectTitle": "بندش مسترد کریں",
+      "approveDescription": "اس واقعے کی بندش کی درخواست منظور کریں؟",
+      "rejectDescription": "اس واقعے کی بندش کی درخواست مسترد کریں؟",
+      "rejectionNotes": "مسترد کرنے کے نوٹس",
+      "rejectionNotesPlaceholder": "وضاحت کریں کہ بندش کیوں مسترد کی گئی...",
+      "approve": "بندش منظور کریں",
+      "reject": "بندش مسترد کریں",
+      "requestSuccess": "بندش کی درخواست کامیابی سے جمع ہو گئی",
+      "approveSuccess": "واقعہ کامیابی سے بند ہو گیا",
+      "rejectSuccess": "بندش کی درخواست مسترد ہو گئی"
+    }
   },
   "pages": {
     "incidents": {

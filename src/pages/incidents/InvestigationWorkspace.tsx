@@ -5,10 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock } from "lucide-react";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
-import { EvidencePanel, WitnessPanel, RCAPanel, ActionsPanel, AuditLogPanel, OverviewPanel } from "@/components/investigation";
+import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
+import { EvidencePanel, WitnessPanel, RCAPanel, ActionsPanel, AuditLogPanel, OverviewPanel, IncidentClosureRequestDialog, IncidentClosureApprovalCard } from "@/components/investigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
@@ -17,15 +20,32 @@ export default function InvestigationWorkspace() {
   const urlIncidentId = searchParams.get('incident');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
+  const { profile, user } = useAuth();
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
   const { data: selectedIncident, refetch: refetchIncident } = useIncident(selectedIncidentId || undefined);
   const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
+  const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
+  const { approveClosureMutation, rejectClosureMutation } = useIncidentClosureApproval(selectedIncidentId || '');
 
   const handleRefresh = () => {
     refetchIncident();
     refetchInvestigation();
   };
+
+  // Type assertion for incident fields not in generated types yet
+  const incidentData = selectedIncident as typeof selectedIncident & {
+    closure_requested_by?: string | null;
+    closure_requested_at?: string | null;
+    closure_request_notes?: string | null;
+    closure_approved_by?: string | null;
+    closure_approved_at?: string | null;
+    closure_rejection_notes?: string | null;
+  } | undefined;
+
+  // Check if user can approve closure (different user than requester)
+  const canApprove = user?.id && incidentData?.closure_requested_by && user.id !== incidentData.closure_requested_by;
 
   // Filter incidents that need investigation (not closed status)
   const investigableIncidents = incidents?.filter(
@@ -159,8 +179,46 @@ export default function InvestigationWorkspace() {
             </TabsContent>
           </Tabs>
 
+          {/* Closure Approval Card - show if closure is pending */}
+          {incidentData?.closure_requested_at && !incidentData?.closure_approved_at && canApprove && (
+            <IncidentClosureApprovalCard
+              incidentId={selectedIncidentId}
+              incidentTitle={incidentData?.title || ''}
+              requestedBy={incidentData?.closure_requested_by || null}
+              requestedAt={incidentData?.closure_requested_at || null}
+              requestNotes={incidentData?.closure_request_notes || null}
+            />
+          )}
+
+          {/* Closure Request Button - show if eligible and not already requested */}
+          {closureEligibility?.can_close && !incidentData?.closure_requested_at && incidentData?.status !== 'closed' && (
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold">{t('investigation.closure.readyToClose', 'Ready for Closure')}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('investigation.closure.allActionsVerified', 'All corrective actions have been verified.')}
+                    </p>
+                  </div>
+                  <Button onClick={() => setShowClosureDialog(true)}>
+                    <Lock className="h-4 w-4 me-2" />
+                    {t('investigation.closure.requestClosure', 'Request Closure')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Audit Log */}
           <AuditLogPanel incidentId={selectedIncidentId} />
+
+          {/* Closure Dialog */}
+          <IncidentClosureRequestDialog
+            open={showClosureDialog}
+            onOpenChange={setShowClosureDialog}
+            incidentId={selectedIncidentId || ''}
+          />
         </>
       ) : (
         <Card className="border-dashed">
