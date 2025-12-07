@@ -267,6 +267,7 @@ function AreaSessionWorkspaceContent() {
                 item={item}
                 response={responseMap.get(item.id)}
                 sessionId={sessionId!}
+                tenantId={session.tenant_id}
                 isLocked={isCompleted}
                 requiresPhotos={requiresPhotos}
                 requiresGps={requiresGps}

@@ -2910,6 +2910,24 @@
       "windy": "Windy",
       "hot": "Hot",
       "cold": "Cold"
+    },
+    "photos": {
+      "label": "Photos",
+      "takePhoto": "Take Photo",
+      "chooseFiles": "Choose Files",
+      "dragOrClick": "Drag files or click to upload",
+      "dropHere": "Drop files here",
+      "uploading": "Uploading...",
+      "uploadSuccess": "Photo uploaded successfully",
+      "uploadError": "Failed to upload photo",
+      "deleteSuccess": "Photo deleted",
+      "deleteError": "Failed to delete photo",
+      "maxPhotosError": "Maximum {{max}} photos allowed",
+      "maxReached": "Maximum of {{max}} photos reached",
+      "remaining": "{{count}} photo(s) remaining",
+      "invalidType": "Only image files are allowed",
+      "saveFirst": "Answer the question first to add photos",
+      "saveFirstError": "Please answer the question before adding photos"
     }
   }
 }
