@@ -1020,7 +1020,24 @@
     "cannotEditClosedSession": "بند یا مکمل سیشن میں ترمیم نہیں کی جا سکتی",
     "filterBySite": "سائٹ کے لحاظ سے فلٹر",
     "filterByCategory": "زمرے کے لحاظ سے فلٹر",
-    "filterByType": "قسم کے لحاظ سے فلٹر"
+    "filterByType": "قسم کے لحاظ سے فلٹر",
+    "newAreaInspection": "علاقے کا معائنہ",
+    "createAreaSession": "علاقے کا معائنہ بنائیں",
+    "selectAreaTemplate": "علاقے کا ٹیمپلیٹ منتخب کریں",
+    "scopeNotes": "دائرہ کار کے نوٹس",
+    "scopeNotesPlaceholder": "اس معائنے کے دائرہ کار اور توجہ کے علاقوں کی وضاحت کریں...",
+    "weatherConditions": "موسم کی صورتحال",
+    "attendees": "شرکاء",
+    "attendeeName": "نام",
+    "attendeeRole": "کردار",
+    "weather": {
+      "clear": "صاف",
+      "cloudy": "ابرآلود",
+      "rainy": "بارش",
+      "windy": "تیز ہوا",
+      "hot": "گرم",
+      "cold": "سرد"
+    }
   },
   "securityAudit": {
     "title": "سیکیورٹی آڈٹ لاگ",

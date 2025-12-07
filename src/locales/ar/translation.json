@@ -1030,7 +1030,24 @@
     "cannotEditClosedSession": "لا يمكن تعديل جلسة مغلقة أو مكتملة",
     "filterBySite": "التصفية حسب الموقع",
     "filterByCategory": "التصفية حسب الفئة",
-    "filterByType": "التصفية حسب النوع"
+    "filterByType": "التصفية حسب النوع",
+    "newAreaInspection": "تفتيش المنطقة",
+    "createAreaSession": "إنشاء تفتيش المنطقة",
+    "selectAreaTemplate": "اختر قالب المنطقة",
+    "scopeNotes": "ملاحظات النطاق",
+    "scopeNotesPlaceholder": "صف نطاق هذا التفتيش ومجالات التركيز...",
+    "weatherConditions": "الأحوال الجوية",
+    "attendees": "الحضور",
+    "attendeeName": "الاسم",
+    "attendeeRole": "الدور",
+    "weather": {
+      "clear": "صافي",
+      "cloudy": "غائم",
+      "rainy": "ممطر",
+      "windy": "عاصف",
+      "hot": "حار",
+      "cold": "بارد"
+    }
   },
   "securityAudit": {
     "title": "سجل تدقيق الأمان",

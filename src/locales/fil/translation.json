@@ -1020,7 +1020,24 @@
     "cannotEditClosedSession": "Hindi mae-edit ang sarado o kumpletong session",
     "filterBySite": "I-filter ayon sa Site",
     "filterByCategory": "I-filter ayon sa Kategorya",
-    "filterByType": "I-filter ayon sa Uri"
+    "filterByType": "I-filter ayon sa Uri",
+    "newAreaInspection": "Area Inspection",
+    "createAreaSession": "Lumikha ng Area Inspection",
+    "selectAreaTemplate": "Pumili ng Area Template",
+    "scopeNotes": "Scope Notes",
+    "scopeNotesPlaceholder": "Ilarawan ang saklaw at mga focus area ng inspeksyon na ito...",
+    "weatherConditions": "Kondisyon ng Panahon",
+    "attendees": "Mga Dumalo",
+    "attendeeName": "Pangalan",
+    "attendeeRole": "Tungkulin",
+    "weather": {
+      "clear": "Maaliwalas",
+      "cloudy": "Maulap",
+      "rainy": "Maulan",
+      "windy": "Mahangin",
+      "hot": "Mainit",
+      "cold": "Malamig"
+    }
   },
   "securityAudit": {
     "title": "Security Audit Log",

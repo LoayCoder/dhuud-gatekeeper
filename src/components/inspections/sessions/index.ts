@@ -1,4 +1,5 @@
 export { CreateSessionDialog } from './CreateSessionDialog';
+export { CreateAreaSessionDialog } from './CreateAreaSessionDialog';
 export { EditSessionDialog } from './EditSessionDialog';
 export { SessionProgressCard } from './SessionProgressCard';
 export { QuickInspectionCard } from './QuickInspectionCard';

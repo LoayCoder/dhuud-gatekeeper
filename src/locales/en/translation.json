@@ -827,7 +827,24 @@
     "cannotEditClosedSession": "Cannot edit a closed or completed session",
     "filterBySite": "Filter by Site",
     "filterByCategory": "Filter by Category",
-    "filterByType": "Filter by Type"
+    "filterByType": "Filter by Type",
+    "newAreaInspection": "Area Inspection",
+    "createAreaSession": "Create Area Inspection",
+    "selectAreaTemplate": "Select Area Template",
+    "scopeNotes": "Scope Notes",
+    "scopeNotesPlaceholder": "Describe the scope and focus areas of this inspection...",
+    "weatherConditions": "Weather Conditions",
+    "attendees": "Attendees",
+    "attendeeName": "Name",
+    "attendeeRole": "Role",
+    "weather": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "rainy": "Rainy",
+      "windy": "Windy",
+      "hot": "Hot",
+      "cold": "Cold"
+    }
   },
   "securityAudit": {
     "title": "Security Audit Log",
