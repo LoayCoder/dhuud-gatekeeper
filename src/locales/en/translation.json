@@ -2631,6 +2631,7 @@
       "partial": "Partial",
       "na": "N/A"
     },
+    "itemsCompleted": "items completed",
     "completeInspection": "Complete Inspection",
     "cancelInspection": "Cancel Inspection",
     "summaryNotes": "Summary Notes",

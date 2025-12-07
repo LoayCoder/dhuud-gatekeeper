@@ -414,7 +414,7 @@ export function useInspectionResponses(inspectionId: string | undefined) {
 
 export function useStartInspection() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useTranslation();
   
   return useMutation({
@@ -423,12 +423,14 @@ export function useStartInspection() {
       template_id: string;
       inspection_date?: string;
     }) => {
+      if (!user?.id || !profile?.tenant_id) throw new Error('User not authenticated');
+      
       const { data: result, error } = await supabase
         .from('asset_inspections')
         .insert({
           ...data,
-          tenant_id: profile!.tenant_id,
-          inspector_id: (profile as any).id,
+          tenant_id: profile.tenant_id,
+          inspector_id: user.id,
           inspection_date: data.inspection_date || new Date().toISOString().split('T')[0],
         })
         .select()
