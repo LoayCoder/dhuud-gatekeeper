@@ -2943,6 +2943,90 @@
       "pendingActions": "الإجراءات المعلقة",
       "warningItemsIncomplete": "بعض عناصر القائمة لم تتم الإجابة عليها.",
       "warningOpenFindings": "توجد نتائج مفتوحة بدون إجراءات تم التحقق منها."
+    },
+    "export": {
+      "title": "تصدير تقرير الجلسة",
+      "exportPdf": "تصدير PDF",
+      "exportCsv": "تصدير CSV",
+      "exportExcel": "تصدير Excel",
+      "generating": "جاري إنشاء التقرير...",
+      "success": "تم تصدير التقرير بنجاح",
+      "error": "فشل في تصدير التقرير",
+      "reportTitle": "تقرير الفحص",
+      "sessionInfo": "معلومات الجلسة",
+      "inspector": "المفتش",
+      "period": "الفترة",
+      "progressSummary": "ملخص التقدم",
+      "totalItems": "إجمالي العناصر",
+      "passed": "ناجح",
+      "failed": "فاشل",
+      "notApplicable": "غير قابل للتطبيق",
+      "complianceRate": "نسبة الامتثال",
+      "checklistResults": "نتائج قائمة التفتيش",
+      "findingsSummary": "ملخص النتائج"
+    }
+  },
+  "inspectionDashboard": {
+    "title": "لوحة معلومات الفحص",
+    "description": "نظرة عامة على أنشطة الفحص ومقاييس الامتثال",
+    "openSessions": "الجلسات المفتوحة",
+    "overdueInspections": "الفحوصات المتأخرة",
+    "avgCompliance": "متوسط الامتثال",
+    "openFindings": "النتائج المفتوحة",
+    "complianceTrend": "اتجاه الامتثال",
+    "last6Months": "آخر 6 أشهر",
+    "findingsDistribution": "توزيع النتائج",
+    "byClassification": "حسب التصنيف",
+    "recentFindings": "النتائج الأخيرة",
+    "noData": "لا توجد بيانات متاحة",
+    "loading": "جاري التحميل...",
+    "viewAll": "عرض الكل",
+    "noOpenSessions": "لا توجد جلسات مفتوحة",
+    "noOverdueInspections": "لا توجد فحوصات متأخرة",
+    "noOpenFindings": "لا توجد نتائج مفتوحة"
+  },
+  "audits": {
+    "title": "قوالب التدقيق",
+    "description": "إنشاء وإدارة قوالب تدقيق الامتثال",
+    "createTemplate": "إنشاء قالب تدقيق",
+    "templateType": "نوع القالب",
+    "types": {
+      "asset": "أصل",
+      "area": "منطقة/موقع",
+      "audit": "تدقيق الامتثال"
+    },
+    "standardReference": "مرجع المعيار",
+    "standards": {
+      "iso45001": "ISO 45001",
+      "iso14001": "ISO 14001",
+      "osha": "OSHA",
+      "internal": "داخلي",
+      "custom": "مخصص"
+    },
+    "passingScore": "درجة النجاح (%)",
+    "passingScoreDescription": "الحد الأدنى للنسبة المئوية المطلوبة للنجاح في التدقيق",
+    "clauseReference": "مرجع البند",
+    "clauseReferencePlaceholder": "مثال: 4.1.2",
+    "scoringWeight": "وزن التقييم",
+    "scoringWeightDescription": "الأهمية النسبية لهذا العنصر (1-10)",
+    "ncCategory": "فئة عدم المطابقة",
+    "ncCategories": {
+      "minor": "بسيط",
+      "major": "كبير",
+      "critical": "حرج"
+    },
+    "auditScoring": {
+      "title": "تقييم التدقيق",
+      "weightedScore": "النتيجة الموزونة",
+      "passingThreshold": "حد النجاح",
+      "status": "الحالة",
+      "passed": "ناجح",
+      "failed": "فاشل",
+      "inProgress": "قيد التنفيذ",
+      "ncSummary": "ملخص عدم المطابقة",
+      "minorNc": "عدم مطابقة بسيط",
+      "majorNc": "عدم مطابقة كبير",
+      "criticalNc": "عدم مطابقة حرج"
     }
   }
 }

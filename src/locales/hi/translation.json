@@ -2861,6 +2861,90 @@
       "pendingActions": "लंबित कार्रवाइयाँ",
       "warningItemsIncomplete": "कुछ चेकलिस्ट आइटम का उत्तर नहीं दिया गया है।",
       "warningOpenFindings": "सत्यापित कार्रवाइयों के बिना खुले निष्कर्ष हैं।"
+    },
+    "export": {
+      "title": "सत्र रिपोर्ट निर्यात करें",
+      "exportPdf": "PDF निर्यात करें",
+      "exportCsv": "CSV निर्यात करें",
+      "exportExcel": "Excel निर्यात करें",
+      "generating": "रिपोर्ट बनाई जा रही है...",
+      "success": "रिपोर्ट सफलतापूर्वक निर्यात हुई",
+      "error": "रिपोर्ट निर्यात करने में विफल",
+      "reportTitle": "निरीक्षण रिपोर्ट",
+      "sessionInfo": "सत्र जानकारी",
+      "inspector": "निरीक्षक",
+      "period": "अवधि",
+      "progressSummary": "प्रगति सारांश",
+      "totalItems": "कुल आइटम",
+      "passed": "उत्तीर्ण",
+      "failed": "अनुत्तीर्ण",
+      "notApplicable": "लागू नहीं",
+      "complianceRate": "अनुपालन दर",
+      "checklistResults": "चेकलिस्ट परिणाम",
+      "findingsSummary": "निष्कर्षों का सारांश"
+    }
+  },
+  "inspectionDashboard": {
+    "title": "निरीक्षण डैशबोर्ड",
+    "description": "निरीक्षण गतिविधियों और अनुपालन मेट्रिक्स का अवलोकन",
+    "openSessions": "खुले सत्र",
+    "overdueInspections": "अतिदेय निरीक्षण",
+    "avgCompliance": "औसत अनुपालन",
+    "openFindings": "खुले निष्कर्ष",
+    "complianceTrend": "अनुपालन प्रवृत्ति",
+    "last6Months": "पिछले 6 महीने",
+    "findingsDistribution": "निष्कर्ष वितरण",
+    "byClassification": "वर्गीकरण के अनुसार",
+    "recentFindings": "हाल के निष्कर्ष",
+    "noData": "कोई डेटा उपलब्ध नहीं",
+    "loading": "लोड हो रहा है...",
+    "viewAll": "सभी देखें",
+    "noOpenSessions": "कोई खुले सत्र नहीं",
+    "noOverdueInspections": "कोई अतिदेय निरीक्षण नहीं",
+    "noOpenFindings": "कोई खुले निष्कर्ष नहीं"
+  },
+  "audits": {
+    "title": "ऑडिट टेम्पलेट्स",
+    "description": "अनुपालन ऑडिट टेम्पलेट्स बनाएं और प्रबंधित करें",
+    "createTemplate": "ऑडिट टेम्पलेट बनाएं",
+    "templateType": "टेम्पलेट प्रकार",
+    "types": {
+      "asset": "संपत्ति",
+      "area": "क्षेत्र/साइट",
+      "audit": "अनुपालन ऑडिट"
+    },
+    "standardReference": "मानक संदर्भ",
+    "standards": {
+      "iso45001": "ISO 45001",
+      "iso14001": "ISO 14001",
+      "osha": "OSHA",
+      "internal": "आंतरिक",
+      "custom": "कस्टम"
+    },
+    "passingScore": "उत्तीर्ण अंक (%)",
+    "passingScoreDescription": "ऑडिट पास करने के लिए आवश्यक न्यूनतम प्रतिशत",
+    "clauseReference": "खंड संदर्भ",
+    "clauseReferencePlaceholder": "जैसे: 4.1.2",
+    "scoringWeight": "स्कोरिंग वजन",
+    "scoringWeightDescription": "इस आइटम का सापेक्ष महत्व (1-10)",
+    "ncCategory": "गैर-अनुरूपता श्रेणी",
+    "ncCategories": {
+      "minor": "मामूली",
+      "major": "बड़ी",
+      "critical": "गंभीर"
+    },
+    "auditScoring": {
+      "title": "ऑडिट स्कोरिंग",
+      "weightedScore": "भारित स्कोर",
+      "passingThreshold": "उत्तीर्ण सीमा",
+      "status": "स्थिति",
+      "passed": "उत्तीर्ण",
+      "failed": "अनुत्तीर्ण",
+      "inProgress": "प्रगति में",
+      "ncSummary": "गैर-अनुरूपता सारांश",
+      "minorNc": "मामूली गैर-अनुरूपता",
+      "majorNc": "बड़ी गैर-अनुरूपता",
+      "criticalNc": "गंभीर गैर-अनुरूपता"
     }
   }
 }

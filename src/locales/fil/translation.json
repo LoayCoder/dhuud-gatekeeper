@@ -2861,6 +2861,90 @@
       "pendingActions": "Mga Pending na Aksyon",
       "warningItemsIncomplete": "May ilang checklist item na hindi pa nasasagot.",
       "warningOpenFindings": "May mga bukas na natuklasan na walang verified na aksyon."
+    },
+    "export": {
+      "title": "I-export ang Session Report",
+      "exportPdf": "I-export ang PDF",
+      "exportCsv": "I-export ang CSV",
+      "exportExcel": "I-export ang Excel",
+      "generating": "Ginagawa ang report...",
+      "success": "Matagumpay na na-export ang report",
+      "error": "Nabigo sa pag-export ng report",
+      "reportTitle": "Inspection Report",
+      "sessionInfo": "Impormasyon ng Session",
+      "inspector": "Inspektor",
+      "period": "Panahon",
+      "progressSummary": "Buod ng Progreso",
+      "totalItems": "Kabuuang mga Item",
+      "passed": "Pumasa",
+      "failed": "Nabigo",
+      "notApplicable": "Hindi Applicable",
+      "complianceRate": "Rate ng Pagsunod",
+      "checklistResults": "Mga Resulta ng Checklist",
+      "findingsSummary": "Buod ng mga Natuklasan"
+    }
+  },
+  "inspectionDashboard": {
+    "title": "Inspection Dashboard",
+    "description": "Pangkalahatang-tanaw ng mga aktibidad sa inspeksyon at mga sukatan ng pagsunod",
+    "openSessions": "Mga Bukas na Session",
+    "overdueInspections": "Mga Overdue na Inspeksyon",
+    "avgCompliance": "Average na Pagsunod",
+    "openFindings": "Mga Bukas na Natuklasan",
+    "complianceTrend": "Trend ng Pagsunod",
+    "last6Months": "Huling 6 na Buwan",
+    "findingsDistribution": "Distribusyon ng mga Natuklasan",
+    "byClassification": "Ayon sa Klasipikasyon",
+    "recentFindings": "Mga Kamakailang Natuklasan",
+    "noData": "Walang available na data",
+    "loading": "Naglo-load...",
+    "viewAll": "Tingnan Lahat",
+    "noOpenSessions": "Walang mga bukas na session",
+    "noOverdueInspections": "Walang mga overdue na inspeksyon",
+    "noOpenFindings": "Walang mga bukas na natuklasan"
+  },
+  "audits": {
+    "title": "Mga Audit Template",
+    "description": "Lumikha at pamahalaan ang mga template ng compliance audit",
+    "createTemplate": "Lumikha ng Audit Template",
+    "templateType": "Uri ng Template",
+    "types": {
+      "asset": "Asset",
+      "area": "Lugar/Site",
+      "audit": "Compliance Audit"
+    },
+    "standardReference": "Standard Reference",
+    "standards": {
+      "iso45001": "ISO 45001",
+      "iso14001": "ISO 14001",
+      "osha": "OSHA",
+      "internal": "Internal",
+      "custom": "Custom"
+    },
+    "passingScore": "Passing Score (%)",
+    "passingScoreDescription": "Minimum na porsyento na kinakailangan para pumasa sa audit",
+    "clauseReference": "Clause Reference",
+    "clauseReferencePlaceholder": "hal., 4.1.2",
+    "scoringWeight": "Scoring Weight",
+    "scoringWeightDescription": "Relative na kahalagahan ng item na ito (1-10)",
+    "ncCategory": "NC Category",
+    "ncCategories": {
+      "minor": "Minor",
+      "major": "Major",
+      "critical": "Critical"
+    },
+    "auditScoring": {
+      "title": "Audit Scoring",
+      "weightedScore": "Weighted Score",
+      "passingThreshold": "Passing Threshold",
+      "status": "Status",
+      "passed": "Pumasa",
+      "failed": "Nabigo",
+      "inProgress": "Kasalukuyang Ginagawa",
+      "ncSummary": "NC Summary",
+      "minorNc": "Minor NC",
+      "majorNc": "Major NC",
+      "criticalNc": "Critical NC"
     }
   }
 }
