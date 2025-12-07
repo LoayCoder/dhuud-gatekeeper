@@ -30,6 +30,7 @@ import {
   CheckCircle,
   Link2,
   ExternalLink,
+  Plus,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ import {
   useCloseAreaFinding,
   type AreaFinding,
 } from '@/hooks/use-area-findings';
+import { CreateActionFromFindingDialog } from './CreateActionFromFindingDialog';
 
 interface FindingsPanelProps {
   sessionId: string;
@@ -71,6 +73,7 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
     risk_level: '' as AreaFinding['risk_level'],
     recommendation: '',
   });
+  const [actionDialogFinding, setActionDialogFinding] = useState<AreaFinding | null>(null);
   
   const { data: findings = [], isLoading } = useAreaFindings(sessionId);
   const updateFinding = useUpdateAreaFinding();
@@ -238,6 +241,17 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
                     {/* Actions */}
                     {!isLocked && finding.status !== 'closed' && (
                       <div className="flex items-center gap-1">
+                        {/* Create Action Button - only for open findings without action */}
+                        {finding.status === 'open' && !finding.corrective_action && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setActionDialogFinding(finding)}
+                            title={t('inspections.findings.createAction')}
+                          >
+                            <Plus className="h-4 w-4 text-primary" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -335,6 +349,14 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Create Action Dialog */}
+      <CreateActionFromFindingDialog
+        open={!!actionDialogFinding}
+        onOpenChange={(open) => !open && setActionDialogFinding(null)}
+        finding={actionDialogFinding}
+        sessionId={sessionId}
+      />
     </>
   );
 }
