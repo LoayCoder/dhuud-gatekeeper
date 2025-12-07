@@ -2280,7 +2280,46 @@
       "affected": "متاثر"
     },
     "noIncidentHistory": "کوئی واقعاتی سابقہ نہیں",
-    "noIncidentHistoryDescription": "یہ اثاثہ کسی واقعے سے منسلک نہیں"
+    "noIncidentHistoryDescription": "یہ اثاثہ کسی واقعے سے منسلک نہیں",
+    "import": {
+      "title": "اثاثے درآمد کریں",
+      "description": "ایکسل فائل سے متعدد اثاثے درآمد کریں",
+      "downloadTemplate": "ٹیمپلیٹ ڈاؤن لوڈ کریں",
+      "downloadWithSamples": "نمونہ ڈیٹا کے ساتھ ڈاؤن لوڈ کریں",
+      "uploadFile": "اپنی ایکسل فائل یہاں ڈریگ اور ڈراپ کریں",
+      "uploadHint": "یا فائل منتخب کرنے کے لیے کلک کریں (.xlsx)",
+      "step1": "ٹیمپلیٹ ڈاؤن لوڈ کریں",
+      "step1Description": "ایکسل ٹیمپلیٹ حاصل کریں جس میں آپ کی تنظیم کے مقامات، زمرہ جات اور اقسام شامل ہیں",
+      "step2": "فائل اپ لوڈ کریں",
+      "step2Description": "اپنا مکمل کردہ ایکسل ڈیٹا اپ لوڈ کریں",
+      "step3": "درآمد کریں",
+      "step3Description": "تصدیق شدہ اثاثے سسٹم میں درآمد کریں",
+      "validating": "تصدیق ہو رہی ہے...",
+      "importing": "درآمد ہو رہا ہے...",
+      "validAssets": "{{count}} درست اثاثے",
+      "invalidRows": "{{count}} غلط قطاریں",
+      "warnings": "{{count}} انتباہات",
+      "success": "{{count}} اثاثے کامیابی سے درآمد ہوئے",
+      "parseError": "فائل پارس کرنے میں ناکام۔ یقینی بنائیں کہ یہ درست ایکسل فائل ہے۔",
+      "noValidAssets": "درآمد کے لیے کوئی درست اثاثہ نہیں۔ براہ کرم غلطیاں ٹھیک کریں اور دوبارہ کوشش کریں۔",
+      "validationErrors": {
+        "nameRequired": "نام درکار ہے",
+        "categoryRequired": "زمرہ درکار ہے",
+        "categoryNotFound": "زمرہ نہیں ملا",
+        "typeRequired": "قسم درکار ہے",
+        "typeNotFound": "منتخب زمرے میں قسم نہیں ملی",
+        "subtypeNotFound": "منتخب قسم میں ذیلی قسم نہیں ملی",
+        "branchNotFound": "شاخ نہیں ملی",
+        "siteNotFound": "منتخب شاخ میں سائٹ نہیں ملی",
+        "buildingNotFound": "منتخب سائٹ میں عمارت نہیں ملی",
+        "floorNotFound": "منتخب عمارت میں منزل/زون نہیں ملا",
+        "invalidStatus": "غلط حیثیت کی قدر",
+        "invalidCondition": "غلط حالت کی قدر",
+        "invalidCriticality": "غلط اہمیت کی سطح",
+        "invalidDate": "غلط تاریخ کی شکل",
+        "duplicateSerial": "ڈپلیکیٹ سیریل نمبر"
+      }
+    }
   },
   "maintenance": {
     "title": "دیکھ بھال کا انتظام",

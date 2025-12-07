@@ -2280,7 +2280,46 @@
       "affected": "Naapektuhan"
     },
     "noIncidentHistory": "Walang Incident History",
-    "noIncidentHistoryDescription": "Ang asset na ito ay hindi naka-link sa anumang insidente"
+    "noIncidentHistoryDescription": "Ang asset na ito ay hindi naka-link sa anumang insidente",
+    "import": {
+      "title": "I-import ang mga Asset",
+      "description": "Mag-import ng maraming asset mula sa Excel file",
+      "downloadTemplate": "I-download ang Template",
+      "downloadWithSamples": "I-download na may Sample Data",
+      "uploadFile": "I-drag at i-drop ang iyong Excel file dito",
+      "uploadHint": "o mag-click para pumili ng file (.xlsx)",
+      "step1": "I-download ang Template",
+      "step1Description": "Kunin ang Excel template na may mga lokasyon, kategorya at uri ng iyong organisasyon",
+      "step2": "I-upload ang File",
+      "step2Description": "I-upload ang iyong nakumpletong Excel data",
+      "step3": "I-import",
+      "step3Description": "I-import ang mga na-validate na asset sa system",
+      "validating": "Nag-va-validate...",
+      "importing": "Nag-i-import...",
+      "validAssets": "{{count}} na valid na asset",
+      "invalidRows": "{{count}} na invalid na row",
+      "warnings": "{{count}} na babala",
+      "success": "Matagumpay na na-import ang {{count}} na asset",
+      "parseError": "Nabigong i-parse ang file. Siguraduhing ito ay valid na Excel file.",
+      "noValidAssets": "Walang valid na asset para i-import. Mangyaring ayusin ang mga error at subukang muli.",
+      "validationErrors": {
+        "nameRequired": "Kinakailangan ang pangalan",
+        "categoryRequired": "Kinakailangan ang kategorya",
+        "categoryNotFound": "Hindi nahanap ang kategorya",
+        "typeRequired": "Kinakailangan ang uri",
+        "typeNotFound": "Hindi nahanap ang uri sa napiling kategorya",
+        "subtypeNotFound": "Hindi nahanap ang subtype sa napiling uri",
+        "branchNotFound": "Hindi nahanap ang branch",
+        "siteNotFound": "Hindi nahanap ang site sa napiling branch",
+        "buildingNotFound": "Hindi nahanap ang gusali sa napiling site",
+        "floorNotFound": "Hindi nahanap ang palapag/zone sa napiling gusali",
+        "invalidStatus": "Invalid na status value",
+        "invalidCondition": "Invalid na kondisyon value",
+        "invalidCriticality": "Invalid na criticality level",
+        "invalidDate": "Invalid na format ng petsa",
+        "duplicateSerial": "Duplicate na serial number"
+      }
+    }
   },
   "maintenance": {
     "title": "Pamamahala ng Maintenance",
