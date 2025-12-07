@@ -9,3 +9,4 @@ export { FailureReasonDialog } from './FailureReasonDialog';
 export { UninspectedAssetsList } from './UninspectedAssetsList';
 export { BulkInspectionScanner } from './BulkInspectionScanner';
 export { SessionStatusBadge } from './SessionStatusBadge';
+export { InspectionPhotoUpload } from './InspectionPhotoUpload';

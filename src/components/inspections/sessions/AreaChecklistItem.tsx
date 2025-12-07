@@ -10,23 +10,25 @@ import {
   CheckCircle, 
   XCircle, 
   MinusCircle, 
-  Camera, 
   MapPin, 
   Loader2,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
   Star,
+  ImageIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSaveAreaResponse, type AreaInspectionResponse } from '@/hooks/use-area-inspections';
 import type { TemplateItem } from '@/hooks/use-inspections';
+import { InspectionPhotoUpload } from './InspectionPhotoUpload';
 import { cn } from '@/lib/utils';
 
 interface AreaChecklistItemProps {
   item: TemplateItem;
   response?: AreaInspectionResponse;
   sessionId: string;
+  tenantId: string;
   isLocked: boolean;
   requiresPhotos: boolean;
   requiresGps: boolean;
@@ -36,6 +38,7 @@ export function AreaChecklistItem({
   item,
   response,
   sessionId,
+  tenantId,
   isLocked,
   requiresPhotos,
   requiresGps,
@@ -55,6 +58,8 @@ export function AreaChecklistItem({
   );
   const [isCapturingGps, setIsCapturingGps] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [photoCount, setPhotoCount] = useState(0);
+  const [showPhotos, setShowPhotos] = useState(false);
   
   const saveResponse = useSaveAreaResponse();
   
@@ -346,11 +351,18 @@ export function AreaChecklistItem({
             </Button>
           )}
           
-          {/* Photo Button (placeholder - full implementation would include file upload) */}
+          {/* Photo Button */}
           {requiresPhotos && (
-            <Button variant="outline" size="sm" disabled={isLocked}>
-              <Camera className="h-4 w-4 me-1" />
-              {t('inspections.addPhoto')}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowPhotos(!showPhotos)}
+            >
+              <ImageIcon className={cn('h-4 w-4 me-1', photoCount > 0 && 'text-green-600')} />
+              {t('inspections.photos.label')}
+              {photoCount > 0 && (
+                <Badge variant="secondary" className="ms-1 text-xs">{photoCount}</Badge>
+              )}
             </Button>
           )}
           
@@ -380,6 +392,22 @@ export function AreaChecklistItem({
               placeholder={t('inspections.notesPlaceholder')}
               disabled={isLocked}
               rows={2}
+            />
+          </div>
+        )}
+        
+        {/* Photos Section */}
+        {showPhotos && requiresPhotos && (
+          <div className="space-y-2 pt-2 border-t">
+            <Label>{t('inspections.photos.label')}</Label>
+            <InspectionPhotoUpload
+              responseId={response?.id || null}
+              sessionId={sessionId}
+              tenantId={tenantId}
+              templateItemId={item.id}
+              isLocked={isLocked}
+              maxPhotos={5}
+              onPhotoCountChange={setPhotoCount}
             />
           </div>
         )}

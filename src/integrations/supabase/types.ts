@@ -120,6 +120,79 @@ export type Database = {
         }
         Relationships: []
       }
+      area_inspection_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          mime_type: string | null
+          response_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          mime_type?: string | null
+          response_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          mime_type?: string | null
+          response_id?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_inspection_photos_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "area_inspection_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_photos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       area_inspection_responses: {
         Row: {
           created_at: string | null

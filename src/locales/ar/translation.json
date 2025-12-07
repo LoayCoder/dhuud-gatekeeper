@@ -2846,6 +2846,24 @@
       "windy": "عاصف",
       "hot": "حار",
       "cold": "بارد"
+    },
+    "photos": {
+      "label": "الصور",
+      "takePhoto": "التقط صورة",
+      "chooseFiles": "اختر الملفات",
+      "dragOrClick": "اسحب الملفات أو انقر للرفع",
+      "dropHere": "أسقط الملفات هنا",
+      "uploading": "جاري الرفع...",
+      "uploadSuccess": "تم رفع الصورة بنجاح",
+      "uploadError": "فشل في رفع الصورة",
+      "deleteSuccess": "تم حذف الصورة",
+      "deleteError": "فشل في حذف الصورة",
+      "maxPhotosError": "الحد الأقصى {{max}} صور مسموح بها",
+      "maxReached": "تم الوصول للحد الأقصى {{max}} صور",
+      "remaining": "{{count}} صورة متبقية",
+      "invalidType": "يُسمح فقط بملفات الصور",
+      "saveFirst": "أجب على السؤال أولاً لإضافة الصور",
+      "saveFirstError": "الرجاء الإجابة على السؤال قبل إضافة الصور"
     }
   }
 }
