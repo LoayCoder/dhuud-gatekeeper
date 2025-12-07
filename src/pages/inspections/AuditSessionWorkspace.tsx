@@ -38,7 +38,10 @@ import {
   SessionStatusCard,
   SessionCompletionDialog,
   SessionExportDropdown,
+  SessionActionsPanel,
 } from '@/components/inspections/sessions';
+import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 
 function AuditSessionWorkspaceContent() {
@@ -64,7 +67,12 @@ function AuditSessionWorkspaceContent() {
   const startSession = useStartAuditSession();
   const completeSession = useCompleteAuditSession();
   const closeSession = useCloseAreaSession();
+  const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
+  const { profile } = useAuth();
+  
+  // Check if user can verify actions (for now, allow all authenticated users)
+  const canVerifyActions = !!profile;
   
   // Create response map for quick lookup
   const responseMap = useMemo(() => {
@@ -124,6 +132,16 @@ function AuditSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionDeleted'));
       navigate('/inspections/sessions');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleReopenSession = async () => {
+    if (!sessionId) return;
+    try {
+      await reopenSession.mutateAsync({ sessionId });
+      toast.success(t('audits.sessionReopened'));
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -265,9 +283,14 @@ function AuditSessionWorkspaceContent() {
             onComplete={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
             onClose={() => { setCompletionMode('close'); setShowCompletionDialog(true); }}
             onStart={session.status === 'draft' ? handleStartSession : undefined}
+            onReopen={session.status === 'closed' ? handleReopenSession : undefined}
             isCompleting={completeSession.isPending}
             isClosing={closeSession.isPending}
+            isReopening={reopenSession.isPending}
           />
+          
+          {/* Session Actions Panel */}
+          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} />
           
           {/* Audit Info Card */}
           <Card>

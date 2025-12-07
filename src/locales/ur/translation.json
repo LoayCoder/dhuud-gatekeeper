@@ -946,7 +946,9 @@
       "verified": "تصدیق شدہ",
       "closed": "بند",
       "rejected": "مسترد"
-    }
+    },
+    "evidence": "ثبوت",
+    "uploadEvidence": "فائلیں ڈراپ کریں یا اپ لوڈ کرنے کے لیے کلک کریں"
   },
   "inspectionSessions": {
     "title": "معائنہ سیشنز",
@@ -1065,6 +1067,7 @@
     "deleteSession": "سیشن حذف کریں",
     "confirmDeleteSession": "کیا آپ واقعی اس سیشن کو حذف کرنا چاہتے ہیں؟ اس سے تمام معائنہ کے ریکارڈز ہٹ جائیں گے اور یہ واپس نہیں ہو سکتا۔",
     "sessionDeleted": "سیشن کامیابی سے حذف ہو گیا",
+    "sessionReopened": "سیشن کامیابی سے دوبارہ کھول دیا گیا",
     "sessionUpdated": "سیشن کامیابی سے اپڈیٹ ہو گیا",
     "cannotDeleteClosedSession": "بند سیشن حذف نہیں کیا جا سکتا",
     "cannotEditClosedSession": "بند یا مکمل سیشن میں ترمیم نہیں کی جا سکتی",

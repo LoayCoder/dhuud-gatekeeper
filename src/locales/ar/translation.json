@@ -956,7 +956,9 @@
       "verified": "تم التحقق",
       "closed": "مغلق",
       "rejected": "مرفوض"
-    }
+    },
+    "evidence": "الأدلة",
+    "uploadEvidence": "اسحب الملفات أو انقر للرفع"
   },
   "inspectionSessions": {
     "title": "جلسات التفتيش",
@@ -1075,6 +1077,7 @@
     "deleteSession": "حذف الجلسة",
     "confirmDeleteSession": "هل أنت متأكد من حذف هذه الجلسة؟ سيؤدي ذلك إلى إزالة جميع سجلات التفتيش ولا يمكن التراجع عن ذلك.",
     "sessionDeleted": "تم حذف الجلسة بنجاح",
+    "sessionReopened": "تم إعادة فتح الجلسة بنجاح",
     "sessionUpdated": "تم تحديث الجلسة بنجاح",
     "cannotDeleteClosedSession": "لا يمكن حذف جلسة مغلقة",
     "cannotEditClosedSession": "لا يمكن تعديل جلسة مغلقة أو مكتملة",
