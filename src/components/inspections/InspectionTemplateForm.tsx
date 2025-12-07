@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -66,15 +67,30 @@ export function InspectionTemplateForm({
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
-      code: template?.code || '',
-      name: template?.name || '',
-      name_ar: template?.name_ar || '',
-      description: template?.description || '',
-      category_id: template?.category_id || undefined,
-      type_id: template?.type_id || undefined,
-      is_active: template?.is_active ?? true,
+      code: '',
+      name: '',
+      name_ar: '',
+      description: '',
+      category_id: undefined,
+      type_id: undefined,
+      is_active: true,
     },
   });
+
+  // Reset form when dialog opens with template data
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        code: template?.code || '',
+        name: template?.name || '',
+        name_ar: template?.name_ar || '',
+        description: template?.description || '',
+        category_id: template?.category_id || undefined,
+        type_id: template?.type_id || undefined,
+        is_active: template?.is_active ?? true,
+      });
+    }
+  }, [open, template, form]);
   
   const { data: categories } = useQuery({
     queryKey: ['asset-categories'],
@@ -133,7 +149,7 @@ export function InspectionTemplateForm({
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('inspections.templateCode')}</FormLabel>
+                  <FormLabel>{t('inspections.code')}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="FIRE-EXT-01" disabled={!!template} />
                   </FormControl>
