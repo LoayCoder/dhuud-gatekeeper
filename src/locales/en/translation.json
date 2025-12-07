@@ -2928,6 +2928,34 @@
       "invalidType": "Only image files are allowed",
       "saveFirst": "Answer the question first to add photos",
       "saveFirstError": "Please answer the question before adding photos"
+    },
+    "findings": {
+      "title": "Findings",
+      "noFindings": "No findings recorded",
+      "noMatchingFindings": "No findings match the selected filter",
+      "noDescription": "No description",
+      "editFinding": "Edit Finding",
+      "updated": "Finding updated",
+      "closed": "Finding closed",
+      "actionLinked": "Finding linked to action",
+      "statusOpen": "Open",
+      "statusActionAssigned": "Action Assigned",
+      "statusClosed": "Closed",
+      "classification": "Classification",
+      "riskLevel": "Risk Level",
+      "recommendation": "Recommendation",
+      "recommendationPlaceholder": "Enter recommended corrective action...",
+      "createAction": "Create Action",
+      "linkedAction": "Linked Action",
+      "classification.minor_nc": "Minor Non-Conformance",
+      "classification.major_nc": "Major Non-Conformance",
+      "classification.critical_nc": "Critical Non-Conformance",
+      "classification.observation": "Observation",
+      "classification.ofi": "Opportunity for Improvement",
+      "riskLevel.low": "Low",
+      "riskLevel.medium": "Medium",
+      "riskLevel.high": "High",
+      "riskLevel.critical": "Critical"
     }
   }
 }

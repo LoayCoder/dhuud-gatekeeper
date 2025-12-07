@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CheckCircle, Loader2, Pencil, Trash2, MapPin, Cloud, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, Pencil, Trash2, MapPin, Cloud, Users, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,12 +28,14 @@ import {
   useCompleteAreaSession,
   useAreaTemplate,
 } from '@/hooks/use-area-inspections';
+import { useAreaFindingsCount } from '@/hooks/use-area-findings';
 import { useTemplateItems } from '@/hooks/use-inspections';
 import {
   SessionStatusBadge,
   EditSessionDialog,
   AreaProgressCard,
   AreaChecklistItem,
+  FindingsPanel,
 } from '@/components/inspections/sessions';
 
 function AreaSessionWorkspaceContent() {
@@ -50,6 +52,7 @@ function AreaSessionWorkspaceContent() {
   const { data: templateItems = [] } = useTemplateItems(session?.template_id);
   const { data: responses = [] } = useAreaInspectionResponses(sessionId);
   const { data: areaTemplate } = useAreaTemplate(session?.template_id);
+  const { data: findingsCount } = useAreaFindingsCount(sessionId);
   
   const completeSession = useCompleteAreaSession();
   const deleteSession = useDeleteSession();
@@ -276,6 +279,14 @@ function AreaSessionWorkspaceContent() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Findings Panel */}
+      {(findingsCount?.total ?? 0) > 0 && (
+        <FindingsPanel
+          sessionId={sessionId!}
+          isLocked={isCompleted}
+        />
+      )}
     </div>
   );
 }

@@ -2782,6 +2782,34 @@
       "invalidType": "Mga image file lang ang pwede",
       "saveFirst": "Sagutin muna ang tanong para magdagdag ng larawan",
       "saveFirstError": "Paki-sagot muna ang tanong bago magdagdag ng larawan"
+    },
+    "findings": {
+      "title": "Mga Natuklasan",
+      "noFindings": "Walang naitalang natuklasan",
+      "noMatchingFindings": "Walang natuklasan na tumutugma sa napiling filter",
+      "noDescription": "Walang paglalarawan",
+      "editFinding": "I-edit ang Natuklasan",
+      "updated": "Na-update ang natuklasan",
+      "closed": "Sarado ang natuklasan",
+      "actionLinked": "Naiugnay ang natuklasan sa aksyon",
+      "statusOpen": "Bukas",
+      "statusActionAssigned": "May Itinalagang Aksyon",
+      "statusClosed": "Sarado",
+      "classification": "Klasipikasyon",
+      "riskLevel": "Antas ng Panganib",
+      "recommendation": "Rekomendasyon",
+      "recommendationPlaceholder": "Ilagay ang inirerekomendang corrective action...",
+      "createAction": "Gumawa ng Aksyon",
+      "linkedAction": "Naka-link na Aksyon",
+      "classification.minor_nc": "Minor na Hindi Pagsunod",
+      "classification.major_nc": "Major na Hindi Pagsunod",
+      "classification.critical_nc": "Kritikal na Hindi Pagsunod",
+      "classification.observation": "Obserbasyon",
+      "classification.ofi": "Pagkakataon para sa Pagpapabuti",
+      "riskLevel.low": "Mababa",
+      "riskLevel.medium": "Katamtaman",
+      "riskLevel.high": "Mataas",
+      "riskLevel.critical": "Kritikal"
     }
   }
 }
