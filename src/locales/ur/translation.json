@@ -3008,6 +3008,7 @@
   "schedules": {
     "title": "معائنہ شیڈولز",
     "description": "بار بار معائنہ کے شیڈولز کا انتظام کریں",
+    "calendar": "کیلنڈر",
     "createSchedule": "شیڈول بنائیں",
     "editSchedule": "شیڈول میں ترمیم کریں",
     "noSchedules": "کوئی شیڈول نہیں ملا",
