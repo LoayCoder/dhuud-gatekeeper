@@ -1020,7 +1020,24 @@
     "cannotEditClosedSession": "बंद या पूर्ण सत्र संपादित नहीं किया जा सकता",
     "filterBySite": "साइट द्वारा फ़िल्टर",
     "filterByCategory": "श्रेणी द्वारा फ़िल्टर",
-    "filterByType": "प्रकार द्वारा फ़िल्टर"
+    "filterByType": "प्रकार द्वारा फ़िल्टर",
+    "newAreaInspection": "क्षेत्र निरीक्षण",
+    "createAreaSession": "क्षेत्र निरीक्षण बनाएं",
+    "selectAreaTemplate": "क्षेत्र टेम्पलेट चुनें",
+    "scopeNotes": "स्कोप नोट्स",
+    "scopeNotesPlaceholder": "इस निरीक्षण के दायरे और फोकस क्षेत्रों का वर्णन करें...",
+    "weatherConditions": "मौसम की स्थिति",
+    "attendees": "उपस्थित",
+    "attendeeName": "नाम",
+    "attendeeRole": "भूमिका",
+    "weather": {
+      "clear": "साफ़",
+      "cloudy": "बादल",
+      "rainy": "बारिश",
+      "windy": "हवादार",
+      "hot": "गर्म",
+      "cold": "ठंडा"
+    }
   },
   "securityAudit": {
     "title": "सुरक्षा ऑडिट लॉग",
