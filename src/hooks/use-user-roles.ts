@@ -101,7 +101,7 @@ export function useUserRoles() {
 
   // Assign roles to a user (admin only)
   const assignRoles = useCallback(async (userId: string, roleIds: string[], tenantId: string) => {
-    // First, get current assignments to preserve normal_user - WITH tenant filter for security
+    // First, get current assignments to check if normal_user already exists
     const { data: existingAssignments } = await supabase
       .from('user_role_assignments')
       .select('role_id')
@@ -109,13 +109,15 @@ export function useUserRoles() {
       .eq('tenant_id', tenantId); // CRITICAL: tenant isolation
 
     const normalUserRole = roles.find(r => r.code === 'normal_user');
+    const existingRoleIds = (existingAssignments || []).map(a => a.role_id);
+    const normalUserAlreadyExists = normalUserRole && existingRoleIds.includes(normalUserRole.id);
     
-    // Ensure normal_user is always included
+    // Ensure normal_user is always included in final selection
     const finalRoleIds = normalUserRole && !roleIds.includes(normalUserRole.id)
       ? [...roleIds, normalUserRole.id]
       : roleIds;
 
-    // Delete existing non-normal_user assignments - WITH tenant filter for security
+    // Delete ALL existing non-normal_user assignments
     if (normalUserRole) {
       await supabase
         .from('user_role_assignments')
@@ -125,10 +127,15 @@ export function useUserRoles() {
         .neq('role_id', normalUserRole.id);
     }
 
-    // Insert new assignments (excluding normal_user if it already exists)
-    const existingRoleIds = (existingAssignments || []).map(a => a.role_id);
+    // Insert all selected roles (skip normal_user only if it already exists)
     const newAssignments = finalRoleIds
-      .filter(roleId => !existingRoleIds.includes(roleId))
+      .filter(roleId => {
+        // Skip normal_user if it already exists (we didn't delete it)
+        if (normalUserRole && roleId === normalUserRole.id && normalUserAlreadyExists) {
+          return false;
+        }
+        return true;
+      })
       .map(roleId => ({
         user_id: userId,
         role_id: roleId,
