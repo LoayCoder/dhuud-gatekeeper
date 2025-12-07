@@ -23,6 +23,8 @@ import {
 } from '@/hooks/use-inspection-dashboard';
 import { ComplianceTrendChart } from '@/components/inspections/stats/ComplianceTrendChart';
 import { FindingsDistributionChart } from '@/components/inspections/stats/FindingsDistributionChart';
+import { UpcomingSchedulesCard } from '@/components/inspections/schedules/UpcomingSchedulesCard';
+import { MyInspectionsWidget } from '@/components/inspections/MyInspectionsWidget';
 import i18n from '@/i18n';
 
 function InspectionDashboardContent() {
@@ -136,6 +138,12 @@ function InspectionDashboardContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* My Inspections Widget + Upcoming Schedules */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MyInspectionsWidget />
+        <UpcomingSchedulesCard />
+      </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

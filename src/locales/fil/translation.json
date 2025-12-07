@@ -2993,5 +2993,13 @@
       "majorNc": "Major NC",
       "criticalNc": "Critical NC"
     }
+  },
+  "myInspections": {
+    "title": "Mga Inspeksyon Ko",
+    "upcomingScheduled": "Paparating na Naka-iskedyul",
+    "pendingActions": "Mga Pending Action Ko",
+    "awaitingVerification": "Naghihintay ng Verification",
+    "viewMyActions": "Mga Action Ko",
+    "viewSchedules": "Mga Iskedyul"
   }
 }

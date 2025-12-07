@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, MapPin, Camera } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FailurePhotoUpload } from './FailurePhotoUpload';
 
 interface FailureReasonDialogProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface FailureReasonDialogProps {
   }) => void;
   isLoading: boolean;
   assetCode: string;
+  sessionId?: string;
+  assetId?: string;
 }
 
 const FAILURE_REASONS = [
@@ -40,6 +43,8 @@ export function FailureReasonDialog({
   onSubmit,
   isLoading,
   assetCode,
+  sessionId,
+  assetId,
 }: FailureReasonDialogProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -49,6 +54,7 @@ export function FailureReasonDialog({
   const [gpsLat, setGpsLat] = useState<number | undefined>();
   const [gpsLng, setGpsLng] = useState<number | undefined>();
   const [capturingGps, setCapturingGps] = useState(false);
+  const [photoPaths, setPhotoPaths] = useState<string[]>([]);
   
   // Reset form when dialog opens
   useEffect(() => {
@@ -57,6 +63,7 @@ export function FailureReasonDialog({
       setNotes('');
       setGpsLat(undefined);
       setGpsLng(undefined);
+      setPhotoPaths([]);
     }
   }, [open]);
   
@@ -85,6 +92,7 @@ export function FailureReasonDialog({
       notes,
       gps_lat: gpsLat,
       gps_lng: gpsLng,
+      photo_paths: photoPaths.length > 0 ? photoPaths : undefined,
     });
   };
   
@@ -147,14 +155,21 @@ export function FailureReasonDialog({
             </Button>
           </div>
           
-          {/* Photo placeholder - will be implemented in Phase 11C.4 */}
+          {/* Photo Upload */}
           <div className="space-y-2">
             <Label>{t('inspectionSessions.photos')} ({t('common.optional')})</Label>
-            <Button type="button" variant="outline" className="w-full" disabled>
-              <Camera className="me-2 h-4 w-4" />
-              {t('inspectionSessions.capturePhoto')}
-            </Button>
-            <p className="text-xs text-muted-foreground">{t('common.comingSoon')}</p>
+            {sessionId && assetId ? (
+              <FailurePhotoUpload
+                sessionId={sessionId}
+                assetId={assetId}
+                onPhotosChange={setPhotoPaths}
+                maxPhotos={3}
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {t('inspectionSessions.saveFirstForPhotos')}
+              </p>
+            )}
           </div>
         </div>
         

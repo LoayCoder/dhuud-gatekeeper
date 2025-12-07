@@ -2993,5 +2993,13 @@
       "majorNc": "बड़ी गैर-अनुरूपता",
       "criticalNc": "गंभीर गैर-अनुरूपता"
     }
+  },
+  "myInspections": {
+    "title": "मेरे निरीक्षण",
+    "upcomingScheduled": "आगामी अनुसूचित",
+    "pendingActions": "मेरी लंबित कार्रवाइयां",
+    "awaitingVerification": "सत्यापन की प्रतीक्षा में",
+    "viewMyActions": "मेरी कार्रवाइयां",
+    "viewSchedules": "अनुसूचियां"
   }
 }

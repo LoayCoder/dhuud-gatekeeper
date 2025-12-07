@@ -3075,5 +3075,13 @@
       "majorNc": "عدم مطابقة كبير",
       "criticalNc": "عدم مطابقة حرج"
     }
+  },
+  "myInspections": {
+    "title": "فحوصاتي",
+    "upcomingScheduled": "الجدولة القادمة",
+    "pendingActions": "إجراءاتي المعلقة",
+    "awaitingVerification": "بانتظار التحقق",
+    "viewMyActions": "إجراءاتي",
+    "viewSchedules": "الجداول"
   }
 }

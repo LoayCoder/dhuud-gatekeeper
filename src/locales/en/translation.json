@@ -891,7 +891,10 @@
       "windy": "Windy",
       "hot": "Hot",
       "cold": "Cold"
-    }
+    },
+    "maxPhotosReached": "Maximum {{max}} photos allowed",
+    "photosCount": "{{count}} of {{max}} photos",
+    "saveFirstForPhotos": "Save the response first to add photos"
   },
   "securityAudit": {
     "title": "Security Audit Log",
@@ -3103,6 +3106,14 @@
       "excelSuccess": "Excel exported",
       "error": "Export failed"
     }
+  },
+  "myInspections": {
+    "title": "My Inspections",
+    "upcomingScheduled": "Upcoming Scheduled",
+    "pendingActions": "My Pending Actions",
+    "awaitingVerification": "Awaiting Verification",
+    "viewMyActions": "My Actions",
+    "viewSchedules": "Schedules"
   },
   "audits": {
     "scoring": {
