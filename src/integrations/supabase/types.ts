@@ -78,6 +78,36 @@ export type Database = {
           },
         ]
       }
+      action_sla_configs: {
+        Row: {
+          created_at: string | null
+          escalation_days_after: number
+          id: string
+          priority: string
+          second_escalation_days_after: number | null
+          updated_at: string | null
+          warning_days_before: number
+        }
+        Insert: {
+          created_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          priority: string
+          second_escalation_days_after?: number | null
+          updated_at?: string | null
+          warning_days_before?: number
+        }
+        Update: {
+          created_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          priority?: string
+          second_escalation_days_after?: number | null
+          updated_at?: string | null
+          warning_days_before?: number
+        }
+        Relationships: []
+      }
       agent_stats: {
         Row: {
           agent_id: string
@@ -1215,6 +1245,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           due_date: string | null
+          escalation_level: number | null
           finding_id: string | null
           id: string
           incident_id: string | null
@@ -1226,6 +1257,8 @@ export type Database = {
           rejection_notes: string | null
           responsible_department_id: string | null
           session_id: string | null
+          sla_escalation_sent_at: string | null
+          sla_warning_sent_at: string | null
           source_finding_id: string | null
           source_type: string | null
           start_date: string | null
@@ -1246,6 +1279,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          escalation_level?: number | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -1257,6 +1291,8 @@ export type Database = {
           rejection_notes?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
+          sla_escalation_sent_at?: string | null
+          sla_warning_sent_at?: string | null
           source_finding_id?: string | null
           source_type?: string | null
           start_date?: string | null
@@ -1277,6 +1313,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          escalation_level?: number | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -1288,6 +1325,8 @@ export type Database = {
           rejection_notes?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
+          sla_escalation_sent_at?: string | null
+          sla_warning_sent_at?: string | null
           source_finding_id?: string | null
           source_type?: string | null
           start_date?: string | null

@@ -73,7 +73,9 @@ const PlanManagement = lazy(() => import(/* webpackChunkName: "admin-plans" */ "
 const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" */ "./pages/admin/UsageAnalytics"));
 const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
 const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
+const ActionSLASettings = lazy(() => import(/* webpackChunkName: "admin-action-sla" */ "./pages/admin/ActionSLASettings"));
 const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
+const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 
 const queryClient = new QueryClient();
@@ -235,6 +237,20 @@ const App = () => (
 
                       <Route
                         path="/admin/billing"
+                        element={
+                          <AdminRoute>
+                            <BillingOverview />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/action-sla"
+                        element={
+                          <AdminRoute>
+                            <ActionSLASettings />
+                          </AdminRoute>
+                        }
+                      />
                         element={
                           <AdminRoute>
                             <BillingOverview />

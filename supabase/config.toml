@@ -32,3 +32,9 @@ verify_jwt = true
 
 [functions.suggest-inspection-action]
 verify_jwt = true
+
+[functions.action-sla-escalation]
+verify_jwt = false
+
+[functions.hsse-manager-digest]
+verify_jwt = false
