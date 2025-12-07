@@ -148,6 +148,11 @@ export function AppSidebar() {
           isActive: location.pathname.startsWith("/inspections") || location.pathname.startsWith("/audits"),
           subItems: [
             {
+              title: t('navigation.inspectionDashboard'),
+              url: "/inspections/dashboard",
+              icon: BarChart3,
+            },
+            {
               title: t('navigation.inspectionSessions'),
               url: "/inspections/sessions",
               icon: ClipboardList,

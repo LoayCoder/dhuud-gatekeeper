@@ -702,6 +702,7 @@
     "subscription": "Subscription",
     "platform": "Platform",
     "enterpriseHsse": "Enterprise HSSE",
+    "inspectionDashboard": "Inspection Dashboard",
     "inspectionSessions": "Inspection Sessions",
     "inspectionTemplates": "Inspection Templates"
   },
@@ -3007,6 +3008,68 @@
       "pendingActions": "Pending Actions",
       "warningItemsIncomplete": "Some checklist items have not been answered.",
       "warningOpenFindings": "There are open findings without verified actions."
+    }
+  },
+  "inspectionDashboard": {
+    "title": "Inspection Dashboard",
+    "description": "Overview of inspection sessions, compliance, and findings",
+    "viewAllSessions": "View All Sessions",
+    "stats": {
+      "totalSessions": "Total Sessions",
+      "inProgress": "In Progress",
+      "avgCompliance": "Avg. Compliance",
+      "openFindings": "Open Findings"
+    },
+    "overdueAlert": {
+      "title": "Overdue Inspections",
+      "description": "{{count}} assets are overdue for inspection",
+      "viewAssets": "View Assets"
+    },
+    "charts": {
+      "complianceTrend": "Compliance Trend",
+      "complianceTrendDesc": "Average compliance rate over the last 6 months",
+      "findingsDistribution": "Findings Distribution",
+      "findingsDistributionDesc": "Breakdown by classification type",
+      "noData": "No data available",
+      "compliance": "Compliance",
+      "count": "Count"
+    },
+    "recentFindings": {
+      "title": "Recent Open Findings",
+      "description": "Latest findings requiring attention",
+      "noFindings": "No open findings",
+      "noDescription": "No description provided"
+    },
+    "classifications": {
+      "critical_nc": "Critical NC",
+      "major_nc": "Major NC",
+      "minor_nc": "Minor NC",
+      "observation": "Observation",
+      "ofi": "OFI"
+    },
+    "export": {
+      "title": "Export",
+      "pdf": "Export as PDF",
+      "csv": "Export as CSV",
+      "excel": "Export as Excel",
+      "pdfSuccess": "PDF report generated",
+      "csvSuccess": "CSV exported",
+      "excelSuccess": "Excel exported",
+      "error": "Export failed"
+    }
+  },
+  "audits": {
+    "scoring": {
+      "title": "Audit Score",
+      "passed": "Passed",
+      "failed": "Failed",
+      "blocked": "Blocked",
+      "points": "points",
+      "progress": "Score Progress",
+      "threshold": "Pass Threshold",
+      "critical": "Critical",
+      "major": "Major",
+      "minor": "Minor"
     }
   }
 }
