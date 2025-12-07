@@ -2349,7 +2349,46 @@
       "sync": "Notifications when offline changes are synced",
       "update": "Subscription approvals, feature updates, and changes",
       "info": "General information and status updates",
-      "error": "Security alerts, errors, and critical warnings"
+      "error": "Security alerts, errors, and critical warnings",
+      "urgent": "Critical SLA escalations and overdue actions requiring immediate attention"
+    },
+    "category": {
+      "sync": "Sync Notifications",
+      "update": "Updates & Approvals",
+      "info": "Information Alerts",
+      "error": "Security & Error Alerts",
+      "urgent": "Urgent SLA Alerts"
+    },
+    "digestPreferences": "Digest Email Preferences",
+    "digestPreferencesDescription": "Configure when and how you receive daily digest emails",
+    "digestOptIn": "Receive Daily Digest",
+    "digestOptInDescription": "Get a daily summary of pending approvals and escalated actions",
+    "digestTime": "Preferred Delivery Time",
+    "digestTimeDescription": "Choose when to receive your daily digest email",
+    "digestTimezone": "Timezone",
+    "digestTimezoneDescription": "Your local timezone for delivery scheduling",
+    "digestSaved": "Digest preferences saved",
+    "slaDashboard": {
+      "title": "SLA Dashboard",
+      "description": "Real-time monitoring of corrective action SLA status",
+      "liveUpdates": "Live Updates",
+      "connected": "Connected",
+      "actionsAtRisk": "Actions at Risk",
+      "overdueActions": "Overdue Actions",
+      "escalatedActions": "Escalated Actions",
+      "onTrackActions": "Actions On Track",
+      "noActionsToDisplay": "No actions to display",
+      "allActionsOnTrack": "All actions are on track",
+      "timeRemaining": "Time Remaining",
+      "overdue": "Overdue",
+      "escalationLevel": "Escalation Level",
+      "atRisk": "At Risk",
+      "onTrack": "On Track",
+      "status": "Status",
+      "assignedTo": "Assigned To",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "level": "Level"
     }
   },
   "currencies": {

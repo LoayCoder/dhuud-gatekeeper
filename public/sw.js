@@ -38,31 +38,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Handle skip waiting message for updates
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  
-  // Handle manual sync trigger from the app
-  if (event.data && event.data.type === 'TRIGGER_SYNC') {
-    processMutationQueue().then((result) => {
-      // Notify all clients about sync result
-      self.clients.matchAll().then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({
-            type: 'SYNC_COMPLETE',
-            success: result.success,
-            failed: result.failed,
-          });
-        });
-      });
-      
-      // Show notification if permission granted
-      showSyncNotification(result);
-    });
-  }
-});
+// NOTE: Main message handler is defined after showUrgentSLANotification function (line ~187)
 
 // Store notification in history by sending to clients
 function storeNotificationInHistory(title, body, type) {
@@ -138,6 +114,17 @@ self.addEventListener('notificationclick', (event) => {
         clients.forEach(client => client.navigate(client.url));
       })
     );
+  } else if (notificationData.type === 'sla_escalation') {
+    // Navigate to SLA dashboard for urgent SLA escalation notifications
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        const url = '/admin/sla-dashboard';
+        if (clients.length > 0) {
+          return clients[0].navigate(url).then(client => client.focus());
+        }
+        return self.clients.openWindow(url);
+      })
+    );
   } else {
     // Open or focus the app
     event.waitUntil(
@@ -148,6 +135,68 @@ self.addEventListener('notificationclick', (event) => {
         return self.clients.openWindow('/');
       })
     );
+  }
+});
+
+// Show urgent SLA escalation notification
+async function showUrgentSLANotification(data) {
+  if (self.Notification?.permission !== 'granted') {
+    return;
+  }
+
+  const { title, body, level } = data;
+  const notificationTitle = title || '🚨 Critical SLA Escalation';
+  const notificationBody = body || 'An action has been escalated and requires immediate attention';
+
+  try {
+    await self.registration.showNotification(notificationTitle, {
+      body: notificationBody,
+      icon: '/pwa-192x192.png',
+      tag: `sla-escalation-${Date.now()}`,
+      badge: '/pwa-192x192.png',
+      vibrate: [200, 100, 200, 100, 200],
+      requireInteraction: true,
+      data: { type: 'sla_escalation', level },
+      actions: [
+        { action: 'view', title: 'View Dashboard' },
+        { action: 'dismiss', title: 'Dismiss' }
+      ]
+    });
+    
+    storeNotificationInHistory(notificationTitle, notificationBody, 'error');
+  } catch (error) {
+    console.error('Failed to show urgent SLA notification:', error);
+  }
+}
+
+// Handle messages from clients including urgent SLA escalation broadcasts
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  // Handle manual sync trigger from the app
+  if (event.data && event.data.type === 'TRIGGER_SYNC') {
+    processMutationQueue().then((result) => {
+      // Notify all clients about sync result
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'SYNC_COMPLETE',
+            success: result.success,
+            failed: result.failed,
+          });
+        });
+      });
+      
+      // Show notification if permission granted
+      showSyncNotification(result);
+    });
+  }
+  
+  // Handle urgent SLA escalation push from client
+  if (event.data && event.data.type === 'SLA_ESCALATION_URGENT') {
+    showUrgentSLANotification(event.data);
   }
 });
 

@@ -43,8 +43,18 @@ export function useSLAEscalationListener() {
               : '⚠️ Action Escalated';
             const body = `"${newRecord.title}" has been escalated to Level ${level}`;
 
-            // Send push notification
-            sendPushNotification(title, body, 'error');
+            // Send push notification (plays sound and adds to history)
+            sendPushNotification(title, body, 'urgent');
+
+            // Also send to service worker for true mobile push when app is in background
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'SLA_ESCALATION_URGENT',
+                title,
+                body,
+                level,
+              });
+            }
 
             console.log('SLA Escalation detected:', { 
               from: oldRecord.escalation_level, 
