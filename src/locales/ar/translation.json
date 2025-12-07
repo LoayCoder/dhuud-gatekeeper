@@ -2818,6 +2818,34 @@
     "codePlaceholder": "مثال: FE-MONTHLY",
     "assetInfo": "معلومات الأصل",
     "inspectionInfo": "معلومات الفحص",
-    "checklistItems": "عناصر قائمة التحقق"
+    "checklistItems": "عناصر قائمة التحقق",
+    "areaInspection": "فحص المنطقة",
+    "checklistProgress": "تقدم قائمة التحقق",
+    "remainingItems": "{{count}} عناصر متبقية",
+    "totalItems": "الإجمالي",
+    "sessionInfo": "معلومات الجلسة",
+    "noItems": "لم يتم العثور على عناصر قائمة التحقق",
+    "autoSaving": "جاري الحفظ...",
+    "captureGPS": "التقاط GPS",
+    "gpsRecorded": "تم تسجيل GPS",
+    "gpsNotSupported": "GPS غير مدعوم",
+    "gpsError": "خطأ في التقاط GPS",
+    "gpsCaptured": "تم التقاط موقع GPS",
+    "selectRating": "اختر التقييم",
+    "enterValue": "أدخل القيمة",
+    "rangeHint": "يجب أن تكون القيمة بين {{min}} و {{max}}",
+    "minHint": "الحد الأدنى: {{min}}",
+    "maxHint": "الحد الأقصى: {{max}}",
+    "enterResponse": "أدخل إجابتك...",
+    "yes": "نعم",
+    "no": "لا",
+    "weather": {
+      "clear": "صافٍ",
+      "cloudy": "غائم",
+      "rainy": "ممطر",
+      "windy": "عاصف",
+      "hot": "حار",
+      "cold": "بارد"
+    }
   }
 }
