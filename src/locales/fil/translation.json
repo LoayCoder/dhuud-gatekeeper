@@ -1007,7 +1007,17 @@
     "assetsRefreshed": "{{count}} bagong assets ang naidagdag sa session",
     "noNewAssetsFound": "Walang bagong assets na nahanap",
     "assetNotFound": "Hindi nahanap ang asset",
-    "assetDoesNotMatchFilters": "Ang asset na ito ay hindi tumutugma sa session filters"
+    "assetDoesNotMatchFilters": "Ang asset na ito ay hindi tumutugma sa session filters",
+    "editSession": "I-edit ang Session",
+    "deleteSession": "Tanggalin ang Session",
+    "confirmDeleteSession": "Sigurado ka bang gusto mong tanggalin ang session na ito? Tatanggalin nito ang lahat ng inspection records at hindi na maibabalik.",
+    "sessionDeleted": "Matagumpay na natanggal ang session",
+    "sessionUpdated": "Matagumpay na na-update ang session",
+    "cannotDeleteClosedSession": "Hindi matatanggal ang saradong session",
+    "cannotEditClosedSession": "Hindi mae-edit ang sarado o kumpletong session",
+    "filterBySite": "I-filter ayon sa Site",
+    "filterByCategory": "I-filter ayon sa Kategorya",
+    "filterByType": "I-filter ayon sa Uri"
   },
   "securityAudit": {
     "title": "Security Audit Log",

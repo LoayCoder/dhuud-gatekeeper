@@ -1017,7 +1017,17 @@
     "assetsRefreshed": "تمت إضافة {{count}} أصول جديدة للجلسة",
     "noNewAssetsFound": "لم يتم العثور على أصول جديدة",
     "assetNotFound": "الأصل غير موجود",
-    "assetDoesNotMatchFilters": "هذا الأصل لا يتطابق مع فلاتر الجلسة"
+    "assetDoesNotMatchFilters": "هذا الأصل لا يتطابق مع فلاتر الجلسة",
+    "editSession": "تعديل الجلسة",
+    "deleteSession": "حذف الجلسة",
+    "confirmDeleteSession": "هل أنت متأكد من حذف هذه الجلسة؟ سيؤدي ذلك إلى إزالة جميع سجلات التفتيش ولا يمكن التراجع عن ذلك.",
+    "sessionDeleted": "تم حذف الجلسة بنجاح",
+    "sessionUpdated": "تم تحديث الجلسة بنجاح",
+    "cannotDeleteClosedSession": "لا يمكن حذف جلسة مغلقة",
+    "cannotEditClosedSession": "لا يمكن تعديل جلسة مغلقة أو مكتملة",
+    "filterBySite": "التصفية حسب الموقع",
+    "filterByCategory": "التصفية حسب الفئة",
+    "filterByType": "التصفية حسب النوع"
   },
   "securityAudit": {
     "title": "سجل تدقيق الأمان",

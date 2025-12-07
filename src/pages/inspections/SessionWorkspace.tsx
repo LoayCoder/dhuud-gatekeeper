@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ArrowLeft, QrCode, CheckCircle, RefreshCw, Loader2, Plus } from 'lucide-react';
+import { ArrowLeft, QrCode, CheckCircle, RefreshCw, Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModuleGate } from '@/components/ModuleGate';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,7 @@ import {
   useSessionAssetByAssetId,
   useAddAssetToSession,
   useRefreshSessionAssets,
+  useDeleteSession,
 } from '@/hooks/use-inspection-sessions';
 import {
   SessionProgressCard,
@@ -35,6 +36,7 @@ import {
   UninspectedAssetsList,
   BulkInspectionScanner,
   SessionStatusBadge,
+  EditSessionDialog,
 } from '@/components/inspections/sessions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,6 +52,8 @@ function SessionWorkspaceContent() {
   const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inspect');
   const [showAddAssetDialog, setShowAddAssetDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pendingAssetToAdd, setPendingAssetToAdd] = useState<{ id: string; name: string; code: string } | null>(null);
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
@@ -61,6 +65,7 @@ function SessionWorkspaceContent() {
   const completeSession = useCompleteSession();
   const addAssetToSession = useAddAssetToSession();
   const refreshSessionAssets = useRefreshSessionAssets();
+  const deleteSession = useDeleteSession();
   
   const [selectedAsset, setSelectedAsset] = useState<typeof uninspectedAssets[0] | null>(null);
   
@@ -93,11 +98,7 @@ function SessionWorkspaceContent() {
         .single();
       
       if (error || !asset) {
-        toast({
-          title: t('common.error'),
-          description: t('inspectionSessions.assetNotFound'),
-          variant: 'destructive',
-        });
+        toast.error(t('inspectionSessions.assetNotFound'));
         setScannedAssetId(null);
         return;
       }
@@ -114,21 +115,13 @@ function SessionWorkspaceContent() {
         setPendingAssetToAdd({ id: asset.id, name: asset.name, code: asset.asset_code });
         setShowAddAssetDialog(true);
       } else {
-        toast({
-          title: t('common.error'),
-          description: t('inspectionSessions.assetDoesNotMatchFilters'),
-          variant: 'destructive',
-        });
+        toast.error(t('inspectionSessions.assetDoesNotMatchFilters'));
       }
       
       setScannedAssetId(null);
       setShowScanner(false);
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast.error(error.message);
       setScannedAssetId(null);
     }
   };
@@ -138,11 +131,11 @@ function SessionWorkspaceContent() {
     
     try {
       await addAssetToSession.mutateAsync({ sessionId, assetId: pendingAssetToAdd.id });
-      toast({ title: t('common.success'), description: t('inspectionSessions.assetAddedToSession') });
+      toast.success(t('inspectionSessions.assetAddedToSession'));
       setShowAddAssetDialog(false);
       setPendingAssetToAdd(null);
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      toast.error(error.message);
     }
   };
   
@@ -152,12 +145,12 @@ function SessionWorkspaceContent() {
     try {
       const result = await refreshSessionAssets.mutateAsync(sessionId);
       if (result.added > 0) {
-        toast({ title: t('common.success'), description: t('inspectionSessions.assetsRefreshed', { count: result.added }) });
+        toast.success(t('inspectionSessions.assetsRefreshed', { count: result.added }));
       } else {
-        toast({ title: t('common.info'), description: t('inspectionSessions.noNewAssetsFound') });
+        toast.info(t('inspectionSessions.noNewAssetsFound'));
       }
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      toast.error(error.message);
     }
   };
   
@@ -175,9 +168,20 @@ function SessionWorkspaceContent() {
     
     try {
       await completeSession.mutateAsync(sessionId);
-      toast({ title: t('common.success'), description: t('inspectionSessions.sessionCompleted') });
+      toast.success(t('inspectionSessions.sessionCompleted'));
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      toast.error(error.message);
+    }
+  };
+
+  const handleDeleteSession = async () => {
+    if (!sessionId) return;
+    try {
+      await deleteSession.mutateAsync(sessionId);
+      toast.success(t('inspectionSessions.sessionDeleted'));
+      navigate('/inspections/sessions');
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
   
@@ -260,8 +264,45 @@ function SessionWorkspaceContent() {
               )}
             </>
           )}
+          {session.status !== 'closed' && (
+            <>
+              <Button variant="outline" size="icon" onClick={() => setShowEditDialog(true)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => setShowDeleteDialog(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
+      
+      {/* Edit Dialog */}
+      {session && (
+        <EditSessionDialog 
+          open={showEditDialog} 
+          onOpenChange={setShowEditDialog} 
+          session={session}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('inspectionSessions.deleteSession')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('inspectionSessions.confirmDeleteSession')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSession} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Progress Card */}
       {progress && (

@@ -1007,7 +1007,17 @@
     "assetsRefreshed": "{{count}} नई संपत्तियां सत्र में जोड़ी गईं",
     "noNewAssetsFound": "कोई नई संपत्ति नहीं मिली",
     "assetNotFound": "संपत्ति नहीं मिली",
-    "assetDoesNotMatchFilters": "यह संपत्ति सत्र फ़िल्टर से मेल नहीं खाती"
+    "assetDoesNotMatchFilters": "यह संपत्ति सत्र फ़िल्टर से मेल नहीं खाती",
+    "editSession": "सत्र संपादित करें",
+    "deleteSession": "सत्र हटाएं",
+    "confirmDeleteSession": "क्या आप वाकई इस सत्र को हटाना चाहते हैं? इससे सभी निरीक्षण रिकॉर्ड हट जाएंगे और इसे पूर्ववत नहीं किया जा सकता।",
+    "sessionDeleted": "सत्र सफलतापूर्वक हटाया गया",
+    "sessionUpdated": "सत्र सफलतापूर्वक अपडेट किया गया",
+    "cannotDeleteClosedSession": "बंद सत्र नहीं हटाया जा सकता",
+    "cannotEditClosedSession": "बंद या पूर्ण सत्र संपादित नहीं किया जा सकता",
+    "filterBySite": "साइट द्वारा फ़िल्टर",
+    "filterByCategory": "श्रेणी द्वारा फ़िल्टर",
+    "filterByType": "प्रकार द्वारा फ़िल्टर"
   },
   "securityAudit": {
     "title": "सुरक्षा ऑडिट लॉग",
