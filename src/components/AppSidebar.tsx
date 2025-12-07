@@ -167,11 +167,6 @@ export function AppSidebar() {
               url: "/inspections/my-actions",
               icon: ClipboardCheck,
             },
-            {
-              title: t('navigation.auditsInspections'),
-              url: "/audits",
-              icon: ClipboardCheck,
-            },
           ],
         },
         {
