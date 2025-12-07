@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
 import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog } from '@/components/assets';
+import { InspectionHistoryTab } from '@/components/inspections';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
@@ -165,10 +166,14 @@ function AssetDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="gap-2">
             <Package className="h-4 w-4 hidden sm:block" />
             {t('assets.tabs.overview')}
+          </TabsTrigger>
+          <TabsTrigger value="inspections" className="gap-2">
+            <ClipboardCheck className="h-4 w-4 hidden sm:block" />
+            {t('assets.tabs.inspections')}
           </TabsTrigger>
           <TabsTrigger value="photos" className="gap-2">
             <ImageIcon className="h-4 w-4 hidden sm:block" />
@@ -417,6 +422,19 @@ function AssetDetailContent() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Inspections Tab */}
+        <TabsContent value="inspections">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('assets.tabs.inspections')}</CardTitle>
+            <CardDescription>{t('inspections.historyDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <InspectionHistoryTab assetId={id!} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Photos Tab */}
