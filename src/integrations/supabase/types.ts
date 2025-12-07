@@ -120,6 +120,89 @@ export type Database = {
         }
         Relationships: []
       }
+      area_inspection_responses: {
+        Row: {
+          created_at: string | null
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          notes: string | null
+          photo_paths: Json | null
+          responded_at: string | null
+          responded_by: string | null
+          response_value: string | null
+          result: string | null
+          session_id: string
+          template_item_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          notes?: string | null
+          photo_paths?: Json | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response_value?: string | null
+          result?: string | null
+          session_id: string
+          template_item_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          notes?: string | null
+          photo_paths?: Json | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response_value?: string | null
+          result?: string | null
+          session_id?: string
+          template_item_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_inspection_responses_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_responses_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_template_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_responses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_audit_logs: {
         Row: {
           action: string
@@ -2068,6 +2151,7 @@ export type Database = {
         Row: {
           ai_summary: string | null
           ai_summary_generated_at: string | null
+          attendees: Json | null
           building_id: string | null
           category_id: string | null
           closed_at: string | null
@@ -2077,6 +2161,7 @@ export type Database = {
           deleted_at: string | null
           failed_count: number | null
           floor_zone_id: string | null
+          gps_boundary: Json | null
           id: string
           inspected_count: number | null
           inspector_id: string
@@ -2084,6 +2169,7 @@ export type Database = {
           passed_count: number | null
           period: string
           reference_id: string | null
+          scope_notes: string | null
           session_type: string
           site_id: string | null
           started_at: string | null
@@ -2093,10 +2179,12 @@ export type Database = {
           total_assets: number | null
           type_id: string | null
           updated_at: string | null
+          weather_conditions: string | null
         }
         Insert: {
           ai_summary?: string | null
           ai_summary_generated_at?: string | null
+          attendees?: Json | null
           building_id?: string | null
           category_id?: string | null
           closed_at?: string | null
@@ -2106,6 +2194,7 @@ export type Database = {
           deleted_at?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
+          gps_boundary?: Json | null
           id?: string
           inspected_count?: number | null
           inspector_id: string
@@ -2113,6 +2202,7 @@ export type Database = {
           passed_count?: number | null
           period: string
           reference_id?: string | null
+          scope_notes?: string | null
           session_type?: string
           site_id?: string | null
           started_at?: string | null
@@ -2122,10 +2212,12 @@ export type Database = {
           total_assets?: number | null
           type_id?: string | null
           updated_at?: string | null
+          weather_conditions?: string | null
         }
         Update: {
           ai_summary?: string | null
           ai_summary_generated_at?: string | null
+          attendees?: Json | null
           building_id?: string | null
           category_id?: string | null
           closed_at?: string | null
@@ -2135,6 +2227,7 @@ export type Database = {
           deleted_at?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
+          gps_boundary?: Json | null
           id?: string
           inspected_count?: number | null
           inspector_id?: string
@@ -2142,6 +2235,7 @@ export type Database = {
           passed_count?: number | null
           period?: string
           reference_id?: string | null
+          scope_notes?: string | null
           session_type?: string
           site_id?: string | null
           started_at?: string | null
@@ -2151,6 +2245,7 @@ export type Database = {
           total_assets?: number | null
           type_id?: string | null
           updated_at?: string | null
+          weather_conditions?: string | null
         }
         Relationships: [
           {
@@ -2292,11 +2387,16 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           description: string | null
+          estimated_duration_minutes: number | null
           id: string
           is_active: boolean | null
           name: string
           name_ar: string | null
+          requires_gps: boolean | null
+          requires_photos: boolean | null
+          scope_description: string | null
           site_id: string | null
+          template_type: string
           tenant_id: string
           type_id: string | null
           updated_at: string | null
@@ -2310,11 +2410,16 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
           name: string
           name_ar?: string | null
+          requires_gps?: boolean | null
+          requires_photos?: boolean | null
+          scope_description?: string | null
           site_id?: string | null
+          template_type?: string
           tenant_id: string
           type_id?: string | null
           updated_at?: string | null
@@ -2328,11 +2433,16 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
           name?: string
           name_ar?: string | null
+          requires_gps?: boolean | null
+          requires_photos?: boolean | null
+          scope_description?: string | null
           site_id?: string | null
+          template_type?: string
           tenant_id?: string
           type_id?: string | null
           updated_at?: string | null
