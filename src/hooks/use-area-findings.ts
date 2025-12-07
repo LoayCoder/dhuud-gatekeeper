@@ -281,3 +281,78 @@ export function useAreaFindingsCount(sessionId: string | undefined) {
     enabled: !!sessionId,
   });
 }
+
+// ============= Create Action from Finding =============
+
+interface CreateActionFromFindingInput {
+  findingId: string;
+  sessionId: string;
+  title: string;
+  description: string;
+  assigned_to?: string;
+  responsible_department_id?: string;
+  due_date: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  action_type: 'corrective' | 'preventive';
+  category: 'operations' | 'maintenance' | 'training' | 'procedural' | 'equipment';
+}
+
+/**
+ * Create a corrective action from a finding and link them
+ */
+export function useCreateActionFromFinding() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const { t } = useTranslation();
+  
+  return useMutation({
+    mutationFn: async (input: CreateActionFromFindingInput) => {
+      if (!profile?.tenant_id) throw new Error('Not authenticated');
+      
+      // 1. Create the corrective action
+      const { data: action, error: actionError } = await supabase
+        .from('corrective_actions')
+        .insert({
+          tenant_id: profile.tenant_id,
+          title: input.title,
+          description: input.description,
+          assigned_to: input.assigned_to || null,
+          responsible_department_id: input.responsible_department_id || null,
+          due_date: input.due_date,
+          priority: input.priority,
+          action_type: input.action_type,
+          category: input.category,
+          status: 'assigned',
+          source_type: 'inspection_finding',
+          source_finding_id: input.findingId,
+          session_id: input.sessionId,
+        })
+        .select('id')
+        .single();
+      
+      if (actionError) throw actionError;
+      
+      // 2. Update the finding with the action link and status
+      const { error: findingError } = await supabase
+        .from('area_inspection_findings')
+        .update({
+          corrective_action_id: action.id,
+          status: 'action_assigned',
+        })
+        .eq('id', input.findingId);
+      
+      if (findingError) throw findingError;
+      
+      return { actionId: action.id, sessionId: input.sessionId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['area-findings', data.sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['area-findings-count', data.sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['can-close-session', data.sessionId] });
+      toast.success(t('inspections.findings.actionCreated'));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}

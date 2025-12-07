@@ -1226,6 +1226,8 @@ export type Database = {
           rejection_notes: string | null
           responsible_department_id: string | null
           session_id: string | null
+          source_finding_id: string | null
+          source_type: string | null
           start_date: string | null
           status: string | null
           tenant_id: string
@@ -1255,6 +1257,8 @@ export type Database = {
           rejection_notes?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
+          source_finding_id?: string | null
+          source_type?: string | null
           start_date?: string | null
           status?: string | null
           tenant_id: string
@@ -1284,6 +1288,8 @@ export type Database = {
           rejection_notes?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
+          source_finding_id?: string | null
+          source_type?: string | null
           start_date?: string | null
           status?: string | null
           tenant_id?: string
@@ -1334,6 +1340,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "inspection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_source_finding_id_fkey"
+            columns: ["source_finding_id"]
+            isOneToOne: false
+            referencedRelation: "area_inspection_findings"
             referencedColumns: ["id"]
           },
           {
