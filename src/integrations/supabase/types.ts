@@ -959,6 +959,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           due_date: string | null
+          finding_id: string | null
           id: string
           incident_id: string | null
           linked_cause_type: string | null
@@ -968,6 +969,7 @@ export type Database = {
           rejected_by: string | null
           rejection_notes: string | null
           responsible_department_id: string | null
+          session_id: string | null
           start_date: string | null
           status: string | null
           tenant_id: string
@@ -986,6 +988,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          finding_id?: string | null
           id?: string
           incident_id?: string | null
           linked_cause_type?: string | null
@@ -995,6 +998,7 @@ export type Database = {
           rejected_by?: string | null
           rejection_notes?: string | null
           responsible_department_id?: string | null
+          session_id?: string | null
           start_date?: string | null
           status?: string | null
           tenant_id: string
@@ -1013,6 +1017,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
+          finding_id?: string | null
           id?: string
           incident_id?: string | null
           linked_cause_type?: string | null
@@ -1022,6 +1027,7 @@ export type Database = {
           rejected_by?: string | null
           rejection_notes?: string | null
           responsible_department_id?: string | null
+          session_id?: string | null
           start_date?: string | null
           status?: string | null
           tenant_id?: string
@@ -1037,6 +1043,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_finding_id_fkey"
+            columns: ["finding_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_findings"
             referencedColumns: ["id"]
           },
           {
@@ -1058,6 +1071,13 @@ export type Database = {
             columns: ["responsible_department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -1819,6 +1839,93 @@ export type Database = {
           },
         ]
       }
+      inspection_findings: {
+        Row: {
+          action_id: string | null
+          ai_generated_description: string | null
+          asset_id: string | null
+          classification: string
+          created_at: string | null
+          deleted_at: string | null
+          description: string
+          id: string
+          risk_level: string | null
+          session_asset_id: string | null
+          session_id: string
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_id?: string | null
+          ai_generated_description?: string | null
+          asset_id?: string | null
+          classification?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description: string
+          id?: string
+          risk_level?: string | null
+          session_asset_id?: string | null
+          session_id: string
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_id?: string | null
+          ai_generated_description?: string | null
+          asset_id?: string | null
+          classification?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          risk_level?: string | null
+          session_asset_id?: string | null
+          session_id?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_findings_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "corrective_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_findings_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_findings_session_asset_id_fkey"
+            columns: ["session_asset_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_session_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_findings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_findings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_responses: {
         Row: {
           id: string
@@ -1873,6 +1980,233 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_session_assets: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          failure_reason: string | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          inspected_at: string | null
+          inspected_by: string | null
+          notes: string | null
+          photo_paths: Json | null
+          quick_result: string | null
+          session_id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          failure_reason?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          notes?: string | null
+          photo_paths?: Json | null
+          quick_result?: string | null
+          session_id: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          failure_reason?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          notes?: string | null
+          photo_paths?: Json | null
+          quick_result?: string | null
+          session_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_session_assets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_session_assets_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_session_assets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_session_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_sessions: {
+        Row: {
+          ai_summary: string | null
+          ai_summary_generated_at: string | null
+          building_id: string | null
+          category_id: string | null
+          closed_at: string | null
+          completed_at: string | null
+          compliance_percentage: number | null
+          created_at: string | null
+          deleted_at: string | null
+          failed_count: number | null
+          floor_zone_id: string | null
+          id: string
+          inspected_count: number | null
+          inspector_id: string
+          not_accessible_count: number | null
+          passed_count: number | null
+          period: string
+          reference_id: string | null
+          session_type: string
+          site_id: string | null
+          started_at: string | null
+          status: string
+          template_id: string
+          tenant_id: string
+          total_assets: number | null
+          type_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          ai_summary_generated_at?: string | null
+          building_id?: string | null
+          category_id?: string | null
+          closed_at?: string | null
+          completed_at?: string | null
+          compliance_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          failed_count?: number | null
+          floor_zone_id?: string | null
+          id?: string
+          inspected_count?: number | null
+          inspector_id: string
+          not_accessible_count?: number | null
+          passed_count?: number | null
+          period: string
+          reference_id?: string | null
+          session_type?: string
+          site_id?: string | null
+          started_at?: string | null
+          status?: string
+          template_id: string
+          tenant_id: string
+          total_assets?: number | null
+          type_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          ai_summary_generated_at?: string | null
+          building_id?: string | null
+          category_id?: string | null
+          closed_at?: string | null
+          completed_at?: string | null
+          compliance_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          failed_count?: number | null
+          floor_zone_id?: string | null
+          id?: string
+          inspected_count?: number | null
+          inspector_id?: string
+          not_accessible_count?: number | null
+          passed_count?: number | null
+          period?: string
+          reference_id?: string | null
+          session_type?: string
+          site_id?: string | null
+          started_at?: string | null
+          status?: string
+          template_id?: string
+          tenant_id?: string
+          total_assets?: number | null
+          type_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_sessions_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_floor_zone_id_fkey"
+            columns: ["floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
             referencedColumns: ["id"]
           },
         ]
