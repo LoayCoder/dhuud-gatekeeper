@@ -946,7 +946,9 @@
       "verified": "Naberipika",
       "closed": "Sarado",
       "rejected": "Tinanggihan"
-    }
+    },
+    "evidence": "Ebidensya",
+    "uploadEvidence": "I-drop ang mga file o mag-click para mag-upload"
   },
   "inspectionSessions": {
     "title": "Mga Inspection Session",
@@ -1065,6 +1067,7 @@
     "deleteSession": "Tanggalin ang Session",
     "confirmDeleteSession": "Sigurado ka bang gusto mong tanggalin ang session na ito? Tatanggalin nito ang lahat ng inspection records at hindi na maibabalik.",
     "sessionDeleted": "Matagumpay na natanggal ang session",
+    "sessionReopened": "Matagumpay na nabuksan muli ang session",
     "sessionUpdated": "Matagumpay na na-update ang session",
     "cannotDeleteClosedSession": "Hindi matatanggal ang saradong session",
     "cannotEditClosedSession": "Hindi mae-edit ang sarado o kumpletong session",

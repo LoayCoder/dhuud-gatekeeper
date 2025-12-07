@@ -946,7 +946,9 @@
       "verified": "सत्यापित",
       "closed": "बंद",
       "rejected": "अस्वीकृत"
-    }
+    },
+    "evidence": "साक्ष्य",
+    "uploadEvidence": "फ़ाइलें छोड़ें या अपलोड करने के लिए क्लिक करें"
   },
   "inspectionSessions": {
     "title": "निरीक्षण सत्र",
@@ -1065,6 +1067,7 @@
     "deleteSession": "सत्र हटाएं",
     "confirmDeleteSession": "क्या आप वाकई इस सत्र को हटाना चाहते हैं? इससे सभी निरीक्षण रिकॉर्ड हट जाएंगे और इसे पूर्ववत नहीं किया जा सकता।",
     "sessionDeleted": "सत्र सफलतापूर्वक हटाया गया",
+    "sessionReopened": "सत्र सफलतापूर्वक फिर से खोला गया",
     "sessionUpdated": "सत्र सफलतापूर्वक अपडेट किया गया",
     "cannotDeleteClosedSession": "बंद सत्र नहीं हटाया जा सकता",
     "cannotEditClosedSession": "बंद या पूर्ण सत्र संपादित नहीं किया जा सकता",

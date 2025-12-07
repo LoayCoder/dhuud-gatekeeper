@@ -40,7 +40,10 @@ import {
   SessionStatusCard,
   SessionCompletionDialog,
   SessionExportDropdown,
+  SessionActionsPanel,
 } from '@/components/inspections/sessions';
+import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
+import { useAuth } from '@/contexts/AuthContext';
 
 function AreaSessionWorkspaceContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -64,7 +67,13 @@ function AreaSessionWorkspaceContent() {
   const startSession = useStartSession();
   const completeSession = useCompleteAreaSession();
   const closeSession = useCloseAreaSession();
+  const reopenSession = useReopenAreaSession();
   const deleteSession = useDeleteSession();
+  const { profile } = useAuth();
+  
+  // Check if user can verify actions (for now, allow all authenticated users)
+  // TODO: Implement proper HSSE role check when role structure is available
+  const canVerifyActions = !!profile;
   
   // Create a map of responses by template_item_id for quick lookup
   const responseMap = new Map(responses.map(r => [r.template_item_id, r]));
@@ -107,6 +116,16 @@ function AreaSessionWorkspaceContent() {
       await deleteSession.mutateAsync(sessionId);
       toast.success(t('inspectionSessions.sessionDeleted'));
       navigate('/inspections/sessions');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleReopenSession = async () => {
+    if (!sessionId) return;
+    try {
+      await reopenSession.mutateAsync({ sessionId });
+      toast.success(t('inspectionSessions.sessionReopened'));
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -252,9 +271,14 @@ function AreaSessionWorkspaceContent() {
             onComplete={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
             onClose={() => { setCompletionMode('close'); setShowCompletionDialog(true); }}
             onStart={session.status === 'draft' ? handleStartSession : undefined}
+            onReopen={session.status === 'closed' ? handleReopenSession : undefined}
             isCompleting={completeSession.isPending}
             isClosing={closeSession.isPending}
+            isReopening={reopenSession.isPending}
           />
+          
+          {/* Session Actions Panel */}
+          <SessionActionsPanel sessionId={sessionId!} canVerify={canVerifyActions} />
         </div>
         
         {/* Session Metadata */}

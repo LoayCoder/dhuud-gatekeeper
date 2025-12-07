@@ -23,3 +23,4 @@ export { SessionExportDropdown } from './SessionExportDropdown';
 export { AuditScoringCard } from './AuditScoringCard';
 export { ActionVerificationDialog } from './ActionVerificationDialog';
 export { SessionActionsPanel } from './SessionActionsPanel';
+export { ActionEvidenceSection } from './ActionEvidenceSection';

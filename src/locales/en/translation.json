@@ -753,7 +753,9 @@
       "verified": "Verified",
       "closed": "Closed",
       "rejected": "Rejected"
-    }
+    },
+    "evidence": "Evidence",
+    "uploadEvidence": "Drop files or click to upload"
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",
@@ -872,6 +874,7 @@
     "deleteSession": "Delete Session",
     "confirmDeleteSession": "Are you sure you want to delete this session? This will remove all inspection records and cannot be undone.",
     "sessionDeleted": "Session deleted successfully",
+    "sessionReopened": "Session reopened successfully",
     "sessionUpdated": "Session updated successfully",
     "cannotDeleteClosedSession": "Cannot delete a closed session",
     "cannotEditClosedSession": "Cannot edit a closed or completed session",

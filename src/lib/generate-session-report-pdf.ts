@@ -31,13 +31,20 @@ interface SessionReportData {
     status?: string | null;
     description?: string | null;
   }>;
+  actions?: Array<{
+    title: string;
+    status: string;
+    priority?: string | null;
+    due_date?: string | null;
+    assigned_user?: { full_name: string } | null;
+  }>;
   tenantId: string;
   tenantName?: string;
   language?: 'en' | 'ar';
 }
 
 export async function generateSessionReportPDF(data: SessionReportData): Promise<void> {
-  const { session, responses = [], findings = [], tenantId, tenantName = 'Organization', language = 'en' } = data;
+  const { session, responses = [], findings = [], actions = [], tenantId, tenantName = 'Organization', language = 'en' } = data;
   const isRTL = language === 'ar';
   
   // Fetch document branding settings
@@ -129,6 +136,36 @@ export async function generateSessionReportPDF(data: SessionReportData): Promise
       </tbody>
     </table>
   ` : '';
+
+  const actionsHtml = actions.length > 0 ? `
+    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 16px;">${isRTL ? 'الإجراءات التصحيحية' : 'Corrective Actions'}</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${isRTL ? 'right' : 'left'};">${isRTL ? 'العنوان' : 'Title'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${isRTL ? 'right' : 'left'};">${isRTL ? 'الحالة' : 'Status'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${isRTL ? 'right' : 'left'};">${isRTL ? 'الأولوية' : 'Priority'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${isRTL ? 'right' : 'left'};">${isRTL ? 'المسؤول' : 'Assigned To'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${isRTL ? 'right' : 'left'};">${isRTL ? 'تاريخ الاستحقاق' : 'Due Date'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${actions.map((a) => `
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">${a.title}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">
+              <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; background: ${a.status === 'verified' || a.status === 'closed' ? '#dcfce7' : a.status === 'completed' ? '#fef3c7' : '#e2e8f0'}; color: ${a.status === 'verified' || a.status === 'closed' ? '#166534' : a.status === 'completed' ? '#92400e' : '#475569'};">
+                ${a.status}
+              </span>
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${a.priority || '-'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${a.assigned_user?.full_name || '-'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${a.due_date ? format(new Date(a.due_date), 'PP') : '-'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  ` : '';
   
   const footerHtml = settings?.showPageNumbers || settings?.showDatePrinted ? `
     <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 10px; color: #666; display: flex; justify-content: space-between;">
@@ -175,6 +212,7 @@ export async function generateSessionReportPDF(data: SessionReportData): Promise
       ${statsHtml}
       ${responsesHtml}
       ${findingsHtml}
+      ${actionsHtml}
       ${footerHtml}
     </div>
   `;

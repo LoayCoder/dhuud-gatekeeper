@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, AlertTriangle, Lock, Play, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, Lock, Play, XCircle, RotateCcw } from 'lucide-react';
 import { SessionClosureStatus } from '@/hooks/use-session-lifecycle';
 
 interface SessionStatusCardProps {
@@ -13,8 +13,10 @@ interface SessionStatusCardProps {
   onComplete: () => void;
   onClose: () => void;
   onStart?: () => void;
+  onReopen?: () => void;
   isCompleting: boolean;
   isClosing: boolean;
+  isReopening?: boolean;
 }
 
 export function SessionStatusCard({
@@ -24,8 +26,10 @@ export function SessionStatusCard({
   onComplete,
   onClose,
   onStart,
+  onReopen,
   isCompleting,
   isClosing,
+  isReopening,
 }: SessionStatusCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -120,11 +124,29 @@ export function SessionStatusCard({
               </div>
             )}
 
-            {/* Closed banner */}
+            {/* Closed banner with reopen option */}
             {status === 'closed' && (
-              <div className="p-3 bg-muted rounded-lg flex items-center gap-2">
-                <Lock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{t('inspections.session.sessionLocked')}</span>
+              <div className="p-3 bg-muted rounded-lg space-y-2">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{t('inspections.session.sessionLocked')}</span>
+                </div>
+                {onReopen && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={onReopen}
+                    disabled={isReopening}
+                    className="w-full"
+                  >
+                    {isReopening ? (
+                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full me-2" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 me-2" />
+                    )}
+                    {t('inspections.session.reopenSession')}
+                  </Button>
+                )}
               </div>
             )}
 
