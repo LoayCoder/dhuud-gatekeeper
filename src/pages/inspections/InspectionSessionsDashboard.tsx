@@ -1,4 +1,3 @@
-// Inspection Sessions Dashboard - Edit/Delete functionality
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
