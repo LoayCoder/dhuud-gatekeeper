@@ -468,7 +468,31 @@
     "severityChangeRejected": "गंभीरता परिवर्तन अस्वीकृत",
     "investigatorAssigned": "जांचकर्ता सफलतापूर्वक नियुक्त",
     "incidentApproved": "घटना स्वीकृत और जांच के लिए लॉक",
-    "started": "जांच शुरू हुई"
+    "started": "जांच शुरू हुई",
+    "closure": {
+      "readyToClose": "बंद करने के लिए तैयार",
+      "allActionsVerified": "सभी सुधारात्मक कार्रवाइयां सत्यापित हो गई हैं।",
+      "requestClosure": "बंद करने का अनुरोध",
+      "requestTitle": "घटना बंद करने का अनुरोध",
+      "requestDescription": "इस घटना के लिए बंद करने का अनुरोध सबमिट करें। इसकी समीक्षा HSSE प्रबंधन द्वारा की जाएगी।",
+      "closureNotes": "बंद करने के नोट्स",
+      "closureNotesPlaceholder": "बंद करने के बारे में कोई नोट्स जोड़ें...",
+      "submitRequest": "बंद करने का अनुरोध सबमिट करें",
+      "pendingApproval": "बंद करना अनुमोदन लंबित",
+      "requestedBy": "द्वारा अनुरोधित",
+      "requestedAt": "अनुरोध का समय",
+      "approveTitle": "बंद करना स्वीकृत करें",
+      "rejectTitle": "बंद करना अस्वीकृत करें",
+      "approveDescription": "इस घटना के बंद करने के अनुरोध को स्वीकृत करें?",
+      "rejectDescription": "इस घटना के बंद करने के अनुरोध को अस्वीकृत करें?",
+      "rejectionNotes": "अस्वीकृति के नोट्स",
+      "rejectionNotesPlaceholder": "समझाएं कि बंद करना क्यों अस्वीकृत किया गया...",
+      "approve": "बंद करना स्वीकृत करें",
+      "reject": "बंद करना अस्वीकृत करें",
+      "requestSuccess": "बंद करने का अनुरोध सफलतापूर्वक सबमिट हुआ",
+      "approveSuccess": "घटना सफलतापूर्वक बंद हुई",
+      "rejectSuccess": "बंद करने का अनुरोध अस्वीकृत हुआ"
+    }
   },
   "pages": {
     "incidents": {

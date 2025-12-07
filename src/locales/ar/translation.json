@@ -473,6 +473,16 @@
     "tabs": {
       "overview": "نظرة عامة"
     },
+    "closure": {
+      "readyToClose": "جاهز للإغلاق",
+      "allActionsVerified": "تم التحقق من جميع الإجراءات التصحيحية.",
+      "requestClosure": "طلب الإغلاق",
+      "approve": "الموافقة على الإغلاق",
+      "reject": "رفض الإغلاق",
+      "requestSuccess": "تم تقديم طلب الإغلاق بنجاح",
+      "approveSuccess": "تم إغلاق الحادث بنجاح",
+      "rejectSuccess": "تم رفض طلب الإغلاق"
+    },
     "severityChangeProposed": "تم اقتراح تغيير الخطورة. في انتظار موافقة مدير السلامة.",
     "severityChangeApproved": "تمت الموافقة على تغيير الخطورة",
     "severityChangeRejected": "تم رفض تغيير الخطورة",

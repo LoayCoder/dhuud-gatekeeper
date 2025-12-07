@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 interface IncidentEmailRequest {
-  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected';
+  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected' | 'closure_requested' | 'closure_approved' | 'closure_rejected';
   incident_id: string;
   incident_title: string;
   incident_reference: string;
@@ -18,6 +18,8 @@ interface IncidentEmailRequest {
   proposed_severity?: string;
   original_severity?: string;
   justification?: string;
+  closure_notes?: string;
+  rejection_notes?: string;
   actor_name: string;
   actor_email?: string;
   tenant_id: string;
@@ -289,6 +291,127 @@ const handler = async (req: Request): Promise<Response> => {
                   The severity has been reverted to its original value.
                 </p>
               </div>
+            </div>
+            
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+              This is an automated notification from Dhuud HSSE Platform
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'closure_requested':
+        subject = `🔒 Closure Requested - ${incident_reference}`;
+        htmlContent = `
+          <div style="${baseStyles}">
+            <div style="${cardStyles}">
+              <h2 style="margin-top: 0; color: #6366f1;">Incident Closure Requested</h2>
+              <p style="color: #6b7280;">A closure request has been submitted for the following incident.</p>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; width: 140px;">Reference:</td>
+                  <td style="padding: 8px 0; font-weight: 600;">${incident_reference}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Title:</td>
+                  <td style="padding: 8px 0;">${incident_title}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Requested By:</td>
+                  <td style="padding: 8px 0;">${actor_name}</td>
+                </tr>
+              </table>
+              
+              ${payload.closure_notes ? `
+              <div style="background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; font-weight: 600; color: #374151;">Notes:</p>
+                <p style="margin: 0; color: #4b5563;">${payload.closure_notes}</p>
+              </div>
+              ` : ''}
+              
+              <p style="color: #6b7280; font-size: 14px;">
+                Please review and approve or reject the closure request in the Investigation Workspace.
+              </p>
+            </div>
+            
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+              This is an automated notification from Dhuud HSSE Platform
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'closure_approved':
+        subject = `✅ Incident Closed - ${incident_reference}`;
+        htmlContent = `
+          <div style="${baseStyles}">
+            <div style="${cardStyles}">
+              <h2 style="margin-top: 0; color: #16a34a;">Incident Closed</h2>
+              <p style="color: #6b7280;">The following incident has been officially closed.</p>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; width: 140px;">Reference:</td>
+                  <td style="padding: 8px 0; font-weight: 600;">${incident_reference}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Title:</td>
+                  <td style="padding: 8px 0;">${incident_title}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Closed By:</td>
+                  <td style="padding: 8px 0;">${actor_name}</td>
+                </tr>
+              </table>
+              
+              <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; padding: 16px;">
+                <p style="margin: 0; color: #166534;">
+                  ✓ This incident is now closed. All corrective actions have been verified.
+                </p>
+              </div>
+            </div>
+            
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+              This is an automated notification from Dhuud HSSE Platform
+            </p>
+          </div>
+        `;
+        break;
+
+      case 'closure_rejected':
+        subject = `❌ Closure Rejected - ${incident_reference}`;
+        htmlContent = `
+          <div style="${baseStyles}">
+            <div style="${cardStyles}">
+              <h2 style="margin-top: 0; color: #dc2626;">Closure Request Rejected</h2>
+              <p style="color: #6b7280;">The closure request for the following incident has been rejected.</p>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280; width: 140px;">Reference:</td>
+                  <td style="padding: 8px 0; font-weight: 600;">${incident_reference}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Title:</td>
+                  <td style="padding: 8px 0;">${incident_title}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Rejected By:</td>
+                  <td style="padding: 8px 0;">${actor_name}</td>
+                </tr>
+              </table>
+              
+              ${payload.rejection_notes ? `
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 16px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; font-weight: 600; color: #991b1b;">Rejection Reason:</p>
+                <p style="margin: 0; color: #7f1d1d;">${payload.rejection_notes}</p>
+              </div>
+              ` : ''}
+              
+              <p style="color: #6b7280; font-size: 14px;">
+                The investigation remains open. Please address the issues and submit a new closure request when ready.
+              </p>
             </div>
             
             <p style="color: #9ca3af; font-size: 12px; text-align: center;">

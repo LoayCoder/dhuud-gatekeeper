@@ -18,3 +18,5 @@ export { WitnessDocumentUpload } from './WitnessDocumentUpload';
 export { WitnessDirectEntry } from './WitnessDirectEntry';
 export { WitnessVoiceRecording } from './WitnessVoiceRecording';
 export { WitnessTaskAssignment } from './WitnessTaskAssignment';
+export { IncidentClosureRequestDialog } from './IncidentClosureRequestDialog';
+export { IncidentClosureApprovalCard } from './IncidentClosureApprovalCard';
