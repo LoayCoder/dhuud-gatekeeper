@@ -2280,7 +2280,46 @@
       "affected": "प्रभावित"
     },
     "noIncidentHistory": "कोई घटना इतिहास नहीं",
-    "noIncidentHistoryDescription": "यह संपत्ति किसी घटना से लिंक नहीं है"
+    "noIncidentHistoryDescription": "यह संपत्ति किसी घटना से लिंक नहीं है",
+    "import": {
+      "title": "संपत्ति आयात करें",
+      "description": "एक्सेल फाइल से कई संपत्तियां आयात करें",
+      "downloadTemplate": "टेम्पलेट डाउनलोड करें",
+      "downloadWithSamples": "नमूना डेटा के साथ डाउनलोड करें",
+      "uploadFile": "अपनी एक्सेल फाइल यहां खींचें और छोड़ें",
+      "uploadHint": "या फाइल चुनने के लिए क्लिक करें (.xlsx)",
+      "step1": "टेम्पलेट डाउनलोड करें",
+      "step1Description": "आपके संगठन के स्थानों, श्रेणियों और प्रकारों के साथ एक्सेल टेम्पलेट प्राप्त करें",
+      "step2": "फाइल अपलोड करें",
+      "step2Description": "अपना पूरा किया हुआ एक्सेल डेटा अपलोड करें",
+      "step3": "आयात करें",
+      "step3Description": "सत्यापित संपत्तियों को सिस्टम में आयात करें",
+      "validating": "सत्यापन हो रहा है...",
+      "importing": "आयात हो रहा है...",
+      "validAssets": "{{count}} वैध संपत्तियां",
+      "invalidRows": "{{count}} अमान्य पंक्तियां",
+      "warnings": "{{count}} चेतावनियां",
+      "success": "{{count}} संपत्तियां सफलतापूर्वक आयात हुईं",
+      "parseError": "फाइल पार्स करने में विफल। सुनिश्चित करें कि यह वैध एक्सेल फाइल है।",
+      "noValidAssets": "आयात के लिए कोई वैध संपत्ति नहीं। कृपया त्रुटियां ठीक करें और पुनः प्रयास करें।",
+      "validationErrors": {
+        "nameRequired": "नाम आवश्यक है",
+        "categoryRequired": "श्रेणी आवश्यक है",
+        "categoryNotFound": "श्रेणी नहीं मिली",
+        "typeRequired": "प्रकार आवश्यक है",
+        "typeNotFound": "चयनित श्रेणी में प्रकार नहीं मिला",
+        "subtypeNotFound": "चयनित प्रकार में उप-प्रकार नहीं मिला",
+        "branchNotFound": "शाखा नहीं मिली",
+        "siteNotFound": "चयनित शाखा में साइट नहीं मिली",
+        "buildingNotFound": "चयनित साइट में भवन नहीं मिला",
+        "floorNotFound": "चयनित भवन में मंजिल/क्षेत्र नहीं मिला",
+        "invalidStatus": "अमान्य स्थिति मान",
+        "invalidCondition": "अमान्य स्थिति मान",
+        "invalidCriticality": "अमान्य महत्व स्तर",
+        "invalidDate": "अमान्य तारीख प्रारूप",
+        "duplicateSerial": "डुप्लिकेट सीरियल नंबर"
+      }
+    }
   },
   "maintenance": {
     "title": "रखरखाव प्रबंधन",
