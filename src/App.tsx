@@ -77,6 +77,8 @@ const ActionSLASettings = lazy(() => import(/* webpackChunkName: "admin-action-s
 const SLADashboard = lazy(() => import(/* webpackChunkName: "admin-sla-dashboard" */ "./pages/admin/SLADashboard"));
 const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
 const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
+const TeamPerformance = lazy(() => import(/* webpackChunkName: "admin-team-performance" */ "./pages/admin/TeamPerformance"));
+const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-report" */ "./pages/admin/ExecutiveReport"));
 
 const queryClient = new QueryClient();
 
@@ -264,6 +266,22 @@ const App = () => (
                           <AdminRoute>
                             <DocumentSettings />
                           </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/team-performance"
+                        element={
+                          <HSSERoute>
+                            <TeamPerformance />
+                          </HSSERoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/executive-report"
+                        element={
+                          <HSSERoute>
+                            <ExecutiveReport />
+                          </HSSERoute>
                         }
                       />
                       <Route
