@@ -30,11 +30,13 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
   const [sessionType, setSessionType] = useState<'asset' | 'area' | 'audit'>('asset');
   const [templateId, setTemplateId] = useState<string>('');
   const [siteId, setSiteId] = useState<string>('');
+  const [branchId, setBranchId] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [typeId, setTypeId] = useState<string>('');
   const [periodDate, setPeriodDate] = useState<Date>(new Date());
   
-  const [sites, setSites] = useState<{ id: string; name: string }[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [sites, setSites] = useState<{ id: string; name: string; branch_id: string | null }[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string; name_ar: string | null }[]>([]);
   const [types, setTypes] = useState<{ id: string; name: string; name_ar: string | null; category_id: string }[]>([]);
   
@@ -47,12 +49,14 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
     if (!profile?.tenant_id) return;
     
     const fetchData = async () => {
-      const [sitesRes, categoriesRes, typesRes] = await Promise.all([
-        supabase.from('sites').select('id, name').eq('tenant_id', profile.tenant_id).is('deleted_at', null),
+      const [branchesRes, sitesRes, categoriesRes, typesRes] = await Promise.all([
+        supabase.from('branches').select('id, name').eq('tenant_id', profile.tenant_id).is('deleted_at', null),
+        supabase.from('sites').select('id, name, branch_id').eq('tenant_id', profile.tenant_id).is('deleted_at', null),
         supabase.from('asset_categories').select('id, name, name_ar').or(`tenant_id.is.null,tenant_id.eq.${profile.tenant_id}`).is('deleted_at', null),
         supabase.from('asset_types').select('id, name, name_ar, category_id').or(`tenant_id.is.null,tenant_id.eq.${profile.tenant_id}`).is('deleted_at', null),
       ]);
       
+      if (branchesRes.data) setBranches(branchesRes.data);
       if (sitesRes.data) setSites(sitesRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
       if (typesRes.data) setTypes(typesRes.data);
@@ -60,6 +64,33 @@ export function CreateSessionDialog({ open, onOpenChange }: CreateSessionDialogP
     
     fetchData();
   }, [profile?.tenant_id]);
+  
+  // Auto-populate filters from selected template
+  useEffect(() => {
+    if (!templateId) return;
+    
+    const selectedTemplate = templates.find(t => t.id === templateId);
+    if (selectedTemplate) {
+      if (selectedTemplate.site_id) {
+        setSiteId(selectedTemplate.site_id);
+        // Find the branch for this site
+        const site = sites.find(s => s.id === selectedTemplate.site_id);
+        if (site?.branch_id) {
+          setBranchId(site.branch_id);
+        }
+      }
+      if (selectedTemplate.category_id) {
+        setCategoryId(selectedTemplate.category_id);
+      }
+      if (selectedTemplate.type_id) {
+        setTypeId(selectedTemplate.type_id);
+      }
+    }
+  }, [templateId, templates, sites]);
+  
+  const filteredSites = branchId 
+    ? sites.filter(s => s.branch_id === branchId)
+    : sites;
   
   const filteredTypes = categoryId 
     ? types.filter(t => t.category_id === categoryId)

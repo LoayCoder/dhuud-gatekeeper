@@ -1009,7 +1009,15 @@
     "noAssetsFound": "لم يتم العثور على أصول",
     "noAssetsForFilters": "لا توجد أصول تطابق الفلاتر المحددة. حاول تعديل فلاتر الموقع أو الفئة أو النوع، أو أضف أصولاً إلى النظام أولاً.",
     "startInspection": "بدء التفتيش",
-    "sessionCreated": "تم إنشاء الجلسة بنجاح"
+    "sessionCreated": "تم إنشاء الجلسة بنجاح",
+    "refreshAssets": "تحديث الأصول",
+    "addAssetToSession": "إضافة أصل للجلسة",
+    "confirmAddAsset": "هل تريد إضافة {{code}} ({{name}}) إلى جلسة التفتيش؟",
+    "assetAddedToSession": "تمت إضافة الأصل بنجاح",
+    "assetsRefreshed": "تمت إضافة {{count}} أصول جديدة للجلسة",
+    "noNewAssetsFound": "لم يتم العثور على أصول جديدة",
+    "assetNotFound": "الأصل غير موجود",
+    "assetDoesNotMatchFilters": "هذا الأصل لا يتطابق مع فلاتر الجلسة"
   },
   "securityAudit": {
     "title": "سجل تدقيق الأمان",
@@ -2696,6 +2704,8 @@
     "templateDescription": "الوصف",
     "linkedCategory": "فئة الأصل المرتبطة",
     "linkedType": "نوع الأصل المرتبط",
+    "linkedBranch": "الفرع المرتبط",
+    "linkedSite": "الموقع المرتبط",
     "selectCategory": "اختر الفئة (اختياري)",
     "selectType": "اختر النوع (اختياري)",
     "version": "الإصدار",

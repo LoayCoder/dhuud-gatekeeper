@@ -806,7 +806,15 @@
     "noAssetsFound": "No assets found",
     "noAssetsForFilters": "No assets match the selected filters. Try adjusting your site, category, or type filters, or add assets to the system first.",
     "startInspection": "Start Inspection",
-    "sessionCreated": "Session created successfully"
+    "sessionCreated": "Session created successfully",
+    "refreshAssets": "Refresh Assets",
+    "addAssetToSession": "Add Asset to Session",
+    "confirmAddAsset": "Would you like to add {{code}} ({{name}}) to this inspection session?",
+    "assetAddedToSession": "Asset added to session successfully",
+    "assetsRefreshed": "{{count}} new assets added to the session",
+    "noNewAssetsFound": "No new matching assets found",
+    "assetNotFound": "Asset not found",
+    "assetDoesNotMatchFilters": "This asset does not match the session filters"
   },
   "securityAudit": {
     "title": "Security Audit Log",
@@ -2760,6 +2768,8 @@
     "templateDescription": "Description",
     "linkedCategory": "Linked Asset Category",
     "linkedType": "Linked Asset Type",
+    "linkedBranch": "Linked Branch",
+    "linkedSite": "Linked Site",
     "selectCategory": "Select category (optional)",
     "selectType": "Select type (optional)",
     "version": "Version",

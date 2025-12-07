@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ArrowLeft, QrCode, CheckCircle, Play, Loader2 } from 'lucide-react';
+import { ArrowLeft, QrCode, CheckCircle, RefreshCw, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,12 +10,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModuleGate } from '@/components/ModuleGate';
 import { toast } from '@/hooks/use-toast';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   useInspectionSession,
   useSessionAssets,
   useUninspectedAssets,
   useSessionProgress,
   useCompleteSession,
   useSessionAssetByAssetId,
+  useAddAssetToSession,
+  useRefreshSessionAssets,
 } from '@/hooks/use-inspection-sessions';
 import {
   SessionProgressCard,
@@ -24,16 +36,21 @@ import {
   BulkInspectionScanner,
   SessionStatusBadge,
 } from '@/components/inspections/sessions';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 function SessionWorkspaceContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const { profile } = useAuth();
   
   const [showScanner, setShowScanner] = useState(false);
   const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inspect');
+  const [showAddAssetDialog, setShowAddAssetDialog] = useState(false);
+  const [pendingAssetToAdd, setPendingAssetToAdd] = useState<{ id: string; name: string; code: string } | null>(null);
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
   const { data: allAssets = [] } = useSessionAssets(sessionId);
@@ -42,25 +59,107 @@ function SessionWorkspaceContent() {
   const { data: scannedSessionAsset, isLoading: scanLookupLoading } = useSessionAssetByAssetId(sessionId, scannedAssetId || undefined);
   
   const completeSession = useCompleteSession();
+  const addAssetToSession = useAddAssetToSession();
+  const refreshSessionAssets = useRefreshSessionAssets();
   
   const [selectedAsset, setSelectedAsset] = useState<typeof uninspectedAssets[0] | null>(null);
   
   // When a QR is scanned and lookup completes
   useEffect(() => {
-    if (scannedAssetId && scannedSessionAsset && !scanLookupLoading) {
-      setSelectedAsset(scannedSessionAsset);
-      setShowScanner(false);
+    if (scannedAssetId && !scanLookupLoading) {
+      if (scannedSessionAsset) {
+        // Asset is in session, select it for inspection
+        setSelectedAsset(scannedSessionAsset);
+        setShowScanner(false);
+        setScannedAssetId(null);
+      } else {
+        // Asset not in session - check if it matches filters and offer to add
+        checkAndOfferToAddAsset(scannedAssetId);
+      }
+    }
+  }, [scannedAssetId, scannedSessionAsset, scanLookupLoading]);
+  
+  const checkAndOfferToAddAsset = async (assetId: string) => {
+    if (!profile?.tenant_id || !session) return;
+    
+    try {
+      // Get asset details
+      const { data: asset, error } = await supabase
+        .from('hsse_assets')
+        .select('id, name, asset_code, site_id, building_id, floor_zone_id, category_id, type_id')
+        .eq('id', assetId)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
+        .single();
+      
+      if (error || !asset) {
+        toast({
+          title: t('common.error'),
+          description: t('inspectionSessions.assetNotFound'),
+          variant: 'destructive',
+        });
+        setScannedAssetId(null);
+        return;
+      }
+      
+      // Check if asset matches session filters
+      let matches = true;
+      if (session.site_id && asset.site_id !== session.site_id) matches = false;
+      if (session.building_id && asset.building_id !== session.building_id) matches = false;
+      if (session.category_id && asset.category_id !== session.category_id) matches = false;
+      if (session.type_id && asset.type_id !== session.type_id) matches = false;
+      
+      if (matches) {
+        // Asset matches filters, offer to add
+        setPendingAssetToAdd({ id: asset.id, name: asset.name, code: asset.asset_code });
+        setShowAddAssetDialog(true);
+      } else {
+        toast({
+          title: t('common.error'),
+          description: t('inspectionSessions.assetDoesNotMatchFilters'),
+          variant: 'destructive',
+        });
+      }
+      
       setScannedAssetId(null);
-    } else if (scannedAssetId && !scannedSessionAsset && !scanLookupLoading) {
-      // Asset not in this session
+      setShowScanner(false);
+    } catch (error: any) {
       toast({
         title: t('common.error'),
-        description: t('inspectionSessions.assetNotInSession'),
+        description: error.message,
         variant: 'destructive',
       });
       setScannedAssetId(null);
     }
-  }, [scannedAssetId, scannedSessionAsset, scanLookupLoading, t]);
+  };
+  
+  const handleAddAssetConfirm = async () => {
+    if (!pendingAssetToAdd || !sessionId) return;
+    
+    try {
+      await addAssetToSession.mutateAsync({ sessionId, assetId: pendingAssetToAdd.id });
+      toast({ title: t('common.success'), description: t('inspectionSessions.assetAddedToSession') });
+      setShowAddAssetDialog(false);
+      setPendingAssetToAdd(null);
+    } catch (error: any) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    }
+  };
+  
+  const handleRefreshAssets = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const result = await refreshSessionAssets.mutateAsync(sessionId);
+      if (result.added > 0) {
+        toast({ title: t('common.success'), description: t('inspectionSessions.assetsRefreshed', { count: result.added }) });
+      } else {
+        toast({ title: t('common.info'), description: t('inspectionSessions.noNewAssetsFound') });
+      }
+    } catch (error: any) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    }
+  };
   
   const handleQRScan = (assetId: string) => {
     setScannedAssetId(assetId);
@@ -136,6 +235,18 @@ function SessionWorkspaceContent() {
         <div className="flex items-center gap-2">
           {session.status === 'in_progress' && (
             <>
+              <Button 
+                variant="outline" 
+                onClick={handleRefreshAssets}
+                disabled={refreshSessionAssets.isPending}
+              >
+                {refreshSessionAssets.isPending ? (
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="me-2 h-4 w-4" />
+                )}
+                {t('inspectionSessions.refreshAssets')}
+              </Button>
               <Button variant="outline" onClick={() => setShowScanner(true)}>
                 <QrCode className="me-2 h-4 w-4" />
                 {t('inspectionSessions.scanQR')}
@@ -251,6 +362,34 @@ function SessionWorkspaceContent() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Add Asset Confirmation Dialog */}
+      <AlertDialog open={showAddAssetDialog} onOpenChange={setShowAddAssetDialog}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('inspectionSessions.addAssetToSession')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('inspectionSessions.confirmAddAsset', { 
+                code: pendingAssetToAdd?.code, 
+                name: pendingAssetToAdd?.name 
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingAssetToAdd(null)}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleAddAssetConfirm}
+              disabled={addAssetToSession.isPending}
+            >
+              {addAssetToSession.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              <Plus className="me-2 h-4 w-4" />
+              {t('common.add')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

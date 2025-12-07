@@ -999,7 +999,15 @@
     "noAssetsFound": "कोई संपत्ति नहीं मिली",
     "noAssetsForFilters": "चयनित फ़िल्टर से कोई संपत्ति मेल नहीं खाती। साइट, श्रेणी या प्रकार फ़िल्टर समायोजित करें, या पहले सिस्टम में संपत्तियां जोड़ें।",
     "startInspection": "निरीक्षण शुरू करें",
-    "sessionCreated": "सत्र सफलतापूर्वक बनाया गया"
+    "sessionCreated": "सत्र सफलतापूर्वक बनाया गया",
+    "refreshAssets": "संपत्तियां रीफ्रेश करें",
+    "addAssetToSession": "सत्र में संपत्ति जोड़ें",
+    "confirmAddAsset": "क्या आप {{code}} ({{name}}) को इस निरीक्षण सत्र में जोड़ना चाहते हैं?",
+    "assetAddedToSession": "संपत्ति सफलतापूर्वक जोड़ी गई",
+    "assetsRefreshed": "{{count}} नई संपत्तियां सत्र में जोड़ी गईं",
+    "noNewAssetsFound": "कोई नई संपत्ति नहीं मिली",
+    "assetNotFound": "संपत्ति नहीं मिली",
+    "assetDoesNotMatchFilters": "यह संपत्ति सत्र फ़िल्टर से मेल नहीं खाती"
   },
   "securityAudit": {
     "title": "सुरक्षा ऑडिट लॉग",
@@ -2614,6 +2622,8 @@
     "templateDescription": "विवरण",
     "linkedCategory": "लिंक की गई संपत्ति श्रेणी",
     "linkedType": "लिंक की गई संपत्ति प्रकार",
+    "linkedBranch": "लिंक की गई शाखा",
+    "linkedSite": "लिंक की गई साइट",
     "selectCategory": "श्रेणी चुनें (वैकल्पिक)",
     "selectType": "प्रकार चुनें (वैकल्पिक)",
     "version": "संस्करण",

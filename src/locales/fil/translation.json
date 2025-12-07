@@ -999,7 +999,15 @@
     "noAssetsFound": "Walang nahanap na asset",
     "noAssetsForFilters": "Walang asset na tumutugma sa napiling mga filter. Subukang i-adjust ang site, category, o type filters, o magdagdag muna ng assets sa system.",
     "startInspection": "Simulan ang Inspeksyon",
-    "sessionCreated": "Matagumpay na nagawa ang session"
+    "sessionCreated": "Matagumpay na nagawa ang session",
+    "refreshAssets": "I-refresh ang Assets",
+    "addAssetToSession": "Idagdag ang Asset sa Session",
+    "confirmAddAsset": "Gusto mo bang idagdag ang {{code}} ({{name}}) sa inspection session na ito?",
+    "assetAddedToSession": "Matagumpay na naidagdag ang asset",
+    "assetsRefreshed": "{{count}} bagong assets ang naidagdag sa session",
+    "noNewAssetsFound": "Walang bagong assets na nahanap",
+    "assetNotFound": "Hindi nahanap ang asset",
+    "assetDoesNotMatchFilters": "Ang asset na ito ay hindi tumutugma sa session filters"
   },
   "securityAudit": {
     "title": "Security Audit Log",
@@ -2614,6 +2622,8 @@
     "templateDescription": "Paglalarawan",
     "linkedCategory": "Naka-link na Asset Category",
     "linkedType": "Naka-link na Asset Type",
+    "linkedBranch": "Naka-link na Branch",
+    "linkedSite": "Naka-link na Site",
     "selectCategory": "Pumili ng kategorya (opsyonal)",
     "selectType": "Pumili ng uri (opsyonal)",
     "version": "Bersyon",

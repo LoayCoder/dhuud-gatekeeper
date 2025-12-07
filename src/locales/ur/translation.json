@@ -999,7 +999,15 @@
     "noAssetsFound": "کوئی اثاثہ نہیں ملا",
     "noAssetsForFilters": "منتخب فلٹرز سے کوئی اثاثہ میل نہیں کھاتا۔ سائٹ، زمرے یا قسم کے فلٹرز کو ایڈجسٹ کریں، یا پہلے سسٹم میں اثاثے شامل کریں۔",
     "startInspection": "معائنہ شروع کریں",
-    "sessionCreated": "سیشن کامیابی سے بنایا گیا"
+    "sessionCreated": "سیشن کامیابی سے بنایا گیا",
+    "refreshAssets": "اثاثے تازہ کریں",
+    "addAssetToSession": "سیشن میں اثاثہ شامل کریں",
+    "confirmAddAsset": "کیا آپ {{code}} ({{name}}) کو اس معائنہ سیشن میں شامل کرنا چاہتے ہیں؟",
+    "assetAddedToSession": "اثاثہ کامیابی سے شامل کیا گیا",
+    "assetsRefreshed": "{{count}} نئے اثاثے سیشن میں شامل کیے گئے",
+    "noNewAssetsFound": "کوئی نئے اثاثے نہیں ملے",
+    "assetNotFound": "اثاثہ نہیں ملا",
+    "assetDoesNotMatchFilters": "یہ اثاثہ سیشن کے فلٹرز سے میل نہیں کھاتا"
   },
   "securityAudit": {
     "title": "سیکیورٹی آڈٹ لاگ",
@@ -2614,6 +2622,8 @@
     "templateDescription": "تفصیل",
     "linkedCategory": "منسلک اثاثہ زمرہ",
     "linkedType": "منسلک اثاثہ قسم",
+    "linkedBranch": "منسلک شاخ",
+    "linkedSite": "منسلک سائٹ",
     "selectCategory": "زمرہ منتخب کریں (اختیاری)",
     "selectType": "قسم منتخب کریں (اختیاری)",
     "version": "ورژن",
