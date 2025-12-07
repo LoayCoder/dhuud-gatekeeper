@@ -4638,6 +4638,7 @@ export type Database = {
             }
             Returns: Json
           }
+      can_close_area_session: { Args: { p_session_id: string }; Returns: Json }
       can_close_investigation: {
         Args: { p_incident_id: string }
         Returns: Json

@@ -2892,6 +2892,31 @@
       "riskLevel.medium": "متوسط",
       "riskLevel.high": "عالي",
       "riskLevel.critical": "حرج"
+    },
+    "session": {
+      "status": "حالة الجلسة",
+      "statusDraft": "مسودة",
+      "statusInProgress": "قيد التنفيذ",
+      "statusCompleted": "مكتمل - إجراءات معلقة",
+      "statusClosed": "مغلق",
+      "complete": "إكمال الفحص",
+      "close": "إغلاق الجلسة",
+      "start": "بدء الفحص",
+      "cannotClose": "لا يمكن الإغلاق: إجراءات معلقة",
+      "confirmComplete": "إكمال الفحص؟",
+      "confirmClose": "إغلاق الجلسة؟",
+      "completeDescription": "سيتم تعليم الفحص كمكتمل. يمكنك الاستمرار في إدارة النتائج والإجراءات.",
+      "closeDescription": "سيتم قفل الجلسة. لن يُسمح بأي تغييرات أخرى.",
+      "itemsProgress": "تقدم العناصر",
+      "itemsLabel": "العناصر",
+      "findingsOpen": "{{count}} نتيجة مفتوحة",
+      "actionsVerified": "تم التحقق من جميع الإجراءات",
+      "sessionLocked": "هذه الجلسة مقفلة ولا يمكن تعديلها",
+      "reopenSession": "إعادة فتح الجلسة",
+      "noActionAssigned": "لم يتم تعيين إجراء",
+      "pendingActions": "الإجراءات المعلقة",
+      "warningItemsIncomplete": "بعض عناصر القائمة لم تتم الإجابة عليها.",
+      "warningOpenFindings": "توجد نتائج مفتوحة بدون إجراءات تم التحقق منها."
     }
   }
 }

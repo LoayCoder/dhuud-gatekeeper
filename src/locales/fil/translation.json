@@ -2810,6 +2810,31 @@
       "riskLevel.medium": "Katamtaman",
       "riskLevel.high": "Mataas",
       "riskLevel.critical": "Kritikal"
+    },
+    "session": {
+      "status": "Status ng Session",
+      "statusDraft": "Draft",
+      "statusInProgress": "Kasalukuyang Ginagawa",
+      "statusCompleted": "Natapos - May Pending na Aksyon",
+      "statusClosed": "Sarado",
+      "complete": "Kumpletuhin ang Inspeksyon",
+      "close": "Isara ang Session",
+      "start": "Simulan ang Inspeksyon",
+      "cannotClose": "Hindi maisara: may mga pending na aksyon",
+      "confirmComplete": "Kumpletuhin ang Inspeksyon?",
+      "confirmClose": "Isara ang Session?",
+      "completeDescription": "Mamarkahan itong tapos na ang inspeksyon. Maaari mo pa ring pamahalaan ang mga natuklasan at aksyon.",
+      "closeDescription": "Ila-lock nito ang session. Hindi na papayagan ang mga karagdagang pagbabago.",
+      "itemsProgress": "Progreso ng mga Item",
+      "itemsLabel": "Mga Item",
+      "findingsOpen": "{{count}} bukas na natuklasan",
+      "actionsVerified": "Lahat ng aksyon ay na-verify",
+      "sessionLocked": "Naka-lock ang session na ito at hindi na mababago",
+      "reopenSession": "Buksan Muli ang Session",
+      "noActionAssigned": "Walang naka-assign na aksyon",
+      "pendingActions": "Mga Pending na Aksyon",
+      "warningItemsIncomplete": "May ilang checklist item na hindi pa nasasagot.",
+      "warningOpenFindings": "May mga bukas na natuklasan na walang verified na aksyon."
     }
   }
 }

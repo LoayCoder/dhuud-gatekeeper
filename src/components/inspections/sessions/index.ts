@@ -11,3 +11,5 @@ export { BulkInspectionScanner } from './BulkInspectionScanner';
 export { SessionStatusBadge } from './SessionStatusBadge';
 export { InspectionPhotoUpload } from './InspectionPhotoUpload';
 export { FindingsPanel } from './FindingsPanel';
+export { SessionStatusCard } from './SessionStatusCard';
+export { SessionCompletionDialog } from './SessionCompletionDialog';
