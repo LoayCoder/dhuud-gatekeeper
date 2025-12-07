@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.send-incident-email]
 verify_jwt = false
 
+[functions.send-action-email]
+verify_jwt = false
+
 [functions.inspection-reminders]
 verify_jwt = false
 

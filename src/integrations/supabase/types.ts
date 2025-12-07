@@ -1946,6 +1946,12 @@ export type Database = {
         Row: {
           ai_analysis_result: Json | null
           branch_id: string | null
+          closure_approved_at: string | null
+          closure_approved_by: string | null
+          closure_rejection_notes: string | null
+          closure_request_notes: string | null
+          closure_requested_at: string | null
+          closure_requested_by: string | null
           created_at: string | null
           damage_details: Json | null
           deleted_at: string | null
@@ -1986,6 +1992,12 @@ export type Database = {
         Insert: {
           ai_analysis_result?: Json | null
           branch_id?: string | null
+          closure_approved_at?: string | null
+          closure_approved_by?: string | null
+          closure_rejection_notes?: string | null
+          closure_request_notes?: string | null
+          closure_requested_at?: string | null
+          closure_requested_by?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -2026,6 +2038,12 @@ export type Database = {
         Update: {
           ai_analysis_result?: Json | null
           branch_id?: string | null
+          closure_approved_at?: string | null
+          closure_approved_by?: string | null
+          closure_rejection_notes?: string | null
+          closure_request_notes?: string | null
+          closure_requested_at?: string | null
+          closure_requested_by?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -2069,6 +2087,20 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_closure_approved_by_fkey"
+            columns: ["closure_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_closure_requested_by_fkey"
+            columns: ["closure_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

@@ -342,6 +342,36 @@ export function useCreateCorrectiveAction() {
         new_value: { action_id: data.id, title: action.title },
       });
 
+      // Send email notification if assigned
+      if (action.assigned_to) {
+        try {
+          const { data: assignee } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', action.assigned_to)
+            .single();
+          
+          const { data: assigneeAuth } = await supabase.auth.admin.getUserById(action.assigned_to);
+          
+          if (assigneeAuth?.user?.email) {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'action_assigned',
+                recipient_email: assigneeAuth.user.email,
+                recipient_name: assignee?.full_name || 'Team Member',
+                action_title: action.title,
+                action_priority: action.priority,
+                action_description: action.description,
+                due_date: action.due_date,
+                incident_reference: action.incident_id,
+              },
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send action assignment email:', emailError);
+        }
+      }
+
       return data;
     },
     onSuccess: (data) => {
