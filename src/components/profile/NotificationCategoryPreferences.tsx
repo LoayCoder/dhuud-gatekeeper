@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshCw, Bell, Info, AlertTriangle } from "lucide-react";
+import { RefreshCw, Bell, Info, AlertTriangle, Siren } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,6 +20,7 @@ const categoryConfig: {
   { type: 'update', icon: Bell, colorClass: 'text-green-500' },
   { type: 'info', icon: Info, colorClass: 'text-muted-foreground' },
   { type: 'error', icon: AlertTriangle, colorClass: 'text-destructive' },
+  { type: 'urgent', icon: Siren, colorClass: 'text-orange-500' },
 ];
 
 export function NotificationCategoryPreferences() {

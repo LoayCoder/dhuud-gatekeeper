@@ -2243,7 +2243,46 @@
       "sync": "Mga notification kapag na-sync ang mga offline na pagbabago",
       "update": "Mga approval ng subscription, update ng feature, at mga pagbabago",
       "info": "Pangkalahatang impormasyon at mga update sa status",
-      "error": "Mga security alert, error, at kritikal na babala"
+      "error": "Mga security alert, error, at kritikal na babala",
+      "urgent": "Mga kritikal na SLA escalation at overdue na aksyon na nangangailangan ng agarang pansin"
+    },
+    "category": {
+      "sync": "Mga Sync Notification",
+      "update": "Mga Update at Approval",
+      "info": "Mga Impormasyon na Alerto",
+      "error": "Mga Security at Error na Alerto",
+      "urgent": "Mga Urgent SLA Alerto"
+    },
+    "digestPreferences": "Mga Preference sa Digest Email",
+    "digestPreferencesDescription": "I-configure kung kailan at paano ka makakatanggap ng araw-araw na digest email",
+    "digestOptIn": "Tumanggap ng Araw-araw na Digest",
+    "digestOptInDescription": "Kumuha ng araw-araw na buod ng mga pending na approval at escalated na aksyon",
+    "digestTime": "Gustong Oras ng Paghatid",
+    "digestTimeDescription": "Piliin kung kailan mo gustong matanggap ang iyong araw-araw na digest email",
+    "digestTimezone": "Timezone",
+    "digestTimezoneDescription": "Ang iyong lokal na timezone para sa scheduling ng paghatid",
+    "digestSaved": "Na-save ang mga digest preference",
+    "slaDashboard": {
+      "title": "SLA Dashboard",
+      "description": "Real-time na pagsubaybay sa SLA status ng corrective action",
+      "liveUpdates": "Mga Live Update",
+      "connected": "Konektado",
+      "actionsAtRisk": "Mga Aksyon sa Panganib",
+      "overdueActions": "Mga Overdue na Aksyon",
+      "escalatedActions": "Mga Escalated na Aksyon",
+      "onTrackActions": "Mga Aksyon na On Track",
+      "noActionsToDisplay": "Walang aksyon na ipapakita",
+      "allActionsOnTrack": "Lahat ng aksyon ay on track",
+      "timeRemaining": "Natitirang Oras",
+      "overdue": "Overdue",
+      "escalationLevel": "Antas ng Escalation",
+      "atRisk": "Sa Panganib",
+      "onTrack": "On Track",
+      "status": "Status",
+      "assignedTo": "Itinalaga Sa",
+      "dueDate": "Due Date",
+      "priority": "Priyoridad",
+      "level": "Antas"
     }
   },
   "currencies": {
