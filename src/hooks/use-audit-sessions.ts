@@ -140,25 +140,24 @@ export function useAuditTemplate(templateId: string | undefined) {
 }
 
 export function useAuditTemplateItems(templateId: string | undefined) {
-  return useQuery<AuditTemplateItem[]>({
+  return useQuery({
     queryKey: ['audit-template-items', templateId],
-    queryFn: async (): Promise<AuditTemplateItem[]> => {
-      if (!templateId) return [];
+    queryFn: async () => {
+      if (!templateId) return [] as AuditTemplateItem[];
       
-      const { data, error } = await supabase
-        .from('inspection_template_items')
-        .select(`
-          id, template_id, question, question_ar, response_type,
-          clause_reference, scoring_weight, nc_category,
-          is_critical, is_required, instructions, instructions_ar, sort_order
-        `)
+      // Use type assertion to break deep type instantiation chain
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const query = supabase.from('inspection_template_items') as any;
+      const { data, error } = await query
+        .select('id, template_id, question, question_ar, response_type, clause_reference, scoring_weight, nc_category, is_critical, is_required, instructions, instructions_ar, sort_order')
         .eq('template_id', templateId)
         .is('deleted_at', null)
         .eq('is_active', true)
         .order('sort_order');
       
       if (error) throw error;
-      return data as AuditTemplateItem[];
+      
+      return ((data || []) as AuditTemplateItem[]);
     },
     enabled: !!templateId,
   });
