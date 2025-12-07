@@ -245,6 +245,7 @@ export function AuditChecklistItem({
                   responseId={response.id}
                   sessionId={sessionId}
                   tenantId={tenantId}
+                  templateItemId={item.id}
                   onPhotoCountChange={setPhotoCount}
                   isLocked={isLocked}
                 />
