@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
-import { FileEdit, Play, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
+import { FileEdit, Play, Lock, AlertTriangle } from 'lucide-react';
 
 interface SessionStatusBadgeProps {
   status: 'draft' | 'in_progress' | 'completed_with_open_actions' | 'closed';
