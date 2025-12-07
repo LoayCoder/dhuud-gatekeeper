@@ -23,6 +23,7 @@ import {
   useOverdueMaintenance,
   useRecentAssetActivity,
 } from "@/hooks/use-asset-dashboard";
+import { PendingTransfersCard } from "@/components/assets";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -212,6 +213,9 @@ export default function AssetDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Transfers */}
+      <PendingTransfersCard />
 
       {/* Alerts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
