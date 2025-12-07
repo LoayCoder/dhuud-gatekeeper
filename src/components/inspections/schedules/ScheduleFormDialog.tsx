@@ -456,9 +456,9 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                     <FormItem>
                       <FormLabel>{t('schedules.site')}</FormLabel>
                       <Select 
-                        value={field.value || ''} 
+                        value={field.value || '__none__'} 
                         onValueChange={(v) => {
-                          field.onChange(v || null);
+                          field.onChange(v === '__none__' ? null : v);
                           form.setValue('building_id', null);
                         }}
                         dir={direction}
@@ -469,7 +469,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">{t('schedules.allSites')}</SelectItem>
+                          <SelectItem value="__none__">{t('schedules.allSites')}</SelectItem>
                           {sites.map(site => (
                             <SelectItem key={site.id} value={site.id}>
                               {site.name}
@@ -489,8 +489,8 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                     <FormItem>
                       <FormLabel>{t('schedules.building')}</FormLabel>
                       <Select 
-                        value={field.value || ''} 
-                        onValueChange={(v) => field.onChange(v || null)}
+                        value={field.value || '__none__'} 
+                        onValueChange={(v) => field.onChange(v === '__none__' ? null : v)}
                         disabled={!selectedSiteId}
                         dir={direction}
                       >
@@ -500,7 +500,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">{t('schedules.allBuildings')}</SelectItem>
+                          <SelectItem value="__none__">{t('schedules.allBuildings')}</SelectItem>
                           {filteredBuildings.map(building => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name}
@@ -521,8 +521,8 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                   <FormItem>
                     <FormLabel>{t('schedules.assignedInspector')}</FormLabel>
                     <Select 
-                      value={field.value || ''} 
-                      onValueChange={(v) => field.onChange(v || null)}
+                      value={field.value || '__none__'} 
+                      onValueChange={(v) => field.onChange(v === '__none__' ? null : v)}
                       dir={direction}
                     >
                       <FormControl>
@@ -531,7 +531,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">{t('schedules.unassigned')}</SelectItem>
+                        <SelectItem value="__none__">{t('schedules.unassigned')}</SelectItem>
                         {profiles.map(profile => (
                           <SelectItem key={profile.id} value={profile.id}>
                             {profile.full_name}
