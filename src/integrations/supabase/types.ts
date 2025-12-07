@@ -2285,6 +2285,7 @@ export type Database = {
       }
       inspection_templates: {
         Row: {
+          branch_id: string | null
           category_id: string | null
           code: string
           created_at: string | null
@@ -2295,12 +2296,14 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_ar: string | null
+          site_id: string | null
           tenant_id: string
           type_id: string | null
           updated_at: string | null
           version: number | null
         }
         Insert: {
+          branch_id?: string | null
           category_id?: string | null
           code: string
           created_at?: string | null
@@ -2311,12 +2314,14 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_ar?: string | null
+          site_id?: string | null
           tenant_id: string
           type_id?: string | null
           updated_at?: string | null
           version?: number | null
         }
         Update: {
+          branch_id?: string | null
           category_id?: string | null
           code?: string
           created_at?: string | null
@@ -2327,12 +2332,20 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_ar?: string | null
+          site_id?: string | null
           tenant_id?: string
           type_id?: string | null
           updated_at?: string | null
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inspection_templates_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inspection_templates_category_id_fkey"
             columns: ["category_id"]
@@ -2345,6 +2358,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {

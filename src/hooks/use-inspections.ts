@@ -13,6 +13,8 @@ export interface InspectionTemplate {
   description: string | null;
   category_id: string | null;
   type_id: string | null;
+  branch_id: string | null;
+  site_id: string | null;
   version: number;
   is_active: boolean;
   created_by: string | null;
@@ -21,6 +23,8 @@ export interface InspectionTemplate {
   items?: TemplateItem[];
   category?: { name: string; name_ar: string | null };
   type?: { name: string; name_ar: string | null };
+  branch?: { name: string };
+  site?: { name: string };
 }
 
 export interface TemplateItem {
@@ -86,9 +90,11 @@ export function useInspectionTemplates() {
         .from('inspection_templates')
         .select(`
           id, tenant_id, code, name, name_ar, description,
-          category_id, type_id, version, is_active, created_by, created_at, updated_at,
+          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
-          type:asset_types(name, name_ar)
+          type:asset_types(name, name_ar),
+          branch:branches(name),
+          site:sites(name)
         `)
         .is('deleted_at', null)
         .order('name');
@@ -110,9 +116,11 @@ export function useInspectionTemplate(templateId: string | undefined) {
         .from('inspection_templates')
         .select(`
           id, tenant_id, code, name, name_ar, description,
-          category_id, type_id, version, is_active, created_by, created_at, updated_at,
+          category_id, type_id, branch_id, site_id, version, is_active, created_by, created_at, updated_at,
           category:asset_categories(name, name_ar),
-          type:asset_types(name, name_ar)
+          type:asset_types(name, name_ar),
+          branch:branches(name),
+          site:sites(name)
         `)
         .eq('id', templateId!)
         .single();
