@@ -2782,6 +2782,34 @@
       "invalidType": "صرف تصویری فائلز کی اجازت ہے",
       "saveFirst": "تصاویر شامل کرنے کے لیے پہلے سوال کا جواب دیں",
       "saveFirstError": "تصاویر شامل کرنے سے پہلے براہ کرم سوال کا جواب دیں"
+    },
+    "findings": {
+      "title": "نتائج",
+      "noFindings": "کوئی نتائج درج نہیں",
+      "noMatchingFindings": "منتخب فلٹر سے کوئی نتائج میچ نہیں",
+      "noDescription": "کوئی تفصیل نہیں",
+      "editFinding": "نتیجہ ترمیم کریں",
+      "updated": "نتیجہ اپڈیٹ ہوگیا",
+      "closed": "نتیجہ بند",
+      "actionLinked": "نتیجہ کارروائی سے منسلک",
+      "statusOpen": "کھلا",
+      "statusActionAssigned": "کارروائی تفویض",
+      "statusClosed": "بند",
+      "classification": "درجہ بندی",
+      "riskLevel": "خطرے کی سطح",
+      "recommendation": "سفارش",
+      "recommendationPlaceholder": "تجویز کردہ اصلاحی اقدام درج کریں...",
+      "createAction": "کارروائی بنائیں",
+      "linkedAction": "منسلک کارروائی",
+      "classification.minor_nc": "معمولی عدم مطابقت",
+      "classification.major_nc": "بڑی عدم مطابقت",
+      "classification.critical_nc": "نازک عدم مطابقت",
+      "classification.observation": "مشاہدہ",
+      "classification.ofi": "بہتری کا موقع",
+      "riskLevel.low": "کم",
+      "riskLevel.medium": "درمیانہ",
+      "riskLevel.high": "زیادہ",
+      "riskLevel.critical": "نازک"
     }
   }
 }

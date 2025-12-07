@@ -2782,6 +2782,34 @@
       "invalidType": "केवल छवि फ़ाइलों की अनुमति है",
       "saveFirst": "फोटो जोड़ने के लिए पहले प्रश्न का उत्तर दें",
       "saveFirstError": "फोटो जोड़ने से पहले कृपया प्रश्न का उत्तर दें"
+    },
+    "findings": {
+      "title": "निष्कर्ष",
+      "noFindings": "कोई निष्कर्ष दर्ज नहीं",
+      "noMatchingFindings": "चयनित फ़िल्टर से कोई निष्कर्ष मेल नहीं खाता",
+      "noDescription": "कोई विवरण नहीं",
+      "editFinding": "निष्कर्ष संपादित करें",
+      "updated": "निष्कर्ष अपडेट किया गया",
+      "closed": "निष्कर्ष बंद",
+      "actionLinked": "निष्कर्ष कार्रवाई से जुड़ा",
+      "statusOpen": "खुला",
+      "statusActionAssigned": "कार्रवाई सौंपी गई",
+      "statusClosed": "बंद",
+      "classification": "वर्गीकरण",
+      "riskLevel": "जोखिम स्तर",
+      "recommendation": "सिफारिश",
+      "recommendationPlaceholder": "अनुशंसित सुधारात्मक कार्रवाई दर्ज करें...",
+      "createAction": "कार्रवाई बनाएं",
+      "linkedAction": "जुड़ी कार्रवाई",
+      "classification.minor_nc": "मामूली गैर-अनुरूपता",
+      "classification.major_nc": "बड़ी गैर-अनुरूपता",
+      "classification.critical_nc": "गंभीर गैर-अनुरूपता",
+      "classification.observation": "अवलोकन",
+      "classification.ofi": "सुधार का अवसर",
+      "riskLevel.low": "कम",
+      "riskLevel.medium": "मध्यम",
+      "riskLevel.high": "उच्च",
+      "riskLevel.critical": "गंभीर"
     }
   }
 }

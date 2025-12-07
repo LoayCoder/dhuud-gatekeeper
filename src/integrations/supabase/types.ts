@@ -120,6 +120,106 @@ export type Database = {
         }
         Relationships: []
       }
+      area_inspection_findings: {
+        Row: {
+          classification: string
+          closed_at: string | null
+          closed_by: string | null
+          corrective_action_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          recommendation: string | null
+          reference_id: string
+          response_id: string
+          risk_level: string | null
+          session_id: string
+          status: string | null
+          tenant_id: string
+        }
+        Insert: {
+          classification?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          corrective_action_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          recommendation?: string | null
+          reference_id: string
+          response_id: string
+          risk_level?: string | null
+          session_id: string
+          status?: string | null
+          tenant_id: string
+        }
+        Update: {
+          classification?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          corrective_action_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          recommendation?: string | null
+          reference_id?: string
+          response_id?: string
+          risk_level?: string | null
+          session_id?: string
+          status?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_inspection_findings_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_corrective_action_id_fkey"
+            columns: ["corrective_action_id"]
+            isOneToOne: false
+            referencedRelation: "corrective_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "area_inspection_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       area_inspection_photos: {
         Row: {
           caption: string | null

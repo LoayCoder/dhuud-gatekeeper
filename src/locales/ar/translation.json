@@ -2864,6 +2864,34 @@
       "invalidType": "يُسمح فقط بملفات الصور",
       "saveFirst": "أجب على السؤال أولاً لإضافة الصور",
       "saveFirstError": "الرجاء الإجابة على السؤال قبل إضافة الصور"
+    },
+    "findings": {
+      "title": "النتائج",
+      "noFindings": "لا توجد نتائج مسجلة",
+      "noMatchingFindings": "لا توجد نتائج تطابق الفلتر المحدد",
+      "noDescription": "لا يوجد وصف",
+      "editFinding": "تعديل النتيجة",
+      "updated": "تم تحديث النتيجة",
+      "closed": "تم إغلاق النتيجة",
+      "actionLinked": "تم ربط النتيجة بالإجراء",
+      "statusOpen": "مفتوح",
+      "statusActionAssigned": "تم تعيين إجراء",
+      "statusClosed": "مغلق",
+      "classification": "التصنيف",
+      "riskLevel": "مستوى الخطر",
+      "recommendation": "التوصية",
+      "recommendationPlaceholder": "أدخل الإجراء التصحيحي الموصى به...",
+      "createAction": "إنشاء إجراء",
+      "linkedAction": "الإجراء المرتبط",
+      "classification.minor_nc": "عدم مطابقة بسيط",
+      "classification.major_nc": "عدم مطابقة كبير",
+      "classification.critical_nc": "عدم مطابقة حرج",
+      "classification.observation": "ملاحظة",
+      "classification.ofi": "فرصة للتحسين",
+      "riskLevel.low": "منخفض",
+      "riskLevel.medium": "متوسط",
+      "riskLevel.high": "عالي",
+      "riskLevel.critical": "حرج"
     }
   }
 }

@@ -301,6 +301,8 @@ export function useSaveAreaResponse() {
         responded_at: new Date().toISOString(),
       };
       
+      let responseRecord;
+      
       if (existing) {
         // Update existing response
         const { data, error } = await supabase
@@ -311,7 +313,7 @@ export function useSaveAreaResponse() {
           .single();
         
         if (error) throw error;
-        return data;
+        responseRecord = data;
       } else {
         // Insert new response
         const { data, error } = await supabase
@@ -326,12 +328,55 @@ export function useSaveAreaResponse() {
           .single();
         
         if (error) throw error;
-        return data;
+        responseRecord = data;
       }
+      
+      // Auto-create finding on FAIL result
+      if (input.result === 'fail') {
+        // Check if finding already exists
+        const { data: existingFinding } = await supabase
+          .from('area_inspection_findings')
+          .select('id')
+          .eq('response_id', responseRecord.id)
+          .is('deleted_at', null)
+          .maybeSingle();
+        
+        if (!existingFinding) {
+          // Create new finding
+          await supabase
+            .from('area_inspection_findings')
+            .insert({
+              tenant_id: profile.tenant_id,
+              session_id: input.session_id,
+              response_id: responseRecord.id,
+              reference_id: '', // Will be set by trigger
+              classification: 'observation',
+              risk_level: 'medium',
+              status: 'open',
+              created_by: user.id,
+            });
+        }
+      } else if (input.result === 'pass' || input.result === 'na') {
+        // Close any existing finding if result changed to pass/na
+        await supabase
+          .from('area_inspection_findings')
+          .update({
+            status: 'closed',
+            closed_at: new Date().toISOString(),
+            closed_by: user.id,
+          })
+          .eq('response_id', responseRecord.id)
+          .eq('status', 'open')
+          .is('deleted_at', null);
+      }
+      
+      return responseRecord;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['area-inspection-responses', data.session_id] });
       queryClient.invalidateQueries({ queryKey: ['area-checklist-progress', data.session_id] });
+      queryClient.invalidateQueries({ queryKey: ['area-findings', data.session_id] });
+      queryClient.invalidateQueries({ queryKey: ['area-findings-count', data.session_id] });
     },
   });
 }
