@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SessionAsset } from '@/hooks/use-inspection-sessions';
+import type { SessionAsset } from '@/hooks/use-inspection-sessions';
 
 interface UninspectedAssetsListProps {
   assets: SessionAsset[];

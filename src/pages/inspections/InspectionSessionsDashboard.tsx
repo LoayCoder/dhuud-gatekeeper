@@ -1,4 +1,5 @@
 import { useState } from 'react';
+// Inspection Sessions Dashboard - Type imports fixed for Vite bundling
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Plus, ClipboardList, Calendar, User, MapPin, MoreVertical, Pencil, Trash2 } from 'lucide-react';
