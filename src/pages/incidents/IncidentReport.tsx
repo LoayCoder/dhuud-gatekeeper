@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -520,13 +521,21 @@ export default function IncidentReport() {
           try {
             // Upload photos in parallel with image compression
             if (uploadedPhotos.length > 0) {
+              console.log(`Uploading ${uploadedPhotos.length} photos for incident ${data.id}`);
               await uploadFilesParallel(
                 uploadedPhotos,
                 async (file, index) => {
                   const fileName = `${Date.now()}-${index}-${file.name}`;
-                  await supabase.storage
+                  const uploadPath = `${profile.tenant_id}/${data.id}/photos/${fileName}`;
+                  console.log(`Uploading photo to: ${uploadPath}`);
+                  const { error: uploadError } = await supabase.storage
                     .from('incident-attachments')
-                    .upload(`${profile.tenant_id}/${data.id}/photos/${fileName}`, file);
+                    .upload(uploadPath, file);
+                  if (uploadError) {
+                    console.error(`Photo upload failed: ${file.name}`, uploadError);
+                    throw new Error(`Failed to upload photo: ${file.name} - ${uploadError.message}`);
+                  }
+                  console.log(`Photo uploaded successfully: ${fileName}`);
                 },
                 { compressImages: true, maxWidth: 1920, quality: 0.85 }
               );
@@ -535,21 +544,34 @@ export default function IncidentReport() {
             // Upload video (no compression)
             if (uploadedVideo) {
               const fileName = `${Date.now()}-${uploadedVideo.name}`;
-              await supabase.storage
+              const uploadPath = `${profile.tenant_id}/${data.id}/video/${fileName}`;
+              console.log(`Uploading video to: ${uploadPath}`);
+              const { error: videoError } = await supabase.storage
                 .from('incident-attachments')
-                .upload(`${profile.tenant_id}/${data.id}/video/${fileName}`, uploadedVideo);
+                .upload(uploadPath, uploadedVideo);
+              if (videoError) {
+                console.error(`Video upload failed: ${uploadedVideo.name}`, videoError);
+                toast.error(t('incidents.videoUploadFailed', 'Failed to upload video'));
+              } else {
+                console.log(`Video uploaded successfully: ${fileName}`);
+              }
             }
 
             // Upload "Closed on the Spot" photos in parallel
             if (closedOnSpotPhotos.length > 0) {
+              console.log(`Uploading ${closedOnSpotPhotos.length} closed-on-spot photos`);
               const paths = await uploadFilesParallel(
                 closedOnSpotPhotos,
                 async (file, index) => {
                   const fileName = `${Date.now()}-${index}-${file.name}`;
                   const photoPath = `${profile.tenant_id}/${data.id}/closed-on-spot/${fileName}`;
-                  await supabase.storage
+                  const { error: cosError } = await supabase.storage
                     .from('incident-attachments')
                     .upload(photoPath, file);
+                  if (cosError) {
+                    console.error(`Closed-on-spot photo upload failed: ${file.name}`, cosError);
+                    throw new Error(`Failed to upload photo: ${file.name}`);
+                  }
                   return photoPath;
                 },
                 { compressImages: true, maxWidth: 1920, quality: 0.85 }
@@ -571,6 +593,7 @@ export default function IncidentReport() {
             }
           } catch (error) {
             console.error('Media upload error:', error);
+            toast.error(t('incidents.mediaUploadFailed', 'Failed to upload some media files'));
           } finally {
             setIsUploading(false);
           }
