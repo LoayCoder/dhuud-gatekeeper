@@ -36,43 +36,58 @@ export function IncidentAttachmentsSection({
   const direction = i18n.dir();
   const { profile } = useAuth();
 
-  // Fetch evidence files from storage bucket
+  // Fetch evidence files from storage bucket - including all subfolders
   const { data: evidenceFiles, isLoading } = useQuery({
     queryKey: ['incident-attachments', incidentId, profile?.tenant_id],
     queryFn: async (): Promise<StorageFile[]> => {
       if (!profile?.tenant_id || !incidentId) return [];
       
       const storagePath = `${profile.tenant_id}/${incidentId}`;
+      const allFiles: StorageFile[] = [];
       
-      const { data: files, error } = await supabase.storage
-        .from('incident-attachments')
-        .list(storagePath);
+      // Known subfolders where files are uploaded
+      const subfolders = ['photos', 'video', 'closed-on-spot', 'evidence', ''];
       
-      if (error) {
-        console.error('Error fetching evidence files:', error);
-        return [];
+      for (const subfolder of subfolders) {
+        const folderPath = subfolder ? `${storagePath}/${subfolder}` : storagePath;
+        
+        const { data: files, error } = await supabase.storage
+          .from('incident-attachments')
+          .list(folderPath);
+        
+        if (error) {
+          console.error(`Error fetching files from ${folderPath}:`, error);
+          continue;
+        }
+
+        if (!files || files.length === 0) continue;
+
+        // Filter out folder entries (they have null id in some cases or no metadata)
+        const actualFiles = files.filter(f => f.name && !f.name.endsWith('/') && f.id);
+
+        // Get signed URLs for all files in this subfolder
+        const filesWithUrls = await Promise.all(
+          actualFiles.map(async (file) => {
+            const fullPath = subfolder ? `${storagePath}/${subfolder}/${file.name}` : `${storagePath}/${file.name}`;
+            const { data: signedUrl } = await supabase.storage
+              .from('incident-attachments')
+              .createSignedUrl(fullPath, 3600);
+            
+            return {
+              name: file.name,
+              url: signedUrl?.signedUrl || '',
+              type: file.metadata?.mimetype || getFileType(file.name),
+              size: file.metadata?.size || 0,
+              createdAt: file.created_at || '',
+              subfolder
+            };
+          })
+        );
+
+        allFiles.push(...filesWithUrls.filter(f => f.url));
       }
 
-      if (!files || files.length === 0) return [];
-
-      // Get signed URLs for all files
-      const filesWithUrls = await Promise.all(
-        files.map(async (file) => {
-          const { data: signedUrl } = await supabase.storage
-            .from('incident-attachments')
-            .createSignedUrl(`${storagePath}/${file.name}`, 3600);
-          
-          return {
-            name: file.name,
-            url: signedUrl?.signedUrl || '',
-            type: file.metadata?.mimetype || getFileType(file.name),
-            size: file.metadata?.size || 0,
-            createdAt: file.created_at || ''
-          };
-        })
-      );
-
-      return filesWithUrls.filter(f => f.url);
+      return allFiles;
     },
     enabled: !!profile?.tenant_id && !!incidentId
   });
