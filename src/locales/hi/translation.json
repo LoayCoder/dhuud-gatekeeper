@@ -104,6 +104,7 @@
     "delete": "घटना हटाएं",
     "deleteConfirm": "क्या आप वाकई इस घटना को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
     "deleteSuccess": "घटना सफलतापूर्वक हटा दी गई",
+    "cannotDeleteClosed": "बंद घटनाओं को हटाया नहीं जा सकता",
     "startInvestigation": "जांच शुरू करें",
     "investigationStarted": "जांच शुरू हो गई",
     "changeStatus": "स्थिति बदलें",

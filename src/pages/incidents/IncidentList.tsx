@@ -51,9 +51,10 @@ export default function IncidentList() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const { data: incidents, isLoading } = useIncidents();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [incidentToDeleteStatus, setIncidentToDeleteStatus] = useState<string | null>(null);
   const [incidentToDelete, setIncidentToDelete] = useState<string | null>(null);
 
   const deleteIncident = useDeleteIncident();
@@ -73,9 +74,14 @@ export default function IncidentList() {
     navigate(`/incidents/investigate?incident=${incidentId}`);
   };
 
-  const handleDeleteClick = (incidentId: string) => {
+  const handleDeleteClick = (incidentId: string, status: string | null) => {
     setIncidentToDelete(incidentId);
+    setIncidentToDeleteStatus(status);
     setDeleteDialogOpen(true);
+  };
+
+  const canDeleteIncident = (status: string | null) => {
+    return isAdmin && status !== 'closed';
   };
 
   const handleConfirmDelete = async () => {
@@ -160,14 +166,18 @@ export default function IncidentList() {
                               {t('common.view')} {t('common.details')}
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteClick(incident.id)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 me-2" />
-                            {t('incidents.delete')}
-                          </DropdownMenuItem>
+                          {canDeleteIncident(incident.status) && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClick(incident.id, incident.status)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 me-2" />
+                                {t('incidents.delete')}
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}

@@ -52,7 +52,7 @@ export default function IncidentDetail() {
   const direction = i18n.dir();
   const navigate = useNavigate();
   const { data: incident, isLoading } = useIncident(id);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -168,14 +168,18 @@ export default function IncidentDetail() {
                     {t('navigation.investigationWorkspace')}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 me-2" />
-                  {t('incidents.delete')}
-                </DropdownMenuItem>
+                {isAdmin && incident.status !== 'closed' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setDeleteDialogOpen(true)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 me-2" />
+                      {t('incidents.delete')}
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
