@@ -360,24 +360,9 @@ export function useDeleteIncident() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // First check if incident can be deleted (not closed)
-      const { data: incident, error: fetchError } = await supabase
-        .from('incidents')
-        .select('status')
-        .eq('id', id)
-        .single();
-
-      if (fetchError) throw fetchError;
-      
-      if (incident?.status === 'closed') {
-        throw new Error(t('incidents.cannotDeleteClosed'));
-      }
-
-      // Soft delete: set deleted_at timestamp
+      // Use RPC function that bypasses RLS with proper security checks
       const { error } = await supabase
-        .from('incidents')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+        .rpc('soft_delete_incident', { p_incident_id: id });
 
       if (error) throw error;
     },

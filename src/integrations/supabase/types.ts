@@ -5163,6 +5163,7 @@ export type Database = {
         Returns: Json
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
+      soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
       verify_mfa_backup_code: {
         Args: { p_code_hash: string; p_user_id: string }
         Returns: boolean
