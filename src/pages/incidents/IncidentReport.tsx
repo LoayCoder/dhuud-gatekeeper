@@ -408,8 +408,11 @@ export default function IncidentReport() {
         const eventTypeLabel = result.eventType === 'observation' 
           ? t('incidents.eventCategories.observation') 
           : t('incidents.eventCategories.incident');
+        // Convert snake_case to camelCase for translation key lookup
+        const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+        
         const subtypeLabel = result.subtype 
-          ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${result.subtype.replace(/_/g, '')}`, result.subtype)
+          ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${toCamelCase(result.subtype)}`, result.subtype)
           : '';
         
         import('sonner').then(({ toast }) => {
