@@ -129,6 +129,11 @@
     "detectType": "Detect Type",
     "suggestSeverity": "Suggest Severity",
     "suggestedType": "Suggested Type",
+    "ai": {
+      "typeDetected": "Event type detected",
+      "typeNotDetected": "Could not determine event type from description",
+      "detectionError": "Failed to detect event type"
+    },
     "site": "Site",
     "selectSite": "Select site",
     "branch": "Branch",

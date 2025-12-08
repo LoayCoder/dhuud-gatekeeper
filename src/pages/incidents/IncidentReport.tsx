@@ -404,7 +404,29 @@ export default function IncidentReport() {
         if (result.subtype) {
           form.setValue('subtype', result.subtype);
         }
+        // Show success toast with detected type
+        const eventTypeLabel = result.eventType === 'observation' 
+          ? t('incidents.eventCategories.observation') 
+          : t('incidents.eventCategories.incident');
+        const subtypeLabel = result.subtype 
+          ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${result.subtype.replace(/_/g, '')}`, result.subtype)
+          : '';
+        
+        import('sonner').then(({ toast }) => {
+          toast.success(t('incidents.ai.typeDetected'), {
+            description: `${eventTypeLabel}${subtypeLabel ? ` - ${subtypeLabel}` : ''}`
+          });
+        });
+      } else {
+        import('sonner').then(({ toast }) => {
+          toast.warning(t('incidents.ai.typeNotDetected'));
+        });
       }
+    } catch (error) {
+      console.error('Type detection error:', error);
+      import('sonner').then(({ toast }) => {
+        toast.error(t('incidents.ai.detectionError'));
+      });
     } finally {
       setIsDetectingType(false);
     }

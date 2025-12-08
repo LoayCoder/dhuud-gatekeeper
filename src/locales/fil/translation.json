@@ -191,6 +191,11 @@
     "detectType": "Tukuyin ang Uri",
     "suggestSeverity": "Imungkahi ang Kalubhaan",
     "suggestedType": "Iminungkahing Uri",
+    "ai": {
+      "typeDetected": "Natukoy ang uri ng pangyayari",
+      "typeNotDetected": "Hindi matukoy ang uri ng pangyayari mula sa paglalarawan",
+      "detectionError": "Nabigong tukuyin ang uri ng pangyayari"
+    },
     "site": "Site",
     "selectSite": "Pumili ng site",
     "branch": "Branch",

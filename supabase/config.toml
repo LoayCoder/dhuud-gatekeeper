@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.manage-deletion-password]
 verify_jwt = true
+
+[functions.detect-event-type]
+verify_jwt = false
