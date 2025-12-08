@@ -580,7 +580,18 @@
       "configureRole": "تكوين صلاحيات الدور",
       "selectRoleDescription": "اختر الدور لتكوين صلاحيات الوصول للقائمة",
       "selectRole": "اختر الدور",
-      "saved": "تم حفظ إعدادات صلاحيات القائمة بنجاح"
+      "saved": "تم حفظ إعدادات صلاحيات القائمة بنجاح",
+      "configuration": "الإعداد",
+      "auditLog": "سجل التدقيق",
+      "auditLogDescription": "سجل تغييرات صلاحيات القوائم",
+      "filterByRole": "تصفية حسب الدور",
+      "noAuditLogs": "لا توجد سجلات تدقيق",
+      "dateTime": "التاريخ/الوقت",
+      "role": "الدور",
+      "action": "الإجراء",
+      "menuItem": "عنصر القائمة",
+      "granted": "ممنوح",
+      "revoked": "مسحوب"
     }
   },
   "validation": {
