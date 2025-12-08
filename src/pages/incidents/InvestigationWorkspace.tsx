@@ -1,17 +1,35 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock } from "lucide-react";
+import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, AlertCircle } from "lucide-react";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
-import { EvidencePanel, WitnessPanel, RCAPanel, ActionsPanel, AuditLogPanel, OverviewPanel, IncidentClosureRequestDialog, IncidentClosureApprovalCard } from "@/components/investigation";
+import { 
+  EvidencePanel, 
+  WitnessPanel, 
+  RCAPanel, 
+  ActionsPanel, 
+  AuditLogPanel, 
+  OverviewPanel, 
+  IncidentClosureRequestDialog, 
+  IncidentClosureApprovalCard,
+  WorkflowProgressBanner,
+  HSSEExpertScreeningCard,
+  ReporterCorrectionBanner,
+  RejectionConfirmationCard,
+  ManagerApprovalCard,
+  HSSEManagerEscalationCard,
+  InvestigatorAssignmentStep
+} from "@/components/investigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
@@ -42,10 +60,23 @@ export default function InvestigationWorkspace() {
     closure_approved_by?: string | null;
     closure_approved_at?: string | null;
     closure_rejection_notes?: string | null;
+    expert_screened_by?: string | null;
+    expert_screened_at?: string | null;
+    expert_rejected_by?: string | null;
+    expert_rejected_at?: string | null;
+    manager_decision?: string | null;
+    manager_decision_at?: string | null;
+    hsse_manager_decision?: string | null;
+    investigator_id?: string | null;
   } | undefined;
 
   // Check if user can approve closure (different user than requester)
   const canApprove = user?.id && incidentData?.closure_requested_by && user.id !== incidentData.closure_requested_by;
+
+  // Determine if investigation tabs should be enabled
+  // Cast to string to handle new enum values not yet in types
+  const status = incidentData?.status as string | undefined;
+  const investigationAllowed = status && ['investigation_in_progress', 'pending_closure', 'closed'].includes(status);
 
   // Filter incidents that need investigation (not closed status)
   const investigableIncidents = incidents?.filter(
@@ -66,6 +97,98 @@ export default function InvestigationWorkspace() {
       default:
         return 'secondary';
     }
+  };
+
+  // Render workflow cards based on current status
+  const renderWorkflowCards = () => {
+    if (!incidentData) return null;
+
+    // Cast status to string to handle new enum values not yet in generated types
+    const currentStatus = incidentData.status as string;
+
+    switch (currentStatus) {
+      case 'submitted':
+        return (
+          <HSSEExpertScreeningCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'returned_to_reporter':
+        return (
+          <ReporterCorrectionBanner 
+            incident={incidentData} 
+            onEdit={() => {/* TODO: Navigate to edit form */}}
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'expert_rejected':
+        return (
+          <RejectionConfirmationCard 
+            incident={incidentData}
+            onComplete={handleRefresh}
+          />
+        );
+
+      case 'pending_manager_approval':
+        return (
+          <ManagerApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'manager_rejected':
+      case 'hsse_manager_escalation':
+        return (
+          <HSSEManagerEscalationCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'investigation_pending':
+        return (
+          <InvestigatorAssignmentStep 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // Locked tab trigger wrapper
+  const LockedTabTrigger = ({ value, icon: Icon, label }: { value: string; icon: React.ElementType; label: string }) => {
+    if (investigationAllowed) {
+      return (
+        <TabsTrigger value={value} className="flex items-center gap-2">
+          <Icon className="h-4 w-4" />
+          <span className="hidden sm:inline">{label}</span>
+        </TabsTrigger>
+      );
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground opacity-50 cursor-not-allowed">
+              <Lock className="h-3 w-3" />
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t('investigation.workflow.tabsLockedMessage', 'Complete the approval workflow to unlock investigation tabs')}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   };
 
   return (
@@ -125,9 +248,33 @@ export default function InvestigationWorkspace() {
         </CardContent>
       </Card>
 
-      {/* Investigation Tabs */}
-      {selectedIncidentId ? (
+      {/* Investigation Content */}
+      {selectedIncidentId && incidentData ? (
         <>
+          {/* Workflow Progress Banner */}
+          <WorkflowProgressBanner incident={incidentData} />
+
+          {/* Workflow-Specific Cards */}
+          {renderWorkflowCards()}
+
+          {/* Warning if investigation not yet allowed */}
+          {!investigationAllowed && (
+            <Card className="border-warning bg-warning/10">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-warning" />
+                  <div>
+                    <p className="font-medium text-warning">
+                      {t('investigation.workflow.pendingApproval', 'Pending Approval')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('investigation.workflow.completeWorkflowFirst', 'Complete the approval workflow above before accessing investigation tools.')}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
@@ -136,22 +283,27 @@ export default function InvestigationWorkspace() {
                 <LayoutDashboard className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('investigation.tabs.overview', 'Overview')}</span>
               </TabsTrigger>
-              <TabsTrigger value="evidence" className="flex items-center gap-2">
-                <FileSearch className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.tabs.evidence', 'Evidence')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="witnesses" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.tabs.witnesses', 'Witnesses')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="rca" className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.tabs.rca', 'RCA')}</span>
-              </TabsTrigger>
-              <TabsTrigger value="actions" className="flex items-center gap-2">
-                <ListChecks className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.tabs.actions', 'Actions')}</span>
-              </TabsTrigger>
+              
+              <LockedTabTrigger 
+                value="evidence" 
+                icon={FileSearch} 
+                label={t('investigation.tabs.evidence', 'Evidence')} 
+              />
+              <LockedTabTrigger 
+                value="witnesses" 
+                icon={Users} 
+                label={t('investigation.tabs.witnesses', 'Witnesses')} 
+              />
+              <LockedTabTrigger 
+                value="rca" 
+                icon={Search} 
+                label={t('investigation.tabs.rca', 'RCA')} 
+              />
+              <LockedTabTrigger 
+                value="actions" 
+                icon={ListChecks} 
+                label={t('investigation.tabs.actions', 'Actions')} 
+              />
             </TabsList>
 
             <TabsContent value="overview" className="mt-4">
@@ -162,21 +314,25 @@ export default function InvestigationWorkspace() {
               />
             </TabsContent>
 
-            <TabsContent value="evidence" className="mt-4">
-              <EvidencePanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
-            </TabsContent>
+            {investigationAllowed && (
+              <>
+                <TabsContent value="evidence" className="mt-4">
+                  <EvidencePanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+                </TabsContent>
 
-            <TabsContent value="witnesses" className="mt-4">
-              <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} />
-            </TabsContent>
+                <TabsContent value="witnesses" className="mt-4">
+                  <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} />
+                </TabsContent>
 
-            <TabsContent value="rca" className="mt-4">
-              <RCAPanel incidentId={selectedIncidentId} />
-            </TabsContent>
+                <TabsContent value="rca" className="mt-4">
+                  <RCAPanel incidentId={selectedIncidentId} />
+                </TabsContent>
 
-            <TabsContent value="actions" className="mt-4">
-              <ActionsPanel incidentId={selectedIncidentId} />
-            </TabsContent>
+                <TabsContent value="actions" className="mt-4">
+                  <ActionsPanel incidentId={selectedIncidentId} />
+                </TabsContent>
+              </>
+            )}
           </Tabs>
 
           {/* Closure Approval Card - show if closure is pending */}
