@@ -642,7 +642,15 @@
   "admin": {
     "accessDenied": "Access Denied",
     "noPermission": "You do not have permission to access this page.",
-    "adminOnlyAccess": "Only organization administrators can access the Brand Management Console."
+    "adminOnlyAccess": "Only organization administrators can access the Brand Management Console.",
+    "menuAccess": {
+      "title": "Menu Access Configuration",
+      "description": "Configure which menu items each role can access",
+      "configureRole": "Configure Role Access",
+      "selectRoleDescription": "Select a role to configure its menu access permissions",
+      "selectRole": "Select a role",
+      "saved": "Menu access configuration saved successfully"
+    }
   },
   "validation": {
     "nameTooLong": "Name must be less than 100 characters",
@@ -733,7 +741,10 @@
     "inspect": "Inspect",
     "list": "List",
     "more": "more",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
+    "reset": "Reset"
   },
   "auth": {
     "signIn": "Sign In",

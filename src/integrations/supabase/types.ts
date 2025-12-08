@@ -3121,6 +3121,45 @@ export type Database = {
           },
         ]
       }
+      menu_items: {
+        Row: {
+          code: string
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          name_ar: string | null
+          parent_code: string | null
+          sort_order: number | null
+          url: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          name_ar?: string | null
+          parent_code?: string | null
+          sort_order?: number | null
+          url?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          name_ar?: string | null
+          parent_code?: string | null
+          sort_order?: number | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       mfa_backup_codes: {
         Row: {
           code_hash: string
@@ -3455,6 +3494,62 @@ export type Database = {
           },
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_menu_access: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          menu_item_id: string
+          role_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          menu_item_id: string
+          role_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          menu_item_id?: string
+          role_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_menu_access_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_menu_access_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_menu_access_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_menu_access_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -4960,6 +5055,15 @@ export type Database = {
         Args: { p_code_hashes: string[]; p_user_id: string }
         Returns: undefined
       }
+      get_accessible_menu_items: {
+        Args: { _user_id: string }
+        Returns: {
+          menu_code: string
+          menu_url: string
+          parent_code: string
+          sort_order: number
+        }[]
+      }
       get_agent_workload: {
         Args: never
         Returns: {
@@ -5161,6 +5265,10 @@ export type Database = {
         Returns: boolean
       }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
+      populate_default_menu_access: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       process_due_inspection_schedules: {
         Args: { p_tenant_id?: string }
         Returns: Json

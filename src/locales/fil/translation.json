@@ -577,7 +577,15 @@
   "admin": {
     "accessDenied": "Tinanggihan ang Access",
     "noPermission": "Wala kang pahintulot na ma-access ang pahinang ito.",
-    "adminOnlyAccess": "Tanging mga administrator ng organisasyon lang ang makakapag-access sa Brand Management Console."
+    "adminOnlyAccess": "Tanging mga administrator ng organisasyon lang ang makakapag-access sa Brand Management Console.",
+    "menuAccess": {
+      "title": "Configuration ng Menu Access",
+      "description": "I-configure kung aling mga menu item ang maa-access ng bawat role",
+      "configureRole": "I-configure ang Role Access",
+      "selectRoleDescription": "Pumili ng role para i-configure ang mga pahintulot sa menu access nito",
+      "selectRole": "Pumili ng role",
+      "saved": "Matagumpay na na-save ang configuration ng menu access"
+    }
   },
   "validation": {
     "nameTooLong": "Ang pangalan ay dapat na mas mababa sa 100 na karakter",
@@ -668,7 +676,10 @@
     "inspect": "Inspeksyunin",
     "list": "Listahan",
     "more": "higit pa",
-    "calendar": "Kalendaryo"
+    "calendar": "Kalendaryo",
+    "selectAll": "Piliin Lahat",
+    "clearAll": "I-clear Lahat",
+    "reset": "I-reset"
   },
   "auth": {
     "signIn": "Mag-sign In",
