@@ -7,6 +7,7 @@ import { Json } from '@/integrations/supabase/types';
 export interface UserWithRoles {
   id: string;
   full_name: string | null;
+  email: string | null;
   phone_number: string | null;
   user_type: string | null;
   has_login: boolean | null;
@@ -95,6 +96,7 @@ export function useUsersPaginated(options: UseUsersPaginatedOptions = {}) {
       const users: UserWithRoles[] = (data || []).map((row) => ({
         id: row.id,
         full_name: row.full_name,
+        email: row.email,
         phone_number: row.phone_number,
         user_type: row.user_type,
         has_login: row.has_login,
