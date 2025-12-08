@@ -42,7 +42,7 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
         .select('id, full_name, job_title, employee_id')
         .eq('tenant_id', profile.tenant_id)
         .eq('is_active', true)
-        .is('is_deleted', null);
+        .or('is_deleted.is.null,is_deleted.eq.false');
 
       if (usersError) throw usersError;
 
