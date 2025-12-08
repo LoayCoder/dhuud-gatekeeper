@@ -364,9 +364,17 @@ export default function IncidentDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-sm whitespace-pre-wrap">
-              {JSON.stringify(incident.injury_details, null, 2)}
-            </pre>
+            <div className="space-y-2">
+              {(incident.injury_details as Record<string, unknown>)?.count && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground">{t('incidents.injuryCount')}:</span>
+                  <span className="font-medium">{String((incident.injury_details as Record<string, unknown>).count)}</span>
+                </div>
+              )}
+              {(incident.injury_details as Record<string, unknown>)?.description && (
+                <p className="text-sm">{String((incident.injury_details as Record<string, unknown>).description)}</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -380,9 +388,17 @@ export default function IncidentDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-sm whitespace-pre-wrap">
-              {JSON.stringify(incident.damage_details, null, 2)}
-            </pre>
+            <div className="space-y-2">
+              {(incident.damage_details as Record<string, unknown>)?.description && (
+                <p className="text-sm">{String((incident.damage_details as Record<string, unknown>).description)}</p>
+              )}
+              {(incident.damage_details as Record<string, unknown>)?.estimated_cost && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground">{t('incidents.estimatedCost')}:</span>
+                  <span className="font-medium">{String((incident.damage_details as Record<string, unknown>).estimated_cost)}</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
