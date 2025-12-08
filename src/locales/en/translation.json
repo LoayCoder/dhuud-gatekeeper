@@ -649,7 +649,18 @@
       "configureRole": "Configure Role Access",
       "selectRoleDescription": "Select a role to configure its menu access permissions",
       "selectRole": "Select a role",
-      "saved": "Menu access configuration saved successfully"
+      "saved": "Menu access configuration saved successfully",
+      "configuration": "Configuration",
+      "auditLog": "Audit Log",
+      "auditLogDescription": "History of menu access changes",
+      "filterByRole": "Filter by role",
+      "noAuditLogs": "No audit log entries found",
+      "dateTime": "Date/Time",
+      "role": "Role",
+      "action": "Action",
+      "menuItem": "Menu Item",
+      "granted": "Granted",
+      "revoked": "Revoked"
     }
   },
   "validation": {

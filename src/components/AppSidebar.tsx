@@ -233,92 +233,116 @@ export function AppSidebar() {
     {
       title: t('navigation.administration'),
       icon: Settings,
+      menuCode: 'administration',
       isActive: location.pathname.startsWith("/admin"),
       items: [
         {
           title: t('navigation.brandManagement'),
           url: "/admin/branding",
           icon: Building2,
+          menuCode: 'admin_branding',
         },
         {
           title: t('navigation.userManagement'),
           url: "/admin/users",
           icon: Users,
+          menuCode: 'admin_users',
         },
         {
           title: t('navigation.orgStructure'),
           url: "/admin/org-structure",
           icon: Network,
+          menuCode: 'admin_org',
         },
         {
           title: t('navigation.tenantManagement'),
           url: "/admin/tenants",
           icon: Layers,
+          menuCode: 'admin_tenants',
         },
         {
           title: t('navigation.supportDashboard'),
           url: "/admin/support",
           icon: HelpCircle,
+          menuCode: 'admin_support',
         },
         {
           title: t('navigation.subscriptionsOverview'),
           url: "/admin/subscriptions",
           icon: Receipt,
+          menuCode: 'admin_subscriptions',
         },
         {
           title: t('navigation.moduleManagement'),
           url: "/admin/modules",
           icon: Puzzle,
+          menuCode: 'admin_modules',
         },
         {
           title: t('navigation.planManagement'),
           url: "/admin/plans",
           icon: FileStack,
+          menuCode: 'admin_plans',
         },
         {
           title: t('analytics.title', 'Usage Analytics'),
           url: "/admin/analytics",
           icon: BarChart3,
+          menuCode: 'admin_analytics',
         },
         {
           title: t('navigation.securityAudit', 'Security Audit'),
           url: "/admin/security-audit",
           icon: ShieldAlert,
+          menuCode: 'admin_security',
         },
         {
           title: t('navigation.documentSettings', 'Document Settings'),
           url: "/admin/document-settings",
           icon: FileCog,
+          menuCode: 'admin_documents',
         },
         {
           title: t('navigation.inspectionTemplates', 'Inspection Templates'),
           url: "/admin/inspection-templates",
           icon: ClipboardList,
+          menuCode: 'admin_templates',
         },
         {
           title: t('navigation.billingOverview'),
           url: "/admin/billing",
           icon: Receipt,
+          menuCode: 'admin_billing',
         },
         {
           title: t('navigation.slaDashboard', 'SLA Dashboard'),
           url: "/admin/sla-dashboard",
           icon: BarChart3,
+          menuCode: 'admin_sla',
         },
         {
           title: t('navigation.teamPerformance', 'Team Performance'),
           url: "/admin/team-performance",
           icon: Users,
+          menuCode: 'admin_performance',
         },
         {
           title: t('navigation.executiveReport', 'Executive Report'),
           url: "/admin/executive-report",
           icon: FileStack,
+          menuCode: 'admin_executive',
         },
         {
           title: t('navigation.actionSlaSettings', 'Action SLA Settings'),
           url: "/admin/action-sla",
           icon: ClipboardList,
+          menuCode: 'admin_action_sla',
+        },
+        {
+          title: t('admin.menuAccess.title', 'Menu Access'),
+          url: "/admin/menu-access",
+          icon: Menu,
+          menuCode: 'admin_menu_access',
         },
       ],
     },
@@ -326,25 +350,85 @@ export function AppSidebar() {
       title: t('navigation.support'),
       url: "/support",
       icon: LifeBuoy,
+      menuCode: 'support',
     },
     {
       title: t('navigation.settings'),
       icon: Settings,
+      menuCode: 'settings',
       isActive: location.pathname.startsWith("/settings"),
       items: [
         {
           title: t('navigation.subscription'),
           url: "/settings/subscription",
           icon: CreditCard,
+          menuCode: 'settings_subscription',
         },
         {
           title: t('navigation.usageBilling'),
           url: "/settings/usage-billing",
           icon: Receipt,
+          menuCode: 'settings_billing',
         },
       ],
     },
   ];
+
+  // Filter menu items based on database-driven access control
+  const filteredMenuItems = useMemo(() => {
+    if (menuLoading) return menuItems;
+    
+    return menuItems
+      .filter(item => {
+        // Check if user can access this menu item
+        if (item.menuCode && !canAccess(item.menuCode)) {
+          // Check if there are accessible children
+          if (item.items && hasAccessibleChildren(item.menuCode)) {
+            return true;
+          }
+          return false;
+        }
+        return true;
+      })
+      .map(item => {
+        if (!item.items) return item;
+        
+        // Filter sub-items
+        const filteredSubItems = item.items
+          .filter(subItem => {
+            if (subItem.menuCode && !canAccess(subItem.menuCode)) {
+              // Check for accessible nested items
+              if ('subItems' in subItem && subItem.subItems && hasAccessibleChildren(subItem.menuCode)) {
+                return true;
+              }
+              return false;
+            }
+            return true;
+          })
+          .map(subItem => {
+            if (!('subItems' in subItem) || !subItem.subItems) return subItem;
+            
+            // Filter nested sub-items
+            const filteredNestedItems = subItem.subItems.filter(nested => 
+              !nested.menuCode || canAccess(nested.menuCode)
+            );
+            
+            return { ...subItem, subItems: filteredNestedItems };
+          })
+          .filter(subItem => {
+            // Remove empty groups
+            if ('subItems' in subItem && subItem.subItems) return subItem.subItems.length > 0;
+            return true;
+          });
+        
+        return { ...item, items: filteredSubItems };
+      })
+      .filter(item => {
+        // Remove empty groups
+        if (item.items) return item.items.length > 0;
+        return true;
+      });
+  }, [menuItems, canAccess, hasAccessibleChildren, menuLoading]);
 
   return (
     <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
@@ -395,7 +479,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>{t('navigation.platform')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) =>
+              {filteredMenuItems.map((item) =>
                 item.items ? (
                   // Collapsible Section - prefetch all children on hover
                   <Collapsible

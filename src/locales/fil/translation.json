@@ -584,7 +584,18 @@
       "configureRole": "I-configure ang Role Access",
       "selectRoleDescription": "Pumili ng role para i-configure ang mga pahintulot sa menu access nito",
       "selectRole": "Pumili ng role",
-      "saved": "Matagumpay na na-save ang configuration ng menu access"
+      "saved": "Matagumpay na na-save ang configuration ng menu access",
+      "configuration": "Configuration",
+      "auditLog": "Audit Log",
+      "auditLogDescription": "Kasaysayan ng mga pagbabago sa menu access",
+      "filterByRole": "I-filter ayon sa role",
+      "noAuditLogs": "Walang nakitang audit log entries",
+      "dateTime": "Petsa/Oras",
+      "role": "Role",
+      "action": "Aksyon",
+      "menuItem": "Menu Item",
+      "granted": "Ibinigay",
+      "revoked": "Binawi"
     }
   },
   "validation": {
