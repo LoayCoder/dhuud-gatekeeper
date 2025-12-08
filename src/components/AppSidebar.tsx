@@ -294,13 +294,13 @@ export function AppSidebar() {
           title: t('navigation.securityAudit', 'Security Audit'),
           url: "/admin/security-audit",
           icon: ShieldAlert,
-          menuCode: 'admin_security',
+          menuCode: 'admin_security_audit',
         },
         {
           title: t('navigation.documentSettings', 'Document Settings'),
           url: "/admin/document-settings",
           icon: FileCog,
-          menuCode: 'admin_documents',
+          menuCode: 'admin_document_settings',
         },
         {
           title: t('navigation.inspectionTemplates', 'Inspection Templates'),
@@ -318,19 +318,19 @@ export function AppSidebar() {
           title: t('navigation.slaDashboard', 'SLA Dashboard'),
           url: "/admin/sla-dashboard",
           icon: BarChart3,
-          menuCode: 'admin_sla',
+          menuCode: 'admin_sla_dashboard',
         },
         {
           title: t('navigation.teamPerformance', 'Team Performance'),
           url: "/admin/team-performance",
           icon: Users,
-          menuCode: 'admin_performance',
+          menuCode: 'admin_team_performance',
         },
         {
           title: t('navigation.executiveReport', 'Executive Report'),
           url: "/admin/executive-report",
           icon: FileStack,
-          menuCode: 'admin_executive',
+          menuCode: 'admin_executive_report',
         },
         {
           title: t('navigation.actionSlaSettings', 'Action SLA Settings'),
