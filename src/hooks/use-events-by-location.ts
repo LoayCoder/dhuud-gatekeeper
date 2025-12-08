@@ -1,0 +1,54 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+export interface BranchEventData {
+  branch_id: string;
+  branch_name: string;
+  total_events: number;
+  incidents: number;
+  observations: number;
+  open_investigations: number;
+}
+
+export interface SiteEventData {
+  site_id: string;
+  site_name: string;
+  branch_name: string;
+  total_events: number;
+  incidents: number;
+  observations: number;
+}
+
+export interface DepartmentEventData {
+  department_id: string;
+  department_name: string;
+  total_events: number;
+  incidents: number;
+  open_investigations: number;
+}
+
+export interface EventsByLocationData {
+  by_branch: BranchEventData[];
+  by_site: SiteEventData[];
+  by_department: DepartmentEventData[];
+}
+
+export function useEventsByLocation(startDate?: Date, endDate?: Date) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['events-by-location', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_events_by_location', {
+        p_start_date: startDate?.toISOString().split('T')[0] || null,
+        p_end_date: endDate?.toISOString().split('T')[0] || null,
+      });
+
+      if (error) throw error;
+      return data as unknown as EventsByLocationData;
+    },
+    enabled: !!profile?.tenant_id,
+    staleTime: 2 * 60 * 1000,
+  });
+}

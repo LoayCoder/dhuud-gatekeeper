@@ -121,6 +121,11 @@ export function AppSidebar() {
           isActive: location.pathname.startsWith("/incidents"),
           subItems: [
             {
+              title: t('navigation.eventDashboard'),
+              url: "/incidents/dashboard",
+              icon: BarChart3,
+            },
+            {
               title: t('navigation.eventList'),
               url: "/incidents",
               icon: FileWarning,
