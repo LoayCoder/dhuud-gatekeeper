@@ -55,56 +55,30 @@ export function TeamAssignmentDialog({
   const [isFetching, setIsFetching] = useState(true);
   const direction = i18n.dir();
 
-  // Fetch users who have the manager role - with proper role verification
+  // Fetch users who have the manager role using secure RPC function
   useEffect(() => {
     async function fetchManagers() {
       if (!profile?.tenant_id) return;
       
       setIsFetching(true);
       try {
-        // Get users with manager role from new system using has_role_by_code for security
-        const { data: managerRoleAssignments } = await supabase
-          .from('user_role_assignments')
-          .select(`
-            user_id,
-            roles!inner(code)
-          `)
-          .eq('tenant_id', profile.tenant_id)
-          .eq('roles.code', 'manager');
+        // Use secure RPC function that bypasses RLS to get managers
+        const { data, error } = await supabase
+          .rpc('get_managers_for_team_assignment', {
+            p_tenant_id: profile.tenant_id,
+            p_exclude_user_id: userId
+          });
 
-        const managerUserIds = (managerRoleAssignments || []).map((a: any) => a.user_id);
-        
-        if (managerUserIds.length === 0) {
+        if (error) {
+          console.error('Error fetching managers:', error);
           setManagers([]);
           return;
         }
 
-        // Verify each user actually has manager role using server-side function
-        const verifiedManagerIds: string[] = [];
-        for (const managerId of managerUserIds) {
-          const { data: hasManagerRole } = await supabase
-            .rpc('has_role_by_code', { p_user_id: managerId, p_role_code: 'manager' });
-          if (hasManagerRole) {
-            verifiedManagerIds.push(managerId);
-          }
-        }
-
-        if (verifiedManagerIds.length === 0) {
-          setManagers([]);
-          return;
-        }
-
-        // Fetch profile details for verified managers
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', verifiedManagerIds)
-          .neq('id', userId) // Exclude current user
-          .eq('is_active', true);
-
-        setManagers(profiles || []);
+        setManagers(data || []);
       } catch (error) {
         console.error('Error fetching managers:', error);
+        setManagers([]);
       } finally {
         setIsFetching(false);
       }

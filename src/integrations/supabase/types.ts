@@ -5268,6 +5268,13 @@ export type Database = {
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
+      get_managers_for_team_assignment: {
+        Args: { p_exclude_user_id: string; p_tenant_id: string }
+        Returns: {
+          full_name: string
+          id: string
+        }[]
+      }
       get_monthly_hsse_summary: {
         Args: { p_month?: string; p_tenant_id: string }
         Returns: Json
