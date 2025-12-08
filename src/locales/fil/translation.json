@@ -1,6 +1,7 @@
 {
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
+    "subtitle": "Real-time na visibility sa safety performance at risk analytics",
     "refresh": "I-refresh",
     "dateRange": "Saklaw ng Petsa",
     "totalEvents": "Kabuuang Pangyayari",
@@ -13,6 +14,8 @@
     "yoyChange": "Taon-taong Pagbabago",
     "eventsByType": "Pangyayari ayon sa Uri",
     "eventsBySeverity": "Pangyayari ayon sa Kalubhaan",
+    "eventsByStatus": "Pangyayari ayon sa Status",
+    "monthlyTrend": "Buwanang Trend ng Pangyayari",
     "eventTrends": "Trend ng Pangyayari (12 Buwan)",
     "statusDistribution": "Distribusyon ng Status",
     "locationAnalytics": "Analytics ng Lokasyon",
@@ -31,40 +34,30 @@
     "viewAll": "Tingnan Lahat",
     "noReporters": "Walang data ng nag-uulat",
     "noLocationData": "Walang data ng lokasyon",
-    "aiInsights": "AI Risk Insights",
-    "refreshInsights": "I-refresh ang Insights",
-    "generating": "Gumagawa ng insights...",
-    "noInsights": "Walang insights na available. I-click ang refresh para gumawa.",
-    "patterns": "Mga Pattern ng Panganib",
-    "anomalies": "Mga Nakitang Anomalya",
-    "recommendations": "Mga Proactive na Rekomendasyon",
-    "patternTypes": {
-      "location": "Pattern ng Lokasyon",
-      "time": "Pattern ng Oras",
-      "type": "Pattern ng Uri",
-      "severity": "Pattern ng Kalubhaan"
-    },
-    "anomalyTypes": {
-      "spike": "Biglang Pagtaas",
-      "drop": "Biglang Pagbaba",
-      "new_pattern": "Bagong Pattern"
-    },
-    "priority": {
-      "high": "Mataas na Priyoridad",
-      "medium": "Katamtamang Priyoridad",
-      "low": "Mababang Priyoridad"
-    },
-    "confidence": "Kumpiyansa",
-    "affectedAreas": "Mga Apektadong Lugar",
-    "recommendation": "Rekomendasyon",
-    "expectedImpact": "Inaasahang Epekto",
-    "summary": "AI Summary",
+    "noData": "Walang available na data",
+    "count": "Bilang",
+    "open": "Bukas",
     "events": "mga pangyayari",
     "incidents": "mga insidente",
     "observations": "mga obserbasyon",
     "total": "Kabuuan",
     "loading": "Nilo-load ang dashboard...",
-    "error": "Hindi na-load ang data ng dashboard"
+    "error": "Hindi na-load ang data ng dashboard",
+    "aiRiskInsights": "AI Risk Insights",
+    "refreshInsights": "I-refresh ang Insights",
+    "noInsightsYet": "Wala pang insights. Gumawa ng AI analysis para makita ang mga pattern at rekomendasyon.",
+    "generateInsights": "Gumawa ng Insights",
+    "patternsDetected": "Mga Nakitang Pattern",
+    "anomaliesDetected": "Mga Nakitang Anomalya",
+    "recommendations": "Mga Rekomendasyon",
+    "confidence": "kumpiyansa",
+    "eventTypes": {
+      "observation": "Obserbasyon",
+      "incident": "Insidente",
+      "nearMiss": "Halos Aksidente",
+      "securityEvent": "Security Event",
+      "environmentalEvent": "Environmental Event"
+    }
   },
   "incidents": {
     "wizard": {

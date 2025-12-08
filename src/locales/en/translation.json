@@ -1,6 +1,7 @@
 {
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
+    "subtitle": "Real-time visibility into safety performance and risk analytics",
     "refresh": "Refresh",
     "dateRange": "Date Range",
     "totalEvents": "Total Events",
@@ -13,6 +14,8 @@
     "yoyChange": "YoY Change",
     "eventsByType": "Events by Type",
     "eventsBySeverity": "Events by Severity",
+    "eventsByStatus": "Events by Status",
+    "monthlyTrend": "Monthly Event Trend",
     "eventTrends": "Event Trends (12 Months)",
     "statusDistribution": "Status Distribution",
     "locationAnalytics": "Location Analytics",
@@ -31,40 +34,30 @@
     "viewAll": "View All",
     "noReporters": "No reporters data available",
     "noLocationData": "No location data available",
-    "aiInsights": "AI Risk Insights",
-    "refreshInsights": "Refresh Insights",
-    "generating": "Generating insights...",
-    "noInsights": "No insights available. Click refresh to generate.",
-    "patterns": "Risk Patterns",
-    "anomalies": "Anomalies Detected",
-    "recommendations": "Proactive Recommendations",
-    "patternTypes": {
-      "location": "Location Pattern",
-      "time": "Time Pattern",
-      "type": "Type Pattern",
-      "severity": "Severity Pattern"
-    },
-    "anomalyTypes": {
-      "spike": "Spike Detected",
-      "drop": "Drop Detected",
-      "new_pattern": "New Pattern"
-    },
-    "priority": {
-      "high": "High Priority",
-      "medium": "Medium Priority",
-      "low": "Low Priority"
-    },
-    "confidence": "Confidence",
-    "affectedAreas": "Affected Areas",
-    "recommendation": "Recommendation",
-    "expectedImpact": "Expected Impact",
-    "summary": "AI Summary",
+    "noData": "No data available",
+    "count": "Count",
+    "open": "Open",
     "events": "events",
     "incidents": "incidents",
     "observations": "observations",
     "total": "Total",
     "loading": "Loading dashboard...",
-    "error": "Failed to load dashboard data"
+    "error": "Failed to load dashboard data",
+    "aiRiskInsights": "AI Risk Insights",
+    "refreshInsights": "Refresh Insights",
+    "noInsightsYet": "No insights yet. Generate AI analysis to see patterns and recommendations.",
+    "generateInsights": "Generate Insights",
+    "patternsDetected": "Patterns Detected",
+    "anomaliesDetected": "Anomalies Detected",
+    "recommendations": "Recommendations",
+    "confidence": "confidence",
+    "eventTypes": {
+      "observation": "Observation",
+      "incident": "Incident",
+      "nearMiss": "Near Miss",
+      "securityEvent": "Security Event",
+      "environmentalEvent": "Environmental Event"
+    }
   },
   "incidents": {
     "wizard": {

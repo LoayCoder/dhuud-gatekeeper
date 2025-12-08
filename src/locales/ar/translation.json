@@ -1,6 +1,7 @@
 {
   "hsseDashboard": {
     "title": "لوحة معلومات أحداث السلامة",
+    "subtitle": "رؤية فورية لأداء السلامة وتحليلات المخاطر",
     "refresh": "تحديث",
     "dateRange": "نطاق التاريخ",
     "totalEvents": "إجمالي الأحداث",
@@ -13,6 +14,8 @@
     "yoyChange": "التغيير السنوي",
     "eventsByType": "الأحداث حسب النوع",
     "eventsBySeverity": "الأحداث حسب الخطورة",
+    "eventsByStatus": "الأحداث حسب الحالة",
+    "monthlyTrend": "الاتجاه الشهري للأحداث",
     "eventTrends": "اتجاهات الأحداث (12 شهر)",
     "statusDistribution": "توزيع الحالة",
     "locationAnalytics": "تحليلات الموقع",
@@ -31,40 +34,30 @@
     "viewAll": "عرض الكل",
     "noReporters": "لا تتوفر بيانات المُبلّغين",
     "noLocationData": "لا تتوفر بيانات الموقع",
-    "aiInsights": "رؤى المخاطر الذكية",
-    "refreshInsights": "تحديث الرؤى",
-    "generating": "جاري إنشاء الرؤى...",
-    "noInsights": "لا تتوفر رؤى. انقر على تحديث للإنشاء.",
-    "patterns": "أنماط المخاطر",
-    "anomalies": "حالات شاذة مكتشفة",
-    "recommendations": "توصيات استباقية",
-    "patternTypes": {
-      "location": "نمط الموقع",
-      "time": "نمط الوقت",
-      "type": "نمط النوع",
-      "severity": "نمط الخطورة"
-    },
-    "anomalyTypes": {
-      "spike": "ارتفاع مفاجئ",
-      "drop": "انخفاض مفاجئ",
-      "new_pattern": "نمط جديد"
-    },
-    "priority": {
-      "high": "أولوية عالية",
-      "medium": "أولوية متوسطة",
-      "low": "أولوية منخفضة"
-    },
-    "confidence": "الثقة",
-    "affectedAreas": "المناطق المتأثرة",
-    "recommendation": "التوصية",
-    "expectedImpact": "التأثير المتوقع",
-    "summary": "ملخص الذكاء الاصطناعي",
+    "noData": "لا تتوفر بيانات",
+    "count": "العدد",
+    "open": "مفتوح",
     "events": "أحداث",
     "incidents": "حوادث",
     "observations": "ملاحظات",
     "total": "الإجمالي",
     "loading": "جاري تحميل لوحة المعلومات...",
-    "error": "فشل في تحميل بيانات لوحة المعلومات"
+    "error": "فشل في تحميل بيانات لوحة المعلومات",
+    "aiRiskInsights": "رؤى المخاطر الذكية",
+    "refreshInsights": "تحديث الرؤى",
+    "noInsightsYet": "لا تتوفر رؤى بعد. قم بإنشاء تحليل الذكاء الاصطناعي لرؤية الأنماط والتوصيات.",
+    "generateInsights": "إنشاء الرؤى",
+    "patternsDetected": "الأنماط المكتشفة",
+    "anomaliesDetected": "الحالات الشاذة المكتشفة",
+    "recommendations": "التوصيات",
+    "confidence": "الثقة",
+    "eventTypes": {
+      "observation": "ملاحظة",
+      "incident": "حادث",
+      "nearMiss": "حادث وشيك",
+      "securityEvent": "حدث أمني",
+      "environmentalEvent": "حدث بيئي"
+    }
   },
   "incidents": {
     "wizard": {
