@@ -158,131 +158,142 @@ export default function UserManagement() {
   const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
 
   const handleSaveUser = async (data: any, selectedRoleIds: string[]) => {
-    const updateData = {
-      full_name: data.full_name,
-      phone_number: data.phone_number,
-      user_type: data.user_type,
-      has_login: data.has_login,
-      is_active: data.is_active,
-      employee_id: data.employee_id || null,
-      job_title: data.job_title || null,
-      contractor_company_name: data.contractor_company_name || null,
-      contractor_type: getContractorType(data.user_type),
-      contract_start: data.contract_start || null,
-      contract_end: data.contract_end || null,
-      membership_id: data.membership_id || null,
-      membership_start: data.membership_start || null,
-      membership_end: data.membership_end || null,
-      has_full_branch_access: data.has_full_branch_access ?? false,
-      assigned_branch_id: data.has_full_branch_access ? null : data.assigned_branch_id,
-      assigned_division_id: data.assigned_division_id,
-      assigned_department_id: data.assigned_department_id,
-      assigned_section_id: data.assigned_section_id,
-    };
+    try {
+      const updateData = {
+        full_name: data.full_name,
+        phone_number: data.phone_number,
+        user_type: data.user_type,
+        has_login: data.has_login,
+        is_active: data.is_active,
+        employee_id: data.employee_id || null,
+        job_title: data.job_title || null,
+        contractor_company_name: data.contractor_company_name || null,
+        contractor_type: getContractorType(data.user_type),
+        contract_start: data.contract_start || null,
+        contract_end: data.contract_end || null,
+        membership_id: data.membership_id || null,
+        membership_start: data.membership_start || null,
+        membership_end: data.membership_end || null,
+        has_full_branch_access: data.has_full_branch_access ?? false,
+        assigned_branch_id: data.has_full_branch_access ? null : data.assigned_branch_id,
+        assigned_division_id: data.assigned_division_id,
+        assigned_department_id: data.assigned_department_id,
+        assigned_section_id: data.assigned_section_id,
+      };
 
-    if (editingUser) {
-      const changes = detectUserChanges(editingUser as unknown as Record<string, unknown>, updateData);
-      const wasActive = editingUser.is_active;
-      const isNowActive = data.is_active;
-      
-      const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
-      if (error) throw error;
-      
-      if (profile?.tenant_id) {
-        await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
-      }
-      
-      if (wasActive && !isNowActive) {
-        await logUserDeactivated(editingUser.id, data.full_name);
-      } else if (!wasActive && isNowActive) {
-        await logUserActivated(editingUser.id, data.full_name);
-      }
-      
-      if (Object.keys(changes).length > 0) {
-        await logUserUpdated(editingUser.id, data.full_name, changes);
-      }
-      
-      toast({ title: t('userManagement.userUpdated') });
-    } else {
-      // Create new user
-      const newUserId = crypto.randomUUID();
-      const { error } = await supabase.from('profiles').insert({
-        id: newUserId,
-        tenant_id: profile?.tenant_id,
-        ...updateData,
-      });
-      if (error) throw error;
-      
-      if (profile?.tenant_id) {
-        await assignRoles(newUserId, selectedRoleIds, profile.tenant_id);
-      }
-      
-      await logUserCreated(newUserId, data.full_name, data.user_type);
-      
-      // If user has login enabled and has email, create invitation and send email
-      if (data.has_login && data.email) {
-        try {
-          // Generate invitation code
+      if (editingUser) {
+        // UPDATE existing user
+        const changes = detectUserChanges(editingUser as unknown as Record<string, unknown>, updateData);
+        const wasActive = editingUser.is_active;
+        const isNowActive = data.is_active;
+        
+        const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
+        if (error) throw error;
+        
+        if (profile?.tenant_id) {
+          await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+        }
+        
+        if (wasActive && !isNowActive) {
+          await logUserDeactivated(editingUser.id, data.full_name);
+        } else if (!wasActive && isNowActive) {
+          await logUserActivated(editingUser.id, data.full_name);
+        }
+        
+        if (Object.keys(changes).length > 0) {
+          await logUserUpdated(editingUser.id, data.full_name, changes);
+        }
+        
+        toast({ title: t('userManagement.userUpdated') });
+      } else {
+        // CREATE new user - different flows based on has_login
+        if (data.has_login && data.email) {
+          // INVITATION-ONLY FLOW: Create invitation with metadata, profile created on signup
           const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
           const expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+          expiresAt.setDate(expiresAt.getDate() + 7);
           
           // Get tenant name
           const { data: tenant } = await supabase
             .from('tenants')
             .select('name')
-            .eq('id', profile.tenant_id)
+            .eq('id', profile?.tenant_id)
             .single();
           
-          // Create invitation record
+          // Store user data in invitation metadata for profile creation on signup
+          const metadata = {
+            ...updateData,
+            role_ids: selectedRoleIds,
+          };
+          
           const { error: inviteError } = await supabase.from('invitations').insert({
-            tenant_id: profile.tenant_id,
+            tenant_id: profile?.tenant_id,
             email: data.email,
             code: inviteCode,
             expires_at: expiresAt.toISOString(),
-            created_by: user?.id,
+            metadata: metadata,
           });
           
-          if (inviteError) {
-            console.error('Failed to create invitation:', inviteError);
+          if (inviteError) throw inviteError;
+          
+          // Send invitation email
+          const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+            body: {
+              email: data.email,
+              code: inviteCode,
+              tenantName: tenant?.name || 'DHUUD Platform',
+              expiresAt: expiresAt.toISOString(),
+            },
+          });
+          
+          if (emailError) {
+            console.error('Failed to send invitation email:', emailError);
             toast({ 
-              title: t('userManagement.userCreated'),
-              description: t('userManagement.invitationFailed'),
-              variant: 'destructive' 
+              title: t('userManagement.invitationCreated'),
+              description: t('userManagement.emailFailed'),
             });
           } else {
-            // Send invitation email
-            const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-              body: {
-                email: data.email,
-                code: inviteCode,
-                tenantName: tenant?.name || 'DHUUD Platform',
-                expiresAt: expiresAt.toISOString(),
-              },
+            toast({ 
+              title: t('userManagement.invitationSent', { email: data.email }),
             });
-            
-            if (emailError) {
-              console.error('Failed to send invitation email:', emailError);
-              toast({ 
-                title: t('userManagement.userCreated'),
-                description: t('userManagement.emailFailed'),
-              });
-            } else {
-              toast({ 
-                title: t('userManagement.userCreated'),
-                description: t('userManagement.invitationSent', { email: data.email }),
-              });
-            }
           }
-        } catch (err) {
-          console.error('Error creating invitation:', err);
+          
+          await logUserCreated(inviteCode, data.full_name, data.user_type);
+        } else {
+          // PROFILE-ONLY FLOW: Create tenant_profile for non-login users
+          const { error } = await supabase.from('tenant_profiles').insert({
+            tenant_id: profile?.tenant_id,
+            full_name: data.full_name,
+            phone_number: data.phone_number,
+            profile_type: data.user_type === 'member' ? 'member' : 
+                          data.user_type === 'visitor' ? 'visitor' : 'contractor',
+            is_active: data.is_active,
+            has_login: false,
+            employee_id: data.employee_id || null,
+            job_title: data.job_title || null,
+            contractor_company: data.contractor_company_name || null,
+            contract_start_date: data.contract_start || null,
+            contract_end_date: data.contract_end || null,
+          });
+          
+          if (error) throw error;
+          
+          await logUserCreated(crypto.randomUUID(), data.full_name, data.user_type);
+          toast({ title: t('userManagement.userCreated') });
         }
-      } else {
-        toast({ title: t('userManagement.userCreated') });
       }
+      
+      refetchUsers();
+      refetchQuota();
+    } catch (error: any) {
+      console.error('Error saving user:', error);
+      toast({ 
+        title: t('common.error'), 
+        description: error.message || t('userManagement.saveFailed'),
+        variant: 'destructive' 
+      });
+      throw error; // Re-throw so dialog knows save failed
     }
-    refetchUsers();
-    refetchQuota();
   };
 
   const getUserTypeBadgeVariant = (userType: string | null) => {

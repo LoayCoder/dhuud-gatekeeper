@@ -3143,6 +3143,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
+          metadata: Json | null
           tenant_id: string
           used: boolean | null
         }
@@ -3153,6 +3154,7 @@ export type Database = {
           email: string
           expires_at: string
           id?: string
+          metadata?: Json | null
           tenant_id: string
           used?: boolean | null
         }
@@ -3163,6 +3165,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+          metadata?: Json | null
           tenant_id?: string
           used?: boolean | null
         }
