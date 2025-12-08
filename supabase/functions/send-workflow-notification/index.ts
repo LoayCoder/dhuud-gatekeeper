@@ -68,7 +68,9 @@ serve(async (req: Request) => {
       .single();
 
     const tenantName = tenant?.name || "HSSE Platform";
-    const reporterProfile = incident.profiles as { id: string; full_name: string; phone_number: string } | null;
+    // profiles is an array from the join, get the first element
+    const profilesArray = incident.profiles as unknown as Array<{ id: string; full_name: string; phone_number: string }> | null;
+    const reporterProfile = profilesArray?.[0] || null;
 
     // Determine recipients and email content based on action
     let recipients: string[] = [];
@@ -152,7 +154,9 @@ serve(async (req: Request) => {
 
           const managerUserIds = new Set(
             roleAssignments
-              ?.filter((ra: { user_id: string; roles: { code: string } }) => ra.roles.code === "hsse_manager")
+              ?.filter((ra: { user_id: string; roles: { code: string }[] }) => 
+                ra.roles.some((role: { code: string }) => role.code === "hsse_manager")
+              )
               .map((ra: { user_id: string }) => ra.user_id) || []
           );
 
@@ -237,10 +241,11 @@ serve(async (req: Request) => {
       JSON.stringify({ success: true, action, recipientCount: recipients.length }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in send-workflow-notification:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
