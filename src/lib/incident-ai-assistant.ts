@@ -152,15 +152,19 @@ function detectEventTypeFromText(text: string): { eventType?: 'observation' | 'i
   return {};
 }
 
-export async function detectEventType(description: string): Promise<{ 
-  eventType: 'observation' | 'incident' | null; 
+export interface AIAnalysisResult {
+  eventType: 'observation' | 'incident' | null;
   subtype: string | null;
+  severity: 'low' | 'medium' | 'high' | 'critical' | null;
+  keyRisks: string[];
   confidence: number;
   reasoning?: string;
-}> {
+}
+
+export async function analyzeIncidentWithAI(description: string): Promise<AIAnalysisResult> {
   try {
-    // Call the AI-powered edge function
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/detect-event-type`, {
+    // Call the combined AI analysis edge function
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-incident`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -171,10 +175,10 @@ export async function detectEventType(description: string): Promise<{
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Event type detection failed:', response.status, errorData);
+      console.error('Incident analysis failed:', response.status, errorData);
       
-      // Fall back to keyword-based detection on error
-      return fallbackDetectEventType(description);
+      // Fall back to local analysis on error
+      return fallbackAnalyzeIncident(description);
     }
 
     const data = await response.json();
@@ -182,14 +186,76 @@ export async function detectEventType(description: string): Promise<{
     return {
       eventType: data.eventType || null,
       subtype: data.subtype || null,
+      severity: data.severity || null,
+      keyRisks: data.keyRisks || [],
       confidence: data.confidence || 0.8,
       reasoning: data.reasoning,
     };
   } catch (error) {
-    console.error('Error calling detect-event-type:', error);
-    // Fall back to keyword-based detection on network error
-    return fallbackDetectEventType(description);
+    console.error('Error calling analyze-incident:', error);
+    // Fall back to local analysis on network error
+    return fallbackAnalyzeIncident(description);
   }
+}
+
+// Fallback function using keyword matching (for offline/error scenarios)
+function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
+  const lowerDesc = description.toLowerCase();
+  const typeResult = detectEventTypeFromText(lowerDesc);
+  
+  // Determine severity based on keyword matching
+  let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  
+  for (const keyword of SEVERITY_KEYWORDS.critical) {
+    if (lowerDesc.includes(keyword)) {
+      severity = 'critical';
+      break;
+    }
+  }
+  if (severity === 'low') {
+    for (const keyword of SEVERITY_KEYWORDS.high) {
+      if (lowerDesc.includes(keyword)) {
+        severity = 'high';
+        break;
+      }
+    }
+  }
+  if (severity === 'low') {
+    for (const keyword of SEVERITY_KEYWORDS.medium) {
+      if (lowerDesc.includes(keyword)) {
+        severity = 'medium';
+        break;
+      }
+    }
+  }
+
+  // Select random risks
+  const numRisks = 2 + Math.floor(Math.random() * 2);
+  const shuffledRisks = [...RISK_CATEGORIES].sort(() => Math.random() - 0.5);
+  
+  return {
+    eventType: typeResult.eventType || null,
+    subtype: typeResult.subtype || null,
+    severity,
+    keyRisks: shuffledRisks.slice(0, numRisks),
+    confidence: typeResult.eventType ? 0.6 : 0.4,
+  };
+}
+
+export async function detectEventType(description: string): Promise<{ 
+  eventType: 'observation' | 'incident' | null; 
+  subtype: string | null;
+  confidence: number;
+  reasoning?: string;
+}> {
+  // Use the combined analysis function
+  const result = await analyzeIncidentWithAI(description);
+  return {
+    eventType: result.eventType,
+    subtype: result.subtype,
+    confidence: result.confidence,
+    reasoning: result.reasoning,
+  };
 }
 
 // Fallback function using keyword matching (for offline/error scenarios)

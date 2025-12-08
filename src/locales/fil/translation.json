@@ -188,10 +188,10 @@
     "preview": "Preview",
     "rewriteWithAI": "I-rewrite gamit ang AI",
     "summarizeWithAI": "Mag-summarize gamit ang AI",
-    "detectType": "Tukuyin ang Uri",
-    "suggestSeverity": "Imungkahi ang Kalubhaan",
+    "aiAnalyze": "AI Pagsusuri",
     "suggestedType": "Iminungkahing Uri",
     "ai": {
+      "analysisComplete": "Kumpleto na ang AI Pagsusuri",
       "typeDetected": "Natukoy ang uri ng pangyayari",
       "typeNotDetected": "Hindi matukoy ang uri ng pangyayari mula sa paglalarawan",
       "detectionError": "Nabigong tukuyin ang uri ng pangyayari"

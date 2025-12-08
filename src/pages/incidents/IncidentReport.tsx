@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, ListFilter, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,9 +33,9 @@ import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } fr
 import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { 
-  analyzeIncidentDescription, 
-  detectEventType,
-  type AISuggestion 
+  analyzeIncidentWithAI,
+  type AISuggestion,
+  type AIAnalysisResult
 } from '@/lib/incident-ai-assistant';
 import { useIncidentAI } from '@/hooks/use-incident-ai';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
@@ -127,7 +127,6 @@ export default function IncidentReport() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRewritingTitle, setIsRewritingTitle] = useState(false);
   const [isRewritingDesc, setIsRewritingDesc] = useState(false);
-  const [isDetectingType, setIsDetectingType] = useState(false);
   
   // Real AI hook for translate & rewrite
   const incidentAI = useIncidentAI();
@@ -358,8 +357,49 @@ export default function IncidentReport() {
     
     setIsAnalyzing(true);
     try {
-      const suggestion = await analyzeIncidentDescription(description);
+      const result = await analyzeIncidentWithAI(description);
+      
+      // Auto-populate event type and subtype
+      if (result.eventType) {
+        form.setValue('event_type', result.eventType);
+        if (result.subtype) {
+          form.setValue('subtype', result.subtype);
+        }
+      }
+      
+      // Create suggestion object for the AI panel
+      const suggestion: AISuggestion = {
+        suggestedSeverity: result.severity || 'low',
+        suggestedEventType: result.eventType || undefined,
+        suggestedSubtype: result.subtype || undefined,
+        refinedDescription: description,
+        keyRisks: result.keyRisks,
+        confidence: result.confidence,
+      };
       setAiSuggestion(suggestion);
+      
+      // Show combined toast feedback
+      const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      const eventTypeLabel = result.eventType 
+        ? t(`incidents.eventCategories.${result.eventType}`)
+        : t('common.unknown');
+      const subtypeLabel = result.subtype 
+        ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${toCamelCase(result.subtype)}`, result.subtype)
+        : '';
+      const severityLabel = result.severity 
+        ? t(`incidents.severityLevels.${result.severity}`)
+        : '';
+      
+      import('sonner').then(({ toast }) => {
+        toast.success(t('incidents.ai.analysisComplete'), {
+          description: `${eventTypeLabel}${subtypeLabel ? ` - ${subtypeLabel}` : ''} | ${t('incidents.severity')}: ${severityLabel}`
+        });
+      });
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      import('sonner').then(({ toast }) => {
+        toast.error(t('incidents.ai.detectionError'));
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -390,48 +430,6 @@ export default function IncidentReport() {
       }
     } finally {
       setIsRewritingDesc(false);
-    }
-  };
-
-  const handleDetectType = async () => {
-    if (description.length < 20) return;
-    
-    setIsDetectingType(true);
-    try {
-      const result = await detectEventType(description);
-      if (result.eventType) {
-        form.setValue('event_type', result.eventType);
-        if (result.subtype) {
-          form.setValue('subtype', result.subtype);
-        }
-        // Show success toast with detected type
-        const eventTypeLabel = result.eventType === 'observation' 
-          ? t('incidents.eventCategories.observation') 
-          : t('incidents.eventCategories.incident');
-        // Convert snake_case to camelCase for translation key lookup
-        const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-        
-        const subtypeLabel = result.subtype 
-          ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${toCamelCase(result.subtype)}`, result.subtype)
-          : '';
-        
-        import('sonner').then(({ toast }) => {
-          toast.success(t('incidents.ai.typeDetected'), {
-            description: `${eventTypeLabel}${subtypeLabel ? ` - ${subtypeLabel}` : ''}`
-          });
-        });
-      } else {
-        import('sonner').then(({ toast }) => {
-          toast.warning(t('incidents.ai.typeNotDetected'));
-        });
-      }
-    } catch (error) {
-      console.error('Type detection error:', error);
-      import('sonner').then(({ toast }) => {
-        toast.error(t('incidents.ai.detectionError'));
-      });
-    } finally {
-      setIsDetectingType(false);
     }
   };
 
@@ -784,23 +782,12 @@ export default function IncidentReport() {
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={handleDetectType}
-                              disabled={isDetectingType || field.value.length < 20}
-                              className="gap-1"
-                            >
-                              {isDetectingType ? <Loader2 className="h-3 w-3 animate-spin" /> : <ListFilter className="h-3 w-3" />}
-                              {t('incidents.detectType')}
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
                               onClick={handleAnalyzeDescription}
                               disabled={isAnalyzing || field.value.length < 20}
                               className="gap-1"
                             >
                               {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                              {t('incidents.suggestSeverity')}
+                              {t('incidents.aiAnalyze')}
                             </Button>
                           </div>
                         </div>
