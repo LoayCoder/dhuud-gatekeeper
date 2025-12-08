@@ -80,6 +80,7 @@ const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" *
 const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
 const TeamPerformance = lazy(() => import(/* webpackChunkName: "admin-team-performance" */ "./pages/admin/TeamPerformance"));
 const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-report" */ "./pages/admin/ExecutiveReport"));
+const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-access" */ "./pages/admin/MenuAccessConfig"));
 
 const queryClient = new QueryClient();
 
@@ -291,6 +292,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <InspectionTemplates />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/menu-access"
+                        element={
+                          <AdminRoute>
+                            <MenuAccessConfig />
                           </AdminRoute>
                         }
                       />

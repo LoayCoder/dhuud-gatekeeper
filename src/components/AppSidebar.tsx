@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +44,7 @@ import {
   Plus,
   QrCode,
   ClipboardList,
+  Menu,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -63,6 +64,7 @@ import { logUserActivity, getSessionDurationSeconds, clearSessionTracking } from
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { prefetchRoute, prefetchRoutes } from "@/hooks/use-prefetch";
+import { useMenuAccess } from "@/hooks/use-menu-access";
 
 export function AppSidebar() {
   const { t, i18n } = useTranslation();
@@ -71,6 +73,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
+  const { canAccess, hasAccessibleChildren, isLoading: menuLoading } = useMenuAccess();
 
   // Watch for direction changes
   useEffect(() => {
@@ -101,16 +104,18 @@ export function AppSidebar() {
     navigate("/login");
   };
 
-  // Menu Configuration with translations
+  // Menu Configuration with translations and menu codes for access control
   const menuItems = [
     {
       title: t('navigation.dashboard'),
       url: "/",
       icon: LayoutDashboard,
+      menuCode: 'dashboard',
     },
     {
       title: t('navigation.hsseManagement'),
       icon: Shield,
+      menuCode: 'hsse_management',
       isActive: location.pathname.startsWith("/incidents") || 
                 location.pathname.startsWith("/audits") || 
                 location.pathname.startsWith("/visitors"),
@@ -118,59 +123,70 @@ export function AppSidebar() {
         {
           title: t('navigation.hsseEvents'),
           icon: FileWarning,
+          menuCode: 'hsse_events',
           isActive: location.pathname.startsWith("/incidents"),
           subItems: [
             {
               title: t('navigation.eventDashboard'),
               url: "/incidents/dashboard",
               icon: BarChart3,
+              menuCode: 'event_dashboard',
             },
             {
               title: t('navigation.eventList'),
               url: "/incidents",
               icon: FileWarning,
+              menuCode: 'event_list',
             },
             {
               title: t('navigation.reportEvent'),
               url: "/incidents/report",
               icon: FileWarning,
+              menuCode: 'report_event',
             },
             {
               title: t('navigation.investigationWorkspace'),
               url: "/incidents/investigate",
               icon: ClipboardCheck,
+              menuCode: 'investigation_workspace',
             },
             {
               title: t('navigation.myActions'),
               url: "/incidents/my-actions",
               icon: ClipboardCheck,
+              menuCode: 'my_actions',
             },
           ],
         },
         {
           title: t('navigation.auditsInspections'),
           icon: ClipboardCheck,
+          menuCode: 'audits_inspections',
           isActive: location.pathname.startsWith("/inspections") || location.pathname.startsWith("/audits"),
           subItems: [
             {
               title: t('navigation.inspectionDashboard'),
               url: "/inspections/dashboard",
               icon: BarChart3,
+              menuCode: 'inspection_dashboard',
             },
             {
               title: t('navigation.inspectionSessions'),
               url: "/inspections/sessions",
               icon: ClipboardList,
+              menuCode: 'inspection_sessions',
             },
             {
               title: t('navigation.inspectionSchedules'),
               url: "/inspections/schedules",
               icon: ClipboardList,
+              menuCode: 'inspection_schedules',
             },
             {
               title: t('navigation.myInspectionActions'),
               url: "/inspections/my-actions",
               icon: ClipboardCheck,
+              menuCode: 'my_inspection_actions',
             },
           ],
         },
@@ -178,31 +194,37 @@ export function AppSidebar() {
           title: t('navigation.visitorGatekeeper'),
           url: "/visitors",
           icon: Users,
+          menuCode: 'visitor_gatekeeper',
         },
         {
           title: t('navigation.assetManagement'),
           icon: Package,
+          menuCode: 'asset_management',
           isActive: location.pathname.startsWith("/assets"),
           subItems: [
             {
               title: t('navigation.assetDashboard'),
               url: "/assets/dashboard",
               icon: BarChart3,
+              menuCode: 'asset_dashboard',
             },
             {
               title: t('navigation.assetList'),
               url: "/assets",
               icon: List,
+              menuCode: 'asset_list',
             },
             {
               title: t('navigation.registerAsset'),
               url: "/assets/register",
               icon: Plus,
+              menuCode: 'register_asset',
             },
             {
               title: t('navigation.scanAsset'),
               url: "/assets/scan",
               icon: QrCode,
+              menuCode: 'scan_asset',
             },
           ],
         },
