@@ -201,6 +201,7 @@
     "delete": "Delete Incident",
     "deleteConfirm": "Are you sure you want to delete this incident? This action cannot be undone.",
     "deleteSuccess": "Incident deleted successfully",
+    "cannotDeleteClosed": "Cannot delete closed events",
     "startInvestigation": "Start Investigation",
     "investigationStarted": "Investigation has been started",
     "changeStatus": "Change Status",

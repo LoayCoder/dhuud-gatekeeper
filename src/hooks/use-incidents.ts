@@ -352,7 +352,7 @@ export function useUpdateIncidentStatus() {
   });
 }
 
-// Hook to soft-delete incident (admin only)
+// Hook to soft-delete incident (admin only, non-closed incidents)
 export function useDeleteIncident() {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -360,6 +360,19 @@ export function useDeleteIncident() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // First check if incident can be deleted (not closed)
+      const { data: incident, error: fetchError } = await supabase
+        .from('incidents')
+        .select('status')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+      
+      if (incident?.status === 'closed') {
+        throw new Error(t('incidents.cannotDeleteClosed'));
+      }
+
       // Soft delete: set deleted_at timestamp
       const { error } = await supabase
         .from('incidents')

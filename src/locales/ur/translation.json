@@ -104,6 +104,7 @@
     "delete": "واقعہ حذف کریں",
     "deleteConfirm": "کیا آپ واقعی یہ واقعہ حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔",
     "deleteSuccess": "واقعہ کامیابی سے حذف ہو گیا",
+    "cannotDeleteClosed": "بند واقعات کو حذف نہیں کیا جا سکتا",
     "startInvestigation": "تحقیقات شروع کریں",
     "investigationStarted": "تحقیقات شروع ہو گئی",
     "changeStatus": "حالت تبدیل کریں",

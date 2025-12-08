@@ -105,6 +105,7 @@
     "delete": "حذف الحادث",
     "deleteConfirm": "هل أنت متأكد من حذف هذا الحادث؟ لا يمكن التراجع عن هذا الإجراء.",
     "deleteSuccess": "تم حذف الحادث بنجاح",
+    "cannotDeleteClosed": "لا يمكن حذف الأحداث المغلقة",
     "startInvestigation": "بدء التحقيق",
     "investigationStarted": "تم بدء التحقيق",
     "changeStatus": "تغيير الحالة",

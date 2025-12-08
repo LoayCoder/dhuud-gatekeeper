@@ -104,6 +104,7 @@
     "delete": "Tanggalin ang Insidente",
     "deleteConfirm": "Sigurado ka bang gusto mong tanggalin ang insidenteng ito? Hindi ito maaaring i-undo.",
     "deleteSuccess": "Matagumpay na natanggal ang insidente",
+    "cannotDeleteClosed": "Hindi matatanggal ang mga saradong pangyayari",
     "startInvestigation": "Simulan ang Imbestigasyon",
     "investigationStarted": "Nagsimula na ang imbestigasyon",
     "changeStatus": "Baguhin ang Status",
