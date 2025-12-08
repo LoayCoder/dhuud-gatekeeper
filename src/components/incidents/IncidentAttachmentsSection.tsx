@@ -45,6 +45,9 @@ export function IncidentAttachmentsSection({
       const storagePath = `${profile.tenant_id}/${incidentId}`;
       const allFiles: StorageFile[] = [];
       
+      console.log(`[Attachments] Fetching attachments for incident: ${incidentId}, tenant: ${profile.tenant_id}`);
+      console.log(`[Attachments] Storage path: ${storagePath}`);
+      
       // Known subfolders where files are uploaded
       const subfolders = ['photos', 'video', 'closed-on-spot', 'evidence', ''];
       
@@ -56,22 +59,29 @@ export function IncidentAttachmentsSection({
           .list(folderPath);
         
         if (error) {
-          console.error(`Error fetching files from ${folderPath}:`, error);
+          console.error(`[Attachments] Error fetching files from ${folderPath}:`, error);
           continue;
         }
+
+        console.log(`[Attachments] Files found in "${subfolder || 'root'}":`, files?.length || 0, files?.map(f => f.name));
 
         if (!files || files.length === 0) continue;
 
         // Filter out folder entries (they have null id in some cases or no metadata)
         const actualFiles = files.filter(f => f.name && !f.name.endsWith('/') && f.id);
+        console.log(`[Attachments] Actual files after filter in "${subfolder || 'root'}":`, actualFiles.length);
 
         // Get signed URLs for all files in this subfolder
         const filesWithUrls = await Promise.all(
           actualFiles.map(async (file) => {
             const fullPath = subfolder ? `${storagePath}/${subfolder}/${file.name}` : `${storagePath}/${file.name}`;
-            const { data: signedUrl } = await supabase.storage
+            const { data: signedUrl, error: urlError } = await supabase.storage
               .from('incident-attachments')
               .createSignedUrl(fullPath, 3600);
+            
+            if (urlError) {
+              console.error(`[Attachments] Failed to get signed URL for ${fullPath}:`, urlError);
+            }
             
             return {
               name: file.name,
@@ -87,6 +97,7 @@ export function IncidentAttachmentsSection({
         allFiles.push(...filesWithUrls.filter(f => f.url));
       }
 
+      console.log(`[Attachments] Total files found:`, allFiles.length);
       return allFiles;
     },
     enabled: !!profile?.tenant_id && !!incidentId
