@@ -60,6 +60,7 @@ const userFormSchema = z.object({
   membership_start: z.string().optional(),
   membership_end: z.string().optional(),
   // Hierarchy
+  has_full_branch_access: z.boolean().default(false),
   assigned_branch_id: z.string().optional().nullable(),
   assigned_division_id: z.string().optional().nullable(),
   assigned_department_id: z.string().optional().nullable(),
@@ -114,6 +115,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       membership_id: '',
       membership_start: '',
       membership_end: '',
+      has_full_branch_access: false,
       assigned_branch_id: null,
       assigned_division_id: null,
       assigned_department_id: null,
@@ -123,6 +125,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
   const userType = form.watch('user_type');
   const hasLogin = form.watch('has_login');
+  const hasFullBranchAccess = form.watch('has_full_branch_access');
   const selectedBranchId = form.watch('assigned_branch_id');
   const selectedDivisionId = form.watch('assigned_division_id');
   const selectedDepartmentId = form.watch('assigned_department_id');
@@ -168,6 +171,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
           membership_id: user.membership_id || '',
           membership_start: user.membership_start || '',
           membership_end: user.membership_end || '',
+          has_full_branch_access: user.has_full_branch_access ?? false,
           assigned_branch_id: user.assigned_branch_id || null,
           assigned_division_id: user.assigned_division_id || null,
           assigned_department_id: user.assigned_department_id || null,
@@ -532,6 +536,34 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
             {/* Organizational Hierarchy */}
             <div className="space-y-3 p-3 border rounded-lg" dir={direction}>
               <h4 className="font-medium text-start">{t('userManagement.organizationalAssignment')}</h4>
+              
+              {/* Full Branch Access Toggle */}
+              <FormField
+                control={form.control}
+                name="has_full_branch_access"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between p-3 border rounded-md bg-muted/30">
+                    <div className="space-y-0.5">
+                      <FormLabel className="font-medium">{t('userManagement.fullBranchAccess')}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {t('userManagement.fullBranchAccessDescription')}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          if (checked) {
+                            form.setValue('assigned_branch_id', null);
+                          }
+                        }} 
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
@@ -546,19 +578,26 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                           form.setValue('assigned_department_id', null);
                           form.setValue('assigned_section_id', null);
                         }} 
-                        value={field.value || 'none'}
+                        value={hasFullBranchAccess ? 'all' : (field.value || 'none')}
+                        disabled={hasFullBranchAccess}
                         dir={direction}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className={hasFullBranchAccess ? 'bg-muted' : ''}>
                             <SelectValue placeholder={t('common.select')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent dir={direction}>
-                          <SelectItem value="none">{t('common.none')}</SelectItem>
-                          {hierarchy.branches.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                          ))}
+                          {hasFullBranchAccess ? (
+                            <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
+                          ) : (
+                            <>
+                              <SelectItem value="none">{t('common.none')}</SelectItem>
+                              {hierarchy.branches.map((b) => (
+                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </FormItem>

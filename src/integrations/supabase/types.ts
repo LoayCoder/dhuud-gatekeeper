@@ -3420,6 +3420,7 @@ export type Database = {
           emergency_contact_phone: string | null
           employee_id: string | null
           full_name: string | null
+          has_full_branch_access: boolean | null
           has_login: boolean | null
           id: string
           is_active: boolean | null
@@ -3457,6 +3458,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           employee_id?: string | null
           full_name?: string | null
+          has_full_branch_access?: boolean | null
           has_login?: boolean | null
           id: string
           is_active?: boolean | null
@@ -3494,6 +3496,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           employee_id?: string | null
           full_name?: string | null
+          has_full_branch_access?: boolean | null
           has_login?: boolean | null
           id?: string
           is_active?: boolean | null
