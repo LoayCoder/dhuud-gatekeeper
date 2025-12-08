@@ -161,6 +161,7 @@ export default function UserManagement() {
     try {
       const updateData = {
         full_name: data.full_name,
+        email: data.email || null,
         phone_number: data.phone_number,
         user_type: data.user_type,
         has_login: data.has_login,

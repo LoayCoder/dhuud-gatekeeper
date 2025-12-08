@@ -3526,6 +3526,7 @@ export type Database = {
           digest_opt_in: boolean | null
           digest_preferred_time: string | null
           digest_timezone: string | null
+          email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           employee_id: string | null
@@ -3564,6 +3565,7 @@ export type Database = {
           digest_opt_in?: boolean | null
           digest_preferred_time?: string | null
           digest_timezone?: string | null
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employee_id?: string | null
@@ -3602,6 +3604,7 @@ export type Database = {
           digest_opt_in?: boolean | null
           digest_preferred_time?: string | null
           digest_timezone?: string | null
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employee_id?: string | null
@@ -5349,72 +5352,40 @@ export type Database = {
           role_name: string
         }[]
       }
-      get_users_with_roles_paginated:
-        | {
-            Args: {
-              p_branch_id?: string
-              p_division_id?: string
-              p_is_active?: boolean
-              p_limit?: number
-              p_offset?: number
-              p_role_code?: string
-              p_tenant_id: string
-              p_user_type?: string
-            }
-            Returns: {
-              assigned_branch_id: string
-              assigned_department_id: string
-              assigned_division_id: string
-              assigned_section_id: string
-              branch_name: string
-              department_name: string
-              division_name: string
-              employee_id: string
-              full_name: string
-              has_login: boolean
-              id: string
-              is_active: boolean
-              job_title: string
-              phone_number: string
-              role_assignments: Json
-              section_name: string
-              total_count: number
-              user_type: string
-            }[]
-          }
-        | {
-            Args: {
-              p_branch_id?: string
-              p_division_id?: string
-              p_is_active?: boolean
-              p_limit?: number
-              p_offset?: number
-              p_role_code?: string
-              p_search_term?: string
-              p_tenant_id: string
-              p_user_type?: string
-            }
-            Returns: {
-              assigned_branch_id: string
-              assigned_department_id: string
-              assigned_division_id: string
-              assigned_section_id: string
-              branch_name: string
-              department_name: string
-              division_name: string
-              employee_id: string
-              full_name: string
-              has_login: boolean
-              id: string
-              is_active: boolean
-              job_title: string
-              phone_number: string
-              role_assignments: Json
-              section_name: string
-              total_count: number
-              user_type: string
-            }[]
-          }
+      get_users_with_roles_paginated: {
+        Args: {
+          p_branch_id?: string
+          p_division_id?: string
+          p_is_active?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_role_code?: string
+          p_search_term?: string
+          p_tenant_id: string
+          p_user_type?: string
+        }
+        Returns: {
+          assigned_branch_id: string
+          assigned_department_id: string
+          assigned_division_id: string
+          assigned_section_id: string
+          branch_name: string
+          department_name: string
+          division_name: string
+          email: string
+          employee_id: string
+          full_name: string
+          has_login: boolean
+          id: string
+          is_active: boolean
+          job_title: string
+          phone_number: string
+          role_assignments: Json
+          section_name: string
+          total_count: number
+          user_type: string
+        }[]
+      }
       has_asset_management_access: {
         Args: { _user_id: string }
         Returns: boolean
