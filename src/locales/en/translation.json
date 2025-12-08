@@ -698,6 +698,7 @@
     "error": "Error",
     "success": "Success",
     "saving": "Saving...",
+    "deleting": "Deleting...",
     "comingSoon": "Coming Soon",
     "submitting": "Submitting...",
     "canceling": "Canceling...",
@@ -1066,7 +1067,23 @@
     "fileTypeError": "Only JPG, PNG, and GIF files are allowed",
     "fileSizeError": "Please select an image under 10MB",
     "avatarSaveError": "Failed to save avatar URL",
-    "invalidInput": "Invalid input"
+    "invalidInput": "Invalid input",
+    "deletionPassword": {
+      "title": "Deletion Password",
+      "description": "Password required to delete closed incidents and observations",
+      "setPassword": "Set Deletion Password",
+      "changePassword": "Change Deletion Password",
+      "notConfigured": "Not configured",
+      "configured": "Configured",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "minLength": "Minimum 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "setSuccess": "Deletion password set successfully",
+      "enterPassword": "Enter your deletion password to delete this closed event",
+      "invalidPassword": "Invalid deletion password",
+      "notConfiguredError": "Please configure your deletion password in Profile Settings first"
+    }
   },
   "sidebar": {
     "myAccount": "My Account",

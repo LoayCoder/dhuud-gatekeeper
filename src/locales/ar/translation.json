@@ -1252,7 +1252,23 @@
     "fileSizeError": "يرجى اختيار صورة أقل من 10 ميجابايت",
     "avatarSaveError": "فشل في حفظ رابط الصورة الرمزية",
     "avatarHint": "JPG أو GIF أو PNG. الحد الأقصى 2 ميجابايت.",
-    "invalidInput": "إدخال غير صالح"
+    "invalidInput": "إدخال غير صالح",
+    "deletionPassword": {
+      "title": "كلمة مرور الحذف",
+      "description": "كلمة المرور المطلوبة لحذف الحوادث والملاحظات المغلقة",
+      "setPassword": "تعيين كلمة مرور الحذف",
+      "changePassword": "تغيير كلمة مرور الحذف",
+      "notConfigured": "غير مهيأ",
+      "configured": "مهيأ",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "minLength": "6 أحرف كحد أدنى",
+      "passwordMismatch": "كلمات المرور غير متطابقة",
+      "setSuccess": "تم تعيين كلمة مرور الحذف بنجاح",
+      "enterPassword": "أدخل كلمة مرور الحذف لحذف هذا الحدث المغلق",
+      "invalidPassword": "كلمة مرور الحذف غير صحيحة",
+      "notConfiguredError": "يرجى تكوين كلمة مرور الحذف في إعدادات الملف الشخصي أولاً"
+    }
   },
   "sidebar": {
     "myAccount": "حسابي",

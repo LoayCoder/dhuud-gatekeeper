@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useCachedUserRole } from '@/hooks/use-cached-profile';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { DigestPreferences } from './DigestPreferences';
+import { DeletionPasswordSettings } from './DeletionPasswordSettings';
 import { Separator } from '@/components/ui/separator';
 
 interface HSSEManagerSettingsProps {
@@ -13,10 +15,11 @@ interface HSSEManagerSettingsProps {
  */
 export function HSSEManagerSettings({ className }: HSSEManagerSettingsProps) {
   const { t } = useTranslation();
-  const { data: userRole } = useCachedUserRole();
+  const { isAdmin } = useAuth();
+  const { hasRole } = useUserRoles();
 
-  // Only show for HSSE managers and admins
-  const isHSSEManager = userRole === 'admin'; // Simplified check, can be expanded
+  // Show for HSSE managers and admins
+  const isHSSEManager = isAdmin || hasRole('hsse_manager');
 
   if (!isHSSEManager) {
     return null;
@@ -26,6 +29,8 @@ export function HSSEManagerSettings({ className }: HSSEManagerSettingsProps) {
     <div className={className}>
       <Separator className="my-6" />
       <DigestPreferences />
+      <Separator className="my-6" />
+      <DeletionPasswordSettings />
     </div>
   );
 }

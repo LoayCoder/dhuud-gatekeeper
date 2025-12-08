@@ -1256,7 +1256,23 @@
     "fileSizeError": "कृपया 10MB से छोटी छवि चुनें",
     "avatarSaveError": "अवतार URL सहेजने में विफल",
     "avatarHint": "JPG, GIF या PNG। अधिकतम आकार 2MB है।",
-    "invalidInput": "अमान्य इनपुट"
+    "invalidInput": "अमान्य इनपुट",
+    "deletionPassword": {
+      "title": "हटाने का पासवर्ड",
+      "description": "बंद घटनाओं और अवलोकनों को हटाने के लिए पासवर्ड आवश्यक है",
+      "setPassword": "हटाने का पासवर्ड सेट करें",
+      "changePassword": "हटाने का पासवर्ड बदलें",
+      "notConfigured": "कॉन्फ़िगर नहीं किया गया",
+      "configured": "कॉन्फ़िगर किया गया",
+      "newPassword": "नया पासवर्ड",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "minLength": "न्यूनतम 6 अक्षर",
+      "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+      "setSuccess": "हटाने का पासवर्ड सफलतापूर्वक सेट हो गया",
+      "enterPassword": "इस बंद घटना को हटाने के लिए अपना हटाने का पासवर्ड दर्ज करें",
+      "invalidPassword": "गलत हटाने का पासवर्ड",
+      "notConfiguredError": "कृपया पहले प्रोफ़ाइल सेटिंग्स में अपना हटाने का पासवर्ड कॉन्फ़िगर करें"
+    }
   },
   "sidebar": {
     "myAccount": "मेरा खाता",

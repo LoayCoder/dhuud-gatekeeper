@@ -1256,7 +1256,23 @@
     "fileSizeError": "Mangyaring pumili ng larawan na mas mababa sa 10MB",
     "avatarSaveError": "Nabigo ang pag-save ng avatar URL",
     "avatarHint": "JPG, GIF o PNG. Max na laki ay 2MB.",
-    "invalidInput": "Hindi valid na input"
+    "invalidInput": "Hindi valid na input",
+    "deletionPassword": {
+      "title": "Password sa Pagtanggal",
+      "description": "Kinakailangan ang password para tanggalin ang mga saradong insidente at obserbasyon",
+      "setPassword": "I-set ang Password sa Pagtanggal",
+      "changePassword": "Palitan ang Password sa Pagtanggal",
+      "notConfigured": "Hindi pa naka-configure",
+      "configured": "Naka-configure na",
+      "newPassword": "Bagong Password",
+      "confirmPassword": "Kumpirmahin ang Password",
+      "minLength": "Minimum 6 na karakter",
+      "passwordMismatch": "Hindi magkatugma ang mga password",
+      "setSuccess": "Matagumpay na na-set ang deletion password",
+      "enterPassword": "Ilagay ang iyong deletion password para tanggalin ang saradong event na ito",
+      "invalidPassword": "Hindi valid na deletion password",
+      "notConfiguredError": "Mangyaring i-configure muna ang iyong deletion password sa Profile Settings"
+    }
   },
   "sidebar": {
     "myAccount": "Aking Account",

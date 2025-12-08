@@ -1256,7 +1256,23 @@
     "fileSizeError": "براہ کرم 10MB سے کم تصویر منتخب کریں",
     "avatarSaveError": "اوتار URL محفوظ کرنے میں ناکام",
     "avatarHint": "JPG، GIF یا PNG۔ زیادہ سے زیادہ سائز 2MB ہے۔",
-    "invalidInput": "غلط ان پٹ"
+    "invalidInput": "غلط ان پٹ",
+    "deletionPassword": {
+      "title": "حذف کا پاس ورڈ",
+      "description": "بند واقعات اور مشاہدات کو حذف کرنے کے لیے پاس ورڈ درکار ہے",
+      "setPassword": "حذف کا پاس ورڈ سیٹ کریں",
+      "changePassword": "حذف کا پاس ورڈ تبدیل کریں",
+      "notConfigured": "ترتیب نہیں دی گئی",
+      "configured": "ترتیب دی گئی",
+      "newPassword": "نیا پاس ورڈ",
+      "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+      "minLength": "کم از کم 6 حروف",
+      "passwordMismatch": "پاس ورڈ مماثل نہیں ہیں",
+      "setSuccess": "حذف کا پاس ورڈ کامیابی سے سیٹ ہو گیا",
+      "enterPassword": "اس بند واقعے کو حذف کرنے کے لیے اپنا حذف کا پاس ورڈ درج کریں",
+      "invalidPassword": "غلط حذف کا پاس ورڈ",
+      "notConfiguredError": "براہ کرم پہلے پروفائل سیٹنگز میں اپنا حذف کا پاس ورڈ ترتیب دیں"
+    }
   },
   "sidebar": {
     "myAccount": "میرا اکاؤنٹ",
