@@ -20,3 +20,14 @@ export { WitnessVoiceRecording } from './WitnessVoiceRecording';
 export { WitnessTaskAssignment } from './WitnessTaskAssignment';
 export { IncidentClosureRequestDialog } from './IncidentClosureRequestDialog';
 export { IncidentClosureApprovalCard } from './IncidentClosureApprovalCard';
+// HSSE Workflow components
+export { HSSEExpertScreeningCard } from './HSSEExpertScreeningCard';
+export { ReturnToReporterDialog } from './ReturnToReporterDialog';
+export { RejectReportDialog } from './RejectReportDialog';
+export { NoInvestigationDialog } from './NoInvestigationDialog';
+export { ManagerApprovalCard } from './ManagerApprovalCard';
+export { HSSEManagerEscalationCard } from './HSSEManagerEscalationCard';
+export { ReporterCorrectionBanner } from './ReporterCorrectionBanner';
+export { RejectionConfirmationCard } from './RejectionConfirmationCard';
+export { InvestigatorAssignmentStep } from './InvestigatorAssignmentStep';
+export { WorkflowProgressBanner } from './WorkflowProgressBanner';
