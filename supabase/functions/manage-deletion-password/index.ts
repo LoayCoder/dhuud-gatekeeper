@@ -50,15 +50,17 @@ Deno.serve(async (req) => {
 
     console.log(`Processing ${action} for user ${userId}`);
 
-    // Check if user has HSSE Manager or Admin role
-    const { data: hasHSSERole } = await supabaseClient.rpc('has_role_by_code', {
-      _user_id: userId,
-      _role_code: 'hsse_manager'
+    // Check if user has HSSE Manager or Admin role using get_user_roles
+    const { data: userRoles, error: rolesError } = await supabaseClient.rpc('get_user_roles', {
+      p_user_id: userId
     });
 
-    const { data: isAdmin } = await supabaseClient.rpc('is_admin', {
-      _user_id: userId
-    });
+    if (rolesError) {
+      console.error('Roles fetch error:', rolesError);
+    }
+
+    const hasHSSERole = userRoles?.some((r: { role_code: string }) => r.role_code === 'hsse_manager');
+    const isAdmin = userRoles?.some((r: { role_code: string }) => r.role_code === 'admin');
 
     if (!hasHSSERole && !isAdmin) {
       return new Response(
