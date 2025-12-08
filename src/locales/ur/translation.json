@@ -188,10 +188,10 @@
     "preview": "پیش نظارہ",
     "rewriteWithAI": "AI سے دوبارہ لکھیں",
     "summarizeWithAI": "AI سے خلاصہ کریں",
-    "detectType": "قسم کا پتہ لگائیں",
-    "suggestSeverity": "شدت تجویز کریں",
+    "aiAnalyze": "AI تجزیہ",
     "suggestedType": "تجویز کردہ قسم",
     "ai": {
+      "analysisComplete": "AI تجزیہ مکمل ہو گیا",
       "typeDetected": "واقعہ کی قسم کا پتہ چل گیا",
       "typeNotDetected": "وضاحت سے واقعہ کی قسم کا تعین نہیں ہو سکا",
       "detectionError": "واقعہ کی قسم کا پتہ لگانے میں ناکامی"

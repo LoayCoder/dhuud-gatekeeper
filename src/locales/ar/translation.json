@@ -198,10 +198,10 @@
     "preview": "معاينة",
     "rewriteWithAI": "إعادة الكتابة بالذكاء الاصطناعي",
     "summarizeWithAI": "تلخيص بالذكاء الاصطناعي",
-    "detectType": "اكتشاف النوع",
-    "suggestSeverity": "اقتراح الخطورة",
+    "aiAnalyze": "تحليل بالذكاء الاصطناعي",
     "suggestedType": "النوع المقترح",
     "ai": {
+      "analysisComplete": "اكتمل تحليل الذكاء الاصطناعي",
       "typeDetected": "تم اكتشاف نوع الحدث",
       "typeNotDetected": "تعذر تحديد نوع الحدث من الوصف",
       "detectionError": "فشل في اكتشاف نوع الحدث"

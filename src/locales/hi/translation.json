@@ -188,10 +188,10 @@
     "preview": "पूर्वावलोकन",
     "rewriteWithAI": "AI से पुनर्लेखन करें",
     "summarizeWithAI": "AI से सारांश करें",
-    "detectType": "प्रकार पहचानें",
-    "suggestSeverity": "गंभीरता सुझाएं",
+    "aiAnalyze": "AI विश्लेषण",
     "suggestedType": "सुझाया गया प्रकार",
     "ai": {
+      "analysisComplete": "AI विश्लेषण पूर्ण",
       "typeDetected": "घटना का प्रकार पहचाना गया",
       "typeNotDetected": "विवरण से घटना का प्रकार निर्धारित नहीं हो सका",
       "detectionError": "घटना का प्रकार पहचानने में विफल"

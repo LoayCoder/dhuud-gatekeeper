@@ -126,10 +126,10 @@
     "preview": "Preview",
     "rewriteWithAI": "Rewrite with AI",
     "summarizeWithAI": "Summarize with AI",
-    "detectType": "Detect Type",
-    "suggestSeverity": "Suggest Severity",
+    "aiAnalyze": "AI Analyze",
     "suggestedType": "Suggested Type",
     "ai": {
+      "analysisComplete": "AI Analysis Complete",
       "typeDetected": "Event type detected",
       "typeNotDetected": "Could not determine event type from description",
       "detectionError": "Failed to detect event type"
