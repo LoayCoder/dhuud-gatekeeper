@@ -61,7 +61,7 @@ type BulkActionType = 'activate' | 'deactivate' | 'delete' | null;
 
 export default function UserManagement() {
   const { t, i18n } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const direction = i18n.dir();
   
   const [branches, setBranches] = useState<HierarchyItem[]>([]);
@@ -204,6 +204,7 @@ export default function UserManagement() {
       
       toast({ title: t('userManagement.userUpdated') });
     } else {
+      // Create new user
       const newUserId = crypto.randomUUID();
       const { error } = await supabase.from('profiles').insert({
         id: newUserId,
@@ -217,7 +218,68 @@ export default function UserManagement() {
       }
       
       await logUserCreated(newUserId, data.full_name, data.user_type);
-      toast({ title: t('userManagement.userCreated') });
+      
+      // If user has login enabled and has email, create invitation and send email
+      if (data.has_login && data.email) {
+        try {
+          // Generate invitation code
+          const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+          
+          // Get tenant name
+          const { data: tenant } = await supabase
+            .from('tenants')
+            .select('name')
+            .eq('id', profile.tenant_id)
+            .single();
+          
+          // Create invitation record
+          const { error: inviteError } = await supabase.from('invitations').insert({
+            tenant_id: profile.tenant_id,
+            email: data.email,
+            code: inviteCode,
+            expires_at: expiresAt.toISOString(),
+            created_by: user?.id,
+          });
+          
+          if (inviteError) {
+            console.error('Failed to create invitation:', inviteError);
+            toast({ 
+              title: t('userManagement.userCreated'),
+              description: t('userManagement.invitationFailed'),
+              variant: 'destructive' 
+            });
+          } else {
+            // Send invitation email
+            const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+              body: {
+                email: data.email,
+                code: inviteCode,
+                tenantName: tenant?.name || 'DHUUD Platform',
+                expiresAt: expiresAt.toISOString(),
+              },
+            });
+            
+            if (emailError) {
+              console.error('Failed to send invitation email:', emailError);
+              toast({ 
+                title: t('userManagement.userCreated'),
+                description: t('userManagement.emailFailed'),
+              });
+            } else {
+              toast({ 
+                title: t('userManagement.userCreated'),
+                description: t('userManagement.invitationSent', { email: data.email }),
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Error creating invitation:', err);
+        }
+      } else {
+        toast({ title: t('userManagement.userCreated') });
+      }
     }
     refetchUsers();
     refetchQuota();

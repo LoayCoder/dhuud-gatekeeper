@@ -43,7 +43,7 @@ import { TeamAssignmentDialog } from '@/components/hierarchy/TeamAssignmentDialo
 
 const userFormSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().optional().or(z.literal('')),
   phone_number: z.string().optional(),
   user_type: z.enum(['employee', 'contractor_longterm', 'contractor_shortterm', 'member', 'visitor']),
   has_login: z.boolean().default(true),
@@ -65,6 +65,18 @@ const userFormSchema = z.object({
   assigned_division_id: z.string().optional().nullable(),
   assigned_department_id: z.string().optional().nullable(),
   assigned_section_id: z.string().optional().nullable(),
+}).refine((data) => {
+  // If has_login is true, email is required and must be valid
+  if (data.has_login) {
+    if (!data.email || data.email === '') return false;
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(data.email);
+  }
+  return true;
+}, {
+  message: 'Email is required when login is enabled',
+  path: ['email'],
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
