@@ -85,7 +85,7 @@ export default function Signup() {
         return;
       }
 
-      // 1. Get Tenant ID from Invitation using secure function
+      // 1. Get Tenant ID and metadata from Invitation using secure function
       const { data: inviteResult, error: inviteFetchError } = await supabase
         .rpc('lookup_invitation', { lookup_code: invitationCode });
 
@@ -93,7 +93,36 @@ export default function Signup() {
         throw new Error("Invalid or expired invitation code.");
       }
 
-      const inviteData = inviteResult as { email: string; tenant_id: string; role: string };
+      interface InviteMetadata {
+        full_name?: string;
+        phone_number?: string;
+        user_type?: string;
+        has_login?: boolean;
+        is_active?: boolean;
+        employee_id?: string;
+        job_title?: string;
+        contractor_company_name?: string;
+        contractor_type?: string;
+        contract_start?: string;
+        contract_end?: string;
+        membership_id?: string;
+        membership_start?: string;
+        membership_end?: string;
+        has_full_branch_access?: boolean;
+        assigned_branch_id?: string;
+        assigned_division_id?: string;
+        assigned_department_id?: string;
+        assigned_section_id?: string;
+        role_ids?: string[];
+      }
+      
+      const inviteData = inviteResult as unknown as { 
+        email: string; 
+        tenant_id: string; 
+        role: string;
+        metadata?: InviteMetadata;
+      };
+      const metadata = inviteData.metadata || {};
 
       // 2. Sign up user
       const redirectUrl = `${window.location.origin}/`;
@@ -106,26 +135,58 @@ export default function Signup() {
       if (signupError) throw signupError;
 
       if (authData.user) {
-        // 3. CRITICAL: Create the Profile Link (roles are in user_roles table, not profiles)
+        // 3. Create the Profile with pre-filled metadata from invitation
+        const profileData = {
+          id: authData.user.id,
+          tenant_id: inviteData.tenant_id,
+          has_login: true,
+          is_active: true,
+          full_name: metadata.full_name || null,
+          phone_number: metadata.phone_number || null,
+          user_type: metadata.user_type as 'employee' | 'contractor_longterm' | 'contractor_shortterm' | 'member' | 'visitor' | null || null,
+          employee_id: metadata.employee_id || null,
+          job_title: metadata.job_title || null,
+          contractor_company_name: metadata.contractor_company_name || null,
+          contractor_type: (metadata.contractor_type as 'long_term' | 'short_term') || null,
+          contract_start: metadata.contract_start || null,
+          contract_end: metadata.contract_end || null,
+          membership_id: metadata.membership_id || null,
+          membership_start: metadata.membership_start || null,
+          membership_end: metadata.membership_end || null,
+          has_full_branch_access: metadata.has_full_branch_access ?? false,
+          assigned_branch_id: metadata.assigned_branch_id || null,
+          assigned_division_id: metadata.assigned_division_id || null,
+          assigned_department_id: metadata.assigned_department_id || null,
+          assigned_section_id: metadata.assigned_section_id || null,
+        };
+
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            id: authData.user.id,
-            tenant_id: inviteData.tenant_id,
-          });
+          .insert([profileData]);
 
         if (profileError) {
           console.error('Profile creation failed:', profileError);
           throw new Error('Failed to create user profile. Please try again.');
         }
+        
+        // 4. Assign roles if present in metadata
+        if (metadata.role_ids && metadata.role_ids.length > 0) {
+          const roleAssignments = metadata.role_ids.map((roleId: string) => ({
+            user_id: authData.user!.id,
+            role_id: roleId,
+            tenant_id: inviteData.tenant_id,
+          }));
+          
+          await supabase.from('user_role_assignments').insert(roleAssignments);
+        }
 
-        // 4. Mark invitation as used
+        // 5. Mark invitation as used
         await supabase
           .from('invitations')
           .update({ used: true })
           .eq('code', invitationCode);
           
-        // 5. Clear local storage
+        // 6. Clear local storage
         clearInvitationData();
 
         toast({
