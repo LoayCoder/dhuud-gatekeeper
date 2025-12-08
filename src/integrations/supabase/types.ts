@@ -1984,6 +1984,7 @@ export type Database = {
       incidents: {
         Row: {
           ai_analysis_result: Json | null
+          approval_manager_id: string | null
           branch_id: string | null
           closure_approved_at: string | null
           closure_approved_by: string | null
@@ -1997,9 +1998,20 @@ export type Database = {
           department: string | null
           department_id: string | null
           description: string
+          escalated_to_hsse_manager_at: string | null
           event_type: string
+          expert_recommendation: string | null
+          expert_rejected_at: string | null
+          expert_rejected_by: string | null
+          expert_rejection_reason: string | null
+          expert_screened_at: string | null
+          expert_screened_by: string | null
+          expert_screening_notes: string | null
           has_damage: boolean | null
           has_injury: boolean | null
+          hsse_manager_decision: string | null
+          hsse_manager_decision_by: string | null
+          hsse_manager_justification: string | null
           id: string
           immediate_actions: string | null
           immediate_actions_data: Json | null
@@ -2007,13 +2019,25 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          manager_decision: string | null
+          manager_decision_at: string | null
+          manager_rejection_reason: string | null
           media_attachments: Json | null
+          no_investigation_justification: string | null
           occurred_at: string | null
           original_severity:
             | Database["public"]["Enums"]["severity_level"]
             | null
           reference_id: string | null
+          reporter_dispute_notes: string | null
+          reporter_disputes_rejection: boolean | null
           reporter_id: string | null
+          reporter_rejection_confirmed_at: string | null
+          resubmission_count: number | null
+          return_instructions: string | null
+          return_reason: string | null
+          returned_at: string | null
+          returned_by: string | null
           risk_rating: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at: string | null
@@ -2030,6 +2054,7 @@ export type Database = {
         }
         Insert: {
           ai_analysis_result?: Json | null
+          approval_manager_id?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
@@ -2043,9 +2068,20 @@ export type Database = {
           department?: string | null
           department_id?: string | null
           description: string
+          escalated_to_hsse_manager_at?: string | null
           event_type: string
+          expert_recommendation?: string | null
+          expert_rejected_at?: string | null
+          expert_rejected_by?: string | null
+          expert_rejection_reason?: string | null
+          expert_screened_at?: string | null
+          expert_screened_by?: string | null
+          expert_screening_notes?: string | null
           has_damage?: boolean | null
           has_injury?: boolean | null
+          hsse_manager_decision?: string | null
+          hsse_manager_decision_by?: string | null
+          hsse_manager_justification?: string | null
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
@@ -2053,13 +2089,25 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          manager_decision?: string | null
+          manager_decision_at?: string | null
+          manager_rejection_reason?: string | null
           media_attachments?: Json | null
+          no_investigation_justification?: string | null
           occurred_at?: string | null
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
           reference_id?: string | null
+          reporter_dispute_notes?: string | null
+          reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
+          reporter_rejection_confirmed_at?: string | null
+          resubmission_count?: number | null
+          return_instructions?: string | null
+          return_reason?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
           risk_rating?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
@@ -2076,6 +2124,7 @@ export type Database = {
         }
         Update: {
           ai_analysis_result?: Json | null
+          approval_manager_id?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
@@ -2089,9 +2138,20 @@ export type Database = {
           department?: string | null
           department_id?: string | null
           description?: string
+          escalated_to_hsse_manager_at?: string | null
           event_type?: string
+          expert_recommendation?: string | null
+          expert_rejected_at?: string | null
+          expert_rejected_by?: string | null
+          expert_rejection_reason?: string | null
+          expert_screened_at?: string | null
+          expert_screened_by?: string | null
+          expert_screening_notes?: string | null
           has_damage?: boolean | null
           has_injury?: boolean | null
+          hsse_manager_decision?: string | null
+          hsse_manager_decision_by?: string | null
+          hsse_manager_justification?: string | null
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
@@ -2099,13 +2159,25 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          manager_decision?: string | null
+          manager_decision_at?: string | null
+          manager_rejection_reason?: string | null
           media_attachments?: Json | null
+          no_investigation_justification?: string | null
           occurred_at?: string | null
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
           reference_id?: string | null
+          reporter_dispute_notes?: string | null
+          reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
+          reporter_rejection_confirmed_at?: string | null
+          resubmission_count?: number | null
+          return_instructions?: string | null
+          return_reason?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
           risk_rating?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
@@ -2121,6 +2193,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "incidents_approval_manager_id_fkey"
+            columns: ["approval_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "incidents_branch_id_fkey"
             columns: ["branch_id"]
@@ -2150,8 +2229,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_expert_rejected_by_fkey"
+            columns: ["expert_rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_expert_screened_by_fkey"
+            columns: ["expert_screened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
+            columns: ["hsse_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_returned_by_fkey"
+            columns: ["returned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -5085,10 +5192,18 @@ export type Database = {
         Args: { _incident_id: string }
         Returns: boolean
       }
+      can_approve_investigation: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_close_area_session: { Args: { p_session_id: string }; Returns: Json }
       can_close_investigation: {
         Args: { p_incident_id: string }
         Returns: Json
+      }
+      can_perform_expert_screening: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
@@ -5140,6 +5255,10 @@ export type Database = {
       get_hsse_event_dashboard_stats: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
+      }
+      get_incident_department_manager: {
+        Args: { p_incident_id: string }
+        Returns: string
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
@@ -5381,6 +5500,13 @@ export type Database = {
         | "investigation_pending"
         | "investigation_in_progress"
         | "closed"
+        | "expert_screening"
+        | "returned_to_reporter"
+        | "expert_rejected"
+        | "no_investigation_required"
+        | "pending_manager_approval"
+        | "manager_rejected"
+        | "hsse_manager_escalation"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -5633,6 +5759,13 @@ export const Constants = {
         "investigation_pending",
         "investigation_in_progress",
         "closed",
+        "expert_screening",
+        "returned_to_reporter",
+        "expert_rejected",
+        "no_investigation_required",
+        "pending_manager_approval",
+        "manager_rejected",
+        "hsse_manager_escalation",
       ],
       maintenance_frequency: [
         "daily",
