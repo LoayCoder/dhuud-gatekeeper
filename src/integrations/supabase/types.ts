@@ -4966,7 +4966,15 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
+      get_events_by_location: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       get_findings_distribution: { Args: never; Returns: Json }
+      get_hsse_event_dashboard_stats: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
       get_monthly_hsse_summary: {
@@ -5022,6 +5030,10 @@ export type Database = {
           tenant_id: string
           user_count: number
         }[]
+      }
+      get_top_reporters: {
+        Args: { p_end_date?: string; p_limit?: number; p_start_date?: string }
+        Returns: Json
       }
       get_upcoming_inspection_schedules: {
         Args: { p_days_ahead?: number }

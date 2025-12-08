@@ -1,0 +1,76 @@
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import type { SeverityDistribution } from "@/hooks/use-hsse-event-dashboard";
+
+interface Props {
+  data: SeverityDistribution;
+}
+
+const SEVERITY_COLORS = {
+  critical: 'hsl(0 84% 60%)',
+  high: 'hsl(25 95% 53%)',
+  medium: 'hsl(48 96% 53%)',
+  low: 'hsl(142 71% 45%)',
+};
+
+export function SeverityDistributionChart({ data }: Props) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
+
+  const chartData = [
+    { name: t('severity.critical'), value: data.critical, key: 'critical' },
+    { name: t('severity.high'), value: data.high, key: 'high' },
+    { name: t('severity.medium'), value: data.medium, key: 'medium' },
+    { name: t('severity.low'), value: data.low, key: 'low' },
+  ];
+
+  const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  if (total === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('hsseDashboard.eventsBySeverity')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-[250px] text-muted-foreground">
+          {t('hsseDashboard.noData')}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t('hsseDashboard.eventsBySeverity')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart 
+            data={chartData} 
+            layout="vertical"
+            margin={{ left: isRTL ? 10 : 80, right: isRTL ? 80 : 10 }}
+          >
+            <XAxis type="number" />
+            <YAxis 
+              type="category" 
+              dataKey="name" 
+              width={70}
+              tick={{ fontSize: 12 }}
+              orientation={isRTL ? 'right' : 'left'}
+            />
+            <Tooltip 
+              formatter={(value: number) => [value, t('hsseDashboard.count')]}
+            />
+            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+              {chartData.map((entry) => (
+                <Cell key={entry.key} fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
