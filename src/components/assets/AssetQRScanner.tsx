@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Camera, XCircle, QrCode, AlertCircle } from 'lucide-react';
@@ -63,14 +63,17 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
   };
 
   const stopScanning = async () => {
-    if (scannerRef.current && isScanning) {
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        setIsScanning(false);
+        const state = scannerRef.current.getState();
+        if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
+          await scannerRef.current.stop();
+        }
       } catch (err) {
         console.error('Error stopping scanner:', err);
       }
     }
+    setIsScanning(false);
   };
 
   const handleScanSuccess = async (decodedText: string) => {
@@ -104,11 +107,18 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current && isScanning) {
-        scannerRef.current.stop().catch(console.error);
+      if (scannerRef.current) {
+        try {
+          const state = scannerRef.current.getState();
+          if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
+            scannerRef.current.stop().catch(console.error);
+          }
+        } catch (err) {
+          // Scanner may already be cleared
+        }
       }
     };
-  }, [isScanning]);
+  }, []);
 
   return (
     <Card>
