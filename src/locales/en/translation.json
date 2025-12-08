@@ -2358,6 +2358,7 @@
     "readOnlyView": "Read-only view of team hierarchy",
     "teamAssignment": "Team Assignment",
     "teamAssignmentDescription": "Assign this user to a manager's team",
+    "assignToTeamDescription": "Select a manager to assign {{name}} to their team",
     "assignToTeam": "Assign to Team",
     "changeManager": "Change Manager",
     "selectManager": "Select Manager",
