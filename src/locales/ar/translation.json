@@ -201,6 +201,11 @@
     "detectType": "اكتشاف النوع",
     "suggestSeverity": "اقتراح الخطورة",
     "suggestedType": "النوع المقترح",
+    "ai": {
+      "typeDetected": "تم اكتشاف نوع الحدث",
+      "typeNotDetected": "تعذر تحديد نوع الحدث من الوصف",
+      "detectionError": "فشل في اكتشاف نوع الحدث"
+    },
     "site": "الموقع",
     "selectSite": "اختر الموقع",
     "branch": "الفرع",

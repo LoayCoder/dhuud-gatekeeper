@@ -156,19 +156,55 @@ export async function detectEventType(description: string): Promise<{
   eventType: 'observation' | 'incident' | null; 
   subtype: string | null;
   confidence: number;
+  reasoning?: string;
 }> {
-  // Simulate AI processing time
-  await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 300));
-  
+  try {
+    // Call the AI-powered edge function
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/detect-event-type`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ description }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Event type detection failed:', response.status, errorData);
+      
+      // Fall back to keyword-based detection on error
+      return fallbackDetectEventType(description);
+    }
+
+    const data = await response.json();
+    
+    return {
+      eventType: data.eventType || null,
+      subtype: data.subtype || null,
+      confidence: data.confidence || 0.8,
+      reasoning: data.reasoning,
+    };
+  } catch (error) {
+    console.error('Error calling detect-event-type:', error);
+    // Fall back to keyword-based detection on network error
+    return fallbackDetectEventType(description);
+  }
+}
+
+// Fallback function using keyword matching (for offline/error scenarios)
+function fallbackDetectEventType(description: string): {
+  eventType: 'observation' | 'incident' | null;
+  subtype: string | null;
+  confidence: number;
+} {
   const lowerDesc = description.toLowerCase();
   const result = detectEventTypeFromText(lowerDesc);
-  
-  const confidence = result.eventType ? 0.75 + Math.random() * 0.2 : 0.5;
   
   return {
     eventType: result.eventType || null,
     subtype: result.subtype || null,
-    confidence,
+    confidence: result.eventType ? 0.6 : 0.3, // Lower confidence for fallback
   };
 }
 

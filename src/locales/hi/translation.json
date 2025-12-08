@@ -191,6 +191,11 @@
     "detectType": "प्रकार पहचानें",
     "suggestSeverity": "गंभीरता सुझाएं",
     "suggestedType": "सुझाया गया प्रकार",
+    "ai": {
+      "typeDetected": "घटना का प्रकार पहचाना गया",
+      "typeNotDetected": "विवरण से घटना का प्रकार निर्धारित नहीं हो सका",
+      "detectionError": "घटना का प्रकार पहचानने में विफल"
+    },
     "site": "साइट",
     "selectSite": "साइट चुनें",
     "branch": "शाखा",
