@@ -10,7 +10,8 @@ import { RoleInfo } from "@/components/profile/RoleInfo";
 import { ProfileData } from "@/components/profile/types";
 import { RTLWrapper } from "@/components/RTLWrapper";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCachedProfile, useCachedUserRole } from "@/hooks/use-cached-profile";
+import { useCachedProfile } from "@/hooks/use-cached-profile";
+import { useUserRoles } from "@/hooks/use-user-roles";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -18,9 +19,9 @@ export default function Profile() {
   
   // Use cached profile - prevents refetch for 5 minutes
   const { data: cachedProfile, isLoading: profileLoading, refetch } = useCachedProfile();
-  const { data: userRole = 'user', isLoading: roleLoading } = useCachedUserRole();
+  const { userRoles, isLoading: rolesLoading } = useUserRoles();
 
-  const loading = profileLoading || roleLoading;
+  const loading = profileLoading || rolesLoading;
   const profile = cachedProfile as ProfileData | null;
 
   if (loading) {
@@ -90,7 +91,7 @@ export default function Profile() {
         <div className="space-y-6">
           <TenantInfo memberSince={profile?.created_at || null} />
           <AssignmentInfo profile={profile} />
-          <RoleInfo role={userRole} />
+          <RoleInfo roles={userRoles} />
         </div>
       </div>
     </RTLWrapper>
