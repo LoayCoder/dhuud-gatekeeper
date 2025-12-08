@@ -34,20 +34,22 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Supabase client with user's auth token
+    // Extract token from Bearer header
+    const token = authHeader.replace('Bearer ', '');
+
+    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
       },
     });
 
-    // Verify user is authenticated
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    // Verify user is authenticated by passing token directly to getUser
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error('Invalid or expired token:', userError?.message);
       return new Response(
@@ -57,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Verify user is admin using RPC function
-    const { data: isAdmin, error: adminCheckError } = await supabaseUser.rpc('is_admin', { 
+    const { data: isAdmin, error: adminCheckError } = await supabaseClient.rpc('is_admin', { 
       p_user_id: user.id 
     });
     
