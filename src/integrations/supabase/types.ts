@@ -3321,6 +3321,7 @@ export type Database = {
           contractor_type: Database["public"]["Enums"]["contractor_type"] | null
           created_at: string | null
           deleted_at: string | null
+          deletion_password_hash: string | null
           digest_opt_in: boolean | null
           digest_preferred_time: string | null
           digest_timezone: string | null
@@ -3357,6 +3358,7 @@ export type Database = {
             | null
           created_at?: string | null
           deleted_at?: string | null
+          deletion_password_hash?: string | null
           digest_opt_in?: boolean | null
           digest_preferred_time?: string | null
           digest_timezone?: string | null
@@ -3393,6 +3395,7 @@ export type Database = {
             | null
           created_at?: string | null
           deleted_at?: string | null
+          deletion_password_hash?: string | null
           digest_opt_in?: boolean | null
           digest_preferred_time?: string | null
           digest_timezone?: string | null
@@ -5161,6 +5164,10 @@ export type Database = {
       process_due_inspection_schedules: {
         Args: { p_tenant_id?: string }
         Returns: Json
+      }
+      soft_delete_closed_incident: {
+        Args: { p_incident_id: string; p_password_hash: string }
+        Returns: string
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }

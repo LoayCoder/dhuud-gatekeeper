@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, FileText, AlertTriangle, Search, MoreHorizontal, Pencil, Trash2, PlayCircle } from 'lucide-react';
+import { Plus, FileText, AlertTriangle, Search, MoreHorizontal, Pencil, Trash2, PlayCircle, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +24,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
+import { useDeletionPassword } from '@/hooks/use-deletion-password';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
@@ -50,15 +62,26 @@ export default function IncidentList() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const navigate = useNavigate();
-  const { data: incidents, isLoading } = useIncidents();
+  const { data: incidents, isLoading, refetch } = useIncidents();
   const { user, isAdmin } = useAuth();
+  const { hasRole } = useUserRoles();
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+  
+  // Regular delete dialog (for non-closed incidents by admin)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [incidentToDeleteStatus, setIncidentToDeleteStatus] = useState<string | null>(null);
   const [incidentToDelete, setIncidentToDelete] = useState<string | null>(null);
+  const [incidentToDeleteStatus, setIncidentToDeleteStatus] = useState<string | null>(null);
+  
+  // Password-protected delete dialog (for closed incidents by HSSE Manager)
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [deletionPassword, setDeletionPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const deleteIncident = useDeleteIncident();
   const updateStatus = useUpdateIncidentStatus();
+  const { deleteClosedIncident, isLoading: isDeletingClosed, checkStatus, isConfigured } = useDeletionPassword();
+
+  const isHSSEManager = isAdmin || hasRole('hsse_manager');
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -69,6 +92,13 @@ export default function IncidentList() {
     checkAccess();
   }, [user?.id]);
 
+  // Check deletion password status for HSSE managers
+  useEffect(() => {
+    if (isHSSEManager) {
+      checkStatus();
+    }
+  }, [isHSSEManager, checkStatus]);
+
   const handleStartInvestigation = async (incidentId: string) => {
     await updateStatus.mutateAsync({ id: incidentId, status: 'investigation_in_progress' });
     navigate(`/incidents/investigate?incident=${incidentId}`);
@@ -77,11 +107,24 @@ export default function IncidentList() {
   const handleDeleteClick = (incidentId: string, status: string | null) => {
     setIncidentToDelete(incidentId);
     setIncidentToDeleteStatus(status);
-    setDeleteDialogOpen(true);
+    
+    if (status === 'closed') {
+      // Closed incidents require password dialog
+      setPasswordDialogOpen(true);
+    } else {
+      // Non-closed incidents use regular confirm dialog
+      setDeleteDialogOpen(true);
+    }
   };
 
+  // Determine if user can delete an incident
   const canDeleteIncident = (status: string | null) => {
-    return isAdmin && status !== 'closed';
+    if (status === 'closed') {
+      // Only HSSE Manager can delete closed incidents
+      return isHSSEManager;
+    }
+    // Admin can delete non-closed incidents
+    return isAdmin;
   };
 
   const handleConfirmDelete = async () => {
@@ -90,6 +133,31 @@ export default function IncidentList() {
       setDeleteDialogOpen(false);
       setIncidentToDelete(null);
     }
+  };
+
+  const handlePasswordDelete = async () => {
+    if (!incidentToDelete || !deletionPassword) return;
+    
+    setPasswordError(null);
+    const success = await deleteClosedIncident(incidentToDelete, deletionPassword);
+    
+    if (success) {
+      setPasswordDialogOpen(false);
+      setIncidentToDelete(null);
+      setDeletionPassword('');
+      refetch();
+    } else {
+      setPasswordError(t('profile.deletionPassword.invalidPassword'));
+    }
+  };
+
+  const handlePasswordDialogClose = (open: boolean) => {
+    if (!open) {
+      setDeletionPassword('');
+      setPasswordError(null);
+      setIncidentToDelete(null);
+    }
+    setPasswordDialogOpen(open);
   };
 
   return (
@@ -173,8 +241,15 @@ export default function IncidentList() {
                                 onClick={() => handleDeleteClick(incident.id, incident.status)}
                                 className="text-destructive focus:text-destructive"
                               >
-                                <Trash2 className="h-4 w-4 me-2" />
+                                {incident.status === 'closed' ? (
+                                  <Lock className="h-4 w-4 me-2" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4 me-2" />
+                                )}
                                 {t('incidents.delete')}
+                                {incident.status === 'closed' && (
+                                  <span className="text-xs ms-1">({t('profile.deletionPassword.title')})</span>
+                                )}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -228,7 +303,7 @@ export default function IncidentList() {
         </Card>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (for non-closed incidents) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir={direction}>
           <AlertDialogHeader>
@@ -248,6 +323,66 @@ export default function IncidentList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password-Protected Delete Dialog (for closed incidents) */}
+      <Dialog open={passwordDialogOpen} onOpenChange={handlePasswordDialogClose}>
+        <DialogContent dir={direction}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              {t('incidents.delete')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('profile.deletionPassword.enterPassword')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {!isConfigured ? (
+            <div className="py-4">
+              <p className="text-sm text-destructive">
+                {t('profile.deletionPassword.notConfiguredError')}
+              </p>
+            </div>
+          ) : (
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="deletion-password">{t('profile.deletionPassword.title')}</Label>
+                <Input
+                  id="deletion-password"
+                  type="password"
+                  value={deletionPassword}
+                  onChange={(e) => setDeletionPassword(e.target.value)}
+                  placeholder="••••••"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && deletionPassword) {
+                      handlePasswordDelete();
+                    }
+                  }}
+                />
+              </div>
+              
+              {passwordError && (
+                <p className="text-sm text-destructive">{passwordError}</p>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handlePasswordDialogClose(false)}>
+              {t('common.cancel')}
+            </Button>
+            {isConfigured && (
+              <Button 
+                onClick={handlePasswordDelete} 
+                disabled={isDeletingClosed || !deletionPassword}
+                variant="destructive"
+              >
+                {isDeletingClosed ? t('common.deleting') : t('common.delete')}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
