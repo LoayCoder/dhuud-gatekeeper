@@ -1,6 +1,7 @@
 {
   "hsseDashboard": {
     "title": "HSSE इवेंट डैशबोर्ड",
+    "subtitle": "सुरक्षा प्रदर्शन और जोखिम विश्लेषण में वास्तविक समय की दृश्यता",
     "refresh": "रिफ्रेश",
     "dateRange": "तारीख सीमा",
     "totalEvents": "कुल घटनाएं",
@@ -13,6 +14,8 @@
     "yoyChange": "वार्षिक परिवर्तन",
     "eventsByType": "प्रकार के अनुसार घटनाएं",
     "eventsBySeverity": "गंभीरता के अनुसार घटनाएं",
+    "eventsByStatus": "स्थिति के अनुसार घटनाएं",
+    "monthlyTrend": "मासिक घटना प्रवृत्ति",
     "eventTrends": "घटना रुझान (12 महीने)",
     "statusDistribution": "स्थिति वितरण",
     "locationAnalytics": "स्थान विश्लेषण",
@@ -31,40 +34,30 @@
     "viewAll": "सभी देखें",
     "noReporters": "रिपोर्टर डेटा उपलब्ध नहीं",
     "noLocationData": "स्थान डेटा उपलब्ध नहीं",
-    "aiInsights": "AI जोखिम अंतर्दृष्टि",
-    "refreshInsights": "अंतर्दृष्टि रिफ्रेश करें",
-    "generating": "अंतर्दृष्टि तैयार की जा रही है...",
-    "noInsights": "कोई अंतर्दृष्टि उपलब्ध नहीं। तैयार करने के लिए रिफ्रेश पर क्लिक करें।",
-    "patterns": "जोखिम पैटर्न",
-    "anomalies": "पहचानी गई विसंगतियां",
-    "recommendations": "सक्रिय सिफारिशें",
-    "patternTypes": {
-      "location": "स्थान पैटर्न",
-      "time": "समय पैटर्न",
-      "type": "प्रकार पैटर्न",
-      "severity": "गंभीरता पैटर्न"
-    },
-    "anomalyTypes": {
-      "spike": "अचानक वृद्धि",
-      "drop": "अचानक गिरावट",
-      "new_pattern": "नया पैटर्न"
-    },
-    "priority": {
-      "high": "उच्च प्राथमिकता",
-      "medium": "मध्यम प्राथमिकता",
-      "low": "निम्न प्राथमिकता"
-    },
-    "confidence": "विश्वास",
-    "affectedAreas": "प्रभावित क्षेत्र",
-    "recommendation": "सिफारिश",
-    "expectedImpact": "अपेक्षित प्रभाव",
-    "summary": "AI सारांश",
+    "noData": "डेटा उपलब्ध नहीं",
+    "count": "गिनती",
+    "open": "खुला",
     "events": "घटनाएं",
     "incidents": "हादसे",
     "observations": "अवलोकन",
     "total": "कुल",
     "loading": "डैशबोर्ड लोड हो रहा है...",
-    "error": "डैशबोर्ड डेटा लोड करने में विफल"
+    "error": "डैशबोर्ड डेटा लोड करने में विफल",
+    "aiRiskInsights": "AI जोखिम अंतर्दृष्टि",
+    "refreshInsights": "अंतर्दृष्टि रिफ्रेश करें",
+    "noInsightsYet": "अभी तक कोई अंतर्दृष्टि नहीं। पैटर्न और सिफारिशें देखने के लिए AI विश्लेषण बनाएं।",
+    "generateInsights": "अंतर्दृष्टि बनाएं",
+    "patternsDetected": "पहचाने गए पैटर्न",
+    "anomaliesDetected": "पहचानी गई विसंगतियां",
+    "recommendations": "सिफारिशें",
+    "confidence": "विश्वास",
+    "eventTypes": {
+      "observation": "अवलोकन",
+      "incident": "घटना",
+      "nearMiss": "निकट दुर्घटना",
+      "securityEvent": "सुरक्षा घटना",
+      "environmentalEvent": "पर्यावरण घटना"
+    }
   },
   "incidents": {
     "wizard": {

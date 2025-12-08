@@ -1,6 +1,7 @@
 {
   "hsseDashboard": {
     "title": "HSSE ایونٹ ڈیش بورڈ",
+    "subtitle": "حفاظتی کارکردگی اور خطرے کے تجزیات کی حقیقی وقت میں مرئیت",
     "refresh": "تازہ کریں",
     "dateRange": "تاریخ کی حد",
     "totalEvents": "کل واقعات",
@@ -13,6 +14,8 @@
     "yoyChange": "سالانہ تبدیلی",
     "eventsByType": "قسم کے لحاظ سے واقعات",
     "eventsBySeverity": "شدت کے لحاظ سے واقعات",
+    "eventsByStatus": "حالت کے لحاظ سے واقعات",
+    "monthlyTrend": "ماہانہ واقعات کا رجحان",
     "eventTrends": "واقعات کے رجحانات (12 ماہ)",
     "statusDistribution": "حالت کی تقسیم",
     "locationAnalytics": "مقام کے تجزیات",
@@ -31,40 +34,30 @@
     "viewAll": "سب دیکھیں",
     "noReporters": "رپورٹرز کا ڈیٹا دستیاب نہیں",
     "noLocationData": "مقام کا ڈیٹا دستیاب نہیں",
-    "aiInsights": "AI خطرے کی بصیرت",
-    "refreshInsights": "بصیرت تازہ کریں",
-    "generating": "بصیرت بنائی جا رہی ہے...",
-    "noInsights": "کوئی بصیرت دستیاب نہیں۔ بنانے کے لیے تازہ کریں پر کلک کریں۔",
-    "patterns": "خطرے کے انداز",
-    "anomalies": "دریافت شدہ بے قاعدگیاں",
-    "recommendations": "فعال سفارشات",
-    "patternTypes": {
-      "location": "مقام کا انداز",
-      "time": "وقت کا انداز",
-      "type": "قسم کا انداز",
-      "severity": "شدت کا انداز"
-    },
-    "anomalyTypes": {
-      "spike": "اچانک اضافہ",
-      "drop": "اچانک کمی",
-      "new_pattern": "نیا انداز"
-    },
-    "priority": {
-      "high": "اعلی ترجیح",
-      "medium": "درمیانی ترجیح",
-      "low": "کم ترجیح"
-    },
-    "confidence": "اعتماد",
-    "affectedAreas": "متاثرہ علاقے",
-    "recommendation": "سفارش",
-    "expectedImpact": "متوقع اثر",
-    "summary": "AI خلاصہ",
+    "noData": "ڈیٹا دستیاب نہیں",
+    "count": "تعداد",
+    "open": "کھلا",
     "events": "واقعات",
     "incidents": "حادثات",
     "observations": "مشاہدات",
     "total": "کل",
     "loading": "ڈیش بورڈ لوڈ ہو رہا ہے...",
-    "error": "ڈیش بورڈ ڈیٹا لوڈ کرنے میں ناکام"
+    "error": "ڈیش بورڈ ڈیٹا لوڈ کرنے میں ناکام",
+    "aiRiskInsights": "AI خطرے کی بصیرت",
+    "refreshInsights": "بصیرت تازہ کریں",
+    "noInsightsYet": "ابھی تک کوئی بصیرت نہیں۔ پیٹرن اور سفارشات دیکھنے کے لیے AI تجزیہ بنائیں۔",
+    "generateInsights": "بصیرت بنائیں",
+    "patternsDetected": "دریافت شدہ پیٹرن",
+    "anomaliesDetected": "دریافت شدہ بے قاعدگیاں",
+    "recommendations": "سفارشات",
+    "confidence": "اعتماد",
+    "eventTypes": {
+      "observation": "مشاہدہ",
+      "incident": "واقعہ",
+      "nearMiss": "قریب حادثہ",
+      "securityEvent": "سیکیورٹی واقعہ",
+      "environmentalEvent": "ماحولیاتی واقعہ"
+    }
   },
   "incidents": {
     "wizard": {
