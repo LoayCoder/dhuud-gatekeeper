@@ -163,7 +163,7 @@ export function FailureReasonDialog({
                 sessionId={sessionId}
                 assetId={assetId}
                 onPhotosChange={setPhotoPaths}
-                maxPhotos={3}
+                maxPhotos={2}
               />
             ) : (
               <p className="text-xs text-muted-foreground">

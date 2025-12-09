@@ -34,7 +34,7 @@ export function InspectionPhotoUpload({
   tenantId,
   templateItemId,
   isLocked,
-  maxPhotos = 5,
+  maxPhotos = 2,
   onPhotoCountChange,
 }: InspectionPhotoUploadProps) {
   const { t } = useTranslation();

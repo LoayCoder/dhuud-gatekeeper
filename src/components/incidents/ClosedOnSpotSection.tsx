@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const MAX_PHOTOS = 3;
+const MAX_PHOTOS = 2;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface ClosedOnSpotSectionProps {

@@ -18,7 +18,7 @@ export function FailurePhotoUpload({
   sessionId,
   assetId,
   onPhotosChange,
-  maxPhotos = 3,
+  maxPhotos = 2,
 }: FailurePhotoUploadProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
