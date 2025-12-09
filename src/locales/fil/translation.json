@@ -512,7 +512,8 @@
       "approveChange": "Aprubahan",
       "rejectChange": "Tanggihan",
       "proposedBy": "Iminungkahi ni",
-      "noSeverityChange": "Walang nakabinbing pagbabago ng kalubhaan"
+      "noSeverityChange": "Walang nakabinbing pagbabago ng kalubhaan",
+      "investigatorAwaitingApproval": "Magiging available ang pagtatalaga ng imbestigador pagkatapos ng pag-apruba ng manager"
     },
     "approvals": {
       "pendingApprovals": "Nakabinbing Pag-apruba",

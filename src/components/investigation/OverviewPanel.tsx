@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserCheck } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { ReporterInfoCard } from "./ReporterInfoCard";
 import { IncidentInfoCard } from "./IncidentInfoCard";
 import { InvestigatorAssignmentCard } from "./InvestigatorAssignmentCard";
@@ -44,12 +45,21 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
         {/* Reporter Information */}
         <ReporterInfoCard incident={incident} />
         
-        {/* Investigator Assignment (only if has HSSE access) */}
-        <InvestigatorAssignmentCard 
-          incident={incident}
-          investigation={investigation}
-          onRefresh={onRefresh}
-        />
+        {/* Investigator Assignment - only show when status allows */}
+        {['investigation_pending', 'investigation_in_progress'].includes(incident.status || '') ? (
+          <InvestigatorAssignmentCard 
+            incident={incident}
+            investigation={investigation}
+            onRefresh={onRefresh}
+          />
+        ) : (
+          <Card className="bg-muted/50">
+            <CardContent className="py-6 text-center text-muted-foreground">
+              <UserCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>{t('investigation.overview.investigatorAwaitingApproval')}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Incident Information - Full width, read-only when locked */}

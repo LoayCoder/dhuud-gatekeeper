@@ -512,7 +512,8 @@
       "approveChange": "स्वीकृत करें",
       "rejectChange": "अस्वीकृत करें",
       "proposedBy": "प्रस्तावक",
-      "noSeverityChange": "कोई गंभीरता परिवर्तन लंबित नहीं"
+      "noSeverityChange": "कोई गंभीरता परिवर्तन लंबित नहीं",
+      "investigatorAwaitingApproval": "प्रबंधक की मंजूरी के बाद जांचकर्ता की नियुक्ति उपलब्ध होगी"
     },
     "approvals": {
       "pendingApprovals": "लंबित अनुमोदन",
