@@ -2305,7 +2305,8 @@
     "auditor": "مدقق",
     "food_safety_officer": "مسؤول سلامة الغذاء",
     "food_safety_supervisor": "مشرف سلامة الغذاء",
-    "food_safety_manager": "مدير سلامة الغذاء"
+    "food_safety_manager": "مدير سلامة الغذاء",
+    "department_representative": "ممثل القسم"
   },
   "roleCategories": {
     "general": "عام",

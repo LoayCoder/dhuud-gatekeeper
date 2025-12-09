@@ -2259,7 +2259,8 @@
     "auditor": "آڈیٹر",
     "food_safety_officer": "فوڈ سیفٹی آفیسر",
     "food_safety_supervisor": "فوڈ سیفٹی سپروائزر",
-    "food_safety_manager": "فوڈ سیفٹی مینیجر"
+    "food_safety_manager": "فوڈ سیفٹی مینیجر",
+    "department_representative": "ڈپارٹمنٹ نمائندہ"
   },
   "roleCategories": {
     "general": "عمومی",
