@@ -31,3 +31,4 @@ export { ReporterCorrectionBanner } from './ReporterCorrectionBanner';
 export { RejectionConfirmationCard } from './RejectionConfirmationCard';
 export { InvestigatorAssignmentStep } from './InvestigatorAssignmentStep';
 export { WorkflowProgressBanner } from './WorkflowProgressBanner';
+export { DeptRepApprovalCard } from './DeptRepApprovalCard';

@@ -25,7 +25,8 @@ import {
   RejectionConfirmationCard,
   ManagerApprovalCard,
   HSSEManagerEscalationCard,
-  InvestigatorAssignmentStep
+  InvestigatorAssignmentStep,
+  DeptRepApprovalCard
 } from "@/components/investigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -135,6 +136,14 @@ export default function InvestigationWorkspace() {
       case 'pending_manager_approval':
         return (
           <ManagerApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_dept_rep_approval':
+        return (
+          <DeptRepApprovalCard 
             incident={incidentData} 
             onComplete={handleRefresh} 
           />

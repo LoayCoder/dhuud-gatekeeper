@@ -3489,5 +3489,33 @@
       "under_maintenance": "تحت الصيانة",
       "disposed": "مستبعد"
     }
+  },
+  "workflow": {
+    "expertScreening": {
+      "title": "فحص خبير السلامة",
+      "pendingReview": "في انتظار المراجعة",
+      "description": "مراجعة تقرير الحدث وتحديد الإجراء المناسب",
+      "notes": "ملاحظات الفحص",
+      "notesPlaceholder": "أضف أي ملاحظات حول قرار الفحص...",
+      "departmentManager": "مدير القسم",
+      "noManager": "لم يتم العثور على مدير القسم. ستنتقل الموافقة إلى مدير السلامة.",
+      "returnToReporter": "إرجاع للتصحيح",
+      "reject": "رفض التقرير",
+      "noInvestigation": "لا يتطلب تحقيق",
+      "recommendInvestigation": "التوصية بالتحقيق",
+      "assignActions": "إرسال لتعيين الإجراءات"
+    },
+    "deptRepApproval": {
+      "title": "مراجعة ممثل القسم",
+      "pendingAction": "يتطلب إجراء",
+      "description": "مراجعة هذه الملاحظة وتعيين إجراءات تصحيحية قبل الموافقة",
+      "expertNotes": "ملاحظات خبير السلامة",
+      "notes": "ملاحظات المراجعة",
+      "notesPlaceholder": "أضف ملاحظات حول مراجعتك والإجراءات...",
+      "manageActions": "إدارة الإجراءات التصحيحية",
+      "hideActions": "إخفاء الإجراءات التصحيحية",
+      "escalate": "تصعيد للتحقيق",
+      "approveClose": "موافقة وإغلاق"
+    }
   }
 }

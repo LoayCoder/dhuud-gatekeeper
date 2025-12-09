@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type ExpertRecommendation = 'investigate' | 'no_investigation' | 'return' | 'reject';
+export type ExpertRecommendation = 'investigate' | 'no_investigation' | 'return' | 'reject' | 'assign_actions';
 export type ManagerDecision = 'approved' | 'rejected';
 export type HSSEManagerDecision = 'override' | 'maintain';
+export type DeptRepDecision = 'approve' | 'escalate';
 
 interface ExpertScreeningInput {
   incidentId: string;
@@ -18,6 +19,12 @@ interface ExpertScreeningInput {
   rejectionReason?: string;
   // For no investigation
   noInvestigationJustification?: string;
+}
+
+interface DeptRepApprovalInput {
+  incidentId: string;
+  decision: DeptRepDecision;
+  notes?: string;
 }
 
 interface ManagerApprovalInput {
@@ -152,6 +159,14 @@ export function useExpertScreening() {
         case 'no_investigation':
           newStatus = 'no_investigation_required';
           updateData.no_investigation_justification = noInvestigationJustification;
+          break;
+        case 'assign_actions':
+          // For observations - send to department representative for action assignment
+          const { data: deptManagerId } = await supabase
+            .rpc('get_incident_department_manager', { p_incident_id: incidentId });
+          
+          newStatus = 'pending_dept_rep_approval';
+          updateData.approval_manager_id = deptManagerId;
           break;
         case 'investigate':
           // Get department manager and set pending approval
@@ -565,6 +580,118 @@ export function useStartInvestigation() {
       toast({
         title: "Investigation Started",
         description: "Investigator has been assigned and notified.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// Hook to check if user can approve as department representative
+export function useCanApproveDeptRep(incidentId: string | null) {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['can-approve-dept-rep', user?.id, incidentId],
+    queryFn: async () => {
+      if (!user?.id || !incidentId) return false;
+      
+      // Get the incident to check if current user is the approval_manager_id
+      const { data: incident, error } = await supabase
+        .from('incidents')
+        .select('approval_manager_id, status, event_type')
+        .eq('id', incidentId)
+        .single();
+      
+      if (error || !incident) return false;
+      
+      // Cast status to string since we have new enum values not in types yet
+      const status = incident.status as string;
+      
+      // Can only approve if status is pending_dept_rep_approval and user is the assigned manager
+      if (status !== 'pending_dept_rep_approval') return false;
+      if (incident.approval_manager_id !== user.id) return false;
+      
+      return true;
+    },
+    enabled: !!user?.id && !!incidentId,
+  });
+}
+
+// Hook for department representative approval/escalation
+export function useDeptRepApproval() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async (input: DeptRepApprovalInput) => {
+      const { incidentId, decision, notes } = input;
+      
+      let newStatus: string;
+      const updateData: Record<string, unknown> = {
+        dept_rep_approved_by: user?.id,
+        dept_rep_approved_at: new Date().toISOString(),
+        dept_rep_notes: notes,
+      };
+      
+      if (decision === 'approve') {
+        // Approve and close the observation
+        newStatus = 'closed';
+      } else {
+        // Escalate to full investigation workflow
+        newStatus = 'pending_manager_approval';
+      }
+      
+      updateData.status = newStatus;
+      
+      const { error } = await supabase
+        .from('incidents')
+        .update(updateData)
+        .eq('id', incidentId);
+      
+      if (error) throw error;
+      
+      // Log audit entry
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user?.id)
+        .single();
+      
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incidentId,
+        tenant_id: profile?.tenant_id,
+        actor_id: user?.id,
+        action: `dept_rep_${decision}`,
+        details: { decision, notes },
+      });
+      
+      // Send notification
+      try {
+        await supabase.functions.invoke('send-workflow-notification', {
+          body: { incidentId, action: `dept_rep_${decision}`, notes },
+        });
+      } catch (e) {
+        console.error('Failed to send notification:', e);
+      }
+      
+      return { incidentId, newStatus };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      queryClient.invalidateQueries({ queryKey: ['incident'] });
+      
+      toast({
+        title: variables.decision === 'approve' ? "Observation Closed" : "Escalated to Investigation",
+        description: variables.decision === 'approve'
+          ? "Observation has been approved and closed"
+          : "Observation has been escalated for full investigation",
       });
     },
     onError: (error) => {
