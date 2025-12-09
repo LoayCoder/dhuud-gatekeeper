@@ -6,10 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, AlertCircle } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, AlertCircle, ClipboardCheck, List } from "lucide-react";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
+import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { 
   EvidencePanel, 
   WitnessPanel, 
@@ -40,9 +42,11 @@ export default function InvestigationWorkspace() {
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
   const [activeTab, setActiveTab] = useState("overview");
   const [showClosureDialog, setShowClosureDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const { profile, user } = useAuth();
 
   const { data: incidents, isLoading: loadingIncidents } = useIncidents();
+  const { data: pendingApprovals, isLoading: loadingPending } = usePendingIncidentApprovals();
   const { data: selectedIncident, refetch: refetchIncident } = useIncident(selectedIncidentId || undefined);
   const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
   const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
@@ -83,6 +87,10 @@ export default function InvestigationWorkspace() {
   const investigableIncidents = incidents?.filter(
     (inc) => inc.status !== 'closed'
   );
+
+  // Choose displayed incidents based on view mode
+  const displayedIncidents = viewMode === 'my-pending' ? pendingApprovals : investigableIncidents;
+  const isLoadingIncidents = viewMode === 'my-pending' ? loadingPending : loadingIncidents;
 
   const getStatusVariant = (status: string | null) => {
     switch (status) {
@@ -215,12 +223,36 @@ export default function InvestigationWorkspace() {
       {/* Incident Selector */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            {t('investigation.selectIncident', 'Select Incident to Investigate')}
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className="text-base">
+              {t('investigation.selectIncident', 'Select Incident to Investigate')}
+            </CardTitle>
+            <ToggleGroup 
+              type="single" 
+              value={viewMode} 
+              onValueChange={(v) => v && setViewMode(v as 'my-pending' | 'all')}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="my-pending" className="gap-2 text-sm">
+                <ClipboardCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('investigation.myPendingApprovals', 'My Pending Approvals')}</span>
+                <span className="sm:hidden">{t('investigation.myPending', 'My Pending')}</span>
+                {pendingApprovals && pendingApprovals.length > 0 && (
+                  <Badge variant="destructive" className="ms-1 h-5 min-w-5 px-1.5">
+                    {pendingApprovals.length}
+                  </Badge>
+                )}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="all" className="gap-2 text-sm">
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('investigation.allIncidents', 'All Incidents')}</span>
+                <span className="sm:hidden">{t('investigation.all', 'All')}</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </CardHeader>
         <CardContent>
-          {loadingIncidents ? (
+          {isLoadingIncidents ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               {t('common.loading', 'Loading...')}
@@ -234,12 +266,14 @@ export default function InvestigationWorkspace() {
                 <SelectValue placeholder={t('investigation.selectIncidentPlaceholder', 'Choose an incident...')} />
               </SelectTrigger>
               <SelectContent dir={direction}>
-                {investigableIncidents?.length === 0 ? (
+                {displayedIncidents?.length === 0 ? (
                   <div className="p-2 text-sm text-muted-foreground text-center">
-                    {t('investigation.noIncidents', 'No incidents available for investigation')}
+                    {viewMode === 'my-pending' 
+                      ? t('investigation.noPendingApprovals', 'No incidents pending your approval')
+                      : t('investigation.noIncidents', 'No incidents available for investigation')}
                   </div>
                 ) : (
-                  investigableIncidents?.map((incident) => (
+                  displayedIncidents?.map((incident) => (
                     <SelectItem key={incident.id} value={incident.id}>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs">{incident.reference_id}</span>
