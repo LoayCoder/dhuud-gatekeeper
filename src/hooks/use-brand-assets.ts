@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { compressImage } from '@/lib/upload-utils';
 
 export type AssetType = 
   | 'logo-light' | 'logo-dark' 
@@ -127,6 +128,12 @@ export function useBrandAssets() {
         return null;
       }
 
+      // Compress background images only (not logos/icons/favicons which need to stay crisp)
+      let fileToUpload = file;
+      if (type === 'background' && file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+        fileToUpload = await compressImage(file, 1920, 0.85);
+      }
+
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${tenantId}/${type}/${Date.now()}.${fileExt}`;
@@ -134,7 +141,7 @@ export function useBrandAssets() {
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('branding')
-        .upload(fileName, file, {
+        .upload(fileName, fileToUpload, {
           cacheControl: '3600',
           upsert: true,
         });
