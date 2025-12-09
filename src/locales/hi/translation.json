@@ -3393,5 +3393,33 @@
     "slaBreachRate": "SLA उल्लंघन दर",
     "attention": "ध्यान आवश्यक",
     "overdueActions": "अतिदेय कार्रवाइयां"
+  },
+  "assetManagement": {
+    "linkedAssets": "लिंक किए गए एसेट्स",
+    "noLinkedAssets": "इस इवेंट से कोई एसेट लिंक नहीं",
+    "linkAsset": "एसेट लिंक करें",
+    "linkAssetToIncident": "एसेट को इंसिडेंट से लिंक करें",
+    "unlinkAsset": "एसेट अनलिंक करें",
+    "unlinkAssetConfirm": "क्या आप वाकई इस एसेट को अनलिंक करना चाहते हैं?",
+    "unlink": "अनलिंक",
+    "searchAssets": "एसेट खोजें...",
+    "noAssetsFound": "कोई एसेट नहीं मिला",
+    "linkType": "लिंक प्रकार",
+    "linkNotes": "नोट्स",
+    "linkNotesPlaceholder": "इस लिंक के बारे में नोट्स जोड़ें...",
+    "noIncidentHistory": "कोई इंसिडेंट हिस्ट्री नहीं",
+    "noIncidentHistoryDescription": "यह एसेट अभी तक किसी इंसिडेंट से लिंक नहीं हुई",
+    "linkTypes": {
+      "involved": "शामिल",
+      "damaged": "क्षतिग्रस्त",
+      "caused_by": "के कारण",
+      "affected": "प्रभावित"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "under_maintenance": "रखरखाव में",
+      "disposed": "निपटान"
+    }
   }
 }

@@ -3477,5 +3477,33 @@
     "slaBreachRate": "SLA Breach Rate",
     "attention": "Requires Attention",
     "overdueActions": "Overdue Actions"
+  },
+  "assetManagement": {
+    "linkedAssets": "Linked Assets",
+    "noLinkedAssets": "No assets linked to this event",
+    "linkAsset": "Link Asset",
+    "linkAssetToIncident": "Link Asset to Incident",
+    "unlinkAsset": "Unlink Asset",
+    "unlinkAssetConfirm": "Are you sure you want to unlink this asset?",
+    "unlink": "Unlink",
+    "searchAssets": "Search assets...",
+    "noAssetsFound": "No assets found",
+    "linkType": "Link Type",
+    "linkNotes": "Notes",
+    "linkNotesPlaceholder": "Add notes about this link...",
+    "noIncidentHistory": "No Incident History",
+    "noIncidentHistoryDescription": "This asset has not been linked to any incidents yet",
+    "linkTypes": {
+      "involved": "Involved",
+      "damaged": "Damaged",
+      "caused_by": "Caused By",
+      "affected": "Affected"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "under_maintenance": "Under Maintenance",
+      "disposed": "Disposed"
+    }
   }
 }

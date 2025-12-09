@@ -3393,5 +3393,33 @@
     "slaBreachRate": "SLA Breach Rate",
     "attention": "Nangangailangan ng Atensyon",
     "overdueActions": "Mga Overdue na Aksyon"
+  },
+  "assetManagement": {
+    "linkedAssets": "Mga Naka-link na Asset",
+    "noLinkedAssets": "Walang asset na naka-link sa event na ito",
+    "linkAsset": "I-link ang Asset",
+    "linkAssetToIncident": "I-link ang Asset sa Insidente",
+    "unlinkAsset": "I-unlink ang Asset",
+    "unlinkAssetConfirm": "Sigurado ka bang gusto mong i-unlink ang asset na ito?",
+    "unlink": "I-unlink",
+    "searchAssets": "Maghanap ng asset...",
+    "noAssetsFound": "Walang nahanap na asset",
+    "linkType": "Uri ng Link",
+    "linkNotes": "Mga Tala",
+    "linkNotesPlaceholder": "Magdagdag ng tala tungkol sa link na ito...",
+    "noIncidentHistory": "Walang Incident History",
+    "noIncidentHistoryDescription": "Ang asset na ito ay hindi pa naka-link sa anumang insidente",
+    "linkTypes": {
+      "involved": "Kasangkot",
+      "damaged": "Nasira",
+      "caused_by": "Dahilan",
+      "affected": "Apektado"
+    },
+    "status": {
+      "active": "Aktibo",
+      "inactive": "Hindi Aktibo",
+      "under_maintenance": "Nasa Maintenance",
+      "disposed": "Naitapon"
+    }
   }
 }
