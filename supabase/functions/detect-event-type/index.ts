@@ -2,8 +2,47 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-edge-secret',
 };
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 20; // max 20 AI requests per minute per IP
+
+function isRateLimited(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+  
+  entry.count++;
+  return false;
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
+
+function validateSecretToken(req: Request): boolean {
+  const secret = Deno.env.get('EDGE_FUNCTION_SECRET');
+  if (!secret) {
+    console.warn('EDGE_FUNCTION_SECRET not configured - allowing request');
+    return true; // Allow if secret not yet configured
+  }
+  
+  const providedSecret = req.headers.get('x-edge-secret');
+  return providedSecret === secret;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -12,11 +51,38 @@ serve(async (req) => {
   }
 
   try {
+    // Secret token validation
+    if (!validateSecretToken(req)) {
+      console.warn('Invalid or missing edge function secret');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    if (isRateLimited(clientIP)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { description } = await req.json();
 
     if (!description || description.length < 10) {
       return new Response(
         JSON.stringify({ error: 'Description too short for analysis' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Input length validation - prevent abuse
+    if (description.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: 'Description too long (max 5000 characters)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

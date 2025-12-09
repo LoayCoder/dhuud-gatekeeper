@@ -161,15 +161,25 @@ export interface AIAnalysisResult {
   reasoning?: string;
 }
 
+// Get the edge function secret from environment
+const EDGE_SECRET = import.meta.env.VITE_EDGE_FUNCTION_SECRET;
+
 export async function analyzeIncidentWithAI(description: string): Promise<AIAnalysisResult> {
   try {
     // Call the combined AI analysis edge function
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    };
+    
+    // Add secret token if configured
+    if (EDGE_SECRET) {
+      headers['x-edge-secret'] = EDGE_SECRET;
+    }
+    
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-incident`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
+      headers,
       body: JSON.stringify({ description }),
     });
 
