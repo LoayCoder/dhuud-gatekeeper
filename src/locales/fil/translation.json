@@ -2259,7 +2259,8 @@
     "auditor": "Auditor",
     "food_safety_officer": "Food Safety Officer",
     "food_safety_supervisor": "Food Safety Supervisor",
-    "food_safety_manager": "Food Safety Manager"
+    "food_safety_manager": "Food Safety Manager",
+    "department_representative": "Department Representative"
   },
   "roleCategories": {
     "general": "General",

@@ -2259,7 +2259,8 @@
     "auditor": "लेखा परीक्षक",
     "food_safety_officer": "खाद्य सुरक्षा अधिकारी",
     "food_safety_supervisor": "खाद्य सुरक्षा पर्यवेक्षक",
-    "food_safety_manager": "खाद्य सुरक्षा प्रबंधक"
+    "food_safety_manager": "खाद्य सुरक्षा प्रबंधक",
+    "department_representative": "विभाग प्रतिनिधि"
   },
   "roleCategories": {
     "general": "सामान्य",

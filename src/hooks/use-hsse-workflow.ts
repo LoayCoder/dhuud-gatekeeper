@@ -593,6 +593,7 @@ export function useStartInvestigation() {
 }
 
 // Hook to check if user can approve as department representative
+// Uses dual authorization: role-based (department_representative role) OR hierarchy-based (approval_manager_id)
 export function useCanApproveDeptRep(incidentId: string | null) {
   const { user } = useAuth();
   
@@ -601,23 +602,19 @@ export function useCanApproveDeptRep(incidentId: string | null) {
     queryFn: async () => {
       if (!user?.id || !incidentId) return false;
       
-      // Get the incident to check if current user is the approval_manager_id
-      const { data: incident, error } = await supabase
-        .from('incidents')
-        .select('approval_manager_id, status, event_type')
-        .eq('id', incidentId)
-        .single();
+      // Use the RPC function that checks both role and manager status
+      const { data, error } = await supabase
+        .rpc('can_approve_dept_rep_observation', {
+          _user_id: user.id,
+          _incident_id: incidentId
+        });
       
-      if (error || !incident) return false;
+      if (error) {
+        console.error('Error checking dept rep permission:', error);
+        return false;
+      }
       
-      // Cast status to string since we have new enum values not in types yet
-      const status = incident.status as string;
-      
-      // Can only approve if status is pending_dept_rep_approval and user is the assigned manager
-      if (status !== 'pending_dept_rep_approval') return false;
-      if (incident.approval_manager_id !== user.id) return false;
-      
-      return true;
+      return data as boolean;
     },
     enabled: !!user?.id && !!incidentId,
   });

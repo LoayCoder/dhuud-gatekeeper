@@ -5214,6 +5214,10 @@ export type Database = {
         Args: { _incident_id: string }
         Returns: boolean
       }
+      can_approve_dept_rep_observation: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_approve_investigation: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -5413,6 +5417,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
