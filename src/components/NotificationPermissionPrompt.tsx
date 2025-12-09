@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, BellOff, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNotificationPermission } from '@/hooks/use-notification-permission';
 
@@ -12,15 +12,34 @@ export function NotificationPermissionPrompt() {
   const [isDismissed, setIsDismissed] = useState(true);
   const [isRequesting, setIsRequesting] = useState(false);
 
+  // Check if prompt should be shown on mount
   useEffect(() => {
-    // Check if user has dismissed the prompt
-    const dismissed = localStorage.getItem(DISMISSED_KEY);
-    const dismissedTime = dismissed ? parseInt(dismissed, 10) : 0;
-    const daysSinceDismiss = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+    // Don't show if not supported or permission already decided
+    if (!isSupported || permission !== 'default') {
+      setIsDismissed(true);
+      return;
+    }
     
-    // Show again after 7 days if still on default
-    if (!dismissed || (permission === 'default' && daysSinceDismiss > 7)) {
-      setIsDismissed(false);
+    // Check if user has dismissed the prompt recently
+    const dismissed = localStorage.getItem(DISMISSED_KEY);
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed, 10);
+      const daysSinceDismiss = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+      // Show again after 7 days if still on default
+      if (daysSinceDismiss <= 7) {
+        setIsDismissed(true);
+        return;
+      }
+    }
+    
+    setIsDismissed(false);
+  }, [permission, isSupported]);
+
+  // Auto-dismiss when permission changes from default
+  useEffect(() => {
+    if (permission === 'granted' || permission === 'denied') {
+      localStorage.setItem(DISMISSED_KEY, Date.now().toString());
+      setIsDismissed(true);
     }
   }, [permission]);
 
@@ -28,6 +47,8 @@ export function NotificationPermissionPrompt() {
     setIsRequesting(true);
     try {
       await requestPermission();
+      // Persist dismissal to localStorage
+      localStorage.setItem(DISMISSED_KEY, Date.now().toString());
       setIsDismissed(true);
     } finally {
       setIsRequesting(false);
@@ -39,13 +60,13 @@ export function NotificationPermissionPrompt() {
     setIsDismissed(true);
   };
 
-  // Don't show if not supported, already granted/denied, or dismissed
+  // Don't render if dismissed or not applicable
   if (!isSupported || permission !== 'default' || isDismissed) {
     return null;
   }
 
   return (
-    <div className="fixed top-4 right-4 left-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-top-4 duration-300">
+    <div className="fixed top-4 end-4 start-4 sm:start-auto sm:end-4 sm:max-w-sm z-50 animate-in slide-in-from-top-4 duration-300">
       <div className="bg-card border border-border rounded-lg shadow-lg p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
