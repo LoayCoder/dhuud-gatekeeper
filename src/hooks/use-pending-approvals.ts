@@ -310,7 +310,7 @@ export function usePendingIncidentApprovals() {
 
       console.log('[PendingApprovals] Fetching incidents for tenant:', profile.tenant_id, 'user:', user.id);
 
-      // Get incidents that are pending manager approval
+      // Get incidents that are pending manager approval or escalated to HSSE Manager
       const { data: incidents, error } = await supabase
         .from('incidents')
         .select(`
@@ -319,7 +319,7 @@ export function usePendingIncidentApprovals() {
           reporter_id
         `)
         .eq('tenant_id', profile.tenant_id)
-        .eq('status', 'pending_manager_approval')
+        .in('status', ['pending_manager_approval', 'hsse_manager_escalation'])
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
