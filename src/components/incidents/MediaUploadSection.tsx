@@ -13,7 +13,7 @@ interface MediaUploadSectionProps {
   onVideoChange: (video: File | null) => void;
 }
 
-const MAX_PHOTOS = 3;
+const MAX_PHOTOS = 2;
 const MAX_PHOTO_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_VIDEO_DURATION = 10; // seconds
