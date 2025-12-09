@@ -10,6 +10,7 @@ import { UserCheck, Loader2, User, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCanPerformExpertScreening } from "@/hooks/use-hsse-workflow";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
@@ -29,6 +30,47 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
   
   const [selectedInvestigator, setSelectedInvestigator] = useState<string>('');
   const [notes, setNotes] = useState('');
+
+  // Check if current user is HSSE Expert (can assign investigators)
+  const { data: canAssign, isLoading: checkingPermission } = useCanPerformExpertScreening();
+
+  // If user cannot assign investigators, show read-only placeholder
+  if (checkingPermission) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t('common.loading')}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!canAssign) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Fetch HSSE-eligible users for investigator selection
   const { data: investigators, isLoading: loadingInvestigators } = useQuery({
