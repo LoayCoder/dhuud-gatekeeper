@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Save, Loader2, Wand2, Check, Pencil, Lock } from "lucide-react";
 import { FiveWhysBuilder } from "./FiveWhysBuilder";
@@ -59,12 +60,13 @@ interface RCAPanelProps {
   incidentId: string;
   incidentTitle?: string;
   incidentDescription?: string;
+  incidentStatus?: string | null;
 }
 
 // Debounce delay for auto-save (2 seconds)
 const AUTO_SAVE_DELAY = 2000;
 
-export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCAPanelProps) {
+export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incidentStatus }: RCAPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
@@ -74,9 +76,13 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   const { rewriteText, isLoading: isAILoading } = useRCAAI();
   const [rewritingField, setRewritingField] = useState<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [isLocked, setIsLocked] = useState(false);
+  const [isManuallyLocked, setIsManuallyLocked] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
+
+  // Read-only mode when incident is closed OR manually locked
+  const isClosedLocked = incidentStatus === 'closed';
+  const isLocked = isClosedLocked || isManuallyLocked;
 
   const form = useForm<RCAFormValues>({
     resolver: zodResolver(rcaSchema),
@@ -199,12 +205,16 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
       await createInvestigation.mutateAsync(incidentId);
     }
     await performAutoSave(data);
-    // Lock after saving
-    setIsLocked(true);
+    // Lock after saving (only if not permanently closed)
+    if (!isClosedLocked) {
+      setIsManuallyLocked(true);
+    }
   };
 
   const handleUnlock = () => {
-    setIsLocked(false);
+    // Cannot unlock if incident is closed
+    if (isClosedLocked) return;
+    setIsManuallyLocked(false);
   };
   const handleStartInvestigation = async () => {
     await createInvestigation.mutateAsync(incidentId);
@@ -260,6 +270,16 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription }: RCA
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" dir={direction}>
+        {/* Locked Banner for Closed Incidents */}
+        {isClosedLocked && (
+          <Alert className="border-muted bg-muted/50">
+            <Lock className="h-4 w-4" />
+            <AlertDescription>
+              {t('investigation.rca.lockedClosed', 'This incident is closed. Root cause analysis cannot be modified.')}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Step 1: 5-Whys Analysis */}
         <Card>
           <CardHeader className="pb-3">
