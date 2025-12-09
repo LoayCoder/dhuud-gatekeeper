@@ -4,6 +4,7 @@ import { Camera, Video, X, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { compressImage } from '@/lib/upload-utils';
 
 interface MediaUploadSectionProps {
   photos: File[];
@@ -48,7 +49,7 @@ export default function MediaUploadSection({
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -68,8 +69,10 @@ export default function MediaUploadSection({
         continue;
       }
 
-      newPhotos.push(file);
-      newUrls.push(URL.createObjectURL(file));
+      // Compress image before adding to state
+      const compressedFile = await compressImage(file, 1920, 0.85);
+      newPhotos.push(compressedFile);
+      newUrls.push(URL.createObjectURL(compressedFile));
     }
 
     if (newPhotos.length > 0) {

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { compressImage } from "@/lib/upload-utils";
 
 export interface ActionEvidence {
   id: string;
@@ -58,6 +59,12 @@ export function useUploadActionEvidence() {
         throw new Error('User not authenticated');
       }
 
+      // Compress image files before upload
+      let fileToUpload = file;
+      if (file.type.startsWith('image/')) {
+        fileToUpload = await compressImage(file, 1920, 0.85);
+      }
+
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -65,11 +72,11 @@ export function useUploadActionEvidence() {
 
       const { error: uploadError } = await supabase.storage
         .from('audit-evidence')
-        .upload(storagePath, file);
+        .upload(storagePath, fileToUpload);
 
       if (uploadError) throw uploadError;
 
-      // Create database record
+      // Create database record with compressed file size
       const { data, error } = await supabase
         .from('action_evidence')
         .insert({
@@ -77,8 +84,8 @@ export function useUploadActionEvidence() {
           tenant_id: profile.tenant_id,
           file_name: file.name,
           storage_path: storagePath,
-          file_size: file.size,
-          mime_type: file.type,
+          file_size: fileToUpload.size,
+          mime_type: fileToUpload.type,
           description,
           uploaded_by: user.id,
         })
