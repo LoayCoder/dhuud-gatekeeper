@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2, User, Building, ExternalLink, Clock, Tag } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
@@ -51,8 +51,14 @@ export default function IncidentDetail() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: incident, isLoading } = useIncident(id);
   const { user, isAdmin } = useAuth();
+  
+  // Determine back navigation path based on where user came from
+  const searchParams = new URLSearchParams(location.search);
+  const fromPage = searchParams.get('from');
+  const backPath = fromPage === 'my-actions' ? '/incidents/my-actions' : '/incidents';
   
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -118,7 +124,7 @@ export default function IncidentDetail() {
             <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">{t('incidents.notFound')}</h3>
             <Button asChild variant="outline">
-              <Link to="/incidents" className="gap-2">
+              <Link to={backPath} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 {t('incidents.backToList')}
               </Link>
@@ -135,7 +141,7 @@ export default function IncidentDetail() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" size="icon">
-            <Link to="/incidents">
+            <Link to={backPath}>
               <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             </Link>
           </Button>

@@ -156,12 +156,16 @@
     },
     "incidentTypes": {
       "nearMiss": "Near Miss",
+      "near_miss": "Near Miss",
       "unsafeAct": "Unsafe Act",
       "unsafe_act": "Unsafe Act",
       "propertyDamage": "Property Damage",
+      "property_damage": "Property Damage",
       "environmental": "Environmental Case",
       "firstAid": "First Aid",
+      "first_aid": "First Aid",
       "medicalTreatment": "Medical Treatment",
+      "medical_treatment": "Medical Treatment",
       "fire": "Fire",
       "security": "Security Incident"
     },
@@ -234,7 +238,15 @@
       "pending_review": "Pending Review",
       "investigation_pending": "Investigation Pending",
       "investigation_in_progress": "Under Investigation",
-      "closed": "Closed"
+      "closed": "Closed",
+      "expert_screening": "Expert Screening",
+      "returned_to_reporter": "Returned to Reporter",
+      "expert_rejected": "Rejected by Expert",
+      "no_investigation_required": "No Investigation Required",
+      "pending_manager_approval": "Pending Manager Approval",
+      "manager_rejected": "Rejected by Manager",
+      "hsse_manager_escalation": "Escalated to HSSE Manager",
+      "pending_dept_rep_approval": "Pending Dept. Rep. Approval"
     },
     "noIncidentsYet": "No incidents have been reported yet.",
     "reportFirstIncident": "Report First Incident",
