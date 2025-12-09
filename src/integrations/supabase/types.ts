@@ -1997,6 +1997,9 @@ export type Database = {
           deleted_at: string | null
           department: string | null
           department_id: string | null
+          dept_rep_approved_at: string | null
+          dept_rep_approved_by: string | null
+          dept_rep_notes: string | null
           description: string
           escalated_to_hsse_manager_at: string | null
           event_type: string
@@ -2067,6 +2070,9 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_rep_approved_at?: string | null
+          dept_rep_approved_by?: string | null
+          dept_rep_notes?: string | null
           description: string
           escalated_to_hsse_manager_at?: string | null
           event_type: string
@@ -2137,6 +2143,9 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           department_id?: string | null
+          dept_rep_approved_at?: string | null
+          dept_rep_approved_by?: string | null
+          dept_rep_notes?: string | null
           description?: string
           escalated_to_hsse_manager_at?: string | null
           event_type?: string
@@ -2226,6 +2235,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dept_rep_approved_by_fkey"
+            columns: ["dept_rep_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -5488,6 +5504,7 @@ export type Database = {
         | "pending_manager_approval"
         | "manager_rejected"
         | "hsse_manager_escalation"
+        | "pending_dept_rep_approval"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -5747,6 +5764,7 @@ export const Constants = {
         "pending_manager_approval",
         "manager_rejected",
         "hsse_manager_escalation",
+        "pending_dept_rep_approval",
       ],
       maintenance_frequency: [
         "daily",

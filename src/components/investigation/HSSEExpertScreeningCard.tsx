@@ -11,6 +11,7 @@ import {
   XCircle, 
   FileX,
   ArrowRight,
+  ClipboardList,
   Loader2
 } from "lucide-react";
 import { ReturnToReporterDialog } from "./ReturnToReporterDialog";
@@ -97,6 +98,20 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
       },
     });
   };
+  
+  // Handler for assigning actions (observation workflow)
+  const handleAssignActions = () => {
+    expertScreening.mutate({
+      incidentId: incident.id,
+      recommendation: 'assign_actions',
+      notes,
+    }, {
+      onSuccess: onComplete,
+    });
+  };
+  
+  // Check if this is an observation
+  const isObservation = incident.event_type === 'observation';
 
   return (
     <>
@@ -186,18 +201,34 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
               {t('workflow.expertScreening.noInvestigation', 'No Investigation Required')}
             </Button>
             
-            <Button
-              className="flex items-center gap-2"
-              onClick={handleRecommendInvestigation}
-              disabled={expertScreening.isPending}
-            >
-              {expertScreening.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowRight className="h-4 w-4" />
-              )}
-              {t('workflow.expertScreening.recommendInvestigation', 'Recommend Investigation')}
-            </Button>
+            {/* Show different button based on event type */}
+            {isObservation ? (
+              <Button
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                onClick={handleAssignActions}
+                disabled={expertScreening.isPending}
+              >
+                {expertScreening.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ClipboardList className="h-4 w-4" />
+                )}
+                {t('workflow.expertScreening.assignActions', 'Send for Action Assignment')}
+              </Button>
+            ) : (
+              <Button
+                className="flex items-center gap-2"
+                onClick={handleRecommendInvestigation}
+                disabled={expertScreening.isPending}
+              >
+                {expertScreening.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+                {t('workflow.expertScreening.recommendInvestigation', 'Recommend Investigation')}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

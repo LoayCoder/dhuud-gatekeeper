@@ -176,6 +176,73 @@ serve(async (req: Request) => {
         `;
         break;
 
+      case "expert_assign_actions":
+        // Notify department representative about observation needing action assignment
+        if (incident.approval_manager_id) {
+          const { data: deptRep } = await supabase
+            .from("profiles")
+            .select("phone_number, full_name")
+            .eq("id", incident.approval_manager_id)
+            .single();
+          
+          if (deptRep?.phone_number) {
+            recipients.push(deptRep.phone_number);
+          }
+          
+          subject = `[${tenantName}] Observation Requires Action Assignment`;
+          htmlContent = `
+            <h2>Observation Requires Action Assignment</h2>
+            <p>Dear ${deptRep?.full_name || "Department Representative"},</p>
+            <p>Observation <strong>${incident.reference_id}</strong> has been reviewed by the HSSE Expert and requires corrective action assignment.</p>
+            <p><strong>Observation Title:</strong> ${incident.title}</p>
+            ${payload.notes ? `<p><strong>Expert Notes:</strong> ${payload.notes}</p>` : ""}
+            <p>Please log in to review the observation, assign corrective actions, and approve for closure.</p>
+            <p>Best regards,<br>${tenantName} HSSE Team</p>
+          `;
+        }
+        break;
+
+      case "dept_rep_approve":
+        // Notify reporter that observation was closed
+        if (reporterProfile?.phone_number) {
+          recipients.push(reporterProfile.phone_number);
+        }
+        subject = `[${tenantName}] Observation Closed - ${incident.reference_id}`;
+        htmlContent = `
+          <h2>Observation Closed</h2>
+          <p>Dear ${reporterProfile?.full_name || "Reporter"},</p>
+          <p>Your observation <strong>${incident.reference_id}</strong> has been reviewed and closed by the department representative.</p>
+          <p>Corrective actions have been assigned and the observation workflow is now complete.</p>
+          <p>Thank you for your contribution to workplace safety.</p>
+          <p>Best regards,<br>${tenantName} HSSE Team</p>
+        `;
+        break;
+
+      case "dept_rep_escalate":
+        // Notify department manager about escalation to investigation
+        if (incident.approval_manager_id) {
+          const { data: manager } = await supabase
+            .from("profiles")
+            .select("phone_number, full_name")
+            .eq("id", incident.approval_manager_id)
+            .single();
+          
+          if (manager?.phone_number) {
+            recipients.push(manager.phone_number);
+          }
+          
+          subject = `[${tenantName}] Observation Escalated to Investigation`;
+          htmlContent = `
+            <h2>Observation Escalated</h2>
+            <p>Observation <strong>${incident.reference_id}</strong> has been escalated to the full investigation workflow.</p>
+            <p><strong>Observation Title:</strong> ${incident.title}</p>
+            ${payload.notes ? `<p><strong>Department Rep Notes:</strong> ${payload.notes}</p>` : ""}
+            <p>Please log in to review and approve the investigation request.</p>
+            <p>Best regards,<br>${tenantName} HSSE Team</p>
+          `;
+        }
+        break;
+
       case "manager_approved":
         // Notify HSSE Expert to assign investigator
         // For now, we'll skip this as we don't have a specific recipient
