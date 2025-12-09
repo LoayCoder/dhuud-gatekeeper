@@ -5,6 +5,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useUserRoles } from '@/hooks/use-user-roles';
 
+// Pending incident approvals for managers
+export interface PendingIncidentApproval {
+  id: string;
+  reference_id: string | null;
+  title: string;
+  status: string | null;
+  severity: string | null;
+  event_type: string | null;
+  created_at: string | null;
+  reporter?: { id: string; full_name: string | null } | null;
+}
+
 export interface PendingActionApproval {
   id: string;
   title: string;
@@ -278,4 +290,58 @@ export function useCanAccessApprovals() {
   );
 
   return { canAccess, canApproveSeverity, isLoading };
+}
+
+// Fetch incidents pending manager approval for the current user
+export function usePendingIncidentApprovals() {
+  const { profile, user } = useAuth();
+
+  return useQuery({
+    queryKey: ['pending-incident-approvals', user?.id],
+    queryFn: async () => {
+      if (!profile?.tenant_id || !user?.id) return [];
+
+      // Get incidents that are pending manager approval
+      const { data: incidents, error } = await supabase
+        .from('incidents')
+        .select(`
+          id, reference_id, title, status, severity, event_type, created_at,
+          reporter:profiles!incidents_reporter_id_fkey(id, full_name),
+          reporter_id
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('status', 'pending_manager_approval')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      if (!incidents || incidents.length === 0) return [];
+
+      // Filter to only incidents where current user can approve
+      const approvableIncidents: PendingIncidentApproval[] = [];
+      
+      for (const incident of incidents) {
+        const { data: canApprove } = await supabase.rpc('can_approve_investigation', {
+          _user_id: user.id,
+          _incident_id: incident.id,
+        });
+        
+        if (canApprove) {
+          approvableIncidents.push({
+            id: incident.id,
+            reference_id: incident.reference_id,
+            title: incident.title,
+            status: incident.status,
+            severity: incident.severity,
+            event_type: incident.event_type,
+            created_at: incident.created_at,
+            reporter: incident.reporter as { id: string; full_name: string | null } | null,
+          });
+        }
+      }
+      
+      return approvableIncidents;
+    },
+    enabled: !!profile?.tenant_id && !!user?.id,
+  });
 }
