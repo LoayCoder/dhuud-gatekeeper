@@ -151,7 +151,15 @@
       "pending_review": "قيد المراجعة",
       "investigation_pending": "بانتظار التحقيق",
       "investigation_in_progress": "قيد التحقيق",
-      "closed": "مغلق"
+      "closed": "مغلق",
+      "expert_screening": "فحص الخبير",
+      "returned_to_reporter": "أُعيد للمُبلّغ",
+      "expert_rejected": "مرفوض من الخبير",
+      "no_investigation_required": "لا يتطلب تحقيق",
+      "pending_manager_approval": "بانتظار موافقة المدير",
+      "manager_rejected": "مرفوض من المدير",
+      "hsse_manager_escalation": "تصعيد لمدير HSSE",
+      "pending_dept_rep_approval": "بانتظار موافقة ممثل القسم"
     },
     "immediateActions": "الإجراءات الفورية المتخذة",
     "immediateActionsPlaceholder": "ما هي الإجراءات التي تم اتخاذها في الموقع؟",
@@ -227,12 +235,16 @@
     },
     "incidentTypes": {
       "nearMiss": "حادث وشيك",
+      "near_miss": "حادث وشيك",
       "unsafeAct": "فعل غير آمن",
       "unsafe_act": "فعل غير آمن",
       "propertyDamage": "تلف في الممتلكات",
+      "property_damage": "تلف في الممتلكات",
       "environmental": "حالة بيئية",
       "firstAid": "إسعافات أولية",
+      "first_aid": "إسعافات أولية",
       "medicalTreatment": "علاج طبي",
+      "medical_treatment": "علاج طبي",
       "fire": "حريق",
       "security": "أمني"
     },

@@ -398,7 +398,7 @@ export default function MyActions() {
                             </div>
                             
                             <Button asChild size="sm">
-                              <Link to={`/incidents/${incident.id}`} className="gap-2">
+                              <Link to={`/incidents/investigate?incident=${incident.id}&from=my-actions`} className="gap-2">
                                 {t('investigation.approvals.reviewIncident', 'Review & Approve')}
                                 <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                               </Link>

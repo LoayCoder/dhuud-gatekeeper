@@ -217,14 +217,33 @@
     },
     "incidentTypes": {
       "nearMiss": "قریب حادثہ",
+      "near_miss": "قریب حادثہ",
       "unsafeAct": "غیر محفوظ عمل",
       "unsafe_act": "غیر محفوظ عمل",
       "propertyDamage": "املاک کا نقصان",
+      "property_damage": "املاک کا نقصان",
       "environmental": "ماحولیاتی کیس",
       "firstAid": "ابتدائی طبی امداد",
+      "first_aid": "ابتدائی طبی امداد",
       "medicalTreatment": "طبی علاج",
+      "medical_treatment": "طبی علاج",
       "fire": "آگ",
       "security": "سیکیورٹی"
+    },
+    "status": {
+      "submitted": "جمع شدہ",
+      "pending_review": "جائزہ کے منتظر",
+      "investigation_pending": "تحقیقات کے منتظر",
+      "investigation_in_progress": "زیر تحقیقات",
+      "closed": "بند",
+      "expert_screening": "ماہر کی جانچ",
+      "returned_to_reporter": "رپورٹر کو واپس",
+      "expert_rejected": "ماہر نے مسترد کیا",
+      "no_investigation_required": "تحقیقات کی ضرورت نہیں",
+      "pending_manager_approval": "مینیجر کی منظوری کے منتظر",
+      "manager_rejected": "مینیجر نے مسترد کیا",
+      "hsse_manager_escalation": "HSSE مینیجر کو تصعید",
+      "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کے منتظر"
     },
     "quickCapture": {
       "title": "فوری کیپچر",

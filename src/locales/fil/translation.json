@@ -217,14 +217,33 @@
     },
     "incidentTypes": {
       "nearMiss": "Halos Aksidente",
+      "near_miss": "Halos Aksidente",
       "unsafeAct": "Hindi Ligtas na Gawain",
       "unsafe_act": "Hindi Ligtas na Gawain",
       "propertyDamage": "Pinsala sa Ari-arian",
+      "property_damage": "Pinsala sa Ari-arian",
       "environmental": "Pangkalikasan na Kaso",
       "firstAid": "First Aid",
+      "first_aid": "First Aid",
       "medicalTreatment": "Medical Treatment",
+      "medical_treatment": "Medical Treatment",
       "fire": "Sunog",
       "security": "Seguridad"
+    },
+    "status": {
+      "submitted": "Naisumite",
+      "pending_review": "Naghihintay ng Pagsusuri",
+      "investigation_pending": "Naghihintay ng Imbestigasyon",
+      "investigation_in_progress": "Isinisiyasat",
+      "closed": "Sarado",
+      "expert_screening": "Pagsusuri ng Eksperto",
+      "returned_to_reporter": "Ibinalik sa Nag-ulat",
+      "expert_rejected": "Tinanggihan ng Eksperto",
+      "no_investigation_required": "Hindi Kailangan ng Imbestigasyon",
+      "pending_manager_approval": "Naghihintay ng Pag-apruba ng Manager",
+      "manager_rejected": "Tinanggihan ng Manager",
+      "hsse_manager_escalation": "Iniangat sa HSSE Manager",
+      "pending_dept_rep_approval": "Naghihintay ng Pag-apruba ng Dept. Rep."
     },
     "quickCapture": {
       "title": "Quick Capture",

@@ -217,14 +217,33 @@
     },
     "incidentTypes": {
       "nearMiss": "निकट दुर्घटना",
+      "near_miss": "निकट दुर्घटना",
       "unsafeAct": "असुरक्षित कार्य",
       "unsafe_act": "असुरक्षित कार्य",
       "propertyDamage": "संपत्ति क्षति",
+      "property_damage": "संपत्ति क्षति",
       "environmental": "पर्यावरण मामला",
       "firstAid": "प्राथमिक चिकित्सा",
+      "first_aid": "प्राथमिक चिकित्सा",
       "medicalTreatment": "चिकित्सा उपचार",
+      "medical_treatment": "चिकित्सा उपचार",
       "fire": "आग",
       "security": "सुरक्षा"
+    },
+    "status": {
+      "submitted": "जमा किया गया",
+      "pending_review": "समीक्षा लंबित",
+      "investigation_pending": "जांच लंबित",
+      "investigation_in_progress": "जांच जारी",
+      "closed": "बंद",
+      "expert_screening": "विशेषज्ञ जांच",
+      "returned_to_reporter": "रिपोर्टर को वापस",
+      "expert_rejected": "विशेषज्ञ द्वारा अस्वीकृत",
+      "no_investigation_required": "जांच आवश्यक नहीं",
+      "pending_manager_approval": "प्रबंधक अनुमोदन लंबित",
+      "manager_rejected": "प्रबंधक द्वारा अस्वीकृत",
+      "hsse_manager_escalation": "HSSE प्रबंधक को एस्केलेट",
+      "pending_dept_rep_approval": "विभाग प्रतिनिधि अनुमोदन लंबित"
     },
     "quickCapture": {
       "title": "त्वरित कैप्चर",
