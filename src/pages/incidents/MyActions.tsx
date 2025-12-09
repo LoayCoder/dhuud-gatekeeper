@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
-import { usePendingActionApprovals, usePendingSeverityApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
+import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
@@ -51,6 +51,7 @@ export default function MyActions() {
   const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
   const { data: pendingApprovals, isLoading: approvalsLoading } = usePendingActionApprovals();
   const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
+  const { data: pendingIncidentApprovals, isLoading: incidentApprovalsLoading } = usePendingIncidentApprovals();
   const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
 
   const handleStatusChange = (actionId: string, newStatus: string) => {
@@ -68,7 +69,7 @@ export default function MyActions() {
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
-  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0);
+  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0);
 
   const isLoading = actionsLoading || witnessLoading;
 
@@ -332,7 +333,7 @@ export default function MyActions() {
 
         {canAccessApprovals && (
           <TabsContent value="approvals" className="mt-4 space-y-6">
-            {(approvalsLoading || severityLoading) ? (
+            {(approvalsLoading || severityLoading || incidentApprovalsLoading) ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
                   <Card key={i}>
@@ -348,6 +349,67 @@ export default function MyActions() {
               </div>
             ) : (
               <>
+                {/* Pending Incident Approvals Section (Manager/HSSE) */}
+                {pendingIncidentApprovals && pendingIncidentApprovals.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      {t('investigation.approvals.incidentApprovals', 'Incident Approvals')}
+                      <Badge variant="secondary">{pendingIncidentApprovals.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingIncidentApprovals.map((incident) => (
+                        <Card key={incident.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                                <CardTitle className="text-base">{incident.reference_id || incident.id.slice(0, 8)}</CardTitle>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {incident.severity && (
+                                  <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'}>
+                                    {t(`investigation.severity.${incident.severity}`, incident.severity)}
+                                  </Badge>
+                                )}
+                                {incident.event_type && (
+                                  <Badge variant="outline">
+                                    {t(`investigation.eventTypes.${incident.event_type}`, incident.event_type)}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <CardDescription>{incident.title}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {incident.reporter && (
+                                <div>
+                                  <span className="font-medium">{t('investigation.reportedBy', 'Reported By')}:</span>{' '}
+                                  {incident.reporter.full_name}
+                                </div>
+                              )}
+                              {incident.created_at && (
+                                <div>
+                                  <span className="font-medium">{t('common.createdAt', 'Created')}:</span>{' '}
+                                  {formatDistanceToNow(new Date(incident.created_at), { addSuffix: true })}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Button asChild size="sm">
+                              <Link to={`/incidents/${incident.id}`} className="gap-2">
+                                {t('investigation.approvals.reviewIncident', 'Review & Approve')}
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Severity Changes Section (Admin/HSSE Manager only) */}
                 {canApproveSeverity && pendingSeverity && pendingSeverity.length > 0 && (
                   <div className="space-y-4">
@@ -439,7 +501,8 @@ export default function MyActions() {
 
                 {/* Empty State */}
                 {(!pendingApprovals || pendingApprovals.length === 0) && 
-                 (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) && (
+                 (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) &&
+                 (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) && (
                   <Card className="py-12">
                     <CardContent className="flex flex-col items-center justify-center text-center">
                       <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />

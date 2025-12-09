@@ -536,7 +536,9 @@
       "approveChange": "Approve",
       "rejectChange": "Reject",
       "severityApproved": "Severity change approved",
-      "severityRejected": "Severity change rejected"
+      "severityRejected": "Severity change rejected",
+      "incidentApprovals": "Incident Approvals",
+      "reviewIncident": "Review & Approve"
     },
     "overview": {
       "reporterInfo": "Reporter Information",
