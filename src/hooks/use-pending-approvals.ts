@@ -294,12 +294,21 @@ export function useCanAccessApprovals() {
 
 // Fetch incidents pending manager approval for the current user
 export function usePendingIncidentApprovals() {
-  const { profile, user } = useAuth();
+  const { profile, user, isLoading: authLoading } = useAuth();
 
   return useQuery({
-    queryKey: ['pending-incident-approvals', user?.id],
+    queryKey: ['pending-incident-approvals', profile?.tenant_id, user?.id],
     queryFn: async () => {
-      if (!profile?.tenant_id || !user?.id) return [];
+      // Double-check requirements inside queryFn
+      if (!profile?.tenant_id || !user?.id) {
+        console.log('[PendingApprovals] Missing tenant_id or user_id:', { 
+          tenant_id: profile?.tenant_id, 
+          user_id: user?.id 
+        });
+        return [];
+      }
+
+      console.log('[PendingApprovals] Fetching incidents for tenant:', profile.tenant_id, 'user:', user.id);
 
       // Get incidents that are pending manager approval
       const { data: incidents, error } = await supabase
@@ -314,34 +323,56 @@ export function usePendingIncidentApprovals() {
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[PendingApprovals] Error fetching incidents:', error);
+        throw error;
+      }
+      
+      console.log('[PendingApprovals] Found incidents:', incidents?.length || 0, incidents);
+      
       if (!incidents || incidents.length === 0) return [];
 
       // Filter to only incidents where current user can approve
       const approvableIncidents: PendingIncidentApproval[] = [];
       
       for (const incident of incidents) {
-        const { data: canApprove } = await supabase.rpc('can_approve_investigation', {
-          _user_id: user.id,
-          _incident_id: incident.id,
-        });
-        
-        if (canApprove) {
-          approvableIncidents.push({
-            id: incident.id,
-            reference_id: incident.reference_id,
-            title: incident.title,
-            status: incident.status,
-            severity: incident.severity,
-            event_type: incident.event_type,
-            created_at: incident.created_at,
-            reporter: incident.reporter as { id: string; full_name: string | null } | null,
+        try {
+          const { data: canApprove, error: rpcError } = await supabase.rpc('can_approve_investigation', {
+            _user_id: user.id,
+            _incident_id: incident.id,
           });
+          
+          if (rpcError) {
+            console.error('[PendingApprovals] RPC error for incident:', incident.id, rpcError);
+            continue; // Skip this incident but continue processing others
+          }
+          
+          console.log('[PendingApprovals] can_approve_investigation result:', incident.reference_id, canApprove);
+          
+          if (canApprove) {
+            approvableIncidents.push({
+              id: incident.id,
+              reference_id: incident.reference_id,
+              title: incident.title,
+              status: incident.status,
+              severity: incident.severity,
+              event_type: incident.event_type,
+              created_at: incident.created_at,
+              reporter: incident.reporter as { id: string; full_name: string | null } | null,
+            });
+          }
+        } catch (err) {
+          console.error('[PendingApprovals] Exception checking approval for incident:', incident.id, err);
+          // Continue processing other incidents
         }
       }
       
+      console.log('[PendingApprovals] Final approvable incidents:', approvableIncidents.length, approvableIncidents);
       return approvableIncidents;
     },
-    enabled: !!profile?.tenant_id && !!user?.id,
+    // Only enable when auth is fully loaded AND we have the required data
+    enabled: !authLoading && !!profile?.tenant_id && !!user?.id,
+    // Refetch on window focus for fresh data
+    refetchOnWindowFocus: true,
   });
 }
