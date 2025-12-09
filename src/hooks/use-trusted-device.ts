@@ -62,6 +62,8 @@ export function useTrustedDevice() {
 
   const checkTrustedDevice = async (userId: string): Promise<boolean> => {
     const storedToken = localStorage.getItem(TRUST_STORAGE_KEY);
+    console.log('[TrustedDevice] Checking trust status, token exists:', !!storedToken);
+    
     if (!storedToken) return false;
 
     try {
@@ -72,38 +74,91 @@ export function useTrustedDevice() {
         .eq('device_token', storedToken)
         .single();
 
-      if (error || !data) {
+      if (error) {
+        console.error('[TrustedDevice] Failed to check trusted device:', error);
+        localStorage.removeItem(TRUST_STORAGE_KEY);
+        return false;
+      }
+
+      if (!data) {
+        console.log('[TrustedDevice] No matching device found in database');
         localStorage.removeItem(TRUST_STORAGE_KEY);
         return false;
       }
 
       // Check if trust has expired
       if (new Date(data.trusted_until) < new Date()) {
+        console.log('[TrustedDevice] Trust has expired, cleaning up');
         localStorage.removeItem(TRUST_STORAGE_KEY);
         // Clean up expired record
         await supabase.from('trusted_devices').delete().eq('id', data.id);
         return false;
       }
 
-      // Update last_used_at
-      await supabase
+      // Update last_used_at with error handling
+      const { error: updateError } = await supabase
         .from('trusted_devices')
         .update({ last_used_at: new Date().toISOString() })
         .eq('id', data.id);
 
+      if (updateError) {
+        console.error('[TrustedDevice] Failed to update last_used_at:', updateError);
+      }
+
+      console.log('[TrustedDevice] Device is trusted, valid until:', data.trusted_until);
       return true;
-    } catch {
+    } catch (err) {
+      console.error('[TrustedDevice] Unexpected error checking trust:', err);
       return false;
     }
   };
 
   const trustDevice = async (userId: string): Promise<boolean> => {
-    const token = generateToken();
+    const existingToken = localStorage.getItem(TRUST_STORAGE_KEY);
     const trustDays = await getTenantTrustDuration(userId);
     const trustedUntil = new Date();
     trustedUntil.setDate(trustedUntil.getDate() + trustDays);
 
+    console.log('[TrustedDevice] Trusting device for', trustDays, 'days');
+
     try {
+      // If there's an existing token in localStorage, try to update it first
+      if (existingToken) {
+        console.log('[TrustedDevice] Found existing token, attempting to update');
+        
+        const { data: existingDevice, error: lookupError } = await supabase
+          .from('trusted_devices')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('device_token', existingToken)
+          .single();
+        
+        if (lookupError) {
+          console.log('[TrustedDevice] No existing device found for token:', lookupError.message);
+        }
+        
+        if (existingDevice) {
+          // Update existing trust period
+          const { error } = await supabase
+            .from('trusted_devices')
+            .update({ 
+              trusted_until: trustedUntil.toISOString(),
+              last_used_at: new Date().toISOString()
+            })
+            .eq('id', existingDevice.id);
+          
+          if (!error) {
+            console.log('[TrustedDevice] Updated existing device trust period');
+            return true;
+          }
+          console.error('[TrustedDevice] Failed to update existing device:', error);
+        }
+      }
+
+      // No existing device found or update failed, create new
+      const token = generateToken();
+      console.log('[TrustedDevice] Creating new trusted device record');
+      
       const { error } = await supabase.from('trusted_devices').insert({
         user_id: userId,
         device_token: token,
@@ -113,13 +168,15 @@ export function useTrustedDevice() {
       });
 
       if (error) {
-        console.error('Failed to trust device:', error);
+        console.error('[TrustedDevice] Failed to trust device:', error);
         return false;
       }
 
       localStorage.setItem(TRUST_STORAGE_KEY, token);
+      console.log('[TrustedDevice] New device trusted successfully');
       return true;
-    } catch {
+    } catch (err) {
+      console.error('[TrustedDevice] Unexpected error trusting device:', err);
       return false;
     }
   };
@@ -131,7 +188,7 @@ export function useTrustedDevice() {
       .order('last_used_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to fetch trusted devices:', error);
+      console.error('[TrustedDevice] Failed to fetch trusted devices:', error);
       return [];
     }
 
