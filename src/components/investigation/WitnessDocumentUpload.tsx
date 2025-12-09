@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateWitnessStatement, useCreateWitnessAttachment } from "@/hooks/use-witness-statements";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/upload-utils";
 
 export interface WitnessDocumentUploadProps {
   incidentId: string;
@@ -92,11 +93,17 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
 
       // 2. Upload each file and create attachments
       for (const file of files) {
+        // Compress image files before upload
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
+          fileToUpload = await compressImage(file, 1920, 0.85);
+        }
+
         const filePath = `${profile.tenant_id}/witness/${statement.id}/${Date.now()}_${file.name}`;
         
         const { error: uploadError } = await supabase.storage
           .from("incident-attachments")
-          .upload(filePath, file);
+          .upload(filePath, fileToUpload);
 
         if (uploadError) {
           console.error("Upload error:", uploadError);
@@ -107,8 +114,8 @@ export function WitnessDocumentUpload({ incidentId, onSuccess }: WitnessDocument
         await createAttachment.mutateAsync({
           statement_id: statement.id,
           file_name: file.name,
-          file_size: file.size,
-          mime_type: file.type,
+          file_size: fileToUpload.size,
+          mime_type: fileToUpload.type,
           storage_path: filePath,
         });
       }
