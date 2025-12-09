@@ -3461,5 +3461,33 @@
     "slaBreachRate": "معدل خرق SLA",
     "attention": "يتطلب الانتباه",
     "overdueActions": "إجراءات متأخرة"
+  },
+  "assetManagement": {
+    "linkedAssets": "الأصول المرتبطة",
+    "noLinkedAssets": "لا توجد أصول مرتبطة بهذا الحدث",
+    "linkAsset": "ربط أصل",
+    "linkAssetToIncident": "ربط أصل بالحادث",
+    "unlinkAsset": "إلغاء ربط الأصل",
+    "unlinkAssetConfirm": "هل أنت متأكد من إلغاء ربط هذا الأصل؟",
+    "unlink": "إلغاء الربط",
+    "searchAssets": "البحث عن الأصول...",
+    "noAssetsFound": "لم يتم العثور على أصول",
+    "linkType": "نوع الربط",
+    "linkNotes": "ملاحظات",
+    "linkNotesPlaceholder": "أضف ملاحظات حول هذا الربط...",
+    "noIncidentHistory": "لا يوجد سجل حوادث",
+    "noIncidentHistoryDescription": "هذا الأصل لم يرتبط بأي حوادث حتى الآن",
+    "linkTypes": {
+      "involved": "متورط",
+      "damaged": "متضرر",
+      "caused_by": "تسبب به",
+      "affected": "متأثر"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "under_maintenance": "تحت الصيانة",
+      "disposed": "مستبعد"
+    }
   }
 }

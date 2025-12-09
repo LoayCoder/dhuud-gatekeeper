@@ -3393,5 +3393,33 @@
     "slaBreachRate": "SLA خلاف ورزی کی شرح",
     "attention": "توجہ درکار",
     "overdueActions": "واجب الادا گزرے ایکشنز"
+  },
+  "assetManagement": {
+    "linkedAssets": "منسلک اثاثے",
+    "noLinkedAssets": "اس واقعے سے کوئی اثاثہ منسلک نہیں",
+    "linkAsset": "اثاثہ لنک کریں",
+    "linkAssetToIncident": "اثاثہ واقعے سے لنک کریں",
+    "unlinkAsset": "اثاثہ ان لنک کریں",
+    "unlinkAssetConfirm": "کیا آپ واقعی اس اثاثے کو ان لنک کرنا چاہتے ہیں؟",
+    "unlink": "ان لنک",
+    "searchAssets": "اثاثے تلاش کریں...",
+    "noAssetsFound": "کوئی اثاثہ نہیں ملا",
+    "linkType": "لنک کی قسم",
+    "linkNotes": "نوٹس",
+    "linkNotesPlaceholder": "اس لنک کے بارے میں نوٹس شامل کریں...",
+    "noIncidentHistory": "کوئی واقعات کی تاریخ نہیں",
+    "noIncidentHistoryDescription": "یہ اثاثہ ابھی تک کسی واقعے سے منسلک نہیں ہوا",
+    "linkTypes": {
+      "involved": "شامل",
+      "damaged": "نقصان زدہ",
+      "caused_by": "کی وجہ سے",
+      "affected": "متاثرہ"
+    },
+    "status": {
+      "active": "فعال",
+      "inactive": "غیر فعال",
+      "under_maintenance": "مرمت میں",
+      "disposed": "ضائع شدہ"
+    }
   }
 }
