@@ -512,7 +512,8 @@
       "approveChange": "منظور کریں",
       "rejectChange": "مسترد کریں",
       "proposedBy": "تجویز کنندہ",
-      "noSeverityChange": "کوئی شدت کی تبدیلی زیر التواء نہیں"
+      "noSeverityChange": "کوئی شدت کی تبدیلی زیر التواء نہیں",
+      "investigatorAwaitingApproval": "مینیجر کی منظوری کے بعد تفتیش کار کی تفویض دستیاب ہوگی"
     },
     "approvals": {
       "pendingApprovals": "زیر التواء منظوری",

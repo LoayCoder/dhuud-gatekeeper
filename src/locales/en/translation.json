@@ -575,7 +575,8 @@
       "approveChange": "Approve",
       "rejectChange": "Reject",
       "proposedBy": "Proposed by",
-      "noSeverityChange": "No severity change pending"
+      "noSeverityChange": "No severity change pending",
+      "investigatorAwaitingApproval": "Investigator assignment will be available after manager approval"
     },
     "workflow": {
       "inProgress": "Investigation In Progress",

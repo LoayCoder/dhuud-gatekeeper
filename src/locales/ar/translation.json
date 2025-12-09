@@ -522,7 +522,8 @@
       "approveChange": "موافقة",
       "rejectChange": "رفض",
       "proposedBy": "مقترح من",
-      "noSeverityChange": "لا يوجد تغيير خطورة معلق"
+      "noSeverityChange": "لا يوجد تغيير خطورة معلق",
+      "investigatorAwaitingApproval": "تعيين المحقق سيكون متاحاً بعد موافقة المدير"
     },
     "approvals": {
       "pendingApprovals": "الموافقات المعلقة",
