@@ -364,15 +364,15 @@ export default function InvestigationWorkspace() {
                 </TabsContent>
 
                 <TabsContent value="witnesses" className="mt-4">
-                  <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} />
+                  <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} incidentStatus={selectedIncident?.status} />
                 </TabsContent>
 
                 <TabsContent value="rca" className="mt-4">
-                  <RCAPanel incidentId={selectedIncidentId} />
+                  <RCAPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
                 </TabsContent>
 
                 <TabsContent value="actions" className="mt-4">
-                  <ActionsPanel incidentId={selectedIncidentId} />
+                  <ActionsPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
                 </TabsContent>
               </>
             )}

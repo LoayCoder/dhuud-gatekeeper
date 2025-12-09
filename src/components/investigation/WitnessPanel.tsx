@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown, Printer, ChevronRight } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown, Printer, ChevronRight, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { useWitnessStatements, WitnessStatement } from "@/hooks/use-witness-statements";
 import { WitnessDocumentUpload } from "./WitnessDocumentUpload";
@@ -27,6 +28,7 @@ interface WitnessPanelProps {
     branches?: { name: string } | null;
     sites?: { name: string } | null;
   } | null;
+  incidentStatus?: string | null;
 }
 
 type StatementType = 'document_upload' | 'direct_entry' | 'voice_recording';
@@ -47,7 +49,7 @@ const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "defau
   }
 };
 
-export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
+export function WitnessPanel({ incidentId, incident, incidentStatus }: WitnessPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { tenantName } = useTheme();
@@ -58,6 +60,9 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   const { statements, isLoading, refetch } = useWitnessStatements(incidentId);
+  
+  // Read-only mode when incident is closed
+  const isLocked = incidentStatus === 'closed';
 
   const handleStatementAdded = () => {
     refetch();
@@ -107,48 +112,64 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
 
   return (
     <div className="space-y-4" dir={direction}>
+      {/* Locked Banner for Closed Incidents */}
+      {isLocked && (
+        <Alert className="border-muted bg-muted/50">
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            {t('investigation.witnesses.lockedClosed', 'This incident is closed. Witness statements cannot be modified.')}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-lg font-medium">
           {t('investigation.witnesses.title', 'Witness Statements')}
         </h3>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadForm}
-            disabled={isGenerating || !incident}
-          >
-            {isGenerating ? (
-              <Loader2 className="h-4 w-4 me-2 animate-spin" />
-            ) : (
-              <FileDown className="h-4 w-4 me-2" />
-            )}
-            {t('investigation.witnesses.downloadForm', 'Download Form')}
-          </Button>
-          <WitnessTaskAssignment 
-            incidentId={incidentId} 
-            onAssigned={refetch}
-          />
-        </div>
+        {!isLocked && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadForm}
+              disabled={isGenerating || !incident}
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 me-2 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4 me-2" />
+              )}
+              {t('investigation.witnesses.downloadForm', 'Download Form')}
+            </Button>
+            <WitnessTaskAssignment 
+              incidentId={incidentId} 
+              onAssigned={refetch}
+            />
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={isLocked ? "grid w-full grid-cols-1" : "grid w-full grid-cols-4"}>
           <TabsTrigger value="list">
             {t('investigation.witnesses.statementsList', 'Statements')} ({statements.length})
           </TabsTrigger>
-          <TabsTrigger value="upload">
-            <Upload className="h-4 w-4 me-2" />
-            {t('investigation.witnesses.documentUpload', 'Upload')}
-          </TabsTrigger>
-          <TabsTrigger value="direct">
-            <Edit className="h-4 w-4 me-2" />
-            {t('investigation.witnesses.directEntry', 'Direct Entry')}
-          </TabsTrigger>
-          <TabsTrigger value="voice">
-            <Mic className="h-4 w-4 me-2" />
-            {t('investigation.witnesses.voiceRecording', 'Voice')}
-          </TabsTrigger>
+          {!isLocked && (
+            <>
+              <TabsTrigger value="upload">
+                <Upload className="h-4 w-4 me-2" />
+                {t('investigation.witnesses.documentUpload', 'Upload')}
+              </TabsTrigger>
+              <TabsTrigger value="direct">
+                <Edit className="h-4 w-4 me-2" />
+                {t('investigation.witnesses.directEntry', 'Direct Entry')}
+              </TabsTrigger>
+              <TabsTrigger value="voice">
+                <Mic className="h-4 w-4 me-2" />
+                {t('investigation.witnesses.voiceRecording', 'Voice')}
+              </TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         <TabsContent value="list" className="mt-4">
@@ -230,26 +251,30 @@ export function WitnessPanel({ incidentId, incident }: WitnessPanelProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="upload" className="mt-4">
-          <WitnessDocumentUpload
-            incidentId={incidentId}
-            onSuccess={handleStatementAdded}
-          />
-        </TabsContent>
+        {!isLocked && (
+          <>
+            <TabsContent value="upload" className="mt-4">
+              <WitnessDocumentUpload
+                incidentId={incidentId}
+                onSuccess={handleStatementAdded}
+              />
+            </TabsContent>
 
-        <TabsContent value="direct" className="mt-4">
-          <WitnessDirectEntry
-            incidentId={incidentId}
-            onSuccess={handleStatementAdded}
-          />
-        </TabsContent>
+            <TabsContent value="direct" className="mt-4">
+              <WitnessDirectEntry
+                incidentId={incidentId}
+                onSuccess={handleStatementAdded}
+              />
+            </TabsContent>
 
-        <TabsContent value="voice" className="mt-4">
-          <WitnessVoiceRecording
-            incidentId={incidentId}
-            onSuccess={handleStatementAdded}
-          />
-        </TabsContent>
+            <TabsContent value="voice" className="mt-4">
+              <WitnessVoiceRecording
+                incidentId={incidentId}
+                onSuccess={handleStatementAdded}
+              />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
       <WitnessDetailDialog
