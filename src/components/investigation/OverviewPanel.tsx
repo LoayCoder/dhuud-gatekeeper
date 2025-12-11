@@ -45,8 +45,8 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
         {/* Reporter Information */}
         <ReporterInfoCard incident={incident} />
         
-        {/* Investigator Assignment - only show when status allows */}
-        {['investigation_pending', 'investigation_in_progress'].includes(incident.status || '') ? (
+        {/* Investigator Assignment - only show when investigation is in progress */}
+        {incident.status === 'investigation_in_progress' ? (
           <InvestigatorAssignmentCard 
             incident={incident}
             investigation={investigation}
