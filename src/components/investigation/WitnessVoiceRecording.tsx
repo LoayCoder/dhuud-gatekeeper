@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useCreateWitnessStatement, transcribeAudio, analyzeStatement } from "@/hooks/use-witness-statements";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+
 
 export interface WitnessVoiceRecordingProps {
   incidentId: string;
@@ -28,7 +28,6 @@ export function WitnessVoiceRecording({
   onSuccess
 }: WitnessVoiceRecordingProps) {
   const { t } = useTranslation();
-  const { profile } = useAuth();
   const createStatement = useCreateWitnessStatement();
 
   const [witnessName, setWitnessName] = useState("");
@@ -215,13 +214,31 @@ export function WitnessVoiceRecording({
       toast.error(t("investigation.witnesses.approveFirst", "Please approve the transcription first"));
       return;
     }
-    if (!profile?.tenant_id || !audioBlob) return;
+    if (!audioBlob) {
+      toast.error(t("investigation.witnesses.noAudioError", "No audio recording found"));
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
-      // Upload audio file
-      const audioPath = `${profile.tenant_id}/witness/${incidentId}/${Date.now()}_recording.webm`;
+      // Get fresh user at execution time to avoid stale closure
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (!freshUser?.id) throw new Error("Not authenticated");
+
+      // Get fresh profile for tenant_id
+      const { data: freshProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', freshUser.id)
+        .single();
+
+      if (profileError || !freshProfile?.tenant_id) {
+        throw new Error("No tenant ID found");
+      }
+
+      // Upload audio file with fresh tenant_id
+      const audioPath = `${freshProfile.tenant_id}/witness/${incidentId}/${Date.now()}_recording.webm`;
       const { error: uploadError } = await supabase.storage
         .from("incident-attachments")
         .upload(audioPath, audioBlob);
