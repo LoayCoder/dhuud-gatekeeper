@@ -50,3 +50,15 @@ verify_jwt = false
 
 [functions.analyze-incident]
 verify_jwt = false
+
+[functions.send-investigation-submitted]
+verify_jwt = true
+
+[functions.hsse-risk-analytics]
+verify_jwt = true
+
+[functions.mfa-backup-codes]
+verify_jwt = true
+
+[functions.send-workflow-notification]
+verify_jwt = false

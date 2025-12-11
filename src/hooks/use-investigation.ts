@@ -436,6 +436,68 @@ export function useUpdateCorrectiveAction() {
   });
 }
 
+// Submit Investigation Hook
+export function useSubmitInvestigation() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({ incidentId }: { incidentId: string }) => {
+      // Get fresh auth state
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
+      // Update incident status to pending_closure and set submitted timestamp
+      // Cast to any to handle enum type mismatch
+      const { error: updateError } = await supabase
+        .from('incidents')
+        .update({
+          status: 'pending_closure' as unknown as string,
+          updated_at: new Date().toISOString(),
+        } as Record<string, unknown>)
+        .eq('id', incidentId);
+
+      if (updateError) throw updateError;
+
+      // Log audit entry
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incidentId,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'investigation_submitted',
+        new_value: { submitted_at: new Date().toISOString() },
+      });
+
+      // Send notifications to all action assignees
+      try {
+        await supabase.functions.invoke('send-investigation-submitted', {
+          body: { incident_id: incidentId },
+        });
+      } catch (notifyError) {
+        console.error('Failed to send investigation submitted notifications:', notifyError);
+      }
+
+      return { incidentId };
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      toast.success(t('investigation.submit.success', 'Investigation submitted for review'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
 // Audit Logs Hook
 export function useIncidentAuditLogs(incidentId: string | null) {
   return useQuery({

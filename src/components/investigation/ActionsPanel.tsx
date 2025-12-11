@@ -156,6 +156,16 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
         if (parsed.suggested_description) {
           form.setValue('description', parsed.suggested_description);
         }
+        // Apply category, type, and priority from AI
+        if (parsed.suggested_category && ['engineering', 'administrative', 'ppe', 'training', 'procedure_update'].includes(parsed.suggested_category)) {
+          form.setValue('category', parsed.suggested_category);
+        }
+        if (parsed.suggested_type && ['corrective', 'preventive', 'improvement'].includes(parsed.suggested_type)) {
+          form.setValue('action_type', parsed.suggested_type);
+        }
+        if (parsed.suggested_priority && ['critical', 'high', 'medium', 'low'].includes(parsed.suggested_priority)) {
+          form.setValue('priority', parsed.suggested_priority);
+        }
         toast.success(t('investigation.actions.ai.suggestionApplied', 'AI suggestion applied'));
       } catch (e) {
         console.error('Failed to parse AI suggestion:', e, result);
