@@ -26,12 +26,24 @@ const NODE_CONFIG = {
   subprocess: { fill: 'hsl(199, 89%, 48%)', stroke: 'hsl(199, 89%, 38%)', textColor: '#ffffff', rx: 8 },
 };
 
+// Connection colors based on condition type
+const CONNECTION_COLORS = {
+  approve: { stroke: 'hsl(142, 76%, 40%)', fill: 'hsl(142, 76%, 40%)' },
+  yes: { stroke: 'hsl(142, 76%, 40%)', fill: 'hsl(142, 76%, 40%)' },
+  reject: { stroke: 'hsl(0, 84%, 55%)', fill: 'hsl(0, 84%, 55%)' },
+  no: { stroke: 'hsl(0, 84%, 55%)', fill: 'hsl(0, 84%, 55%)' },
+  escalate: { stroke: 'hsl(35, 93%, 50%)', fill: 'hsl(35, 93%, 50%)' },
+  loop: { stroke: 'hsl(210, 40%, 50%)', fill: 'hsl(210, 40%, 50%)' },
+  default: { stroke: 'hsl(210, 40%, 45%)', fill: 'hsl(210, 40%, 45%)' },
+};
+
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 60;
-const DECISION_SIZE = 80;
-const HORIZONTAL_GAP = 80;
-const VERTICAL_GAP = 100;
-const ARROW_SIZE = 8;
+const DECISION_SIZE = 90;
+const HORIZONTAL_GAP = 120;
+const VERTICAL_GAP = 130;
+const ARROW_SIZE = 14;
+const STROKE_WIDTH = 2.5;
 
 // Calculate layout positions for nodes
 function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
@@ -61,7 +73,7 @@ function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
     visited.add(id);
     
     const children = adjacency.get(id) || [];
-    children.forEach((childId, idx) => {
+    children.forEach((childId) => {
       if (!levels.has(childId) || levels.get(childId)! < level + 1) {
         levels.set(childId, level + 1);
         queue.push({ id: childId, level: level + 1 });
@@ -77,7 +89,7 @@ function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
   });
   
   // Assign columns within each level
-  levelGroups.forEach((ids, level) => {
+  levelGroups.forEach((ids) => {
     ids.forEach((id, idx) => {
       columns.set(id, idx - Math.floor(ids.length / 2));
     });
@@ -87,8 +99,8 @@ function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
   const maxLevel = Math.max(...Array.from(levels.values()));
   const maxColumns = Math.max(...Array.from(levelGroups.values()).map(g => g.length));
   
-  const totalWidth = Math.max(600, maxColumns * (NODE_WIDTH + HORIZONTAL_GAP) + 100);
-  const totalHeight = (maxLevel + 1) * (NODE_HEIGHT + VERTICAL_GAP) + 100;
+  const totalWidth = Math.max(700, maxColumns * (NODE_WIDTH + HORIZONTAL_GAP) + 150);
+  const totalHeight = (maxLevel + 1) * (NODE_HEIGHT + VERTICAL_GAP) + 120;
   const centerX = totalWidth / 2;
   
   workflow.steps.forEach(step => {
@@ -100,7 +112,7 @@ function calculateLayout(workflow: WorkflowDefinition): LayoutResult {
     
     positions.set(step.id, {
       x: centerX + column * (NODE_WIDTH + HORIZONTAL_GAP) - width / 2,
-      y: 50 + level * (NODE_HEIGHT + VERTICAL_GAP),
+      y: 60 + level * (NODE_HEIGHT + VERTICAL_GAP),
       width,
       height,
     });
@@ -182,11 +194,11 @@ function renderNode(step: WorkflowStep, pos: NodePosition, isRtl: boolean): stri
   const textX = pos.x + pos.width / 2;
   const textY = pos.y + pos.height / 2;
   const fontSize = step.type === 'decision' ? 10 : 11;
-  const maxChars = step.type === 'decision' ? 12 : 20;
+  const maxChars = step.type === 'decision' ? 14 : 20;
   
   // Simple word wrap
   const words = label.split(' ');
-  let lines: string[] = [];
+  const lines: string[] = [];
   let currentLine = '';
   
   words.forEach(word => {
@@ -243,31 +255,105 @@ function renderNode(step: WorkflowStep, pos: NodePosition, isRtl: boolean): stri
   return shape + textElements + actorBadge;
 }
 
-// Generate connection arrow SVG
+// Get connection colors based on condition
+function getConnectionColors(condition?: string, isLoop?: boolean) {
+  if (isLoop) return CONNECTION_COLORS.loop;
+  if (condition === 'approve' || condition === 'yes') return CONNECTION_COLORS.approve;
+  if (condition === 'reject' || condition === 'no') return CONNECTION_COLORS.reject;
+  if (condition === 'escalate') return CONNECTION_COLORS.escalate;
+  return CONNECTION_COLORS.default;
+}
+
+// Calculate exit point from decision node (diamond) based on direction
+function getDecisionExitPoint(
+  pos: NodePosition,
+  direction: 'bottom' | 'left' | 'right' | 'bottom-left' | 'bottom-right'
+): { x: number; y: number } {
+  const cx = pos.x + pos.width / 2;
+  const cy = pos.y + pos.height / 2;
+  const halfW = pos.width / 2;
+  const halfH = pos.height / 2;
+
+  switch (direction) {
+    case 'bottom':
+      return { x: cx, y: cy + halfH };
+    case 'left':
+      return { x: cx - halfW, y: cy };
+    case 'right':
+      return { x: cx + halfW, y: cy };
+    case 'bottom-left':
+      return { x: cx - halfW * 0.5, y: cy + halfH * 0.5 };
+    case 'bottom-right':
+      return { x: cx + halfW * 0.5, y: cy + halfH * 0.5 };
+    default:
+      return { x: cx, y: cy + halfH };
+  }
+}
+
+// Generate connection arrow SVG with improved routing
 function renderConnection(
   conn: WorkflowConnection,
   positions: Map<string, NodePosition>,
   workflow: WorkflowDefinition,
-  isRtl: boolean
+  isRtl: boolean,
+  connectionIndex: number,
+  totalConnectionsFromSource: number
 ): string {
   const fromPos = positions.get(conn.from);
   const toPos = positions.get(conn.to);
   if (!fromPos || !toPos) return '';
   
   const fromStep = workflow.steps.find(s => s.id === conn.from);
-  const toStep = workflow.steps.find(s => s.id === conn.to);
+  const isFromDecision = fromStep?.type === 'decision';
+  const isLoop = toPos.y < fromPos.y;
   
-  // Calculate connection points
-  let x1, y1, x2, y2;
+  const colors = getConnectionColors(conn.condition, isLoop);
   
-  // From bottom of source to top of target (default)
-  x1 = fromPos.x + fromPos.width / 2;
-  y1 = fromPos.y + fromPos.height;
+  let x1: number, y1: number, x2: number, y2: number;
+  
+  // Smart exit point calculation for decision nodes
+  if (isFromDecision && totalConnectionsFromSource > 1) {
+    // Distribute exit points for multiple connections from decision
+    const targetIsLeft = toPos.x + toPos.width / 2 < fromPos.x + fromPos.width / 2;
+    const targetIsBelow = toPos.y > fromPos.y;
+    
+    let direction: 'bottom' | 'left' | 'right' | 'bottom-left' | 'bottom-right';
+    
+    if (isLoop) {
+      direction = targetIsLeft ? 'left' : 'right';
+    } else if (targetIsLeft && targetIsBelow) {
+      direction = 'bottom-left';
+    } else if (!targetIsLeft && targetIsBelow) {
+      direction = 'bottom-right';
+    } else if (targetIsLeft) {
+      direction = 'left';
+    } else if (!targetIsLeft && toPos.x !== fromPos.x) {
+      direction = 'right';
+    } else {
+      direction = 'bottom';
+    }
+    
+    const exitPoint = getDecisionExitPoint(fromPos, direction);
+    x1 = exitPoint.x;
+    y1 = exitPoint.y;
+  } else {
+    // Standard exit from bottom center
+    x1 = fromPos.x + fromPos.width / 2;
+    y1 = fromPos.y + fromPos.height;
+  }
+  
+  // Entry point: top center of target (or side for horizontal/loop)
   x2 = toPos.x + toPos.width / 2;
   y2 = toPos.y;
   
-  // Adjust for horizontal connections
-  if (Math.abs(fromPos.y - toPos.y) < NODE_HEIGHT) {
+  // Adjust entry point for loops and horizontal connections
+  if (isLoop) {
+    // Loop back - enter from side
+    const loopSide = x1 < x2 ? 'left' : 'right';
+    x2 = loopSide === 'left' ? toPos.x : toPos.x + toPos.width;
+    y2 = toPos.y + toPos.height / 2;
+  } else if (Math.abs(fromPos.y + fromPos.height - toPos.y) < 20) {
+    // Nearly horizontal - side to side
     if (fromPos.x < toPos.x) {
       x1 = fromPos.x + fromPos.width;
       y1 = fromPos.y + fromPos.height / 2;
@@ -281,69 +367,99 @@ function renderConnection(
     }
   }
   
-  // Adjust for backward connections (loops)
-  if (toPos.y < fromPos.y) {
-    x1 = fromPos.x;
-    y1 = fromPos.y + fromPos.height / 2;
-    x2 = toPos.x;
-    y2 = toPos.y + toPos.height / 2;
-  }
+  // Build path with improved routing
+  let path: string;
   
-  // Calculate control points for bezier curve
-  const midY = (y1 + y2) / 2;
-  const dx = Math.abs(x2 - x1);
-  const curveOffset = Math.min(dx * 0.3, 50);
-  
-  // Path with bezier curve
-  let path;
-  if (toPos.y < fromPos.y) {
-    // Loop back - curve around
-    const loopOffset = 40;
-    path = `M ${x1} ${y1} C ${x1 - loopOffset} ${y1}, ${x2 - loopOffset} ${y2}, ${x2} ${y2}`;
-  } else if (Math.abs(x1 - x2) < 10) {
-    // Straight down
+  if (isLoop) {
+    // Loop connections - route around to the side
+    const loopOffset = 60 + connectionIndex * 20;
+    const goRight = x1 >= x2;
+    const sideX = goRight 
+      ? Math.max(fromPos.x + fromPos.width, toPos.x + toPos.width) + loopOffset
+      : Math.min(fromPos.x, toPos.x) - loopOffset;
+    
+    path = `M ${x1} ${y1} 
+            L ${sideX} ${y1} 
+            L ${sideX} ${y2} 
+            L ${x2} ${y2}`;
+  } else if (Math.abs(x1 - x2) < 5) {
+    // Straight vertical connection
     path = `M ${x1} ${y1} L ${x2} ${y2}`;
   } else {
-    // Curved path
-    path = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+    // Orthogonal routing (right-angle turns)
+    const midY = y1 + (y2 - y1) * 0.5;
+    path = `M ${x1} ${y1} 
+            L ${x1} ${midY} 
+            L ${x2} ${midY} 
+            L ${x2} ${y2}`;
   }
   
-  // Arrow marker
-  const angle = Math.atan2(y2 - midY, x2 - (x1 + x2) / 2);
+  // Calculate arrow direction based on final segment
+  let arrowAngle: number;
+  if (isLoop) {
+    // Arrow points into the side of target
+    arrowAngle = x1 < x2 ? 0 : Math.PI;
+  } else if (Math.abs(x1 - x2) < 5) {
+    // Straight down
+    arrowAngle = Math.PI / 2;
+  } else {
+    // Orthogonal - final segment is vertical (down)
+    arrowAngle = Math.PI / 2;
+  }
+  
+  // Arrow head with proper angle
   const arrowPath = `
     M ${x2} ${y2}
-    L ${x2 - ARROW_SIZE * Math.cos(angle - Math.PI / 6)} ${y2 - ARROW_SIZE * Math.sin(angle - Math.PI / 6)}
-    L ${x2 - ARROW_SIZE * Math.cos(angle + Math.PI / 6)} ${y2 - ARROW_SIZE * Math.sin(angle + Math.PI / 6)}
+    L ${x2 - ARROW_SIZE * Math.cos(arrowAngle - Math.PI / 5)} ${y2 - ARROW_SIZE * Math.sin(arrowAngle - Math.PI / 5)}
+    L ${x2 - ARROW_SIZE * 0.4 * Math.cos(arrowAngle)} ${y2 - ARROW_SIZE * 0.4 * Math.sin(arrowAngle)}
+    L ${x2 - ARROW_SIZE * Math.cos(arrowAngle + Math.PI / 5)} ${y2 - ARROW_SIZE * Math.sin(arrowAngle + Math.PI / 5)}
     Z
   `;
   
-  // Connection label
+  // Connection label with improved positioning
   let labelSvg = '';
   const label = isRtl ? conn.labelAr : conn.label;
   if (label) {
-    const labelX = (x1 + x2) / 2;
-    const labelY = (y1 + y2) / 2 - 10;
+    let labelX: number, labelY: number;
     
-    // Get color based on condition
+    if (isLoop) {
+      // Position label on the side loop
+      const goRight = x1 >= x2;
+      const loopOffset = 60 + connectionIndex * 20;
+      labelX = goRight 
+        ? Math.max(fromPos.x + fromPos.width, toPos.x + toPos.width) + loopOffset + 5
+        : Math.min(fromPos.x, toPos.x) - loopOffset - 5;
+      labelY = (y1 + y2) / 2;
+    } else {
+      // Position label at the horizontal segment
+      labelX = (x1 + x2) / 2;
+      labelY = y1 + (y2 - y1) * 0.5 - 12;
+    }
+    
+    // Get label background color based on condition
     let labelBg = 'hsl(210, 40%, 96%)';
     let labelColor = 'hsl(210, 40%, 30%)';
     if (conn.condition === 'approve' || conn.condition === 'yes') {
-      labelBg = 'hsl(142, 76%, 90%)';
-      labelColor = 'hsl(142, 76%, 30%)';
+      labelBg = 'hsl(142, 76%, 92%)';
+      labelColor = 'hsl(142, 76%, 25%)';
     } else if (conn.condition === 'reject' || conn.condition === 'no') {
-      labelBg = 'hsl(0, 84%, 92%)';
-      labelColor = 'hsl(0, 84%, 40%)';
+      labelBg = 'hsl(0, 84%, 94%)';
+      labelColor = 'hsl(0, 84%, 35%)';
     } else if (conn.condition === 'escalate') {
-      labelBg = 'hsl(45, 93%, 90%)';
-      labelColor = 'hsl(45, 93%, 30%)';
+      labelBg = 'hsl(35, 93%, 92%)';
+      labelColor = 'hsl(35, 93%, 25%)';
     }
+    
+    const labelWidth = Math.max(50, label.length * 7);
     
     labelSvg = `
       <rect 
-        x="${labelX - 30}" y="${labelY - 8}" 
-        width="60" height="16" 
+        x="${labelX - labelWidth / 2}" y="${labelY - 10}" 
+        width="${labelWidth}" height="20" 
         rx="4" 
         fill="${labelBg}"
+        stroke="${colors.stroke}"
+        stroke-width="1"
       />
       <text 
         x="${labelX}" 
@@ -351,25 +467,32 @@ function renderConnection(
         text-anchor="middle" 
         dominant-baseline="middle"
         fill="${labelColor}" 
-        font-size="9px" 
+        font-size="10px" 
         font-family="Rubik, Arial, sans-serif"
-        font-weight="500"
+        font-weight="600"
         direction="${isRtl ? 'rtl' : 'ltr'}"
       >${escapeXml(label)}</text>
     `;
   }
   
+  // Dashed line style for loop connections
+  const strokeDasharray = isLoop ? '6,4' : 'none';
+  
   return `
     <path 
       d="${path}" 
       fill="none" 
-      stroke="hsl(210, 40%, 60%)" 
-      stroke-width="2"
+      stroke="${colors.stroke}" 
+      stroke-width="${STROKE_WIDTH}"
       stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-dasharray="${strokeDasharray}"
     />
     <path 
       d="${arrowPath}" 
-      fill="hsl(210, 40%, 60%)"
+      fill="${colors.fill}"
+      stroke="${colors.stroke}"
+      stroke-width="1"
     />
     ${labelSvg}
   `;
@@ -401,9 +524,23 @@ export function renderWorkflowSVG(
   const layout = calculateLayout(workflow);
   const { positions, width, height } = layout;
   
+  // Count connections from each source for smart routing
+  const connectionCounts = new Map<string, number>();
+  workflow.connections.forEach(conn => {
+    connectionCounts.set(conn.from, (connectionCounts.get(conn.from) || 0) + 1);
+  });
+  
+  // Track connection index per source for offset calculation
+  const connectionIndexes = new Map<string, number>();
+  
   // Render connections first (behind nodes)
   const connections = workflow.connections
-    .map(conn => renderConnection(conn, positions, workflow, isRtl))
+    .map(conn => {
+      const currentIndex = connectionIndexes.get(conn.from) || 0;
+      connectionIndexes.set(conn.from, currentIndex + 1);
+      const totalFromSource = connectionCounts.get(conn.from) || 1;
+      return renderConnection(conn, positions, workflow, isRtl, currentIndex, totalFromSource);
+    })
     .join('');
   
   // Render nodes
@@ -415,15 +552,21 @@ export function renderWorkflowSVG(
     })
     .join('');
   
-  // Legend
+  // Legend with connection colors
   let legend = '';
   if (showLegend) {
-    const legendY = height - 60;
-    const legendItems = [
+    const legendY = height - 70;
+    const nodeItems = [
       { type: 'start', label: isRtl ? 'بداية/نهاية' : 'Start/End' },
       { type: 'action', label: isRtl ? 'إجراء' : 'Action' },
       { type: 'decision', label: isRtl ? 'قرار' : 'Decision' },
       { type: 'approval', label: isRtl ? 'موافقة' : 'Approval' },
+    ];
+    
+    const connectionItems = [
+      { color: CONNECTION_COLORS.approve.stroke, label: isRtl ? 'موافقة' : 'Approve' },
+      { color: CONNECTION_COLORS.reject.stroke, label: isRtl ? 'رفض' : 'Reject' },
+      { color: CONNECTION_COLORS.escalate.stroke, label: isRtl ? 'تصعيد' : 'Escalate' },
     ];
     
     legend = `
@@ -435,12 +578,31 @@ export function renderWorkflowSVG(
           font-weight="600"
           font-family="Rubik, Arial, sans-serif"
         >${isRtl ? 'مفتاح الرموز' : 'Legend'}</text>
-        ${legendItems.map((item, i) => {
+        ${nodeItems.map((item, i) => {
           const config = NODE_CONFIG[item.type as NodeType];
           return `
-            <rect x="${i * 100}" y="10" width="16" height="16" rx="4" fill="${config.fill}"/>
+            <rect x="${i * 110}" y="12" width="16" height="16" rx="4" fill="${config.fill}"/>
             <text 
-              x="${i * 100 + 22}" y="22" 
+              x="${i * 110 + 22}" y="24" 
+              fill="hsl(210, 40%, 30%)" 
+              font-size="10px"
+              font-family="Rubik, Arial, sans-serif"
+            >${item.label}</text>
+          `;
+        }).join('')}
+        <text 
+          x="${nodeItems.length * 110 + 30}" y="24" 
+          fill="hsl(210, 40%, 50%)" 
+          font-size="10px"
+          font-family="Rubik, Arial, sans-serif"
+        >|</text>
+        ${connectionItems.map((item, i) => {
+          const baseX = nodeItems.length * 110 + 50 + i * 90;
+          return `
+            <line x1="${baseX}" y1="20" x2="${baseX + 20}" y2="20" stroke="${item.color}" stroke-width="3"/>
+            <polygon points="${baseX + 20},20 ${baseX + 14},16 ${baseX + 14},24" fill="${item.color}"/>
+            <text 
+              x="${baseX + 28}" y="24" 
               fill="hsl(210, 40%, 30%)" 
               font-size="10px"
               font-family="Rubik, Arial, sans-serif"
@@ -455,8 +617,8 @@ export function renderWorkflowSVG(
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
       width="${width}" 
-      height="${height + (showLegend ? 80 : 0)}"
-      viewBox="0 0 ${width} ${height + (showLegend ? 80 : 0)}"
+      height="${height + (showLegend ? 90 : 0)}"
+      viewBox="0 0 ${width} ${height + (showLegend ? 90 : 0)}"
       style="background: white;"
     >
       <defs>
