@@ -17,9 +17,11 @@ interface RCAData {
   severity?: string;
   event_type?: string;
   event_subtype?: string;
+  selected_cause_type?: 'root_cause' | 'contributing_factor';
+  selected_cause_text?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor' | 'suggest_corrective_action';
 
 interface UseRCAAIOptions {
   onSuccess?: (result: string) => void;
@@ -127,6 +129,9 @@ export function useRCAAI(options?: UseRCAAIOptions) {
   const generateContributingFactor = (data: RCAData) => 
     callRCAAI({ action: 'generate_contributing_factor', data });
 
+  const suggestCorrectiveAction = (data: RCAData) => 
+    callRCAAI({ action: 'suggest_corrective_action', data });
+
   return {
     isLoading,
     error,
@@ -140,5 +145,6 @@ export function useRCAAI(options?: UseRCAAIOptions) {
     generateUnderlyingCause,
     generateRootCause,
     generateContributingFactor,
+    suggestCorrectiveAction,
   };
 }

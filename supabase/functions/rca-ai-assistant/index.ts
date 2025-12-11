@@ -23,9 +23,11 @@ interface RCAData {
   severity?: string;
   event_type?: string;
   event_subtype?: string;
+  selected_cause_type?: 'root_cause' | 'contributing_factor';
+  selected_cause_text?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor' | 'suggest_corrective_action';
 
 interface RequestPayload {
   action: ActionType;
@@ -534,6 +536,52 @@ Based on the above, identify the UNDERLYING CAUSE (2-3 sentences focusing on sys
   return await callAI(systemPrompt, userPrompt);
 }
 
+// Suggest corrective action title and description based on selected cause
+async function handleSuggestCorrectiveAction(data: RCAData): Promise<string> {
+  const systemPrompt = `You are an expert HSSE incident investigator creating corrective actions.
+
+Based on the incident RCA analysis and the specific cause to be addressed, suggest an appropriate corrective action.
+
+Guidelines for Title:
+- Clear, actionable, max 80 characters
+- Start with action verb (Implement, Update, Install, Train, etc.)
+
+Guidelines for Description:
+- 2-3 sentences explaining the specific action steps
+- Focus on PREVENTING recurrence, not just fixing the immediate issue
+- Align with ISO 45001/OSHA best practices
+- Consider hierarchy of controls: Elimination > Substitution > Engineering > Administrative > PPE
+
+CRITICAL: Return ONLY valid JSON in this exact format:
+{
+  "suggested_title": "Action title here",
+  "suggested_description": "Detailed description here explaining what needs to be done and why"
+}`;
+
+  const whysText = data.five_whys?.length 
+    ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question} → ${w.answer}`).join('\n')
+    : 'Not analyzed';
+
+  const causeTypeLabel = data.selected_cause_type === 'root_cause' ? 'ROOT CAUSE' : 'CONTRIBUTING FACTOR';
+
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}
+
+RCA ANALYSIS:
+- 5 Whys: ${whysText}
+- Immediate Cause: ${data.immediate_cause || 'Not identified'}
+- Underlying Cause: ${data.underlying_cause || 'Not identified'}
+
+${causeTypeLabel} TO ADDRESS:
+"${data.selected_cause_text || 'No cause selected'}"
+
+Suggest a corrective action to address this specific cause. Return JSON only:`;
+
+  return await callAI(systemPrompt, userPrompt);
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -602,6 +650,11 @@ serve(async (req) => {
       case 'generate_contributing_factor':
         if (!data) throw new Error('RCA data is required for generate_contributing_factor action');
         result = await handleGenerateContributingFactor(data);
+        break;
+
+      case 'suggest_corrective_action':
+        if (!data) throw new Error('RCA data is required for suggest_corrective_action action');
+        result = await handleSuggestCorrectiveAction(data);
         break;
 
       default:
