@@ -17,9 +17,11 @@ interface RCAData {
   contributing_factors?: string;
   incident_description?: string;
   incident_title?: string;
+  witness_statements?: Array<{ name: string; statement: string }>;
+  evidence_descriptions?: string[];
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys';
 
 interface RequestPayload {
   action: ActionType;
@@ -267,6 +269,45 @@ Return ONLY the final English text without any explanation, preamble, or quotes.
   return await callAI(systemPrompt, text);
 }
 
+// Generate 3-5 Why questions based on incident context
+async function handleGenerateWhys(data: RCAData): Promise<string> {
+  const systemPrompt = `You are an expert HSSE incident investigator conducting 5-Whys root cause analysis.
+
+Based on the incident details, witness statements, and evidence provided, generate 3-5 "Why" questions with answers that progressively dig deeper into the root cause.
+
+Guidelines:
+- Start with the immediate "Why did this happen?" and dig deeper with each subsequent why
+- Each answer should lead logically to the next why question
+- Focus on systemic factors: procedures, training, equipment, management systems
+- Be specific and factual based on the provided context
+- Aim for 3-5 whys (minimum 3, maximum 5)
+- Make sure each "why" question naturally follows from the previous answer
+
+Return ONLY a JSON array in this exact format (no markdown, no code blocks):
+[{"why": "Why did [specific event] occur?", "answer": "Because [factual answer based on evidence]..."}, ...]`;
+
+  const witnessText = data.witness_statements?.length 
+    ? data.witness_statements.map(w => `Witness: ${w.name}\nStatement: ${w.statement}`).join('\n\n') 
+    : 'No witness statements available';
+  
+  const evidenceText = data.evidence_descriptions?.length 
+    ? data.evidence_descriptions.join('\n') 
+    : 'No evidence descriptions available';
+
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+
+WITNESS STATEMENTS:
+${witnessText}
+
+EVIDENCE:
+${evidenceText}
+
+Generate 3-5 Why questions with answers in JSON format:`;
+
+  return await callAI(systemPrompt, userPrompt);
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -310,6 +351,11 @@ serve(async (req) => {
       case 'translate_and_rewrite':
         if (!text) throw new Error('Text is required for translate_and_rewrite action');
         result = await handleTranslateAndRewrite(text, context || 'description');
+        break;
+
+      case 'generate_whys':
+        if (!data) throw new Error('RCA data is required for generate_whys action');
+        result = await handleGenerateWhys(data);
         break;
 
       default:
