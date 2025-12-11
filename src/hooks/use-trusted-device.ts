@@ -159,6 +159,7 @@ export function useTrustedDevice() {
       const token = generateToken();
       console.log('[TrustedDevice] Creating new trusted device record');
       
+      // Note: tenant_id is auto-populated by database trigger
       const { error } = await supabase.from('trusted_devices').insert({
         user_id: userId,
         device_token: token,
@@ -172,8 +173,17 @@ export function useTrustedDevice() {
         return false;
       }
 
+      // Save token to localStorage and verify it was saved
       localStorage.setItem(TRUST_STORAGE_KEY, token);
-      console.log('[TrustedDevice] New device trusted successfully');
+      
+      // Verify localStorage persistence immediately
+      const savedToken = localStorage.getItem(TRUST_STORAGE_KEY);
+      if (savedToken !== token) {
+        console.error('[TrustedDevice] localStorage failed to persist token!');
+        return false;
+      }
+      
+      console.log('[TrustedDevice] New device trusted successfully, token saved:', !!savedToken);
       return true;
     } catch (err) {
       console.error('[TrustedDevice] Unexpected error trusting device:', err);
