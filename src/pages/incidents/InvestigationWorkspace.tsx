@@ -218,7 +218,7 @@ export default function InvestigationWorkspace() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">
@@ -362,7 +362,7 @@ export default function InvestigationWorkspace() {
           )}
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction} className="w-full overflow-hidden">
             <TabsList className="flex flex-wrap h-auto gap-1 w-full">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <LayoutDashboard className="h-4 w-4" />
