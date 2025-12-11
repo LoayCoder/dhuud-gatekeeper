@@ -4,13 +4,11 @@ import { useUserRoles } from "@/hooks/use-user-roles";
 interface Investigation {
   id: string;
   investigator_id?: string | null;
-  [key: string]: unknown;
 }
 
 interface Incident {
   id: string;
   status?: string | null;
-  [key: string]: unknown;
 }
 
 /**

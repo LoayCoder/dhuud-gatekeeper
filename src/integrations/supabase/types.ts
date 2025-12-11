@@ -5449,6 +5449,10 @@ export type Database = {
         Args: { p_tenant_id?: string }
         Returns: Json
       }
+      reopen_closed_incident: {
+        Args: { p_incident_id: string; p_reason: string }
+        Returns: undefined
+      }
       soft_delete_closed_incident: {
         Args: { p_incident_id: string; p_password_hash: string }
         Returns: string

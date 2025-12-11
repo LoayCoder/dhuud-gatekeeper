@@ -29,6 +29,7 @@ interface WitnessPanelProps {
     sites?: { name: string } | null;
   } | null;
   incidentStatus?: string | null;
+  canEdit?: boolean;
 }
 
 type StatementType = 'document_upload' | 'direct_entry' | 'voice_recording';
@@ -49,7 +50,7 @@ const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "defau
   }
 };
 
-export function WitnessPanel({ incidentId, incident, incidentStatus }: WitnessPanelProps) {
+export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: canEditProp }: WitnessPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { tenantName } = useTheme();
@@ -61,8 +62,8 @@ export function WitnessPanel({ incidentId, incident, incidentStatus }: WitnessPa
 
   const { statements, isLoading, refetch } = useWitnessStatements(incidentId);
   
-  // Read-only mode when incident is closed
-  const isLocked = incidentStatus === 'closed';
+  // Read-only mode when incident is closed OR canEdit prop is explicitly false
+  const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
   const handleStatementAdded = () => {
     refetch();

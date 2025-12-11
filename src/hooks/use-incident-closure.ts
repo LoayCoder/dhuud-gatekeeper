@@ -339,7 +339,8 @@ export function useReopenIncident() {
       }
 
       // Call RPC function for server-side role enforcement
-      const { data, error } = await supabase.rpc('reopen_closed_incident', {
+      // Type assertion needed until types regenerate
+      const { data, error } = await (supabase.rpc as any)('reopen_closed_incident', {
         p_incident_id: incidentId,
         p_reason: reason,
       });

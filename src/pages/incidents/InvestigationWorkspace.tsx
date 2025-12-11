@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, AlertCircle, ClipboardCheck, List } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, AlertCircle, ClipboardCheck, List, Eye, RotateCcw } from "lucide-react";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
+import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import { 
   EvidencePanel, 
   WitnessPanel, 
@@ -30,6 +32,7 @@ import {
   InvestigatorAssignmentStep,
   DeptRepApprovalCard
 } from "@/components/investigation";
+import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -42,6 +45,7 @@ export default function InvestigationWorkspace() {
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
   const [activeTab, setActiveTab] = useState("overview");
   const [showClosureDialog, setShowClosureDialog] = useState(false);
+  const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'my-pending' | 'all'>('my-pending');
   const { profile, user } = useAuth();
 
@@ -51,6 +55,9 @@ export default function InvestigationWorkspace() {
   const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
   const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
   const { approveClosureMutation, rejectClosureMutation } = useIncidentClosureApproval(selectedIncidentId || '');
+  
+  // Investigation edit access control
+  const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
 
   const handleRefresh = () => {
     refetchIncident();
@@ -319,6 +326,39 @@ export default function InvestigationWorkspace() {
             </Card>
           )}
 
+          {/* Read-only oversight banner */}
+          {investigationAllowed && editAccess.isReadOnly && !editAccess.isClosed && (
+            <Alert className="border-info bg-info/10">
+              <Eye className="h-4 w-4 text-info" />
+              <AlertDescription>
+                {editAccess.isOversightRole 
+                  ? t('investigation.readOnly.oversightBanner', 'You have read-only access to monitor this investigation. Only the assigned investigator can make changes.')
+                  : t('investigation.readOnly.notAssigned', 'You are not the assigned investigator. Investigation data is read-only.')}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Closed incident banner with reopen option */}
+          {editAccess.isClosed && (
+            <Alert className="border-muted bg-muted/50">
+              <Lock className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between">
+                <span>{t('investigation.readOnly.closedBanner', 'This incident is closed and all data is locked.')}</span>
+                {editAccess.canReopen && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowReopenDialog(true)}
+                    className="ms-4"
+                  >
+                    <RotateCcw className="h-4 w-4 me-2" />
+                    {t('investigation.reopen.button', 'Reopen Investigation')}
+                  </Button>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
             <TabsList className="flex flex-wrap h-auto gap-1 w-full">
@@ -359,25 +399,42 @@ export default function InvestigationWorkspace() {
 
             <TabsContent value="evidence" className="mt-4">
               {investigationAllowed ? (
-                <EvidencePanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+                <EvidencePanel 
+                  incidentId={selectedIncidentId} 
+                  incidentStatus={selectedIncident?.status}
+                  canEdit={editAccess.canEdit}
+                />
               ) : null}
             </TabsContent>
 
             <TabsContent value="witnesses" className="mt-4">
               {investigationAllowed ? (
-                <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} incidentStatus={selectedIncident?.status} />
+                <WitnessPanel 
+                  incidentId={selectedIncidentId} 
+                  incident={selectedIncident} 
+                  incidentStatus={selectedIncident?.status}
+                  canEdit={editAccess.canEdit}
+                />
               ) : null}
             </TabsContent>
 
             <TabsContent value="rca" className="mt-4">
               {investigationAllowed ? (
-                <RCAPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+                <RCAPanel 
+                  incidentId={selectedIncidentId} 
+                  incidentStatus={selectedIncident?.status}
+                  canEdit={editAccess.canEdit}
+                />
               ) : null}
             </TabsContent>
 
             <TabsContent value="actions" className="mt-4">
               {investigationAllowed ? (
-                <ActionsPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+                <ActionsPanel 
+                  incidentId={selectedIncidentId} 
+                  incidentStatus={selectedIncident?.status}
+                  canEdit={editAccess.canEdit}
+                />
               ) : null}
             </TabsContent>
           </Tabs>
@@ -421,6 +478,15 @@ export default function InvestigationWorkspace() {
             open={showClosureDialog}
             onOpenChange={setShowClosureDialog}
             incidentId={selectedIncidentId || ''}
+          />
+
+          {/* Reopen Dialog */}
+          <ReopenIncidentDialog
+            open={showReopenDialog}
+            onOpenChange={setShowReopenDialog}
+            incidentId={selectedIncidentId || ''}
+            incidentTitle={incidentData?.title}
+            onSuccess={handleRefresh}
           />
         </>
       ) : (
