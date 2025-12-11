@@ -3538,5 +3538,41 @@
       "escalate": "تصعيد للتحقيق",
       "approveClose": "موافقة وإغلاق"
     }
+  },
+  "workflowDiagrams": {
+    "title": "مخططات سير العمل",
+    "subtitle": "تصدير مخططات PDF ذات علامة تجارية لسير عمل الصحة والسلامة",
+    "selectWorkflow": "اختر سير العمل",
+    "preview": "معاينة",
+    "exportPdf": "تصدير PDF",
+    "exportAll": "تصدير الكل",
+    "includeActors": "تضمين تسميات الأدوار",
+    "includeDescription": "تضمين وصف سير العمل",
+    "showLegend": "إظهار وسيلة الإيضاح",
+    "generating": "جارٍ إنشاء PDF...",
+    "success": "تم إنشاء PDF بنجاح",
+    "categories": {
+      "hsseEvents": "أحداث الصحة والسلامة",
+      "inspections": "الفحوصات والتدقيق",
+      "assets": "إدارة الأصول",
+      "compliance": "الامتثال"
+    },
+    "workflows": {
+      "observationReporting": "الإبلاغ عن الملاحظات",
+      "incidentReporting": "الإبلاغ عن الحوادث",
+      "investigation": "دورة حياة التحقيق",
+      "actionClosure": "إغلاق الإجراءات التصحيحية",
+      "fullE2E": "سير عمل الحدث الكامل",
+      "assetInspection": "فحص الأصول",
+      "areaInspection": "فحص المنطقة/الموقع",
+      "auditCompliance": "تدقيق الامتثال"
+    },
+    "legend": {
+      "title": "وسيلة الإيضاح",
+      "start": "البداية/النهاية",
+      "action": "إجراء/عملية",
+      "decision": "نقطة قرار",
+      "approval": "موافقة مطلوبة"
+    }
   }
 }

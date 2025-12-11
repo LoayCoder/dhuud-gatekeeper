@@ -3449,5 +3449,41 @@
       "under_maintenance": "Nasa Maintenance",
       "disposed": "Naitapon"
     }
+  },
+  "workflowDiagrams": {
+    "title": "Mga Workflow Diagram",
+    "subtitle": "I-export ang mga branded PDF diagram ng HSSE workflow",
+    "selectWorkflow": "Pumili ng Workflow",
+    "preview": "Preview",
+    "exportPdf": "I-export ang PDF",
+    "exportAll": "I-export Lahat",
+    "includeActors": "Isama ang mga label ng aktor/tungkulin",
+    "includeDescription": "Isama ang paglalarawan ng workflow",
+    "showLegend": "Ipakita ang legend",
+    "generating": "Ginagawa ang PDF...",
+    "success": "Matagumpay na nagawa ang PDF",
+    "categories": {
+      "hsseEvents": "Mga HSSE Event",
+      "inspections": "Inspeksyon at Audit",
+      "assets": "Pamamahala ng Asset",
+      "compliance": "Pagsunod"
+    },
+    "workflows": {
+      "observationReporting": "Pag-uulat ng Obserbasyon",
+      "incidentReporting": "Pag-uulat ng Insidente",
+      "investigation": "Lifecycle ng Imbestigasyon",
+      "actionClosure": "Pagsasara ng Corrective Action",
+      "fullE2E": "Buong HSSE Event Flow",
+      "assetInspection": "Inspeksyon ng Asset",
+      "areaInspection": "Inspeksyon ng Lugar/Site",
+      "auditCompliance": "Audit Compliance"
+    },
+    "legend": {
+      "title": "Legend",
+      "start": "Simula/Wakas",
+      "action": "Aksyon/Proseso",
+      "decision": "Punto ng Desisyon",
+      "approval": "Kailangan ng Apruba"
+    }
   }
 }

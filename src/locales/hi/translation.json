@@ -3449,5 +3449,41 @@
       "under_maintenance": "रखरखाव में",
       "disposed": "निपटान"
     }
+  },
+  "workflowDiagrams": {
+    "title": "वर्कफ़्लो आरेख",
+    "subtitle": "HSSE वर्कफ़्लो के ब्रांडेड PDF आरेख निर्यात करें",
+    "selectWorkflow": "वर्कफ़्लो चुनें",
+    "preview": "पूर्वावलोकन",
+    "exportPdf": "PDF निर्यात करें",
+    "exportAll": "सभी निर्यात करें",
+    "includeActors": "अभिनेता/भूमिका लेबल शामिल करें",
+    "includeDescription": "वर्कफ़्लो विवरण शामिल करें",
+    "showLegend": "लेजेंड दिखाएं",
+    "generating": "PDF बनाया जा रहा है...",
+    "success": "PDF सफलतापूर्वक बनाया गया",
+    "categories": {
+      "hsseEvents": "HSSE इवेंट्स",
+      "inspections": "निरीक्षण और ऑडिट",
+      "assets": "संपत्ति प्रबंधन",
+      "compliance": "अनुपालन"
+    },
+    "workflows": {
+      "observationReporting": "अवलोकन रिपोर्टिंग",
+      "incidentReporting": "घटना रिपोर्टिंग",
+      "investigation": "जांच जीवनचक्र",
+      "actionClosure": "सुधारात्मक कार्रवाई समापन",
+      "fullE2E": "पूर्ण HSSE इवेंट फ्लो",
+      "assetInspection": "संपत्ति निरीक्षण",
+      "areaInspection": "क्षेत्र/साइट निरीक्षण",
+      "auditCompliance": "ऑडिट अनुपालन"
+    },
+    "legend": {
+      "title": "लेजेंड",
+      "start": "प्रारंभ/समाप्त",
+      "action": "कार्रवाई/प्रक्रिया",
+      "decision": "निर्णय बिंदु",
+      "approval": "अनुमोदन आवश्यक"
+    }
   }
 }

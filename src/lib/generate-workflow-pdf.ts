@@ -7,8 +7,8 @@ import { WorkflowDefinition, workflowCategories } from './workflow-definitions';
 import { renderWorkflowSVG } from './render-workflow-svg';
 import { fetchDocumentSettings } from '@/hooks/use-document-branding';
 import { DocumentBrandingSettings, DEFAULT_DOCUMENT_SETTINGS } from '@/types/document-branding';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-
 export interface WorkflowPDFOptions {
   workflow: WorkflowDefinition;
   tenantId: string;
@@ -38,10 +38,30 @@ export async function generateWorkflowPDF(options: WorkflowPDFOptions): Promise<
   const isRtl = language === 'ar';
 
   // Fetch document branding settings
-  let settings: DocumentBrandingSettings = DEFAULT_DOCUMENT_SETTINGS;
+  const defaultSettings: DocumentBrandingSettings = {
+    ...DEFAULT_DOCUMENT_SETTINGS,
+    id: '',
+    tenantId: tenantId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  
+  let settings: DocumentBrandingSettings = defaultSettings;
+  let logoUrl: string | null = null;
+  
   try {
     const fetchedSettings = await fetchDocumentSettings(tenantId);
     if (fetchedSettings) settings = fetchedSettings;
+    
+    // Fetch logo URL from tenants table
+    if (settings.showLogo) {
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('logo_light_url')
+        .eq('id', tenantId)
+        .maybeSingle();
+      logoUrl = tenant?.logo_light_url || null;
+    }
   } catch (error) {
     console.warn('Failed to fetch document settings, using defaults');
   }
@@ -54,7 +74,7 @@ export async function generateWorkflowPDF(options: WorkflowPDFOptions): Promise<
   });
 
   // Page 1: Title page
-  await renderTitlePage(pdf, workflow, settings, isRtl);
+  await renderTitlePage(pdf, workflow, settings, isRtl, logoUrl);
 
   // Page 2+: Workflow diagram
   pdf.addPage();
@@ -77,7 +97,8 @@ async function renderTitlePage(
   pdf: jsPDF,
   workflow: WorkflowDefinition,
   settings: DocumentBrandingSettings,
-  isRtl: boolean
+  isRtl: boolean,
+  logoUrl?: string | null
 ): Promise<void> {
   const name = isRtl ? workflow.nameAr : workflow.name;
   const description = isRtl ? workflow.descriptionAr : workflow.description;
@@ -85,9 +106,9 @@ async function renderTitlePage(
   const categoryName = category ? (isRtl ? category.nameAr : category.name) : '';
 
   // Header with logo
-  if (settings.logoUrl) {
+  if (logoUrl && settings.showLogo) {
     try {
-      const img = await loadImage(settings.logoUrl);
+      const img = await loadImage(logoUrl);
       const logoWidth = 50;
       const logoHeight = (img.height / img.width) * logoWidth;
       const logoX = isRtl ? PAGE_WIDTH - MARGIN - logoWidth : MARGIN;
