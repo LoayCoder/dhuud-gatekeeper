@@ -536,26 +536,43 @@ Based on the above, identify the UNDERLYING CAUSE (2-3 sentences focusing on sys
   return await callAI(systemPrompt, userPrompt);
 }
 
-// Suggest corrective action title and description based on selected cause
+// Suggest corrective action with all fields based on selected cause
 async function handleSuggestCorrectiveAction(data: RCAData): Promise<string> {
   const systemPrompt = `You are an expert HSSE incident investigator creating corrective actions.
 
-Based on the incident RCA analysis and the specific cause to be addressed, suggest an appropriate corrective action.
+Based on the incident RCA analysis and the specific cause to be addressed, suggest an appropriate corrective action with all required fields.
 
-Guidelines for Title:
-- Clear, actionable, max 80 characters
-- Start with action verb (Implement, Update, Install, Train, etc.)
-
-Guidelines for Description:
-- 2-3 sentences explaining the specific action steps
+Guidelines:
+- Title: Clear, actionable, max 80 characters, start with action verb
+- Description: 2-3 sentences explaining the specific action steps
 - Focus on PREVENTING recurrence, not just fixing the immediate issue
 - Align with ISO 45001/OSHA best practices
-- Consider hierarchy of controls: Elimination > Substitution > Engineering > Administrative > PPE
 
-CRITICAL: Return ONLY valid JSON in this exact format:
+CATEGORY Selection (Hierarchy of Controls - prefer higher controls):
+- "engineering": Physical changes to equipment, barriers, or systems (MOST EFFECTIVE)
+- "administrative": Policies, procedures, signage, scheduling changes
+- "ppe": Personal protective equipment requirements
+- "training": Training programs, competency assessments
+- "procedure_update": Documentation, work instruction updates
+
+TYPE Selection:
+- "corrective": Fixes the immediate problem that caused this incident
+- "preventive": Prevents similar incidents in the future (proactive)
+- "improvement": Enhances existing systems beyond minimum requirements
+
+PRIORITY Selection (based on severity and urgency):
+- "critical": Life-threatening, immediate action required (for severe incidents)
+- "high": Significant risk, action within 7 days
+- "medium": Moderate risk, action within 30 days
+- "low": Minor risk, action within 90 days
+
+CRITICAL: Return ONLY valid JSON (no markdown, no code blocks):
 {
-  "suggested_title": "Action title here",
-  "suggested_description": "Detailed description here explaining what needs to be done and why"
+  "suggested_title": "Action title here (max 80 chars)",
+  "suggested_description": "Detailed description here (2-3 sentences)",
+  "suggested_category": "engineering|administrative|ppe|training|procedure_update",
+  "suggested_type": "corrective|preventive|improvement",
+  "suggested_priority": "critical|high|medium|low"
 }`;
 
   const whysText = data.five_whys?.length 
@@ -577,7 +594,7 @@ RCA ANALYSIS:
 ${causeTypeLabel} TO ADDRESS:
 "${data.selected_cause_text || 'No cause selected'}"
 
-Suggest a corrective action to address this specific cause. Return JSON only:`;
+Suggest a corrective action with title, description, category, type, and priority. Return JSON only:`;
 
   return await callAI(systemPrompt, userPrompt);
 }

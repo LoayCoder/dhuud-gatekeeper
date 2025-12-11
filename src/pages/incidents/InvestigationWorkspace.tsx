@@ -30,7 +30,9 @@ import {
   ManagerApprovalCard,
   HSSEManagerEscalationCard,
   InvestigatorAssignmentStep,
-  DeptRepApprovalCard
+  DeptRepApprovalCard,
+  SubmitInvestigationCard,
+  CauseCoverageIndicator
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -432,13 +434,27 @@ export default function InvestigationWorkspace() {
               ) : null}
             </TabsContent>
 
-            <TabsContent value="actions" className="mt-4">
+            <TabsContent value="actions" className="mt-4 space-y-4">
               {investigationAllowed ? (
-                <ActionsPanel 
-                  incidentId={selectedIncidentId} 
-                  incidentStatus={selectedIncident?.status}
-                  canEdit={editAccess.canEdit}
-                />
+                <>
+                  {/* Cause Coverage Indicator */}
+                  <CauseCoverageIndicator incidentId={selectedIncidentId} />
+                  
+                  {/* Actions List */}
+                  <ActionsPanel 
+                    incidentId={selectedIncidentId} 
+                    incidentStatus={selectedIncident?.status}
+                    canEdit={editAccess.canEdit}
+                  />
+                  
+                  {/* Submit Investigation Card - Only for investigator when in progress */}
+                  {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
+                    <SubmitInvestigationCard 
+                      incidentId={selectedIncidentId} 
+                      onSubmitted={handleRefresh}
+                    />
+                  )}
+                </>
               ) : null}
             </TabsContent>
           </Tabs>
