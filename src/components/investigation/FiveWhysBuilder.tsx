@@ -14,6 +14,8 @@ interface FiveWhysBuilderProps {
   disabled?: boolean;
   incidentTitle?: string;
   incidentDescription?: string;
+  witnessStatements?: Array<{ name: string; statement: string }>;
+  evidenceDescriptions?: string[];
 }
 
 export function FiveWhysBuilder({ 
@@ -21,13 +23,16 @@ export function FiveWhysBuilder({
   onChange, 
   disabled,
   incidentTitle,
-  incidentDescription 
+  incidentDescription,
+  witnessStatements,
+  evidenceDescriptions 
 }: FiveWhysBuilderProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const { rewriteText, suggestWhyAnswer, isLoading } = useRCAAI();
+  const { rewriteText, suggestWhyAnswer, generateWhyQuestions, isLoading } = useRCAAI();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
   const [loadingAction, setLoadingAction] = useState<'rewrite' | 'suggest' | null>(null);
+  const [isGeneratingWhys, setIsGeneratingWhys] = useState(false);
 
   const addWhy = () => {
     if (value.length >= 5) return;
@@ -103,23 +108,85 @@ export function FiveWhysBuilder({
     return isLoading && loadingIndex === index && loadingAction === action;
   };
 
+  const handleGenerateWhyQuestions = async () => {
+    setIsGeneratingWhys(true);
+    
+    const rcaData = {
+      incident_title: incidentTitle,
+      incident_description: incidentDescription,
+      witness_statements: witnessStatements,
+      evidence_descriptions: evidenceDescriptions,
+    };
+    
+    const result = await generateWhyQuestions(rcaData);
+    
+    if (result) {
+      try {
+        // Clean up response - remove markdown code blocks if present
+        let cleanResult = result.trim();
+        if (cleanResult.startsWith('```json')) {
+          cleanResult = cleanResult.slice(7);
+        }
+        if (cleanResult.startsWith('```')) {
+          cleanResult = cleanResult.slice(3);
+        }
+        if (cleanResult.endsWith('```')) {
+          cleanResult = cleanResult.slice(0, -3);
+        }
+        cleanResult = cleanResult.trim();
+        
+        const parsed = JSON.parse(cleanResult);
+        if (Array.isArray(parsed) && parsed.length >= 3) {
+          const formattedWhys = parsed.slice(0, 5).map((item: { why: string; answer: string }) => ({
+            why: item.why,
+            answer: item.answer,
+          }));
+          onChange(formattedWhys);
+        }
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
+      }
+    }
+    
+    setIsGeneratingWhys(false);
+  };
+
   return (
     <div className="space-y-4" dir={direction}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h4 className="font-medium text-foreground">
           {t('investigation.rca.fiveWhys', '5 Whys Analysis')}
         </h4>
-        {value.length < 5 && !disabled && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addWhy}
-          >
-            <Plus className="h-4 w-4 me-1" />
-            {t('investigation.rca.addWhy', 'Add Why')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!disabled && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateWhyQuestions}
+              disabled={isGeneratingWhys || isLoading}
+              className="gap-1"
+            >
+              {isGeneratingWhys ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {t('investigation.rca.ai.generateWhys', 'AI Generate Whys')}
+            </Button>
+          )}
+          {value.length < 5 && !disabled && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addWhy}
+            >
+              <Plus className="h-4 w-4 me-1" />
+              {t('investigation.rca.addWhy', 'Add Why')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {value.length === 0 ? (

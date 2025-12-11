@@ -15,6 +15,8 @@ import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./Cont
 import { AISummaryPanel } from "./AISummaryPanel";
 import { useInvestigation, useCreateInvestigation, useUpdateInvestigation, type FiveWhyEntry } from "@/hooks/use-investigation";
 import { useRCAAI } from "@/hooks/use-rca-ai";
+import { useWitnessStatements } from "@/hooks/use-witness-statements";
+import { useEvidenceItems } from "@/hooks/use-evidence-items";
 import type { Json } from "@/integrations/supabase/types";
 
 const rcaSchema = z.object({
@@ -75,6 +77,20 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
   const createInvestigation = useCreateInvestigation();
   const updateInvestigation = useUpdateInvestigation();
   const { rewriteText, isLoading: isAILoading } = useRCAAI();
+  
+  // Fetch witness statements and evidence for AI Generate Whys
+  const { statements: witnessStatements } = useWitnessStatements(incidentId);
+  const { data: evidenceItems } = useEvidenceItems(incidentId);
+  
+  // Map data for FiveWhysBuilder
+  const witnessData = witnessStatements?.map(w => ({
+    name: w.name || 'Unknown',
+    statement: w.statement || '',
+  })) || [];
+  
+  const evidenceDescriptions = evidenceItems
+    ?.filter(e => e.description)
+    .map(e => `${e.evidence_type}: ${e.description}`) || [];
   const [rewritingField, setRewritingField] = useState<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isManuallyLocked, setIsManuallyLocked] = useState(false);
@@ -313,6 +329,8 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
                   disabled={isLocked}
                   incidentTitle={incidentTitle}
                   incidentDescription={incidentDescription}
+                  witnessStatements={witnessData}
+                  evidenceDescriptions={evidenceDescriptions}
                 />
               )}
             />
