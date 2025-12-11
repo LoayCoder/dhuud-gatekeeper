@@ -77,7 +77,6 @@ export function useWitnessStatements(incidentId: string | null) {
 
 export function useCreateWitnessStatement() {
   const queryClient = useQueryClient();
-  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: {
@@ -92,7 +91,20 @@ export function useCreateWitnessStatement() {
       assigned_witness_id?: string;
       assignment_status?: AssignmentStatus;
     }) => {
-      if (!profile?.tenant_id) throw new Error("No tenant ID");
+      // Get fresh user at execution time to avoid stale closure
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (!freshUser?.id) throw new Error("No authenticated user");
+
+      // Get fresh profile at execution time
+      const { data: freshProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', freshUser.id)
+        .single();
+
+      if (profileError || !freshProfile?.tenant_id) {
+        throw new Error("No tenant ID found");
+      }
 
       const { data, error } = await supabase
         .from("witness_statements")
@@ -107,8 +119,8 @@ export function useCreateWitnessStatement() {
           original_transcription: input.original_transcription,
           assigned_witness_id: input.assigned_witness_id,
           assignment_status: input.assignment_status,
-          tenant_id: profile.tenant_id,
-          created_by: user?.id,
+          tenant_id: freshProfile.tenant_id,
+          created_by: freshUser.id,
         })
         .select()
         .single();
