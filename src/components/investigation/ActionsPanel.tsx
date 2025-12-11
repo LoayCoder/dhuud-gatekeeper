@@ -217,11 +217,21 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
   return (
     <div className="space-y-4" dir={direction}>
       {/* Locked Banner for Closed Incidents */}
-      {isLocked && (
+      {incidentStatus === 'closed' && (
         <Alert className="border-muted bg-muted/50">
           <Lock className="h-4 w-4" />
           <AlertDescription>
             {t('investigation.actions.lockedClosed', 'This incident is closed. Corrective actions cannot be modified.')}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Read-Only Oversight Banner - For non-investigators */}
+      {isLocked && incidentStatus !== 'closed' && (
+        <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
+          <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            {t('investigation.readOnlyOversight', 'You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.')}
           </AlertDescription>
         </Alert>
       )}

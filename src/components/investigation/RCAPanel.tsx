@@ -281,6 +281,16 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
           </Alert>
         )}
 
+        {/* Read-Only Oversight Banner - For non-investigators */}
+        {isLocked && !isClosedLocked && !isManuallyLocked && (
+          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
+            <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="text-blue-800 dark:text-blue-200">
+              {t('investigation.readOnlyOversight', 'You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.')}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Step 1: 5-Whys Analysis */}
         <Card>
           <CardHeader className="pb-3">
