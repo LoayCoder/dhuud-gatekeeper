@@ -516,15 +516,18 @@ export function useHSSEManagerEscalation() {
 export function useStartInvestigation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async ({ incidentId, investigatorId }: { incidentId: string; investigatorId: string }) => {
+      // Get fresh user from Supabase auth (avoids stale closure issue)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error('Not authenticated');
+      
       // Get tenant_id
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
       
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -545,7 +548,7 @@ export function useStartInvestigation() {
           tenant_id: profile.tenant_id,
           investigator_id: investigatorId,
           assigned_at: new Date().toISOString(),
-          assigned_by: user?.id,
+          assigned_by: user.id,
         }, {
           onConflict: 'incident_id',
         });
@@ -556,7 +559,7 @@ export function useStartInvestigation() {
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile.tenant_id,
-        actor_id: user?.id,
+        actor_id: user.id,
         action: 'investigator_assigned',
         details: { investigatorId },
       });
