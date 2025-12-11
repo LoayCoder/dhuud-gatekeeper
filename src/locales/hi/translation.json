@@ -1313,6 +1313,8 @@
     "enterFullName": "अपना पूरा नाम दर्ज करें",
     "emailAddress": "ईमेल पता",
     "emailManagedByOrg": "ईमेल पता आपके संगठन के व्यवस्थापक द्वारा प्रबंधित है।",
+    "jobTitle": "पद",
+    "jobTitleManagedByAdmin": "आपका पद आपके संगठन के व्यवस्थापक द्वारा प्रबंधित है।",
     "phoneNumber": "फ़ोन नंबर",
     "emergencyContact": "आपातकालीन संपर्क",
     "emergencyContactDescription": "कार्यस्थल पर आपातकाल में संपर्क किया जाने वाला व्यक्ति।",

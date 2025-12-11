@@ -11,6 +11,8 @@ export interface ProfileData {
   assigned_branch_id: string | null;
   assigned_site_id: string | null;
   created_at: string | null;
+  job_title: string | null;
+  employee_id: string | null;
   branches?: { name: string; location: string | null } | null;
   sites?: { name: string; address: string | null } | null;
 }

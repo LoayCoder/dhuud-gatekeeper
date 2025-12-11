@@ -1313,6 +1313,8 @@
     "enterFullName": "Ilagay ang iyong buong pangalan",
     "emailAddress": "Email Address",
     "emailManagedByOrg": "Ang email address ay pinamamahalaan ng administrator ng iyong organisasyon.",
+    "jobTitle": "Posisyon sa Trabaho",
+    "jobTitleManagedByAdmin": "Ang iyong posisyon sa trabaho ay pinamamahalaan ng admin ng iyong organisasyon.",
     "phoneNumber": "Numero ng Telepono",
     "emergencyContact": "Emergency Contact",
     "emergencyContactDescription": "Taong makikipag-ugnayan sa kaso ng emergency sa lugar ng trabaho.",

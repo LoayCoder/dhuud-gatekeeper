@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, User, Mail, Phone, UserCheck, Upload } from "lucide-react";
+import { Loader2, User, Mail, Phone, UserCheck, Upload, Briefcase } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { AvatarCropDialog } from "@/components/profile/AvatarCropDialog";
@@ -206,6 +206,23 @@ export function ProfileForm({
             <User className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder={t('profile.enterFullName')} maxLength={100} className="[padding-inline-start:2.25rem] px-[35px]" />
           </div>
+        </div>
+
+        {/* Job Title - Read Only (managed by admin) */}
+        <div className="grid gap-2">
+          <Label htmlFor="jobTitle">{t('profile.jobTitle')}</Label>
+          <div className="relative">
+            <Briefcase className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              id="jobTitle" 
+              value={profile?.job_title || ""} 
+              disabled 
+              className="[padding-inline-start:2.25rem] px-[35px] bg-muted/50" 
+            />
+          </div>
+          <p className="text-[0.8rem] text-muted-foreground">
+            {t('profile.jobTitleManagedByAdmin')}
+          </p>
         </div>
       </div>
 

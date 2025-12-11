@@ -1313,6 +1313,8 @@
     "enterFullName": "اپنا پورا نام درج کریں",
     "emailAddress": "ای میل پتہ",
     "emailManagedByOrg": "ای میل پتہ آپ کی تنظیم کے منتظم کی طرف سے منظم ہے۔",
+    "jobTitle": "عہدہ",
+    "jobTitleManagedByAdmin": "آپ کا عہدہ آپ کی تنظیم کے منتظم کی طرف سے منظم ہے۔",
     "phoneNumber": "فون نمبر",
     "emergencyContact": "ایمرجنسی رابطہ",
     "emergencyContactDescription": "کام کی جگہ پر ایمرجنسی کی صورت میں رابطہ کیا جانے والا شخص۔",
