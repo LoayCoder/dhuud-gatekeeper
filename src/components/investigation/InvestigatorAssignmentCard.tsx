@@ -224,6 +224,15 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
                 </div>
               )}
 
+              {investigation.assignment_notes && (
+                <div className="mt-2 p-3 bg-muted rounded-md">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    {t('investigation.overview.assignmentNotes', 'Assignment Notes')}
+                  </p>
+                  <p className="text-sm">{investigation.assignment_notes}</p>
+                </div>
+              )}
+
               {investigation.started_at && (
                 <Badge variant="default" className="gap-1">
                   {t('investigation.overview.investigationStarted', 'Investigation Started')}

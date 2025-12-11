@@ -41,6 +41,7 @@ export interface Investigation {
   // Investigator assignment fields (matches DB columns)
   assigned_by: string | null;
   assigned_at: string | null;
+  assignment_notes: string | null;
 }
 
 export interface FiveWhyEntry {
@@ -153,6 +154,7 @@ export function useInvestigation(incidentId: string | null) {
         updated_at: data.updated_at,
         assigned_by: data.assigned_by ?? null,
         assigned_at: data.assigned_at ?? null,
+        assignment_notes: data.assignment_notes ?? null,
       } as Investigation;
     },
     enabled: !!incidentId,
