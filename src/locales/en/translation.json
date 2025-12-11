@@ -447,7 +447,18 @@
       "saveAnalysis": "Save Analysis",
       "saving": "Saving...",
       "saveSuccess": "Analysis saved successfully",
-      "saveError": "Failed to save analysis"
+      "saveError": "Failed to save analysis",
+      "ai": {
+        "suggest": "AI Suggest",
+        "rewrite": "AI Rewrite",
+        "suggestCause": "AI Suggest",
+        "completeWhysFirst": "Complete 5-Whys analysis first",
+        "completeImmediateFirst": "Complete Immediate Cause first",
+        "completeUnderlyingFirst": "Complete Underlying Cause first",
+        "completeRootCausesFirst": "Identify at least one Root Cause first",
+        "generating": "Generating...",
+        "generated": "AI suggestion generated successfully"
+      }
     },
     "actions": {
       "title": "Corrective Actions",

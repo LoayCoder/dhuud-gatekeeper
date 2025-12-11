@@ -20,6 +20,13 @@ interface ContributingFactorsBuilderProps {
   immediateCause?: string;
   underlyingCause?: string;
   rootCauses?: Array<{ id: string; text: string }>;
+  // New props for progressive data flow
+  fiveWhys?: Array<{ why: string; answer: string }>;
+  severity?: string;
+  eventType?: string;
+  eventSubtype?: string;
+  witnessStatements?: Array<{ name: string; statement: string }>;
+  evidenceDescriptions?: string[];
 }
 
 export function ContributingFactorsBuilder({
@@ -31,10 +38,16 @@ export function ContributingFactorsBuilder({
   immediateCause,
   underlyingCause,
   rootCauses,
+  fiveWhys,
+  severity,
+  eventType,
+  eventSubtype,
+  witnessStatements,
+  evidenceDescriptions,
 }: ContributingFactorsBuilderProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const { rewriteText, isLoading } = useRCAAI();
+  const { rewriteText, generateContributingFactor, isLoading } = useRCAAI();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
 
@@ -78,21 +91,25 @@ export function ContributingFactorsBuilder({
   const handleAISuggest = async () => {
     setIsSuggesting(true);
 
-    const context = `
-      Incident: ${incidentTitle || 'Unknown'}
-      Description: ${incidentDescription || 'None'}
-      Immediate Cause: ${immediateCause || 'Not identified'}
-      Underlying Cause: ${underlyingCause || 'Not identified'}
-      Root Causes: ${rootCauses?.map(c => c.text).join('; ') || 'Not identified'}
-      
-      Based on this HSSE incident analysis, suggest ONE contributing factor that may have contributed to this incident. 
-      Be specific and actionable. Provide only the contributing factor text, no explanations.
-    `;
+    const rcaData = {
+      incident_title: incidentTitle,
+      incident_description: incidentDescription,
+      severity: severity,
+      event_type: eventType,
+      event_subtype: eventSubtype,
+      five_whys: fiveWhys?.map((entry) => ({
+        question: entry.why,
+        answer: entry.answer,
+      })),
+      immediate_cause: immediateCause,
+      underlying_cause: underlyingCause,
+      root_causes: rootCauses,
+      contributing_factors_list: value,
+      witness_statements: witnessStatements,
+      evidence_descriptions: evidenceDescriptions,
+    };
 
-    const result = await rewriteText(
-      'Suggest a contributing factor for this incident',
-      context
-    );
+    const result = await generateContributingFactor(rcaData);
 
     if (result) {
       onChange([
@@ -103,6 +120,9 @@ export function ContributingFactorsBuilder({
 
     setIsSuggesting(false);
   };
+
+  // Check if root causes have been identified for dependency
+  const hasRootCauses = rootCauses?.some(rc => rc.text?.trim());
 
   return (
     <Card dir={direction}>
@@ -147,7 +167,8 @@ export function ContributingFactorsBuilder({
                   variant="secondary"
                   size="sm"
                   onClick={handleAISuggest}
-                  disabled={isSuggesting}
+                  disabled={isSuggesting || !hasRootCauses}
+                  title={!hasRootCauses ? t('investigation.rca.ai.completeRootCausesFirst', 'Identify at least one Root Cause first') : undefined}
                 >
                   {isSuggesting ? (
                     <Loader2 className="h-4 w-4 me-1 animate-spin" />
@@ -217,7 +238,8 @@ export function ContributingFactorsBuilder({
               variant="secondary"
               size="sm"
               onClick={handleAISuggest}
-              disabled={isSuggesting}
+              disabled={isSuggesting || !hasRootCauses}
+              title={!hasRootCauses ? t('investigation.rca.ai.completeRootCausesFirst', 'Identify at least one Root Cause first') : undefined}
             >
               {isSuggesting ? (
                 <Loader2 className="h-4 w-4 me-1 animate-spin" />

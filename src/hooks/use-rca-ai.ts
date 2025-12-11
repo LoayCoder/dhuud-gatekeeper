@@ -9,6 +9,7 @@ interface RCAData {
   underlying_cause?: string;
   root_causes?: Array<{ id: string; text: string }>;
   contributing_factors?: string;
+  contributing_factors_list?: Array<{ id: string; text: string }>;
   incident_description?: string;
   incident_title?: string;
   witness_statements?: Array<{ name: string; statement: string }>;
@@ -18,7 +19,7 @@ interface RCAData {
   event_subtype?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor';
 
 interface UseRCAAIOptions {
   onSuccess?: (result: string) => void;
@@ -120,6 +121,12 @@ export function useRCAAI(options?: UseRCAAIOptions) {
   const generateUnderlyingCause = (data: RCAData) => 
     callRCAAI({ action: 'generate_underlying_cause', data });
 
+  const generateRootCause = (data: RCAData) => 
+    callRCAAI({ action: 'generate_root_cause', data });
+
+  const generateContributingFactor = (data: RCAData) => 
+    callRCAAI({ action: 'generate_contributing_factor', data });
+
   return {
     isLoading,
     error,
@@ -131,5 +138,7 @@ export function useRCAAI(options?: UseRCAAIOptions) {
     generateWhyQuestions,
     generateImmediateCause,
     generateUnderlyingCause,
+    generateRootCause,
+    generateContributingFactor,
   };
 }
