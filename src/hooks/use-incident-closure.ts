@@ -319,3 +319,42 @@ export function usePendingClosureRequests() {
     enabled: !!profile?.tenant_id,
   });
 }
+
+// Reopen a closed incident (HSSE Manager only)
+export function useReopenIncident() {
+  const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({
+      incidentId,
+      reason,
+    }: {
+      incidentId: string;
+      reason: string;
+    }) => {
+      if (!profile?.tenant_id || !user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Call RPC function for server-side role enforcement
+      const { data, error } = await supabase.rpc('reopen_closed_incident', {
+        p_incident_id: incidentId,
+        p_reason: reason,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      queryClient.invalidateQueries({ queryKey: ['investigation', incidentId] });
+      toast.success(t('investigation.reopen.success', 'Incident reopened successfully'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
