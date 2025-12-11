@@ -5466,6 +5466,10 @@ export type Database = {
         Args: { p_incident_id: string; p_password_hash: string }
         Returns: string
       }
+      soft_delete_corrective_action: {
+        Args: { p_action_id: string }
+        Returns: string
+      }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
       verify_mfa_backup_code: {
