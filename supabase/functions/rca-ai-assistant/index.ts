@@ -15,6 +15,7 @@ interface RCAData {
   underlying_cause?: string;
   root_causes?: Array<{ id: string; text: string }>;
   contributing_factors?: string;
+  contributing_factors_list?: Array<{ id: string; text: string }>;
   incident_description?: string;
   incident_title?: string;
   witness_statements?: Array<{ name: string; statement: string }>;
@@ -24,7 +25,7 @@ interface RCAData {
   event_subtype?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause' | 'generate_root_cause' | 'generate_contributing_factor';
 
 interface RequestPayload {
   action: ActionType;
@@ -103,31 +104,145 @@ Return ONLY the rewritten text without any explanation or preamble.`;
   return await callAI(systemPrompt, userPrompt);
 }
 
-// Suggest a root cause based on analysis
+// Suggest a root cause based on complete RCA analysis (legacy - kept for backward compatibility)
 async function handleSuggestCause(data: RCAData): Promise<string> {
+  return handleGenerateRootCause(data);
+}
+
+// Generate Root Cause with full progressive data flow
+async function handleGenerateRootCause(data: RCAData): Promise<string> {
   const systemPrompt = `You are an expert HSSE incident investigator specializing in root cause analysis.
 
-Based on the 5-Whys analysis and cause chain provided, suggest a potential root cause that:
-- Addresses the systemic issue, not just symptoms
-- Is actionable and can be addressed with corrective measures
-- Follows the hierarchy: Immediate → Underlying → Root
-- Aligns with common root cause categories: Management Systems, Training, Procedures, Equipment, Human Factors, Environmental
+Based on the complete RCA analysis (5-Whys, Immediate Cause, Underlying Cause), witness statements, and evidence, suggest a ROOT CAUSE.
 
-Return ONLY the suggested root cause text (1-3 sentences) without any explanation or formatting.`;
+Root Causes are:
+- The fundamental systemic reason WHY the underlying conditions existed
+- Actionable - can be addressed through corrective measures
+- Categories: Management Systems, Training, Procedures, Equipment, Human Factors, Environmental
 
-  const whysText = data.five_whys?.map((w, i) => `Why ${i + 1}: ${w.question}\nAnswer: ${w.answer}`).join('\n\n') || 'Not provided';
+Guidelines:
+- Base your analysis ONLY on the data provided (no assumptions)
+- Write 1-3 clear, factual sentences
+- Do NOT repeat existing root causes - suggest a NEW one
+- Focus on systemic, fundamental issues that if addressed would prevent recurrence
+- Use professional HSSE language aligned with ISO 45001/OSHA
+
+Return ONLY the root cause text without any explanation or formatting.`;
+
+  const whysText = data.five_whys?.length 
+    ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question}\nAnswer: ${w.answer}`).join('\n\n') 
+    : 'Not yet analyzed';
   
-  const userPrompt = `Incident: ${data.incident_title || 'Not specified'}
-Description: ${data.incident_description || 'Not provided'}
+  const witnessText = data.witness_statements?.length 
+    ? data.witness_statements.map(w => `Witness ${w.name}: ${w.statement}`).join('\n\n')
+    : 'No witness statements';
+  
+  const evidenceText = data.evidence_descriptions?.length 
+    ? data.evidence_descriptions.join('\n')
+    : 'No evidence descriptions';
+  
+  const existingRootCauses = data.root_causes?.filter(rc => rc.text?.trim()).map(rc => rc.text).join('; ') || 'None identified yet';
+  
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
 
-5-Whys Analysis:
+5-WHYS ANALYSIS:
 ${whysText}
 
-Immediate Cause: ${data.immediate_cause || 'Not identified yet'}
-Underlying Cause: ${data.underlying_cause || 'Not identified yet'}
-Existing Root Causes: ${data.root_causes?.map(rc => rc.text).join('; ') || 'None identified yet'}
+IMMEDIATE CAUSE:
+${data.immediate_cause || 'Not yet identified'}
 
-Suggest another potential root cause:`;
+UNDERLYING CAUSE:
+${data.underlying_cause || 'Not yet identified'}
+
+EXISTING ROOT CAUSES (do not repeat these):
+${existingRootCauses}
+
+WITNESS STATEMENTS:
+${witnessText}
+
+EVIDENCE:
+${evidenceText}
+
+Based on the above, suggest a NEW root cause (1-3 sentences):`;
+
+  return await callAI(systemPrompt, userPrompt);
+}
+
+// Generate Contributing Factor with full progressive data flow
+async function handleGenerateContributingFactor(data: RCAData): Promise<string> {
+  const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
+
+Based on the complete RCA analysis, suggest a CONTRIBUTING FACTOR.
+
+Contributing Factors are:
+- Secondary conditions that amplified the incident but didn't directly cause it
+- Environmental, organizational, or behavioral elements
+- Often harder to detect but important for comprehensive prevention
+
+Categories to consider:
+- Work environment conditions (lighting, noise, temperature, space constraints)
+- Organizational factors (workload, staffing, time pressure, resource limitations)
+- Communication gaps (unclear instructions, language barriers, handover issues)
+- Fatigue, distraction, or stress
+- Equipment wear or degradation (not the primary cause but a contributor)
+- Weather or external conditions
+- Supervision gaps
+
+Guidelines:
+- Base your analysis ONLY on the data provided (no assumptions beyond evidence)
+- Write 1-2 clear, factual sentences
+- Do NOT repeat existing contributing factors - suggest a NEW one
+- Focus on factors that made the incident more likely or severe
+- Use professional HSSE language aligned with ISO 45001/OSHA
+
+Return ONLY the contributing factor text without any explanation or formatting.`;
+
+  const whysText = data.five_whys?.length 
+    ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question}\nAnswer: ${w.answer}`).join('\n\n') 
+    : 'Not yet analyzed';
+  
+  const witnessText = data.witness_statements?.length 
+    ? data.witness_statements.map(w => `Witness ${w.name}: ${w.statement}`).join('\n\n')
+    : 'No witness statements';
+  
+  const evidenceText = data.evidence_descriptions?.length 
+    ? data.evidence_descriptions.join('\n')
+    : 'No evidence descriptions';
+  
+  const rootCausesText = data.root_causes?.filter(rc => rc.text?.trim()).map(rc => rc.text).join('; ') || 'Not identified';
+  
+  const existingFactors = data.contributing_factors_list?.filter(cf => cf.text?.trim()).map(cf => cf.text).join('; ') || 'None identified yet';
+  
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
+
+5-WHYS ANALYSIS:
+${whysText}
+
+IMMEDIATE CAUSE:
+${data.immediate_cause || 'Not yet identified'}
+
+UNDERLYING CAUSE:
+${data.underlying_cause || 'Not yet identified'}
+
+ROOT CAUSES:
+${rootCausesText}
+
+EXISTING CONTRIBUTING FACTORS (do not repeat these):
+${existingFactors}
+
+WITNESS STATEMENTS:
+${witnessText}
+
+EVIDENCE:
+${evidenceText}
+
+Based on the above, suggest a NEW contributing factor (1-2 sentences):`;
 
   return await callAI(systemPrompt, userPrompt);
 }
@@ -477,6 +592,16 @@ serve(async (req) => {
       case 'generate_underlying_cause':
         if (!data) throw new Error('RCA data is required for generate_underlying_cause action');
         result = await handleGenerateUnderlyingCause(data);
+        break;
+
+      case 'generate_root_cause':
+        if (!data) throw new Error('RCA data is required for generate_root_cause action');
+        result = await handleGenerateRootCause(data);
+        break;
+
+      case 'generate_contributing_factor':
+        if (!data) throw new Error('RCA data is required for generate_contributing_factor action');
+        result = await handleGenerateContributingFactor(data);
         break;
 
       default:

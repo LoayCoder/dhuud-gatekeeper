@@ -23,6 +23,12 @@ interface RootCausesBuilderProps {
   underlyingCause?: string;
   incidentTitle?: string;
   incidentDescription?: string;
+  // New props for progressive data flow
+  severity?: string;
+  eventType?: string;
+  eventSubtype?: string;
+  witnessStatements?: Array<{ name: string; statement: string }>;
+  evidenceDescriptions?: string[];
 }
 
 export function RootCausesBuilder({
@@ -34,10 +40,15 @@ export function RootCausesBuilder({
   underlyingCause,
   incidentTitle,
   incidentDescription,
+  severity,
+  eventType,
+  eventSubtype,
+  witnessStatements,
+  evidenceDescriptions,
 }: RootCausesBuilderProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const { rewriteText, suggestCause, isLoading } = useRCAAI();
+  const { rewriteText, generateRootCause, isLoading } = useRCAAI();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
   const [loadingAction, setLoadingAction] = useState<'rewrite' | 'suggest' | null>(null);
 
@@ -89,6 +100,11 @@ export function RootCausesBuilder({
     setLoadingAction('suggest');
 
     const rcaData = {
+      incident_title: incidentTitle,
+      incident_description: incidentDescription,
+      severity: severity,
+      event_type: eventType,
+      event_subtype: eventSubtype,
       five_whys: fiveWhys?.map((entry) => ({
         question: entry.why,
         answer: entry.answer,
@@ -96,11 +112,11 @@ export function RootCausesBuilder({
       immediate_cause: immediateCause,
       underlying_cause: underlyingCause,
       root_causes: value.filter((_, i) => i !== index).map(rc => ({ id: rc.id, text: rc.text })),
-      incident_title: incidentTitle,
-      incident_description: incidentDescription,
+      witness_statements: witnessStatements,
+      evidence_descriptions: evidenceDescriptions,
     };
 
-    const result = await suggestCause(rcaData);
+    const result = await generateRootCause(rcaData);
 
     if (result) {
       updateRootCause(index, result);
@@ -195,7 +211,8 @@ export function RootCausesBuilder({
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => handleSuggest(index)}
-                            disabled={isLoading}
+                            disabled={isLoading || !underlyingCause?.trim()}
+                            title={!underlyingCause?.trim() ? t('investigation.rca.ai.completeUnderlyingFirst', 'Complete Underlying Cause first') : undefined}
                           >
                             {isButtonLoading(index, 'suggest') ? (
                               <Loader2 className="h-3 w-3 me-1 animate-spin" />

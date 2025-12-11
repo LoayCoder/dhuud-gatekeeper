@@ -564,6 +564,11 @@ export function RCAPanel({
                   underlyingCause={underlyingCauseValue}
                   incidentTitle={incidentTitle}
                   incidentDescription={incidentDescription}
+                  severity={incidentSeverity}
+                  eventType={incidentEventType}
+                  eventSubtype={incidentEventSubtype}
+                  witnessStatements={witnessData}
+                  evidenceDescriptions={evidenceDescriptions}
                 />
               )}
             />
@@ -584,6 +589,12 @@ export function RCAPanel({
               immediateCause={immediateCauseValue}
               underlyingCause={underlyingCauseValue}
               rootCauses={rootCausesValue}
+              fiveWhys={fiveWhysValue}
+              severity={incidentSeverity}
+              eventType={incidentEventType}
+              eventSubtype={incidentEventSubtype}
+              witnessStatements={witnessData}
+              evidenceDescriptions={evidenceDescriptions}
             />
           )}
         />
