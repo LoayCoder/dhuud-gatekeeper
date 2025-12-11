@@ -436,6 +436,54 @@ export function useUpdateCorrectiveAction() {
   });
 }
 
+// Delete Corrective Action Hook
+export function useDeleteCorrectiveAction() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({ id, incidentId }: { id: string; incidentId: string }) => {
+      // Get fresh auth state
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
+      // Soft delete the action
+      const { error } = await supabase
+        .from('corrective_actions')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Log audit entry
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incidentId,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'action_deleted',
+        old_value: { action_id: id },
+      });
+
+      return { id, incidentId };
+    },
+    onSuccess: (_, { incidentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
+      toast.success(t('investigation.actions.deleted', 'Action deleted'));
+    },
+    onError: (error) => {
+      toast.error(t('common.error', 'Error: ') + error.message);
+    },
+  });
+}
+
 // Submit Investigation Hook
 export function useSubmitInvestigation() {
   const queryClient = useQueryClient();

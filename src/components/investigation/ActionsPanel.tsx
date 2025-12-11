@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,10 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock, Sparkles } from "lucide-react";
-import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction } from "@/hooks/use-investigation";
+import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock, Sparkles, Pencil, Trash2 } from "lucide-react";
+import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction, useDeleteCorrectiveAction, CorrectiveAction } from "@/hooks/use-investigation";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useTenantDepartments } from "@/hooks/use-org-hierarchy";
 import { useDepartmentUsers, useTenantUsers } from "@/hooks/use-department-users";
@@ -35,18 +36,23 @@ interface ContributingFactor {
 }
 
 const actionSchema = z.object({
-  title: z.string().min(3, 'Title is required'),
-  description: z.string().optional(),
-  responsible_department_id: z.string().optional(),
-  assigned_to: z.string().optional(),
-  start_date: z.string().optional(),
-  due_date: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-  action_type: z.enum(['corrective', 'preventive', 'improvement']).default('corrective'),
-  category: z.enum(['engineering', 'administrative', 'ppe', 'training', 'procedure_update']).default('administrative'),
-  linked_cause_type: z.enum(['root_cause', 'contributing_factor']).optional(),
-  linked_root_cause_id: z.string().optional(),
-});
+  title: z.string().min(3, 'Title is required (min 3 characters)'),
+  description: z.string().min(10, 'Description is required (min 10 characters)'),
+  responsible_department_id: z.string().min(1, 'Department is required'),
+  assigned_to: z.string().min(1, 'Assignee is required'),
+  start_date: z.string().min(1, 'Start date is required'),
+  due_date: z.string().min(1, 'Due date is required'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  action_type: z.enum(['corrective', 'preventive', 'improvement']),
+  category: z.enum(['engineering', 'administrative', 'ppe', 'training', 'procedure_update']),
+  linked_cause_type: z.enum(['root_cause', 'contributing_factor'], { required_error: 'Link to cause is required' }),
+  linked_root_cause_id: z.string().min(1, 'Select a specific cause'),
+}).refine((data) => {
+  if (data.start_date && data.due_date) {
+    return new Date(data.start_date) <= new Date(data.due_date);
+  }
+  return true;
+}, { message: 'Start date must be before due date', path: ['due_date'] });
 
 type ActionFormValues = z.infer<typeof actionSchema>;
 
@@ -63,6 +69,8 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set());
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
   const [isAISuggesting, setIsAISuggesting] = useState(false);
+  const [editingAction, setEditingAction] = useState<CorrectiveAction | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
@@ -75,6 +83,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
   const { data: allUsers } = useTenantUsers();
   const createAction = useCreateCorrectiveAction();
   const updateAction = useUpdateCorrectiveAction();
+  const deleteAction = useDeleteCorrectiveAction();
   const { suggestCorrectiveAction } = useRCAAI();
 
   // Parse root causes and contributing factors from investigation
@@ -96,8 +105,41 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
       priority: 'medium',
       action_type: 'corrective',
       category: 'administrative',
+      responsible_department_id: '',
+      assigned_to: '',
+      start_date: '',
+      due_date: '',
+      linked_cause_type: undefined,
+      linked_root_cause_id: '',
     },
   });
+
+  // Populate form when editing an action
+  useEffect(() => {
+    if (editingAction) {
+      const actionData = editingAction as unknown as {
+        linked_cause_type: string | null;
+        linked_root_cause_id: string | null;
+        category: string | null;
+        start_date: string | null;
+        responsible_department_id: string | null;
+      };
+      form.reset({
+        title: editingAction.title || '',
+        description: editingAction.description || '',
+        priority: (editingAction.priority as 'low' | 'medium' | 'high' | 'critical') || 'medium',
+        action_type: (editingAction.action_type as 'corrective' | 'preventive' | 'improvement') || 'corrective',
+        category: (actionData.category as 'engineering' | 'administrative' | 'ppe' | 'training' | 'procedure_update') || 'administrative',
+        responsible_department_id: actionData.responsible_department_id || '',
+        assigned_to: editingAction.assigned_to || '',
+        start_date: actionData.start_date || '',
+        due_date: editingAction.due_date || '',
+        linked_cause_type: (actionData.linked_cause_type as 'root_cause' | 'contributing_factor') || undefined,
+        linked_root_cause_id: actionData.linked_root_cause_id || '',
+      });
+      setSelectedDepartmentId(actionData.responsible_department_id || null);
+    }
+  }, [editingAction, form]);
 
   const selectedCauseType = form.watch('linked_cause_type');
   const selectedCauseId = form.watch('linked_root_cause_id');
@@ -178,23 +220,75 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
 
   const onSubmit = async (data: ActionFormValues) => {
     if (!data.title) return;
-    await createAction.mutateAsync({
-      incident_id: incidentId,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      action_type: data.action_type,
-      due_date: data.due_date,
-      start_date: data.start_date,
-      category: data.category,
-      linked_root_cause_id: data.linked_root_cause_id,
-      linked_cause_type: data.linked_cause_type,
-      responsible_department_id: data.responsible_department_id,
-      assigned_to: data.assigned_to,
+    
+    if (editingAction) {
+      // Update existing action
+      await updateAction.mutateAsync({
+        id: editingAction.id,
+        incidentId,
+        updates: {
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          action_type: data.action_type,
+          due_date: data.due_date,
+          start_date: data.start_date,
+          category: data.category,
+          linked_root_cause_id: data.linked_root_cause_id,
+          linked_cause_type: data.linked_cause_type,
+          responsible_department_id: data.responsible_department_id,
+          assigned_to: data.assigned_to,
+        },
+      });
+    } else {
+      // Create new action
+      await createAction.mutateAsync({
+        incident_id: incidentId,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        action_type: data.action_type,
+        due_date: data.due_date,
+        start_date: data.start_date,
+        category: data.category,
+        linked_root_cause_id: data.linked_root_cause_id,
+        linked_cause_type: data.linked_cause_type,
+        responsible_department_id: data.responsible_department_id,
+        assigned_to: data.assigned_to,
+      });
+    }
+    
+    handleCloseDialog();
+  };
+
+  const handleCloseDialog = () => {
+    form.reset({
+      title: '',
+      description: '',
+      priority: 'medium',
+      action_type: 'corrective',
+      category: 'administrative',
+      responsible_department_id: '',
+      assigned_to: '',
+      start_date: '',
+      due_date: '',
+      linked_cause_type: undefined,
+      linked_root_cause_id: '',
     });
-    form.reset();
     setSelectedDepartmentId(null);
+    setEditingAction(null);
     setDialogOpen(false);
+  };
+
+  const handleEditAction = (action: CorrectiveAction) => {
+    setEditingAction(action);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteAction = async () => {
+    if (!deleteConfirmId) return;
+    await deleteAction.mutateAsync({ id: deleteConfirmId, incidentId });
+    setDeleteConfirmId(null);
   };
 
   const handleStatusChange = async (actionId: string, newStatus: string) => {
@@ -316,16 +410,23 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
           {t('investigation.actions.title', 'Corrective Actions')}
         </h3>
         {!isLocked && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            if (!open) handleCloseDialog();
+            else setDialogOpen(true);
+          }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => { setEditingAction(null); setDialogOpen(true); }}>
                 <Plus className="h-4 w-4 me-2" />
                 {t('investigation.actions.addAction', 'Add Action')}
               </Button>
             </DialogTrigger>
             <DialogContent dir={direction} className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{t('investigation.actions.newAction', 'New Corrective Action')}</DialogTitle>
+                <DialogTitle>
+                  {editingAction 
+                    ? t('investigation.actions.editAction', 'Edit Corrective Action')
+                    : t('investigation.actions.newAction', 'New Corrective Action')}
+                </DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -340,14 +441,14 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                           <FormItem>
                             <FormLabel className="flex items-center gap-2">
                               <Link2 className="h-4 w-4" />
-                              {t('investigation.actions.linkedCauseType', 'Link to Cause')}
+                              {t('investigation.actions.linkedCauseType', 'Link to Cause')} *
                             </FormLabel>
                             <Select 
                               onValueChange={(val) => {
-                                field.onChange(val === "_none_" ? undefined : val);
-                                form.setValue('linked_root_cause_id', undefined);
+                                field.onChange(val);
+                                form.setValue('linked_root_cause_id', '');
                               }} 
-                              value={field.value || "_none_"}
+                              value={field.value || ""}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -355,7 +456,6 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent dir={direction}>
-                                <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
                                 {rootCauses.length > 0 && (
                                   <SelectItem value="root_cause">{t('investigation.rca.rootCause', 'Root Cause')}</SelectItem>
                                 )}
@@ -378,11 +478,11 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                               <FormLabel>
                                 {selectedCauseType === 'root_cause' 
                                   ? t('investigation.actions.selectRootCause', 'Select Root Cause')
-                                  : t('investigation.actions.selectContributingFactor', 'Select Contributing Factor')}
+                                  : t('investigation.actions.selectContributingFactor', 'Select Contributing Factor')} *
                               </FormLabel>
                               <Select 
-                                onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
-                                value={field.value || "_none_"}
+                                onValueChange={(val) => field.onChange(val)} 
+                                value={field.value || ""}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -390,7 +490,6 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent dir={direction}>
-                                  <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
                                   {causesForSelection.filter(cause => cause.id).map((cause, idx) => (
                                     <SelectItem key={cause.id} value={cause.id}>
                                       {idx + 1}: {cause.text.length > 50 ? cause.text.substring(0, 50) + '...' : cause.text}
@@ -450,7 +549,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('investigation.actions.actionTitle', 'Action Title')}</FormLabel>
+                        <FormLabel>{t('investigation.actions.actionTitle', 'Action Title')} *</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder={t('investigation.actions.titlePlaceholder', 'Enter action title...')} />
                         </FormControl>
@@ -465,9 +564,9 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('investigation.actions.description', 'Description')}</FormLabel>
+                        <FormLabel>{t('investigation.actions.description', 'Description')} *</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={3} />
+                          <Textarea {...field} rows={3} placeholder={t('investigation.actions.descriptionPlaceholder', 'Enter description (min 10 characters)...')} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -556,7 +655,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                       name="start_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('investigation.actions.startDate', 'Start Date')}</FormLabel>
+                          <FormLabel>{t('investigation.actions.startDate', 'Start Date')} *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -570,7 +669,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                       name="due_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('investigation.actions.dueDate', 'Due Date')}</FormLabel>
+                          <FormLabel>{t('investigation.actions.dueDate', 'Due Date')} *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -589,16 +688,15 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
-                            {t('investigation.actions.department', 'Department')}
+                            {t('investigation.actions.department', 'Department')} *
                           </FormLabel>
                           <Select 
                             onValueChange={(val) => {
-                              const newVal = val === "_none_" ? undefined : val;
-                              field.onChange(newVal);
-                              setSelectedDepartmentId(newVal || null);
-                              form.setValue('assigned_to', undefined);
+                              field.onChange(val);
+                              setSelectedDepartmentId(val || null);
+                              form.setValue('assigned_to', '');
                             }} 
-                            value={field.value || "_none_"}
+                            value={field.value || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -606,7 +704,6 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent dir={direction}>
-                              <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
                               {departments?.map((dept) => (
                                 <SelectItem key={dept.id} value={dept.id}>
                                   {dept.name}
@@ -626,11 +723,11 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            {t('investigation.actions.assignedTo', 'Assigned To')}
+                            {t('investigation.actions.assignedTo', 'Assigned To')} *
                           </FormLabel>
                           <Select 
-                            onValueChange={(val) => field.onChange(val === "_none_" ? undefined : val)} 
-                            value={field.value || "_none_"}
+                            onValueChange={(val) => field.onChange(val)} 
+                            value={field.value || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -638,7 +735,6 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent dir={direction}>
-                              <SelectItem value="_none_">{t('common.none', 'None')}</SelectItem>
                               {usersForAssignment?.map((user) => (
                                 <SelectItem key={user.id} value={user.id}>
                                   {user.full_name || user.employee_id || 'Unknown'}
@@ -653,12 +749,12 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                    <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       {t('common.cancel', 'Cancel')}
                     </Button>
-                    <Button type="submit" disabled={createAction.isPending}>
-                      {createAction.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-                      {t('common.create', 'Create')}
+                    <Button type="submit" disabled={createAction.isPending || updateAction.isPending}>
+                      {(createAction.isPending || updateAction.isPending) && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+                      {editingAction ? t('common.save', 'Save') : t('common.create', 'Create')}
                     </Button>
                   </div>
                 </form>
@@ -740,25 +836,49 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                           )}
                         </div>
                       </div>
-                      {!isLocked && (
-                        <Select
-                          value={action.status || 'assigned'}
-                          onValueChange={(value) => handleStatusChange(action.id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent dir={direction}>
-                            <SelectItem value="assigned">{t('investigation.actions.statuses.assigned', 'Assigned')}</SelectItem>
-                            <SelectItem value="in_progress">{t('investigation.actions.statuses.inProgress', 'In Progress')}</SelectItem>
-                            <SelectItem value="completed">{t('investigation.actions.statuses.completed', 'Completed')}</SelectItem>
-                            <SelectItem value="verified">{t('investigation.actions.statuses.verified', 'Verified')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {isLocked && (
-                        <Badge variant="outline">{action.status}</Badge>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {!isLocked && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEditAction(action)}
+                              title={t('common.edit', 'Edit')}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirmId(action.id)}
+                              title={t('common.delete', 'Delete')}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        {!isLocked && (
+                          <Select
+                            value={action.status || 'assigned'}
+                            onValueChange={(value) => handleStatusChange(action.id, value)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent dir={direction}>
+                              <SelectItem value="assigned">{t('investigation.actions.statuses.assigned', 'Assigned')}</SelectItem>
+                              <SelectItem value="in_progress">{t('investigation.actions.statuses.inProgress', 'In Progress')}</SelectItem>
+                              <SelectItem value="completed">{t('investigation.actions.statuses.completed', 'Completed')}</SelectItem>
+                              <SelectItem value="verified">{t('investigation.actions.statuses.verified', 'Verified')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {isLocked && (
+                          <Badge variant="outline">{action.status}</Badge>
+                        )}
+                      </div>
                     </div>
 
                     <CollapsibleContent className="mt-4 pt-4 border-t">
@@ -775,6 +895,31 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('investigation.actions.confirmDelete', 'Delete Action?')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('investigation.actions.deleteWarning', 'This action will be permanently deleted. This cannot be undone.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteAction}
+              disabled={deleteAction.isPending}
+            >
+              {deleteAction.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('common.delete', 'Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
