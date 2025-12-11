@@ -94,45 +94,7 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
     enabled: !!investigation?.investigator_id,
   });
 
-  // Early returns AFTER all hooks have been called
-  if (checkingPermission) {
-    return (
-      <Card className="bg-muted/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t('common.loading')}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!canAssign) {
-    return (
-      <Card className="bg-muted/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Mutation to assign investigator
+  // Mutation to assign investigator - MUST be before early returns to follow Rules of Hooks
   const assignMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
@@ -186,6 +148,44 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
       toast.error(t('common.error') + ': ' + error.message);
     },
   });
+
+  // Early returns AFTER all hooks have been called
+  if (checkingPermission) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t('common.loading')}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!canAssign) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const hasInvestigator = !!investigation?.investigator_id;
 
