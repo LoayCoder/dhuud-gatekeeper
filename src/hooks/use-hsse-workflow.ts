@@ -518,7 +518,11 @@ export function useStartInvestigation() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async ({ incidentId, investigatorId }: { incidentId: string; investigatorId: string }) => {
+    mutationFn: async ({ incidentId, investigatorId, assignmentNotes }: { 
+      incidentId: string; 
+      investigatorId: string;
+      assignmentNotes?: string;
+    }) => {
       // Get fresh user from Supabase auth (avoids stale closure issue)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) throw new Error('Not authenticated');
@@ -549,6 +553,7 @@ export function useStartInvestigation() {
           investigator_id: investigatorId,
           assigned_at: new Date().toISOString(),
           assigned_by: user.id,
+          assignment_notes: assignmentNotes || null,
         }, {
           onConflict: 'incident_id',
         });
@@ -561,7 +566,7 @@ export function useStartInvestigation() {
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: 'investigator_assigned',
-        details: { investigatorId },
+        details: { investigatorId, assignmentNotes },
       });
       
       // Send notification to investigator

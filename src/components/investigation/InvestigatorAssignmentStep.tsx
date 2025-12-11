@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { UserPlus, Play, Loader2 } from "lucide-react";
 import { useStartInvestigation, useCanPerformExpertScreening } from "@/hooks/use-hsse-workflow";
 import { useCachedProfile } from "@/hooks/use-cached-profile";
@@ -22,6 +23,7 @@ export function InvestigatorAssignmentStep({ incident, onComplete }: Investigato
   const direction = i18n.dir();
   
   const [selectedInvestigator, setSelectedInvestigator] = useState<string>("");
+  const [assignmentNotes, setAssignmentNotes] = useState<string>("");
   
   const { data: canAssign } = useCanPerformExpertScreening();
   const { data: profile } = useCachedProfile();
@@ -78,6 +80,7 @@ export function InvestigatorAssignmentStep({ incident, onComplete }: Investigato
     startInvestigation.mutate({
       incidentId: incident.id,
       investigatorId: selectedInvestigator,
+      assignmentNotes: assignmentNotes.trim() || undefined,
     }, {
       onSuccess: onComplete,
     });
@@ -135,6 +138,22 @@ export function InvestigatorAssignmentStep({ incident, onComplete }: Investigato
               )}
             </SelectContent>
           </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="assignment-notes">
+            {t('workflow.assignInvestigator.notesLabel', 'Assignment Notes / Instructions')}
+            <span className="text-muted-foreground font-normal ms-1">
+              ({t('common.optional', 'Optional')})
+            </span>
+          </Label>
+          <Textarea
+            id="assignment-notes"
+            value={assignmentNotes}
+            onChange={(e) => setAssignmentNotes(e.target.value)}
+            placeholder={t('workflow.assignInvestigator.notesPlaceholder', 'Enter any specific instructions or notes for the investigator...')}
+            rows={3}
+          />
         </div>
         
         <Button
