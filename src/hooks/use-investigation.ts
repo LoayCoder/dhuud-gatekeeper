@@ -38,10 +38,9 @@ export interface Investigation {
   tenant_id: string;
   created_at: string;
   updated_at: string;
-  // Investigator assignment fields
+  // Investigator assignment fields (matches DB columns)
   assigned_by: string | null;
-  assignment_date: string | null;
-  assignment_notes: string | null;
+  assigned_at: string | null;
 }
 
 export interface FiveWhyEntry {
@@ -152,9 +151,8 @@ export function useInvestigation(incidentId: string | null) {
         tenant_id: data.tenant_id,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        assigned_by: null,
-        assignment_date: null,
-        assignment_notes: null,
+        assigned_by: data.assigned_by ?? null,
+        assigned_at: data.assigned_at ?? null,
       } as Investigation;
     },
     enabled: !!incidentId,

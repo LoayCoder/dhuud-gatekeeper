@@ -215,11 +215,11 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
                 </Badge>
               </div>
               
-              {investigation.assignment_date && (
+              {investigation.assigned_at && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-3 w-3" />
                   {t('investigation.overview.assignedOn', 'Assigned on {{date}}', {
-                    date: format(new Date(investigation.assignment_date), 'PPp')
+                    date: format(new Date(investigation.assigned_at), 'PPp')
                   })}
                 </div>
               )}
