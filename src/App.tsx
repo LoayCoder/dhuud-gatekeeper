@@ -81,6 +81,7 @@ const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents
 const TeamPerformance = lazy(() => import(/* webpackChunkName: "admin-team-performance" */ "./pages/admin/TeamPerformance"));
 const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-report" */ "./pages/admin/ExecutiveReport"));
 const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-access" */ "./pages/admin/MenuAccessConfig"));
+const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-diagrams" */ "./pages/admin/WorkflowDiagrams"));
 
 const queryClient = new QueryClient();
 
@@ -300,6 +301,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <MenuAccessConfig />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/workflow-diagrams"
+                        element={
+                          <AdminRoute>
+                            <WorkflowDiagrams />
                           </AdminRoute>
                         }
                       />

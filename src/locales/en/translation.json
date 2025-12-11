@@ -3554,5 +3554,41 @@
       "escalate": "Escalate to Investigation",
       "approveClose": "Approve & Close"
     }
+  },
+  "workflowDiagrams": {
+    "title": "Workflow Diagrams",
+    "subtitle": "Export branded PDF diagrams of HSSE workflows",
+    "selectWorkflow": "Select Workflow",
+    "preview": "Preview",
+    "exportPdf": "Export PDF",
+    "exportAll": "Export All",
+    "includeActors": "Include actor/role labels",
+    "includeDescription": "Include workflow description",
+    "showLegend": "Show legend",
+    "generating": "Generating PDF...",
+    "success": "PDF generated successfully",
+    "categories": {
+      "hsseEvents": "HSSE Events",
+      "inspections": "Inspections & Audits",
+      "assets": "Asset Management",
+      "compliance": "Compliance"
+    },
+    "workflows": {
+      "observationReporting": "Observation Reporting",
+      "incidentReporting": "Incident Reporting",
+      "investigation": "Investigation Lifecycle",
+      "actionClosure": "Corrective Action Closure",
+      "fullE2E": "Full HSSE Event Flow",
+      "assetInspection": "Asset Inspection",
+      "areaInspection": "Area/Site Inspection",
+      "auditCompliance": "Audit Compliance"
+    },
+    "legend": {
+      "title": "Legend",
+      "start": "Start/End",
+      "action": "Action/Process",
+      "decision": "Decision Point",
+      "approval": "Approval Required"
+    }
   }
 }

@@ -3449,5 +3449,41 @@
       "under_maintenance": "مرمت میں",
       "disposed": "ضائع شدہ"
     }
+  },
+  "workflowDiagrams": {
+    "title": "ورک فلو ڈایاگرام",
+    "subtitle": "HSSE ورک فلو کے برانڈڈ PDF ڈایاگرام ایکسپورٹ کریں",
+    "selectWorkflow": "ورک فلو منتخب کریں",
+    "preview": "پیش نظارہ",
+    "exportPdf": "PDF ایکسپورٹ کریں",
+    "exportAll": "سب ایکسپورٹ کریں",
+    "includeActors": "کردار/رول لیبل شامل کریں",
+    "includeDescription": "ورک فلو کی تفصیل شامل کریں",
+    "showLegend": "لیجنڈ دکھائیں",
+    "generating": "PDF بنایا جا رہا ہے...",
+    "success": "PDF کامیابی سے بنایا گیا",
+    "categories": {
+      "hsseEvents": "HSSE واقعات",
+      "inspections": "معائنہ اور آڈٹ",
+      "assets": "اثاثہ جات کا انتظام",
+      "compliance": "تعمیل"
+    },
+    "workflows": {
+      "observationReporting": "مشاہدہ رپورٹنگ",
+      "incidentReporting": "واقعہ رپورٹنگ",
+      "investigation": "تحقیقات کا دورانیہ",
+      "actionClosure": "اصلاحی ایکشن بند کرنا",
+      "fullE2E": "مکمل HSSE ایونٹ فلو",
+      "assetInspection": "اثاثہ معائنہ",
+      "areaInspection": "علاقہ/سائٹ معائنہ",
+      "auditCompliance": "آڈٹ تعمیل"
+    },
+    "legend": {
+      "title": "لیجنڈ",
+      "start": "آغاز/اختتام",
+      "action": "ایکشن/عمل",
+      "decision": "فیصلے کا مقام",
+      "approval": "منظوری درکار"
+    }
   }
 }

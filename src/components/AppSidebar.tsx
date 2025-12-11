@@ -45,6 +45,7 @@ import {
   QrCode,
   ClipboardList,
   Menu,
+  Workflow,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -343,6 +344,12 @@ export function AppSidebar() {
           url: "/admin/menu-access",
           icon: Menu,
           menuCode: 'admin_menu_access',
+        },
+        {
+          title: t('workflowDiagrams.title', 'Workflow Diagrams'),
+          url: "/admin/workflow-diagrams",
+          icon: Workflow,
+          menuCode: 'admin_workflow_diagrams',
         },
       ],
     },
