@@ -264,30 +264,87 @@ function getConnectionColors(condition?: string, isLoop?: boolean) {
   return CONNECTION_COLORS.default;
 }
 
-// Calculate exit point from decision node (diamond) based on direction
-function getDecisionExitPoint(
-  pos: NodePosition,
-  direction: 'bottom' | 'left' | 'right' | 'bottom-left' | 'bottom-right'
-): { x: number; y: number } {
+// Calculate exit point on diamond edge using parametric calculation
+// Given an angle (in radians), find the exact point on the diamond perimeter
+function getDiamondEdgePoint(pos: NodePosition, angle: number): { x: number; y: number } {
   const cx = pos.x + pos.width / 2;
   const cy = pos.y + pos.height / 2;
   const halfW = pos.width / 2;
   const halfH = pos.height / 2;
-
-  switch (direction) {
-    case 'bottom':
-      return { x: cx, y: cy + halfH };
-    case 'left':
-      return { x: cx - halfW, y: cy };
-    case 'right':
-      return { x: cx + halfW, y: cy };
-    case 'bottom-left':
-      return { x: cx - halfW * 0.5, y: cy + halfH * 0.5 };
-    case 'bottom-right':
-      return { x: cx + halfW * 0.5, y: cy + halfH * 0.5 };
-    default:
-      return { x: cx, y: cy + halfH };
+  
+  // Normalize angle to 0-2π
+  const normalizedAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  
+  // Diamond has 4 edges, each spanning π/2 radians (90 degrees)
+  // Top-right edge: -π/4 to π/4 (315° to 45°)
+  // Bottom-right edge: π/4 to 3π/4 (45° to 135°)  
+  // Bottom-left edge: 3π/4 to 5π/4 (135° to 225°)
+  // Top-left edge: 5π/4 to 7π/4 (225° to 315°)
+  
+  // Use parametric line intersection with diamond edges
+  const cos = Math.cos(normalizedAngle);
+  const sin = Math.sin(normalizedAngle);
+  
+  // Calculate intersection with the diamond shape
+  // Diamond edges are at 45-degree angles
+  let t: number;
+  if (Math.abs(cos) * halfH > Math.abs(sin) * halfW) {
+    // Intersects left or right edge
+    t = halfW / Math.abs(cos);
+  } else {
+    // Intersects top or bottom edge
+    t = halfH / Math.abs(sin);
   }
+  
+  return {
+    x: cx + t * cos * 0.85, // Slightly inward for cleaner look
+    y: cy + t * sin * 0.85
+  };
+}
+
+// Pre-calculate distributed exit points for all connections from a decision node
+function getDistributedDecisionExits(
+  sourcePos: NodePosition,
+  connections: { targetPos: NodePosition; index: number }[],
+  workflow: WorkflowDefinition
+): Map<number, { x: number; y: number }> {
+  const result = new Map<number, { x: number; y: number }>();
+  const cx = sourcePos.x + sourcePos.width / 2;
+  const cy = sourcePos.y + sourcePos.height / 2;
+  
+  // Calculate angles to each target and sort
+  const angles: { index: number; angle: number; targetBelow: boolean }[] = connections.map(conn => {
+    const tx = conn.targetPos.x + conn.targetPos.width / 2;
+    const ty = conn.targetPos.y + conn.targetPos.height / 2;
+    const angle = Math.atan2(ty - cy, tx - cx);
+    return { index: conn.index, angle, targetBelow: ty > cy };
+  });
+  
+  // Sort by angle
+  angles.sort((a, b) => a.angle - b.angle);
+  
+  // Ensure minimum angular separation (25 degrees = ~0.44 radians)
+  const MIN_SEPARATION = 0.44;
+  for (let i = 1; i < angles.length; i++) {
+    const prev = angles[i - 1];
+    const curr = angles[i];
+    let diff = curr.angle - prev.angle;
+    
+    if (diff < MIN_SEPARATION) {
+      // Spread them apart
+      const adjustment = (MIN_SEPARATION - diff) / 2;
+      angles[i - 1].angle -= adjustment;
+      angles[i].angle += adjustment;
+    }
+  }
+  
+  // Calculate exit points
+  angles.forEach(({ index, angle }) => {
+    const exitPoint = getDiamondEdgePoint(sourcePos, angle);
+    result.set(index, exitPoint);
+  });
+  
+  return result;
 }
 
 // Generate connection arrow SVG with improved routing
@@ -297,7 +354,8 @@ function renderConnection(
   workflow: WorkflowDefinition,
   isRtl: boolean,
   connectionIndex: number,
-  totalConnectionsFromSource: number
+  totalConnectionsFromSource: number,
+  decisionExitPoints?: Map<number, { x: number; y: number }>
 ): string {
   const fromPos = positions.get(conn.from);
   const toPos = positions.get(conn.to);
@@ -312,28 +370,18 @@ function renderConnection(
   let x1: number, y1: number, x2: number, y2: number;
   
   // Smart exit point calculation for decision nodes
-  if (isFromDecision && totalConnectionsFromSource > 1) {
-    // Distribute exit points for multiple connections from decision
-    const targetIsLeft = toPos.x + toPos.width / 2 < fromPos.x + fromPos.width / 2;
-    const targetIsBelow = toPos.y > fromPos.y;
-    
-    let direction: 'bottom' | 'left' | 'right' | 'bottom-left' | 'bottom-right';
-    
-    if (isLoop) {
-      direction = targetIsLeft ? 'left' : 'right';
-    } else if (targetIsLeft && targetIsBelow) {
-      direction = 'bottom-left';
-    } else if (!targetIsLeft && targetIsBelow) {
-      direction = 'bottom-right';
-    } else if (targetIsLeft) {
-      direction = 'left';
-    } else if (!targetIsLeft && toPos.x !== fromPos.x) {
-      direction = 'right';
-    } else {
-      direction = 'bottom';
-    }
-    
-    const exitPoint = getDecisionExitPoint(fromPos, direction);
+  if (isFromDecision && decisionExitPoints && decisionExitPoints.has(connectionIndex)) {
+    const exitPoint = decisionExitPoints.get(connectionIndex)!;
+    x1 = exitPoint.x;
+    y1 = exitPoint.y;
+  } else if (isFromDecision) {
+    // Fallback: calculate based on target position
+    const cx = fromPos.x + fromPos.width / 2;
+    const cy = fromPos.y + fromPos.height / 2;
+    const tx = toPos.x + toPos.width / 2;
+    const ty = toPos.y + toPos.height / 2;
+    const angle = Math.atan2(ty - cy, tx - cx);
+    const exitPoint = getDiamondEdgePoint(fromPos, angle);
     x1 = exitPoint.x;
     y1 = exitPoint.y;
   } else {
@@ -367,12 +415,13 @@ function renderConnection(
     }
   }
   
-  // Build path with improved routing
+  // Build path with improved routing and staggered offsets
   let path: string;
+  const staggerOffset = (connectionIndex - Math.floor(totalConnectionsFromSource / 2)) * 15;
   
   if (isLoop) {
-    // Loop connections - route around to the side
-    const loopOffset = 60 + connectionIndex * 20;
+    // Loop connections - route around to the side with unique offset per connection
+    const loopOffset = 70 + connectionIndex * 25;
     const goRight = x1 >= x2;
     const sideX = goRight 
       ? Math.max(fromPos.x + fromPos.width, toPos.x + toPos.width) + loopOffset
@@ -382,12 +431,22 @@ function renderConnection(
             L ${sideX} ${y1} 
             L ${sideX} ${y2} 
             L ${x2} ${y2}`;
-  } else if (Math.abs(x1 - x2) < 5) {
-    // Straight vertical connection
-    path = `M ${x1} ${y1} L ${x2} ${y2}`;
+  } else if (Math.abs(x1 - x2) < 10) {
+    // Nearly straight vertical - add slight offset if multiple connections
+    const offsetX = staggerOffset * 0.3;
+    if (Math.abs(offsetX) > 2) {
+      const midY = y1 + (y2 - y1) * 0.5;
+      path = `M ${x1} ${y1} 
+              L ${x1 + offsetX} ${midY} 
+              L ${x2 + offsetX} ${midY} 
+              L ${x2} ${y2}`;
+    } else {
+      path = `M ${x1} ${y1} L ${x2} ${y2}`;
+    }
   } else {
-    // Orthogonal routing (right-angle turns)
-    const midY = y1 + (y2 - y1) * 0.5;
+    // Orthogonal routing with staggered midpoints
+    const midYBase = y1 + (y2 - y1) * 0.5;
+    const midY = midYBase + staggerOffset;
     path = `M ${x1} ${y1} 
             L ${x1} ${midY} 
             L ${x2} ${midY} 
@@ -416,24 +475,27 @@ function renderConnection(
     Z
   `;
   
-  // Connection label with improved positioning
+  // Connection label with improved positioning - offset based on connection index
   let labelSvg = '';
   const label = isRtl ? conn.labelAr : conn.label;
   if (label) {
     let labelX: number, labelY: number;
+    const labelStaggerOffset = (connectionIndex - Math.floor(totalConnectionsFromSource / 2)) * 18;
     
     if (isLoop) {
       // Position label on the side loop
       const goRight = x1 >= x2;
-      const loopOffset = 60 + connectionIndex * 20;
+      const loopOffset = 70 + connectionIndex * 25;
       labelX = goRight 
-        ? Math.max(fromPos.x + fromPos.width, toPos.x + toPos.width) + loopOffset + 5
-        : Math.min(fromPos.x, toPos.x) - loopOffset - 5;
+        ? Math.max(fromPos.x + fromPos.width, toPos.x + toPos.width) + loopOffset + 10
+        : Math.min(fromPos.x, toPos.x) - loopOffset - 10;
       labelY = (y1 + y2) / 2;
     } else {
-      // Position label at the horizontal segment
-      labelX = (x1 + x2) / 2;
-      labelY = y1 + (y2 - y1) * 0.5 - 12;
+      // Position label at the horizontal segment with stagger
+      const midYBase = y1 + (y2 - y1) * 0.5;
+      const midY = midYBase + staggerOffset;
+      labelX = (x1 + x2) / 2 + labelStaggerOffset;
+      labelY = midY - 15; // Above the path
     }
     
     // Get label background color based on condition
@@ -526,8 +588,34 @@ export function renderWorkflowSVG(
   
   // Count connections from each source for smart routing
   const connectionCounts = new Map<string, number>();
-  workflow.connections.forEach(conn => {
+  const connectionsBySource = new Map<string, { conn: WorkflowConnection; index: number }[]>();
+  
+  workflow.connections.forEach((conn, idx) => {
     connectionCounts.set(conn.from, (connectionCounts.get(conn.from) || 0) + 1);
+    if (!connectionsBySource.has(conn.from)) {
+      connectionsBySource.set(conn.from, []);
+    }
+    connectionsBySource.get(conn.from)!.push({ conn, index: connectionsBySource.get(conn.from)!.length });
+  });
+  
+  // Pre-calculate distributed exit points for decision nodes
+  const decisionExitPointsMap = new Map<string, Map<number, { x: number; y: number }>>();
+  
+  workflow.steps.forEach(step => {
+    if (step.type === 'decision') {
+      const sourcePos = positions.get(step.id);
+      const conns = connectionsBySource.get(step.id);
+      
+      if (sourcePos && conns && conns.length > 1) {
+        const targetData = conns.map(({ conn, index }) => {
+          const targetPos = positions.get(conn.to);
+          return { targetPos: targetPos!, index };
+        }).filter(d => d.targetPos);
+        
+        const exitPoints = getDistributedDecisionExits(sourcePos, targetData, workflow);
+        decisionExitPointsMap.set(step.id, exitPoints);
+      }
+    }
   });
   
   // Track connection index per source for offset calculation
@@ -539,7 +627,8 @@ export function renderWorkflowSVG(
       const currentIndex = connectionIndexes.get(conn.from) || 0;
       connectionIndexes.set(conn.from, currentIndex + 1);
       const totalFromSource = connectionCounts.get(conn.from) || 1;
-      return renderConnection(conn, positions, workflow, isRtl, currentIndex, totalFromSource);
+      const decisionExits = decisionExitPointsMap.get(conn.from);
+      return renderConnection(conn, positions, workflow, isRtl, currentIndex, totalFromSource, decisionExits);
     })
     .join('');
   
