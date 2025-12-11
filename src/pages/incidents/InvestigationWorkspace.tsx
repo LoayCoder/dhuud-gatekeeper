@@ -357,25 +357,29 @@ export default function InvestigationWorkspace() {
               />
             </TabsContent>
 
-            {investigationAllowed && (
-              <>
-                <TabsContent value="evidence" className="mt-4">
-                  <EvidencePanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
-                </TabsContent>
+            <TabsContent value="evidence" className="mt-4">
+              {investigationAllowed ? (
+                <EvidencePanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+              ) : null}
+            </TabsContent>
 
-                <TabsContent value="witnesses" className="mt-4">
-                  <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} incidentStatus={selectedIncident?.status} />
-                </TabsContent>
+            <TabsContent value="witnesses" className="mt-4">
+              {investigationAllowed ? (
+                <WitnessPanel incidentId={selectedIncidentId} incident={selectedIncident} incidentStatus={selectedIncident?.status} />
+              ) : null}
+            </TabsContent>
 
-                <TabsContent value="rca" className="mt-4">
-                  <RCAPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
-                </TabsContent>
+            <TabsContent value="rca" className="mt-4">
+              {investigationAllowed ? (
+                <RCAPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+              ) : null}
+            </TabsContent>
 
-                <TabsContent value="actions" className="mt-4">
-                  <ActionsPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
-                </TabsContent>
-              </>
-            )}
+            <TabsContent value="actions" className="mt-4">
+              {investigationAllowed ? (
+                <ActionsPanel incidentId={selectedIncidentId} incidentStatus={selectedIncident?.status} />
+              ) : null}
+            </TabsContent>
           </Tabs>
 
           {/* Closure Approval Card - show if closure is pending */}
