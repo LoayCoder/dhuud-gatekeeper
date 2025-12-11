@@ -443,34 +443,12 @@ export function useDeleteCorrectiveAction() {
 
   return useMutation({
     mutationFn: async ({ id, incidentId }: { id: string; incidentId: string }) => {
-      // Get fresh auth state
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('No tenant found');
-
-      // Soft delete the action
-      const { error } = await supabase
-        .from('corrective_actions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
+      // Use SECURITY DEFINER RPC function to bypass RLS
+      const { data, error } = await supabase.rpc('soft_delete_corrective_action', {
+        p_action_id: id,
+      });
 
       if (error) throw error;
-
-      // Log audit entry
-      await supabase.from('incident_audit_logs').insert({
-        incident_id: incidentId,
-        tenant_id: profile.tenant_id,
-        actor_id: user.id,
-        action: 'action_deleted',
-        old_value: { action_id: id },
-      });
 
       return { id, incidentId };
     },
