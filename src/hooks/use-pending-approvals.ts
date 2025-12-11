@@ -109,18 +109,19 @@ export function usePendingActionApprovals() {
 // Fetch incidents with pending severity changes (HSSE Manager/Admin only)
 export function usePendingSeverityApprovals() {
   const { profile, user } = useAuth();
-  const { hasRole } = useUserRoles();
+  const { hasRole, isLoading: rolesLoading } = useUserRoles();
+
+  const isAdmin = hasRole('admin');
+  const isHSSEManager = hasRole('hsse_manager');
+  const canApprove = isAdmin || isHSSEManager;
 
   return useQuery({
-    queryKey: ['pending-severity-approvals', profile?.tenant_id],
+    queryKey: ['pending-severity-approvals', profile?.tenant_id, canApprove],
     queryFn: async () => {
       if (!profile?.tenant_id || !user?.id) return [];
 
-      const isAdmin = hasRole('admin');
-      const isHSSEManager = hasRole('hsse_manager');
-
       // Only admin or HSSE manager can approve severity changes
-      if (!isAdmin && !isHSSEManager) return [];
+      if (!canApprove) return [];
 
       const { data, error } = await supabase
         .from('incidents')
@@ -137,7 +138,7 @@ export function usePendingSeverityApprovals() {
       if (error) throw error;
       return (data || []) as PendingSeverityApproval[];
     },
-    enabled: !!profile?.tenant_id && !!user?.id,
+    enabled: !!profile?.tenant_id && !!user?.id && !rolesLoading,
   });
 }
 
