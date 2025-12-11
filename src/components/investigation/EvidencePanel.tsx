@@ -34,6 +34,7 @@ import {
 interface EvidencePanelProps {
   incidentId: string;
   incidentStatus?: string | null;
+  canEdit?: boolean;
 }
 
 const evidenceTypeIcons: Record<string, React.ReactNode> = {
@@ -45,7 +46,7 @@ const evidenceTypeIcons: Record<string, React.ReactNode> = {
   video_clip: <Video className="h-5 w-5" />,
 };
 
-export function EvidencePanel({ incidentId, incidentStatus }: EvidencePanelProps) {
+export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp }: EvidencePanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
@@ -55,7 +56,8 @@ export function EvidencePanel({ incidentId, incidentStatus }: EvidencePanelProps
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem | null>(null);
 
-  const isLocked = incidentStatus === 'closed';
+  // Read-only: locked when closed OR canEdit prop is explicitly false
+  const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
   const { data: evidenceItems, isLoading } = useEvidenceItems(incidentId);
   const createEvidence = useCreateEvidence();

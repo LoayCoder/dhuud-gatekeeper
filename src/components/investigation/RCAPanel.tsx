@@ -61,12 +61,13 @@ interface RCAPanelProps {
   incidentTitle?: string;
   incidentDescription?: string;
   incidentStatus?: string | null;
+  canEdit?: boolean;
 }
 
 // Debounce delay for auto-save (2 seconds)
 const AUTO_SAVE_DELAY = 2000;
 
-export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incidentStatus }: RCAPanelProps) {
+export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incidentStatus, canEdit: canEditProp }: RCAPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
@@ -80,9 +81,9 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
 
-  // Read-only mode when incident is closed OR manually locked
+  // Read-only mode when incident is closed OR manually locked OR canEdit prop is explicitly false
   const isClosedLocked = incidentStatus === 'closed';
-  const isLocked = isClosedLocked || isManuallyLocked;
+  const isLocked = isClosedLocked || isManuallyLocked || canEditProp === false;
 
   const form = useForm<RCAFormValues>({
     resolver: zodResolver(rcaSchema),

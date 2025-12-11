@@ -611,6 +611,20 @@
       "requestSuccess": "Matagumpay na naisumite ang kahilingan sa pagsara",
       "approveSuccess": "Matagumpay na naisara ang insidente",
       "rejectSuccess": "Tinanggihan ang kahilingan sa pagsara"
+    },
+    "readOnly": {
+      "oversightBanner": "Mayroon kang read-only access para subaybayan ang imbestigasyong ito. Tanging ang itinalagang imbestigador lamang ang makakagawa ng mga pagbabago.",
+      "notAssigned": "Hindi ikaw ang itinalagang imbestigador. Ang data ng imbestigasyon ay read-only.",
+      "closedBanner": "Ang insidenteng ito ay nakasara at ang lahat ng data ay naka-lock."
+    },
+    "reopen": {
+      "title": "Buksan Muli ang Saradong Insidente",
+      "button": "Buksan Muli ang Imbestigasyon",
+      "warning": "Ang pagbubukas muli sa insidenteng ito ay mag-a-unlock sa lahat ng data ng imbestigasyon para sa pag-edit. Ang aksyong ito ay itatala sa audit trail.",
+      "reasonLabel": "Dahilan ng Pagbubukas Muli",
+      "reasonPlaceholder": "Ipaliwanag kung bakit kailangang buksan muli ang insidenteng ito...",
+      "success": "Matagumpay na nabuksan muli ang insidente",
+      "onlyHSSEManager": "Tanging mga HSSE Manager lamang ang makakapagbukas muli ng mga saradong insidente"
     }
   },
   "pages": {

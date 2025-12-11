@@ -50,17 +50,18 @@ type ActionFormValues = z.infer<typeof actionSchema>;
 interface ActionsPanelProps {
   incidentId: string;
   incidentStatus?: string | null;
+  canEdit?: boolean;
 }
 
-export function ActionsPanel({ incidentId, incidentStatus }: ActionsPanelProps) {
+export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp }: ActionsPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set());
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
 
-  // Read-only mode when incident is closed
-  const isLocked = incidentStatus === 'closed';
+  // Read-only mode when incident is closed OR canEdit prop is explicitly false
+  const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);

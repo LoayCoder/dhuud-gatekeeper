@@ -640,6 +640,20 @@
       "requestSuccess": "Closure request submitted successfully",
       "approveSuccess": "Incident closed successfully",
       "rejectSuccess": "Closure request rejected"
+    },
+    "readOnly": {
+      "oversightBanner": "You have read-only access to monitor this investigation. Only the assigned investigator can make changes.",
+      "notAssigned": "You are not the assigned investigator. Investigation data is read-only.",
+      "closedBanner": "This incident is closed and all data is locked."
+    },
+    "reopen": {
+      "title": "Reopen Closed Incident",
+      "button": "Reopen Investigation",
+      "warning": "Reopening this incident will unlock all investigation data for editing. This action will be logged in the audit trail.",
+      "reasonLabel": "Reason for Reopening",
+      "reasonPlaceholder": "Explain why this incident needs to be reopened...",
+      "success": "Incident reopened successfully",
+      "onlyHSSEManager": "Only HSSE Managers can reopen closed incidents"
     }
   },
   "pages": {
