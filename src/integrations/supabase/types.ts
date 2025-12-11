@@ -3065,6 +3065,8 @@ export type Database = {
           ai_summary: string | null
           ai_summary_generated_at: string | null
           ai_summary_language: string | null
+          assigned_at: string | null
+          assigned_by: string | null
           completed_at: string | null
           contributing_factors: string | null
           contributing_factors_list: Json | null
@@ -3087,6 +3089,8 @@ export type Database = {
           ai_summary?: string | null
           ai_summary_generated_at?: string | null
           ai_summary_language?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
           contributing_factors_list?: Json | null
@@ -3109,6 +3113,8 @@ export type Database = {
           ai_summary?: string | null
           ai_summary_generated_at?: string | null
           ai_summary_language?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
           completed_at?: string | null
           contributing_factors?: string | null
           contributing_factors_list?: Json | null
