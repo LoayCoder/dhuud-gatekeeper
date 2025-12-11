@@ -169,36 +169,20 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
     );
   }
 
-  if (!canAssign) {
+  const hasInvestigator = !!investigation?.investigator_id;
+
+  // If investigator is assigned, ALWAYS show details (regardless of canAssign)
+  // Only show reassign option for HSSE Experts
+  if (hasInvestigator && assignedInvestigator) {
     return (
-      <Card className="bg-muted/50">
+      <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
             {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const hasInvestigator = !!investigation?.investigator_id;
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <UserCheck className="h-4 w-4" />
-          {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent dir={direction}>
-        {hasInvestigator && assignedInvestigator ? (
+        <CardContent dir={direction}>
           <div className="space-y-4">
             {/* Current Investigator Display */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -240,100 +224,134 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
               )}
             </div>
 
-            {/* Reassign option */}
-            <details className="group">
-              <summary className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
-                {t('investigation.overview.reassign', 'Reassign investigator...')}
-              </summary>
-              <div className="mt-3 space-y-3">
-                <div className="space-y-2">
-                  <Label>{t('investigation.overview.selectInvestigator', 'Select Investigator')}</Label>
-                  <Select value={selectedInvestigator} onValueChange={setSelectedInvestigator}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('investigation.overview.selectPlaceholder', 'Choose an investigator...')} />
-                    </SelectTrigger>
-                    <SelectContent dir={direction}>
-                      {investigators?.map((inv) => (
-                        <SelectItem key={inv.id} value={inv.id}>
-                          {inv.full_name} ({inv.job_title || inv.employee_id})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('investigation.overview.assignmentNotes', 'Assignment Notes')}</Label>
-                  <Textarea 
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder={t('investigation.overview.notesPlaceholder', 'Optional notes for the investigator...')}
-                    rows={2}
-                  />
-                </div>
-                <Button 
-                  onClick={() => assignMutation.mutate()}
-                  disabled={!selectedInvestigator || assignMutation.isPending}
-                  size="sm"
-                >
-                  {assignMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-                  {t('investigation.overview.reassignBtn', 'Reassign')}
-                </Button>
-              </div>
-            </details>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {loadingInvestigators ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t('common.loading')}
-              </div>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <Label>{t('investigation.overview.selectInvestigator', 'Select Investigator')}</Label>
-                  <Select value={selectedInvestigator} onValueChange={setSelectedInvestigator}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('investigation.overview.selectPlaceholder', 'Choose an investigator...')} />
-                    </SelectTrigger>
-                    <SelectContent dir={direction}>
-                      {investigators?.length === 0 ? (
-                        <div className="p-2 text-sm text-muted-foreground text-center">
-                          {t('investigation.overview.noInvestigators', 'No HSSE investigators available')}
-                        </div>
-                      ) : (
-                        investigators?.map((inv) => (
+            {/* Reassign option - only for HSSE Experts */}
+            {canAssign && (
+              <details className="group">
+                <summary className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                  {t('investigation.overview.reassign', 'Reassign investigator...')}
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div className="space-y-2">
+                    <Label>{t('investigation.overview.selectInvestigator', 'Select Investigator')}</Label>
+                    <Select value={selectedInvestigator} onValueChange={setSelectedInvestigator}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('investigation.overview.selectPlaceholder', 'Choose an investigator...')} />
+                      </SelectTrigger>
+                      <SelectContent dir={direction}>
+                        {investigators?.map((inv) => (
                           <SelectItem key={inv.id} value={inv.id}>
                             {inv.full_name} ({inv.job_title || inv.employee_id})
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('investigation.overview.assignmentNotes', 'Assignment Notes')}</Label>
+                    <Textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t('investigation.overview.notesPlaceholder', 'Optional notes for the investigator...')}
+                      rows={2}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => assignMutation.mutate()}
+                    disabled={!selectedInvestigator || assignMutation.isPending}
+                    size="sm"
+                  >
+                    {assignMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                    {t('investigation.overview.reassignBtn', 'Reassign')}
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>{t('investigation.overview.assignmentNotes', 'Assignment Notes')}</Label>
-                  <Textarea 
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder={t('investigation.overview.notesPlaceholder', 'Optional notes for the investigator...')}
-                    rows={2}
-                  />
-                </div>
-
-                <Button 
-                  onClick={() => assignMutation.mutate()}
-                  disabled={!selectedInvestigator || assignMutation.isPending}
-                  className="w-full"
-                >
-                  {assignMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-                  {t('investigation.overview.assignBtn', 'Assign Investigator')}
-                </Button>
-              </>
+              </details>
             )}
           </div>
-        )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // No investigator assigned yet - show "awaiting" message for non-experts
+  if (!canAssign) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // User can assign and no investigator yet - show assignment form
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <UserCheck className="h-4 w-4" />
+          {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent dir={direction}>
+        <div className="space-y-4">
+          {loadingInvestigators ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('common.loading')}
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label>{t('investigation.overview.selectInvestigator', 'Select Investigator')}</Label>
+                <Select value={selectedInvestigator} onValueChange={setSelectedInvestigator}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('investigation.overview.selectPlaceholder', 'Choose an investigator...')} />
+                  </SelectTrigger>
+                  <SelectContent dir={direction}>
+                    {investigators?.length === 0 ? (
+                      <div className="p-2 text-sm text-muted-foreground text-center">
+                        {t('investigation.overview.noInvestigators', 'No HSSE investigators available')}
+                      </div>
+                    ) : (
+                      investigators?.map((inv) => (
+                        <SelectItem key={inv.id} value={inv.id}>
+                          {inv.full_name} ({inv.job_title || inv.employee_id})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('investigation.overview.assignmentNotes', 'Assignment Notes')}</Label>
+                <Textarea 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t('investigation.overview.notesPlaceholder', 'Optional notes for the investigator...')}
+                  rows={2}
+                />
+              </div>
+
+              <Button 
+                onClick={() => assignMutation.mutate()}
+                disabled={!selectedInvestigator || assignMutation.isPending}
+                className="w-full"
+              >
+                {assignMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                {t('investigation.overview.assignBtn', 'Assign Investigator')}
+              </Button>
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
