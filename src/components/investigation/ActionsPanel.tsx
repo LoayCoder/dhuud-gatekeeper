@@ -13,13 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, ChevronDown, Link2, Building2, User, Lock, Sparkles } from "lucide-react";
 import { useCorrectiveActions, useCreateCorrectiveAction, useUpdateCorrectiveAction } from "@/hooks/use-investigation";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useTenantDepartments } from "@/hooks/use-org-hierarchy";
 import { useDepartmentUsers, useTenantUsers } from "@/hooks/use-department-users";
+import { useRCAAI } from "@/hooks/use-rca-ai";
+import { useIncident } from "@/hooks/use-incidents";
 import { format } from "date-fns";
 import { ActionEvidenceSection } from "./ActionEvidenceSection";
+import { toast } from "sonner";
 
 interface RootCause {
   id: string;
@@ -59,22 +62,28 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set());
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
+  const [isAISuggesting, setIsAISuggesting] = useState(false);
 
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
 
   const { data: actions, isLoading } = useCorrectiveActions(incidentId);
   const { data: investigation } = useInvestigation(incidentId);
+  const { data: incident } = useIncident(incidentId);
   const { data: departments } = useTenantDepartments();
   const { data: departmentUsers } = useDepartmentUsers(selectedDepartmentId);
   const { data: allUsers } = useTenantUsers();
   const createAction = useCreateCorrectiveAction();
   const updateAction = useUpdateCorrectiveAction();
+  const { suggestCorrectiveAction } = useRCAAI();
 
   // Parse root causes and contributing factors from investigation
   const investigationData = investigation as unknown as { 
     root_causes?: RootCause[]; 
     contributing_factors_list?: ContributingFactor[];
+    five_whys?: Array<{ why: string; answer: string }>;
+    immediate_cause?: string;
+    underlying_cause?: string;
   } | null;
   const rootCauses: RootCause[] = investigationData?.root_causes || [];
   const contributingFactors: ContributingFactor[] = investigationData?.contributing_factors_list || [];
@@ -91,6 +100,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
   });
 
   const selectedCauseType = form.watch('linked_cause_type');
+  const selectedCauseId = form.watch('linked_root_cause_id');
 
   // Get the appropriate list based on selected cause type
   const causesForSelection = useMemo(() => {
@@ -99,8 +109,63 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
     return [];
   }, [selectedCauseType, rootCauses, contributingFactors]);
 
+  // Get selected cause details for preview
+  const selectedCause = useMemo(() => {
+    if (!selectedCauseId || selectedCauseId === '_none_') return null;
+    if (selectedCauseType === 'root_cause') {
+      return rootCauses.find(c => c.id === selectedCauseId);
+    }
+    return contributingFactors.find(c => c.id === selectedCauseId);
+  }, [selectedCauseId, selectedCauseType, rootCauses, contributingFactors]);
+
   // Users to show in assignment dropdown
   const usersForAssignment = selectedDepartmentId ? departmentUsers : allUsers;
+
+  // AI Suggest handler for title & description
+  const handleAISuggestAction = async () => {
+    if (!selectedCause) {
+      toast.error(t('investigation.actions.ai.selectCauseFirst', 'Select a cause first'));
+      return;
+    }
+    
+    setIsAISuggesting(true);
+    
+    const rcaData = {
+      incident_title: incident?.title,
+      incident_description: incident?.description,
+      severity: incident?.severity,
+      event_type: incident?.event_type,
+      five_whys: investigationData?.five_whys?.map(w => ({ question: w.why, answer: w.answer })),
+      immediate_cause: investigationData?.immediate_cause,
+      underlying_cause: investigationData?.underlying_cause,
+      selected_cause_type: selectedCauseType as 'root_cause' | 'contributing_factor',
+      selected_cause_text: selectedCause.text,
+    };
+    
+    const result = await suggestCorrectiveAction(rcaData);
+    
+    if (result) {
+      try {
+        // Clean up markdown code blocks if present
+        const cleanJson = result.replace(/```(?:json)?\s*/g, '').replace(/\s*```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        
+        if (parsed.suggested_title) {
+          form.setValue('title', parsed.suggested_title);
+        }
+        if (parsed.suggested_description) {
+          form.setValue('description', parsed.suggested_description);
+        }
+        toast.success(t('investigation.actions.ai.suggestionApplied', 'AI suggestion applied'));
+      } catch (e) {
+        console.error('Failed to parse AI suggestion:', e, result);
+        toast.error(t('investigation.actions.ai.parseError', 'Failed to parse AI suggestion'));
+      }
+    }
+    
+    setIsAISuggesting(false);
+  };
+
   const onSubmit = async (data: ActionFormValues) => {
     if (!data.title) return;
     await createAction.mutateAsync({
@@ -254,35 +319,8 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('investigation.actions.actionTitle', 'Action Title')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder={t('investigation.actions.titlePlaceholder', 'Enter action title...')} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('investigation.actions.description', 'Description')}</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} rows={3} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Linked Cause Type Selector */}
+                  
+                  {/* STEP 1: Link to Cause (AT TOP) */}
                   {(rootCauses.length > 0 || contributingFactors.length > 0) && (
                     <div className="space-y-3">
                       <FormField
@@ -357,6 +395,74 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                       )}
                     </div>
                   )}
+
+                  {/* STEP 2: Selected Cause Preview with AI Suggest */}
+                  {selectedCause && (
+                    <Card className="bg-muted/50 border-dashed">
+                      <CardContent className="p-3">
+                        <div className="flex items-start gap-2">
+                          <Link2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                          <div className="space-y-2 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {selectedCauseType === 'root_cause' 
+                                  ? t('investigation.rca.rootCause', 'Root Cause')
+                                  : t('investigation.rca.contributingFactor', 'Contributing Factor')}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs gap-1"
+                                onClick={handleAISuggestAction}
+                                disabled={isAISuggesting}
+                              >
+                                {isAISuggesting ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3 w-3" />
+                                )}
+                                {t('investigation.actions.ai.suggestAction', 'AI Suggest Action')}
+                              </Button>
+                            </div>
+                            <p className="text-sm leading-relaxed text-foreground">
+                              {selectedCause.text}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* STEP 3: Title */}
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('investigation.actions.actionTitle', 'Action Title')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder={t('investigation.actions.titlePlaceholder', 'Enter action title...')} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* STEP 4: Description */}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('investigation.actions.description', 'Description')}</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} rows={3} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
