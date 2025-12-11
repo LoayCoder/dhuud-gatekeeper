@@ -19,9 +19,12 @@ interface RCAData {
   incident_title?: string;
   witness_statements?: Array<{ name: string; statement: string }>;
   evidence_descriptions?: string[];
+  severity?: string;
+  event_type?: string;
+  event_subtype?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'translate_and_rewrite' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause';
 
 interface RequestPayload {
   action: ActionType;
@@ -273,7 +276,7 @@ Return ONLY the final English text without any explanation, preamble, or quotes.
 async function handleGenerateWhys(data: RCAData): Promise<string> {
   const systemPrompt = `You are an expert HSSE incident investigator conducting 5-Whys root cause analysis.
 
-Based on the incident details, witness statements, and evidence provided, generate 3-5 "Why" questions with answers that progressively dig deeper into the root cause.
+Based on the incident details, severity level, event classification, witness statements, and evidence provided, generate 3-5 "Why" questions with answers that progressively dig deeper into the root cause.
 
 Guidelines:
 - Start with the immediate "Why did this happen?" and dig deeper with each subsequent why
@@ -296,6 +299,8 @@ Return ONLY a JSON array in this exact format (no markdown, no code blocks):
 
   const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
 DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
 
 WITNESS STATEMENTS:
 ${witnessText}
@@ -304,6 +309,112 @@ EVIDENCE:
 ${evidenceText}
 
 Generate 3-5 Why questions with answers in JSON format:`;
+
+  return await callAI(systemPrompt, userPrompt);
+}
+
+// Generate Immediate Cause based on 5-Whys analysis
+async function handleGenerateImmediateCause(data: RCAData): Promise<string> {
+  const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
+
+Based on the 5-Whys analysis and incident context provided, identify the IMMEDIATE CAUSE.
+
+The Immediate Cause is:
+- The direct action, condition, or event that triggered the incident
+- What happened immediately before the incident
+- NOT the underlying systemic issue, but the direct cause
+
+Guidelines:
+- Base your analysis ONLY on the data provided (no assumptions)
+- Write 1-2 clear, factual sentences
+- Use professional HSSE language aligned with ISO 45001/OSHA
+- Focus on the direct trigger, not root causes
+
+Return ONLY the immediate cause text without any explanation or formatting.`;
+
+  const whysText = data.five_whys?.length 
+    ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question}\nAnswer: ${w.answer}`).join('\n\n')
+    : 'Not yet analyzed';
+  
+  const witnessText = data.witness_statements?.length 
+    ? data.witness_statements.map(w => `Witness ${w.name}: ${w.statement}`).join('\n\n')
+    : 'No witness statements';
+  
+  const evidenceText = data.evidence_descriptions?.length 
+    ? data.evidence_descriptions.join('\n')
+    : 'No evidence descriptions';
+
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
+
+5-WHYS ANALYSIS:
+${whysText}
+
+WITNESS STATEMENTS:
+${witnessText}
+
+EVIDENCE:
+${evidenceText}
+
+Based on the above, identify the IMMEDIATE CAUSE (1-2 sentences):`;
+
+  return await callAI(systemPrompt, userPrompt);
+}
+
+// Generate Underlying Cause based on 5-Whys and Immediate Cause
+async function handleGenerateUnderlyingCause(data: RCAData): Promise<string> {
+  const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
+
+Based on all the analysis provided (5-Whys and Immediate Cause), identify the UNDERLYING CAUSE.
+
+The Underlying Cause focuses on SYSTEM-LEVEL failures:
+- Procedural gaps (missing or inadequate SOPs)
+- Training deficiencies
+- Equipment/engineering issues
+- Organizational/management system contributors
+- Communication breakdowns
+
+Guidelines:
+- Base your analysis ONLY on the data provided (no assumptions beyond evidence)
+- Write 2-3 clear, factual sentences
+- Focus on WHY the system allowed the immediate cause to occur
+- Use professional HSSE language aligned with ISO 45001/OSHA
+- Do NOT repeat the immediate cause - go deeper into systemic issues
+
+Return ONLY the underlying cause text without any explanation or formatting.`;
+
+  const whysText = data.five_whys?.length 
+    ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question}\nAnswer: ${w.answer}`).join('\n\n')
+    : 'Not yet analyzed';
+  
+  const witnessText = data.witness_statements?.length 
+    ? data.witness_statements.map(w => `Witness ${w.name}: ${w.statement}`).join('\n\n')
+    : 'No witness statements';
+  
+  const evidenceText = data.evidence_descriptions?.length 
+    ? data.evidence_descriptions.join('\n')
+    : 'No evidence descriptions';
+
+  const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
+DESCRIPTION: ${data.incident_description || 'No description'}
+SEVERITY: ${data.severity || 'Not specified'}
+EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${data.event_subtype})` : ''}
+
+5-WHYS ANALYSIS:
+${whysText}
+
+IMMEDIATE CAUSE (already identified):
+${data.immediate_cause || 'Not yet identified'}
+
+WITNESS STATEMENTS:
+${witnessText}
+
+EVIDENCE:
+${evidenceText}
+
+Based on the above, identify the UNDERLYING CAUSE (2-3 sentences focusing on system-level failures):`;
 
   return await callAI(systemPrompt, userPrompt);
 }
@@ -356,6 +467,16 @@ serve(async (req) => {
       case 'generate_whys':
         if (!data) throw new Error('RCA data is required for generate_whys action');
         result = await handleGenerateWhys(data);
+        break;
+
+      case 'generate_immediate_cause':
+        if (!data) throw new Error('RCA data is required for generate_immediate_cause action');
+        result = await handleGenerateImmediateCause(data);
+        break;
+
+      case 'generate_underlying_cause':
+        if (!data) throw new Error('RCA data is required for generate_underlying_cause action');
+        result = await handleGenerateUnderlyingCause(data);
         break;
 
       default:

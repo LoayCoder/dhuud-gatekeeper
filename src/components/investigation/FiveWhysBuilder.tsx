@@ -16,6 +16,9 @@ interface FiveWhysBuilderProps {
   incidentDescription?: string;
   witnessStatements?: Array<{ name: string; statement: string }>;
   evidenceDescriptions?: string[];
+  severity?: string;
+  eventType?: string;
+  eventSubtype?: string;
 }
 
 export function FiveWhysBuilder({ 
@@ -25,7 +28,10 @@ export function FiveWhysBuilder({
   incidentTitle,
   incidentDescription,
   witnessStatements,
-  evidenceDescriptions 
+  evidenceDescriptions,
+  severity,
+  eventType,
+  eventSubtype
 }: FiveWhysBuilderProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -116,6 +122,9 @@ export function FiveWhysBuilder({
       incident_description: incidentDescription,
       witness_statements: witnessStatements,
       evidence_descriptions: evidenceDescriptions,
+      severity: severity,
+      event_type: eventType,
+      event_subtype: eventSubtype,
     };
     
     const result = await generateWhyQuestions(rcaData);

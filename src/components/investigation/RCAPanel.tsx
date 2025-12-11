@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save, Loader2, Wand2, Check, Pencil, Lock } from "lucide-react";
+import { Save, Loader2, Wand2, Check, Pencil, Lock, Sparkles } from "lucide-react";
 import { FiveWhysBuilder } from "./FiveWhysBuilder";
 import { RootCausesBuilder, type RootCauseEntry } from "./RootCausesBuilder";
 import { ContributingFactorsBuilder, type ContributingFactorEntry } from "./ContributingFactorsBuilder";
@@ -63,20 +63,32 @@ interface RCAPanelProps {
   incidentTitle?: string;
   incidentDescription?: string;
   incidentStatus?: string | null;
+  incidentSeverity?: string;
+  incidentEventType?: string;
+  incidentEventSubtype?: string;
   canEdit?: boolean;
 }
 
 // Debounce delay for auto-save (2 seconds)
 const AUTO_SAVE_DELAY = 2000;
 
-export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incidentStatus, canEdit: canEditProp }: RCAPanelProps) {
+export function RCAPanel({ 
+  incidentId, 
+  incidentTitle, 
+  incidentDescription, 
+  incidentStatus, 
+  incidentSeverity,
+  incidentEventType,
+  incidentEventSubtype,
+  canEdit: canEditProp 
+}: RCAPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
   const { data: investigation, isLoading } = useInvestigation(incidentId);
   const createInvestigation = useCreateInvestigation();
   const updateInvestigation = useUpdateInvestigation();
-  const { rewriteText, isLoading: isAILoading } = useRCAAI();
+  const { rewriteText, generateImmediateCause, generateUnderlyingCause, isLoading: isAILoading } = useRCAAI();
   
   // Fetch witness statements and evidence for AI Generate Whys
   const { statements: witnessStatements } = useWitnessStatements(incidentId);
@@ -92,6 +104,7 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
     ?.filter(e => e.description)
     .map(e => `${e.evidence_type}: ${e.description}`) || [];
   const [rewritingField, setRewritingField] = useState<string | null>(null);
+  const [generatingField, setGeneratingField] = useState<'immediate' | 'underlying' | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isManuallyLocked, setIsManuallyLocked] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -254,6 +267,59 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
     setRewritingField(null);
   };
 
+  // AI Suggest Immediate Cause - requires 5 Whys to be completed
+  const handleSuggestImmediateCause = async () => {
+    setGeneratingField('immediate');
+    
+    const rcaData = {
+      incident_title: incidentTitle,
+      incident_description: incidentDescription,
+      severity: incidentSeverity,
+      event_type: incidentEventType,
+      event_subtype: incidentEventSubtype,
+      five_whys: fiveWhysValue.map(w => ({ question: w.why, answer: w.answer })),
+      witness_statements: witnessData,
+      evidence_descriptions: evidenceDescriptions,
+    };
+    
+    const result = await generateImmediateCause(rcaData);
+    
+    if (result) {
+      form.setValue('immediate_cause', result);
+    }
+    
+    setGeneratingField(null);
+  };
+
+  // AI Suggest Underlying Cause - requires Immediate Cause to be completed
+  const handleSuggestUnderlyingCause = async () => {
+    setGeneratingField('underlying');
+    
+    const rcaData = {
+      incident_title: incidentTitle,
+      incident_description: incidentDescription,
+      severity: incidentSeverity,
+      event_type: incidentEventType,
+      event_subtype: incidentEventSubtype,
+      five_whys: fiveWhysValue.map(w => ({ question: w.why, answer: w.answer })),
+      immediate_cause: immediateCauseValue,
+      witness_statements: witnessData,
+      evidence_descriptions: evidenceDescriptions,
+    };
+    
+    const result = await generateUnderlyingCause(rcaData);
+    
+    if (result) {
+      form.setValue('underlying_cause', result);
+    }
+    
+    setGeneratingField(null);
+  };
+
+  // Watch form values for AI handlers (needed before conditional returns)
+  const fiveWhysValue = form.watch('five_whys');
+  const immediateCauseValue = form.watch('immediate_cause');
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -278,8 +344,6 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
     );
   }
 
-  const fiveWhysValue = form.watch('five_whys');
-  const immediateCauseValue = form.watch('immediate_cause');
   const underlyingCauseValue = form.watch('underlying_cause');
   const rootCausesValue = form.watch('root_causes');
   const contributingFactorsListValue = form.watch('contributing_factors_list');
@@ -331,6 +395,9 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
                   incidentDescription={incidentDescription}
                   witnessStatements={witnessData}
                   evidenceDescriptions={evidenceDescriptions}
+                  severity={incidentSeverity}
+                  eventType={incidentEventType}
+                  eventSubtype={incidentEventSubtype}
                 />
               )}
             />
@@ -351,26 +418,44 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
               name="immediate_cause"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <FormLabel className="text-muted-foreground text-sm">
                       {t('investigation.rca.immediateCauseDesc', 'What directly caused the incident?')}
                     </FormLabel>
                     {!isLocked && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => handleRewriteField('immediate_cause')}
-                      disabled={isAILoading || !field.value?.trim()}
-                    >
-                      {rewritingField === 'immediate_cause' ? (
-                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
-                      ) : (
-                        <Wand2 className="h-3 w-3 me-1" />
-                      )}
-                      {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
-                    </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={handleSuggestImmediateCause}
+                          disabled={isAILoading || fiveWhysValue.length === 0}
+                          title={fiveWhysValue.length === 0 ? t('investigation.rca.ai.completeWhysFirst', 'Complete 5-Whys analysis first') : undefined}
+                        >
+                          {generatingField === 'immediate' ? (
+                            <Loader2 className="h-3 w-3 me-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 me-1" />
+                          )}
+                          {t('investigation.rca.ai.suggest', 'AI Suggest')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleRewriteField('immediate_cause')}
+                          disabled={isAILoading || !field.value?.trim()}
+                        >
+                          {rewritingField === 'immediate_cause' ? (
+                            <Loader2 className="h-3 w-3 me-1 animate-spin" />
+                          ) : (
+                            <Wand2 className="h-3 w-3 me-1" />
+                          )}
+                          {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <FormControl>
@@ -402,26 +487,44 @@ export function RCAPanel({ incidentId, incidentTitle, incidentDescription, incid
               name="underlying_cause"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <FormLabel className="text-muted-foreground text-sm">
                       {t('investigation.rca.underlyingCauseDesc', 'What conditions or circumstances allowed this to happen?')}
                     </FormLabel>
                     {!isLocked && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => handleRewriteField('underlying_cause')}
-                      disabled={isAILoading || !field.value?.trim()}
-                    >
-                      {rewritingField === 'underlying_cause' ? (
-                        <Loader2 className="h-3 w-3 me-1 animate-spin" />
-                      ) : (
-                        <Wand2 className="h-3 w-3 me-1" />
-                      )}
-                      {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
-                    </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={handleSuggestUnderlyingCause}
+                          disabled={isAILoading || !immediateCauseValue?.trim()}
+                          title={!immediateCauseValue?.trim() ? t('investigation.rca.ai.completeImmediateFirst', 'Complete Immediate Cause first') : undefined}
+                        >
+                          {generatingField === 'underlying' ? (
+                            <Loader2 className="h-3 w-3 me-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 me-1" />
+                          )}
+                          {t('investigation.rca.ai.suggest', 'AI Suggest')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleRewriteField('underlying_cause')}
+                          disabled={isAILoading || !field.value?.trim()}
+                        >
+                          {rewritingField === 'underlying_cause' ? (
+                            <Loader2 className="h-3 w-3 me-1 animate-spin" />
+                          ) : (
+                            <Wand2 className="h-3 w-3 me-1" />
+                          )}
+                          {t('investigation.rca.ai.rewrite', 'AI Rewrite')}
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <FormControl>
