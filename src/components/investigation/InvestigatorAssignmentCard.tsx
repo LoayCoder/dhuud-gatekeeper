@@ -107,7 +107,7 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
           .update({
             investigator_id: selectedInvestigator,
             assigned_by: user.id,
-            assignment_date: new Date().toISOString(),
+            assigned_at: new Date().toISOString(),
             assignment_notes: notes || null,
           })
           .eq('id', investigation.id);
@@ -121,7 +121,7 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
             tenant_id: profile.tenant_id,
             investigator_id: selectedInvestigator,
             assigned_by: user.id,
-            assignment_date: new Date().toISOString(),
+            assigned_at: new Date().toISOString(),
             assignment_notes: notes || null,
           });
 
