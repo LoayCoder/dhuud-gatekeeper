@@ -34,45 +34,8 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
   // Check if current user is HSSE Expert (can assign investigators)
   const { data: canAssign, isLoading: checkingPermission } = useCanPerformExpertScreening();
 
-  // If user cannot assign investigators, show read-only placeholder
-  if (checkingPermission) {
-    return (
-      <Card className="bg-muted/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t('common.loading')}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!canAssign) {
-    return (
-      <Card className="bg-muted/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // Fetch HSSE-eligible users for investigator selection
+  // Must be called unconditionally to follow Rules of Hooks
   const { data: investigators, isLoading: loadingInvestigators } = useQuery({
     queryKey: ['hsse-investigators', profile?.tenant_id],
     queryFn: async () => {
@@ -110,7 +73,7 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
 
       return usersData?.filter(p => hsseUserIds.has(p.id)) || [];
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!profile?.tenant_id && !!canAssign,
   });
 
   // Fetch assigned investigator profile
@@ -130,6 +93,44 @@ export function InvestigatorAssignmentCard({ incident, investigation, onRefresh 
     },
     enabled: !!investigation?.investigator_id,
   });
+
+  // Early returns AFTER all hooks have been called
+  if (checkingPermission) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t('common.loading')}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!canAssign) {
+    return (
+      <Card className="bg-muted/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            {t('investigation.overview.investigatorAssignment', 'Investigator Assignment')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t('investigation.overview.awaitingExpertAssignment', 'HSSE Expert will assign an investigator for this case.')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Mutation to assign investigator
   const assignMutation = useMutation({
