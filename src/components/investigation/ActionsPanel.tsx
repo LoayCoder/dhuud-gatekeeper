@@ -834,6 +834,21 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                               <span className="truncate">{linkedCauseText}</span>
                             </div>
                           )}
+                          {/* Assignee and Department info */}
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            {action.assignee?.full_name && (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                <span>{action.assignee.full_name}</span>
+                              </div>
+                            )}
+                            {action.department?.name && (
+                              <div className="flex items-center gap-1">
+                                <Building2 className="h-3 w-3" />
+                                <span>{action.department.name}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

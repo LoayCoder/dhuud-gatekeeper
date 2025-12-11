@@ -73,6 +73,9 @@ export interface CorrectiveAction {
   rejection_notes: string | null;
   tenant_id: string;
   created_at: string;
+  // Joined fields
+  assignee?: { id: string; full_name: string | null; job_title: string | null } | null;
+  department?: { id: string; name: string } | null;
 }
 
 export interface IncidentAuditLog {
@@ -283,7 +286,16 @@ export function useCorrectiveActions(incidentId: string | null) {
       
       const { data, error } = await supabase
         .from('corrective_actions')
-        .select('*')
+        .select(`
+          id, title, description, status, priority, action_type,
+          due_date, start_date, assigned_to, responsible_department_id,
+          category, linked_root_cause_id, linked_cause_type, deleted_at,
+          incident_id, tenant_id, created_at, completed_date,
+          verified_by, verified_at, verification_notes,
+          rejected_by, rejected_at, rejection_notes,
+          assignee:profiles!assigned_to(id, full_name, job_title),
+          department:departments!responsible_department_id(id, name)
+        `)
         .eq('incident_id', incidentId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
