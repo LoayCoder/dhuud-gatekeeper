@@ -13,9 +13,12 @@ interface RCAData {
   incident_title?: string;
   witness_statements?: Array<{ name: string; statement: string }>;
   evidence_descriptions?: string[];
+  severity?: string;
+  event_type?: string;
+  event_subtype?: string;
 }
 
-type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys';
+type ActionType = 'rewrite' | 'suggest_cause' | 'suggest_why' | 'generate_summary' | 'translate' | 'generate_whys' | 'generate_immediate_cause' | 'generate_underlying_cause';
 
 interface UseRCAAIOptions {
   onSuccess?: (result: string) => void;
@@ -111,6 +114,12 @@ export function useRCAAI(options?: UseRCAAIOptions) {
   const generateWhyQuestions = (data: RCAData) => 
     callRCAAI({ action: 'generate_whys', data });
 
+  const generateImmediateCause = (data: RCAData) => 
+    callRCAAI({ action: 'generate_immediate_cause', data });
+
+  const generateUnderlyingCause = (data: RCAData) => 
+    callRCAAI({ action: 'generate_underlying_cause', data });
+
   return {
     isLoading,
     error,
@@ -120,5 +129,7 @@ export function useRCAAI(options?: UseRCAAIOptions) {
     generateSummary,
     translateSummary,
     generateWhyQuestions,
+    generateImmediateCause,
+    generateUnderlyingCause,
   };
 }

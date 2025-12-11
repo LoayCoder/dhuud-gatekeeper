@@ -423,6 +423,10 @@ export default function InvestigationWorkspace() {
                 <RCAPanel 
                   incidentId={selectedIncidentId} 
                   incidentStatus={selectedIncident?.status}
+                  incidentTitle={selectedIncident?.title}
+                  incidentDescription={selectedIncident?.description}
+                  incidentSeverity={selectedIncident?.severity}
+                  incidentEventType={selectedIncident?.event_type}
                   canEdit={editAccess.canEdit}
                 />
               ) : null}
