@@ -1302,6 +1302,8 @@
     "enterFullName": "أدخل اسمك الكامل",
     "emailAddress": "عنوان البريد الإلكتروني",
     "emailManagedByOrg": "عنوان البريد الإلكتروني مدار بواسطة مسؤول مؤسستك.",
+    "jobTitle": "المسمى الوظيفي",
+    "jobTitleManagedByAdmin": "المسمى الوظيفي الخاص بك مدار بواسطة مسؤول مؤسستك.",
     "phoneNumber": "رقم الهاتف",
     "emergencyContact": "جهة الاتصال للطوارئ",
     "emergencyContactDescription": "الشخص الذي يجب الاتصال به في حالة الطوارئ في مكان العمل.",

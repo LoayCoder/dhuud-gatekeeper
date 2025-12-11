@@ -1092,6 +1092,8 @@
     "enterFullName": "Enter your full name",
     "emailAddress": "Email Address",
     "emailManagedByOrg": "Email address is managed by your organization administrator.",
+    "jobTitle": "Job Title",
+    "jobTitleManagedByAdmin": "Your job title is managed by your organization's admin.",
     "phoneNumber": "Phone Number",
     "emergencyContact": "Emergency Contact",
     "emergencyContactDescription": "Person to contact in case of emergency at the workplace.",
