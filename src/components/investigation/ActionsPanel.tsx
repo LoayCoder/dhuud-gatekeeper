@@ -788,8 +788,8 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
             return (
               <Card key={action.id}>
                 <Collapsible open={isExpanded} onOpenChange={() => toggleActionExpand(action.id)}>
-                  <CardContent className="pt-4">
-                    <div className="flex items-start justify-between gap-4">
+                  <CardContent className="pt-4 min-w-0 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         {getStatusIcon(action.status)}
                         <div className="space-y-1 flex-1 min-w-0">
@@ -851,7 +851,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
                         {!isLocked && (
                           <>
                             <Button
@@ -879,7 +879,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                             value={action.status || 'assigned'}
                             onValueChange={(value) => handleStatusChange(action.id, value)}
                           >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-full sm:w-32">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent dir={direction}>
