@@ -69,7 +69,26 @@
     "closedStatus": "Sarado",
     "overdueStatus": "Nahuling",
     "actions": "Aksyon",
-    "investigations": "Imbes."
+    "investigations": "Imbes.",
+    "trend": "Trend",
+    "vsLastMonth": "kumpara sa nakaraang buwan",
+    "correctiveActionStatus": "Katayuan ng Corrective Action",
+    "investigationProgress": "Progreso ng Imbestigasyon",
+    "filterAll": "Lahat",
+    "comparePeriod": "Ikumpara",
+    "previousPeriod": "Nakaraang Panahon",
+    "actionStatus": {
+      "inProgress": "Isinasagawa",
+      "closed": "Sarado",
+      "overdue": "Nahuling",
+      "pendingVerification": "Naghihintay ng Pagpapatunay"
+    },
+    "investigationStatus": {
+      "assigned": "Itinalaga",
+      "inProgress": "Isinasagawa",
+      "closed": "Sarado",
+      "returned": "Ibinalik"
+    }
   },
   "incidents": {
     "wizard": {

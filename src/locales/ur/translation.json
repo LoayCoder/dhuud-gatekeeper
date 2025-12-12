@@ -69,7 +69,26 @@
     "closedStatus": "بند",
     "overdueStatus": "تاخیر شدہ",
     "actions": "اقدامات",
-    "investigations": "تحقیق"
+    "investigations": "تحقیق",
+    "trend": "رجحان",
+    "vsLastMonth": "پچھلے مہینے کے مقابلے میں",
+    "correctiveActionStatus": "اصلاحی اقدام کی حیثیت",
+    "investigationProgress": "تحقیق کی پیشرفت",
+    "filterAll": "سب",
+    "comparePeriod": "موازنہ",
+    "previousPeriod": "پچھلا دورانیہ",
+    "actionStatus": {
+      "inProgress": "جاری ہے",
+      "closed": "بند",
+      "overdue": "تاخیر شدہ",
+      "pendingVerification": "تصدیق کے منتظر"
+    },
+    "investigationStatus": {
+      "assigned": "تفویض شدہ",
+      "inProgress": "جاری ہے",
+      "closed": "بند",
+      "returned": "واپس"
+    }
   },
   "incidents": {
     "wizard": {

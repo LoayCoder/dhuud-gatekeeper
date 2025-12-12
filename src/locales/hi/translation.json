@@ -69,7 +69,26 @@
     "closedStatus": "बंद",
     "overdueStatus": "विलंबित",
     "actions": "कार्रवाइयां",
-    "investigations": "जांच"
+    "investigations": "जांच",
+    "trend": "रुझान",
+    "vsLastMonth": "पिछले महीने की तुलना में",
+    "correctiveActionStatus": "सुधारात्मक कार्रवाई की स्थिति",
+    "investigationProgress": "जांच की प्रगति",
+    "filterAll": "सभी",
+    "comparePeriod": "तुलना करें",
+    "previousPeriod": "पिछली अवधि",
+    "actionStatus": {
+      "inProgress": "प्रगति में",
+      "closed": "बंद",
+      "overdue": "विलंबित",
+      "pendingVerification": "सत्यापन लंबित"
+    },
+    "investigationStatus": {
+      "assigned": "सौंपा गया",
+      "inProgress": "प्रगति में",
+      "closed": "बंद",
+      "returned": "लौटाया गया"
+    }
   },
   "incidents": {
     "wizard": {

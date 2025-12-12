@@ -1,11 +1,14 @@
 export { EventTypeDistributionChart } from './EventTypeDistributionChart';
 export { SeverityDistributionChart } from './SeverityDistributionChart';
 export { EventTrendChart } from './EventTrendChart';
+export { EnhancedEventTrendChart } from './EnhancedEventTrendChart';
 export { StatusDistributionChart } from './StatusDistributionChart';
 export { LocationAnalytics } from './LocationAnalytics';
 export { EnhancedLocationAnalytics } from './EnhancedLocationAnalytics';
 export { ReporterLeaderboard } from './ReporterLeaderboard';
 export { ActionsStatusWidget } from './ActionsStatusWidget';
+export { CorrectiveActionDonutChart } from './CorrectiveActionDonutChart';
+export { InvestigationProgressChart } from './InvestigationProgressChart';
 export { AIInsightsPanel } from './AIInsightsPanel';
 export { QuickActionsCard } from './QuickActionsCard';
 export { RecentEventsCard } from './RecentEventsCard';
