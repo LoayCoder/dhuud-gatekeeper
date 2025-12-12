@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlayCircle, CheckCircle2, Upload, AlertTriangle, Loader2, Image, FileText } from 'lucide-react';
+import { PlayCircle, CheckCircle2, Upload, AlertTriangle, Loader2, Image, FileText, ArrowLeft, Shield } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,7 @@ export function ActionProgressDialog({
   const [notes, setNotes] = useState('');
   const [overdueJustification, setOverdueJustification] = useState('');
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const { data: existingEvidence } = useActionEvidence(action?.id || null);
 
@@ -76,7 +77,15 @@ export function ActionProgressDialog({
     },
   });
 
-  const handleConfirm = async () => {
+  const handleProceedToConfirm = () => {
+    setShowConfirmation(true);
+  };
+
+  const handleBackToForm = () => {
+    setShowConfirmation(false);
+  };
+
+  const handleFinalConfirm = async () => {
     if (!action) return;
 
     // Pass files to parent - parent will handle upload with incident context
@@ -91,6 +100,7 @@ export function ActionProgressDialog({
     setNotes('');
     setOverdueJustification('');
     setUploadingFiles([]);
+    setShowConfirmation(false);
     onOpenChange(false);
   };
 
@@ -100,11 +110,116 @@ export function ActionProgressDialog({
       setNotes('');
       setOverdueJustification('');
       setUploadingFiles([]);
+      setShowConfirmation(false);
     }
   }, [open]);
 
   if (!action) return null;
 
+  // Confirmation Step View
+  if (showConfirmation) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg" dir={direction}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-500" />
+              {t('actions.confirmSubmission', 'Confirm Submission')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('actions.reviewBeforeSubmit', 'Please review your submission before confirming.')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Action Summary */}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {mode === 'start'
+                  ? t('actions.confirmStartWorkMessage', 'You are about to start work on this action. Status will change to "In Progress".')
+                  : t('actions.confirmCompleteMessage', 'You are about to submit this action for verification. It will be reviewed by HSSE.')
+                }
+              </AlertDescription>
+            </Alert>
+
+            {/* Action Info */}
+            <div className="p-3 bg-muted rounded-md">
+              <h4 className="font-medium text-sm text-muted-foreground mb-1">
+                {t('actions.actionTitle', 'Action')}
+              </h4>
+              <p className="font-medium">{action.title}</p>
+            </div>
+
+            {/* Files Summary */}
+            {uploadingFiles.length > 0 && (
+              <div className="p-3 bg-muted rounded-md">
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                  {t('actions.filesToUpload', 'Files to Upload')}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {uploadingFiles.map((file, idx) => (
+                    <Badge key={idx} variant="secondary" className="gap-1">
+                      {file.type.startsWith('image/') ? (
+                        <Image className="h-3 w-3" />
+                      ) : (
+                        <FileText className="h-3 w-3" />
+                      )}
+                      {file.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notes Preview */}
+            <div className="p-3 bg-muted rounded-md">
+              <h4 className="font-medium text-sm text-muted-foreground mb-1">
+                {mode === 'start' ? t('actions.progressNotes', 'Progress Notes') : t('actions.completionNotes', 'Completion Notes')}
+              </h4>
+              <p className="text-sm whitespace-pre-wrap">{notes}</p>
+            </div>
+
+            {/* Overdue Justification Preview */}
+            {isOverdue && mode === 'complete' && overdueJustification && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <h4 className="font-medium text-sm text-destructive mb-1">
+                  {t('actions.overdueJustification', 'Overdue Justification')}
+                </h4>
+                <p className="text-sm whitespace-pre-wrap">{overdueJustification}</p>
+              </div>
+            )}
+
+            {/* Status Change Preview */}
+            <div className="flex items-center gap-2 p-3 border rounded-md">
+              <span className="text-sm text-muted-foreground">
+                {t('actions.statusWillChange', 'Status will change to:')}
+              </span>
+              <Badge variant={mode === 'start' ? 'default' : 'secondary'}>
+                {mode === 'start' 
+                  ? t('actions.status.in_progress', 'In Progress')
+                  : t('actions.status.completed', 'Pending Verification')
+                }
+              </Badge>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleBackToForm} disabled={isSubmitting}>
+              <ArrowLeft className="h-4 w-4 me-2" />
+              {t('common.goBack', 'Go Back')}
+            </Button>
+            <Button onClick={handleFinalConfirm} disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('actions.confirmAndSubmit', 'Confirm & Submit')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Form View (original)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg" dir={direction}>
@@ -277,13 +392,12 @@ export function ActionProgressDialog({
             {t('common.cancel', 'Cancel')}
           </Button>
           <Button
-            onClick={handleConfirm}
+            onClick={handleProceedToConfirm}
             disabled={!isValid || isSubmitting}
           >
-            {isSubmitting && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
             {mode === 'start'
-              ? t('actions.startWorkButton', 'Start Work')
-              : t('actions.submitForVerification', 'Submit for Verification')
+              ? t('actions.proceedToConfirm', 'Continue')
+              : t('actions.proceedToConfirm', 'Continue')
             }
           </Button>
         </DialogFooter>

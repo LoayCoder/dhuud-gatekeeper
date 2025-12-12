@@ -1002,7 +1002,16 @@
     "existingEvidence": "{{count}} existing evidence items",
     "dragOrClickToUpload": "Drag & drop files or click to browse",
     "dropFilesHere": "Drop files here...",
-    "acceptedFormats": "Photos (JPG, PNG) or Documents (PDF, DOC) - Max 10MB"
+    "acceptedFormats": "Photos (JPG, PNG) or Documents (PDF, DOC) - Max 10MB",
+    "confirmSubmission": "Confirm Submission",
+    "reviewBeforeSubmit": "Please review your submission before confirming.",
+    "confirmStartWorkMessage": "You are about to start work on this action. Status will change to \"In Progress\".",
+    "confirmCompleteMessage": "You are about to submit this action for verification. It will be reviewed by HSSE.",
+    "actionTitle": "Action",
+    "filesToUpload": "Files to Upload",
+    "statusWillChange": "Status will change to:",
+    "confirmAndSubmit": "Confirm & Submit",
+    "proceedToConfirm": "Continue"
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",

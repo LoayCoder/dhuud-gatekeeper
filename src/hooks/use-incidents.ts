@@ -292,10 +292,11 @@ export function useMyCorrectiveActions() {
   });
 }
 
-// Hook to update action status (for assigned users) with enhanced workflow
+// Hook to update action status (for assigned users) with enhanced workflow and optimistic updates
 export function useUpdateMyActionStatus() {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -339,21 +340,54 @@ export function useUpdateMyActionStatus() {
         .eq('id', id);
 
       if (error) throw error;
+      return { id, status };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
-      queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-action-approvals'] });
-      toast({
-        title: t('common.success'),
-        description: t('investigation.actionStatusUpdated'),
-      });
+    // Optimistic update: immediately reflect the new status in the UI
+    onMutate: async ({ id, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['my-corrective-actions', user?.id] });
+
+      // Snapshot the previous value
+      const previousActions = queryClient.getQueryData(['my-corrective-actions', user?.id]);
+
+      // Optimistically update to the new status
+      queryClient.setQueryData(['my-corrective-actions', user?.id], (old: unknown[]) =>
+        old?.map((action: Record<string, unknown>) =>
+          action.id === id 
+            ? { 
+                ...action, 
+                status,
+                ...(status === 'in_progress' ? { started_at: new Date().toISOString() } : {}),
+                ...(status === 'completed' ? { completed_date: new Date().toISOString().split('T')[0] } : {}),
+              } 
+            : action
+        )
+      );
+
+      // Return context with the previous value for rollback
+      return { previousActions };
     },
-    onError: (error) => {
+    // If mutation fails, rollback to the previous value
+    onError: (error, _variables, context) => {
+      if (context?.previousActions) {
+        queryClient.setQueryData(['my-corrective-actions', user?.id], context.previousActions);
+      }
       toast({
         title: t('common.error'),
         description: error.message,
         variant: 'destructive',
+      });
+    },
+    // Always refetch after error or success to ensure consistency
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-action-approvals'] });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('common.success'),
+        description: t('investigation.actionStatusUpdated'),
       });
     },
   });
