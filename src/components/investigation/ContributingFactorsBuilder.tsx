@@ -125,11 +125,11 @@ export function ContributingFactorsBuilder({
   const hasRootCauses = rootCauses?.some(rc => rc.text?.trim());
 
   return (
-    <Card dir={direction}>
+    <Card dir={direction} className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle className="text-base flex items-center gap-2 flex-wrap">
               <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-bold">5</span>
               {t('investigation.rca.contributingFactors', 'Contributing Factors')}
               <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -147,7 +147,7 @@ export function ContributingFactorsBuilder({
           )}
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 min-w-0 overflow-hidden">
         {value.length === 0 ? (
           <div className="text-center py-6 border border-dashed rounded-md">
             <p className="text-sm text-muted-foreground mb-3">{t('investigation.rca.noContributingFactors', 'No contributing factors added.')}</p>
@@ -183,11 +183,11 @@ export function ContributingFactorsBuilder({
         ) : (
           <div className="space-y-3">
             {value.map((entry, index) => (
-              <div key={entry.id} className="flex items-start gap-2">
+              <div key={entry.id} className="flex items-start gap-2 min-w-0">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium mt-1">
                   {index + 1}
                 </span>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-end mb-1">
                     {!disabled && (
                       <Button

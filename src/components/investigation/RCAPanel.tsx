@@ -350,7 +350,7 @@ export function RCAPanel({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" dir={direction}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 overflow-hidden" dir={direction}>
         {/* Locked Banner for Closed Incidents */}
         {isClosedLocked && (
           <Alert className="border-muted bg-muted/50">
@@ -628,7 +628,7 @@ export function RCAPanel({
         </div>
 
         {/* Save/Edit Button with Status */}
-        <div className="flex items-center justify-between sticky bottom-0 bg-background py-4 border-t">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky bottom-0 bg-background py-4 border-t">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {isLocked ? (
               <>

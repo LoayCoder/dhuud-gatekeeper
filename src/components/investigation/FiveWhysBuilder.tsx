@@ -161,8 +161,8 @@ export function FiveWhysBuilder({
   };
 
   return (
-    <div className="space-y-4" dir={direction}>
-      <div className="flex items-center justify-between flex-wrap gap-2">
+    <div className="space-y-4 overflow-hidden" dir={direction}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h4 className="font-medium text-foreground">
           {t('investigation.rca.fiveWhys', '5 Whys Analysis')}
         </h4>
@@ -224,14 +224,14 @@ export function FiveWhysBuilder({
           {value.map((entry, index) => (
             <div key={index} className="relative">
               <Card className="relative overflow-hidden">
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-start gap-3">
+                <CardContent className="pt-4 pb-4 min-w-0">
+                  <div className="flex items-start gap-3 min-w-0">
                     {/* Step indicator */}
                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm">
                       {index + 1}
                     </div>
                     
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-3 min-w-0">
                       {/* Question */}
                       <div>
                         <label className="text-sm font-medium text-foreground">
@@ -248,12 +248,12 @@ export function FiveWhysBuilder({
                       
                       {/* Answer with AI buttons */}
                       <div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                           <label className="text-sm font-medium text-foreground">
                             {t('investigation.rca.answer', 'Answer')}
                           </label>
                           {!disabled && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 flex-wrap">
                               <Button
                                 type="button"
                                 variant="ghost"

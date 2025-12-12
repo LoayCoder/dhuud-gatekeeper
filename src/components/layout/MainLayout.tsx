@@ -10,23 +10,23 @@ export default function MainLayout() {
     tenantName
   } = useTheme();
   return <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full overflow-x-hidden">
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="min-w-0 overflow-hidden">
           {/* Header with Trigger */}
           <header className="sticky top-0 z-10 bg-background h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row">
-            <div className="items-center gap-2 flex flex-row">
-              <SidebarTrigger className="-ms-1" />
+            <div className="items-center gap-2 flex flex-row min-w-0">
+              <SidebarTrigger className="-ms-1 shrink-0" />
               <Separator orientation="vertical" className="me-2 h-4" />
-              <span className="text-sm font-medium">{tenantName}</span>
+              <span className="text-sm font-medium truncate">{tenantName}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <LanguageSelector />
             </div>
           </header>
 
           {/* Main Page Content */}
-          <main className="flex flex-1 flex-col gap-4 p-4">
+          <main className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-hidden">
             <TrialBanner />
             <Outlet />
           </main>
