@@ -90,7 +90,7 @@ export default function InvestigationWorkspace() {
   // Determine if investigation tabs should be enabled
   // Cast to string to handle new enum values not yet in types
   const status = incidentData?.status as string | undefined;
-  const investigationAllowed = status && ['investigation_in_progress', 'pending_closure', 'closed'].includes(status);
+  const investigationAllowed = status && ['investigation_in_progress', 'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'].includes(status);
 
   // Filter incidents that need investigation (not closed status)
   const investigableIncidents = incidents?.filter(
