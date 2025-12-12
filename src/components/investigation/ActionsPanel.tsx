@@ -291,17 +291,6 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
     setDeleteConfirmId(null);
   };
 
-  const handleStatusChange = async (actionId: string, newStatus: string) => {
-    await updateAction.mutateAsync({
-      id: actionId,
-      incidentId,
-      updates: {
-        status: newStatus,
-        completed_date: newStatus === 'completed' ? new Date().toISOString().split('T')[0] : null,
-      },
-    });
-  };
-
   const toggleActionExpand = (actionId: string) => {
     setExpandedActions(prev => {
       const newSet = new Set(prev);
@@ -874,25 +863,23 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                             </Button>
                           </>
                         )}
-                        {!isLocked && (
-                          <Select
-                            value={action.status || 'assigned'}
-                            onValueChange={(value) => handleStatusChange(action.id, value)}
-                          >
-                            <SelectTrigger className="w-full sm:w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent dir={direction}>
-                              <SelectItem value="assigned">{t('investigation.actions.statuses.assigned', 'Assigned')}</SelectItem>
-                              <SelectItem value="in_progress">{t('investigation.actions.statuses.inProgress', 'In Progress')}</SelectItem>
-                              <SelectItem value="completed">{t('investigation.actions.statuses.completed', 'Completed')}</SelectItem>
-                              <SelectItem value="verified">{t('investigation.actions.statuses.verified', 'Verified')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {isLocked && (
-                          <Badge variant="outline">{action.status}</Badge>
-                        )}
+                        {/* Status display only - No dropdown for investigators. Status changes happen via:
+                            - assigned → in_progress: Action owner via My Actions page
+                            - in_progress → completed: Action owner via My Actions page  
+                            - completed → verified: HSSE Expert via ActionVerificationDialog
+                        */}
+                        <Badge 
+                          variant={action.status === 'verified' ? 'default' : action.status === 'completed' ? 'secondary' : 'outline'}
+                          className={
+                            action.status === 'verified' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                              : action.status === 'completed'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                              : ''
+                          }
+                        >
+                          {t(`investigation.actions.statuses.${action.status || 'assigned'}`, action.status || 'assigned')}
+                        </Badge>
                       </div>
                     </div>
 

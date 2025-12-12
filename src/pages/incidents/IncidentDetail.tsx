@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, PlayCircle, Trash2, User, Building, ExternalLink, Clock, Tag } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, ExternalLink, Clock, Tag } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,18 +24,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useIncident, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
+import { useIncident, useDeleteIncident } from '@/hooks/use-incidents';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const getSeverityBadgeVariant = (severity: string | null) => {
   switch (severity) {
@@ -53,41 +45,16 @@ export default function IncidentDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: incident, isLoading } = useIncident(id);
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
   const fromPage = searchParams.get('from');
   const backPath = fromPage === 'my-actions' ? '/incidents/my-actions' : '/incidents';
   
-  const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const deleteIncident = useDeleteIncident();
-  const updateStatus = useUpdateIncidentStatus();
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!user?.id) return;
-      const { data } = await supabase.rpc('has_hsse_incident_access', { _user_id: user.id });
-      setHasHSSEAccess(data === true);
-    };
-    checkAccess();
-  }, [user?.id]);
-
-  const handleStartInvestigation = async () => {
-    if (!id) return;
-    await updateStatus.mutateAsync({ id, status: 'investigation_in_progress' });
-    navigate(`/incidents/investigate?incident=${id}`);
-  };
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (!id) return;
-    await updateStatus.mutateAsync({ 
-      id, 
-      status: newStatus as 'submitted' | 'pending_review' | 'investigation_pending' | 'investigation_in_progress' | 'closed' 
-    });
-  };
 
   const handleConfirmDelete = async () => {
     if (!id) return;
@@ -154,65 +121,44 @@ export default function IncidentDetail() {
           </div>
         </div>
 
-        {hasHSSEAccess && (
-          <div className="flex items-center gap-2">
-            {incident.status === 'submitted' && (
-              <Button onClick={handleStartInvestigation} className="gap-2">
-                <PlayCircle className="h-4 w-4" />
-                {t('incidents.startInvestigation')}
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
               </Button>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover">
-                <DropdownMenuItem asChild>
-                  <Link to={`/incidents/investigate?incident=${id}`}>
-                    {t('navigation.investigationWorkspace')}
-                  </Link>
-                </DropdownMenuItem>
-                {isAdmin && incident.status !== 'closed' && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => setDeleteDialogOpen(true)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 me-2" />
-                      {t('incidents.delete')}
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover">
+              <DropdownMenuItem asChild>
+                <Link to={`/incidents/investigate?incident=${id}`}>
+                  {t('navigation.investigationWorkspace')}
+                </Link>
+              </DropdownMenuItem>
+              {isAdmin && incident.status !== 'closed' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 me-2" />
+                    {t('incidents.delete')}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Status and Type Badges */}
+      {/* Status and Type Badges - Read-only display (status changes via workflow only) */}
       <div className="flex flex-wrap gap-2 items-center">
         {incident.severity && (
           <Badge variant={getSeverityBadgeVariant(incident.severity)} className="text-sm">
             {t(`incidents.severityLevels.${incident.severity}`)}
           </Badge>
         )}
-        {hasHSSEAccess && incident.status ? (
-          <Select value={incident.status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-auto h-7 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent dir={direction}>
-              <SelectItem value="submitted">{t('incidents.status.submitted')}</SelectItem>
-              <SelectItem value="pending_review">{t('incidents.status.pending_review')}</SelectItem>
-              <SelectItem value="investigation_pending">{t('incidents.status.investigation_pending')}</SelectItem>
-              <SelectItem value="investigation_in_progress">{t('incidents.status.investigation_in_progress')}</SelectItem>
-              <SelectItem value="closed">{t('incidents.status.closed')}</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : incident.status && (
+        {incident.status && (
           <Badge variant="outline" className="text-sm">
             {t(`incidents.status.${incident.status}`)}
           </Badge>

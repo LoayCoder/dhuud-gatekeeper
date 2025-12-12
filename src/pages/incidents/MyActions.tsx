@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
@@ -48,6 +48,7 @@ export default function MyActions() {
   const updateStatus = useUpdateMyActionStatus();
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
+  const [confirmCompleteActionId, setConfirmCompleteActionId] = useState<string | null>(null);
 
   // Pending approvals data
   const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
@@ -61,8 +62,16 @@ export default function MyActions() {
   // Check if user can approve closures (HSSE Manager or Admin)
   const canApproveClosures = hasRole('admin') || hasRole('hsse_manager');
 
-  const handleStatusChange = (actionId: string, newStatus: string) => {
-    updateStatus.mutate({ id: actionId, status: newStatus });
+  // Controlled status transitions - no direct dropdown
+  const handleStartWork = (actionId: string) => {
+    updateStatus.mutate({ id: actionId, status: 'in_progress' });
+  };
+
+  const handleMarkCompleted = () => {
+    if (confirmCompleteActionId) {
+      updateStatus.mutate({ id: confirmCompleteActionId, status: 'completed' });
+      setConfirmCompleteActionId(null);
+    }
   };
 
   const handleWitnessStatementSubmit = () => {
@@ -222,25 +231,46 @@ export default function MyActions() {
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{t('investigation.updateStatus', 'Update Status')}:</span>
-                        <Select
-                          value={action.status || 'assigned'}
-                          onValueChange={(value) => handleStatusChange(action.id, value)}
-                          disabled={action.status === 'verified'}
-                          dir={direction}
+                    {/* Controlled Action Buttons - Enforces sequential workflow */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      {/* Show "Start Work" for assigned actions */}
+                      {action.status === 'assigned' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleStartWork(action.id)}
+                          disabled={updateStatus.isPending}
                         >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="assigned">{t('investigation.actionStatus.assigned', 'Assigned')}</SelectItem>
-                            <SelectItem value="in_progress">{t('investigation.actionStatus.in_progress', 'In Progress')}</SelectItem>
-                            <SelectItem value="completed">{t('investigation.actionStatus.completed', 'Completed')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                          <PlayCircle className="h-4 w-4 me-2" />
+                          {t('investigation.actions.startWork', 'Start Work')}
+                        </Button>
+                      )}
+                      
+                      {/* Show "Mark Completed" for in_progress actions */}
+                      {action.status === 'in_progress' && (
+                        <Button 
+                          size="sm"
+                          onClick={() => setConfirmCompleteActionId(action.id)}
+                          disabled={updateStatus.isPending}
+                        >
+                          <CheckCircle2 className="h-4 w-4 me-2" />
+                          {t('investigation.actions.markCompleted', 'Mark Completed')}
+                        </Button>
+                      )}
+                      
+                      {/* Show status badge for completed/verified */}
+                      {action.status === 'completed' && (
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          <Clock className="h-3 w-3 me-1" />
+                          {t('investigation.actions.awaitingVerification', 'Awaiting Verification')}
+                        </Badge>
+                      )}
+                      
+                      {action.status === 'verified' && (
+                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          <CheckCircle2 className="h-3 w-3 me-1" />
+                          {t('investigation.actionStatus.verified', 'Verified')}
+                        </Badge>
+                      )}
                       
                       {action.incident_id && (
                         <Button asChild variant="ghost" size="sm">
@@ -612,6 +642,27 @@ export default function MyActions() {
         open={!!selectedActionForVerification}
         onOpenChange={(open) => !open && setSelectedActionForVerification(null)}
       />
+
+      {/* Confirmation Dialog for Mark Completed */}
+      <AlertDialog open={!!confirmCompleteActionId} onOpenChange={(open) => !open && setConfirmCompleteActionId(null)}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('investigation.actions.confirmComplete', 'Mark Action as Completed?')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('investigation.actions.confirmCompleteDescription', 'This action will be marked as completed and sent for verification by HSSE. Make sure all required work has been done and evidence has been uploaded.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleMarkCompleted} disabled={updateStatus.isPending}>
+              {updateStatus.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('investigation.actions.confirmCompleteButton', 'Yes, Mark Completed')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
