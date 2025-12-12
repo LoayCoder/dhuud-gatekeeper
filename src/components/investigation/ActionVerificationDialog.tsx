@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, User, Calendar, Building2, AlertTriangle, MessageSquare, Paperclip, Download, File } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useVerifyAction, type PendingActionApproval } from '@/hooks/use-pending-approvals';
+import { useActionEvidence } from '@/hooks/use-action-evidence';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ActionVerificationDialogProps {
   action: PendingActionApproval | null;
@@ -32,6 +35,32 @@ export function ActionVerificationDialog({
   const [notes, setNotes] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   const verifyAction = useVerifyAction();
+  const { data: evidence } = useActionEvidence(action?.id || null);
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const handleDownload = async (storagePath: string, fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from('action-evidence')
+      .download(storagePath);
+
+    if (error || !data) return;
+
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleVerify = async () => {
     if (!action) return;
@@ -151,6 +180,56 @@ export function ActionVerificationDialog({
                   <span className="text-muted-foreground">
                     {action.incident.reference_id} - {action.incident.title}
                   </span>
+                </div>
+              </>
+            )}
+
+            {/* Completion Notes from Assignee */}
+            {action.completion_notes && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-muted-foreground">
+                    <MessageSquare className="h-4 w-4" />
+                    {t('investigation.actions.completionNotes', 'Completion Notes')}
+                  </Label>
+                  <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap">
+                    {action.completion_notes}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Attached Evidence Files */}
+            {evidence && evidence.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-muted-foreground">
+                    <Paperclip className="h-4 w-4" />
+                    {t('investigation.actions.attachedFiles', 'Attached Files')} ({evidence.length})
+                  </Label>
+                  <div className="space-y-1">
+                    {evidence.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <File className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm truncate">{item.file_name}</span>
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            {formatFileSize(item.file_size)}
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDownload(item.storage_path, item.file_name)}
+                          className="shrink-0"
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
