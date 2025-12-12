@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useIncident, useDeleteIncident } from '@/hooks/use-incidents';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
@@ -68,6 +69,13 @@ export default function IncidentDetail() {
   const handlePrintReport = async () => {
     if (!incident || !profile?.tenant_id) return;
     
+    // Fetch fresh user for the PDF generation
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
+      toast.error(t('common.error'));
+      return;
+    }
+    
     setIsPrinting(true);
     toast.loading(t('incidents.reportGenerating'));
     
@@ -75,6 +83,7 @@ export default function IncidentDetail() {
       await generateIncidentReportPDF({
         incident,
         tenantId: profile.tenant_id,
+        userId: user.id,
         language: i18n.language as 'en' | 'ar',
       });
       toast.dismiss();
