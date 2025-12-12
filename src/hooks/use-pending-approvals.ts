@@ -146,7 +146,7 @@ export function usePendingSeverityApprovals() {
 export function useVerifyAction() {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -161,6 +161,19 @@ export function useVerifyAction() {
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      // Fetch action details for email notification
+      const { data: action, error: fetchError } = await supabase
+        .from('corrective_actions')
+        .select(`
+          id, title, return_count, incident_id,
+          assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name, email),
+          incident:incidents!corrective_actions_incident_id_fkey(id, reference_id)
+        `)
+        .eq('id', actionId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const updateData = approved
         ? {
             status: 'verified',
@@ -169,25 +182,14 @@ export function useVerifyAction() {
             verification_notes: notes || null,
           }
         : {
-            status: 'returned_for_correction', // New status for rejected actions
+            status: 'returned_for_correction',
             rejected_by: user.id,
             rejected_at: new Date().toISOString(),
             rejection_notes: notes || null,
             last_returned_at: new Date().toISOString(),
             last_return_reason: notes || null,
-            return_count: undefined, // Will be incremented via SQL
+            return_count: (action?.return_count || 0) + 1,
           };
-
-      // For rejection, increment the return count
-      if (!approved) {
-        const { data: action } = await supabase
-          .from('corrective_actions')
-          .select('return_count')
-          .eq('id', actionId)
-          .single();
-        
-        updateData.return_count = (action?.return_count || 0) + 1;
-      }
 
       const { error } = await supabase
         .from('corrective_actions')
@@ -195,6 +197,33 @@ export function useVerifyAction() {
         .eq('id', actionId);
 
       if (error) throw error;
+
+      // Send email notification for returned actions
+      if (!approved && action?.assigned_user) {
+        const assignedUser = action.assigned_user as { id: string; full_name: string | null; email: string | null };
+        const incident = action.incident as { id: string; reference_id: string | null } | null;
+        
+        if (assignedUser.email) {
+          try {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'action_returned',
+                recipient_email: assignedUser.email,
+                recipient_name: assignedUser.full_name || 'Team Member',
+                action_title: action.title,
+                incident_reference: incident?.reference_id || undefined,
+                rejection_notes: notes || undefined,
+                return_count: (action.return_count || 0) + 1,
+              },
+            });
+            console.log('Action returned email sent to:', assignedUser.email);
+          } catch (emailError) {
+            console.error('Failed to send action returned email:', emailError);
+            // Don't throw - email failure shouldn't fail the whole operation
+          }
+        }
+      }
+
       return { approved };
     },
     onSuccess: (result) => {

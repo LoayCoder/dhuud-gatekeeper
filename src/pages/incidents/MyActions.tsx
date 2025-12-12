@@ -20,7 +20,7 @@ import { ActionVerificationDialog } from '@/components/investigation/ActionVerif
 import { SeverityApprovalCard } from '@/components/investigation/SeverityApprovalCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard } from '@/components/actions';
+import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard, ActionWorkflowTimeline } from '@/components/actions';
 
 const getStatusIcon = (status: string | null) => {
   switch (status) {
@@ -300,6 +300,13 @@ export default function MyActions() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Workflow Timeline */}
+                    <ActionWorkflowTimeline 
+                      currentStatus={action.status} 
+                      returnCount={action.return_count || 0}
+                      className="py-2 mb-2"
+                    />
+                    
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       {action.due_date && (
                         <div>

@@ -3712,5 +3712,25 @@
       "decision": "Decision Point",
       "approval": "Approval Required"
     }
+  },
+  "actions": {
+    "timeline": {
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "pendingVerification": "Pending Verification",
+      "verified": "Verified",
+      "closed": "Closed"
+    },
+    "returnedForCorrection": "Returned for Correction",
+    "resubmit": "Resubmit",
+    "requestExtension": "Request Extension",
+    "confirmSubmission": "Confirm Submission",
+    "confirmStartWorkMessage": "You are about to start work on this action",
+    "confirmCompleteMessage": "You are about to submit this action for verification",
+    "filesWillUpload": "{{count}} file(s) will be uploaded",
+    "goBack": "Go Back",
+    "confirmAndSubmit": "Confirm & Submit",
+    "statusWillChange": "Status will change to: {{status}}",
+    "emailSentOnReturn": "The action owner will be notified via email"
   }
 }
