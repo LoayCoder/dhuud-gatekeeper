@@ -670,7 +670,22 @@
       "approveIncident": "منظور کریں اور تحقیقات کے لیے مقفل کریں",
       "startInvestigation": "تحقیقات شروع کریں",
       "completeInvestigation": "تحقیقات مکمل کریں",
-      "reopenInvestigation": "تحقیقات دوبارہ کھولیں"
+      "reopenInvestigation": "تحقیقات دوبارہ کھولیں",
+      "tabsLockedMessage": "تحقیقات کی ٹیبز کھولنے کے لیے منظوری کا سلسلہ مکمل کریں"
+    },
+    "submit": {
+      "title": "تحقیقات جمع کرائیں",
+      "checklist": "تحقیقات کی چیک لسٹ",
+      "fiveWhys": "5 کیوں تجزیہ (کم از کم 3)",
+      "immediateCause": "فوری وجہ",
+      "underlyingCause": "بنیادی وجہ",
+      "rootCauses": "جڑ وجوہات",
+      "actions": "اصلاحی اقدامات",
+      "causeCoverage": "وجوہات کی کوریج",
+      "incomplete": "جمع کرانے سے پہلے درج ذیل مکمل کریں:",
+      "button": "جائزے کے لیے تحقیقات جمع کرائیں",
+      "note": "تمام مقرر کردہ ایکشن مالکان کو ای میل کے ذریعے مطلع کیا جائے گا",
+      "success": "تحقیقات جائزے کے لیے جمع ہو گئیں"
     },
     "tabs": {
       "overview": "جائزہ"

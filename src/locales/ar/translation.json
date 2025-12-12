@@ -695,7 +695,22 @@
       "approveIncident": "موافقة وقفل للتحقيق",
       "startInvestigation": "بدء التحقيق",
       "completeInvestigation": "إكمال التحقيق",
-      "reopenInvestigation": "إعادة فتح التحقيق"
+      "reopenInvestigation": "إعادة فتح التحقيق",
+      "tabsLockedMessage": "أكمل سير عمل الموافقة لفتح علامات تبويب التحقيق"
+    },
+    "submit": {
+      "title": "تقديم التحقيق",
+      "checklist": "قائمة التحقق من التحقيق",
+      "fiveWhys": "تحليل الأسباب الخمسة (الحد الأدنى 3)",
+      "immediateCause": "السبب المباشر",
+      "underlyingCause": "السبب الكامن",
+      "rootCauses": "الأسباب الجذرية",
+      "actions": "الإجراءات التصحيحية",
+      "causeCoverage": "تغطية الأسباب",
+      "incomplete": "أكمل ما يلي قبل التقديم:",
+      "button": "تقديم التحقيق للمراجعة",
+      "note": "سيتم إخطار جميع أصحاب الإجراءات المعينين عبر البريد الإلكتروني",
+      "success": "تم تقديم التحقيق للمراجعة"
     },
     "tabs": {
       "overview": "نظرة عامة"

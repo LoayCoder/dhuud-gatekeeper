@@ -772,7 +772,22 @@
       "approveIncident": "Approve & Lock for Investigation",
       "startInvestigation": "Start Investigation",
       "completeInvestigation": "Complete Investigation",
-      "reopenInvestigation": "Reopen Investigation"
+      "reopenInvestigation": "Reopen Investigation",
+      "tabsLockedMessage": "Complete the approval workflow to unlock investigation tabs"
+    },
+    "submit": {
+      "title": "Submit Investigation",
+      "checklist": "Investigation Checklist",
+      "fiveWhys": "5-Whys Analysis (min. 3)",
+      "immediateCause": "Immediate Cause",
+      "underlyingCause": "Underlying Cause",
+      "rootCauses": "Root Causes",
+      "actions": "Corrective Actions",
+      "causeCoverage": "Cause Coverage",
+      "incomplete": "Complete the following before submitting:",
+      "button": "Submit Investigation for Review",
+      "note": "All assigned action owners will be notified via email",
+      "success": "Investigation submitted for review"
     },
     "tabs": {
       "overview": "Overview"
