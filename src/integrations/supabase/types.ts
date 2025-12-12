@@ -1255,6 +1255,7 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_notes: string | null
+          released_at: string | null
           responsible_department_id: string | null
           session_id: string | null
           sla_escalation_sent_at: string | null
@@ -1289,6 +1290,7 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null
+          released_at?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
@@ -1323,6 +1325,7 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null
+          released_at?: string | null
           responsible_department_id?: string | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
@@ -5528,6 +5531,8 @@ export type Database = {
         | "hsse_manager_escalation"
         | "pending_dept_rep_approval"
         | "pending_closure"
+        | "investigation_closed"
+        | "pending_final_closure"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -5789,6 +5794,8 @@ export const Constants = {
         "hsse_manager_escalation",
         "pending_dept_rep_approval",
         "pending_closure",
+        "investigation_closed",
+        "pending_final_closure",
       ],
       maintenance_frequency: [
         "daily",

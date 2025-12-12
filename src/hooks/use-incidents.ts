@@ -255,7 +255,7 @@ export function useIncident(id: string | undefined) {
   });
 }
 
-// Hook to get corrective actions assigned to the current user
+// Hook to get corrective actions assigned to the current user (only released actions)
 export function useMyCorrectiveActions() {
   const { user, profile } = useAuth();
 
@@ -264,12 +264,14 @@ export function useMyCorrectiveActions() {
     queryFn: async () => {
       if (!user?.id || !profile?.tenant_id) return [];
 
+      // Only show actions that have been released (investigation approved by HSSE Manager)
       const { data, error } = await supabase
         .from('corrective_actions')
-        .select('id, title, description, status, priority, due_date, incident_id, created_at, completed_date')
+        .select('id, title, description, status, priority, due_date, incident_id, created_at, completed_date, released_at')
         .eq('assigned_to', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
+        .not('released_at', 'is', null) // Only show released actions
         .order('due_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
