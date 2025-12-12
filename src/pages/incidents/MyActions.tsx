@@ -70,6 +70,9 @@ export default function MyActions() {
   
   // Extension request dialog state
   const [extensionRequestAction, setExtensionRequestAction] = useState<ActionForDialog | null>(null);
+  
+  // Track which actions are currently being submitted to prevent duplicate submissions
+  const [submittingActionIds, setSubmittingActionIds] = useState<Set<string>>(new Set());
 
   // Pending approvals data
   const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
@@ -88,6 +91,8 @@ export default function MyActions() {
 
   // Handle opening action dialog for "Start Work"
   const handleStartWork = (action: ActionForDialog) => {
+    // Prevent re-opening dialog for actions already being submitted
+    if (submittingActionIds.has(action.id)) return;
     setActionDialogAction(action);
     setActionDialogMode('start');
     setActionDialogOpen(true);
@@ -95,6 +100,8 @@ export default function MyActions() {
 
   // Handle opening action dialog for "Mark Completed"
   const handleMarkCompleted = (action: ActionForDialog) => {
+    // Prevent re-opening dialog for actions already being submitted
+    if (submittingActionIds.has(action.id)) return;
     setActionDialogAction(action);
     setActionDialogMode('complete');
     setActionDialogOpen(true);
@@ -104,31 +111,44 @@ export default function MyActions() {
   const handleActionDialogConfirm = async (data: { notes: string; overdueJustification?: string; files: File[] }) => {
     if (!actionDialogAction) return;
     
+    const actionId = actionDialogAction.id;
+    const incidentId = actionDialogAction.incident_id;
+    const mode = actionDialogMode;
+    
+    // Add to submitting set and close dialog immediately to prevent re-submission
+    setSubmittingActionIds(prev => new Set(prev).add(actionId));
+    setActionDialogOpen(false);
+    setActionDialogAction(null);
+    
     try {
       // Upload files first if any
       for (const file of data.files) {
-        if (actionDialogAction.incident_id) {
+        if (incidentId) {
           await uploadEvidence.mutateAsync({
-            actionId: actionDialogAction.id,
-            incidentId: actionDialogAction.incident_id,
+            actionId: actionId,
+            incidentId: incidentId,
             file,
           });
         }
       }
 
       // Update action status
-      updateStatus.mutate({
-        id: actionDialogAction.id,
-        status: actionDialogMode === 'start' ? 'in_progress' : 'completed',
-        progressNotes: actionDialogMode === 'start' ? data.notes : undefined,
-        completionNotes: actionDialogMode === 'complete' ? data.notes : undefined,
+      await updateStatus.mutateAsync({
+        id: actionId,
+        status: mode === 'start' ? 'in_progress' : 'completed',
+        progressNotes: mode === 'start' ? data.notes : undefined,
+        completionNotes: mode === 'complete' ? data.notes : undefined,
         overdueJustification: data.overdueJustification,
       });
-      
-      setActionDialogOpen(false);
-      setActionDialogAction(null);
     } catch (error) {
       // Error is handled by the mutation hooks
+    } finally {
+      // Remove from submitting set after completion (success or failure)
+      setSubmittingActionIds(prev => {
+        const next = new Set(prev);
+        next.delete(actionId);
+        return next;
+      });
     }
   };
 
@@ -305,12 +325,20 @@ export default function MyActions() {
                         </Badge>
                       )}
                       
+                      {/* Processing indicator when action is being submitted */}
+                      {submittingActionIds.has(action.id) && (
+                        <Badge variant="outline" className="animate-pulse gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {t('common.processing', 'Processing...')}
+                        </Badge>
+                      )}
+                      
                       {/* Show "Start Work" for assigned or returned actions */}
-                      {(action.status === 'assigned' || action.status === 'returned_for_correction') && (
+                      {(action.status === 'assigned' || action.status === 'returned_for_correction') && !submittingActionIds.has(action.id) && (
                         <Button 
                           size="sm" 
                           onClick={() => handleStartWork(action)}
-                          disabled={updateStatus.isPending}
+                          disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
                         >
                           <PlayCircle className="h-4 w-4 me-2" />
                           {action.status === 'returned_for_correction' 
@@ -321,12 +349,12 @@ export default function MyActions() {
                       )}
                       
                       {/* Show "Mark Completed" for in_progress actions */}
-                      {action.status === 'in_progress' && (
+                      {action.status === 'in_progress' && !submittingActionIds.has(action.id) && (
                         <>
                           <Button 
                             size="sm"
                             onClick={() => handleMarkCompleted(action)}
-                            disabled={updateStatus.isPending}
+                            disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
                           >
                             <CheckCircle2 className="h-4 w-4 me-2" />
                             {t('investigation.actions.markCompleted', 'Mark Completed')}
