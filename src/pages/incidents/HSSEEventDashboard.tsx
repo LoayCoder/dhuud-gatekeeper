@@ -23,11 +23,13 @@ import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
 import {
   EventTypeDistributionChart,
   SeverityDistributionChart,
-  EventTrendChart,
+  EnhancedEventTrendChart,
   StatusDistributionChart,
   EnhancedLocationAnalytics,
   ReporterLeaderboard,
   ActionsStatusWidget,
+  CorrectiveActionDonutChart,
+  InvestigationProgressChart,
   AIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
@@ -193,12 +195,27 @@ export default function HSSEEventDashboard() {
         ) : null}
       </div>
 
-      {/* Monthly Trend */}
+      {/* Monthly Trend with Filters */}
       <div className="grid grid-cols-1 gap-4">
         {dashboardLoading ? (
           <Card><CardContent className="h-[350px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
         ) : dashboardData ? (
-          <EventTrendChart data={dashboardData.monthly_trend} />
+          <EnhancedEventTrendChart data={dashboardData.monthly_trend} />
+        ) : null}
+      </div>
+
+      {/* New Charts Row - Corrective Actions & Investigation Progress */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {dashboardLoading ? (
+          <>
+            <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
+            <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
+          </>
+        ) : dashboardData ? (
+          <>
+            <CorrectiveActionDonutChart data={dashboardData.actions} />
+            <InvestigationProgressChart data={dashboardData.summary} />
+          </>
         ) : null}
       </div>
 

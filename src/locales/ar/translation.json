@@ -81,7 +81,24 @@
     "actions": "إجراءات",
     "investigations": "تحقيق",
     "trend": "الاتجاه",
-    "vsLastMonth": "مقارنة بالشهر الماضي"
+    "vsLastMonth": "مقارنة بالشهر الماضي",
+    "correctiveActionStatus": "حالة الإجراءات التصحيحية",
+    "investigationProgress": "تقدم التحقيق",
+    "filterAll": "الكل",
+    "comparePeriod": "مقارنة",
+    "previousPeriod": "الفترة السابقة",
+    "actionStatus": {
+      "inProgress": "قيد التنفيذ",
+      "closed": "مغلق",
+      "overdue": "متأخر",
+      "pendingVerification": "في انتظار التحقق"
+    },
+    "investigationStatus": {
+      "assigned": "معين",
+      "inProgress": "قيد التنفيذ",
+      "closed": "مغلق",
+      "returned": "مُرجع"
+    }
   },
   "incidents": {
     "wizard": {

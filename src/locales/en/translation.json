@@ -81,7 +81,24 @@
     "actions": "Actions",
     "investigations": "Invest.",
     "trend": "Trend",
-    "vsLastMonth": "vs last month"
+    "vsLastMonth": "vs last month",
+    "correctiveActionStatus": "Corrective Action Status",
+    "investigationProgress": "Investigation Progress",
+    "filterAll": "All",
+    "comparePeriod": "Compare",
+    "previousPeriod": "Previous Period",
+    "actionStatus": {
+      "inProgress": "In Progress",
+      "closed": "Closed",
+      "overdue": "Overdue",
+      "pendingVerification": "Pending Verification"
+    },
+    "investigationStatus": {
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "closed": "Closed",
+      "returned": "Returned"
+    }
   },
   "incidents": {
     "wizard": {
