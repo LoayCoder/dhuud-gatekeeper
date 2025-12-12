@@ -102,7 +102,6 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
           contributing_factors_list,
           completed_at
         `)
-        .not('deleted_at', 'is', null)
         .is('deleted_at', null);
 
       const { data: investigations, error: invError } = await investigationsQuery;
