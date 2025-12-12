@@ -10,6 +10,7 @@ export type DrillDownFilter = {
   siteId?: string;
   departmentId?: string;
   incidentId?: string;
+  rootCauseCategory?: string;
 };
 
 export function useDashboardDrilldown() {
@@ -40,6 +41,7 @@ export function useDashboardDrilldown() {
     if (filters.branchId) params.set('branchId', filters.branchId);
     if (filters.siteId) params.set('siteId', filters.siteId);
     if (filters.departmentId) params.set('departmentId', filters.departmentId);
+    if (filters.rootCauseCategory) params.set('rootCauseCategory', filters.rootCauseCategory);
 
     const queryString = params.toString();
     navigate(`/incidents/investigate${queryString ? `?${queryString}` : ''}`);

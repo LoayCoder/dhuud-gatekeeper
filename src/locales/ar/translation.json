@@ -139,6 +139,29 @@
     "actionCompletionRate": "إتمام الإجراءات",
     "actionRateTooltip": "نسبة الإجراءات التصحيحية المكتملة",
     "overdueRateTooltip": "نسبة الإجراءات المفتوحة المتأخرة",
+    "paretoChart": {
+      "title": "تحليل باريتو للأسباب الجذرية",
+      "subtitle": "الأسباب القليلة الحيوية (قاعدة 80/20)",
+      "count": "التكرارات",
+      "cumulativePercent": "النسبة التراكمية %",
+      "threshold": "عتبة 80%",
+      "vitalFew": "القليل الحيوي (≤80%)",
+      "trivialMany": "الكثير التافه",
+      "cumulativeLine": "النسبة التراكمية %"
+    },
+    "waterfallChart": {
+      "title": "تدفق تقدم الحوادث",
+      "subtitle": "الحركة الصافية عبر مراحل سير العمل",
+      "netChange": "التغيير الصافي",
+      "total": "الإجمالي",
+      "entering": "الدخول للمرحلة",
+      "leaving": "مغادرة المرحلة",
+      "currentOpen": "المفتوحة حالياً"
+    },
+    "caching": {
+      "refreshing": "جاري تحديث البيانات...",
+      "lastUpdated": "آخر تحديث"
+    },
     "closureProgress": "تقدم الإغلاق الإجمالي",
     "actionProgress": "تقدم إتمام الإجراءات",
     "laggingIndicators": "المؤشرات المتأخرة للسلامة",
