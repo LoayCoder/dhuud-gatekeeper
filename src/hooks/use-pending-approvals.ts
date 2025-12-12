@@ -32,10 +32,11 @@ export interface PendingActionApproval {
   created_at: string | null;
   linked_cause_type: string | null;
   linked_root_cause_id: string | null;
+  completion_notes: string | null;
   // Joined data
   assigned_user?: { id: string; full_name: string | null } | null;
   department?: { id: string; name: string } | null;
-  incident?: { id: string; reference_id: string | null; title: string } | null;
+  incident?: { id: string; reference_id: string | null; title: string; event_type?: string | null } | null;
 }
 
 export interface PendingSeverityApproval {
@@ -82,7 +83,7 @@ export function usePendingActionApprovals() {
           id, title, description, status, priority, category, 
           due_date, completed_date, incident_id, assigned_to,
           responsible_department_id, created_at,
-          linked_cause_type, linked_root_cause_id,
+          linked_cause_type, linked_root_cause_id, completion_notes,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name),
           department:departments!corrective_actions_responsible_department_id_fkey(id, name),
           incident:incidents!corrective_actions_incident_id_fkey(id, reference_id, title, event_type)
