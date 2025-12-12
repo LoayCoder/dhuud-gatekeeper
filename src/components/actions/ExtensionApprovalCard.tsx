@@ -82,7 +82,14 @@ export function ExtensionApprovalCard({ request, level }: ExtensionApprovalCardP
           </Badge>
         </div>
         {request.action && (
-          <CardDescription>{request.action.title}</CardDescription>
+          <CardDescription className="flex items-center gap-2 flex-wrap">
+            {request.action.reference_id && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {request.action.reference_id}
+              </Badge>
+            )}
+            <span>{request.action.title}</span>
+          </CardDescription>
         )}
       </CardHeader>
       <CardContent className="space-y-4">

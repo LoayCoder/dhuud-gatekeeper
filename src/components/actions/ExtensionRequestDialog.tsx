@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { useRequestExtension, useActionExtensionRequest } from '@/hooks/use-action-extensions';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 interface ExtensionRequestDialogProps {
   action: {
     id: string;
+    reference_id?: string | null;
     title: string;
     due_date?: string | null;
   } | null;
@@ -124,7 +126,14 @@ export function ExtensionRequestDialog({
           <div className="space-y-4">
             {/* Action Info */}
             <div className="p-3 bg-muted rounded-md">
-              <p className="font-medium">{action.title}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {action.reference_id && (
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {action.reference_id}
+                  </Badge>
+                )}
+                <p className="font-medium">{action.title}</p>
+              </div>
               {action.due_date && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {t('actions.currentDueDate', 'Current Due Date')}: {new Date(action.due_date).toLocaleDateString()}

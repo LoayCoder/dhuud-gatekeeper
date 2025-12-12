@@ -25,7 +25,7 @@ export interface ExtensionRequest {
   created_at: string | null;
   // Joined data
   requester?: { id: string; full_name: string | null } | null;
-  action?: { id: string; title: string; priority: string | null } | null;
+  action?: { id: string; reference_id: string | null; title: string; priority: string | null } | null;
 }
 
 // Request an extension for an action
@@ -106,7 +106,7 @@ export function usePendingExtensionRequests() {
         .select(`
           *,
           requester:profiles!action_extension_requests_requested_by_fkey(id, full_name),
-          action:corrective_actions!action_extension_requests_action_id_fkey(id, title, priority)
+          action:corrective_actions!action_extension_requests_action_id_fkey(id, reference_id, title, priority)
         `)
         .eq('tenant_id', profile.tenant_id)
         .eq('manager_id', user.id)
@@ -135,7 +135,7 @@ export function useHSSEPendingExtensionRequests() {
         .select(`
           *,
           requester:profiles!action_extension_requests_requested_by_fkey(id, full_name),
-          action:corrective_actions!action_extension_requests_action_id_fkey(id, title, priority)
+          action:corrective_actions!action_extension_requests_action_id_fkey(id, reference_id, title, priority)
         `)
         .eq('tenant_id', profile.tenant_id)
         .eq('status', 'pending_hsse')

@@ -108,8 +108,13 @@ export function SessionActionsPanel({ sessionId, canVerify = false }: SessionAct
                     className="p-3 border rounded-lg space-y-2"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
                         {getStatusIcon(action.status)}
+                        {action.reference_id && (
+                          <Badge variant="outline" className="font-mono text-xs shrink-0">
+                            {action.reference_id}
+                          </Badge>
+                        )}
                         <span className="font-medium truncate">{action.title}</span>
                       </div>
                       <Badge variant={getStatusVariant(action.status)} className="shrink-0">
