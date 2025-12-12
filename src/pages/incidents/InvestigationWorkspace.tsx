@@ -469,6 +469,7 @@ export default function InvestigationWorkspace() {
               requestedBy={incidentData?.closure_requested_by || null}
               requestedAt={incidentData?.closure_requested_at || null}
               requestNotes={incidentData?.closure_request_notes || null}
+              requesterName={(selectedIncident as { closure_requester?: { full_name?: string | null } })?.closure_requester?.full_name || undefined}
             />
           )}
 

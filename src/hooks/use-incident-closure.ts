@@ -146,9 +146,11 @@ export function useApproveIncidentClosure() {
     mutationFn: async ({
       incidentId,
       isFinalClosure = false,
+      approvalNotes,
     }: {
       incidentId: string;
       isFinalClosure?: boolean;
+      approvalNotes?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) {
         throw new Error('User not authenticated');
@@ -180,7 +182,11 @@ export function useApproveIncidentClosure() {
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: actionType,
-        new_value: { approved_at: new Date().toISOString(), target_status: targetStatus } as unknown as Json,
+        new_value: { 
+          approved_at: new Date().toISOString(), 
+          target_status: targetStatus,
+          approval_notes: approvalNotes || null,
+        } as unknown as Json,
       });
 
       // Send email notification
