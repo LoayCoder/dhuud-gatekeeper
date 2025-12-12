@@ -6,13 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export function PendingClosureRequestsWidget() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasRole } = useUserRoles();
   const { data: pendingRequests, isLoading } = usePendingClosureRequests();
+
+  // Only show widget for HSSE Managers and Admins
+  const canViewClosures = hasRole('admin') || hasRole('hsse_manager');
+  if (!canViewClosures) return null;
 
   if (isLoading) {
     return (

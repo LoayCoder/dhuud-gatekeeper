@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
+import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
+import { useUserRoles } from '@/hooks/use-user-roles';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
@@ -49,10 +51,15 @@ export default function MyActions() {
 
   // Pending approvals data
   const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
+  const { hasRole } = useUserRoles();
   const { data: pendingApprovals, isLoading: approvalsLoading } = usePendingActionApprovals();
   const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
   const { data: pendingIncidentApprovals, isLoading: incidentApprovalsLoading } = usePendingIncidentApprovals();
+  const { data: pendingClosures, isLoading: closuresLoading } = usePendingClosureRequests();
   const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
+  
+  // Check if user can approve closures (HSSE Manager or Admin)
+  const canApproveClosures = hasRole('admin') || hasRole('hsse_manager');
 
   const handleStatusChange = (actionId: string, newStatus: string) => {
     updateStatus.mutate({ id: actionId, status: newStatus });
@@ -69,7 +76,7 @@ export default function MyActions() {
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
-  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0);
+  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0);
 
   const isLoading = actionsLoading || witnessLoading;
 
@@ -333,7 +340,7 @@ export default function MyActions() {
 
         {canAccessApprovals && (
           <TabsContent value="approvals" className="mt-4 space-y-6">
-            {(approvalsLoading || severityLoading || incidentApprovalsLoading) ? (
+            {(approvalsLoading || severityLoading || incidentApprovalsLoading || closuresLoading) ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
                   <Card key={i}>
@@ -406,6 +413,67 @@ export default function MyActions() {
                           </CardContent>
                         </Card>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending Closure Requests Section (HSSE Manager/Admin only) */}
+                {canApproveClosures && pendingClosures && pendingClosures.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <FileCheck className="h-5 w-5 text-amber-500" />
+                      {t('dashboard.pendingClosures', 'Pending Closure Requests')}
+                      <Badge variant="secondary">{pendingClosures.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingClosures.map((request) => {
+                        const isFinalClosure = request.status === 'pending_final_closure';
+                        return (
+                          <Card key={request.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                  <FileCheck className="h-4 w-4 text-amber-500" />
+                                  <CardTitle className="text-base">{request.reference_id || request.id.slice(0, 8)}</CardTitle>
+                                </div>
+                                <Badge 
+                                  variant={isFinalClosure ? 'default' : 'secondary'} 
+                                  className={isFinalClosure ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}
+                                >
+                                  {isFinalClosure 
+                                    ? t('dashboard.finalClosure', 'Final Closure')
+                                    : t('dashboard.investigationApproval', 'Investigation Approval')
+                                  }
+                                </Badge>
+                              </div>
+                              <CardDescription>{request.title}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                                {request.requester_name && (
+                                  <div>
+                                    <span className="font-medium">{t('investigation.requestedBy', 'Requested By')}:</span>{' '}
+                                    {request.requester_name}
+                                  </div>
+                                )}
+                                {request.closure_requested_at && (
+                                  <div>
+                                    <span className="font-medium">{t('common.createdAt', 'Requested')}:</span>{' '}
+                                    {formatDistanceToNow(new Date(request.closure_requested_at), { addSuffix: true })}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <Button asChild size="sm">
+                                <Link to={`/incidents/investigate?incident=${request.id}&from=my-actions`} className="gap-2">
+                                  {t('investigation.approvals.reviewClosure', 'Review & Approve')}
+                                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                                </Link>
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -502,7 +570,8 @@ export default function MyActions() {
                 {/* Empty State */}
                 {(!pendingApprovals || pendingApprovals.length === 0) && 
                  (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) &&
-                 (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) && (
+                 (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) &&
+                 (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) && (
                   <Card className="py-12">
                     <CardContent className="flex flex-col items-center justify-center text-center">
                       <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
