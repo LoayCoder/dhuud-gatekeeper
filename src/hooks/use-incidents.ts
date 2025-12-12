@@ -292,19 +292,45 @@ export function useMyCorrectiveActions() {
   });
 }
 
-// Hook to update action status (for assigned users)
+// Hook to update action status (for assigned users) with enhanced workflow
 export function useUpdateMyActionStatus() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ 
+      id, 
+      status,
+      progressNotes,
+      completionNotes,
+      overdueJustification,
+    }: { 
+      id: string; 
+      status: string;
+      progressNotes?: string;
+      completionNotes?: string;
+      overdueJustification?: string;
+    }) => {
       const updateData: Record<string, unknown> = { status };
       
-      // If marking as completed, set the completed_date
+      // If starting work, set started_at and progress notes
+      if (status === 'in_progress') {
+        updateData.started_at = new Date().toISOString();
+        if (progressNotes) {
+          updateData.progress_notes = progressNotes;
+        }
+      }
+      
+      // If marking as completed, set completion data
       if (status === 'completed') {
         updateData.completed_date = new Date().toISOString().split('T')[0];
+        if (completionNotes) {
+          updateData.completion_notes = completionNotes;
+        }
+        if (overdueJustification) {
+          updateData.overdue_justification = overdueJustification;
+        }
       }
 
       const { error } = await supabase
@@ -317,6 +343,7 @@ export function useUpdateMyActionStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
       queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-action-approvals'] });
       toast({
         title: t('common.success'),
         description: t('investigation.actionStatusUpdated'),

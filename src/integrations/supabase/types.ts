@@ -78,6 +78,108 @@ export type Database = {
           },
         ]
       }
+      action_extension_requests: {
+        Row: {
+          action_id: string
+          created_at: string | null
+          current_due_date: string
+          deleted_at: string | null
+          extension_reason: string
+          hsse_manager_decision_at: string | null
+          hsse_manager_id: string | null
+          hsse_manager_notes: string | null
+          hsse_manager_status: string | null
+          id: string
+          manager_decision_at: string | null
+          manager_id: string | null
+          manager_notes: string | null
+          manager_status: string | null
+          requested_at: string | null
+          requested_by: string
+          requested_due_date: string
+          status: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string | null
+          current_due_date: string
+          deleted_at?: string | null
+          extension_reason: string
+          hsse_manager_decision_at?: string | null
+          hsse_manager_id?: string | null
+          hsse_manager_notes?: string | null
+          hsse_manager_status?: string | null
+          id?: string
+          manager_decision_at?: string | null
+          manager_id?: string | null
+          manager_notes?: string | null
+          manager_status?: string | null
+          requested_at?: string | null
+          requested_by: string
+          requested_due_date: string
+          status?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string | null
+          current_due_date?: string
+          deleted_at?: string | null
+          extension_reason?: string
+          hsse_manager_decision_at?: string | null
+          hsse_manager_id?: string | null
+          hsse_manager_notes?: string | null
+          hsse_manager_status?: string | null
+          id?: string
+          manager_decision_at?: string | null
+          manager_id?: string | null
+          manager_notes?: string | null
+          manager_status?: string | null
+          requested_at?: string | null
+          requested_by?: string
+          requested_due_date?: string
+          status?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_extension_requests_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "corrective_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_hsse_manager_id_fkey"
+            columns: ["hsse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       action_sla_configs: {
         Row: {
           created_at: string | null
@@ -1241,7 +1343,11 @@ export type Database = {
           assigned_to: string | null
           category: string | null
           completed_date: string | null
+          completion_notes: string | null
           created_at: string | null
+          delegated_at: string | null
+          delegated_by: string | null
+          delegated_verifier_id: string | null
           deleted_at: string | null
           description: string | null
           due_date: string | null
@@ -1249,20 +1355,26 @@ export type Database = {
           finding_id: string | null
           id: string
           incident_id: string | null
+          last_return_reason: string | null
+          last_returned_at: string | null
           linked_cause_type: string | null
           linked_root_cause_id: string | null
+          overdue_justification: string | null
           priority: string | null
+          progress_notes: string | null
           rejected_at: string | null
           rejected_by: string | null
           rejection_notes: string | null
           released_at: string | null
           responsible_department_id: string | null
+          return_count: number | null
           session_id: string | null
           sla_escalation_sent_at: string | null
           sla_warning_sent_at: string | null
           source_finding_id: string | null
           source_type: string | null
           start_date: string | null
+          started_at: string | null
           status: string | null
           tenant_id: string
           title: string
@@ -1276,7 +1388,11 @@ export type Database = {
           assigned_to?: string | null
           category?: string | null
           completed_date?: string | null
+          completion_notes?: string | null
           created_at?: string | null
+          delegated_at?: string | null
+          delegated_by?: string | null
+          delegated_verifier_id?: string | null
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
@@ -1284,20 +1400,26 @@ export type Database = {
           finding_id?: string | null
           id?: string
           incident_id?: string | null
+          last_return_reason?: string | null
+          last_returned_at?: string | null
           linked_cause_type?: string | null
           linked_root_cause_id?: string | null
+          overdue_justification?: string | null
           priority?: string | null
+          progress_notes?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null
           released_at?: string | null
           responsible_department_id?: string | null
+          return_count?: number | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
           source_finding_id?: string | null
           source_type?: string | null
           start_date?: string | null
+          started_at?: string | null
           status?: string | null
           tenant_id: string
           title: string
@@ -1311,7 +1433,11 @@ export type Database = {
           assigned_to?: string | null
           category?: string | null
           completed_date?: string | null
+          completion_notes?: string | null
           created_at?: string | null
+          delegated_at?: string | null
+          delegated_by?: string | null
+          delegated_verifier_id?: string | null
           deleted_at?: string | null
           description?: string | null
           due_date?: string | null
@@ -1319,20 +1445,26 @@ export type Database = {
           finding_id?: string | null
           id?: string
           incident_id?: string | null
+          last_return_reason?: string | null
+          last_returned_at?: string | null
           linked_cause_type?: string | null
           linked_root_cause_id?: string | null
+          overdue_justification?: string | null
           priority?: string | null
+          progress_notes?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null
           released_at?: string | null
           responsible_department_id?: string | null
+          return_count?: number | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
           source_finding_id?: string | null
           source_type?: string | null
           start_date?: string | null
+          started_at?: string | null
           status?: string | null
           tenant_id?: string
           title?: string
@@ -1345,6 +1477,20 @@ export type Database = {
           {
             foreignKeyName: "corrective_actions_assigned_to_fkey"
             columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_delegated_by_fkey"
+            columns: ["delegated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_delegated_verifier_id_fkey"
+            columns: ["delegated_verifier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
