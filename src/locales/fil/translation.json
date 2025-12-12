@@ -88,7 +88,33 @@
       "inProgress": "Isinasagawa",
       "closed": "Sarado",
       "returned": "Ibinalik"
-    }
+    },
+    "branchComparison": "Paghahambing ng Sangay",
+    "departmentAnalytics": "Analytics ng Departamento",
+    "highRiskDepts": "Mataas na Panganib",
+    "actionOverdueRate": "Rate ng Nahuling Aksyon ayon sa Departamento",
+    "riskLevel": {
+      "critical": "Kritikal",
+      "high": "Mataas",
+      "medium": "Katamtaman",
+      "low": "Mababa"
+    },
+    "safetyKPIs": "Mga Tagapagpahiwatig ng Pagganap sa Kaligtasan",
+    "kpiPeriod": "Kasalukuyang Panahon",
+    "closureRate": "Rate ng Pagsasara ng Pangyayari",
+    "closureRateTooltip": "Porsyento ng mga pangyayaring naisara",
+    "investigationRate": "Rate ng Imbestigasyon",
+    "investigationRateTooltip": "Porsyento ng mga nakumpletong imbestigasyon",
+    "actionCompletionRate": "Pagkumpleto ng Aksyon",
+    "actionRateTooltip": "Porsyento ng mga nakumpletong corrective action",
+    "overdueRateTooltip": "Porsyento ng mga bukas na aksyon na nahuling",
+    "closureProgress": "Kabuuang Progreso ng Pagsasara",
+    "actionProgress": "Progreso ng Pagkumpleto ng Aksyon",
+    "laggingIndicators": "Mga Lagging na Tagapagpahiwatig ng Kaligtasan",
+    "ltiRate": "LTI Rate",
+    "ltiTooltip": "Lost Time Injury Rate kada 200,000 man-hours",
+    "trirRate": "TRIR",
+    "trirTooltip": "Total Recordable Incident Rate kada 200,000 man-hours"
   },
   "incidents": {
     "wizard": {

@@ -88,7 +88,33 @@
       "inProgress": "प्रगति में",
       "closed": "बंद",
       "returned": "लौटाया गया"
-    }
+    },
+    "branchComparison": "शाखा तुलना",
+    "departmentAnalytics": "विभाग विश्लेषण",
+    "highRiskDepts": "उच्च जोखिम",
+    "actionOverdueRate": "विभाग द्वारा कार्रवाई विलंब दर",
+    "riskLevel": {
+      "critical": "गंभीर",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "कम"
+    },
+    "safetyKPIs": "सुरक्षा प्रदर्शन संकेतक",
+    "kpiPeriod": "वर्तमान अवधि",
+    "closureRate": "घटना समापन दर",
+    "closureRateTooltip": "बंद की गई घटनाओं का प्रतिशत",
+    "investigationRate": "जांच दर",
+    "investigationRateTooltip": "पूर्ण जांच का प्रतिशत",
+    "actionCompletionRate": "कार्रवाई पूर्णता",
+    "actionRateTooltip": "पूर्ण सुधारात्मक कार्रवाइयों का प्रतिशत",
+    "overdueRateTooltip": "विलंबित खुली कार्रवाइयों का प्रतिशत",
+    "closureProgress": "समग्र समापन प्रगति",
+    "actionProgress": "कार्रवाई पूर्णता प्रगति",
+    "laggingIndicators": "पिछड़े सुरक्षा संकेतक",
+    "ltiRate": "LTI दर",
+    "ltiTooltip": "प्रति 200,000 मानव-घंटे खोए समय की चोट दर",
+    "trirRate": "TRIR",
+    "trirTooltip": "प्रति 200,000 मानव-घंटे कुल दर्ज करने योग्य घटना दर"
   },
   "incidents": {
     "wizard": {

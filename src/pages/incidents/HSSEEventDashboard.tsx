@@ -30,6 +30,9 @@ import {
   ActionsStatusWidget,
   CorrectiveActionDonutChart,
   InvestigationProgressChart,
+  BranchComparisonChart,
+  DepartmentAnalyticsChart,
+  SafetyKPICards,
   AIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
@@ -233,6 +236,28 @@ export default function HSSEEventDashboard() {
           </>
         ) : null}
       </div>
+
+      {/* Branch & Department Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {locationLoading ? (
+          <>
+            <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+            <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+          </>
+        ) : locationData ? (
+          <>
+            <BranchComparisonChart data={locationData.by_branch} />
+            <DepartmentAnalyticsChart data={locationData.by_department} />
+          </>
+        ) : null}
+      </div>
+
+      {/* Safety KPIs */}
+      {dashboardLoading ? (
+        <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+      ) : dashboardData ? (
+        <SafetyKPICards summary={dashboardData.summary} actions={dashboardData.actions} />
+      ) : null}
 
       {/* Enhanced Location Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -98,7 +98,33 @@
       "inProgress": "In Progress",
       "closed": "Closed",
       "returned": "Returned"
-    }
+    },
+    "branchComparison": "Branch Comparison",
+    "departmentAnalytics": "Department Analytics",
+    "highRiskDepts": "High Risk",
+    "actionOverdueRate": "Action Overdue Rate by Department",
+    "riskLevel": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "safetyKPIs": "Safety Performance Indicators",
+    "kpiPeriod": "Current Period",
+    "closureRate": "Event Closure Rate",
+    "closureRateTooltip": "Percentage of events that have been closed",
+    "investigationRate": "Investigation Rate",
+    "investigationRateTooltip": "Percentage of investigations completed",
+    "actionCompletionRate": "Action Completion",
+    "actionRateTooltip": "Percentage of corrective actions completed",
+    "overdueRateTooltip": "Percentage of open actions that are overdue",
+    "closureProgress": "Overall Closure Progress",
+    "actionProgress": "Action Completion Progress",
+    "laggingIndicators": "Lagging Safety Indicators",
+    "ltiRate": "LTI Rate",
+    "ltiTooltip": "Lost Time Injury Rate per 200,000 man-hours",
+    "trirRate": "TRIR",
+    "trirTooltip": "Total Recordable Incident Rate per 200,000 man-hours"
   },
   "incidents": {
     "wizard": {
