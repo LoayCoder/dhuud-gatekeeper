@@ -637,6 +637,8 @@
     "severityChangeProposed": "تم اقتراح تغيير الخطورة. في انتظار موافقة مدير السلامة.",
     "severityChangeApproved": "تمت الموافقة على تغيير الخطورة",
     "severityChangeRejected": "تم رفض تغيير الخطورة",
+    "severityLockedMessage": "تغييرات الخطورة مقفلة بعد تقديم التحقيق",
+    "severityInvestigatorOnly": "يمكن للمحقق المعين فقط اقتراح تغييرات الخطورة",
     "investigatorAssigned": "تم تعيين المحقق بنجاح",
     "incidentApproved": "تمت الموافقة على الحادث وقفله للتحقيق",
     "started": "بدأ التحقيق"

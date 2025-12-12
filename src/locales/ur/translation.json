@@ -585,6 +585,8 @@
     "severityChangeProposed": "شدت کی تبدیلی تجویز کی گئی۔ HSSE مینیجر کی منظوری کا انتظار۔",
     "severityChangeApproved": "شدت کی تبدیلی منظور ہوگئی",
     "severityChangeRejected": "شدت کی تبدیلی مسترد ہوگئی",
+    "severityLockedMessage": "تحقیقات جمع کرانے کے بعد شدت کی تبدیلیاں مقفل ہیں",
+    "severityInvestigatorOnly": "صرف مقرر کردہ تفتیش کار ہی شدت کی تبدیلی تجویز کر سکتا ہے",
     "investigatorAssigned": "تفتیش کار کامیابی سے مقرر ہو گیا",
     "incidentApproved": "واقعہ منظور اور تحقیقات کے لیے مقفل",
     "started": "تحقیقات شروع ہو گئیں",
