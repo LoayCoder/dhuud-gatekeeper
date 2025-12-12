@@ -12,6 +12,7 @@ import { Loader2, FileSearch, Users, Search, ListChecks, LayoutDashboard, Lock, 
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
+import { useCanApproveInvestigation } from "@/hooks/use-hsse-workflow";
 import { usePendingIncidentApprovals } from "@/hooks/use-pending-approvals";
 import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import { 
@@ -84,8 +85,8 @@ export default function InvestigationWorkspace() {
     investigator_id?: string | null;
   } | undefined;
 
-  // Check if user can approve closure (different user than requester)
-  const canApprove = user?.id && incidentData?.closure_requested_by && user.id !== incidentData.closure_requested_by;
+  // Check if user can approve closure using RPC function (enforces role-based and conflict-of-interest checks)
+  const { data: canApprove = false } = useCanApproveInvestigation(selectedIncidentId);
 
   // Determine if investigation tabs should be enabled
   // Cast to string to handle new enum values not yet in types
