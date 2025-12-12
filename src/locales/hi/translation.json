@@ -585,6 +585,8 @@
     "severityChangeProposed": "गंभीरता परिवर्तन प्रस्तावित। HSSE प्रबंधक अनुमोदन की प्रतीक्षा।",
     "severityChangeApproved": "गंभीरता परिवर्तन स्वीकृत",
     "severityChangeRejected": "गंभीरता परिवर्तन अस्वीकृत",
+    "severityLockedMessage": "जांच जमा करने के बाद गंभीरता परिवर्तन लॉक हैं",
+    "severityInvestigatorOnly": "केवल नियुक्त जांचकर्ता ही गंभीरता परिवर्तन का प्रस्ताव कर सकता है",
     "investigatorAssigned": "जांचकर्ता सफलतापूर्वक नियुक्त",
     "incidentApproved": "घटना स्वीकृत और जांच के लिए लॉक",
     "started": "जांच शुरू हुई",

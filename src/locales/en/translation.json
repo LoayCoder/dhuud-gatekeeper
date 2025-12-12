@@ -625,6 +625,8 @@
     "severityChangeProposed": "Severity change proposed. Awaiting HSSE Manager approval.",
     "severityChangeApproved": "Severity change approved",
     "severityChangeRejected": "Severity change rejected",
+    "severityLockedMessage": "Severity changes are locked after investigation submission",
+    "severityInvestigatorOnly": "Only the assigned investigator can propose severity changes",
     "investigatorAssigned": "Investigator assigned successfully",
     "incidentApproved": "Incident approved and locked for investigation",
     "started": "Investigation started",

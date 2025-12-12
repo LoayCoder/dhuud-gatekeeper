@@ -72,6 +72,7 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
       {investigation && (
         <SeverityAdjustmentCard 
           incident={incident}
+          investigation={investigation}
           onRefresh={onRefresh}
         />
       )}

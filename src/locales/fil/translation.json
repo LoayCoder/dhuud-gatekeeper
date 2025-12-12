@@ -585,6 +585,8 @@
     "severityChangeProposed": "Iminungkahi ang pagbabago ng kalubhaan. Naghihintay ng pag-apruba ng HSSE Manager.",
     "severityChangeApproved": "Naaprobahan ang pagbabago ng kalubhaan",
     "severityChangeRejected": "Tinanggihan ang pagbabago ng kalubhaan",
+    "severityLockedMessage": "Naka-lock ang mga pagbabago sa kalubhaan pagkatapos ng pagsumite ng imbestigasyon",
+    "severityInvestigatorOnly": "Tanging ang itinalagang imbestigador lamang ang makakamungkahi ng mga pagbabago sa kalubhaan",
     "investigatorAssigned": "Matagumpay na natalaga ang imbestigador",
     "incidentApproved": "Naaprobahan ang insidente at naka-lock para sa imbestigasyon",
     "started": "Nagsimula ang imbestigasyon",

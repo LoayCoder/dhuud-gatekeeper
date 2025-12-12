@@ -6,18 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle } from "lucide-react";
+import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle, Lock } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-access";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
+import type { Investigation } from "@/hooks/use-investigation";
 import type { Database } from "@/integrations/supabase/types";
 
 type SeverityLevel = Database['public']['Enums']['severity_level'];
 
 interface SeverityAdjustmentCardProps {
   incident: IncidentWithDetails;
+  investigation?: Investigation | null;
   onRefresh: () => void;
 }
 
@@ -46,7 +49,7 @@ async function sendSeverityNotification(payload: {
   }
 }
 
-export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustmentCardProps) {
+export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: SeverityAdjustmentCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile, user } = useAuth();
@@ -54,6 +57,8 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
   
   const [newSeverity, setNewSeverity] = useState<SeverityLevel | ''>('');
   const [justification, setJustification] = useState('');
+  
+  const { isLocked, isAssignedInvestigator, isOversightRole } = useInvestigationEditAccess(investigation, incident);
 
   const severityOptions: SeverityLevel[] = ['low', 'medium', 'high', 'critical'];
 
@@ -280,8 +285,16 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
           )}
         </div>
 
-        {/* Pending Approval View */}
-        {hasPendingChange ? (
+        {/* Locked State - After Investigation Submission */}
+        {isLocked ? (
+          <div className="bg-muted/50 border rounded-md p-3 flex items-center gap-2">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              {t('investigation.severityLockedMessage', 'Severity changes are locked after investigation submission')}
+            </span>
+          </div>
+        ) : hasPendingChange ? (
+          /* Pending Approval View */
           <div className="space-y-4">
             <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
               <p className="text-sm font-medium mb-2">
@@ -292,32 +305,34 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
               </p>
             </div>
 
-            {/* Approval Buttons (for HSSE Manager) */}
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => approveMutation.mutate()}
-                disabled={approveMutation.isPending || rejectMutation.isPending}
-                className="flex-1"
-                variant="default"
-              >
-                {approveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-                <CheckCircle className="h-4 w-4 me-2" />
-                {t('investigation.overview.approve', 'Approve')}
-              </Button>
-              <Button 
-                onClick={() => rejectMutation.mutate()}
-                disabled={approveMutation.isPending || rejectMutation.isPending}
-                className="flex-1"
-                variant="destructive"
-              >
-                {rejectMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-                <XCircle className="h-4 w-4 me-2" />
-                {t('investigation.overview.reject', 'Reject')}
-              </Button>
-            </div>
+            {/* Approval Buttons (for HSSE Manager) - only if oversight role */}
+            {isOversightRole && (
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => approveMutation.mutate()}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                  className="flex-1"
+                  variant="default"
+                >
+                  {approveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                  <CheckCircle className="h-4 w-4 me-2" />
+                  {t('investigation.overview.approve', 'Approve')}
+                </Button>
+                <Button 
+                  onClick={() => rejectMutation.mutate()}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                  className="flex-1"
+                  variant="destructive"
+                >
+                  {rejectMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                  <XCircle className="h-4 w-4 me-2" />
+                  {t('investigation.overview.reject', 'Reject')}
+                </Button>
+              </div>
+            )}
           </div>
-        ) : (
-          /* Propose Change Form */
+        ) : isAssignedInvestigator ? (
+          /* Propose Change Form - Only for assigned investigator */
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('investigation.overview.proposedSeverity', 'Proposed Severity')}</Label>
@@ -362,6 +377,14 @@ export function SeverityAdjustmentCard({ incident, onRefresh }: SeverityAdjustme
               {proposeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('investigation.overview.proposeChange', 'Propose Severity Change')}
             </Button>
+          </div>
+        ) : (
+          /* Read-only for oversight roles during active investigation */
+          <div className="bg-muted/50 border rounded-md p-3 flex items-center gap-2">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              {t('investigation.severityInvestigatorOnly', 'Only the assigned investigator can propose severity changes')}
+            </span>
           </div>
         )}
       </CardContent>
