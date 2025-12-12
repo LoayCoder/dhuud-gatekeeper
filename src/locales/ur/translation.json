@@ -98,6 +98,26 @@
       "criticalIncident": "اہم واقعہ رپورٹ کیا گیا",
       "viewDetails": "دیکھیں"
     },
+    "paretoChart": {
+      "title": "بنیادی وجہ پیریٹو تجزیہ",
+      "subtitle": "80/20 اصول - اہم چند وجوہات",
+      "cumulativePercent": "مجموعی %",
+      "threshold": "80% حد",
+      "count": "واقعات",
+      "noData": "بنیادی وجہ کا ڈیٹا دستیاب نہیں"
+    },
+    "waterfallChart": {
+      "title": "واقعہ کی پیشرفت کا بہاؤ",
+      "subtitle": "ورک فلو مراحل میں خالص حرکت",
+      "entering": "داخل",
+      "leaving": "خارج",
+      "currentOpen": "موجودہ کھلے",
+      "noData": "پیشرفت کا ڈیٹا دستیاب نہیں"
+    },
+    "caching": {
+      "refreshing": "ڈیٹا تازہ ہو رہا ہے...",
+      "lastUpdated": "آخری اپڈیٹ"
+    },
     "actionStatus": {
       "inProgress": "جاری ہے",
       "closed": "بند",
