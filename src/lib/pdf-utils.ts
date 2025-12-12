@@ -16,6 +16,8 @@ export interface PDFBrandingOptions {
   // Per-page branding
   header?: {
     logoBase64?: string | null;
+    logoWidth?: number;   // Original width in pixels
+    logoHeight?: number;  // Original height in pixels
     logoPosition?: 'left' | 'center' | 'right';
     primaryText?: string;
     secondaryText?: string | null;
@@ -36,6 +38,11 @@ export interface PDFBrandingOptions {
   };
   isRTL?: boolean;
 }
+
+// Synchronized constants for header/footer dimensions
+const HEADER_HEIGHT = 22; // mm (including separator + padding)
+const FOOTER_HEIGHT = 16; // mm (including border + padding)
+const CONTENT_PADDING = 3; // mm buffer between content and header/footer
 
 // Convert hex color to RGB array
 function hexToRgb(hex: string): [number, number, number] {
@@ -61,19 +68,39 @@ function drawPageHeader(
   if (!header) return margin;
   
   const headerY = margin;
-  const headerHeight = 18;
+  const headerHeight = HEADER_HEIGHT - CONTENT_PADDING;
   
   // Background rectangle
   const bgColor = hexToRgb(header.bgColor || '#ffffff');
   pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
   pdf.rect(margin, headerY, pageWidth - margin * 2, headerHeight, 'F');
   
-  // Logo (if provided)
+  // Logo (if provided) - with proper aspect ratio
   if (header.logoBase64) {
     try {
-      const logoWidth = 35;
-      const logoHeight = 12;
+      const maxLogoWidth = 40;  // Max width in mm
+      const maxLogoHeight = 14; // Max height in mm
+      
+      let logoWidth = maxLogoWidth;
+      let logoHeight = maxLogoHeight;
+      
+      // Calculate dimensions maintaining aspect ratio
+      if (header.logoWidth && header.logoHeight && header.logoWidth > 0 && header.logoHeight > 0) {
+        const aspectRatio = header.logoWidth / header.logoHeight;
+        
+        if (aspectRatio > maxLogoWidth / maxLogoHeight) {
+          // Width-constrained
+          logoWidth = maxLogoWidth;
+          logoHeight = logoWidth / aspectRatio;
+        } else {
+          // Height-constrained
+          logoHeight = maxLogoHeight;
+          logoWidth = logoHeight * aspectRatio;
+        }
+      }
+      
       let logoX = margin + 2;
+      const logoY = headerY + (headerHeight - logoHeight) / 2; // Vertically center
       
       if (header.logoPosition === 'right') {
         logoX = pageWidth - margin - logoWidth - 2;
@@ -81,13 +108,13 @@ function drawPageHeader(
         logoX = (pageWidth - logoWidth) / 2;
       }
       
-      pdf.addImage(header.logoBase64, 'PNG', logoX, headerY + 3, logoWidth, logoHeight);
+      pdf.addImage(header.logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
     } catch (e) {
       console.warn('Failed to add logo to PDF:', e);
     }
   }
   
-  // Text
+  // Text positioning based on logo position
   const textColor = hexToRgb(header.textColor || '#1f2937');
   pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
   pdf.setFontSize(11);
@@ -98,7 +125,8 @@ function drawPageHeader(
   } else if (header.logoPosition === 'right') {
     textX = isRTL ? pageWidth - margin - 5 : margin + 5;
   } else {
-    textX = isRTL ? pageWidth - margin - 5 : margin + 40;
+    // Logo on left, text goes to the right of logo
+    textX = isRTL ? pageWidth - margin - 5 : margin + 45;
   }
   
   if (header.primaryText) {
@@ -115,7 +143,7 @@ function drawPageHeader(
   pdf.setLineWidth(0.3);
   pdf.line(margin, headerY + headerHeight, pageWidth - margin, headerY + headerHeight);
   
-  return headerY + headerHeight + 2; // Return Y position after header
+  return headerY + HEADER_HEIGHT; // Return Y position after header with padding
 }
 
 // Draw watermark on each page
@@ -161,7 +189,7 @@ function drawPageFooter(
 ): void {
   if (!footer) return;
   
-  const footerHeight = 12;
+  const footerHeight = FOOTER_HEIGHT - CONTENT_PADDING;
   const footerY = pageHeight - margin - footerHeight;
   
   // Background rectangle
@@ -182,20 +210,20 @@ function drawPageFooter(
   // Left side - custom text
   if (footer.text) {
     const textX = isRTL ? pageWidth - margin - 5 : margin + 5;
-    pdf.text(footer.text, textX, footerY + 7, { align: isRTL ? 'right' : 'left' });
+    pdf.text(footer.text, textX, footerY + 8, { align: isRTL ? 'right' : 'left' });
   }
   
   // Center - page numbers
   if (footer.showPageNumbers) {
     const pageText = `${currentPage} / ${totalPages}`;
-    pdf.text(pageText, pageWidth / 2, footerY + 7, { align: 'center' });
+    pdf.text(pageText, pageWidth / 2, footerY + 8, { align: 'center' });
   }
   
   // Right side - date printed
   if (footer.showDatePrinted) {
     const dateText = format(new Date(), 'PPP');
     const dateX = isRTL ? margin + 5 : pageWidth - margin - 5;
-    pdf.text(dateText, dateX, footerY + 7, { align: isRTL ? 'left' : 'right' });
+    pdf.text(dateText, dateX, footerY + 8, { align: isRTL ? 'left' : 'right' });
   }
 }
 
@@ -219,13 +247,13 @@ export async function generateBrandedPDFFromElement(
   const pageWidth = 210; // A4 width in mm
   const pageHeight = 297; // A4 height in mm
   
-  // Calculate reserved space for header and footer
-  const headerHeight = header ? 20 : 0;
-  const footerHeight = footer ? 14 : 0;
+  // Calculate reserved space for header and footer using synchronized constants
+  const headerSpace = header ? HEADER_HEIGHT : 0;
+  const footerSpace = footer ? FOOTER_HEIGHT : 0;
   
-  // Available content area per page
-  const contentStartY = margin + headerHeight;
-  const contentEndY = pageHeight - margin - footerHeight;
+  // Available content area per page (with safety margins)
+  const contentStartY = margin + headerSpace;
+  const contentEndY = pageHeight - margin - footerSpace;
   const contentAreaHeight = contentEndY - contentStartY;
   const contentWidth = pageWidth - margin * 2;
 
@@ -242,8 +270,11 @@ export async function generateBrandedPDFFromElement(
   const imgWidth = contentWidth;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
   
-  // Calculate total pages needed
-  const totalPages = Math.ceil(imgHeight / contentAreaHeight);
+  // Calculate total pages needed (use ceiling to ensure we don't miss content)
+  const totalPages = Math.max(1, Math.ceil(imgHeight / contentAreaHeight));
+  
+  // Calculate precise scale ratio (pixels per mm)
+  const scaleRatio = canvas.height / imgHeight;
 
   // Create PDF
   const pdf = new jsPDF({
@@ -251,8 +282,6 @@ export async function generateBrandedPDFFromElement(
     unit: "mm",
     format: "a4",
   });
-
-  const imgData = canvas.toDataURL("image/png");
 
   // Generate each page
   for (let page = 1; page <= totalPages; page++) {
@@ -268,40 +297,49 @@ export async function generateBrandedPDFFromElement(
       drawWatermark(pdf, watermark.text, watermark.opacity || 15, pageWidth, pageHeight);
     }
 
-    // Calculate which portion of the image to show on this page
-    const sourceY = (page - 1) * contentAreaHeight;
+    // Calculate which portion of the image to show on this page using pixel-precise calculations
+    const sourceYMm = (page - 1) * contentAreaHeight;
+    const remainingHeightMm = imgHeight - sourceYMm;
+    const sourceHeightMm = Math.min(contentAreaHeight, remainingHeightMm);
+    
+    // Convert to pixels for canvas slicing (integer values for precision)
+    const sourceYPixels = Math.floor(sourceYMm * scaleRatio);
+    const sourceHeightPixels = Math.min(
+      Math.ceil(sourceHeightMm * scaleRatio),
+      canvas.height - sourceYPixels
+    );
+    
+    // Skip if no content to render
+    if (sourceHeightPixels <= 0) continue;
     
     // Create a temporary canvas for just this page's content
     const pageCanvas = document.createElement('canvas');
     const ctx = pageCanvas.getContext('2d');
     
     if (ctx) {
-      // Calculate source dimensions in canvas pixels
-      const pixelRatio = canvas.width / imgWidth;
-      const sourceHeight = Math.min(contentAreaHeight, imgHeight - sourceY);
-      const sourcePixelY = sourceY * pixelRatio;
-      const sourcePixelHeight = sourceHeight * pixelRatio;
-      
       pageCanvas.width = canvas.width;
-      pageCanvas.height = sourcePixelHeight;
+      pageCanvas.height = sourceHeightPixels;
       
       // Draw the portion of the original canvas
       ctx.drawImage(
         canvas,
-        0, sourcePixelY, canvas.width, sourcePixelHeight,
-        0, 0, canvas.width, sourcePixelHeight
+        0, sourceYPixels, canvas.width, sourceHeightPixels,
+        0, 0, canvas.width, sourceHeightPixels
       );
       
       const pageImgData = pageCanvas.toDataURL("image/png");
       
-      // Add the content image for this page
+      // Calculate output height in mm (back from pixels)
+      const outputHeightMm = sourceHeightPixels / scaleRatio;
+      
+      // Add the content image for this page (clipped to content area)
       pdf.addImage(
         pageImgData,
         "PNG",
         margin,
         contentStartY,
         contentWidth,
-        sourceHeight
+        Math.min(outputHeightMm, contentAreaHeight)
       );
     }
 
@@ -314,9 +352,18 @@ export async function generateBrandedPDFFromElement(
 }
 
 /**
- * Preload an image URL as base64 for embedding in PDF
+ * Preloaded image data with dimensions
  */
-export async function preloadImageAsBase64(url: string): Promise<string | null> {
+export interface PreloadedImage {
+  base64: string;
+  width: number;
+  height: number;
+}
+
+/**
+ * Preload an image URL as base64 with dimensions for proper aspect ratio calculation
+ */
+export async function preloadImageWithDimensions(url: string): Promise<PreloadedImage | null> {
   if (!url) return null;
   
   try {
@@ -331,7 +378,11 @@ export async function preloadImageAsBase64(url: string): Promise<string | null> 
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
+          resolve({
+            base64: canvas.toDataURL('image/png'),
+            width: img.width,
+            height: img.height
+          });
         } else {
           resolve(null);
         }
@@ -347,6 +398,15 @@ export async function preloadImageAsBase64(url: string): Promise<string | null> 
   } catch {
     return null;
   }
+}
+
+/**
+ * Preload an image URL as base64 for embedding in PDF
+ * @deprecated Use preloadImageWithDimensions for proper aspect ratio support
+ */
+export async function preloadImageAsBase64(url: string): Promise<string | null> {
+  const result = await preloadImageWithDimensions(url);
+  return result?.base64 || null;
 }
 
 /**

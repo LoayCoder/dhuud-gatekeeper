@@ -1,4 +1,4 @@
-import { generateBrandedPDFFromElement, createPDFRenderContainer, removePDFRenderContainer, preloadImageAsBase64 } from './pdf-utils';
+import { generateBrandedPDFFromElement, createPDFRenderContainer, removePDFRenderContainer, preloadImageWithDimensions } from './pdf-utils';
 import { fetchDocumentSettings } from '@/hooks/use-document-branding';
 import { DocumentBrandingSettings } from '@/types/document-branding';
 import { format } from 'date-fns';
@@ -677,8 +677,8 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   const tenantName = tenantInfo?.name || 'Organization';
   const logoUrl = tenantInfo?.logo_light_url;
 
-  // Preload logo as base64 for PDF embedding
-  const logoBase64 = logoUrl ? await preloadImageAsBase64(logoUrl) : null;
+  // Preload logo with dimensions for proper aspect ratio
+  const logoData = logoUrl ? await preloadImageWithDimensions(logoUrl) : null;
 
   // Define sections based on access level
   const sections = {
@@ -794,7 +794,9 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
       margin: 15,
       quality: 2,
       header: {
-        logoBase64: logoBase64,
+        logoBase64: logoData?.base64,
+        logoWidth: logoData?.width,
+        logoHeight: logoData?.height,
         logoPosition: settings?.headerLogoPosition || 'left',
         primaryText: settings?.headerTextPrimary || tenantName,
         secondaryText: settings?.headerTextSecondary || (isRTL ? 'تقرير الحادث' : 'Incident Report'),
