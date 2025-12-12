@@ -26,15 +26,15 @@ interface KPICardProps {
 
 function SafetyKPICard({ title, value, subtitle, trend, variant = 'default', tooltip }: KPICardProps) {
   const bgClass = variant === 'danger' 
-    ? 'bg-destructive/10 border-destructive/20' 
+    ? 'bg-gradient-to-br from-destructive/15 to-destructive/5 border-destructive/30' 
     : variant === 'warning' 
-      ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
+      ? 'bg-gradient-to-br from-warning/20 to-warning/5 border-warning/30'
       : variant === 'success'
-        ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-        : 'bg-muted/50';
+        ? 'bg-gradient-to-br from-chart-3/20 to-chart-3/5 border-chart-3/30'
+        : 'bg-gradient-to-br from-muted/50 to-muted/20';
 
   return (
-    <div className={`p-4 rounded-lg border ${bgClass}`}>
+    <div className={`p-4 rounded-xl border transition-all hover:shadow-sm ${bgClass}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-1">
@@ -54,8 +54,8 @@ function SafetyKPICard({ title, value, subtitle, trend, variant = 'default', too
           </div>
           <p className={`text-2xl font-bold mt-1 ${
             variant === 'danger' ? 'text-destructive' : 
-            variant === 'success' ? 'text-green-600 dark:text-green-400' :
-            variant === 'warning' ? 'text-yellow-600 dark:text-yellow-400' : ''
+            variant === 'success' ? 'text-chart-3' :
+            variant === 'warning' ? 'text-warning' : ''
           }`}>
             {value}
           </p>
