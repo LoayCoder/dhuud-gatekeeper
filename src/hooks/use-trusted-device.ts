@@ -62,51 +62,66 @@ export function useTrustedDevice() {
 
   const checkTrustedDevice = async (userId: string): Promise<boolean> => {
     const storedToken = localStorage.getItem(TRUST_STORAGE_KEY);
-    console.log('[TrustedDevice] Checking trust status, token exists:', !!storedToken);
-    
-    if (!storedToken) return false;
+    const deviceName = getDeviceName();
+    console.log('[TrustedDevice] Checking trust status, token exists:', !!storedToken, 'device:', deviceName);
 
     try {
-      const { data, error } = await supabase
+      // First: Try exact token match from localStorage
+      if (storedToken) {
+        const { data, error } = await supabase
+          .from('trusted_devices')
+          .select('id, trusted_until')
+          .eq('user_id', userId)
+          .eq('device_token', storedToken)
+          .single();
+
+        if (!error && data) {
+          // Check if trust has expired
+          if (new Date(data.trusted_until) < new Date()) {
+            console.log('[TrustedDevice] Trust has expired, cleaning up');
+            localStorage.removeItem(TRUST_STORAGE_KEY);
+            await supabase.from('trusted_devices').delete().eq('id', data.id);
+          } else {
+            // Valid token match - update last_used_at
+            await supabase
+              .from('trusted_devices')
+              .update({ last_used_at: new Date().toISOString() })
+              .eq('id', data.id);
+            console.log('[TrustedDevice] Device is trusted via token match, valid until:', data.trusted_until);
+            return true;
+          }
+        }
+      }
+
+      // Fallback: Check by device name (same browser/OS combo) - handles domain switches
+      console.log('[TrustedDevice] Token match failed, trying device name fallback');
+      const { data: deviceMatch } = await supabase
         .from('trusted_devices')
-        .select('id, trusted_until')
+        .select('id, device_token, trusted_until')
         .eq('user_id', userId)
-        .eq('device_token', storedToken)
+        .eq('device_name', deviceName)
+        .gt('trusted_until', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
-      if (error) {
-        console.error('[TrustedDevice] Failed to check trusted device:', error);
-        localStorage.removeItem(TRUST_STORAGE_KEY);
-        return false;
+      if (deviceMatch) {
+        // Resync localStorage with the valid token from database
+        localStorage.setItem(TRUST_STORAGE_KEY, deviceMatch.device_token);
+        console.log('[TrustedDevice] Resynced token from device name match, valid until:', deviceMatch.trusted_until);
+        
+        // Update last_used_at
+        await supabase
+          .from('trusted_devices')
+          .update({ last_used_at: new Date().toISOString() })
+          .eq('id', deviceMatch.id);
+        
+        return true;
       }
 
-      if (!data) {
-        console.log('[TrustedDevice] No matching device found in database');
-        localStorage.removeItem(TRUST_STORAGE_KEY);
-        return false;
-      }
-
-      // Check if trust has expired
-      if (new Date(data.trusted_until) < new Date()) {
-        console.log('[TrustedDevice] Trust has expired, cleaning up');
-        localStorage.removeItem(TRUST_STORAGE_KEY);
-        // Clean up expired record
-        await supabase.from('trusted_devices').delete().eq('id', data.id);
-        return false;
-      }
-
-      // Update last_used_at with error handling
-      const { error: updateError } = await supabase
-        .from('trusted_devices')
-        .update({ last_used_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      if (updateError) {
-        console.error('[TrustedDevice] Failed to update last_used_at:', updateError);
-      }
-
-      console.log('[TrustedDevice] Device is trusted, valid until:', data.trusted_until);
-      return true;
+      console.log('[TrustedDevice] No valid trusted device found');
+      localStorage.removeItem(TRUST_STORAGE_KEY);
+      return false;
     } catch (err) {
       console.error('[TrustedDevice] Unexpected error checking trust:', err);
       return false;
@@ -114,56 +129,36 @@ export function useTrustedDevice() {
   };
 
   const trustDevice = async (userId: string): Promise<boolean> => {
-    const existingToken = localStorage.getItem(TRUST_STORAGE_KEY);
     const trustDays = await getTenantTrustDuration(userId);
     const trustedUntil = new Date();
     trustedUntil.setDate(trustedUntil.getDate() + trustDays);
+    const deviceName = getDeviceName();
 
-    console.log('[TrustedDevice] Trusting device for', trustDays, 'days');
+    console.log('[TrustedDevice] Trusting device for', trustDays, 'days, device:', deviceName);
 
     try {
-      // If there's an existing token in localStorage, try to update it first
-      if (existingToken) {
-        console.log('[TrustedDevice] Found existing token, attempting to update');
-        
-        const { data: existingDevice, error: lookupError } = await supabase
-          .from('trusted_devices')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('device_token', existingToken)
-          .single();
-        
-        if (lookupError) {
-          console.log('[TrustedDevice] No existing device found for token:', lookupError.message);
-        }
-        
-        if (existingDevice) {
-          // Update existing trust period
-          const { error } = await supabase
-            .from('trusted_devices')
-            .update({ 
-              trusted_until: trustedUntil.toISOString(),
-              last_used_at: new Date().toISOString()
-            })
-            .eq('id', existingDevice.id);
-          
-          if (!error) {
-            console.log('[TrustedDevice] Updated existing device trust period');
-            return true;
-          }
-          console.error('[TrustedDevice] Failed to update existing device:', error);
-        }
+      // Step 1: Clean up ALL existing tokens for same user + device name
+      // This prevents token accumulation and ensures single active token per device
+      const { error: deleteError } = await supabase
+        .from('trusted_devices')
+        .delete()
+        .eq('user_id', userId)
+        .eq('device_name', deviceName);
+      
+      if (deleteError) {
+        console.log('[TrustedDevice] Cleanup of old tokens failed (may be none):', deleteError.message);
+      } else {
+        console.log('[TrustedDevice] Cleaned up existing tokens for this device');
       }
 
-      // No existing device found or update failed, create new
+      // Step 2: Create fresh trusted device record
       const token = generateToken();
       console.log('[TrustedDevice] Creating new trusted device record');
       
-      // Note: tenant_id is auto-populated by database trigger
       const { error } = await supabase.from('trusted_devices').insert({
         user_id: userId,
         device_token: token,
-        device_name: getDeviceName(),
+        device_name: deviceName,
         trusted_until: trustedUntil.toISOString(),
         user_agent: navigator.userAgent,
       });
@@ -173,17 +168,16 @@ export function useTrustedDevice() {
         return false;
       }
 
-      // Save token to localStorage and verify it was saved
+      // Step 3: Save token to localStorage and verify
       localStorage.setItem(TRUST_STORAGE_KEY, token);
       
-      // Verify localStorage persistence immediately
       const savedToken = localStorage.getItem(TRUST_STORAGE_KEY);
       if (savedToken !== token) {
         console.error('[TrustedDevice] localStorage failed to persist token!');
         return false;
       }
       
-      console.log('[TrustedDevice] New device trusted successfully, token saved:', !!savedToken);
+      console.log('[TrustedDevice] New device trusted successfully, token saved');
       return true;
     } catch (err) {
       console.error('[TrustedDevice] Unexpected error trusting device:', err);
