@@ -13,7 +13,7 @@ const corsHeaders = {
 };
 
 interface ActionEmailRequest {
-  type: 'action_assigned' | 'witness_request_created' | 'action_returned';
+  type: 'action_assigned' | 'witness_request_created' | 'action_returned' | 'action_closed';
   recipient_email: string;
   recipient_name: string;
   // For actions
@@ -26,6 +26,9 @@ interface ActionEmailRequest {
   // For action returned
   rejection_notes?: string;
   return_count?: number;
+  // For action closed
+  verification_notes?: string;
+  verifier_name?: string;
   // For witness requests
   witness_name?: string;
   relationship?: string;
@@ -378,6 +381,74 @@ function buildActionReturnedEmail(data: ActionEmailRequest): { subject: string; 
   };
 }
 
+function buildActionClosedEmail(data: ActionEmailRequest): { subject: string; html: string } {
+  return {
+    subject: `✓ [Action Closed] ${data.action_title} - Successfully Verified`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">✓ Action Verified & Closed</h1>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+          <p style="font-size: 16px;">Hello <strong>${data.recipient_name || 'Team Member'}</strong>,</p>
+          
+          <p>Great news! Your corrective action has been reviewed, verified, and closed by the HSSE team.</p>
+          
+          <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <h2 style="margin: 0 0 15px 0; color: #1e293b; font-size: 18px;">${data.action_title}</h2>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; width: 140px;">Status:</td>
+                <td style="padding: 8px 0;">
+                  <span style="background: #16a34a; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; text-transform: uppercase;">
+                    CLOSED
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Related Incident:</td>
+                <td style="padding: 8px 0;">${data.incident_reference || 'N/A'}</td>
+              </tr>
+              ${data.verifier_name ? `
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Verified By:</td>
+                <td style="padding: 8px 0;">${data.verifier_name}</td>
+              </tr>
+              ` : ''}
+            </table>
+          </div>
+          
+          ${data.verification_notes ? `
+            <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #bbf7d0;">
+              <p style="color: #166534; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">📝 Verifier's Notes:</p>
+              <p style="margin: 0; color: #14532d;">"${data.verification_notes}"</p>
+            </div>
+          ` : ''}
+          
+          <div style="background: #ecfdf5; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0; color: #166534; font-size: 16px; font-weight: 500;">
+              🎉 Thank you for your contribution to a safer workplace!
+            </p>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
+            <p>This is an automated message from ${data.tenant_name || 'DHUUD HSSE Platform'}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -403,11 +474,12 @@ const handler = async (req: Request): Promise<Response> => {
       case 'action_returned':
         emailContent = buildActionReturnedEmail(data);
         break;
+      case 'action_closed':
+        emailContent = buildActionClosedEmail(data);
+        break;
       default:
         throw new Error(`Unknown email type: ${data.type}`);
     }
-
-    // Send email via AWS SES
     const result = await sendEmailViaSES(
       data.recipient_email,
       emailContent.subject,
