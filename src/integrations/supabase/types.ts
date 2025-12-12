@@ -1630,6 +1630,80 @@ export type Database = {
           },
         ]
       }
+      email_delivery_logs: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          email_type: string
+          function_name: string
+          id: string
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string | null
+          payload: Json
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          retry_count: number
+          status: string
+          subject: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          email_type: string
+          function_name: string
+          id?: string
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          retry_count?: number
+          status?: string
+          subject: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          email_type?: string
+          function_name?: string
+          id?: string
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          retry_count?: number
+          status?: string
+          subject?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_delivery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evidence_items: {
         Row: {
           cctv_data: Json | null
