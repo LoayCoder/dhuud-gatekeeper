@@ -47,7 +47,7 @@ export function ActionVerificationDialog({
 
   const handleDownload = async (storagePath: string, fileName: string) => {
     const { data, error } = await supabase.storage
-      .from('action-evidence')
+      .from('audit-evidence')
       .download(storagePath);
 
     if (error || !data) return;
