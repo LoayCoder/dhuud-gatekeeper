@@ -159,8 +159,15 @@
       "pending_manager_approval": "بانتظار موافقة المدير",
       "manager_rejected": "مرفوض من المدير",
       "hsse_manager_escalation": "تصعيد لمدير HSSE",
-      "pending_dept_rep_approval": "بانتظار موافقة ممثل القسم"
+      "pending_dept_rep_approval": "بانتظار موافقة ممثل القسم",
+      "pending_closure": "في انتظار الإغلاق",
+      "investigation_closed": "التحقيق مغلق",
+      "pending_final_closure": "في انتظار الإغلاق النهائي"
     },
+    "printReport": "طباعة التقرير",
+    "reportTitle": "تقرير التحقيق في الحادث",
+    "reportGenerating": "جاري إنشاء التقرير...",
+    "reportGenerated": "تم تحميل التقرير بنجاح",
     "immediateActions": "الإجراءات الفورية المتخذة",
     "immediateActionsPlaceholder": "ما هي الإجراءات التي تم اتخاذها في الموقع؟",
     "aiAssistant": "مساعد الذكاء الاصطناعي",
