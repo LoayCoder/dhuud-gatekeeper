@@ -5527,6 +5527,7 @@ export type Database = {
         | "manager_rejected"
         | "hsse_manager_escalation"
         | "pending_dept_rep_approval"
+        | "pending_closure"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -5787,6 +5788,7 @@ export const Constants = {
         "manager_rejected",
         "hsse_manager_escalation",
         "pending_dept_rep_approval",
+        "pending_closure",
       ],
       maintenance_frequency: [
         "daily",
