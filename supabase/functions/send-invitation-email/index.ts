@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
+// AWS SES Configuration
+const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
+const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
+const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
+const AWS_SES_FROM_EMAIL = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface InvitationEmailRequest {
@@ -15,16 +20,89 @@ interface InvitationEmailRequest {
   inviteUrl?: string;
 }
 
+// AWS SES email sending helper
+async function sendEmailViaSES(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const host = `email.${AWS_SES_REGION}.amazonaws.com`;
+  const endpoint = `https://${host}/`;
+  const date = new Date();
+  const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const dateStamp = amzDate.slice(0, 8);
+
+  const params = new URLSearchParams({
+    Action: 'SendEmail',
+    Version: '2010-12-01',
+    'Source': AWS_SES_FROM_EMAIL,
+    'Destination.ToAddresses.member.1': to,
+    'Message.Subject.Data': subject,
+    'Message.Subject.Charset': 'UTF-8',
+    'Message.Body.Html.Data': html,
+    'Message.Body.Html.Charset': 'UTF-8',
+  });
+
+  const body = params.toString();
+  const hashedPayload = await sha256(body);
+  const canonicalRequest = ['POST', '/', '', `host:${host}`, `x-amz-date:${amzDate}`, '', 'host;x-amz-date', hashedPayload].join('\n');
+
+  const hashedCanonicalRequest = await sha256(canonicalRequest);
+  const credentialScope = `${dateStamp}/${AWS_SES_REGION}/ses/aws4_request`;
+  const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, hashedCanonicalRequest].join('\n');
+
+  const signingKey = await getSignatureKey(AWS_SECRET_ACCESS_KEY!, dateStamp, AWS_SES_REGION, 'ses');
+  const signature = await hmacHex(signingKey, stringToSign);
+
+  const authorizationHeader = [`AWS4-HMAC-SHA256 Credential=${AWS_ACCESS_KEY_ID}/${credentialScope}`, `SignedHeaders=host;x-amz-date`, `Signature=${signature}`].join(', ');
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Host': host, 'X-Amz-Date': amzDate, 'Authorization': authorizationHeader },
+    body,
+  });
+
+  const responseText = await response.text();
+  if (!response.ok) {
+    console.error('SES Error Response:', responseText);
+    return { success: false, error: responseText };
+  }
+
+  const messageIdMatch = responseText.match(/<MessageId>(.+?)<\/MessageId>/);
+  return { success: true, messageId: messageIdMatch ? messageIdMatch[1] : undefined };
+}
+
+async function sha256(message: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hmac(key: Uint8Array, message: string): Promise<Uint8Array> {
+  const keyBuffer = new ArrayBuffer(key.length);
+  const keyView = new Uint8Array(keyBuffer);
+  keyView.set(key);
+  const cryptoKey = await crypto.subtle.importKey('raw', keyBuffer, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(message));
+  return new Uint8Array(signature);
+}
+
+async function hmacHex(key: Uint8Array, message: string): Promise<string> {
+  const sig = await hmac(key, message);
+  return Array.from(sig).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getSignatureKey(key: string, dateStamp: string, regionName: string, serviceName: string): Promise<Uint8Array> {
+  const kDate = await hmac(new TextEncoder().encode('AWS4' + key), dateStamp);
+  const kRegion = await hmac(kDate, regionName);
+  const kService = await hmac(kRegion, serviceName);
+  return await hmac(kService, 'aws4_request');
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-invitation-email function called");
 
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Authentication check - require valid JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('No authorization header provided');
@@ -34,21 +112,14 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Extract token from Bearer header
     const token = authHeader.replace('Bearer ', '');
-
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Verify user is authenticated by passing token directly to getUser
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error('Invalid or expired token:', userError?.message);
@@ -58,10 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Verify user is admin using RPC function
-    const { data: isAdmin, error: adminCheckError } = await supabaseClient.rpc('is_admin', { 
-      p_user_id: user.id 
-    });
+    const { data: isAdmin, error: adminCheckError } = await supabaseClient.rpc('is_admin', { p_user_id: user.id });
     
     if (adminCheckError) {
       console.error('Error checking admin status:', adminCheckError);
@@ -80,15 +148,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { email, code, tenantName, expiresAt, inviteUrl }: InvitationEmailRequest = await req.json();
-
     console.log(`Admin ${user.id} sending invitation email to ${email} for tenant ${tenantName}`);
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
-    }
-
-    // Format expiry date
     const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -96,7 +157,6 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric',
     });
 
-    // Default invite URL
     const invitationUrl = inviteUrl || "https://8feca61a-47e3-4736-9ecf-c70ee7c6acc3.lovableproject.com/invite";
 
     const emailHtml = `
@@ -143,44 +203,25 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: `${tenantName} <onboarding@resend.dev>`,
-        to: [email],
-        subject: `You're invited to join ${tenantName}`,
-        html: emailHtml,
-      }),
-    });
+    const result = await sendEmailViaSES(email, `You're invited to join ${tenantName}`, emailHtml);
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Resend API error:", data);
-      throw new Error(data.message || "Failed to send email");
+    if (!result.success) {
+      console.error("AWS SES error:", result.error);
+      throw new Error(result.error || "Failed to send email");
     }
 
-    console.log("Email sent successfully:", data);
+    console.log("Email sent successfully:", result.messageId);
 
-    return new Response(JSON.stringify({ success: true, data }), {
+    return new Response(JSON.stringify({ success: true, messageId: result.messageId }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending invitation email:", error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: false, error: message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
