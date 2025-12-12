@@ -72,7 +72,16 @@
       "custom": "مخصص"
     },
     "startDate": "البداية",
-    "endDate": "النهاية"
+    "endDate": "النهاية",
+    "totalActions": "الإجراءات التصحيحية",
+    "totalInvestigationsCount": "التحقيقات",
+    "openStatus": "مفتوح",
+    "closedStatus": "مغلق",
+    "overdueStatus": "متأخر",
+    "actions": "إجراءات",
+    "investigations": "تحقيق",
+    "trend": "الاتجاه",
+    "vsLastMonth": "مقارنة بالشهر الماضي"
   },
   "incidents": {
     "wizard": {

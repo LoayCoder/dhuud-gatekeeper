@@ -57,7 +57,19 @@
       "nearMiss": "निकट दुर्घटना",
       "securityEvent": "सुरक्षा घटना",
       "environmentalEvent": "पर्यावरण घटना"
-    }
+    },
+    "quickActions": "त्वरित कार्रवाइयां",
+    "pendingApprovals": "लंबित स्वीकृतियां",
+    "myActions": "मेरी कार्रवाइयां",
+    "reportNewEvent": "नई घटना की रिपोर्ट करें",
+    "recentEvents": "हालिया घटनाएं",
+    "totalActions": "सुधारात्मक कार्रवाइयां",
+    "totalInvestigationsCount": "जांच",
+    "openStatus": "खुला",
+    "closedStatus": "बंद",
+    "overdueStatus": "विलंबित",
+    "actions": "कार्रवाइयां",
+    "investigations": "जांच"
   },
   "incidents": {
     "wizard": {

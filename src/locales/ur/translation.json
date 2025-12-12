@@ -57,7 +57,19 @@
       "nearMiss": "قریب حادثہ",
       "securityEvent": "سیکیورٹی واقعہ",
       "environmentalEvent": "ماحولیاتی واقعہ"
-    }
+    },
+    "quickActions": "فوری اقدامات",
+    "pendingApprovals": "زیر التواء منظوریاں",
+    "myActions": "میرے اقدامات",
+    "reportNewEvent": "نیا واقعہ رپورٹ کریں",
+    "recentEvents": "حالیہ واقعات",
+    "totalActions": "اصلاحی اقدامات",
+    "totalInvestigationsCount": "تحقیقات",
+    "openStatus": "کھلا",
+    "closedStatus": "بند",
+    "overdueStatus": "تاخیر شدہ",
+    "actions": "اقدامات",
+    "investigations": "تحقیق"
   },
   "incidents": {
     "wizard": {

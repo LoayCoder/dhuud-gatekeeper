@@ -9,6 +9,15 @@ export interface BranchEventData {
   incidents: number;
   observations: number;
   open_investigations: number;
+  // Enhanced metrics
+  incidents_open: number;
+  incidents_closed: number;
+  observations_open: number;
+  observations_closed: number;
+  total_actions: number;
+  actions_open: number;
+  actions_overdue: number;
+  prev_total_events: number;
 }
 
 export interface SiteEventData {
@@ -18,6 +27,15 @@ export interface SiteEventData {
   total_events: number;
   incidents: number;
   observations: number;
+  open_investigations: number;
+  // Enhanced metrics
+  incidents_open: number;
+  incidents_closed: number;
+  observations_open: number;
+  observations_closed: number;
+  total_actions: number;
+  actions_open: number;
+  prev_total_events: number;
 }
 
 export interface DepartmentEventData {
@@ -25,7 +43,15 @@ export interface DepartmentEventData {
   department_name: string;
   total_events: number;
   incidents: number;
+  observations: number;
   open_investigations: number;
+  // Enhanced metrics
+  events_open: number;
+  events_closed: number;
+  total_actions: number;
+  actions_open: number;
+  actions_overdue: number;
+  prev_total_events: number;
 }
 
 export interface EventsByLocationData {

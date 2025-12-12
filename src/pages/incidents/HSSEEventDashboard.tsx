@@ -25,13 +25,14 @@ import {
   SeverityDistributionChart,
   EventTrendChart,
   StatusDistributionChart,
-  LocationAnalytics,
+  EnhancedLocationAnalytics,
   ReporterLeaderboard,
   ActionsStatusWidget,
   AIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
   DateRangeFilter,
+  EnhancedKPIGrid,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -151,56 +152,25 @@ export default function HSSEEventDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards - Extended */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {dashboardLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+      {/* Enhanced KPI Grid with breakdowns */}
+      {dashboardLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="p-4">
                 <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16 mb-3" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
               </CardContent>
             </Card>
-          ))
-        ) : dashboardData ? (
-          <>
-            <KPICard
-              title={t('hsseDashboard.totalEvents')}
-              value={dashboardData.summary.total_events}
-              icon={Calendar}
-            />
-            <KPICard
-              title={t('hsseDashboard.totalIncidents')}
-              value={dashboardData.summary.total_incidents}
-              icon={AlertTriangle}
-              variant={dashboardData.summary.total_incidents > 0 ? 'warning' : 'default'}
-            />
-            <KPICard
-              title={t('hsseDashboard.totalObservations')}
-              value={dashboardData.summary.total_observations}
-              icon={Eye}
-            />
-            <KPICard
-              title={t('hsseDashboard.openInvestigations')}
-              value={dashboardData.summary.open_investigations}
-              icon={FileText}
-              variant={dashboardData.summary.open_investigations > 5 ? 'warning' : 'default'}
-            />
-            <KPICard
-              title={t('hsseDashboard.closedThisMonth')}
-              value={dashboardData.summary.closed_this_month}
-              icon={CheckCircle2}
-              variant="success"
-            />
-            <KPICard
-              title={t('hsseDashboard.overdueActions')}
-              value={dashboardData.actions.overdue_actions}
-              icon={Clock}
-              variant={dashboardData.actions.overdue_actions > 0 ? 'danger' : 'default'}
-            />
-          </>
-        ) : null}
-      </div>
+          ))}
+        </div>
+      ) : dashboardData ? (
+        <EnhancedKPIGrid summary={dashboardData.summary} actions={dashboardData.actions} />
+      ) : null}
 
       {/* Quick Actions & Recent Events Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -247,12 +217,12 @@ export default function HSSEEventDashboard() {
         ) : null}
       </div>
 
-      {/* Location Analytics & Reporter Leaderboard */}
+      {/* Enhanced Location Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {locationLoading ? (
           <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
         ) : locationData ? (
-          <LocationAnalytics data={locationData} />
+          <EnhancedLocationAnalytics data={locationData} />
         ) : null}
 
         {reportersLoading ? (
