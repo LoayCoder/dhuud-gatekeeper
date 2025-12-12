@@ -37,27 +37,7 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [approvalNotes, setApprovalNotes] = useState('');
 
-  // Don't render for closure workflow statuses - IncidentClosureApprovalCard handles those
-  const closureStatuses = ['pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'];
-  if (closureStatuses.includes(incident.status as string)) {
-    return null;
-  }
-
-  // Type assertion for extended incident properties
-  const incidentExtended = incident as IncidentWithDetails & {
-    approved_by?: string | null;
-    approved_at?: string | null;
-    approval_notes?: string | null;
-    investigation_locked?: boolean;
-  };
-
-  const isApproved = !!incidentExtended.approved_at;
-  const isLocked = incidentExtended.investigation_locked ?? false;
-  const hasInvestigator = !!investigation?.investigator_id;
-  const isInvestigationStarted = !!investigation?.started_at;
-  const isCurrentUserInvestigator = investigation?.investigator_id === user?.id;
-
-  // Approve incident mutation
+  // Approve incident mutation - must be before any early returns
   const approveMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
@@ -98,7 +78,7 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
     },
   });
 
-  // Start investigation mutation
+  // Start investigation mutation - must be before any early returns
   const startInvestigationMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
@@ -141,6 +121,26 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
       toast.error(t('common.error') + ': ' + error.message);
     },
   });
+
+  // Don't render for closure workflow statuses - IncidentClosureApprovalCard handles those
+  const closureStatuses = ['pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'];
+  if (closureStatuses.includes(incident.status as string)) {
+    return null;
+  }
+
+  // Type assertion for extended incident properties
+  const incidentExtended = incident as IncidentWithDetails & {
+    approved_by?: string | null;
+    approved_at?: string | null;
+    approval_notes?: string | null;
+    investigation_locked?: boolean;
+  };
+
+  const isApproved = !!incidentExtended.approved_at;
+  const isLocked = incidentExtended.investigation_locked ?? false;
+  const hasInvestigator = !!investigation?.investigator_id;
+  const isInvestigationStarted = !!investigation?.started_at;
+  const isCurrentUserInvestigator = investigation?.investigator_id === user?.id;
 
   // Determine current workflow state
   const getWorkflowState = () => {
