@@ -135,7 +135,27 @@
     "ltiRate": "LTI Rate",
     "ltiTooltip": "Lost Time Injury Rate per 200,000 man-hours",
     "trirRate": "TRIR",
-    "trirTooltip": "Total Recordable Incident Rate per 200,000 man-hours"
+    "trirTooltip": "Total Recordable Incident Rate per 200,000 man-hours",
+    "majorEvents": {
+      "title": "Major Events",
+      "subtitle": "Critical and high severity incidents requiring attention",
+      "noEvents": "No major events in the selected period"
+    },
+    "rootCauses": {
+      "title": "Root Cause Distribution",
+      "subtitle": "Top categories from completed investigations",
+      "noData": "No root cause data available"
+    },
+    "causeFlow": {
+      "title": "Cause Flow Analysis",
+      "subtitle": "Progression from immediate to root causes",
+      "noData": "No cause flow data available",
+      "immediate": "Immediate Causes",
+      "underlying": "Underlying Causes",
+      "root": "Root Causes",
+      "noCauses": "No data",
+      "topConnections": "Top Cause Connections"
+    }
   },
   "incidents": {
     "wizard": {
