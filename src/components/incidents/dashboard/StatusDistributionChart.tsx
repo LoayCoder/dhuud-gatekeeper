@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import type { StatusDistribution } from "@/hooks/use-hsse-event-dashboard";
 
 interface Props {
@@ -31,6 +32,7 @@ const STATUS_ORDER = [
 
 export function StatusDistributionChart({ data }: Props) {
   const { t } = useTranslation();
+  const { drillDown } = useDashboardDrilldown();
 
   const dataRecord = data as unknown as Record<string, number>;
   const chartData = STATUS_ORDER.map(key => ({
@@ -40,6 +42,10 @@ export function StatusDistributionChart({ data }: Props) {
   })).filter(item => item.value > 0);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  const handleClick = (key: string) => {
+    drillDown({ status: key });
+  };
 
   if (total === 0) {
     return (
@@ -71,9 +77,15 @@ export function StatusDistributionChart({ data }: Props) {
                 outerRadius={75}
                 paddingAngle={2}
                 dataKey="value"
+                onClick={(_, index) => handleClick(chartData[index].key)}
+                className="cursor-pointer"
               >
                 {chartData.map((entry) => (
-                  <Cell key={entry.key} fill={STATUS_COLORS[entry.key]} />
+                  <Cell 
+                    key={entry.key} 
+                    fill={STATUS_COLORS[entry.key]}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  />
                 ))}
               </Pie>
               <Tooltip 
@@ -90,7 +102,11 @@ export function StatusDistributionChart({ data }: Props) {
             {chartData.map((item) => {
               const percentage = ((item.value / total) * 100).toFixed(0);
               return (
-                <div key={item.key} className="flex items-center gap-2">
+                <div 
+                  key={item.key} 
+                  className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+                  onClick={() => handleClick(item.key)}
+                >
                   <div 
                     className="w-2.5 h-2.5 rounded-full shrink-0" 
                     style={{ backgroundColor: STATUS_COLORS[item.key] }}
@@ -103,6 +119,9 @@ export function StatusDistributionChart({ data }: Props) {
             })}
           </div>
         </div>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          {t('hsseDashboard.clickToFilter', 'Click to filter')}
+        </p>
       </CardContent>
     </Card>
   );

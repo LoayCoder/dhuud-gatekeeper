@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import type { EventTypeDistribution } from "@/hooks/use-hsse-event-dashboard";
 
 interface Props {
@@ -17,6 +18,7 @@ const COLORS = {
 
 export function EventTypeDistributionChart({ data }: Props) {
   const { t } = useTranslation();
+  const { drillDown } = useDashboardDrilldown();
 
   const chartData = [
     { name: t('hsseDashboard.eventTypes.observation'), value: data.observation, key: 'observation' },
@@ -27,6 +29,10 @@ export function EventTypeDistributionChart({ data }: Props) {
   ].filter(item => item.value > 0);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  const handleClick = (entry: { key: string }) => {
+    drillDown({ eventType: entry.key });
+  };
 
   if (total === 0) {
     return (
@@ -59,9 +65,15 @@ export function EventTypeDistributionChart({ data }: Props) {
               dataKey="value"
               label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
               labelLine={false}
+              onClick={(_, index) => handleClick(chartData[index])}
+              className="cursor-pointer"
             >
               {chartData.map((entry) => (
-                <Cell key={entry.key} fill={COLORS[entry.key as keyof typeof COLORS]} />
+                <Cell 
+                  key={entry.key} 
+                  fill={COLORS[entry.key as keyof typeof COLORS]}
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                />
               ))}
             </Pie>
             <Tooltip 
@@ -69,6 +81,9 @@ export function EventTypeDistributionChart({ data }: Props) {
             />
           </PieChart>
         </ResponsiveContainer>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          {t('hsseDashboard.clickToFilter', 'Click to filter')}
+        </p>
       </CardContent>
     </Card>
   );

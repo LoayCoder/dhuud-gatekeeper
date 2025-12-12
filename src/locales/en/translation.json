@@ -97,6 +97,7 @@
     "investigationProgress": "Investigation Progress",
     "filterAll": "All",
     "comparePeriod": "Compare",
+    "clickToFilter": "Click to filter",
     "previousPeriod": "Previous Period",
     "actionStatus": {
       "inProgress": "In Progress",

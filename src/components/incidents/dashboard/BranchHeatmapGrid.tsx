@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import { BranchHeatmapData } from "@/hooks/use-location-heatmap";
 
 interface Props {
@@ -25,6 +26,15 @@ function getDensityBg(density: number): string {
 
 export function BranchHeatmapGrid({ data, onBranchClick }: Props) {
   const { t } = useTranslation();
+  const { drillDown } = useDashboardDrilldown();
+
+  const handleBranchClick = (branchId: string) => {
+    if (onBranchClick) {
+      onBranchClick(branchId);
+    } else {
+      drillDown({ branchId });
+    }
+  };
 
   if (!data || data.length === 0) {
     return (
@@ -59,7 +69,7 @@ export function BranchHeatmapGrid({ data, onBranchClick }: Props) {
               <Tooltip key={branch.branch_id}>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => onBranchClick?.(branch.branch_id)}
+                    onClick={() => handleBranchClick(branch.branch_id)}
                     className={`
                       relative p-3 rounded-lg border transition-all
                       hover:scale-105 hover:shadow-md cursor-pointer
@@ -100,6 +110,7 @@ export function BranchHeatmapGrid({ data, onBranchClick }: Props) {
                     <div className="flex gap-2">
                       <span className="text-chart-2">●</span> {t('dashboard.low', 'Low')}: {branch.low_count}
                     </div>
+                    <p className="text-muted-foreground mt-1">{t('hsseDashboard.clickToFilter', 'Click to view')}</p>
                   </div>
                 </TooltipContent>
               </Tooltip>

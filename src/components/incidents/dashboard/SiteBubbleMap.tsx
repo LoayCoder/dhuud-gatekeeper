@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import { SiteBubbleData } from "@/hooks/use-location-heatmap";
 import {
   ScatterChart,
@@ -28,6 +29,15 @@ function getSeverityColor(score: number, maxScore: number): string {
 
 export function SiteBubbleMap({ data, onSiteClick }: Props) {
   const { t } = useTranslation();
+  const { drillDown } = useDashboardDrilldown();
+
+  const handleSiteClick = (siteId: string) => {
+    if (onSiteClick) {
+      onSiteClick(siteId);
+    } else {
+      drillDown({ siteId });
+    }
+  };
 
   if (!data || data.length === 0) {
     return (
@@ -100,6 +110,7 @@ export function SiteBubbleMap({ data, onSiteClick }: Props) {
                           <div>{t('dashboard.incidents', 'Incidents')}: {site.incidents}</div>
                           <div>{t('dashboard.observations', 'Observations')}: {site.observations}</div>
                         </div>
+                        <p className="text-muted-foreground mt-1">{t('hsseDashboard.clickToFilter', 'Click to view')}</p>
                       </div>
                     );
                   }
@@ -108,7 +119,7 @@ export function SiteBubbleMap({ data, onSiteClick }: Props) {
               />
               <Scatter 
                 data={chartData} 
-                onClick={(data) => onSiteClick?.(data.site_id)}
+                onClick={(data) => handleSiteClick(data.site_id)}
                 cursor="pointer"
               >
                 {chartData.map((entry, index) => (
@@ -130,8 +141,8 @@ export function SiteBubbleMap({ data, onSiteClick }: Props) {
           {chartData.slice(0, 8).map((site) => (
             <button
               key={site.site_id}
-              onClick={() => onSiteClick?.(site.site_id)}
-              className="text-xs px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              onClick={() => handleSiteClick(site.site_id)}
+              className="text-xs px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
             >
               {site.site_name}
             </button>
