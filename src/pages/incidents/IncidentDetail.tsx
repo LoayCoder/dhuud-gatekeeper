@@ -1,12 +1,12 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, ExternalLink, Clock, Tag } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, ExternalLink, Clock, Tag, Printer } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
+import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,8 @@ import { useIncident, useDeleteIncident } from '@/hooks/use-incidents';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
+import { toast } from 'sonner';
 
 const getSeverityBadgeVariant = (severity: string | null) => {
   switch (severity) {

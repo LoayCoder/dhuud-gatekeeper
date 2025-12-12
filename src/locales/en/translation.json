@@ -246,8 +246,15 @@
       "pending_manager_approval": "Pending Manager Approval",
       "manager_rejected": "Rejected by Manager",
       "hsse_manager_escalation": "Escalated to HSSE Manager",
-      "pending_dept_rep_approval": "Pending Dept. Rep. Approval"
+      "pending_dept_rep_approval": "Pending Dept. Rep. Approval",
+      "pending_closure": "Pending Closure",
+      "investigation_closed": "Investigation Closed",
+      "pending_final_closure": "Pending Final Closure"
     },
+    "printReport": "Print Report",
+    "reportTitle": "Incident Investigation Report",
+    "reportGenerating": "Generating report...",
+    "reportGenerated": "Report downloaded successfully",
     "noIncidentsYet": "No incidents have been reported yet.",
     "reportFirstIncident": "Report First Incident",
     "notFound": "Incident not found",
