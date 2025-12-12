@@ -72,7 +72,14 @@ export function ActionVerificationDialog({
           {/* Action Details */}
           <div className="p-4 bg-muted rounded-lg space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium">{action.title}</h4>
+              <div className="flex items-center gap-2 flex-wrap">
+                {action.reference_id && (
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {action.reference_id}
+                  </Badge>
+                )}
+                <h4 className="font-medium">{action.title}</h4>
+              </div>
               <Badge variant={getPriorityColor(action.priority)}>
                 {t(`actions.priority.${action.priority}`)}
               </Badge>

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface OverdueAction {
   id: string;
+  reference_id: string | null;
   title: string;
   description: string | null;
   due_date: string;
@@ -34,6 +35,7 @@ export function useOverdueActions(limit: number = 10) {
         .from('corrective_actions')
         .select(`
           id,
+          reference_id,
           title,
           description,
           due_date,
@@ -65,6 +67,7 @@ export function useOverdueActions(limit: number = 10) {
 
         return {
           id: action.id,
+          reference_id: action.reference_id,
           title: action.title,
           description: action.description,
           due_date: action.due_date,

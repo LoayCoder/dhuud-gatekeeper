@@ -21,6 +21,7 @@ import { useDropzone } from 'react-dropzone';
 interface ActionProgressDialogProps {
   action: {
     id: string;
+    reference_id?: string | null;
     title: string;
     description?: string | null;
     status?: string | null;
@@ -148,7 +149,14 @@ export function ActionProgressDialog({
               <h4 className="font-medium text-sm text-muted-foreground mb-1">
                 {t('actions.actionTitle', 'Action')}
               </h4>
-              <p className="font-medium">{action.title}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {action.reference_id && (
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {action.reference_id}
+                  </Badge>
+                )}
+                <p className="font-medium">{action.title}</p>
+              </div>
             </div>
 
             {/* Files Summary */}
@@ -246,7 +254,14 @@ export function ActionProgressDialog({
         <div className="space-y-4">
           {/* Action Info */}
           <div className="p-3 bg-muted rounded-md">
-            <h4 className="font-medium">{action.title}</h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              {action.reference_id && (
+                <Badge variant="outline" className="font-mono text-xs">
+                  {action.reference_id}
+                </Badge>
+              )}
+              <h4 className="font-medium">{action.title}</h4>
+            </div>
             {action.description && (
               <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
             )}

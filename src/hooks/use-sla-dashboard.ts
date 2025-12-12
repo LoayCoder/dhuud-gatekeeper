@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface SLAAction {
   id: string;
+  reference_id: string | null;
   title: string;
   priority: string | null;
   due_date: string | null;
@@ -41,6 +42,7 @@ export function useSLADashboard() {
         .from('corrective_actions')
         .select(`
           id,
+          reference_id,
           title,
           priority,
           due_date,

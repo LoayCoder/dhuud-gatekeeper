@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 export interface InspectionAction {
   id: string;
+  reference_id: string | null;
   title: string;
   description: string | null;
   status: string;
@@ -42,7 +43,7 @@ export function useSessionActions(sessionId: string | undefined) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('corrective_actions') as any)
         .select(`
-          id, title, description, status, priority, due_date, 
+          id, reference_id, title, description, status, priority, due_date, 
           assigned_to, session_id, source_finding_id,
           verified_by, verified_at, verification_notes, created_at,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(full_name)
@@ -70,7 +71,7 @@ export function useMyInspectionActions() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('corrective_actions') as any)
         .select(`
-          id, title, description, status, priority, due_date, 
+          id, reference_id, title, description, status, priority, due_date, 
           assigned_to, session_id, source_finding_id,
           verified_by, verified_at, verification_notes, created_at
         `)

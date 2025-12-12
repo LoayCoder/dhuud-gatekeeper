@@ -153,8 +153,15 @@ export default function SLADashboard() {
                           status={action.status}
                         />
                       </TableCell>
-                      <TableCell className="font-medium max-w-[200px] truncate">
-                        {action.title}
+                      <TableCell className="font-medium max-w-[250px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {action.reference_id && (
+                            <Badge variant="outline" className="font-mono text-xs shrink-0">
+                              {action.reference_id}
+                            </Badge>
+                          )}
+                          <span className="truncate">{action.title}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getPriorityVariant(action.priority) as any}>
