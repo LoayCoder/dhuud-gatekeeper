@@ -1,17 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';
+import { usePendingExtensionRequests, useHSSEPendingExtensionRequests } from '@/hooks/use-action-extensions';
+import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
@@ -19,6 +20,7 @@ import { ActionVerificationDialog } from '@/components/investigation/ActionVerif
 import { SeverityApprovalCard } from '@/components/investigation/SeverityApprovalCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard } from '@/components/actions';
 
 const getStatusIcon = (status: string | null) => {
   switch (status) {
@@ -39,6 +41,17 @@ const getPriorityBadgeVariant = (priority: string | null): "destructive" | "seco
   }
 };
 
+// Type for action dialog
+interface ActionForDialog {
+  id: string;
+  title: string;
+  description?: string | null;
+  status?: string | null;
+  due_date?: string | null;
+  priority?: string | null;
+  incident_id?: string | null;
+}
+
 export default function MyActions() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -46,9 +59,17 @@ export default function MyActions() {
   const { data: actions, isLoading: actionsLoading } = useMyCorrectiveActions();
   const { data: witnessStatements, isLoading: witnessLoading, refetch: refetchWitness } = useMyAssignedWitnessStatements();
   const updateStatus = useUpdateMyActionStatus();
+  const uploadEvidence = useUploadActionEvidence();
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
-  const [confirmCompleteActionId, setConfirmCompleteActionId] = useState<string | null>(null);
+  
+  // Action progress dialog states
+  const [actionDialogAction, setActionDialogAction] = useState<ActionForDialog | null>(null);
+  const [actionDialogMode, setActionDialogMode] = useState<'start' | 'complete'>('start');
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  
+  // Extension request dialog state
+  const [extensionRequestAction, setExtensionRequestAction] = useState<ActionForDialog | null>(null);
 
   // Pending approvals data
   const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
@@ -57,21 +78,63 @@ export default function MyActions() {
   const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
   const { data: pendingIncidentApprovals, isLoading: incidentApprovalsLoading } = usePendingIncidentApprovals();
   const { data: pendingClosures, isLoading: closuresLoading } = usePendingClosureRequests();
+  const { data: pendingExtensions, isLoading: extensionsLoading } = usePendingExtensionRequests();
+  const { data: hssePendingExtensions, isLoading: hsseExtensionsLoading } = useHSSEPendingExtensionRequests();
   const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
   
   // Check if user can approve closures (HSSE Manager or Admin)
   const canApproveClosures = hasRole('admin') || hasRole('hsse_manager');
+  const isHSSEManager = hasRole('hsse_manager');
 
-  // Controlled status transitions - no direct dropdown
-  const handleStartWork = (actionId: string) => {
-    updateStatus.mutate({ id: actionId, status: 'in_progress' });
+  // Handle opening action dialog for "Start Work"
+  const handleStartWork = (action: ActionForDialog) => {
+    setActionDialogAction(action);
+    setActionDialogMode('start');
+    setActionDialogOpen(true);
   };
 
-  const handleMarkCompleted = () => {
-    if (confirmCompleteActionId) {
-      updateStatus.mutate({ id: confirmCompleteActionId, status: 'completed' });
-      setConfirmCompleteActionId(null);
+  // Handle opening action dialog for "Mark Completed"
+  const handleMarkCompleted = (action: ActionForDialog) => {
+    setActionDialogAction(action);
+    setActionDialogMode('complete');
+    setActionDialogOpen(true);
+  };
+
+  // Handle action dialog confirmation
+  const handleActionDialogConfirm = async (data: { notes: string; overdueJustification?: string; files: File[] }) => {
+    if (!actionDialogAction) return;
+    
+    try {
+      // Upload files first if any
+      for (const file of data.files) {
+        if (actionDialogAction.incident_id) {
+          await uploadEvidence.mutateAsync({
+            actionId: actionDialogAction.id,
+            incidentId: actionDialogAction.incident_id,
+            file,
+          });
+        }
+      }
+
+      // Update action status
+      updateStatus.mutate({
+        id: actionDialogAction.id,
+        status: actionDialogMode === 'start' ? 'in_progress' : 'completed',
+        progressNotes: actionDialogMode === 'start' ? data.notes : undefined,
+        completionNotes: actionDialogMode === 'complete' ? data.notes : undefined,
+        overdueJustification: data.overdueJustification,
+      });
+      
+      setActionDialogOpen(false);
+      setActionDialogAction(null);
+    } catch (error) {
+      // Error is handled by the mutation hooks
     }
+  };
+
+  // Handle extension request
+  const handleRequestExtension = (action: ActionForDialog) => {
+    setExtensionRequestAction(action);
   };
 
   const handleWitnessStatementSubmit = () => {
@@ -79,13 +142,14 @@ export default function MyActions() {
     refetchWitness();
   };
 
-  const pendingActions = actions?.filter(a => a.status === 'assigned' || a.status === 'pending') || [];
+  const pendingActions = actions?.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction') || [];
   const inProgressActions = actions?.filter(a => a.status === 'in_progress') || [];
   const completedActions = actions?.filter(a => a.status === 'completed' || a.status === 'verified') || [];
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
-  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0);
+  const totalExtensions = (pendingExtensions?.length || 0) + (isHSSEManager ? (hssePendingExtensions?.length || 0) : 0);
+  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions;
 
   const isLoading = actionsLoading || witnessLoading;
 
@@ -233,28 +297,53 @@ export default function MyActions() {
                     
                     {/* Controlled Action Buttons - Enforces sequential workflow */}
                     <div className="flex flex-wrap items-center gap-3">
-                      {/* Show "Start Work" for assigned actions */}
-                      {action.status === 'assigned' && (
+                      {/* Show "Returned for Correction" banner */}
+                      {action.status === 'returned_for_correction' && (
+                        <Badge variant="destructive" className="gap-1">
+                          <RotateCcw className="h-3 w-3" />
+                          {t('actions.returnedForCorrection', 'Returned for Correction')}
+                        </Badge>
+                      )}
+                      
+                      {/* Show "Start Work" for assigned or returned actions */}
+                      {(action.status === 'assigned' || action.status === 'returned_for_correction') && (
                         <Button 
                           size="sm" 
-                          onClick={() => handleStartWork(action.id)}
+                          onClick={() => handleStartWork(action)}
                           disabled={updateStatus.isPending}
                         >
                           <PlayCircle className="h-4 w-4 me-2" />
-                          {t('investigation.actions.startWork', 'Start Work')}
+                          {action.status === 'returned_for_correction' 
+                            ? t('actions.resubmit', 'Resubmit')
+                            : t('investigation.actions.startWork', 'Start Work')
+                          }
                         </Button>
                       )}
                       
                       {/* Show "Mark Completed" for in_progress actions */}
                       {action.status === 'in_progress' && (
-                        <Button 
-                          size="sm"
-                          onClick={() => setConfirmCompleteActionId(action.id)}
-                          disabled={updateStatus.isPending}
-                        >
-                          <CheckCircle2 className="h-4 w-4 me-2" />
-                          {t('investigation.actions.markCompleted', 'Mark Completed')}
-                        </Button>
+                        <>
+                          <Button 
+                            size="sm"
+                            onClick={() => handleMarkCompleted(action)}
+                            disabled={updateStatus.isPending}
+                          >
+                            <CheckCircle2 className="h-4 w-4 me-2" />
+                            {t('investigation.actions.markCompleted', 'Mark Completed')}
+                          </Button>
+                          
+                          {/* Extension request button if overdue */}
+                          {action.due_date && new Date(action.due_date) < new Date() && (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleRequestExtension(action)}
+                            >
+                              <CalendarPlus className="h-4 w-4 me-2" />
+                              {t('actions.requestExtension', 'Request Extension')}
+                            </Button>
+                          )}
+                        </>
                       )}
                       
                       {/* Show status badge for completed/verified */}
@@ -597,11 +686,53 @@ export default function MyActions() {
                   </div>
                 )}
 
+                {/* Extension Requests Section (Manager Approval) */}
+                {pendingExtensions && pendingExtensions.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <CalendarPlus className="h-5 w-5 text-amber-500" />
+                      {t('actions.extensionRequests', 'Extension Requests')}
+                      <Badge variant="secondary">{pendingExtensions.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingExtensions.map((request) => (
+                        <ExtensionApprovalCard 
+                          key={request.id} 
+                          request={request} 
+                          level="manager" 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* HSSE Extension Requests Section (Final Approval) */}
+                {isHSSEManager && hssePendingExtensions && hssePendingExtensions.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <CalendarPlus className="h-5 w-5 text-primary" />
+                      {t('actions.hsseExtensionApprovals', 'HSSE Extension Approvals')}
+                      <Badge variant="secondary">{hssePendingExtensions.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {hssePendingExtensions.map((request) => (
+                        <ExtensionApprovalCard 
+                          key={request.id} 
+                          request={request} 
+                          level="hsse" 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Empty State */}
                 {(!pendingApprovals || pendingApprovals.length === 0) && 
                  (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) &&
                  (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) &&
-                 (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) && (
+                 (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) &&
+                 (!pendingExtensions || pendingExtensions.length === 0) &&
+                 (!isHSSEManager || !hssePendingExtensions || hssePendingExtensions.length === 0) && (
                   <Card className="py-12">
                     <CardContent className="flex flex-col items-center justify-center text-center">
                       <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
@@ -643,26 +774,24 @@ export default function MyActions() {
         onOpenChange={(open) => !open && setSelectedActionForVerification(null)}
       />
 
-      {/* Confirmation Dialog for Mark Completed */}
-      <AlertDialog open={!!confirmCompleteActionId} onOpenChange={(open) => !open && setConfirmCompleteActionId(null)}>
-        <AlertDialogContent dir={direction}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('investigation.actions.confirmComplete', 'Mark Action as Completed?')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('investigation.actions.confirmCompleteDescription', 'This action will be marked as completed and sent for verification by HSSE. Make sure all required work has been done and evidence has been uploaded.')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleMarkCompleted} disabled={updateStatus.isPending}>
-              {updateStatus.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-              {t('investigation.actions.confirmCompleteButton', 'Yes, Mark Completed')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Action Progress Dialog - for Start Work and Complete Action */}
+      <ActionProgressDialog
+        action={actionDialogAction}
+        mode={actionDialogMode}
+        open={actionDialogOpen}
+        onOpenChange={setActionDialogOpen}
+        onConfirm={handleActionDialogConfirm}
+        isSubmitting={updateStatus.isPending || uploadEvidence.isPending}
+      />
+
+      {/* Extension Request Dialog */}
+      {extensionRequestAction && (
+        <ExtensionRequestDialog
+          action={extensionRequestAction}
+          open={!!extensionRequestAction}
+          onOpenChange={(open) => !open && setExtensionRequestAction(null)}
+        />
+      )}
     </div>
   );
 }
