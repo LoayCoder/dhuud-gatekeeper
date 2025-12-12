@@ -17,6 +17,8 @@ import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
 import { useRCAAnalytics } from "@/hooks/use-rca-analytics";
 import { useLocationHeatmap } from "@/hooks/use-location-heatmap";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { useIncidentProgression } from "@/hooks/use-incident-progression";
+import { useDashboardPrefetch } from "@/hooks/use-dashboard-prefetch";
 import { DrilldownProvider } from "@/contexts/DrilldownContext";
 import {
   EventTypeDistributionChart,
@@ -46,6 +48,8 @@ import {
   LiveUpdateIndicator,
   AutoRefreshToggle,
   DrilldownModal,
+  RootCauseParetoChart,
+  IncidentWaterfallChart,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -129,6 +133,10 @@ export default function HSSEEventDashboard() {
   const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
   const { data: rcaData, isLoading: rcaLoading } = useRCAAnalytics(startDate, endDate);
   const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
+  const { data: progressionData, isLoading: progressionLoading } = useIncidentProgression(startDate, endDate);
+
+  // Prefetch dashboard data for improved performance
+  useDashboardPrefetch(startDate, endDate);
 
   const handleRefresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
@@ -286,6 +294,12 @@ export default function HSSEEventDashboard() {
             <DepartmentAnalyticsChart data={locationData.by_department} />
           </>
         ) : null}
+      </div>
+
+      {/* Advanced Analytics Row - Pareto & Waterfall Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RootCauseParetoChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
+        <IncidentWaterfallChart data={progressionData?.waterfall || []} isLoading={progressionLoading} />
       </div>
 
       {/* Major Events & RCA Analytics */}

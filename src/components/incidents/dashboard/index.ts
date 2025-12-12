@@ -29,3 +29,5 @@ export { DashboardExportDropdown } from './DashboardExportDropdown';
 export { LiveUpdateIndicator } from './LiveUpdateIndicator';
 export { AutoRefreshToggle } from './AutoRefreshToggle';
 export { DrilldownModal } from './DrilldownModal';
+export { RootCauseParetoChart } from './RootCauseParetoChart';
+export { IncidentWaterfallChart } from './IncidentWaterfallChart';

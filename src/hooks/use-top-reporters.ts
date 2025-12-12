@@ -31,6 +31,11 @@ export function useTopReporters(limit: number = 10, startDate?: Date, endDate?: 
       return (data as unknown as TopReporter[]) || [];
     },
     enabled: !!profile?.tenant_id,
-    staleTime: 5 * 60 * 1000,
+    // Enhanced caching for better performance
+    staleTime: 5 * 60 * 1000,           // 5 minutes - data considered fresh
+    gcTime: 30 * 60 * 1000,             // 30 minutes - keep in cache
+    refetchOnWindowFocus: true,          // Refresh when user returns to tab
+    refetchInterval: 5 * 60 * 1000,      // Background refresh every 5 minutes
+    placeholderData: (previousData) => previousData, // Show stale data while refetching
   });
 }

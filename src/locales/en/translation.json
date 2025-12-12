@@ -139,6 +139,29 @@
     "actionCompletionRate": "Action Completion",
     "actionRateTooltip": "Percentage of corrective actions completed",
     "overdueRateTooltip": "Percentage of open actions that are overdue",
+    "paretoChart": {
+      "title": "Root Cause Pareto Analysis",
+      "subtitle": "Vital few causes (80/20 rule)",
+      "count": "Occurrences",
+      "cumulativePercent": "Cumulative %",
+      "threshold": "80% Threshold",
+      "vitalFew": "Vital Few (≤80%)",
+      "trivialMany": "Trivial Many",
+      "cumulativeLine": "Cumulative %"
+    },
+    "waterfallChart": {
+      "title": "Incident Progression Flow",
+      "subtitle": "Net movement through workflow stages",
+      "netChange": "Net Change",
+      "total": "Total",
+      "entering": "Entering Stage",
+      "leaving": "Leaving Stage",
+      "currentOpen": "Current Open"
+    },
+    "caching": {
+      "refreshing": "Refreshing data...",
+      "lastUpdated": "Last updated"
+    },
     "export": {
       "title": "Export",
       "pdfSummary": "PDF Summary Report",
