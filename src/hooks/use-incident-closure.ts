@@ -207,14 +207,38 @@ export function useApproveIncidentClosure() {
       // For investigation_closed, send notifications to action assignees
       if (!isFinalClosure) {
         try {
-          await supabase.functions.invoke('send-action-email', {
-            body: {
-              type: 'actions_released',
-              incident_id: incidentId,
-              incident_reference: data.reference_id,
-              tenant_id: profile.tenant_id,
-            },
-          });
+          // Fetch released actions with assignee info
+          const { data: actions } = await supabase
+            .from('corrective_actions')
+            .select(`
+              id, title, priority, due_date, description,
+              assigned_to,
+              assignee:profiles!corrective_actions_assigned_to_fkey(id, full_name, email)
+            `)
+            .eq('incident_id', incidentId)
+            .is('deleted_at', null)
+            .not('assigned_to', 'is', null);
+
+          // Send individual emails to each assignee
+          if (actions && actions.length > 0) {
+            for (const action of actions) {
+              const assignee = action.assignee as { id: string; full_name: string; email: string } | null;
+              if (assignee?.email) {
+                await supabase.functions.invoke('send-action-email', {
+                  body: {
+                    type: 'action_assigned',
+                    recipient_email: assignee.email,
+                    recipient_name: assignee.full_name || 'Team Member',
+                    action_title: action.title,
+                    action_priority: action.priority,
+                    due_date: action.due_date,
+                    action_description: action.description,
+                    incident_reference: data.reference_id,
+                  },
+                });
+              }
+            }
+          }
         } catch (actionEmailError) {
           console.error('Failed to send action release emails:', actionEmailError);
         }
