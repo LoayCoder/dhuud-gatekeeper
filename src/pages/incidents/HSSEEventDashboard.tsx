@@ -20,6 +20,7 @@ import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
 import { useEventsByLocation } from "@/hooks/use-events-by-location";
 import { useTopReporters } from "@/hooks/use-top-reporters";
 import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
+import { useRCAAnalytics } from "@/hooks/use-rca-analytics";
 import {
   EventTypeDistributionChart,
   SeverityDistributionChart,
@@ -38,6 +39,9 @@ import {
   RecentEventsCard,
   DateRangeFilter,
   EnhancedKPIGrid,
+  MajorEventsTimeline,
+  RootCauseDistributionChart,
+  CauseFlowDiagram,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -118,6 +122,7 @@ export default function HSSEEventDashboard() {
   const { data: locationData, isLoading: locationLoading } = useEventsByLocation();
   const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
   const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
+  const { data: rcaData, isLoading: rcaLoading } = useRCAAnalytics(startDate, endDate);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -251,6 +256,19 @@ export default function HSSEEventDashboard() {
           </>
         ) : null}
       </div>
+
+      {/* Major Events & RCA Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MajorEventsTimeline events={rcaData?.major_events || []} isLoading={rcaLoading} />
+        <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
+      </div>
+
+      {/* Cause Flow Diagram */}
+      {rcaLoading ? (
+        <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+      ) : rcaData ? (
+        <CauseFlowDiagram data={rcaData.cause_flow} />
+      ) : null}
 
       {/* Safety KPIs */}
       {dashboardLoading ? (

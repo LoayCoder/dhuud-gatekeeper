@@ -19,3 +19,6 @@ export { RecentEventsCard } from './RecentEventsCard';
 export { DateRangeFilter } from './DateRangeFilter';
 export { TrendBadge } from './TrendBadge';
 export { EnhancedKPIGrid } from './EnhancedKPIGrid';
+export { MajorEventsTimeline } from './MajorEventsTimeline';
+export { RootCauseDistributionChart } from './RootCauseDistributionChart';
+export { CauseFlowDiagram } from './CauseFlowDiagram';
