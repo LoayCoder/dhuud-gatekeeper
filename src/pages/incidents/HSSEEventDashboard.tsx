@@ -33,7 +33,7 @@ import {
   BranchComparisonChart,
   DepartmentAnalyticsChart,
   SafetyKPICards,
-  AIInsightsPanel,
+  EnhancedAIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
   DateRangeFilter,
@@ -275,10 +275,11 @@ export default function HSSEEventDashboard() {
       </div>
 
       {/* AI Risk Insights */}
-      <AIInsightsPanel 
+      <EnhancedAIInsightsPanel 
         insights={insights} 
         isLoading={aiLoading} 
-        onRefresh={handleGenerateAIInsights} 
+        onRefresh={handleGenerateAIInsights}
+        lastUpdated={insights ? new Date() : undefined}
       />
     </div>
   );

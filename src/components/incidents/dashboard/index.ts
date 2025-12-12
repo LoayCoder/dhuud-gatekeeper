@@ -13,6 +13,7 @@ export { BranchComparisonChart } from './BranchComparisonChart';
 export { DepartmentAnalyticsChart } from './DepartmentAnalyticsChart';
 export { SafetyKPICards } from './SafetyKPICards';
 export { AIInsightsPanel } from './AIInsightsPanel';
+export { EnhancedAIInsightsPanel } from './EnhancedAIInsightsPanel';
 export { QuickActionsCard } from './QuickActionsCard';
 export { RecentEventsCard } from './RecentEventsCard';
 export { DateRangeFilter } from './DateRangeFilter';

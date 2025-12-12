@@ -26,10 +26,50 @@ export interface RiskRecommendation {
   expected_impact: string;
 }
 
+export interface EmergingHazard {
+  category: string;
+  trend: string;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  early_indicators: string;
+}
+
+export interface PredictiveRisk {
+  description: string;
+  probability: 'low' | 'medium' | 'high';
+  timeframe: string;
+  prevention_action: string;
+}
+
+export interface BranchRiskScore {
+  branch_name: string;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  score: number;
+  top_issue: string;
+}
+
+export interface DepartmentRiskScore {
+  department_name: string;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  score: number;
+  top_issue: string;
+}
+
+export interface BehavioralInsight {
+  observation_type: string;
+  trend: 'improving' | 'declining' | 'stable';
+  percentage_change: string;
+  recommendation: string;
+}
+
 export interface AIRiskInsights {
   patterns: RiskPattern[];
   anomalies: RiskAnomaly[];
   recommendations: RiskRecommendation[];
+  emerging_hazards: EmergingHazard[];
+  predictive_risks: PredictiveRisk[];
+  branch_risk_scores: BranchRiskScore[];
+  department_risk_scores: DepartmentRiskScore[];
+  behavioral_insights: BehavioralInsight[];
   summary: string;
 }
 
