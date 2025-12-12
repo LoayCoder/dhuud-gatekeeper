@@ -183,7 +183,7 @@ export function useVerifyAction() {
 
       const updateData = approved
         ? {
-            status: 'verified',
+            status: 'closed', // Auto-close after HSSE Expert verification
             verified_by: user.id,
             verified_at: new Date().toISOString(),
             verification_notes: notes || null,
@@ -240,7 +240,7 @@ export function useVerifyAction() {
       toast({
         title: t('common.success'),
         description: result.approved
-          ? t('investigation.approvals.actionVerified', 'Action verified successfully')
+          ? t('investigation.approvals.actionClosed', 'Action verified and closed successfully')
           : t('investigation.approvals.actionRejected', 'Action rejected and returned to assignee'),
       });
     },
