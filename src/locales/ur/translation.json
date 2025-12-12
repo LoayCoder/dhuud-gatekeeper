@@ -88,7 +88,33 @@
       "inProgress": "جاری ہے",
       "closed": "بند",
       "returned": "واپس"
-    }
+    },
+    "branchComparison": "شاخوں کا موازنہ",
+    "departmentAnalytics": "شعبہ کے تجزیات",
+    "highRiskDepts": "زیادہ خطرہ",
+    "actionOverdueRate": "شعبہ کے لحاظ سے تاخیر کی شرح",
+    "riskLevel": {
+      "critical": "نازک",
+      "high": "زیادہ",
+      "medium": "درمیانی",
+      "low": "کم"
+    },
+    "safetyKPIs": "حفاظتی کارکردگی کے اشارے",
+    "kpiPeriod": "موجودہ دورانیہ",
+    "closureRate": "واقعات بند کرنے کی شرح",
+    "closureRateTooltip": "بند کیے گئے واقعات کا فیصد",
+    "investigationRate": "تحقیق کی شرح",
+    "investigationRateTooltip": "مکمل تحقیقات کا فیصد",
+    "actionCompletionRate": "اقدام کی تکمیل",
+    "actionRateTooltip": "مکمل اصلاحی اقدامات کا فیصد",
+    "overdueRateTooltip": "تاخیر شدہ کھلے اقدامات کا فیصد",
+    "closureProgress": "مجموعی بند کرنے کی پیشرفت",
+    "actionProgress": "اقدام کی تکمیل کی پیشرفت",
+    "laggingIndicators": "پیچھے رہ جانے والے حفاظتی اشارے",
+    "ltiRate": "LTI شرح",
+    "ltiTooltip": "فقدان وقت کی چوٹ کی شرح فی 200,000 مین گھنٹے",
+    "trirRate": "TRIR",
+    "trirTooltip": "کل ریکارڈ ایبل واقعات کی شرح فی 200,000 مین گھنٹے"
   },
   "incidents": {
     "wizard": {

@@ -98,7 +98,33 @@
       "inProgress": "قيد التنفيذ",
       "closed": "مغلق",
       "returned": "مُرجع"
-    }
+    },
+    "branchComparison": "مقارنة الفروع",
+    "departmentAnalytics": "تحليلات الأقسام",
+    "highRiskDepts": "مخاطر عالية",
+    "actionOverdueRate": "معدل تأخر الإجراءات حسب القسم",
+    "riskLevel": {
+      "critical": "حرج",
+      "high": "عالي",
+      "medium": "متوسط",
+      "low": "منخفض"
+    },
+    "safetyKPIs": "مؤشرات أداء السلامة",
+    "kpiPeriod": "الفترة الحالية",
+    "closureRate": "معدل إغلاق الأحداث",
+    "closureRateTooltip": "نسبة الأحداث التي تم إغلاقها",
+    "investigationRate": "معدل التحقيق",
+    "investigationRateTooltip": "نسبة التحقيقات المكتملة",
+    "actionCompletionRate": "إتمام الإجراءات",
+    "actionRateTooltip": "نسبة الإجراءات التصحيحية المكتملة",
+    "overdueRateTooltip": "نسبة الإجراءات المفتوحة المتأخرة",
+    "closureProgress": "تقدم الإغلاق الإجمالي",
+    "actionProgress": "تقدم إتمام الإجراءات",
+    "laggingIndicators": "المؤشرات المتأخرة للسلامة",
+    "ltiRate": "معدل LTI",
+    "ltiTooltip": "معدل إصابات فقدان الوقت لكل 200,000 ساعة عمل",
+    "trirRate": "TRIR",
+    "trirTooltip": "إجمالي معدل الحوادث القابلة للتسجيل لكل 200,000 ساعة عمل"
   },
   "incidents": {
     "wizard": {
