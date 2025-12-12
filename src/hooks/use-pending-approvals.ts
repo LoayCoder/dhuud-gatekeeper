@@ -169,12 +169,25 @@ export function useVerifyAction() {
             verification_notes: notes || null,
           }
         : {
-            status: 'assigned', // Reject back to assigned
+            status: 'returned_for_correction', // New status for rejected actions
             rejected_by: user.id,
             rejected_at: new Date().toISOString(),
             rejection_notes: notes || null,
-            completed_date: null, // Clear completion
+            last_returned_at: new Date().toISOString(),
+            last_return_reason: notes || null,
+            return_count: undefined, // Will be incremented via SQL
           };
+
+      // For rejection, increment the return count
+      if (!approved) {
+        const { data: action } = await supabase
+          .from('corrective_actions')
+          .select('return_count')
+          .eq('id', actionId)
+          .single();
+        
+        updateData.return_count = (action?.return_count || 0) + 1;
+      }
 
       const { error } = await supabase
         .from('corrective_actions')
