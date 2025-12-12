@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import type { SeverityDistribution } from "@/hooks/use-hsse-event-dashboard";
 
 interface Props {
@@ -17,6 +18,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 export function SeverityDistributionChart({ data }: Props) {
   const { t, i18n } = useTranslation();
+  const { drillDown } = useDashboardDrilldown();
   const isRTL = i18n.dir() === 'rtl';
 
   const chartData = [
@@ -28,6 +30,10 @@ export function SeverityDistributionChart({ data }: Props) {
   ].filter(item => item.value > 0);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  const handleClick = (entry: { key: string }) => {
+    drillDown({ severity: entry.key });
+  };
 
   if (total === 0) {
     return (
@@ -53,6 +59,12 @@ export function SeverityDistributionChart({ data }: Props) {
             data={chartData} 
             layout="vertical"
             margin={{ left: isRTL ? 10 : 80, right: isRTL ? 80 : 10 }}
+            onClick={(state) => {
+              if (state?.activePayload?.[0]?.payload) {
+                handleClick(state.activePayload[0].payload);
+              }
+            }}
+            className="cursor-pointer"
           >
             <XAxis type="number" />
             <YAxis 
@@ -65,13 +77,20 @@ export function SeverityDistributionChart({ data }: Props) {
             <Tooltip 
               formatter={(value: number) => [value, t('hsseDashboard.count')]}
             />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+            <Bar dataKey="value" radius={[0, 4, 4, 0]} className="cursor-pointer">
               {chartData.map((entry) => (
-                <Cell key={entry.key} fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]} />
+                <Cell 
+                  key={entry.key} 
+                  fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]}
+                  className="hover:opacity-80 transition-opacity"
+                />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          {t('hsseDashboard.clickToFilter', 'Click to filter')}
+        </p>
       </CardContent>
     </Card>
   );

@@ -97,6 +97,7 @@
     "investigationProgress": "تقدم التحقيق",
     "filterAll": "الكل",
     "comparePeriod": "مقارنة",
+    "clickToFilter": "انقر للتصفية",
     "previousPeriod": "الفترة السابقة",
     "actionStatus": {
       "inProgress": "قيد التنفيذ",

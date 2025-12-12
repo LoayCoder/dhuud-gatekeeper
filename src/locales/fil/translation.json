@@ -88,6 +88,7 @@
     "filterAll": "Lahat",
     "comparePeriod": "Ikumpara",
     "previousPeriod": "Nakaraang Panahon",
+    "clickToFilter": "I-click para i-filter",
     "actionStatus": {
       "inProgress": "Isinasagawa",
       "closed": "Sarado",
