@@ -89,6 +89,15 @@
     "comparePeriod": "तुलना करें",
     "previousPeriod": "पिछली अवधि",
     "clickToFilter": "फ़िल्टर करने के लिए क्लिक करें",
+    "realtime": {
+      "live": "लाइव",
+      "offline": "ऑफ़लाइन",
+      "connected": "लाइव अपडेट प्राप्त हो रहे हैं",
+      "disconnected": "कनेक्ट नहीं",
+      "newEvents": "{{count}} नई घटनाएं",
+      "criticalIncident": "गंभीर घटना रिपोर्ट की गई",
+      "viewDetails": "देखें"
+    },
     "actionStatus": {
       "inProgress": "प्रगति में",
       "closed": "बंद",

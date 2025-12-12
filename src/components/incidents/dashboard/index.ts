@@ -26,3 +26,5 @@ export { BranchHeatmapGrid } from './BranchHeatmapGrid';
 export { SiteBubbleMap } from './SiteBubbleMap';
 export { TemporalHeatmap } from './TemporalHeatmap';
 export { DashboardExportDropdown } from './DashboardExportDropdown';
+export { LiveUpdateIndicator } from './LiveUpdateIndicator';
+export { AutoRefreshToggle } from './AutoRefreshToggle';

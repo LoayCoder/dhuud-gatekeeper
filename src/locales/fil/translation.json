@@ -89,6 +89,15 @@
     "comparePeriod": "Ikumpara",
     "previousPeriod": "Nakaraang Panahon",
     "clickToFilter": "I-click para i-filter",
+    "realtime": {
+      "live": "Live",
+      "offline": "Offline",
+      "connected": "Tumatanggap ng live updates",
+      "disconnected": "Hindi konektado",
+      "newEvents": "{{count}} bagong events",
+      "criticalIncident": "Kritikal na Insidente ang Na-report",
+      "viewDetails": "Tingnan"
+    },
     "actionStatus": {
       "inProgress": "Isinasagawa",
       "closed": "Sarado",

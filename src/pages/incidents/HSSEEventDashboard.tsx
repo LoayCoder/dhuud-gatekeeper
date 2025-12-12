@@ -1,19 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar,
   RefreshCw, 
-  AlertTriangle, 
-  ClipboardCheck, 
-  Eye, 
-  Clock,
   TrendingUp,
   TrendingDown,
-  FileText,
-  CheckCircle2
 } from "lucide-react";
 import { subDays } from "date-fns";
 import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
@@ -22,6 +16,7 @@ import { useTopReporters } from "@/hooks/use-top-reporters";
 import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
 import { useRCAAnalytics } from "@/hooks/use-rca-analytics";
 import { useLocationHeatmap } from "@/hooks/use-location-heatmap";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import {
   EventTypeDistributionChart,
   SeverityDistributionChart,
@@ -47,6 +42,8 @@ import {
   SiteBubbleMap,
   TemporalHeatmap,
   DashboardExportDropdown,
+  LiveUpdateIndicator,
+  AutoRefreshToggle,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -131,9 +128,16 @@ export default function HSSEEventDashboard() {
   const { data: rcaData, isLoading: rcaLoading } = useRCAAnalytics(startDate, endDate);
   const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
     refetchDashboard();
+  }, [refetchDashboard]);
+
+  const { isConnected, newEventCount, acknowledgeEvents } = useDashboardRealtime(handleRefresh);
+
+  const handleRefreshAndAcknowledge = () => {
+    handleRefresh();
+    acknowledgeEvents();
   };
 
   const handleDateRangeChange = (start: Date | undefined, end: Date | undefined) => {
@@ -161,6 +165,12 @@ export default function HSSEEventDashboard() {
           <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <LiveUpdateIndicator 
+            isConnected={isConnected} 
+            newEventCount={newEventCount}
+            onAcknowledge={handleRefreshAndAcknowledge}
+          />
+          <AutoRefreshToggle onRefresh={handleRefresh} disabled={isLoading} />
           <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
           <DashboardExportDropdown 
             dashboardRef={dashboardRef}
@@ -168,9 +178,14 @@ export default function HSSEEventDashboard() {
             locationData={locationData}
             rcaData={rcaData}
           />
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+          <Button variant="outline" size="sm" onClick={handleRefreshAndAcknowledge} disabled={isLoading} className="relative">
             <RefreshCw className={`h-4 w-4 me-2 ${isLoading ? 'animate-spin' : ''}`} />
             {t('hsseDashboard.refresh')}
+            {newEventCount > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -end-2 h-5 min-w-5 px-1 text-xs">
+                {newEventCount > 99 ? '99+' : newEventCount}
+              </Badge>
+            )}
           </Button>
         </div>
       </div>

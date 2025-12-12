@@ -89,6 +89,15 @@
     "comparePeriod": "موازنہ",
     "previousPeriod": "پچھلا دورانیہ",
     "clickToFilter": "فلٹر کرنے کے لیے کلک کریں",
+    "realtime": {
+      "live": "براہ راست",
+      "offline": "آف لائن",
+      "connected": "براہ راست اپڈیٹس موصول ہو رہی ہیں",
+      "disconnected": "منسلک نہیں",
+      "newEvents": "{{count}} نئے واقعات",
+      "criticalIncident": "اہم واقعہ رپورٹ کیا گیا",
+      "viewDetails": "دیکھیں"
+    },
     "actionStatus": {
       "inProgress": "جاری ہے",
       "closed": "بند",

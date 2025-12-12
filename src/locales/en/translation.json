@@ -98,6 +98,15 @@
     "filterAll": "All",
     "comparePeriod": "Compare",
     "clickToFilter": "Click to filter",
+    "realtime": {
+      "live": "Live",
+      "offline": "Offline",
+      "connected": "Receiving live updates",
+      "disconnected": "Not connected",
+      "newEvents": "{{count}} new events",
+      "criticalIncident": "Critical Incident Reported",
+      "viewDetails": "View"
+    },
     "previousPeriod": "Previous Period",
     "actionStatus": {
       "inProgress": "In Progress",
