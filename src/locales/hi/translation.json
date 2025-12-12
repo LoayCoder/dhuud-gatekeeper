@@ -3662,5 +3662,30 @@
       "decision": "निर्णय बिंदु",
       "approval": "अनुमोदन आवश्यक"
     }
+  },
+  "emailDelivery": {
+    "title": "ईमेल डिलीवरी लॉग",
+    "subtitle": "ईमेल डिलीवरी स्थिति को ट्रैक और मॉनिटर करें",
+    "status": {
+      "pending": "लंबित",
+      "sent": "भेजा गया",
+      "delivered": "डिलीवर हुआ",
+      "failed": "विफल",
+      "permanently_failed": "स्थायी रूप से विफल"
+    },
+    "retryCount": "पुनः प्रयास गणना",
+    "maxRetries": "अधिकतम पुनः प्रयास",
+    "nextRetry": "अगला पुनः प्रयास",
+    "lastError": "अंतिम त्रुटि",
+    "recipient": "प्राप्तकर्ता",
+    "subject": "विषय",
+    "type": "ईमेल प्रकार",
+    "relatedTo": "संबंधित",
+    "functionName": "फंक्शन",
+    "createdAt": "बनाया गया",
+    "deliveredAt": "डिलीवर हुआ",
+    "noLogs": "कोई ईमेल लॉग नहीं मिला",
+    "retryNow": "अभी पुनः प्रयास करें",
+    "viewDetails": "विवरण देखें"
   }
 }

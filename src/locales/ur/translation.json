@@ -3662,5 +3662,30 @@
       "decision": "فیصلے کا مقام",
       "approval": "منظوری درکار"
     }
+  },
+  "emailDelivery": {
+    "title": "ای میل ڈیلیوری لاگز",
+    "subtitle": "ای میل ڈیلیوری کی حیثیت کی نگرانی کریں",
+    "status": {
+      "pending": "زیر التواء",
+      "sent": "بھیج دیا گیا",
+      "delivered": "ڈیلیور ہو گیا",
+      "failed": "ناکام",
+      "permanently_failed": "مستقل ناکام"
+    },
+    "retryCount": "دوبارہ کوششوں کی تعداد",
+    "maxRetries": "زیادہ سے زیادہ کوششیں",
+    "nextRetry": "اگلی کوشش",
+    "lastError": "آخری خرابی",
+    "recipient": "وصول کنندہ",
+    "subject": "موضوع",
+    "type": "ای میل کی قسم",
+    "relatedTo": "متعلقہ",
+    "functionName": "فنکشن",
+    "createdAt": "بنایا گیا",
+    "deliveredAt": "ڈیلیور ہوا",
+    "noLogs": "کوئی ای میل لاگ نہیں ملا",
+    "retryNow": "ابھی دوبارہ کوشش کریں",
+    "viewDetails": "تفصیلات دیکھیں"
   }
 }
