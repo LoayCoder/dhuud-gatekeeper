@@ -94,47 +94,53 @@ export function DepartmentAnalyticsChart({ data }: Props) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Horizontal bar chart for incidents */}
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart 
-            data={chartData} 
-            layout="vertical"
-            margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 20, top: 5, bottom: 5 }}
-          >
-            <XAxis type="number" hide />
-            <YAxis 
-              type="category" 
-              dataKey="name" 
-              width={90}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={false}
-              tickLine={false}
-              orientation={isRTL ? 'right' : 'left'}
-            />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              formatter={(value: number) => [value, t('hsseDashboard.incidents')]}
-              labelFormatter={(label, payload) => {
-                if (payload && payload[0]) {
-                  return payload[0].payload.fullName;
-                }
-                return label;
-              }}
-            />
-            <Bar 
-              dataKey="incidents" 
-              radius={[0, 4, 4, 0]}
-              barSize={18}
+        <div className="animate-chart-slide-up">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart 
+              data={chartData} 
+              layout="vertical"
+              margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 20, top: 5, bottom: 5 }}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={index} fill={entry.riskColor} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <XAxis type="number" hide />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={90}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                axisLine={false}
+                tickLine={false}
+                orientation={isRTL ? 'right' : 'left'}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                }}
+                formatter={(value: number) => [value, t('hsseDashboard.incidents')]}
+                labelFormatter={(label, payload) => {
+                  if (payload && payload[0]) {
+                    return payload[0].payload.fullName;
+                  }
+                  return label;
+                }}
+              />
+              <Bar 
+                dataKey="incidents" 
+                radius={[0, 4, 4, 0]}
+                barSize={18}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={150}
+                animationEasing="ease-out"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={index} fill={entry.riskColor} className="hover:opacity-80 transition-opacity duration-200" />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Department Risk Summary */}
         <div className="border-t pt-4">
