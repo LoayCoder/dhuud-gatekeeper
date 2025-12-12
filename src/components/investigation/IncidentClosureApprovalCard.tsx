@@ -40,7 +40,9 @@ export function IncidentClosureApprovalCard({
 }: IncidentClosureApprovalCardProps) {
   const { t } = useTranslation();
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
+  const [approvalNotes, setApprovalNotes] = useState('');
 
   // Determine if this is the final closure (all actions verified) or investigation approval
   const isFinalClosure = incidentStatus === 'pending_final_closure';
@@ -49,8 +51,10 @@ export function IncidentClosureApprovalCard({
   const approveClosure = useApproveIncidentClosure();
   const rejectClosure = useRejectIncidentClosure();
 
-  const handleApprove = async () => {
-    await approveClosure.mutateAsync({ incidentId, isFinalClosure });
+  const handleApproveConfirm = async () => {
+    await approveClosure.mutateAsync({ incidentId, isFinalClosure, approvalNotes: approvalNotes.trim() || undefined });
+    setShowApproveDialog(false);
+    setApprovalNotes('');
   };
 
   const handleReject = async () => {
@@ -114,11 +118,11 @@ export function IncidentClosureApprovalCard({
           {closureCheck && (
             <div className="text-sm">
               <span className="text-amber-700 dark:text-amber-300">
-                {t('investigation.actionStatus', 'Action Status')}:
+                {t('investigation.actionStatusLabel', 'Action Status')}:
               </span>{' '}
               <span className="font-medium">
                 {closureCheck.verified_actions}/{closureCheck.total_actions}{' '}
-                {t('investigation.actionsVerified', 'verified')}
+                {t('investigation.actionsVerifiedCount', 'verified')}
               </span>
             </div>
           )}
@@ -136,14 +140,10 @@ export function IncidentClosureApprovalCard({
             </Button>
             <Button
               className="flex-1 bg-green-600 text-white hover:bg-green-700"
-              onClick={handleApprove}
+              onClick={() => setShowApproveDialog(true)}
               disabled={approveClosure.isPending || (!isFinalClosure && !closureCheck?.can_close)}
             >
-              {approveClosure.isPending ? (
-                <Loader2 className="me-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle className="me-2 h-4 w-4" />
-              )}
+              <CheckCircle className="me-2 h-4 w-4" />
               {isFinalClosure
                 ? t('investigation.approveFinalClosure', 'Approve & Close Incident')
                 : t('investigation.approveInvestigation', 'Approve Investigation')
@@ -194,6 +194,55 @@ export function IncidentClosureApprovalCard({
             >
               {rejectClosure.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {t('investigation.confirmReject', 'Reject Closure')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Approval Confirmation Dialog */}
+      <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isFinalClosure
+                ? t('investigation.confirmFinalClosureTitle', 'Confirm Final Closure')
+                : t('investigation.confirmApprovalTitle', 'Confirm Investigation Approval')
+              }
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isFinalClosure
+                ? t('investigation.confirmFinalClosureDescription', 'Are you sure you want to close this incident? This action will finalize the investigation.')
+                : t('investigation.confirmApprovalDescription', 'Are you sure you want to approve this investigation? Corrective actions will be released to assignees.')
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="py-4">
+            <Label htmlFor="approval-notes">
+              {t('investigation.approvalNotes', 'Approval Notes (Optional)')}
+            </Label>
+            <Textarea
+              id="approval-notes"
+              value={approvalNotes}
+              onChange={(e) => setApprovalNotes(e.target.value)}
+              placeholder={t('investigation.approvalNotesPlaceholder', 'Add any notes about this approval...')}
+              rows={3}
+              className="mt-2"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleApproveConfirm}
+              disabled={approveClosure.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {approveClosure.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {isFinalClosure
+                ? t('investigation.confirmClose', 'Confirm & Close')
+                : t('investigation.confirmApprove', 'Confirm & Approve')
+              }
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

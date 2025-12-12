@@ -196,8 +196,13 @@ export interface IncidentWithDetails {
   severity_approved_by: string | null;
   severity_approved_at: string | null;
   severity_pending_approval: boolean | null;
+  // Closure request fields
+  closure_requested_by: string | null;
+  closure_requested_at: string | null;
+  closure_request_notes: string | null;
   // Joined relations
   reporter?: { id: string; full_name: string | null } | null;
+  closure_requester?: { id: string; full_name: string | null } | null;
   branch?: { id: string; name: string } | null;
   site?: { id: string; name: string } | null;
   department_info?: { id: string; name: string } | null;
@@ -221,7 +226,9 @@ export function useIncident(id: string | undefined) {
           latitude, longitude, media_attachments, ai_analysis_result,
           created_at, updated_at, tenant_id, reporter_id,
           branch_id, site_id, department_id, special_event_id,
+          closure_requested_by, closure_requested_at, closure_request_notes,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name),
+          closure_requester:profiles!incidents_closure_requested_by_fkey(id, full_name),
           branch:branches!incidents_branch_id_fkey(id, name),
           site:sites!incidents_site_id_fkey(id, name),
           department_info:departments!incidents_department_id_fkey(id, name),
@@ -247,6 +254,10 @@ export function useIncident(id: string | undefined) {
         severity_approved_by: extended.severity_approved_by ?? null,
         severity_approved_at: extended.severity_approved_at ?? null,
         severity_pending_approval: extended.severity_pending_approval ?? false,
+        closure_requested_by: extended.closure_requested_by ?? null,
+        closure_requested_at: extended.closure_requested_at ?? null,
+        closure_request_notes: extended.closure_request_notes ?? null,
+        closure_requester: (data as Record<string, unknown>).closure_requester ?? null,
       } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,
