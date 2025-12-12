@@ -40,13 +40,13 @@ function KPIGroup({
   const { t } = useTranslation();
 
   return (
-    <Card className="bg-card">
+    <Card className="bg-gradient-to-br from-card to-muted/30 border-border/50 hover:shadow-md transition-all">
       <CardContent className="p-4">
         <div 
           className={`flex items-center gap-3 mb-3 ${onTotalClick ? 'cursor-pointer hover:opacity-80' : ''}`}
           onClick={onTotalClick}
         >
-          <div className={`p-2 rounded-lg ${iconBg}`}>
+          <div className={`p-2.5 rounded-xl ${iconBg} shadow-sm`}>
             <Icon className="h-5 w-5" />
           </div>
           <div>

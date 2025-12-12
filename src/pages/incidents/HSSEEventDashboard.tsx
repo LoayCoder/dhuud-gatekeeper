@@ -64,17 +64,17 @@ function KPICard({
   onClick?: () => void;
 }) {
   const bgClass = variant === 'danger' 
-    ? 'bg-destructive/10 border-destructive/20' 
+    ? 'bg-gradient-to-br from-destructive/15 to-destructive/5 border-destructive/30' 
     : variant === 'warning' 
-      ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
+      ? 'bg-gradient-to-br from-warning/20 to-warning/5 border-warning/30'
       : variant === 'success'
-        ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-        : 'bg-card';
+        ? 'bg-gradient-to-br from-chart-3/20 to-chart-3/5 border-chart-3/30'
+        : 'bg-gradient-to-br from-card to-muted/30';
 
   const Component = onClick ? 'button' : 'div';
 
   return (
-    <Card className={`${bgClass} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}>
+    <Card className={`${bgClass} ${onClick ? 'cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]' : ''}`}>
       <Component onClick={onClick} className="w-full">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
@@ -84,26 +84,26 @@ function KPICard({
               {trend !== undefined && (
                 <div className="flex items-center gap-1 mt-1">
                   {trend >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-red-500" />
+                    <TrendingUp className="h-3 w-3 text-destructive" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-green-500" />
+                    <TrendingDown className="h-3 w-3 text-chart-3" />
                   )}
-                  <span className={`text-xs ${trend >= 0 ? 'text-red-500' : 'text-green-500'}`}>
+                  <span className={`text-xs ${trend >= 0 ? 'text-destructive' : 'text-chart-3'}`}>
                     {Math.abs(trend)}% {trendLabel}
                   </span>
                 </div>
               )}
             </div>
-            <div className={`p-2 rounded-lg ${
+            <div className={`p-2.5 rounded-xl shadow-sm ${
               variant === 'danger' ? 'bg-destructive/20' : 
-              variant === 'warning' ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : 
-              variant === 'success' ? 'bg-green-200/50 dark:bg-green-800/50' :
+              variant === 'warning' ? 'bg-warning/20' : 
+              variant === 'success' ? 'bg-chart-3/20' :
               'bg-primary/10'
             }`}>
               <Icon className={`h-5 w-5 ${
                 variant === 'danger' ? 'text-destructive' : 
-                variant === 'warning' ? 'text-yellow-600' : 
-                variant === 'success' ? 'text-green-600' :
+                variant === 'warning' ? 'text-warning' : 
+                variant === 'success' ? 'text-chart-3' :
                 'text-primary'
               }`} />
             </div>
