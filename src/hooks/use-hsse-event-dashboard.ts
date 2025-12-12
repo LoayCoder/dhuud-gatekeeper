@@ -10,6 +10,15 @@ export interface DashboardSummary {
   pending_closure: number;
   closed_this_month: number;
   avg_closure_days: number;
+  // Extended breakdowns
+  incidents_open: number;
+  incidents_closed: number;
+  incidents_overdue: number;
+  observations_open: number;
+  observations_closed: number;
+  total_investigations: number;
+  investigations_open: number;
+  investigations_closed: number;
 }
 
 export interface StatusDistribution {
@@ -51,6 +60,11 @@ export interface ActionStats {
   overdue_actions: number;
   critical_actions: number;
   high_priority_actions: number;
+  // Extended breakdowns
+  total_actions: number;
+  actions_closed: number;
+  actions_in_progress: number;
+  actions_pending_verification: number;
 }
 
 export interface HSSEEventDashboardData {

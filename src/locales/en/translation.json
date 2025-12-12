@@ -72,7 +72,16 @@
       "custom": "Custom"
     },
     "startDate": "Start",
-    "endDate": "End"
+    "endDate": "End",
+    "totalActions": "Corrective Actions",
+    "totalInvestigationsCount": "Investigations",
+    "openStatus": "Open",
+    "closedStatus": "Closed",
+    "overdueStatus": "Overdue",
+    "actions": "Actions",
+    "investigations": "Invest.",
+    "trend": "Trend",
+    "vsLastMonth": "vs last month"
   },
   "incidents": {
     "wizard": {

@@ -33,7 +33,7 @@ function EventRow({ event }: { event: RecentEvent }) {
   return (
     <div 
       className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-      onClick={() => navigate(`/incidents/investigate?id=${event.id}`)}
+      onClick={() => navigate(`/incidents/${event.id}`)}
     >
       <div className={`p-2 rounded-lg ${isObservation ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
         {isObservation ? (

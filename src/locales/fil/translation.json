@@ -57,7 +57,19 @@
       "nearMiss": "Halos Aksidente",
       "securityEvent": "Security Event",
       "environmentalEvent": "Environmental Event"
-    }
+    },
+    "quickActions": "Mabilis na Aksyon",
+    "pendingApprovals": "Naghihintay na Pag-apruba",
+    "myActions": "Aking mga Aksyon",
+    "reportNewEvent": "Mag-ulat ng Bagong Pangyayari",
+    "recentEvents": "Kamakailang Pangyayari",
+    "totalActions": "Mga Corrective Action",
+    "totalInvestigationsCount": "Mga Imbestigasyon",
+    "openStatus": "Bukas",
+    "closedStatus": "Sarado",
+    "overdueStatus": "Nahuling",
+    "actions": "Aksyon",
+    "investigations": "Imbes."
   },
   "incidents": {
     "wizard": {
