@@ -21,6 +21,7 @@ import { useEventsByLocation } from "@/hooks/use-events-by-location";
 import { useTopReporters } from "@/hooks/use-top-reporters";
 import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
 import { useRCAAnalytics } from "@/hooks/use-rca-analytics";
+import { useLocationHeatmap } from "@/hooks/use-location-heatmap";
 import {
   EventTypeDistributionChart,
   SeverityDistributionChart,
@@ -42,6 +43,9 @@ import {
   MajorEventsTimeline,
   RootCauseDistributionChart,
   CauseFlowDiagram,
+  BranchHeatmapGrid,
+  SiteBubbleMap,
+  TemporalHeatmap,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -123,6 +127,7 @@ export default function HSSEEventDashboard() {
   const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
   const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
   const { data: rcaData, isLoading: rcaLoading } = useRCAAnalytics(startDate, endDate);
+  const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -276,6 +281,23 @@ export default function HSSEEventDashboard() {
       ) : dashboardData ? (
         <SafetyKPICards summary={dashboardData.summary} actions={dashboardData.actions} />
       ) : null}
+
+      {/* Location Heatmaps */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {heatmapLoading ? (
+          <>
+            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+          </>
+        ) : heatmapData ? (
+          <>
+            <BranchHeatmapGrid data={heatmapData.branches} />
+            <SiteBubbleMap data={heatmapData.sites} />
+            <TemporalHeatmap data={heatmapData.temporal} maxCount={heatmapData.maxTemporalCount} />
+          </>
+        ) : null}
+      </div>
 
       {/* Enhanced Location Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
