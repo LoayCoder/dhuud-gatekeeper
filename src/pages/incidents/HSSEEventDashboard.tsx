@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +46,7 @@ import {
   BranchHeatmapGrid,
   SiteBubbleMap,
   TemporalHeatmap,
+  DashboardExportDropdown,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -121,6 +122,7 @@ export default function HSSEEventDashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard } = useHSSEEventDashboard(startDate, endDate);
   const { data: locationData, isLoading: locationLoading } = useEventsByLocation();
@@ -151,7 +153,7 @@ export default function HSSEEventDashboard() {
   const isLoading = dashboardLoading || locationLoading || reportersLoading;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div ref={dashboardRef} className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -160,6 +162,12 @@ export default function HSSEEventDashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
+          <DashboardExportDropdown 
+            dashboardRef={dashboardRef}
+            dashboardData={dashboardData}
+            locationData={locationData}
+            rcaData={rcaData}
+          />
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 me-2 ${isLoading ? 'animate-spin' : ''}`} />
             {t('hsseDashboard.refresh')}

@@ -25,3 +25,4 @@ export { CauseFlowDiagram } from './CauseFlowDiagram';
 export { BranchHeatmapGrid } from './BranchHeatmapGrid';
 export { SiteBubbleMap } from './SiteBubbleMap';
 export { TemporalHeatmap } from './TemporalHeatmap';
+export { DashboardExportDropdown } from './DashboardExportDropdown';
