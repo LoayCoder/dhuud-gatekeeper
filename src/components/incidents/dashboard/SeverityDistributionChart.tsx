@@ -7,11 +7,12 @@ interface Props {
   data: SeverityDistribution;
 }
 
-const SEVERITY_COLORS = {
+const SEVERITY_COLORS: Record<string, string> = {
   critical: 'hsl(0 84% 60%)',
   high: 'hsl(25 95% 53%)',
   medium: 'hsl(48 96% 53%)',
   low: 'hsl(142 71% 45%)',
+  unassigned: 'hsl(217 19% 55%)',
 };
 
 export function SeverityDistributionChart({ data }: Props) {
@@ -23,7 +24,8 @@ export function SeverityDistributionChart({ data }: Props) {
     { name: t('severity.high'), value: data.high, key: 'high' },
     { name: t('severity.medium'), value: data.medium, key: 'medium' },
     { name: t('severity.low'), value: data.low, key: 'low' },
-  ];
+    { name: t('severity.unassigned', 'N/A'), value: data.unassigned || 0, key: 'unassigned' },
+  ].filter(item => item.value > 0);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 

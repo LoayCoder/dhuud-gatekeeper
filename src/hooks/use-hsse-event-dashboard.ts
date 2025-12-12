@@ -14,9 +14,13 @@ export interface DashboardSummary {
 
 export interface StatusDistribution {
   submitted: number;
+  expert_screening: number;
+  pending_manager_approval: number;
   investigation_in_progress: number;
   pending_closure: number;
   closed: number;
+  returned: number;
+  rejected: number;
 }
 
 export interface SeverityDistribution {
@@ -24,6 +28,7 @@ export interface SeverityDistribution {
   high: number;
   medium: number;
   low: number;
+  unassigned: number;
 }
 
 export interface EventTypeDistribution {

@@ -57,7 +57,22 @@
       "nearMiss": "Near Miss",
       "securityEvent": "Security Event",
       "environmentalEvent": "Environmental Event"
-    }
+    },
+    "quickActions": "Quick Actions",
+    "pendingApprovals": "Pending Approvals",
+    "myActions": "My Actions",
+    "reportNewEvent": "Report New Event",
+    "recentEvents": "Recent Events",
+    "dateRanges": {
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "custom": "Custom"
+    },
+    "startDate": "Start",
+    "endDate": "End"
   },
   "incidents": {
     "wizard": {
