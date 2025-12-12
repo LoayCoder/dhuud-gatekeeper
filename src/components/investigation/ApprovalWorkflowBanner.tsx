@@ -33,15 +33,15 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
   const { t } = useTranslation();
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
+  
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [approvalNotes, setApprovalNotes] = useState('');
 
   // Don't render for closure workflow statuses - IncidentClosureApprovalCard handles those
   const closureStatuses = ['pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'];
   if (closureStatuses.includes(incident.status as string)) {
     return null;
   }
-  
-  const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [approvalNotes, setApprovalNotes] = useState('');
 
   // Type assertion for extended incident properties
   const incidentExtended = incident as IncidentWithDetails & {
