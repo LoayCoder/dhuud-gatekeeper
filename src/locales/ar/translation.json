@@ -98,6 +98,15 @@
     "filterAll": "الكل",
     "comparePeriod": "مقارنة",
     "clickToFilter": "انقر للتصفية",
+    "realtime": {
+      "live": "مباشر",
+      "offline": "غير متصل",
+      "connected": "استقبال التحديثات المباشرة",
+      "disconnected": "غير متصل",
+      "newEvents": "{{count}} أحداث جديدة",
+      "criticalIncident": "تم الإبلاغ عن حادث حرج",
+      "viewDetails": "عرض"
+    },
     "previousPeriod": "الفترة السابقة",
     "actionStatus": {
       "inProgress": "قيد التنفيذ",
