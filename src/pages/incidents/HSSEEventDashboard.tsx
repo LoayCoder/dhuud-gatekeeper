@@ -11,8 +11,11 @@ import {
   Eye, 
   Clock,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  FileText,
+  CheckCircle2
 } from "lucide-react";
+import { subDays } from "date-fns";
 import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
 import { useEventsByLocation } from "@/hooks/use-events-by-location";
 import { useTopReporters } from "@/hooks/use-top-reporters";
@@ -26,6 +29,9 @@ import {
   ReporterLeaderboard,
   ActionsStatusWidget,
   AIInsightsPanel,
+  QuickActionsCard,
+  RecentEventsCard,
+  DateRangeFilter,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -34,54 +40,64 @@ function KPICard({
   icon: Icon, 
   trend,
   trendLabel,
-  variant = 'default'
+  variant = 'default',
+  onClick,
 }: { 
   title: string; 
   value: number | string; 
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   trend?: number;
   trendLabel?: string;
-  variant?: 'default' | 'warning' | 'danger';
+  variant?: 'default' | 'warning' | 'danger' | 'success';
+  onClick?: () => void;
 }) {
   const bgClass = variant === 'danger' 
     ? 'bg-destructive/10 border-destructive/20' 
     : variant === 'warning' 
       ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
-      : 'bg-card';
+      : variant === 'success'
+        ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+        : 'bg-card';
+
+  const Component = onClick ? 'button' : 'div';
 
   return (
-    <Card className={bgClass}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
-            {trend !== undefined && (
-              <div className="flex items-center gap-1 mt-1">
-                {trend >= 0 ? (
-                  <TrendingUp className="h-3 w-3 text-red-500" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-green-500" />
-                )}
-                <span className={`text-xs ${trend >= 0 ? 'text-red-500' : 'text-green-500'}`}>
-                  {Math.abs(trend)}% {trendLabel}
-                </span>
-              </div>
-            )}
+    <Card className={`${bgClass} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}>
+      <Component onClick={onClick} className="w-full">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between">
+            <div className="text-start">
+              <p className="text-sm text-muted-foreground">{title}</p>
+              <p className="text-2xl font-bold mt-1">{value}</p>
+              {trend !== undefined && (
+                <div className="flex items-center gap-1 mt-1">
+                  {trend >= 0 ? (
+                    <TrendingUp className="h-3 w-3 text-red-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-green-500" />
+                  )}
+                  <span className={`text-xs ${trend >= 0 ? 'text-red-500' : 'text-green-500'}`}>
+                    {Math.abs(trend)}% {trendLabel}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className={`p-2 rounded-lg ${
+              variant === 'danger' ? 'bg-destructive/20' : 
+              variant === 'warning' ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : 
+              variant === 'success' ? 'bg-green-200/50 dark:bg-green-800/50' :
+              'bg-primary/10'
+            }`}>
+              <Icon className={`h-5 w-5 ${
+                variant === 'danger' ? 'text-destructive' : 
+                variant === 'warning' ? 'text-yellow-600' : 
+                variant === 'success' ? 'text-green-600' :
+                'text-primary'
+              }`} />
+            </div>
           </div>
-          <div className={`p-2 rounded-lg ${
-            variant === 'danger' ? 'bg-destructive/20' : 
-            variant === 'warning' ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : 
-            'bg-primary/10'
-          }`}>
-            <Icon className={`h-5 w-5 ${
-              variant === 'danger' ? 'text-destructive' : 
-              variant === 'warning' ? 'text-yellow-600' : 
-              'text-primary'
-            }`} />
-          </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      </Component>
     </Card>
   );
 }
@@ -89,8 +105,10 @@ function KPICard({
 export default function HSSEEventDashboard() {
   const { t } = useTranslation();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
-  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard } = useHSSEEventDashboard();
+  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard } = useHSSEEventDashboard(startDate, endDate);
   const { data: locationData, isLoading: locationLoading } = useEventsByLocation();
   const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
   const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
@@ -98,6 +116,11 @@ export default function HSSEEventDashboard() {
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
     refetchDashboard();
+  };
+
+  const handleDateRangeChange = (start: Date | undefined, end: Date | undefined) => {
+    setStartDate(start);
+    setEndDate(end);
   };
 
   const handleGenerateAIInsights = () => {
@@ -114,12 +137,13 @@ export default function HSSEEventDashboard() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('hsseDashboard.title')}</h1>
           <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 me-2 ${isLoading ? 'animate-spin' : ''}`} />
             {t('hsseDashboard.refresh')}
@@ -127,10 +151,10 @@ export default function HSSEEventDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* KPI Cards - Extended */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {dashboardLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
+          Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="p-4">
                 <Skeleton className="h-4 w-24 mb-2" />
@@ -146,30 +170,42 @@ export default function HSSEEventDashboard() {
               icon={Calendar}
             />
             <KPICard
+              title={t('hsseDashboard.totalIncidents')}
+              value={dashboardData.summary.total_incidents}
+              icon={AlertTriangle}
+              variant={dashboardData.summary.total_incidents > 0 ? 'warning' : 'default'}
+            />
+            <KPICard
+              title={t('hsseDashboard.totalObservations')}
+              value={dashboardData.summary.total_observations}
+              icon={Eye}
+            />
+            <KPICard
               title={t('hsseDashboard.openInvestigations')}
               value={dashboardData.summary.open_investigations}
-              icon={Eye}
+              icon={FileText}
               variant={dashboardData.summary.open_investigations > 5 ? 'warning' : 'default'}
             />
             <KPICard
-              title={t('hsseDashboard.pendingClosure')}
-              value={dashboardData.summary.pending_closure}
-              icon={ClipboardCheck}
-              variant={dashboardData.summary.pending_closure > 3 ? 'warning' : 'default'}
-            />
-            <KPICard
-              title={t('hsseDashboard.avgClosureDays')}
-              value={dashboardData.summary.avg_closure_days || 0}
-              icon={Clock}
+              title={t('hsseDashboard.closedThisMonth')}
+              value={dashboardData.summary.closed_this_month}
+              icon={CheckCircle2}
+              variant="success"
             />
             <KPICard
               title={t('hsseDashboard.overdueActions')}
               value={dashboardData.actions.overdue_actions}
-              icon={AlertTriangle}
+              icon={Clock}
               variant={dashboardData.actions.overdue_actions > 0 ? 'danger' : 'default'}
             />
           </>
         ) : null}
+      </div>
+
+      {/* Quick Actions & Recent Events Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <QuickActionsCard />
+        <RecentEventsCard />
       </div>
 
       {/* Charts Row 1 */}

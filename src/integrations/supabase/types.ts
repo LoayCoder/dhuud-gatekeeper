@@ -5434,6 +5434,7 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
+      get_dashboard_quick_action_counts: { Args: never; Returns: Json }
       get_events_by_location: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
@@ -5462,6 +5463,7 @@ export type Database = {
       }
       get_overdue_inspections_count: { Args: never; Returns: number }
       get_overdue_schedules_count: { Args: never; Returns: number }
+      get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_team_hierarchy: {
         Args: { p_manager_id: string }
         Returns: {

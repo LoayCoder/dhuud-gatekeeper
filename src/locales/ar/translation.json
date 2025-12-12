@@ -57,7 +57,22 @@
       "nearMiss": "حادث وشيك",
       "securityEvent": "حدث أمني",
       "environmentalEvent": "حدث بيئي"
-    }
+    },
+    "quickActions": "إجراءات سريعة",
+    "pendingApprovals": "الموافقات المعلقة",
+    "myActions": "إجراءاتي",
+    "reportNewEvent": "الإبلاغ عن حدث جديد",
+    "recentEvents": "الأحداث الأخيرة",
+    "dateRanges": {
+      "last7Days": "آخر 7 أيام",
+      "last30Days": "آخر 30 يوماً",
+      "last90Days": "آخر 90 يوماً",
+      "thisMonth": "هذا الشهر",
+      "lastMonth": "الشهر الماضي",
+      "custom": "مخصص"
+    },
+    "startDate": "البداية",
+    "endDate": "النهاية"
   },
   "incidents": {
     "wizard": {

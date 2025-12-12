@@ -7,22 +7,37 @@ interface Props {
   data: StatusDistribution;
 }
 
-const STATUS_COLORS = {
-  submitted: 'hsl(var(--chart-3))',
-  investigation_in_progress: 'hsl(var(--chart-1))',
-  pending_closure: 'hsl(var(--chart-4))',
-  closed: 'hsl(var(--chart-5))',
+const STATUS_COLORS: Record<string, string> = {
+  submitted: 'hsl(217 91% 60%)',
+  expert_screening: 'hsl(271 81% 56%)',
+  pending_manager_approval: 'hsl(38 92% 50%)',
+  investigation_in_progress: 'hsl(199 89% 48%)',
+  pending_closure: 'hsl(45 93% 47%)',
+  closed: 'hsl(142 71% 45%)',
+  returned: 'hsl(24 95% 53%)',
+  rejected: 'hsl(0 84% 60%)',
 };
+
+const STATUS_ORDER = [
+  'submitted',
+  'expert_screening', 
+  'pending_manager_approval',
+  'investigation_in_progress',
+  'pending_closure',
+  'closed',
+  'returned',
+  'rejected',
+];
 
 export function StatusDistributionChart({ data }: Props) {
   const { t } = useTranslation();
 
-  const chartData = [
-    { name: t('status.submitted'), value: data.submitted, key: 'submitted' },
-    { name: t('status.investigation_in_progress'), value: data.investigation_in_progress, key: 'investigation_in_progress' },
-    { name: t('status.pending_closure'), value: data.pending_closure, key: 'pending_closure' },
-    { name: t('status.closed'), value: data.closed, key: 'closed' },
-  ].filter(item => item.value > 0);
+  const dataRecord = data as unknown as Record<string, number>;
+  const chartData = STATUS_ORDER.map(key => ({
+    name: t(`status.${key}`, key.replace(/_/g, ' ')),
+    value: dataRecord[key] || 0,
+    key,
+  })).filter(item => item.value > 0);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -46,37 +61,46 @@ export function StatusDistributionChart({ data }: Props) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
-          <ResponsiveContainer width="60%" height={200}>
+          <ResponsiveContainer width="55%" height={220}>
             <PieChart>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={40}
-                outerRadius={70}
+                innerRadius={45}
+                outerRadius={75}
                 paddingAngle={2}
                 dataKey="value"
               >
                 {chartData.map((entry) => (
-                  <Cell key={entry.key} fill={STATUS_COLORS[entry.key as keyof typeof STATUS_COLORS]} />
+                  <Cell key={entry.key} fill={STATUS_COLORS[entry.key]} />
                 ))}
               </Pie>
               <Tooltip 
                 formatter={(value: number) => [value, t('hsseDashboard.count')]}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
-          <div className="flex flex-col gap-2 text-sm">
-            {chartData.map((item) => (
-              <div key={item.key} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: STATUS_COLORS[item.key as keyof typeof STATUS_COLORS] }}
-                />
-                <span className="text-muted-foreground">{item.name}:</span>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            ))}
+          <div className="flex flex-col gap-1.5 text-sm flex-1">
+            {chartData.map((item) => {
+              const percentage = ((item.value / total) * 100).toFixed(0);
+              return (
+                <div key={item.key} className="flex items-center gap-2">
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full shrink-0" 
+                    style={{ backgroundColor: STATUS_COLORS[item.key] }}
+                  />
+                  <span className="text-muted-foreground truncate flex-1">{item.name}</span>
+                  <span className="font-medium">{item.value}</span>
+                  <span className="text-xs text-muted-foreground">({percentage}%)</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>

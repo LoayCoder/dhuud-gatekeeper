@@ -6,3 +6,6 @@ export { LocationAnalytics } from './LocationAnalytics';
 export { ReporterLeaderboard } from './ReporterLeaderboard';
 export { ActionsStatusWidget } from './ActionsStatusWidget';
 export { AIInsightsPanel } from './AIInsightsPanel';
+export { QuickActionsCard } from './QuickActionsCard';
+export { RecentEventsCard } from './RecentEventsCard';
+export { DateRangeFilter } from './DateRangeFilter';
