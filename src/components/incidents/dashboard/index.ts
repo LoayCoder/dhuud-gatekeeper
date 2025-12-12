@@ -22,3 +22,6 @@ export { EnhancedKPIGrid } from './EnhancedKPIGrid';
 export { MajorEventsTimeline } from './MajorEventsTimeline';
 export { RootCauseDistributionChart } from './RootCauseDistributionChart';
 export { CauseFlowDiagram } from './CauseFlowDiagram';
+export { BranchHeatmapGrid } from './BranchHeatmapGrid';
+export { SiteBubbleMap } from './SiteBubbleMap';
+export { TemporalHeatmap } from './TemporalHeatmap';
