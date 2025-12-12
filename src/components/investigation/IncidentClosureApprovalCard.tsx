@@ -141,7 +141,7 @@ export function IncidentClosureApprovalCard({
             <Button
               className="flex-1 bg-green-600 text-white hover:bg-green-700"
               onClick={() => setShowApproveDialog(true)}
-              disabled={approveClosure.isPending || (!isFinalClosure && !closureCheck?.can_close)}
+              disabled={approveClosure.isPending || (isFinalClosure && !closureCheck?.can_close)}
             >
               <CheckCircle className="me-2 h-4 w-4" />
               {isFinalClosure
