@@ -98,6 +98,26 @@
       "criticalIncident": "गंभीर घटना रिपोर्ट की गई",
       "viewDetails": "देखें"
     },
+    "paretoChart": {
+      "title": "मूल कारण पैरेटो विश्लेषण",
+      "subtitle": "80/20 नियम - महत्वपूर्ण कुछ कारण",
+      "cumulativePercent": "संचयी %",
+      "threshold": "80% सीमा",
+      "count": "घटनाएं",
+      "noData": "मूल कारण डेटा उपलब्ध नहीं"
+    },
+    "waterfallChart": {
+      "title": "घटना प्रगति प्रवाह",
+      "subtitle": "वर्कफ़्लो चरणों में शुद्ध गति",
+      "entering": "प्रवेश",
+      "leaving": "निकास",
+      "currentOpen": "वर्तमान खुले",
+      "noData": "प्रगति डेटा उपलब्ध नहीं"
+    },
+    "caching": {
+      "refreshing": "डेटा रिफ्रेश हो रहा है...",
+      "lastUpdated": "अंतिम अपडेट"
+    },
     "actionStatus": {
       "inProgress": "प्रगति में",
       "closed": "बंद",

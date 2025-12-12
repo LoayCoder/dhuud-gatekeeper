@@ -98,6 +98,26 @@
       "criticalIncident": "Kritikal na Insidente ang Na-report",
       "viewDetails": "Tingnan"
     },
+    "paretoChart": {
+      "title": "Root Cause Pareto Analysis",
+      "subtitle": "80/20 na panuntunan - mahahalagang mga sanhi",
+      "cumulativePercent": "Kumulatibong %",
+      "threshold": "80% Threshold",
+      "count": "Mga Pangyayari",
+      "noData": "Walang available na data ng root cause"
+    },
+    "waterfallChart": {
+      "title": "Daloy ng Progreso ng Insidente",
+      "subtitle": "Net na paggalaw sa mga yugto ng workflow",
+      "entering": "Pumapasok",
+      "leaving": "Lumalabas",
+      "currentOpen": "Kasalukuyang Bukas",
+      "noData": "Walang available na data ng progreso"
+    },
+    "caching": {
+      "refreshing": "Nire-refresh ang data...",
+      "lastUpdated": "Huling na-update"
+    },
     "actionStatus": {
       "inProgress": "Isinasagawa",
       "closed": "Sarado",
