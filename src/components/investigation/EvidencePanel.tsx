@@ -160,7 +160,7 @@ export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp
   }
 
   return (
-    <div className="space-y-4" dir={direction}>
+    <div className="space-y-4 overflow-hidden" dir={direction}>
       {/* Locked Banner - Closed Incident */}
       {incidentStatus === 'closed' && (
         <Alert variant="default" className="bg-muted border-muted-foreground/20">
@@ -182,8 +182,8 @@ export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="min-w-0">
           <h3 className="text-lg font-medium">
             {t('investigation.evidence.title', 'Evidence Management')}
           </h3>
@@ -209,9 +209,9 @@ export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {evidenceItems.map((evidence) => (
-            <Card key={evidence.id} className="overflow-hidden">
+            <Card key={evidence.id} className="overflow-hidden min-w-0">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -233,7 +233,7 @@ export function EvidencePanel({ incidentId, incidentStatus, canEdit: canEditProp
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 min-w-0 overflow-hidden">
                 {/* File/Reference Info */}
                 {evidence.file_name && (
                   <div>

@@ -129,9 +129,9 @@ export function AISummaryPanel({
     (rootCauses && rootCauses.length > 0);
 
   return (
-    <Card dir={direction}>
+    <Card dir={direction} className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
@@ -144,7 +144,7 @@ export function AISummaryPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 min-w-0 overflow-hidden">
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -177,9 +177,9 @@ export function AISummaryPanel({
             {t('investigation.rca.ai.rewriteClarity', 'Rewrite for Clarity')}
           </Button>
 
-          <div className="flex items-center gap-1 ms-auto">
+          <div className="flex items-center gap-1 w-full sm:w-auto sm:ms-auto">
             <Select value={translateLang} onValueChange={setTranslateLang} disabled={disabled}>
-              <SelectTrigger className="w-[140px] h-8">
+              <SelectTrigger className="w-full sm:w-[140px] h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent dir={direction}>

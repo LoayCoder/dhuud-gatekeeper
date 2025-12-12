@@ -131,8 +131,8 @@ export function RootCausesBuilder({
   };
 
   return (
-    <div className="space-y-4" dir={direction}>
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 overflow-hidden" dir={direction}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h4 className="font-medium text-foreground">
             {t('investigation.rca.rootCauses', 'Root Causes')}
@@ -175,21 +175,21 @@ export function RootCausesBuilder({
       ) : (
         <div className="space-y-3">
           {value.map((entry, index) => (
-            <Card key={entry.id} className="relative">
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-start gap-3">
+            <Card key={entry.id} className="relative overflow-hidden">
+              <CardContent className="pt-4 pb-4 min-w-0">
+                <div className="flex items-start gap-3 min-w-0">
                   {/* Root cause number badge */}
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-sm font-bold">
                     {index + 1}
                   </div>
 
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
                       <label className="text-sm font-medium text-foreground">
                         {t('investigation.rca.rootCauseNum', 'Root Cause #{{num}}', { num: index + 1 })}
                       </label>
                       {!disabled && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
                           <Button
                             type="button"
                             variant="ghost"

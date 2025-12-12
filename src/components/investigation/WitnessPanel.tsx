@@ -112,7 +112,7 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
   }
 
   return (
-    <div className="space-y-4" dir={direction}>
+    <div className="space-y-4 overflow-hidden" dir={direction}>
       {/* Locked Banner for Closed Incidents */}
       {incidentStatus === 'closed' && (
         <Alert className="border-muted bg-muted/50">
@@ -199,16 +199,16 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
               {statements.map((witness) => (
                 <Card 
                   key={witness.id} 
-                  className="cursor-pointer hover:border-primary/50 transition-colors"
+                  className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
                   onClick={() => handleStatementClick(witness)}
                 >
                   <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {witness.name}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 min-w-0">
+                        <User className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{witness.name}</span>
                       </CardTitle>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap shrink-0">
                         <Badge variant={getStatementTypeBadgeVariant(witness.statement_type as StatementType)}>
                           {getStatementTypeIcon(witness.statement_type as StatementType)}
                           <span className="ms-1">
@@ -240,10 +240,10 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                       </div>
                     )}
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-start gap-2">
+                  <CardContent className="min-w-0 overflow-hidden">
+                    <div className="flex items-start gap-2 min-w-0">
                       <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <p className="text-sm whitespace-pre-wrap line-clamp-3">{witness.statement}</p>
+                      <p className="text-sm whitespace-pre-wrap line-clamp-3 break-words">{witness.statement}</p>
                     </div>
                     {witness.ai_analysis && (
                       <div className="mt-3 p-3 bg-muted/50 rounded-md">
