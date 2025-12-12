@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { Json } from "@/integrations/supabase/types";
@@ -306,12 +307,18 @@ export function useRejectIncidentClosure() {
 
 // Get all pending closure requests for HSSE Managers (both pending_closure and pending_final_closure)
 export function usePendingClosureRequests() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { hasRole, hasRoleInCategory } = useUserRoles();
 
   return useQuery({
-    queryKey: ['pending-closures', profile?.tenant_id],
+    queryKey: ['pending-closures', profile?.tenant_id, user?.id],
     queryFn: async () => {
-      if (!profile?.tenant_id) return [];
+      if (!profile?.tenant_id || !user?.id) return [];
+
+      // Only HSSE Managers and Admins can approve closures
+      const isAdmin = hasRole('admin');
+      const isHSSEManager = hasRole('hsse_manager');
+      if (!isAdmin && !isHSSEManager) return [];
 
       // Fetch both pending_closure (investigation approval) and pending_final_closure (final incident closure)
       const { data, error } = await supabase
@@ -344,7 +351,7 @@ export function usePendingClosureRequests() {
         requester_name: (row.profiles as { full_name?: string } | null)?.full_name,
       })) as ClosureRequest[];
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!profile?.tenant_id && !!user?.id,
   });
 }
 

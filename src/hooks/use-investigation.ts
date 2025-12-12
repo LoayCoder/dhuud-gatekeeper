@@ -499,6 +499,8 @@ export function useSubmitInvestigation() {
         .from('incidents')
         .update({
           status: 'pending_closure' as unknown as string,
+          closure_requested_by: user.id,
+          closure_requested_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         } as Record<string, unknown>)
         .eq('id', incidentId);
