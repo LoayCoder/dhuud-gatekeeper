@@ -32,8 +32,11 @@ export function useInvestigationEditAccess(
   const isOversightRole = !!(isAdmin || isHSSEManager || isHSSEExpert);
   
   const isPendingClosure = incident?.status === 'pending_closure';
+  const isInvestigationClosed = incident?.status === 'investigation_closed';
+  const isPendingFinalClosure = incident?.status === 'pending_final_closure';
   const isClosed = incident?.status === 'closed';
-  const isLocked = isClosed || isPendingClosure;
+  // All post-investigation statuses are locked for editing
+  const isLocked = isClosed || isPendingClosure || isInvestigationClosed || isPendingFinalClosure;
 
   // Can edit: only assigned investigator when incident is not locked
   const canEdit = isAssignedInvestigator && !isLocked;
@@ -50,6 +53,9 @@ export function useInvestigationEditAccess(
   // Can reject closure: only HSSE Manager when pending closure
   const canRejectClosure = (isHSSEManager || isAdmin) && isPendingClosure;
 
+  // Can approve final closure: HSSE Manager when pending_final_closure
+  const canApproveFinalClosure = (isHSSEManager || isAdmin) && isPendingFinalClosure;
+
   return {
     canEdit,
     canView,
@@ -58,9 +64,12 @@ export function useInvestigationEditAccess(
     isAssignedInvestigator,
     isClosed,
     isPendingClosure,
+    isInvestigationClosed,
+    isPendingFinalClosure,
     isLocked,
     canReopen,
     canRejectClosure,
+    canApproveFinalClosure,
     isLoading,
   };
 }

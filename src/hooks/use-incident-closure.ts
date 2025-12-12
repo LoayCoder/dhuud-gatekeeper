@@ -135,7 +135,7 @@ export function useRequestIncidentClosure() {
   });
 }
 
-// Approve incident closure
+// Approve incident closure (moves to investigation_closed, releasing actions)
 export function useApproveIncidentClosure() {
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
@@ -144,17 +144,25 @@ export function useApproveIncidentClosure() {
   return useMutation({
     mutationFn: async ({
       incidentId,
+      isFinalClosure = false,
     }: {
       incidentId: string;
+      isFinalClosure?: boolean;
     }) => {
       if (!profile?.tenant_id || !user?.id) {
         throw new Error('User not authenticated');
       }
 
+      // Determine target status based on closure type
+      // First closure (pending_closure -> investigation_closed): releases actions
+      // Final closure (pending_final_closure -> closed): fully closes incident
+      const targetStatus = isFinalClosure ? 'closed' : 'investigation_closed';
+      const actionType = isFinalClosure ? 'final_closure_approved' : 'investigation_closure_approved';
+
       const { data, error } = await supabase
         .from('incidents')
         .update({
-          status: 'closed',
+          status: targetStatus as unknown as 'submitted',
           closure_approved_by: user.id,
           closure_approved_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -170,15 +178,15 @@ export function useApproveIncidentClosure() {
         incident_id: incidentId,
         tenant_id: profile.tenant_id,
         actor_id: user.id,
-        action: 'closure_approved',
-        new_value: { approved_at: new Date().toISOString() } as unknown as Json,
+        action: actionType,
+        new_value: { approved_at: new Date().toISOString(), target_status: targetStatus } as unknown as Json,
       });
 
-      // Send email to investigator
+      // Send email notification
       try {
         await supabase.functions.invoke('send-incident-email', {
           body: {
-            type: 'closure_approved',
+            type: isFinalClosure ? 'incident_closed' : 'investigation_approved',
             incident_id: incidentId,
             incident_reference: data.reference_id,
             tenant_id: profile.tenant_id,
@@ -189,13 +197,33 @@ export function useApproveIncidentClosure() {
         console.error('Failed to send closure approval email:', emailError);
       }
 
+      // For investigation_closed, send notifications to action assignees
+      if (!isFinalClosure) {
+        try {
+          await supabase.functions.invoke('send-action-email', {
+            body: {
+              type: 'actions_released',
+              incident_id: incidentId,
+              incident_reference: data.reference_id,
+              tenant_id: profile.tenant_id,
+            },
+          });
+        } catch (actionEmailError) {
+          console.error('Failed to send action release emails:', actionEmailError);
+        }
+      }
+
       return data;
     },
-    onSuccess: (_, { incidentId }) => {
+    onSuccess: (_, { incidentId, isFinalClosure }) => {
       queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['pending-closures'] });
-      toast.success(t('investigation.closureApproved', 'Incident closed successfully'));
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions', incidentId] });
+      const successMessage = isFinalClosure
+        ? t('investigation.incidentClosed', 'Incident closed successfully')
+        : t('investigation.investigationApproved', 'Investigation approved - actions released to assignees');
+      toast.success(successMessage);
     },
     onError: (error) => {
       toast.error(t('common.error', 'Error: ') + error.message);
@@ -276,7 +304,7 @@ export function useRejectIncidentClosure() {
   });
 }
 
-// Get all pending closure requests for HSSE Managers
+// Get all pending closure requests for HSSE Managers (both pending_closure and pending_final_closure)
 export function usePendingClosureRequests() {
   const { profile } = useAuth();
 
@@ -285,7 +313,7 @@ export function usePendingClosureRequests() {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      // Using filter instead of eq for new enum value not in types yet
+      // Fetch both pending_closure (investigation approval) and pending_final_closure (final incident closure)
       const { data, error } = await supabase
         .from('incidents')
         .select(`
@@ -299,7 +327,7 @@ export function usePendingClosureRequests() {
           profiles!incidents_closure_requested_by_fkey(full_name)
         `)
         .eq('tenant_id', profile.tenant_id)
-        .filter('status', 'eq', 'pending_closure')
+        .or('status.eq.pending_closure,status.eq.pending_final_closure')
         .is('deleted_at', null)
         .order('closure_requested_at', { ascending: true });
 

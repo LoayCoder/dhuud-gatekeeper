@@ -22,6 +22,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface IncidentClosureApprovalCardProps {
   incidentId: string;
   incidentTitle: string;
+  incidentStatus: string;
   requestedBy: string | null;
   requestedAt: string | null;
   requestNotes: string | null;
@@ -31,6 +32,7 @@ interface IncidentClosureApprovalCardProps {
 export function IncidentClosureApprovalCard({
   incidentId,
   incidentTitle,
+  incidentStatus,
   requestedBy,
   requestedAt,
   requestNotes,
@@ -40,12 +42,15 @@ export function IncidentClosureApprovalCard({
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
 
+  // Determine if this is the final closure (all actions verified) or investigation approval
+  const isFinalClosure = incidentStatus === 'pending_final_closure';
+
   const { data: closureCheck } = useCanCloseIncident(incidentId);
   const approveClosure = useApproveIncidentClosure();
   const rejectClosure = useRejectIncidentClosure();
 
   const handleApprove = async () => {
-    await approveClosure.mutateAsync({ incidentId });
+    await approveClosure.mutateAsync({ incidentId, isFinalClosure });
   };
 
   const handleReject = async () => {
@@ -64,36 +69,42 @@ export function IncidentClosureApprovalCard({
 
   return (
     <>
-      <Card className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50">
+      <Card className={`border-amber-300 ${isFinalClosure ? 'bg-green-50 dark:bg-green-950/50 border-green-300 dark:border-green-700' : 'bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50'}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-600" />
-              <CardTitle className="text-lg text-amber-800 dark:text-amber-200">
-                {t('investigation.pendingClosureApproval', 'Pending Closure Approval')}
+              <Clock className={`h-5 w-5 ${isFinalClosure ? 'text-green-600' : 'text-amber-600'}`} />
+              <CardTitle className={`text-lg ${isFinalClosure ? 'text-green-800 dark:text-green-200' : 'text-amber-800 dark:text-amber-200'}`}>
+                {isFinalClosure
+                  ? t('investigation.pendingFinalClosure', 'Pending Final Closure')
+                  : t('investigation.pendingInvestigationApproval', 'Pending Investigation Approval')
+                }
               </CardTitle>
             </div>
-            <Badge variant="secondary" className="bg-amber-200 text-amber-800">
+            <Badge variant="secondary" className={isFinalClosure ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}>
               {t('investigation.awaitingApproval', 'Awaiting Approval')}
             </Badge>
           </div>
-          <CardDescription className="text-amber-700 dark:text-amber-300">
-            {t('investigation.closureRequestDescription', 'An investigator has requested to close this incident.')}
+          <CardDescription className={isFinalClosure ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'}>
+            {isFinalClosure
+              ? t('investigation.finalClosureDescription', 'All corrective actions have been verified. Ready for final closure.')
+              : t('investigation.investigationApprovalDescription', 'An investigator has submitted the investigation for your approval.')
+            }
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {/* Request Info */}
           <div className="rounded-lg bg-white/60 p-3 dark:bg-black/20">
-            <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
+            <div className={`flex items-center gap-2 text-sm ${isFinalClosure ? 'text-green-800 dark:text-green-200' : 'text-amber-800 dark:text-amber-200'}`}>
               <User className="h-4 w-4" />
-              <span className="font-medium">{requesterName || t('common.unknown', 'Unknown')}</span>
-              <span className="text-amber-600 dark:text-amber-400">•</span>
-              <span className="text-amber-600 dark:text-amber-400">{requestedTimeAgo}</span>
+              <span className="font-medium">{requesterName || (isFinalClosure ? t('common.system', 'System') : t('common.unknown', 'Unknown'))}</span>
+              <span className={isFinalClosure ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>•</span>
+              <span className={isFinalClosure ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>{requestedTimeAgo}</span>
             </div>
             
             {requestNotes && (
-              <p className="mt-2 text-sm text-amber-700 dark:text-amber-300 italic">
+              <p className={`mt-2 text-sm italic ${isFinalClosure ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'}`}>
                 "{requestNotes}"
               </p>
             )}
@@ -126,14 +137,17 @@ export function IncidentClosureApprovalCard({
             <Button
               className="flex-1 bg-green-600 text-white hover:bg-green-700"
               onClick={handleApprove}
-              disabled={approveClosure.isPending || !closureCheck?.can_close}
+              disabled={approveClosure.isPending || (!isFinalClosure && !closureCheck?.can_close)}
             >
               {approveClosure.isPending ? (
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
               ) : (
                 <CheckCircle className="me-2 h-4 w-4" />
               )}
-              {t('investigation.approveClosure', 'Approve & Close')}
+              {isFinalClosure
+                ? t('investigation.approveFinalClosure', 'Approve & Close Incident')
+                : t('investigation.approveInvestigation', 'Approve Investigation')
+              }
             </Button>
           </div>
         </CardContent>
@@ -144,10 +158,16 @@ export function IncidentClosureApprovalCard({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('investigation.rejectClosureTitle', 'Reject Closure Request')}
+              {isFinalClosure
+                ? t('investigation.rejectFinalClosureTitle', 'Reject Final Closure')
+                : t('investigation.rejectInvestigationTitle', 'Reject Investigation')
+              }
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('investigation.rejectClosureDescription', 'Please provide a reason for rejecting this closure request. The investigator will be notified.')}
+              {isFinalClosure
+                ? t('investigation.rejectFinalClosureDescription', 'Please provide a reason for rejecting the final closure. The investigation will remain open.')
+                : t('investigation.rejectInvestigationDescription', 'Please provide a reason for rejecting the investigation. The investigator will be notified.')
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
 

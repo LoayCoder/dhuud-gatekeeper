@@ -459,11 +459,12 @@ export default function InvestigationWorkspace() {
             </TabsContent>
           </Tabs>
 
-          {/* Closure Approval Card - show if closure is pending */}
-          {incidentData?.closure_requested_at && !incidentData?.closure_approved_at && canApprove && (
+          {/* Closure Approval Card - show if closure is pending (either investigation or final) */}
+          {(['pending_closure', 'pending_final_closure'] as string[]).includes(incidentData?.status as string) && canApprove && (
             <IncidentClosureApprovalCard
               incidentId={selectedIncidentId}
               incidentTitle={incidentData?.title || ''}
+              incidentStatus={(incidentData?.status as string) || ''}
               requestedBy={incidentData?.closure_requested_by || null}
               requestedAt={incidentData?.closure_requested_at || null}
               requestNotes={incidentData?.closure_request_notes || null}

@@ -65,41 +65,56 @@ export function PendingClosureRequestsWidget() {
       <CardContent className="space-y-3">
         {hasPendingRequests ? (
           <>
-            {pendingRequests.slice(0, 3).map((request) => (
-              <div
-                key={request.id}
-                className="flex items-start justify-between gap-3 rounded-lg border bg-background p-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-sm">{request.title}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="text-xs">
-                      {request.reference_id}
-                    </Badge>
-                    {request.requester_name && (
-                      <span>{request.requester_name}</span>
+            {pendingRequests.slice(0, 3).map((request) => {
+              const isFinalClosure = request.status === 'pending_final_closure';
+              return (
+                <div
+                  key={request.id}
+                  className="flex items-start justify-between gap-3 rounded-lg border bg-background p-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-sm">{request.title}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-xs">
+                        {request.reference_id}
+                      </Badge>
+                      <Badge 
+                        variant={isFinalClosure ? 'default' : 'secondary'} 
+                        className={cn(
+                          'text-xs',
+                          isFinalClosure && 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        )}
+                      >
+                        {isFinalClosure 
+                          ? t('dashboard.finalClosure', 'Final Closure')
+                          : t('dashboard.investigationApproval', 'Investigation Approval')
+                        }
+                      </Badge>
+                      {request.requester_name && (
+                        <span>{request.requester_name}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    {request.closure_requested_at && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                        <Clock className="h-3 w-3" />
+                        {formatDistanceToNow(new Date(request.closure_requested_at), { addSuffix: true })}
+                      </div>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => navigate(`/incidents/${request.id}`)}
+                    >
+                      {t('dashboard.reviewNow', 'Review')}
+                      <ArrowRight className="ms-1 h-3 w-3 rtl:rotate-180" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  {request.closure_requested_at && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(request.closure_requested_at), { addSuffix: true })}
-                    </div>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => navigate(`/incidents/${request.id}`)}
-                  >
-                    {t('dashboard.reviewNow', 'Review')}
-                    <ArrowRight className="ms-1 h-3 w-3 rtl:rotate-180" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {pendingRequests.length > 3 && (
               <Button
