@@ -47,7 +47,7 @@ export default function IncidentDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: incident, isLoading } = useIncident(id);
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
@@ -55,6 +55,7 @@ export default function IncidentDetail() {
   const backPath = fromPage === 'my-actions' ? '/incidents/my-actions' : '/incidents';
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const deleteIncident = useDeleteIncident();
 
@@ -62,6 +63,29 @@ export default function IncidentDetail() {
     if (!id) return;
     await deleteIncident.mutateAsync(id);
     navigate('/incidents');
+  };
+
+  const handlePrintReport = async () => {
+    if (!incident || !profile?.tenant_id) return;
+    
+    setIsPrinting(true);
+    toast.loading(t('incidents.reportGenerating'));
+    
+    try {
+      await generateIncidentReportPDF({
+        incident,
+        tenantId: profile.tenant_id,
+        language: i18n.language as 'en' | 'ar',
+      });
+      toast.dismiss();
+      toast.success(t('incidents.reportGenerated'));
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      toast.dismiss();
+      toast.error(t('common.error'));
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   // Parse media attachments
@@ -136,6 +160,14 @@ export default function IncidentDetail() {
                   {t('navigation.investigationWorkspace')}
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handlePrintReport}
+                disabled={isPrinting}
+              >
+                <Printer className="h-4 w-4 me-2" />
+                {t('incidents.printReport')}
+              </DropdownMenuItem>
               {isAdmin && incident.status !== 'closed' && (
                 <>
                   <DropdownMenuSeparator />
@@ -161,9 +193,7 @@ export default function IncidentDetail() {
           </Badge>
         )}
         {incident.status && (
-          <Badge variant="outline" className="text-sm">
-            {t(`incidents.status.${incident.status}`)}
-          </Badge>
+          <IncidentStatusBadge status={incident.status} />
         )}
         <Badge variant="secondary" className="text-sm">
           {t(`incidents.eventTypes.${incident.event_type}`)}
