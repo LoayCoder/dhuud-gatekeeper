@@ -3773,5 +3773,30 @@
       "decision": "نقطة قرار",
       "approval": "موافقة مطلوبة"
     }
+  },
+  "emailDelivery": {
+    "title": "سجلات تسليم البريد الإلكتروني",
+    "subtitle": "تتبع ومراقبة حالة تسليم البريد الإلكتروني",
+    "status": {
+      "pending": "قيد الانتظار",
+      "sent": "تم الإرسال",
+      "delivered": "تم التسليم",
+      "failed": "فشل",
+      "permanently_failed": "فشل نهائي"
+    },
+    "retryCount": "عدد المحاولات",
+    "maxRetries": "الحد الأقصى للمحاولات",
+    "nextRetry": "المحاولة التالية",
+    "lastError": "آخر خطأ",
+    "recipient": "المستلم",
+    "subject": "الموضوع",
+    "type": "نوع البريد",
+    "relatedTo": "مرتبط بـ",
+    "functionName": "الوظيفة",
+    "createdAt": "تاريخ الإنشاء",
+    "deliveredAt": "تاريخ التسليم",
+    "noLogs": "لا توجد سجلات تسليم",
+    "retryNow": "إعادة المحاولة الآن",
+    "viewDetails": "عرض التفاصيل"
   }
 }

@@ -3924,5 +3924,30 @@
     "confirmAndSubmit": "Confirm & Submit",
     "statusWillChange": "Status will change to: {{status}}",
     "emailSentOnReturn": "The action owner will be notified via email"
+  },
+  "emailDelivery": {
+    "title": "Email Delivery Logs",
+    "subtitle": "Track and monitor email delivery status",
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "failed": "Failed",
+      "permanently_failed": "Permanently Failed"
+    },
+    "retryCount": "Retry Count",
+    "maxRetries": "Max Retries",
+    "nextRetry": "Next Retry",
+    "lastError": "Last Error",
+    "recipient": "Recipient",
+    "subject": "Subject",
+    "type": "Email Type",
+    "relatedTo": "Related To",
+    "functionName": "Function",
+    "createdAt": "Created",
+    "deliveredAt": "Delivered At",
+    "noLogs": "No email delivery logs found",
+    "retryNow": "Retry Now",
+    "viewDetails": "View Details"
   }
 }

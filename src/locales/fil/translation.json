@@ -3662,5 +3662,30 @@
       "decision": "Punto ng Desisyon",
       "approval": "Kailangan ng Apruba"
     }
+  },
+  "emailDelivery": {
+    "title": "Email Delivery Logs",
+    "subtitle": "Subaybayan at i-monitor ang status ng email delivery",
+    "status": {
+      "pending": "Naghihintay",
+      "sent": "Naipadala",
+      "delivered": "Na-deliver",
+      "failed": "Nabigo",
+      "permanently_failed": "Permanenteng Nabigo"
+    },
+    "retryCount": "Bilang ng Retry",
+    "maxRetries": "Max na Retry",
+    "nextRetry": "Susunod na Retry",
+    "lastError": "Huling Error",
+    "recipient": "Tatanggap",
+    "subject": "Paksa",
+    "type": "Uri ng Email",
+    "relatedTo": "Kaugnay ng",
+    "functionName": "Function",
+    "createdAt": "Ginawa",
+    "deliveredAt": "Na-deliver Noong",
+    "noLogs": "Walang nahanap na email logs",
+    "retryNow": "I-retry Ngayon",
+    "viewDetails": "Tingnan ang Detalye"
   }
 }
