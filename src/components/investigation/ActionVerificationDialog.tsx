@@ -118,11 +118,18 @@ export function ActionVerificationDialog({
         <div className="space-y-4">
           {/* Action Details */}
           <div className="space-y-3">
-            <div>
-              <h4 className="font-medium text-lg">{action.title}</h4>
-              {action.description && (
-                <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
-              )}
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {action.reference_id && (
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {action.reference_id}
+                    </Badge>
+                  )}
+                  <h4 className="font-medium text-lg">{action.title}</h4>
+                </div>
+                {action.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
+                )}
             </div>
 
             <div className="flex flex-wrap gap-2">

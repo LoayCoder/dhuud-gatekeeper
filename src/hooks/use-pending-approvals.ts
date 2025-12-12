@@ -19,6 +19,7 @@ export interface PendingIncidentApproval {
 
 export interface PendingActionApproval {
   id: string;
+  reference_id: string | null;
   title: string;
   description: string | null;
   status: string | null;
@@ -80,7 +81,7 @@ export function usePendingActionApprovals() {
       let query = supabase
         .from('corrective_actions')
         .select(`
-          id, title, description, status, priority, category, 
+          id, reference_id, title, description, status, priority, category, 
           due_date, completed_date, incident_id, assigned_to,
           responsible_department_id, created_at,
           linked_cause_type, linked_root_cause_id, completion_notes,
