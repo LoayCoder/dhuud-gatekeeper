@@ -31,19 +31,24 @@ export function useInvestigationEditAccess(
   const isHSSEExpert = hasRole('hsse_officer') || hasRole('hsse_expert') || hasRole('hsse_investigator');
   const isOversightRole = !!(isAdmin || isHSSEManager || isHSSEExpert);
   
+  const isPendingClosure = incident?.status === 'pending_closure';
   const isClosed = incident?.status === 'closed';
+  const isLocked = isClosed || isPendingClosure;
 
-  // Can edit: only assigned investigator when incident is not closed
-  const canEdit = isAssignedInvestigator && !isClosed;
+  // Can edit: only assigned investigator when incident is not locked
+  const canEdit = isAssignedInvestigator && !isLocked;
 
   // Can view: oversight roles or assigned investigator
   const canView = isOversightRole || isAssignedInvestigator;
 
-  // Is read-only: not the assigned investigator OR incident is closed
-  const isReadOnly = !isAssignedInvestigator || isClosed;
+  // Is read-only: not the assigned investigator OR incident is locked
+  const isReadOnly = !isAssignedInvestigator || isLocked;
 
   // Can reopen: only HSSE Manager when incident is closed
   const canReopen = (isHSSEManager || isAdmin) && isClosed;
+
+  // Can reject closure: only HSSE Manager when pending closure
+  const canRejectClosure = (isHSSEManager || isAdmin) && isPendingClosure;
 
   return {
     canEdit,
@@ -52,7 +57,10 @@ export function useInvestigationEditAccess(
     isOversightRole,
     isAssignedInvestigator,
     isClosed,
+    isPendingClosure,
+    isLocked,
     canReopen,
+    canRejectClosure,
     isLoading,
   };
 }
