@@ -75,7 +75,7 @@ export default function MyActions() {
   const [submittingActionIds, setSubmittingActionIds] = useState<Set<string>>(new Set());
 
   // Pending approvals data
-  const { canAccess: canAccessApprovals, canApproveSeverity } = useCanAccessApprovals();
+  const { canAccess: canAccessApprovals, canApproveSeverity, canVerifyActions } = useCanAccessApprovals();
   const { hasRole } = useUserRoles();
   const { data: pendingApprovals, isLoading: approvalsLoading } = usePendingActionApprovals();
   const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
@@ -169,7 +169,7 @@ export default function MyActions() {
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
   const totalExtensions = (pendingExtensions?.length || 0) + (isHSSEManager ? (hssePendingExtensions?.length || 0) : 0);
-  const totalPendingApprovals = (pendingApprovals?.length || 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions;
+  const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions;
 
   const isLoading = actionsLoading || witnessLoading;
 
@@ -653,8 +653,8 @@ export default function MyActions() {
                   </div>
                 )}
 
-                {/* Action Verifications Section */}
-                {pendingApprovals && pendingApprovals.length > 0 && (
+                {/* Action Verifications Section - Only for HSSE Expert, HSSE Manager, Environmental Expert/Manager */}
+                {canVerifyActions && pendingApprovals && pendingApprovals.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <ShieldCheck className="h-5 w-5 text-primary" />

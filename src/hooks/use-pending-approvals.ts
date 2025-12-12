@@ -51,18 +51,29 @@ export interface PendingSeverityApproval {
 }
 
 // Fetch actions with status='completed' pending verification
+// Only HSSE Expert, HSSE Manager, Environmental Expert, Environmental Manager can verify
 export function usePendingActionApprovals() {
   const { profile, user } = useAuth();
-  const { hasRole, hasRoleInCategory } = useUserRoles();
+  const { hasRole } = useUserRoles();
+
+  // Define which roles can verify actions per permission matrix
+  const isAdmin = hasRole('admin');
+  const isHSSEExpert = hasRole('hsse_expert');
+  const isHSSEManager = hasRole('hsse_manager');
+  const isEnvironmentalExpert = hasRole('environmental_expert');
+  const isEnvironmentalManager = hasRole('environmental_manager');
+  
+  // Only these specific roles can verify corrective actions
+  const canVerifyActions = isAdmin || isHSSEExpert || isHSSEManager || 
+                           isEnvironmentalExpert || isEnvironmentalManager;
 
   return useQuery({
-    queryKey: ['pending-action-approvals', profile?.tenant_id, user?.id],
+    queryKey: ['pending-action-approvals', profile?.tenant_id, user?.id, canVerifyActions],
     queryFn: async () => {
       if (!profile?.tenant_id || !user?.id) return [];
 
-      const isAdmin = hasRole('admin');
-      const isHSSE = hasRoleInCategory('hsse');
-      const isManager = hasRole('manager');
+      // If user doesn't have verification permissions, return empty
+      if (!canVerifyActions) return [];
 
       // Build query for completed actions
       let query = supabase
@@ -74,33 +85,27 @@ export function usePendingActionApprovals() {
           linked_cause_type, linked_root_cause_id,
           assigned_user:profiles!corrective_actions_assigned_to_fkey(id, full_name),
           department:departments!corrective_actions_responsible_department_id_fkey(id, name),
-          incident:incidents!corrective_actions_incident_id_fkey(id, reference_id, title)
+          incident:incidents!corrective_actions_incident_id_fkey(id, reference_id, title, event_type)
         `)
         .eq('tenant_id', profile.tenant_id)
         .eq('status', 'completed')
         .is('deleted_at', null)
         .order('completed_date', { ascending: true });
 
-      // If manager (not admin/HSSE), filter by department
-      if (isManager && !isAdmin && !isHSSE) {
-        // Fetch manager's department from profiles
-        const { data: managerProfile } = await supabase
-          .from('profiles')
-          .select('assigned_department_id')
-          .eq('id', user.id)
-          .single();
-        
-        if (managerProfile?.assigned_department_id) {
-          query = query.eq('responsible_department_id', managerProfile.assigned_department_id);
-        } else {
-          // Manager without department can't see any approvals
-          return [];
-        }
-      }
-
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PendingActionApproval[];
+      
+      let actions = (data || []) as (PendingActionApproval & { incident?: { event_type?: string } })[];
+      
+      // Environmental roles can only verify environment-related actions
+      if ((isEnvironmentalExpert || isEnvironmentalManager) && !isAdmin && !isHSSEExpert && !isHSSEManager) {
+        actions = actions.filter(action => 
+          action.category === 'environmental' || 
+          action.incident?.event_type === 'environmental'
+        );
+      }
+      
+      return actions as PendingActionApproval[];
     },
     enabled: !!profile?.tenant_id && !!user?.id,
   });
@@ -324,7 +329,17 @@ export function useCanAccessApprovals() {
   const canAccess = !isLoading && (
     hasRole('admin') ||
     hasRole('manager') ||
-    hasRoleInCategory('hsse')
+    hasRoleInCategory('hsse') ||
+    hasRoleInCategory('environmental')
+  );
+
+  // Only specific roles can verify corrective actions per permission matrix
+  const canVerifyActions = !isLoading && (
+    hasRole('admin') ||
+    hasRole('hsse_manager') ||
+    hasRole('hsse_expert') ||
+    hasRole('environmental_expert') ||
+    hasRole('environmental_manager')
   );
 
   const canApproveSeverity = !isLoading && (
@@ -332,7 +347,7 @@ export function useCanAccessApprovals() {
     hasRole('hsse_manager')
   );
 
-  return { canAccess, canApproveSeverity, isLoading };
+  return { canAccess, canApproveSeverity, canVerifyActions, isLoading };
 }
 
 // Fetch incidents pending manager approval for the current user
