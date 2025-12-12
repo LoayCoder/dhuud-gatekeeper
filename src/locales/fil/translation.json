@@ -670,7 +670,22 @@
       "approveIncident": "Aprubahan at I-lock para sa Imbestigasyon",
       "startInvestigation": "Simulan ang Imbestigasyon",
       "completeInvestigation": "Kumpletuhin ang Imbestigasyon",
-      "reopenInvestigation": "Muling Buksan ang Imbestigasyon"
+      "reopenInvestigation": "Muling Buksan ang Imbestigasyon",
+      "tabsLockedMessage": "Kumpletuhin ang workflow ng pag-apruba para ma-unlock ang mga tab ng imbestigasyon"
+    },
+    "submit": {
+      "title": "Isumite ang Imbestigasyon",
+      "checklist": "Checklist ng Imbestigasyon",
+      "fiveWhys": "5 Whys Analysis (min. 3)",
+      "immediateCause": "Agarang Sanhi",
+      "underlyingCause": "Pinagbabatayan na Sanhi",
+      "rootCauses": "Mga Root Cause",
+      "actions": "Mga Corrective Action",
+      "causeCoverage": "Saklaw ng Sanhi",
+      "incomplete": "Kumpletuhin ang sumusunod bago isumite:",
+      "button": "Isumite ang Imbestigasyon para sa Pagsusuri",
+      "note": "Lahat ng itinalagang may-ari ng aksyon ay aabisuhan sa pamamagitan ng email",
+      "success": "Naisumite ang imbestigasyon para sa pagsusuri"
     },
     "tabs": {
       "overview": "Pangkalahatang-tanaw"

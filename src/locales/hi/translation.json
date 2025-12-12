@@ -670,7 +670,22 @@
       "approveIncident": "जांच के लिए स्वीकृत और लॉक करें",
       "startInvestigation": "जांच शुरू करें",
       "completeInvestigation": "जांच पूर्ण करें",
-      "reopenInvestigation": "जांच फिर से खोलें"
+      "reopenInvestigation": "जांच फिर से खोलें",
+      "tabsLockedMessage": "जांच टैब अनलॉक करने के लिए अनुमोदन कार्यप्रवाह पूर्ण करें"
+    },
+    "submit": {
+      "title": "जांच सबमिट करें",
+      "checklist": "जांच चेकलिस्ट",
+      "fiveWhys": "5 क्यों विश्लेषण (न्यूनतम 3)",
+      "immediateCause": "तत्काल कारण",
+      "underlyingCause": "अंतर्निहित कारण",
+      "rootCauses": "मूल कारण",
+      "actions": "सुधारात्मक कार्रवाइयां",
+      "causeCoverage": "कारण कवरेज",
+      "incomplete": "सबमिट करने से पहले निम्नलिखित पूर्ण करें:",
+      "button": "समीक्षा के लिए जांच सबमिट करें",
+      "note": "सभी नियुक्त कार्रवाई मालिकों को ईमेल द्वारा सूचित किया जाएगा",
+      "success": "जांच समीक्षा के लिए सबमिट हुई"
     },
     "tabs": {
       "overview": "अवलोकन"

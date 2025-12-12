@@ -47,7 +47,7 @@ serve(async (req: Request) => {
         reporter_id,
         tenant_id,
         approval_manager_id,
-        profiles!incidents_reporter_id_fkey(id, full_name, phone_number)
+        profiles!incidents_reporter_id_fkey(id, full_name, email)
       `)
       .eq("id", incidentId)
       .single();
@@ -69,7 +69,7 @@ serve(async (req: Request) => {
 
     const tenantName = tenant?.name || "HSSE Platform";
     // profiles is an array from the join, get the first element
-    const profilesArray = incident.profiles as unknown as Array<{ id: string; full_name: string; phone_number: string }> | null;
+    const profilesArray = incident.profiles as unknown as Array<{ id: string; full_name: string; email: string }> | null;
     const reporterProfile = profilesArray?.[0] || null;
 
     // Determine recipients and email content based on action
@@ -80,8 +80,8 @@ serve(async (req: Request) => {
     switch (action) {
       case "expert_return":
         // Notify reporter that their report needs correction
-        if (reporterProfile?.phone_number) {
-          recipients.push(reporterProfile.phone_number);
+        if (reporterProfile?.email) {
+          recipients.push(reporterProfile.email);
         }
         subject = `[${tenantName}] Action Required: Event Report Returned for Correction`;
         htmlContent = `
@@ -97,8 +97,8 @@ serve(async (req: Request) => {
 
       case "expert_reject":
         // Notify reporter that their report was rejected
-        if (reporterProfile?.phone_number) {
-          recipients.push(reporterProfile.phone_number);
+        if (reporterProfile?.email) {
+          recipients.push(reporterProfile.email);
         }
         subject = `[${tenantName}] Event Report Rejected - Action Required`;
         htmlContent = `
@@ -116,12 +116,12 @@ serve(async (req: Request) => {
         if (incident.approval_manager_id) {
           const { data: manager } = await supabase
             .from("profiles")
-            .select("phone_number, full_name")
+            .select("email, full_name")
             .eq("id", incident.approval_manager_id)
             .single();
           
-          if (manager?.phone_number) {
-            recipients.push(manager.phone_number);
+          if (manager?.email) {
+            recipients.push(manager.email);
           }
           
           subject = `[${tenantName}] Investigation Approval Required`;
@@ -141,7 +141,7 @@ serve(async (req: Request) => {
         // Notify HSSE Managers about the dispute
         const { data: hsseManagers } = await supabase
           .from("profiles")
-          .select("id, phone_number, full_name")
+          .select("id, email, full_name")
           .eq("tenant_id", incident.tenant_id)
           .eq("is_active", true);
 
@@ -161,8 +161,8 @@ serve(async (req: Request) => {
           );
 
           recipients = hsseManagers
-            .filter(m => managerUserIds.has(m.id) && m.phone_number)
-            .map(m => m.phone_number);
+            .filter(m => managerUserIds.has(m.id) && m.email)
+            .map(m => m.email);
         }
 
         subject = `[${tenantName}] Rejection Dispute Escalated`;
@@ -181,12 +181,12 @@ serve(async (req: Request) => {
         if (incident.approval_manager_id) {
           const { data: deptRep } = await supabase
             .from("profiles")
-            .select("phone_number, full_name")
+            .select("email, full_name")
             .eq("id", incident.approval_manager_id)
             .single();
           
-          if (deptRep?.phone_number) {
-            recipients.push(deptRep.phone_number);
+          if (deptRep?.email) {
+            recipients.push(deptRep.email);
           }
           
           subject = `[${tenantName}] Observation Requires Action Assignment`;
@@ -204,8 +204,8 @@ serve(async (req: Request) => {
 
       case "dept_rep_approve":
         // Notify reporter that observation was closed
-        if (reporterProfile?.phone_number) {
-          recipients.push(reporterProfile.phone_number);
+        if (reporterProfile?.email) {
+          recipients.push(reporterProfile.email);
         }
         subject = `[${tenantName}] Observation Closed - ${incident.reference_id}`;
         htmlContent = `
@@ -223,12 +223,12 @@ serve(async (req: Request) => {
         if (incident.approval_manager_id) {
           const { data: manager } = await supabase
             .from("profiles")
-            .select("phone_number, full_name")
+            .select("email, full_name")
             .eq("id", incident.approval_manager_id)
             .single();
           
-          if (manager?.phone_number) {
-            recipients.push(manager.phone_number);
+          if (manager?.email) {
+            recipients.push(manager.email);
           }
           
           subject = `[${tenantName}] Observation Escalated to Investigation`;
@@ -259,12 +259,12 @@ serve(async (req: Request) => {
         if (payload.investigatorId) {
           const { data: investigator } = await supabase
             .from("profiles")
-            .select("phone_number, full_name")
+            .select("email, full_name")
             .eq("id", payload.investigatorId)
             .single();
 
-          if (investigator?.phone_number) {
-            recipients.push(investigator.phone_number);
+          if (investigator?.email) {
+            recipients.push(investigator.email);
           }
 
           subject = `[${tenantName}] You Have Been Assigned to Investigate Event ${incident.reference_id}`;
