@@ -287,7 +287,7 @@ export function useCorrectiveActions(incidentId: string | null) {
       const { data, error } = await supabase
         .from('corrective_actions')
         .select(`
-          id, title, description, status, priority, action_type,
+          id, reference_id, title, description, status, priority, action_type,
           due_date, start_date, assigned_to, responsible_department_id,
           category, linked_root_cause_id, linked_cause_type, deleted_at,
           incident_id, tenant_id, created_at, completed_date,

@@ -278,7 +278,7 @@ export function useMyCorrectiveActions() {
       // Only show actions that have been released (investigation approved by HSSE Manager)
       const { data, error } = await supabase
         .from('corrective_actions')
-        .select('id, title, description, status, priority, due_date, incident_id, created_at, completed_date, released_at, return_count')
+        .select('id, reference_id, title, description, status, priority, due_date, incident_id, created_at, completed_date, released_at, return_count')
         .eq('assigned_to', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)

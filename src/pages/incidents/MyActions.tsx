@@ -283,8 +283,13 @@ export default function MyActions() {
                 <Card key={action.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {getStatusIcon(action.status)}
+                        {action.reference_id && (
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {action.reference_id}
+                          </Badge>
+                        )}
                         <CardTitle className="text-base">{action.title}</CardTitle>
                       </div>
                       <div className="flex items-center gap-2">

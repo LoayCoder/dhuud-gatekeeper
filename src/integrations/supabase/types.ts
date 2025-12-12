@@ -1362,6 +1362,7 @@ export type Database = {
           overdue_justification: string | null
           priority: string | null
           progress_notes: string | null
+          reference_id: string | null
           rejected_at: string | null
           rejected_by: string | null
           rejection_notes: string | null
@@ -1407,6 +1408,7 @@ export type Database = {
           overdue_justification?: string | null
           priority?: string | null
           progress_notes?: string | null
+          reference_id?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null
@@ -1452,6 +1454,7 @@ export type Database = {
           overdue_justification?: string | null
           priority?: string | null
           progress_notes?: string | null
+          reference_id?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_notes?: string | null

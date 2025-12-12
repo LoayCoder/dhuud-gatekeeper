@@ -763,6 +763,7 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
         <div className="space-y-3">
           {actions?.map((action) => {
             const actionData = action as unknown as { 
+              reference_id: string | null;
               linked_root_cause_id: string | null;
               linked_cause_type: string | null;
               category: string | null;
@@ -782,7 +783,12 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         {getStatusIcon(action.status)}
                         <div className="space-y-1 flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {actionData.reference_id && (
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {actionData.reference_id}
+                              </Badge>
+                            )}
                             <h4 className="font-medium truncate">{action.title}</h4>
                             <CollapsibleTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
