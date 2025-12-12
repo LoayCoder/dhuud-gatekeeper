@@ -17,6 +17,7 @@ import { useHSSERiskAnalytics } from "@/hooks/use-hsse-risk-analytics";
 import { useRCAAnalytics } from "@/hooks/use-rca-analytics";
 import { useLocationHeatmap } from "@/hooks/use-location-heatmap";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { DrilldownProvider } from "@/contexts/DrilldownContext";
 import {
   EventTypeDistributionChart,
   SeverityDistributionChart,
@@ -44,6 +45,7 @@ import {
   DashboardExportDropdown,
   LiveUpdateIndicator,
   AutoRefreshToggle,
+  DrilldownModal,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -157,7 +159,8 @@ export default function HSSEEventDashboard() {
   const isLoading = dashboardLoading || locationLoading || reportersLoading;
 
   return (
-    <div ref={dashboardRef} className="container mx-auto py-6 space-y-6">
+    <DrilldownProvider>
+      <div ref={dashboardRef} className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -344,6 +347,10 @@ export default function HSSEEventDashboard() {
         onRefresh={handleGenerateAIInsights}
         lastUpdated={insights ? new Date() : undefined}
       />
+      
+      {/* Drilldown Modal */}
+      <DrilldownModal />
     </div>
+    </DrilldownProvider>
   );
 }

@@ -70,47 +70,54 @@ export function InvestigationProgressChart({ data }: Props) {
         </span>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart 
-            data={chartData} 
-            layout="vertical"
-            margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 20, top: 10, bottom: 10 }}
-          >
-            <XAxis type="number" hide />
-            <YAxis 
-              type="category" 
-              dataKey="name" 
-              width={90}
-              tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
-              axisLine={false}
-              tickLine={false}
-              orientation={isRTL ? 'right' : 'left'}
-            />
-            <Tooltip 
-              formatter={(value: number, name: string) => [
-                `${value} (${((value / total) * 100).toFixed(0)}%)`, 
-                t('hsseDashboard.investigations', 'Investigations')
-              ]}
-              contentStyle={{
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Bar 
-              dataKey="value" 
-              radius={[0, 6, 6, 0]}
-              barSize={28}
+        <div className="animate-chart-slide-up">
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart 
+              data={chartData} 
+              layout="vertical"
+              margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 20, top: 10, bottom: 10 }}
             >
-              {chartData.map((entry) => (
-                <Cell 
-                  key={entry.key} 
-                  fill={INVESTIGATION_COLORS[entry.key as keyof typeof INVESTIGATION_COLORS]} 
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <XAxis type="number" hide />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={90}
+                tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                axisLine={false}
+                tickLine={false}
+                orientation={isRTL ? 'right' : 'left'}
+              />
+              <Tooltip 
+                formatter={(value: number, name: string) => [
+                  `${value} (${((value / total) * 100).toFixed(0)}%)`, 
+                  t('hsseDashboard.investigations', 'Investigations')
+                ]}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                }}
+              />
+              <Bar 
+                dataKey="value" 
+                radius={[0, 6, 6, 0]}
+                barSize={28}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={150}
+                animationEasing="ease-out"
+              >
+                {chartData.map((entry) => (
+                  <Cell 
+                    key={entry.key} 
+                    fill={INVESTIGATION_COLORS[entry.key as keyof typeof INVESTIGATION_COLORS]}
+                    className="hover:opacity-80 transition-opacity duration-200"
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         
         {/* Progress indicators */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t">

@@ -54,40 +54,50 @@ export function SeverityDistributionChart({ data }: Props) {
         <CardTitle className="text-base">{t('hsseDashboard.eventsBySeverity')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart 
-            data={chartData} 
-            layout="vertical"
-            margin={{ left: isRTL ? 10 : 80, right: isRTL ? 80 : 10 }}
-            onClick={(state) => {
-              if (state?.activePayload?.[0]?.payload) {
-                handleClick(state.activePayload[0].payload);
-              }
-            }}
-            className="cursor-pointer"
-          >
-            <XAxis type="number" />
-            <YAxis 
-              type="category" 
-              dataKey="name" 
-              width={70}
-              tick={{ fontSize: 12 }}
-              orientation={isRTL ? 'right' : 'left'}
-            />
-            <Tooltip 
-              formatter={(value: number) => [value, t('hsseDashboard.count')]}
-            />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]} className="cursor-pointer">
-              {chartData.map((entry) => (
-                <Cell 
-                  key={entry.key} 
-                  fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]}
-                  className="hover:opacity-80 transition-opacity"
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="animate-chart-slide-up">
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart 
+              data={chartData} 
+              layout="vertical"
+              margin={{ left: isRTL ? 10 : 80, right: isRTL ? 80 : 10 }}
+              onClick={(state) => {
+                if (state?.activePayload?.[0]?.payload) {
+                  handleClick(state.activePayload[0].payload);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <XAxis type="number" />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={70}
+                tick={{ fontSize: 12 }}
+                orientation={isRTL ? 'right' : 'left'}
+              />
+              <Tooltip 
+                formatter={(value: number) => [value, t('hsseDashboard.count')]}
+              />
+              <Bar 
+                dataKey="value" 
+                radius={[0, 4, 4, 0]} 
+                className="cursor-pointer"
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={150}
+                animationEasing="ease-out"
+              >
+                {chartData.map((entry) => (
+                  <Cell 
+                    key={entry.key} 
+                    fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]}
+                    className="hover:opacity-80 transition-opacity duration-200"
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
           {t('hsseDashboard.clickToFilter', 'Click to filter')}
         </p>

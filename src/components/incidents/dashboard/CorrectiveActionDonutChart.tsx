@@ -68,7 +68,7 @@ export function CorrectiveActionDonutChart({ data }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 animate-chart-fade-in">
           <ResponsiveContainer width="55%" height={240}>
             <PieChart>
               <Pie
@@ -81,11 +81,16 @@ export function CorrectiveActionDonutChart({ data }: Props) {
                 dataKey="value"
                 strokeWidth={2}
                 stroke="hsl(var(--background))"
+                isAnimationActive={true}
+                animationDuration={800}
+                animationBegin={100}
+                animationEasing="ease-out"
               >
                 {chartData.map((entry) => (
                   <Cell 
                     key={entry.key} 
-                    fill={ACTION_STATUS_COLORS[entry.key as keyof typeof ACTION_STATUS_COLORS]} 
+                    fill={ACTION_STATUS_COLORS[entry.key as keyof typeof ACTION_STATUS_COLORS]}
+                    className="hover:opacity-80 transition-opacity duration-200"
                   />
                 ))}
               </Pie>

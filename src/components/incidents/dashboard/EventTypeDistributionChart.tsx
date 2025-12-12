@@ -53,34 +53,40 @@ export function EventTypeDistributionChart({ data }: Props) {
         <CardTitle className="text-base">{t('hsseDashboard.eventsByType')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-              labelLine={false}
-              onClick={(_, index) => handleClick(chartData[index])}
-              className="cursor-pointer"
-            >
-              {chartData.map((entry) => (
-                <Cell 
-                  key={entry.key} 
-                  fill={COLORS[entry.key as keyof typeof COLORS]}
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                />
-              ))}
-            </Pie>
-            <Tooltip 
-              formatter={(value: number) => [value, t('hsseDashboard.count')]}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="animate-chart-fade-in">
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                labelLine={false}
+                onClick={(_, index) => handleClick(chartData[index])}
+                className="cursor-pointer"
+                isAnimationActive={true}
+                animationDuration={800}
+                animationBegin={100}
+                animationEasing="ease-out"
+              >
+                {chartData.map((entry) => (
+                  <Cell 
+                    key={entry.key} 
+                    fill={COLORS[entry.key as keyof typeof COLORS]}
+                    className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value: number) => [value, t('hsseDashboard.count')]}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
         <p className="text-xs text-muted-foreground text-center mt-2">
           {t('hsseDashboard.clickToFilter', 'Click to filter')}
         </p>

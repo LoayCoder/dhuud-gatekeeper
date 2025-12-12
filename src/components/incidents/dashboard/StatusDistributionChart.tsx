@@ -66,7 +66,7 @@ export function StatusDistributionChart({ data }: Props) {
         <CardTitle className="text-base">{t('hsseDashboard.eventsByStatus')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 animate-chart-fade-in">
           <ResponsiveContainer width="55%" height={220}>
             <PieChart>
               <Pie
@@ -79,12 +79,16 @@ export function StatusDistributionChart({ data }: Props) {
                 dataKey="value"
                 onClick={(_, index) => handleClick(chartData[index].key)}
                 className="cursor-pointer"
+                isAnimationActive={true}
+                animationDuration={800}
+                animationBegin={100}
+                animationEasing="ease-out"
               >
                 {chartData.map((entry) => (
                   <Cell 
                     key={entry.key} 
                     fill={STATUS_COLORS[entry.key]}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   />
                 ))}
               </Pie>

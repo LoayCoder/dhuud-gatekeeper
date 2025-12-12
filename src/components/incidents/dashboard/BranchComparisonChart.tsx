@@ -81,77 +81,91 @@ export function BranchComparisonChart({ data }: Props) {
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart 
-            data={chartData} 
-            margin={{ top: 10, right: isRTL ? 10 : 20, left: isRTL ? 20 : 10, bottom: 60 }}
-          >
-            <XAxis 
-              dataKey="name" 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              orientation={isRTL ? 'right' : 'left'}
-            />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              formatter={(value: number, name: string) => {
-                const labels: Record<string, string> = {
-                  incidents: t('hsseDashboard.incidents'),
-                  observations: t('hsseDashboard.observations'),
-                  investigations: t('hsseDashboard.investigations'),
-                  overdue: t('hsseDashboard.overdueActions'),
-                };
-                return [value, labels[name] || name];
-              }}
-              labelFormatter={(label, payload) => {
-                if (payload && payload[0]) {
-                  return payload[0].payload.fullName;
-                }
-                return label;
-              }}
-            />
-            <Legend 
-              wrapperStyle={{ paddingTop: 10 }}
-              formatter={(value) => {
-                const labels: Record<string, string> = {
-                  incidents: t('hsseDashboard.incidents'),
-                  observations: t('hsseDashboard.observations'),
-                  investigations: t('hsseDashboard.investigations'),
-                  overdue: t('hsseDashboard.overdueActions'),
-                };
-                return labels[value] || value;
-              }}
-            />
-            <Bar 
-              dataKey="incidents" 
-              fill={METRIC_COLORS.incidents}
-              radius={[4, 4, 0, 0]}
-              barSize={16}
-            />
-            <Bar 
-              dataKey="observations" 
-              fill={METRIC_COLORS.observations}
-              radius={[4, 4, 0, 0]}
-              barSize={16}
-            />
-            <Bar 
-              dataKey="investigations" 
-              fill={METRIC_COLORS.open_investigations}
-              radius={[4, 4, 0, 0]}
-              barSize={16}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="animate-chart-slide-up">
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart 
+              data={chartData} 
+              margin={{ top: 10, right: isRTL ? 10 : 20, left: isRTL ? 20 : 10, bottom: 60 }}
+            >
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                orientation={isRTL ? 'right' : 'left'}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                }}
+                formatter={(value: number, name: string) => {
+                  const labels: Record<string, string> = {
+                    incidents: t('hsseDashboard.incidents'),
+                    observations: t('hsseDashboard.observations'),
+                    investigations: t('hsseDashboard.investigations'),
+                    overdue: t('hsseDashboard.overdueActions'),
+                  };
+                  return [value, labels[name] || name];
+                }}
+                labelFormatter={(label, payload) => {
+                  if (payload && payload[0]) {
+                    return payload[0].payload.fullName;
+                  }
+                  return label;
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: 10 }}
+                formatter={(value) => {
+                  const labels: Record<string, string> = {
+                    incidents: t('hsseDashboard.incidents'),
+                    observations: t('hsseDashboard.observations'),
+                    investigations: t('hsseDashboard.investigations'),
+                    overdue: t('hsseDashboard.overdueActions'),
+                  };
+                  return labels[value] || value;
+                }}
+              />
+              <Bar 
+                dataKey="incidents" 
+                fill={METRIC_COLORS.incidents}
+                radius={[4, 4, 0, 0]}
+                barSize={16}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={0}
+                animationEasing="ease-out"
+              />
+              <Bar 
+                dataKey="observations" 
+                fill={METRIC_COLORS.observations}
+                radius={[4, 4, 0, 0]}
+                barSize={16}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={100}
+                animationEasing="ease-out"
+              />
+              <Bar 
+                dataKey="investigations" 
+                fill={METRIC_COLORS.open_investigations}
+                radius={[4, 4, 0, 0]}
+                barSize={16}
+                isAnimationActive={true}
+                animationDuration={600}
+                animationBegin={200}
+                animationEasing="ease-out"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

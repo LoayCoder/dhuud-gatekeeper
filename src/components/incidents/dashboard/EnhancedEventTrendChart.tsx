@@ -144,86 +144,103 @@ export function EnhancedEventTrendChart({ data, previousPeriodData }: Props) {
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart 
-            data={chartData} 
-            margin={{ top: 5, right: isRTL ? 20 : 30, left: isRTL ? 30 : 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="monthLabel" 
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={50}
-              reversed={isRTL}
-            />
-            <YAxis 
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              orientation={isRTL ? 'right' : 'left'}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px'
-              }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-            />
-            <Legend 
-              wrapperStyle={{ paddingTop: 10 }}
-              iconType="circle"
-            />
-            
-            {visibleLines.includes('total') && (
-              <Line 
-                type="monotone" 
-                dataKey="total" 
-                name={t('hsseDashboard.totalEvents')}
-                stroke="hsl(var(--primary))" 
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: 'hsl(var(--primary))' }}
-                activeDot={{ r: 6 }}
+        <div className="animate-chart-fade-in">
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart 
+              data={chartData} 
+              margin={{ top: 5, right: isRTL ? 20 : 30, left: isRTL ? 30 : 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="monthLabel" 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+                reversed={isRTL}
               />
-            )}
-            
-            {visibleLines.includes('incidents') && (
-              <Line 
-                type="monotone" 
-                dataKey="incidents" 
-                name={t('hsseDashboard.incidents')}
-                stroke="hsl(var(--chart-2))" 
-                strokeWidth={2}
-                dot={{ r: 3, fill: 'hsl(var(--chart-2))' }}
+              <YAxis 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                orientation={isRTL ? 'right' : 'left'}
               />
-            )}
-            
-            {visibleLines.includes('observations') && (
-              <Line 
-                type="monotone" 
-                dataKey="observations" 
-                name={t('hsseDashboard.observations')}
-                stroke="hsl(var(--chart-1))" 
-                strokeWidth={2}
-                dot={{ r: 3, fill: 'hsl(var(--chart-1))' }}
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
               />
-            )}
+              <Legend 
+                wrapperStyle={{ paddingTop: 10 }}
+                iconType="circle"
+              />
+              
+              {visibleLines.includes('total') && (
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  name={t('hsseDashboard.totalEvents')}
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive={true}
+                  animationDuration={1000}
+                  animationBegin={0}
+                  animationEasing="ease-out"
+                />
+              )}
+              
+              {visibleLines.includes('incidents') && (
+                <Line 
+                  type="monotone" 
+                  dataKey="incidents" 
+                  name={t('hsseDashboard.incidents')}
+                  stroke="hsl(var(--chart-2))" 
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: 'hsl(var(--chart-2))' }}
+                  isAnimationActive={true}
+                  animationDuration={1000}
+                  animationBegin={100}
+                  animationEasing="ease-out"
+                />
+              )}
+              
+              {visibleLines.includes('observations') && (
+                <Line 
+                  type="monotone" 
+                  dataKey="observations" 
+                  name={t('hsseDashboard.observations')}
+                  stroke="hsl(var(--chart-1))" 
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: 'hsl(var(--chart-1))' }}
+                  isAnimationActive={true}
+                  animationDuration={1000}
+                  animationBegin={200}
+                  animationEasing="ease-out"
+                />
+              )}
 
-            {/* Previous period comparison lines */}
-            {showComparison && visibleLines.includes('total') && (
-              <Line 
-                type="monotone" 
-                dataKey="prev_total" 
-                name={t('hsseDashboard.previousPeriod', 'Previous Period')}
-                stroke="hsl(var(--muted-foreground))" 
-                strokeWidth={1.5}
-                strokeDasharray="5 5"
-                dot={false}
-              />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
+              {/* Previous period comparison lines */}
+              {showComparison && visibleLines.includes('total') && (
+                <Line 
+                  type="monotone" 
+                  dataKey="prev_total" 
+                  name={t('hsseDashboard.previousPeriod', 'Previous Period')}
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeWidth={1.5}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                  animationBegin={300}
+                />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
