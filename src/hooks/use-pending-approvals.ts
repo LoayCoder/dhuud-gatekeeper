@@ -226,7 +226,61 @@ export function useVerifyAction() {
             console.log('Action returned email sent to:', assignedUser.email);
           } catch (emailError) {
             console.error('Failed to send action returned email:', emailError);
-            // Don't throw - email failure shouldn't fail the whole operation
+          }
+        }
+      }
+
+      // Send email notification for closed actions & log audit entry
+      if (approved && action?.assigned_user) {
+        const assignedUser = action.assigned_user as { id: string; full_name: string | null; email: string | null };
+        const incident = action.incident as { id: string; reference_id: string | null } | null;
+        
+        // Get verifier name for email
+        const { data: verifierProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        // Send closure notification email
+        if (assignedUser.email) {
+          try {
+            await supabase.functions.invoke('send-action-email', {
+              body: {
+                type: 'action_closed',
+                recipient_email: assignedUser.email,
+                recipient_name: assignedUser.full_name || 'Team Member',
+                action_title: action.title,
+                incident_reference: incident?.reference_id || undefined,
+                verification_notes: notes || undefined,
+                verifier_name: verifierProfile?.full_name || 'HSSE Expert',
+              },
+            });
+            console.log('Action closed email sent to:', assignedUser.email);
+          } catch (emailError) {
+            console.error('Failed to send action closed email:', emailError);
+          }
+        }
+        
+        // Log audit entry for action closure
+        if (incident?.id && profile?.tenant_id) {
+          try {
+            await supabase.from('incident_audit_logs').insert({
+              incident_id: incident.id,
+              tenant_id: profile.tenant_id,
+              actor_id: user.id,
+              action: 'action_closed_by_verifier',
+              new_value: {
+                action_id: actionId,
+                action_title: action.title,
+                verification_notes: notes || null,
+                closed_at: new Date().toISOString(),
+                closed_by: verifierProfile?.full_name || user.id,
+              },
+            });
+            console.log('Audit log entry created for action closure');
+          } catch (auditError) {
+            console.error('Failed to create audit log:', auditError);
           }
         }
       }
