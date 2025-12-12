@@ -36,6 +36,12 @@ export function DrilldownProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Optional hook that returns null when outside provider (safe for conditional usage)
+export function useDrilldownContextOptional() {
+  return useContext(DrilldownContext);
+}
+
+// Strict hook that throws if outside provider
 export function useDrilldownContext() {
   const context = useContext(DrilldownContext);
   if (!context) {

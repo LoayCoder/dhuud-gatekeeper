@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useContext } from "react";
-import { useDrilldownContext } from "@/contexts/DrilldownContext";
+import { useCallback } from "react";
+import { useDrilldownContextOptional } from "@/contexts/DrilldownContext";
 
 export type DrillDownFilter = {
   eventType?: string;
@@ -15,13 +15,8 @@ export type DrillDownFilter = {
 export function useDashboardDrilldown() {
   const navigate = useNavigate();
   
-  // Try to get drilldown context (may not be available outside provider)
-  let drilldownContext: ReturnType<typeof useDrilldownContext> | null = null;
-  try {
-    drilldownContext = useDrilldownContext();
-  } catch {
-    // Not within DrilldownProvider, will use navigation fallback
-  }
+  // Optional context - returns null when outside DrilldownProvider
+  const drilldownContext = useDrilldownContextOptional();
 
   const drillDown = useCallback((filters: DrillDownFilter, title?: string) => {
     if (filters.incidentId) {
