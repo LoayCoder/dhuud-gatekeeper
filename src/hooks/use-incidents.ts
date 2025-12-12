@@ -278,7 +278,12 @@ export function useMyCorrectiveActions() {
       // Only show actions that have been released (investigation approved by HSSE Manager)
       const { data, error } = await supabase
         .from('corrective_actions')
-        .select('id, reference_id, title, description, status, priority, due_date, incident_id, created_at, completed_date, released_at, return_count')
+        .select(`
+          id, reference_id, title, description, status, priority, due_date, incident_id, 
+          created_at, completed_date, released_at, return_count,
+          rejection_notes, last_return_reason, rejected_at,
+          rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name)
+        `)
         .eq('assigned_to', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)

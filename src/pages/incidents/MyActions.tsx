@@ -327,6 +327,25 @@ export default function MyActions() {
                       )}
                     </div>
                     
+                    {/* Show rejection notes if action was returned for correction */}
+                    {action.status === 'returned_for_correction' && (action.last_return_reason || action.rejection_notes) && (
+                      <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
+                        <div className="flex items-center gap-2 text-destructive font-medium text-sm">
+                          <RotateCcw className="h-4 w-4" />
+                          {t('actions.rejectionReason', 'Rejection Reason')}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {action.last_return_reason || action.rejection_notes}
+                        </p>
+                        {action.rejected_by_profile && (
+                          <p className="text-xs text-muted-foreground">
+                            {t('actions.rejectedBy', 'Rejected by')}: {action.rejected_by_profile.full_name}
+                            {action.rejected_at && ` • ${formatDistanceToNow(new Date(action.rejected_at), { addSuffix: true })}`}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
                     {/* Controlled Action Buttons - Enforces sequential workflow */}
                     <div className="flex flex-wrap items-center gap-3">
                       {/* Show "Returned for Correction" banner */}
