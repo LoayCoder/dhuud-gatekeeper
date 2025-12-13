@@ -3813,5 +3813,138 @@
       "trend": "رجحان",
       "trendDescription": "تاریخی مین آورز کا رجحان"
     }
+  },
+  "visitors": {
+    "site": "سائٹ",
+    "dashboard": {
+      "title": "مہمانوں کا ڈیش بورڈ",
+      "description": "مہمانوں کی سرگرمی کا حقیقی وقت میں جائزہ"
+    },
+    "status": {
+      "pending": "زیر التواء",
+      "pending_security": "سیکورٹی کے منتظر",
+      "approved": "منظور شدہ",
+      "rejected": "مسترد",
+      "checkedIn": "داخلہ ہوگیا",
+      "checkedOut": "باہر نکل گیا",
+      "expired": "میعاد ختم"
+    },
+    "stats": {
+      "pending": "زیر التواء درخواستیں",
+      "awaitingApproval": "سیکورٹی منظوری کے منتظر",
+      "todayExpected": "آج متوقع",
+      "scheduledToday": "آج کے لیے شیڈول",
+      "onSite": "سائٹ پر",
+      "currentlyOnSite": "فی الحال سائٹ پر"
+    },
+    "tabs": {
+      "pending": "زیر التواء",
+      "today": "آج",
+      "onSite": "سائٹ پر"
+    },
+    "pending": {
+      "title": "منظوری کی منتظر درخواستیں",
+      "description": "سیکورٹی جائزے کے منتظر دورے کی درخواستیں",
+      "noRequests": "کوئی زیر التواء درخواستیں نہیں"
+    },
+    "today": {
+      "title": "آج کے مہمان",
+      "description": "آج کے لیے تمام شیڈول مہمان",
+      "noVisitors": "آج کے لیے کوئی مہمان شیڈول نہیں"
+    },
+    "onSite": {
+      "title": "فی الحال سائٹ پر",
+      "description": "فی الحال داخل مہمان",
+      "noVisitors": "فی الحال سائٹ پر کوئی مہمان نہیں"
+    },
+    "actions": {
+      "review": "جائزہ",
+      "checkIn": "داخلہ",
+      "checkOut": "باہر نکلنا"
+    },
+    "checkpoint": {
+      "title": "سیکورٹی چیک پوائنٹ",
+      "description": "مہمانوں کے QR کوڈ اسکین کریں یا دستی تلاش کریں",
+      "scan": "اسکین / تلاش",
+      "scanDescription": "مہمان کا QR کوڈ اسکین کریں یا نام/شناختی کارڈ سے تلاش کریں",
+      "qrScan": "QR اسکین",
+      "manualSearch": "دستی تلاش",
+      "searchLabel": "مہمان تلاش کریں",
+      "searchPlaceholder": "نام یا قومی شناختی نمبر",
+      "visitorDetails": "مہمان کی تفصیلات",
+      "scanToStart": "مہمان کی تفصیلات دیکھنے کے لیے QR کوڈ اسکین کریں یا تلاش کریں",
+      "noValidVisit": "کوئی درست دورہ نہیں",
+      "noValidVisitDescription": "اس مہمان کے لیے کوئی منظور شدہ دورہ نہیں ملا",
+      "blockedByBlacklist": "داخلہ ممنوع - مہمان بلیک لسٹ میں ہے",
+      "notApproved": "دورہ داخلے کے لیے منظور نہیں",
+      "scanAnother": "دوسرے مہمان کو اسکین کریں"
+    },
+    "blacklist": {
+      "title": "سیکورٹی بلیک لسٹ",
+      "description": "ممنوعہ مہمانوں کا انتظام",
+      "manage": "بلیک لسٹ کا انتظام",
+      "warning": "ممنوعہ مہمان",
+      "reason": "وجہ",
+      "add": "بلیک لسٹ میں شامل کریں",
+      "addTo": "بلیک لسٹ میں شامل کریں",
+      "addTitle": "بلیک لسٹ میں شامل کریں",
+      "addDescription": "سیکورٹی بلیک لسٹ میں شخص شامل کریں",
+      "reasonLabel": "بلیک لسٹ کی وجہ",
+      "reasonPlaceholder": "بیان کریں کہ اس شخص کو کیوں بلیک لسٹ کیا جا رہا ہے...",
+      "allEntries": "تمام بلیک لسٹ اندراجات",
+      "allEntriesDescription": "سائٹ تک رسائی سے ممنوع افراد",
+      "searchPlaceholder": "نام یا شناخت سے تلاش کریں",
+      "noEntries": "کوئی بلیک لسٹ اندراجات نہیں",
+      "listedAt": "اندراج کی تاریخ",
+      "removeTitle": "بلیک لسٹ سے ہٹائیں",
+      "removeDescription": "کیا آپ واقعی اس شخص کو بلیک لسٹ سے ہٹانا چاہتے ہیں؟",
+      "remove": "ہٹائیں"
+    },
+    "register": {
+      "title": "مہمان پیشگی رجسٹریشن",
+      "description": "نیا مہمان رجسٹر کریں اور رسائی QR کوڈ بنائیں",
+      "success": "مہمان کامیابی سے رجسٹر ہوگیا!",
+      "successDescription": "مہمان رجسٹر ہوگیا اور QR کوڈ بن گیا",
+      "qrInstructions": "داخلے کے لیے یہ QR کوڈ مہمان کے ساتھ شیئر کریں",
+      "registerAnother": "دوسرا رجسٹر کریں",
+      "backToDashboard": "ڈیش بورڈ پر واپس",
+      "submit": "رجسٹر کریں اور QR بنائیں",
+      "form": {
+        "title": "مہمان رجسٹریشن فارم"
+      },
+      "sections": {
+        "visitor": "مہمان کی معلومات",
+        "visit": "دورے کی تفصیلات"
+      }
+    },
+    "list": {
+      "title": "مہمانوں کی فہرست",
+      "description": "تمام رجسٹرڈ مہمان",
+      "allVisitors": "تمام مہمان",
+      "allVisitorsDescription": "رجسٹرڈ مہمانوں کی مکمل فہرست",
+      "searchPlaceholder": "نام، ای میل، یا شناخت سے تلاش کریں",
+      "noVisitors": "کوئی مہمان نہیں ملے",
+      "neverVisited": "کبھی نہیں آیا",
+      "viewQR": "QR کوڈ دیکھیں"
+    },
+    "fields": {
+      "name": "پورا نام",
+      "company": "کمپنی",
+      "email": "ای میل",
+      "nationalId": "قومی شناختی نمبر",
+      "lastVisit": "آخری دورہ",
+      "site": "منزل کی سائٹ",
+      "validFrom": "سے درست",
+      "validUntil": "تک درست",
+      "notes": "سیکورٹی نوٹس"
+    },
+    "placeholders": {
+      "name": "پورا نام درج کریں",
+      "company": "کمپنی کا نام درج کریں",
+      "email": "ای میل پتہ درج کریں",
+      "nationalId": "قومی شناختی نمبر درج کریں",
+      "site": "منزل کی سائٹ منتخب کریں",
+      "notes": "کوئی سیکورٹی نوٹس یا ہدایات شامل کریں..."
+    }
   }
 }

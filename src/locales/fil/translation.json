@@ -3813,5 +3813,138 @@
       "trend": "Trend",
       "trendDescription": "Makasaysayang trend ng manhours"
     }
+  },
+  "visitors": {
+    "site": "Site",
+    "dashboard": {
+      "title": "Visitor Dashboard",
+      "description": "Real-time na pagtingin sa aktibidad ng mga bisita"
+    },
+    "status": {
+      "pending": "Naghihintay",
+      "pending_security": "Naghihintay ng Security",
+      "approved": "Naaprubahan",
+      "rejected": "Tinanggihan",
+      "checkedIn": "Na-check In",
+      "checkedOut": "Na-check Out",
+      "expired": "Expired"
+    },
+    "stats": {
+      "pending": "Mga Naghihintay na Kahilingan",
+      "awaitingApproval": "Naghihintay ng security approval",
+      "todayExpected": "Inaasahan Ngayon",
+      "scheduledToday": "Nakatakda para ngayon",
+      "onSite": "Nasa Site",
+      "currentlyOnSite": "Kasalukuyang nasa site"
+    },
+    "tabs": {
+      "pending": "Naghihintay",
+      "today": "Ngayon",
+      "onSite": "Nasa Site"
+    },
+    "pending": {
+      "title": "Mga Kahilingan na Naghihintay ng Apruba",
+      "description": "Mga kahilingang bisita na naghihintay ng security review",
+      "noRequests": "Walang naghihintay na kahilingan"
+    },
+    "today": {
+      "title": "Mga Bisita Ngayon",
+      "description": "Lahat ng bisitang nakatakda para ngayon",
+      "noVisitors": "Walang bisitang nakatakda para ngayon"
+    },
+    "onSite": {
+      "title": "Kasalukuyang Nasa Site",
+      "description": "Mga bisitang kasalukuyang na-check in",
+      "noVisitors": "Walang bisita na nasa site ngayon"
+    },
+    "actions": {
+      "review": "Suriin",
+      "checkIn": "Check In",
+      "checkOut": "Check Out"
+    },
+    "checkpoint": {
+      "title": "Security Checkpoint",
+      "description": "I-scan ang QR code ng bisita o maghanap nang manu-mano",
+      "scan": "Scan / Hanapin",
+      "scanDescription": "I-scan ang QR code ng bisita o maghanap gamit ang pangalan/ID",
+      "qrScan": "QR Scan",
+      "manualSearch": "Manual na Paghahanap",
+      "searchLabel": "Hanapin ang Bisita",
+      "searchPlaceholder": "Pangalan o National ID",
+      "visitorDetails": "Detalye ng Bisita",
+      "scanToStart": "Mag-scan ng QR code o maghanap para makita ang detalye ng bisita",
+      "noValidVisit": "Walang Valid na Pagbisita",
+      "noValidVisitDescription": "Walang naaprubahang pagbisita na nahanap para sa bisitang ito",
+      "blockedByBlacklist": "Bawal ang pagpasok - ang bisita ay nasa blacklist",
+      "notApproved": "Hindi naaprubahan ang pagbisita para sa check-in",
+      "scanAnother": "Mag-scan ng Iba pang Bisita"
+    },
+    "blacklist": {
+      "title": "Security Blacklist",
+      "description": "Pamahalaan ang mga restricted na bisita",
+      "manage": "Pamahalaan ang Blacklist",
+      "warning": "Naka-blacklist na Bisita",
+      "reason": "Dahilan",
+      "add": "Idagdag sa Blacklist",
+      "addTo": "Idagdag sa Blacklist",
+      "addTitle": "Idagdag sa Blacklist",
+      "addDescription": "Magdagdag ng tao sa security blacklist",
+      "reasonLabel": "Dahilan ng Pag-blacklist",
+      "reasonPlaceholder": "Ilarawan kung bakit ini-blacklist ang taong ito...",
+      "allEntries": "Lahat ng Blacklist Entry",
+      "allEntriesDescription": "Mga taong hindi pinapayagang pumasok sa site",
+      "searchPlaceholder": "Maghanap gamit ang pangalan o ID",
+      "noEntries": "Walang blacklist entry",
+      "listedAt": "Petsa ng Paglista",
+      "removeTitle": "Alisin sa Blacklist",
+      "removeDescription": "Sigurado ka bang gusto mong alisin ang taong ito sa blacklist?",
+      "remove": "Alisin"
+    },
+    "register": {
+      "title": "Pre-Register ng Bisita",
+      "description": "Mag-register ng bagong bisita at gumawa ng access QR code",
+      "success": "Matagumpay na Naka-register ang Bisita!",
+      "successDescription": "Naka-register na ang bisita at nagawa na ang QR code",
+      "qrInstructions": "Ibahagi ang QR code na ito sa bisita para sa check-in",
+      "registerAnother": "Mag-register ng Isa Pa",
+      "backToDashboard": "Bumalik sa Dashboard",
+      "submit": "Mag-register at Gumawa ng QR",
+      "form": {
+        "title": "Form ng Pag-register ng Bisita"
+      },
+      "sections": {
+        "visitor": "Impormasyon ng Bisita",
+        "visit": "Detalye ng Pagbisita"
+      }
+    },
+    "list": {
+      "title": "Direktoryo ng mga Bisita",
+      "description": "Lahat ng registered na bisita",
+      "allVisitors": "Lahat ng Bisita",
+      "allVisitorsDescription": "Kumpletong listahan ng mga registered na bisita",
+      "searchPlaceholder": "Maghanap gamit ang pangalan, email, o ID",
+      "noVisitors": "Walang nahanap na bisita",
+      "neverVisited": "Hindi pa bumisita",
+      "viewQR": "Tingnan ang QR Code"
+    },
+    "fields": {
+      "name": "Buong Pangalan",
+      "company": "Kompanya",
+      "email": "Email",
+      "nationalId": "National ID",
+      "lastVisit": "Huling Pagbisita",
+      "site": "Destinasyong Site",
+      "validFrom": "Valid Mula",
+      "validUntil": "Valid Hanggang",
+      "notes": "Security Notes"
+    },
+    "placeholders": {
+      "name": "Ilagay ang buong pangalan",
+      "company": "Ilagay ang pangalan ng kompanya",
+      "email": "Ilagay ang email address",
+      "nationalId": "Ilagay ang national ID number",
+      "site": "Piliin ang destinasyong site",
+      "notes": "Magdagdag ng anumang security notes o instruksyon..."
+    }
   }
 }
