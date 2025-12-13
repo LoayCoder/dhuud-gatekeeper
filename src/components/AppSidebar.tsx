@@ -46,6 +46,7 @@ import {
   ClipboardList,
   Menu,
   Workflow,
+  Clock,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -362,6 +363,12 @@ export function AppSidebar() {
           url: "/admin/kpi-targets",
           icon: BarChart3,
           menuCode: 'admin_kpi_targets',
+        },
+        {
+          title: t('navigation.manhoursManagement', 'Manhours Management'),
+          url: "/admin/manhours",
+          icon: Clock,
+          menuCode: 'admin_manhours',
         },
       ],
     },
