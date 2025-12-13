@@ -136,10 +136,6 @@ export function VisitApprovalDialog({ requestId, open, onOpenChange }: VisitAppr
             </h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-muted-foreground">{t('visitors.fields.host')}:</span>
-                <p className="font-medium">{request.host?.full_name}</p>
-              </div>
-              <div>
                 <span className="text-muted-foreground">{t('visitors.fields.site')}:</span>
                 <p className="font-medium">{request.site?.name}</p>
               </div>

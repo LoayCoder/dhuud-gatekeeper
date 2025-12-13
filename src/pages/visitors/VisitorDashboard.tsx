@@ -155,7 +155,7 @@ export default function VisitorDashboard() {
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <span>{request.visitor?.company_name}</span>
-                          {request.host && <span> • {t('visitors.host')}: {request.host.full_name}</span>}
+                          {request.site && <span> • {request.site.name}</span>}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {format(new Date(request.valid_from), 'PPp')} - {format(new Date(request.valid_until), 'PPp')}
@@ -196,7 +196,7 @@ export default function VisitorDashboard() {
                           {getStatusBadge(request.status ?? 'pending_security')}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {request.site?.name} • {t('visitors.host')}: {request.host?.full_name}
+                          {request.site?.name}
                         </div>
                       </div>
                     </div>
@@ -231,7 +231,7 @@ export default function VisitorDashboard() {
                           {getStatusBadge(request.status ?? 'checked_in')}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {request.site?.name} • {t('visitors.host')}: {request.host?.full_name}
+                          {request.site?.name}
                         </div>
                       </div>
                       <Button variant="outline" size="sm" asChild>

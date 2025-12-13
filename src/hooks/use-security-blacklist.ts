@@ -12,7 +12,8 @@ interface UseBlacklistFilters {
 }
 
 export function useSecurityBlacklist(filters?: UseBlacklistFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['security-blacklist', tenantId, filters],
@@ -38,7 +39,8 @@ export function useSecurityBlacklist(filters?: UseBlacklistFilters) {
 }
 
 export function useCheckBlacklist(nationalId: string | undefined) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['blacklist-check', tenantId, nationalId],
@@ -62,7 +64,8 @@ export function useCheckBlacklist(nationalId: string | undefined) {
 export function useAddToBlacklist() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { tenantId, user } = useAuth();
+  const { profile, user } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
     mutationFn: async (entry: Omit<BlacklistInsert, 'tenant_id' | 'listed_by' | 'listed_at'>) => {

@@ -17,15 +17,11 @@ interface VisitRequestWithRelations extends VisitRequest {
     company_name: string | null;
     national_id: string | null;
     qr_code_token: string;
-  };
-  host?: {
-    id: string;
-    full_name: string;
-  };
+  } | null;
   site?: {
     id: string;
     name: string;
-  };
+  } | null;
 }
 
 interface UseVisitRequestsFilters {
@@ -36,7 +32,8 @@ interface UseVisitRequestsFilters {
 }
 
 export function useVisitRequests(filters?: UseVisitRequestsFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['visit-requests', tenantId, filters],
@@ -46,10 +43,9 @@ export function useVisitRequests(filters?: UseVisitRequestsFilters) {
       let query = supabase
         .from('visit_requests')
         .select(`
-          id, status, valid_from, valid_until, security_notes, created_at, host_id, visitor_id, site_id,
-          visitor:visitors!visit_requests_visitor_id_fkey(id, full_name, email, company_name, national_id, qr_code_token),
-          host:profiles!visit_requests_host_id_fkey(id, full_name),
-          site:sites!visit_requests_site_id_fkey(id, name)
+          id, status, valid_from, valid_until, security_notes, created_at, host_id, visitor_id, site_id, tenant_id, approved_by,
+          visitor:visitors(id, full_name, email, company_name, national_id, qr_code_token),
+          site:sites(id, name)
         `)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
@@ -99,7 +95,8 @@ export function useCurrentlyOnSite() {
 export function useCreateVisitRequest() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
     mutationFn: async (request: Omit<VisitRequestInsert, 'tenant_id'>) => {
