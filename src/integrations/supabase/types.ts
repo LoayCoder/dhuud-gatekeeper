@@ -428,6 +428,7 @@ export type Database = {
       area_inspection_responses: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           gps_accuracy: number | null
           gps_lat: number | null
           gps_lng: number | null
@@ -445,6 +446,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           gps_accuracy?: number | null
           gps_lat?: number | null
           gps_lng?: number | null
@@ -462,6 +464,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           gps_accuracy?: number | null
           gps_lat?: number | null
           gps_lng?: number | null
@@ -1704,6 +1707,123 @@ export type Database = {
           },
         ]
       }
+      environmental_incident_details: {
+        Row: {
+          actual_cleanup_cost_sar: number | null
+          affected_area_sqm: number | null
+          affected_medium: string[] | null
+          cas_number: string | null
+          cleanup_completed: boolean | null
+          cleanup_completed_at: string | null
+          cleanup_contractor: string | null
+          cleanup_required: boolean | null
+          containment_method: string | null
+          containment_successful: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          emission_duration_hours: number | null
+          emission_type: string | null
+          estimated_cleanup_cost_sar: number | null
+          estimated_emission_kg: number | null
+          id: string
+          incident_id: string
+          reached_waterway: boolean | null
+          regulatory_agency: string | null
+          regulatory_notification_required: boolean | null
+          regulatory_notification_sent_at: string | null
+          regulatory_reference_number: string | null
+          reportable_quantity_exceeded: boolean | null
+          spill_unit: string | null
+          spill_volume_liters: number | null
+          substance_name: string | null
+          substance_type: string | null
+          tenant_id: string
+          updated_at: string | null
+          waterway_name: string | null
+        }
+        Insert: {
+          actual_cleanup_cost_sar?: number | null
+          affected_area_sqm?: number | null
+          affected_medium?: string[] | null
+          cas_number?: string | null
+          cleanup_completed?: boolean | null
+          cleanup_completed_at?: string | null
+          cleanup_contractor?: string | null
+          cleanup_required?: boolean | null
+          containment_method?: string | null
+          containment_successful?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          emission_duration_hours?: number | null
+          emission_type?: string | null
+          estimated_cleanup_cost_sar?: number | null
+          estimated_emission_kg?: number | null
+          id?: string
+          incident_id: string
+          reached_waterway?: boolean | null
+          regulatory_agency?: string | null
+          regulatory_notification_required?: boolean | null
+          regulatory_notification_sent_at?: string | null
+          regulatory_reference_number?: string | null
+          reportable_quantity_exceeded?: boolean | null
+          spill_unit?: string | null
+          spill_volume_liters?: number | null
+          substance_name?: string | null
+          substance_type?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          waterway_name?: string | null
+        }
+        Update: {
+          actual_cleanup_cost_sar?: number | null
+          affected_area_sqm?: number | null
+          affected_medium?: string[] | null
+          cas_number?: string | null
+          cleanup_completed?: boolean | null
+          cleanup_completed_at?: string | null
+          cleanup_contractor?: string | null
+          cleanup_required?: boolean | null
+          containment_method?: string | null
+          containment_successful?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          emission_duration_hours?: number | null
+          emission_type?: string | null
+          estimated_cleanup_cost_sar?: number | null
+          estimated_emission_kg?: number | null
+          id?: string
+          incident_id?: string
+          reached_waterway?: boolean | null
+          regulatory_agency?: string | null
+          regulatory_notification_required?: boolean | null
+          regulatory_notification_sent_at?: string | null
+          regulatory_reference_number?: string | null
+          reportable_quantity_exceeded?: boolean | null
+          spill_unit?: string | null
+          spill_volume_liters?: number | null
+          substance_name?: string | null
+          substance_type?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          waterway_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "environmental_incident_details_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environmental_incident_details_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evidence_items: {
         Row: {
           cctv_data: Json | null
@@ -1881,15 +2001,23 @@ export type Database = {
           criticality_level:
             | Database["public"]["Enums"]["asset_criticality"]
             | null
+          currency: string | null
+          current_book_value: number | null
           custom_fields: Json | null
           deleted_at: string | null
+          depreciation_method: string | null
+          depreciation_rate_pct: number | null
           description: string | null
           expected_lifespan_years: number | null
           floor_zone_id: string | null
           id: string
           inspection_interval_days: number | null
           installation_date: string | null
+          insurance_expiry_date: string | null
+          insurance_policy_number: string | null
+          insurance_value: number | null
           last_inspection_date: string | null
+          last_valuation_date: string | null
           latitude: number | null
           location_details: string | null
           longitude: number | null
@@ -1900,9 +2028,11 @@ export type Database = {
           name: string
           next_inspection_due: string | null
           ownership: Database["public"]["Enums"]["asset_ownership"] | null
+          purchase_price: number | null
           qr_code_data: string | null
           replacement_due_date: string | null
           risk_score: number | null
+          salvage_value: number | null
           serial_number: string | null
           site_id: string | null
           status: Database["public"]["Enums"]["asset_status"] | null
@@ -1928,15 +2058,23 @@ export type Database = {
           criticality_level?:
             | Database["public"]["Enums"]["asset_criticality"]
             | null
+          currency?: string | null
+          current_book_value?: number | null
           custom_fields?: Json | null
           deleted_at?: string | null
+          depreciation_method?: string | null
+          depreciation_rate_pct?: number | null
           description?: string | null
           expected_lifespan_years?: number | null
           floor_zone_id?: string | null
           id?: string
           inspection_interval_days?: number | null
           installation_date?: string | null
+          insurance_expiry_date?: string | null
+          insurance_policy_number?: string | null
+          insurance_value?: number | null
           last_inspection_date?: string | null
+          last_valuation_date?: string | null
           latitude?: number | null
           location_details?: string | null
           longitude?: number | null
@@ -1947,9 +2085,11 @@ export type Database = {
           name: string
           next_inspection_due?: string | null
           ownership?: Database["public"]["Enums"]["asset_ownership"] | null
+          purchase_price?: number | null
           qr_code_data?: string | null
           replacement_due_date?: string | null
           risk_score?: number | null
+          salvage_value?: number | null
           serial_number?: string | null
           site_id?: string | null
           status?: Database["public"]["Enums"]["asset_status"] | null
@@ -1975,15 +2115,23 @@ export type Database = {
           criticality_level?:
             | Database["public"]["Enums"]["asset_criticality"]
             | null
+          currency?: string | null
+          current_book_value?: number | null
           custom_fields?: Json | null
           deleted_at?: string | null
+          depreciation_method?: string | null
+          depreciation_rate_pct?: number | null
           description?: string | null
           expected_lifespan_years?: number | null
           floor_zone_id?: string | null
           id?: string
           inspection_interval_days?: number | null
           installation_date?: string | null
+          insurance_expiry_date?: string | null
+          insurance_policy_number?: string | null
+          insurance_value?: number | null
           last_inspection_date?: string | null
+          last_valuation_date?: string | null
           latitude?: number | null
           location_details?: string | null
           longitude?: number | null
@@ -1994,9 +2142,11 @@ export type Database = {
           name?: string
           next_inspection_due?: string | null
           ownership?: Database["public"]["Enums"]["asset_ownership"] | null
+          purchase_price?: number | null
           qr_code_data?: string | null
           replacement_due_date?: string | null
           risk_score?: number | null
+          salvage_value?: number | null
           serial_number?: string | null
           site_id?: string | null
           status?: Database["public"]["Enums"]["asset_status"] | null
@@ -3508,6 +3658,241 @@ export type Database = {
           },
         ]
       }
+      maintenance_part_usage: {
+        Row: {
+          asset_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          part_id: string
+          quantity_used: number
+          schedule_id: string | null
+          tenant_id: string
+          usage_date: string
+          used_by: string | null
+          work_order_reference: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          part_id: string
+          quantity_used: number
+          schedule_id?: string | null
+          tenant_id: string
+          usage_date?: string
+          used_by?: string | null
+          work_order_reference?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          part_id?: string
+          quantity_used?: number
+          schedule_id?: string | null
+          tenant_id?: string
+          usage_date?: string
+          used_by?: string | null
+          work_order_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_part_usage_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_part_usage_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_part_usage_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "asset_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_part_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_part_usage_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_parts: {
+        Row: {
+          bin_number: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_critical: boolean | null
+          last_purchase_date: string | null
+          last_purchase_price: number | null
+          manufacturer: string | null
+          max_stock_level: number | null
+          min_stock_level: number | null
+          model_number: string | null
+          name: string
+          name_ar: string | null
+          part_number: string
+          quantity_in_stock: number | null
+          reorder_point: number | null
+          storage_location: string | null
+          tenant_id: string
+          unit_cost: number | null
+          unit_of_measure: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bin_number?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          manufacturer?: string | null
+          max_stock_level?: number | null
+          min_stock_level?: number | null
+          model_number?: string | null
+          name: string
+          name_ar?: string | null
+          part_number: string
+          quantity_in_stock?: number | null
+          reorder_point?: number | null
+          storage_location?: string | null
+          tenant_id: string
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bin_number?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          manufacturer?: string | null
+          max_stock_level?: number | null
+          min_stock_level?: number | null
+          model_number?: string | null
+          name?: string
+          name_ar?: string | null
+          part_number?: string
+          quantity_in_stock?: number | null
+          reorder_point?: number | null
+          storage_location?: string | null
+          tenant_id?: string
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_parts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_parts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_schedule_parts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_optional: boolean | null
+          notes: string | null
+          part_id: string
+          quantity_required: number | null
+          schedule_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_optional?: boolean | null
+          notes?: string | null
+          part_id: string
+          quantity_required?: number | null
+          schedule_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_optional?: boolean | null
+          notes?: string | null
+          part_id?: string
+          quantity_required?: number | null
+          schedule_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_schedule_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_schedule_parts_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "asset_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_schedule_parts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manager_team: {
         Row: {
           assigned_at: string | null
@@ -3809,6 +4194,180 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      patrol_checkpoint_logs: {
+        Row: {
+          checkpoint_id: string
+          created_at: string | null
+          gps_accuracy: number | null
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          linked_incident_id: string | null
+          notes: string | null
+          patrol_id: string
+          photo_path: string | null
+          scan_method: string | null
+          scanned_at: string | null
+          status: string | null
+          tenant_id: string
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          checkpoint_id: string
+          created_at?: string | null
+          gps_accuracy?: number | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          patrol_id: string
+          photo_path?: string | null
+          scan_method?: string | null
+          scanned_at?: string | null
+          status?: string | null
+          tenant_id: string
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          checkpoint_id?: string
+          created_at?: string | null
+          gps_accuracy?: number | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          linked_incident_id?: string | null
+          notes?: string | null
+          patrol_id?: string
+          photo_path?: string | null
+          scan_method?: string | null
+          scanned_at?: string | null
+          status?: string | null
+          tenant_id?: string
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_checkpoint_logs_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoint_logs_linked_incident_id_fkey"
+            columns: ["linked_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoint_logs_patrol_id_fkey"
+            columns: ["patrol_id"]
+            isOneToOne: false
+            referencedRelation: "security_patrols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoint_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patrol_checkpoints: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          floor_zone_id: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          location_details: string | null
+          longitude: number | null
+          min_time_at_checkpoint_seconds: number | null
+          name: string
+          name_ar: string | null
+          nfc_tag_id: string | null
+          notes_required: boolean | null
+          photo_required: boolean | null
+          qr_code_data: string | null
+          route_id: string
+          sequence_order: number
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          floor_zone_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          location_details?: string | null
+          longitude?: number | null
+          min_time_at_checkpoint_seconds?: number | null
+          name: string
+          name_ar?: string | null
+          nfc_tag_id?: string | null
+          notes_required?: boolean | null
+          photo_required?: boolean | null
+          qr_code_data?: string | null
+          route_id: string
+          sequence_order: number
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          floor_zone_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          location_details?: string | null
+          longitude?: number | null
+          min_time_at_checkpoint_seconds?: number | null
+          name?: string
+          name_ar?: string | null
+          nfc_tag_id?: string | null
+          notes_required?: boolean | null
+          photo_required?: boolean | null
+          qr_code_data?: string | null
+          route_id?: string
+          sequence_order?: number
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_checkpoints_floor_zone_id_fkey"
+            columns: ["floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoints_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "security_patrol_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoints_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_modules: {
         Row: {
@@ -4253,6 +4812,203 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "security_blacklist_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_patrol_routes: {
+        Row: {
+          branch_id: string | null
+          building_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          estimated_duration_minutes: number | null
+          frequency: string | null
+          frequency_interval_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          route_map_path: string | null
+          site_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          building_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          frequency?: string | null
+          frequency_interval_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          route_map_path?: string | null
+          site_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          building_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          frequency?: string | null
+          frequency_interval_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          route_map_path?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_patrol_routes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrol_routes_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrol_routes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrol_routes_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrol_routes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_patrols: {
+        Row: {
+          actual_end: string | null
+          actual_start: string | null
+          checkpoints_total: number | null
+          checkpoints_visited: number | null
+          compliance_percentage: number | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          incidents_reported: number | null
+          issues_found: string | null
+          notes: string | null
+          patrol_officer_id: string | null
+          reference_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          route_id: string
+          scheduled_start: string | null
+          status: string | null
+          supervisor_review_notes: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end?: string | null
+          actual_start?: string | null
+          checkpoints_total?: number | null
+          checkpoints_visited?: number | null
+          compliance_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          incidents_reported?: number | null
+          issues_found?: string | null
+          notes?: string | null
+          patrol_officer_id?: string | null
+          reference_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          route_id: string
+          scheduled_start?: string | null
+          status?: string | null
+          supervisor_review_notes?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end?: string | null
+          actual_start?: string | null
+          checkpoints_total?: number | null
+          checkpoints_visited?: number | null
+          compliance_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          incidents_reported?: number | null
+          issues_found?: string | null
+          notes?: string | null
+          patrol_officer_id?: string | null
+          reference_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          route_id?: string
+          scheduled_start?: string | null
+          status?: string | null
+          supervisor_review_notes?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_patrols_patrol_officer_id_fkey"
+            columns: ["patrol_officer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrols_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrols_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "security_patrol_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrols_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
