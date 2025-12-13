@@ -1340,6 +1340,210 @@ export type Database = {
           },
         ]
       }
+      contractor_access_logs: {
+        Row: {
+          access_type: string
+          alert_language: string | null
+          alert_sent: boolean | null
+          contractor_id: string
+          created_at: string | null
+          deleted_at: string | null
+          entry_time: string
+          exit_time: string | null
+          guard_id: string | null
+          id: string
+          notes: string | null
+          site_id: string | null
+          tenant_id: string
+          validation_errors: Json | null
+          validation_status: string
+          zone_id: string | null
+        }
+        Insert: {
+          access_type?: string
+          alert_language?: string | null
+          alert_sent?: boolean | null
+          contractor_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          entry_time?: string
+          exit_time?: string | null
+          guard_id?: string | null
+          id?: string
+          notes?: string | null
+          site_id?: string | null
+          tenant_id: string
+          validation_errors?: Json | null
+          validation_status: string
+          zone_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          alert_language?: string | null
+          alert_sent?: boolean | null
+          contractor_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          entry_time?: string
+          exit_time?: string | null
+          guard_id?: string | null
+          id?: string
+          notes?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          validation_errors?: Json | null
+          validation_status?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_access_logs_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          allowed_sites: string[] | null
+          allowed_zones: string[] | null
+          ban_expires_at: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
+          company_name: string | null
+          contractor_code: string
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_banned: boolean | null
+          medical_exam_date: string | null
+          medical_exam_expiry: string | null
+          mobile_number: string | null
+          national_id: string | null
+          nationality: string | null
+          permit_expiry_date: string | null
+          permit_number: string | null
+          photo_path: string | null
+          preferred_language: string | null
+          qr_code_data: string | null
+          safety_induction_date: string | null
+          safety_induction_expiry: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          allowed_zones?: string[] | null
+          ban_expires_at?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          company_name?: string | null
+          contractor_code: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_banned?: boolean | null
+          medical_exam_date?: string | null
+          medical_exam_expiry?: string | null
+          mobile_number?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          permit_expiry_date?: string | null
+          permit_number?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_data?: string | null
+          safety_induction_date?: string | null
+          safety_induction_expiry?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          allowed_zones?: string[] | null
+          ban_expires_at?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          company_name?: string | null
+          contractor_code?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_banned?: boolean | null
+          medical_exam_date?: string | null
+          medical_exam_expiry?: string | null
+          mobile_number?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          permit_expiry_date?: string | null
+          permit_number?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_data?: string | null
+          safety_induction_date?: string | null
+          safety_induction_expiry?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractors_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corrective_actions: {
         Row: {
           action_type: string | null
@@ -1979,6 +2183,308 @@ export type Database = {
           },
           {
             foreignKeyName: "floors_zones_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gate_entry_logs: {
+        Row: {
+          anpr_confidence: number | null
+          anpr_image_path: string | null
+          car_plate: string | null
+          created_at: string | null
+          deleted_at: string | null
+          destination_id: string | null
+          destination_name: string | null
+          entry_time: string
+          entry_type: string
+          exit_time: string | null
+          gate_id: string | null
+          guard_id: string | null
+          id: string
+          mobile_number: string | null
+          nationality: string | null
+          notes: string | null
+          passenger_count: number | null
+          person_name: string
+          preferred_language: string | null
+          purpose: string | null
+          site_id: string | null
+          tenant_id: string
+          visitor_id: string | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          anpr_confidence?: number | null
+          anpr_image_path?: string | null
+          car_plate?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          destination_id?: string | null
+          destination_name?: string | null
+          entry_time?: string
+          entry_type?: string
+          exit_time?: string | null
+          gate_id?: string | null
+          guard_id?: string | null
+          id?: string
+          mobile_number?: string | null
+          nationality?: string | null
+          notes?: string | null
+          passenger_count?: number | null
+          person_name: string
+          preferred_language?: string | null
+          purpose?: string | null
+          site_id?: string | null
+          tenant_id: string
+          visitor_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          anpr_confidence?: number | null
+          anpr_image_path?: string | null
+          car_plate?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          destination_id?: string | null
+          destination_name?: string | null
+          entry_time?: string
+          entry_type?: string
+          exit_time?: string | null
+          gate_id?: string | null
+          guard_id?: string | null
+          id?: string
+          mobile_number?: string | null
+          nationality?: string | null
+          notes?: string | null
+          passenger_count?: number | null
+          person_name?: string
+          preferred_language?: string | null
+          purpose?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          visitor_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_entry_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geofence_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_message: string | null
+          alert_type: string
+          created_at: string | null
+          deleted_at: string | null
+          distance_from_zone: number | null
+          guard_id: string
+          guard_lat: number | null
+          guard_lng: number | null
+          id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          roster_id: string | null
+          severity: string | null
+          tenant_id: string
+          zone_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_message?: string | null
+          alert_type: string
+          created_at?: string | null
+          deleted_at?: string | null
+          distance_from_zone?: number | null
+          guard_id: string
+          guard_lat?: number | null
+          guard_lng?: number | null
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          roster_id?: string | null
+          severity?: string | null
+          tenant_id: string
+          zone_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_message?: string | null
+          alert_type?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          distance_from_zone?: number | null
+          guard_id?: string
+          guard_lat?: number | null
+          guard_lng?: number | null
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          roster_id?: string | null
+          severity?: string | null
+          tenant_id?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_roster_id_fkey"
+            columns: ["roster_id"]
+            isOneToOne: false
+            referencedRelation: "shift_roster"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_tracking_history: {
+        Row: {
+          accuracy: number | null
+          altitude: number | null
+          assigned_zone_id: string | null
+          battery_level: number | null
+          created_at: string | null
+          distance_from_zone: number | null
+          guard_id: string
+          heading: number | null
+          id: string
+          is_within_zone: boolean | null
+          latitude: number
+          longitude: number
+          recorded_at: string
+          roster_id: string | null
+          speed: number | null
+          tenant_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          altitude?: number | null
+          assigned_zone_id?: string | null
+          battery_level?: number | null
+          created_at?: string | null
+          distance_from_zone?: number | null
+          guard_id: string
+          heading?: number | null
+          id?: string
+          is_within_zone?: boolean | null
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          roster_id?: string | null
+          speed?: number | null
+          tenant_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          altitude?: number | null
+          assigned_zone_id?: string | null
+          battery_level?: number | null
+          created_at?: string | null
+          distance_from_zone?: number | null
+          guard_id?: string
+          heading?: number | null
+          id?: string
+          is_within_zone?: boolean | null
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          roster_id?: string | null
+          speed?: number | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_tracking_history_assigned_zone_id_fkey"
+            columns: ["assigned_zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_tracking_history_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_tracking_history_roster_id_fkey"
+            columns: ["roster_id"]
+            isOneToOne: false
+            referencedRelation: "shift_roster"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_tracking_history_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -4202,16 +4708,20 @@ export type Database = {
           gps_accuracy: number | null
           gps_latitude: number | null
           gps_longitude: number | null
+          gps_validated: boolean | null
           id: string
           linked_incident_id: string | null
           notes: string | null
           patrol_id: string
           photo_path: string | null
+          photo_paths: Json | null
           scan_method: string | null
           scanned_at: string | null
           status: string | null
           tenant_id: string
           time_spent_seconds: number | null
+          validation_distance: number | null
+          validation_threshold: number | null
         }
         Insert: {
           checkpoint_id: string
@@ -4219,16 +4729,20 @@ export type Database = {
           gps_accuracy?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
+          gps_validated?: boolean | null
           id?: string
           linked_incident_id?: string | null
           notes?: string | null
           patrol_id: string
           photo_path?: string | null
+          photo_paths?: Json | null
           scan_method?: string | null
           scanned_at?: string | null
           status?: string | null
           tenant_id: string
           time_spent_seconds?: number | null
+          validation_distance?: number | null
+          validation_threshold?: number | null
         }
         Update: {
           checkpoint_id?: string
@@ -4236,16 +4750,20 @@ export type Database = {
           gps_accuracy?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
+          gps_validated?: boolean | null
           id?: string
           linked_incident_id?: string | null
           notes?: string | null
           patrol_id?: string
           photo_path?: string | null
+          photo_paths?: Json | null
           scan_method?: string | null
           scanned_at?: string | null
           status?: string | null
           tenant_id?: string
           time_spent_seconds?: number | null
+          validation_distance?: number | null
+          validation_threshold?: number | null
         }
         Relationships: [
           {
@@ -4823,6 +5341,7 @@ export type Database = {
         Row: {
           branch_id: string | null
           building_id: string | null
+          checkpoint_radius_meters: number | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
@@ -4834,6 +5353,8 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_ar: string | null
+          require_gps_validation: boolean | null
+          require_photo: boolean | null
           route_map_path: string | null
           site_id: string | null
           tenant_id: string
@@ -4842,6 +5363,7 @@ export type Database = {
         Insert: {
           branch_id?: string | null
           building_id?: string | null
+          checkpoint_radius_meters?: number | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -4853,6 +5375,8 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_ar?: string | null
+          require_gps_validation?: boolean | null
+          require_photo?: boolean | null
           route_map_path?: string | null
           site_id?: string | null
           tenant_id: string
@@ -4861,6 +5385,7 @@ export type Database = {
         Update: {
           branch_id?: string | null
           building_id?: string | null
+          checkpoint_radius_meters?: number | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -4872,6 +5397,8 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_ar?: string | null
+          require_gps_validation?: boolean | null
+          require_photo?: boolean | null
           route_map_path?: string | null
           site_id?: string | null
           tenant_id?: string
@@ -5012,6 +5539,262 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_shifts: {
+        Row: {
+          break_duration_minutes: number | null
+          created_at: string | null
+          deleted_at: string | null
+          end_time: string
+          id: string
+          is_active: boolean | null
+          is_overnight: boolean | null
+          shift_code: string
+          shift_name: string
+          shift_name_ar: string | null
+          start_time: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          break_duration_minutes?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          end_time: string
+          id?: string
+          is_active?: boolean | null
+          is_overnight?: boolean | null
+          shift_code: string
+          shift_name: string
+          shift_name_ar?: string | null
+          start_time: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          break_duration_minutes?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          is_overnight?: boolean | null
+          shift_code?: string
+          shift_name?: string
+          shift_name_ar?: string | null
+          start_time?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_shifts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_zones: {
+        Row: {
+          center_lat: number | null
+          center_lng: number | null
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_occupancy: number | null
+          polygon_geojson: Json
+          requires_escort: boolean | null
+          risk_level: string | null
+          site_id: string | null
+          tenant_id: string
+          updated_at: string | null
+          zone_code: string
+          zone_name: string
+          zone_name_ar: string | null
+          zone_type: string | null
+        }
+        Insert: {
+          center_lat?: number | null
+          center_lng?: number | null
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_occupancy?: number | null
+          polygon_geojson: Json
+          requires_escort?: boolean | null
+          risk_level?: string | null
+          site_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          zone_code: string
+          zone_name: string
+          zone_name_ar?: string | null
+          zone_type?: string | null
+        }
+        Update: {
+          center_lat?: number | null
+          center_lng?: number | null
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_occupancy?: number | null
+          polygon_geojson?: Json
+          requires_escort?: boolean | null
+          risk_level?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          zone_code?: string
+          zone_name?: string
+          zone_name_ar?: string | null
+          zone_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_zones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_zones_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_zones_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_roster: {
+        Row: {
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_in_time: string | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          check_out_time: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          guard_id: string
+          id: string
+          notes: string | null
+          relief_guard_id: string | null
+          roster_date: string
+          shift_id: string
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+          zone_id: string
+        }
+        Insert: {
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_time?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_time?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          guard_id: string
+          id?: string
+          notes?: string | null
+          relief_guard_id?: string | null
+          roster_date: string
+          shift_id: string
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          zone_id: string
+        }
+        Update: {
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_time?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_time?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          guard_id?: string
+          id?: string
+          notes?: string | null
+          relief_guard_id?: string | null
+          roster_date?: string
+          shift_id?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_roster_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_relief_guard_id_fkey"
+            columns: ["relief_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "security_shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
             referencedColumns: ["id"]
           },
         ]
@@ -6132,43 +6915,64 @@ export type Database = {
       }
       visitors: {
         Row: {
+          car_plate: string | null
           company_name: string | null
           created_at: string | null
+          destination_id: string | null
           email: string | null
           full_name: string
+          gate_entry_method: string | null
           id: string
           is_active: boolean | null
           last_visit_at: string | null
           national_id: string | null
+          nationality: string | null
+          passenger_count: number | null
           phone: string | null
+          preferred_language: string | null
           qr_code_token: string
           tenant_id: string
+          whatsapp_sent_at: string | null
         }
         Insert: {
+          car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
+          destination_id?: string | null
           email?: string | null
           full_name: string
+          gate_entry_method?: string | null
           id?: string
           is_active?: boolean | null
           last_visit_at?: string | null
           national_id?: string | null
+          nationality?: string | null
+          passenger_count?: number | null
           phone?: string | null
+          preferred_language?: string | null
           qr_code_token?: string
           tenant_id: string
+          whatsapp_sent_at?: string | null
         }
         Update: {
+          car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
+          destination_id?: string | null
           email?: string | null
           full_name?: string
+          gate_entry_method?: string | null
           id?: string
           is_active?: boolean | null
           last_visit_at?: string | null
           national_id?: string | null
+          nationality?: string | null
+          passenger_count?: number | null
           phone?: string | null
+          preferred_language?: string | null
           qr_code_token?: string
           tenant_id?: string
+          whatsapp_sent_at?: string | null
         }
         Relationships: [
           {
