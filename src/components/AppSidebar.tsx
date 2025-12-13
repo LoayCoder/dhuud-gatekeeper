@@ -134,6 +134,12 @@ export function AppSidebar() {
               menuCode: 'event_dashboard',
             },
             {
+              title: t('navigation.managerKPIDashboard', 'Manager KPI Dashboard'),
+              url: "/incidents/manager-dashboard",
+              icon: BarChart3,
+              menuCode: 'manager_kpi_dashboard',
+            },
+            {
               title: t('navigation.eventList'),
               url: "/incidents",
               icon: FileWarning,
@@ -350,6 +356,12 @@ export function AppSidebar() {
           url: "/admin/workflow-diagrams",
           icon: Workflow,
           menuCode: 'admin_workflow_diagrams',
+        },
+        {
+          title: t('navigation.kpiTargets', 'KPI Targets'),
+          url: "/admin/kpi-targets",
+          icon: BarChart3,
+          menuCode: 'admin_kpi_targets',
         },
       ],
     },
