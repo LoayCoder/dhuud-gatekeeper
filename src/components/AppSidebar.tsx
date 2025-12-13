@@ -643,7 +643,7 @@ export function AppSidebar() {
                                                 </SidebarMenuSubButton>
                                               </CollapsibleTrigger>
                                               <CollapsibleContent>
-                                                <SidebarMenuSub className="ms-2 border-s ps-1">
+                                                <SidebarMenuSub className="ms-1 border-s ps-1">
                                                   {nestedItem.subItems.map((deepItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
                                                     <SidebarMenuSubItem key={deepItem.title}>
                                                       <SidebarMenuSubButton
@@ -655,7 +655,7 @@ export function AppSidebar() {
                                                           onMouseEnter={() => prefetchRoute(deepItem.url)}
                                                         >
                                                           {deepItem.icon && (
-                                                            <deepItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                                            <deepItem.icon className="me-1 h-3 w-3 opacity-70" />
                                                           )}
                                                           <span>{deepItem.title}</span>
                                                         </NavLink>
