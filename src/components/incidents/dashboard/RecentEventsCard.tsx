@@ -68,7 +68,7 @@ function EventRow({ event }: { event: RecentEvent }) {
 export function RecentEventsCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: events, isLoading } = useRecentEvents(5);
+  const { data: events, isLoading } = useRecentEvents(3);
 
   if (isLoading) {
     return (
