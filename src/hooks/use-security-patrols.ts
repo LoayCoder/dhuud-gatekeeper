@@ -195,12 +195,15 @@ export function useStartPatrol() {
         .eq('route_id', routeId)
         .is('deleted_at', null);
 
+      // Get current user id from supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from('security_patrols')
         .insert({
           tenant_id: profile.tenant_id,
           route_id: routeId,
-          guard_id: profile.id,
+          guard_id: user?.id,
           scheduled_start_time: scheduledStart,
           actual_start: new Date().toISOString(),
           status: 'in_progress',

@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useAdjustPartStock, type MaintenancePart } from '@/hooks/use-maintenance-parts';
+import { useUpdateMaintenancePart, type MaintenancePart } from '@/hooks/use-maintenance-parts';
 
 const adjustmentSchema = z.object({
   quantity: z.number().min(1, 'Quantity must be at least 1'),
@@ -47,7 +47,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
 
-  const adjustStock = useAdjustPartStock();
+  const updatePart = useUpdateMaintenancePart();
 
   const form = useForm<AdjustmentFormValues>({
     resolver: zodResolver(adjustmentSchema),
@@ -65,13 +65,16 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
     if (!part) return;
 
     const quantityChange = values.direction === 'add' ? values.quantity : -values.quantity;
+    const newStock = (part.quantity_in_stock ?? 0) + quantityChange;
+
+    if (newStock < 0) {
+      return;
+    }
 
     try {
-      await adjustStock.mutateAsync({
-        partId: part.id,
-        quantityChange,
-        usageType: values.usage_type,
-        reason: values.reason,
+      await updatePart.mutateAsync({
+        id: part.id,
+        quantity_in_stock: newStock,
       });
       onOpenChange(false);
       form.reset();
@@ -81,7 +84,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
   };
 
   const newQuantity = part 
-    ? part.quantity_on_hand + (watchDirection === 'add' ? form.watch('quantity') : -form.watch('quantity'))
+    ? (part.quantity_in_stock ?? 0) + (watchDirection === 'add' ? form.watch('quantity') : -form.watch('quantity'))
     : 0;
 
   return (
@@ -98,7 +101,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="p-4 rounded-lg bg-muted text-center">
               <p className="text-sm text-muted-foreground">{t('parts.currentStock', 'Current Stock')}</p>
-              <p className="text-3xl font-bold">{part?.quantity_on_hand || 0}</p>
+              <p className="text-3xl font-bold">{part?.quantity_in_stock ?? 0}</p>
               <p className="text-xs text-muted-foreground">{part?.unit_of_measure}</p>
             </div>
 
@@ -193,7 +196,7 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
               <p className={`text-3xl font-bold ${newQuantity < 0 ? 'text-destructive' : ''}`}>
                 {newQuantity}
               </p>
-              {newQuantity < (part?.minimum_quantity || 0) && newQuantity >= 0 && (
+              {newQuantity < (part?.min_stock_level ?? 0) && newQuantity >= 0 && (
                 <p className="text-xs text-warning">{t('parts.belowMinimum', 'Below minimum level')}</p>
               )}
               {newQuantity < 0 && (
@@ -205,8 +208,8 @@ export function StockAdjustmentDialog({ open, onOpenChange, part }: StockAdjustm
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('common.cancel', 'Cancel')}
               </Button>
-              <Button type="submit" disabled={adjustStock.isPending || newQuantity < 0}>
-                {adjustStock.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={updatePart.isPending || newQuantity < 0}>
+                {updatePart.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('parts.confirmAdjustment', 'Confirm Adjustment')}
               </Button>
             </DialogFooter>
