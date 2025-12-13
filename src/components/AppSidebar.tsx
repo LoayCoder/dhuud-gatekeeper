@@ -120,7 +120,8 @@ export function AppSidebar() {
       menuCode: 'hsse_management',
       isActive: location.pathname.startsWith("/incidents") || 
                 location.pathname.startsWith("/audits") || 
-                location.pathname.startsWith("/visitors"),
+                location.pathname.startsWith("/visitors") ||
+                location.pathname.startsWith("/security"),
       items: [
         {
           title: t('navigation.hsseEvents'),
@@ -193,10 +194,10 @@ export function AppSidebar() {
           ],
         },
         {
-          title: t('navigation.visitorGatekeeper'),
-          icon: Users,
-          menuCode: 'visitor_gatekeeper',
-          isActive: location.pathname.startsWith("/visitors"),
+          title: t('navigation.security'),
+          icon: Shield,
+          menuCode: 'security',
+          isActive: location.pathname.startsWith("/visitors") || location.pathname.startsWith("/security"),
           subItems: [
             {
               title: t('security.visitors.dashboard', 'Visitor Dashboard'),
@@ -228,18 +229,10 @@ export function AppSidebar() {
               icon: ShieldAlert,
               menuCode: 'visitor_blacklist',
             },
-          ],
-        },
-        {
-          title: t('security.patrols.title', 'Security Patrols'),
-          icon: Shield,
-          menuCode: 'security_patrols',
-          isActive: location.pathname.startsWith("/security/patrols"),
-          subItems: [
             {
               title: t('security.patrols.dashboard', 'Patrol Dashboard'),
               url: "/security/patrols",
-              icon: LayoutDashboard,
+              icon: Network,
               menuCode: 'patrol_dashboard',
             },
             {
