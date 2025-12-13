@@ -436,26 +436,26 @@ export default function HSSEEventDashboard() {
           </SelectContent>
         </Select>
 
-        <Select value={branchId} onValueChange={setBranchId}>
+        <Select value={branchId || 'all'} onValueChange={(v) => setBranchId(v === 'all' ? '' : v)}>
           <SelectTrigger className="w-[160px] h-8">
             <Building2 className="me-2 h-4 w-4" />
             <SelectValue placeholder={t('common.allBranches', 'All Branches')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.allBranches', 'All Branches')}</SelectItem>
+            <SelectItem value="all">{t('common.allBranches', 'All Branches')}</SelectItem>
             {branches?.map((branch) => (
               <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={siteId} onValueChange={setSiteId} disabled={!branchId}>
+        <Select value={siteId || 'all'} onValueChange={(v) => setSiteId(v === 'all' ? '' : v)} disabled={!branchId}>
           <SelectTrigger className="w-[160px] h-8">
             <MapPin className="me-2 h-4 w-4" />
             <SelectValue placeholder={t('common.allSites', 'All Sites')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.allSites', 'All Sites')}</SelectItem>
+            <SelectItem value="all">{t('common.allSites', 'All Sites')}</SelectItem>
             {sites?.map((site) => (
               <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
             ))}
