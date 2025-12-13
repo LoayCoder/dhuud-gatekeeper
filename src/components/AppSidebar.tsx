@@ -194,9 +194,67 @@ export function AppSidebar() {
         },
         {
           title: t('navigation.visitorGatekeeper'),
-          url: "/visitors",
           icon: Users,
           menuCode: 'visitor_gatekeeper',
+          isActive: location.pathname.startsWith("/visitors"),
+          subItems: [
+            {
+              title: t('security.visitors.dashboard', 'Visitor Dashboard'),
+              url: "/visitors",
+              icon: LayoutDashboard,
+              menuCode: 'visitor_dashboard',
+            },
+            {
+              title: t('security.visitors.preRegister', 'Pre-Register'),
+              url: "/visitors/register",
+              icon: Plus,
+              menuCode: 'visitor_register',
+            },
+            {
+              title: t('security.visitors.checkpoint', 'Checkpoint'),
+              url: "/visitors/checkpoint",
+              icon: Shield,
+              menuCode: 'visitor_checkpoint',
+            },
+            {
+              title: t('security.visitors.list', 'Visitor List'),
+              url: "/visitors/list",
+              icon: List,
+              menuCode: 'visitor_list',
+            },
+            {
+              title: t('security.visitors.blacklist', 'Blacklist'),
+              url: "/visitors/blacklist",
+              icon: ShieldAlert,
+              menuCode: 'visitor_blacklist',
+            },
+          ],
+        },
+        {
+          title: t('security.patrols.title', 'Security Patrols'),
+          icon: Shield,
+          menuCode: 'security_patrols',
+          isActive: location.pathname.startsWith("/security/patrols"),
+          subItems: [
+            {
+              title: t('security.patrols.dashboard', 'Patrol Dashboard'),
+              url: "/security/patrols",
+              icon: LayoutDashboard,
+              menuCode: 'patrol_dashboard',
+            },
+            {
+              title: t('security.patrols.routes', 'Patrol Routes'),
+              url: "/security/patrols/routes",
+              icon: Network,
+              menuCode: 'patrol_routes',
+            },
+            {
+              title: t('security.patrols.history', 'Patrol History'),
+              url: "/security/patrols/history",
+              icon: Clock,
+              menuCode: 'patrol_history',
+            },
+          ],
         },
         {
           title: t('navigation.assetManagement'),

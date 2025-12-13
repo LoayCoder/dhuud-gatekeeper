@@ -12,6 +12,7 @@ import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { HSSERoute } from "./components/HSSERoute";
+import { SecurityRoute } from "./components/SecurityRoute";
 import MainLayout from "./components/layout/MainLayout";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
@@ -59,6 +60,19 @@ const InspectionDashboard = lazy(() => import(/* webpackChunkName: "inspections-
 const InspectionSchedules = lazy(() => import(/* webpackChunkName: "inspections-schedules" */ "./pages/inspections/InspectionSchedules"));
 const MyInspectionActions = lazy(() => import(/* webpackChunkName: "inspections-my-actions" */ "./pages/inspections/MyInspectionActions"));
 const AuditSessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-audit-workspace" */ "./pages/inspections/AuditSessionWorkspace"));
+
+// Visitor pages - lazy loaded
+const VisitorDashboard = lazy(() => import(/* webpackChunkName: "visitors-dashboard" */ "./pages/visitors/VisitorDashboard"));
+const VisitorPreRegistration = lazy(() => import(/* webpackChunkName: "visitors-register" */ "./pages/visitors/VisitorPreRegistration"));
+const VisitorCheckpoint = lazy(() => import(/* webpackChunkName: "visitors-checkpoint" */ "./pages/visitors/VisitorCheckpoint"));
+const VisitorList = lazy(() => import(/* webpackChunkName: "visitors-list" */ "./pages/visitors/VisitorList"));
+const BlacklistManagement = lazy(() => import(/* webpackChunkName: "visitors-blacklist" */ "./pages/visitors/BlacklistManagement"));
+
+// Security patrol pages - lazy loaded
+const PatrolDashboard = lazy(() => import(/* webpackChunkName: "security-patrol-dashboard" */ "./pages/security/PatrolDashboard"));
+const PatrolRoutes = lazy(() => import(/* webpackChunkName: "security-patrol-routes" */ "./pages/security/PatrolRoutes"));
+const ExecutePatrol = lazy(() => import(/* webpackChunkName: "security-execute-patrol" */ "./pages/security/ExecutePatrol"));
+const PatrolHistory = lazy(() => import(/* webpackChunkName: "security-patrol-history" */ "./pages/security/PatrolHistory"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -141,7 +155,19 @@ const App = () => (
                       <Route path="/incidents/my-actions" element={<MyActions />} />
                       <Route path="/incidents/dashboard" element={<HSSERoute><HSSEEventDashboard /></HSSERoute>} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
-                      <Route path="/visitors" element={<PlaceholderPage titleKey="pages.visitors.title" descriptionKey="pages.visitors.description" />} />
+                      
+                      {/* Visitor Routes */}
+                      <Route path="/visitors" element={<SecurityRoute><VisitorDashboard /></SecurityRoute>} />
+                      <Route path="/visitors/register" element={<SecurityRoute><VisitorPreRegistration /></SecurityRoute>} />
+                      <Route path="/visitors/checkpoint" element={<SecurityRoute><VisitorCheckpoint /></SecurityRoute>} />
+                      <Route path="/visitors/list" element={<SecurityRoute><VisitorList /></SecurityRoute>} />
+                      <Route path="/visitors/blacklist" element={<SecurityRoute><BlacklistManagement /></SecurityRoute>} />
+
+                      {/* Security Patrol Routes */}
+                      <Route path="/security/patrols" element={<SecurityRoute><PatrolDashboard /></SecurityRoute>} />
+                      <Route path="/security/patrols/routes" element={<SecurityRoute><PatrolRoutes /></SecurityRoute>} />
+                      <Route path="/security/patrols/execute" element={<SecurityRoute><ExecutePatrol /></SecurityRoute>} />
+                      <Route path="/security/patrols/history" element={<SecurityRoute><PatrolHistory /></SecurityRoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
