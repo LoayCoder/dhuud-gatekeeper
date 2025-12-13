@@ -135,12 +135,6 @@ export function AppSidebar() {
               menuCode: 'event_dashboard',
             },
             {
-              title: t('navigation.managerKPIDashboard', 'Manager KPI Dashboard'),
-              url: "/incidents/manager-dashboard",
-              icon: BarChart3,
-              menuCode: 'manager_kpi_dashboard',
-            },
-            {
               title: t('navigation.eventList'),
               url: "/incidents",
               icon: FileWarning,
