@@ -19,6 +19,9 @@ export interface DashboardSummary {
   total_investigations: number;
   investigations_open: number;
   investigations_closed: number;
+  // Near miss analysis
+  near_miss_count?: number;
+  near_miss_rate?: number;
 }
 
 export interface StatusDistribution {
@@ -65,6 +68,12 @@ export interface ActionStats {
   actions_closed: number;
   actions_in_progress: number;
   actions_pending_verification: number;
+  overdue_rate?: number;
+  avg_completion_days?: number;
+}
+
+export interface SubtypeDistribution {
+  [key: string]: number;
 }
 
 export interface HSSEEventDashboardData {
@@ -72,6 +81,7 @@ export interface HSSEEventDashboardData {
   by_status: StatusDistribution;
   by_severity: SeverityDistribution;
   by_event_type: EventTypeDistribution;
+  by_subtype?: SubtypeDistribution;
   monthly_trend: MonthlyTrendItem[];
   actions: ActionStats;
 }

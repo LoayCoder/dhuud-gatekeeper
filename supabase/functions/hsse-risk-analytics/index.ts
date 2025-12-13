@@ -21,7 +21,9 @@ serve(async (req) => {
     // Build context from dashboard data (no PII, only aggregated stats)
     const context = buildAnalysisContext(dashboardData);
     
-    const systemPrompt = `You are an expert HSSE (Health, Safety, Security, Environment) Risk Analyst AI with deep expertise in predictive safety analytics. 
+    console.log("AI Context built:", context.substring(0, 500) + "...");
+    
+    const systemPrompt = `You are an expert HSSE (Health, Safety, Security, Environment) Risk Analyst AI with deep expertise in predictive safety analytics and ISO 45001 compliance.
 Your role is to analyze incident and event data to identify patterns, anomalies, emerging hazards, and provide proactive risk predictions.
 You must respond in ${language === 'ar' ? 'Arabic' : language === 'ur' ? 'Urdu' : language === 'hi' ? 'Hindi' : language === 'fil' ? 'Filipino' : 'English'}.
 
@@ -104,7 +106,16 @@ Return your analysis in the following JSON structure:
   "summary": "A 2-3 sentence executive summary of the key findings and most critical actions needed."
 }
 
-IMPORTANT: Generate at least 2-3 items for each category based on the data provided. If data is limited, make reasonable inferences based on industry patterns.`;
+CRITICAL ANALYSIS GUIDELINES:
+1. Generate at least 2-3 items for each category based on the data provided
+2. Be SPECIFIC with location names, department names, and timeframes from the data
+3. Calculate risk scores based on: incident count (40%), severity (30%), overdue actions (20%), trend direction (10%)
+4. For branch/department scores: 80-100 = critical, 60-79 = high, 40-59 = medium, 0-39 = low
+5. Identify leading indicators from near-miss rates and observation behaviors
+6. Use month-over-month trends to predict future incidents
+7. Prioritize systemic issues that affect multiple locations
+8. Consider the observation positive/negative ratio as a behavioral safety indicator
+9. If overdue action rate > 20%, flag as critical risk indicator`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
