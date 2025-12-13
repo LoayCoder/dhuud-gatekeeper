@@ -669,6 +669,7 @@
       "verificationNotesPlaceholder": "Mga opsyonal na tala tungkol sa beripikasyong ito...",
       "rejectionNotes": "Mga Tala ng Pagtanggi",
       "rejectionNotesPlaceholder": "Ipaliwanag kung bakit tinatanggihan ang aksyong ito...",
+      "rejectionNotesRequired": "Mangyaring magbigay ng dahilan ng pagtanggi",
       "rejectWarning": "Ang pagtanggi ay magbabalik ng aksyon sa assignee.",
       "actionVerified": "Matagumpay na na-verify ang aksyon",
       "actionRejected": "Tinanggihan ang aksyon at ibinalik sa assignee",

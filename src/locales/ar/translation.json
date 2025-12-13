@@ -697,6 +697,7 @@
       "verificationNotesPlaceholder": "ملاحظات اختيارية حول هذا التحقق...",
       "rejectionNotes": "ملاحظات الرفض",
       "rejectionNotesPlaceholder": "اشرح سبب رفض هذا الإجراء...",
+      "rejectionNotesRequired": "يرجى تقديم سبب الرفض",
       "rejectWarning": "الرفض سيعيد الإجراء إلى المكلف به.",
       "actionVerified": "تم التحقق من الإجراء بنجاح",
       "actionRejected": "تم رفض الإجراء وإعادته إلى المكلف به",

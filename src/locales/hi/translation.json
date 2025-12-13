@@ -669,6 +669,7 @@
       "verificationNotesPlaceholder": "इस सत्यापन के बारे में वैकल्पिक नोट्स...",
       "rejectionNotes": "अस्वीकृति नोट्स",
       "rejectionNotesPlaceholder": "बताएं कि यह कार्रवाई क्यों अस्वीकार की जा रही है...",
+      "rejectionNotesRequired": "कृपया अस्वीकृति का कारण बताएं",
       "rejectWarning": "अस्वीकार करने से कार्रवाई असाइनी को वापस हो जाएगी।",
       "actionVerified": "कार्रवाई सफलतापूर्वक सत्यापित",
       "actionRejected": "कार्रवाई अस्वीकृत और असाइनी को वापस की गई",

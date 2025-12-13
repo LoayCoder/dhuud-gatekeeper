@@ -248,7 +248,7 @@ export function ActionVerificationDialog({
           <div className="space-y-2">
             <Label htmlFor="notes">
               {isRejecting 
-                ? t('investigation.approvals.rejectionNotes', 'Rejection Notes')
+                ? <>{t('investigation.approvals.rejectionNotes', 'Rejection Notes')} <span className="text-destructive">*</span></>
                 : t('investigation.approvals.verificationNotes', 'Verification Notes')
               }
             </Label>
@@ -262,7 +262,13 @@ export function ActionVerificationDialog({
                   : t('investigation.approvals.verificationNotesPlaceholder', 'Optional notes about this verification...')
               }
               rows={3}
+              className={isRejecting && notes.trim().length === 0 ? 'border-destructive' : ''}
             />
+            {isRejecting && notes.trim().length === 0 && (
+              <p className="text-xs text-destructive">
+                {t('investigation.approvals.rejectionNotesRequired', 'Please provide a reason for rejection')}
+              </p>
+            )}
           </div>
 
           {isRejecting && (
@@ -298,7 +304,7 @@ export function ActionVerificationDialog({
               <Button 
                 variant="destructive"
                 onClick={handleReject}
-                disabled={verifyAction.isPending}
+                disabled={verifyAction.isPending || notes.trim().length === 0}
               >
                 <XCircle className="h-4 w-4 me-2" />
                 {t('investigation.approvals.confirmReject', 'Confirm Rejection')}
