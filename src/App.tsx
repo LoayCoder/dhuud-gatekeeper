@@ -84,6 +84,7 @@ const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-
 const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-access" */ "./pages/admin/MenuAccessConfig"));
 const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-diagrams" */ "./pages/admin/WorkflowDiagrams"));
 const ManhoursManagement = lazy(() => import(/* webpackChunkName: "admin-manhours" */ "./pages/admin/ManhoursManagement"));
+const KPITargetsManagement = lazy(() => import(/* webpackChunkName: "admin-kpi-targets" */ "./pages/admin/KPITargetsManagement"));
 
 const queryClient = new QueryClient();
 

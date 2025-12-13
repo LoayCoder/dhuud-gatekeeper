@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface LaggingIndicators {
+export interface LaggingIndicators {
   trir: number;
   ltifr: number;
   dart_rate: number;
@@ -15,7 +15,7 @@ interface LaggingIndicators {
   total_manhours: number;
 }
 
-interface LeadingIndicators {
+export interface LeadingIndicators {
   near_miss_rate: number;
   observation_completion_pct: number;
   action_closure_pct: number;
@@ -28,7 +28,7 @@ interface LeadingIndicators {
   total_hazards: number;
 }
 
-interface ResponseMetrics {
+export interface ResponseMetrics {
   avg_investigation_days: number;
   within_target_pct: number;
   repeat_incident_rate: number;
@@ -36,7 +36,7 @@ interface ResponseMetrics {
   total_incidents: number;
 }
 
-interface PeopleMetrics {
+export interface PeopleMetrics {
   total_manhours: number;
   employee_hours: number;
   contractor_hours: number;
@@ -47,7 +47,7 @@ interface PeopleMetrics {
   contractor_pct: number;
 }
 
-interface KPITarget {
+export interface KPITarget {
   id: string;
   kpi_code: string;
   target_value: number;
