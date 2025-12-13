@@ -52,11 +52,11 @@ export default function PatrolHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-500">{t('security.patrols.completed', 'Completed')}</Badge>;
+        return <Badge variant="default" className="bg-green-500">{t('security.patrols.status.completed', 'Completed')}</Badge>;
       case 'in_progress':
-        return <Badge variant="default">{t('security.patrols.inProgress', 'In Progress')}</Badge>;
+        return <Badge variant="default">{t('security.patrols.status.active', 'In Progress')}</Badge>;
       case 'missed':
-        return <Badge variant="destructive">{t('security.patrols.missed', 'Missed')}</Badge>;
+        return <Badge variant="destructive">{t('security.patrols.status.missed', 'Missed')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -77,10 +77,10 @@ export default function PatrolHistory() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('security.patrols.history', 'Patrol History')}
+            {t('security.patrols.history.title', 'Patrol History')}
           </h1>
           <p className="text-muted-foreground">
-            {t('security.patrols.historyDescription', 'View completed patrols and checkpoint logs')}
+            {t('security.patrols.history.description', 'View completed patrols and checkpoint logs')}
           </p>
         </div>
         <Button variant="outline" className="gap-2">
@@ -96,13 +96,13 @@ export default function PatrolHistory() {
             <div className="flex-1">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('security.patrols.filterByStatus', 'Filter by status')} />
+                  <SelectValue placeholder={t('security.patrols.history.filterByStatus', 'Filter by status')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                  <SelectItem value="completed">{t('security.patrols.completed', 'Completed')}</SelectItem>
-                  <SelectItem value="in_progress">{t('security.patrols.inProgress', 'In Progress')}</SelectItem>
-                  <SelectItem value="missed">{t('security.patrols.missed', 'Missed')}</SelectItem>
+                  <SelectItem value="completed">{t('security.patrols.status.completed', 'Completed')}</SelectItem>
+                  <SelectItem value="in_progress">{t('security.patrols.status.active', 'In Progress')}</SelectItem>
+                  <SelectItem value="missed">{t('security.patrols.status.missed', 'Missed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -111,7 +111,7 @@ export default function PatrolHistory() {
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                placeholder={t('security.patrols.filterByDate', 'Filter by date')}
+                placeholder={t('security.patrols.history.filterByDate', 'Filter by date')}
               />
             </div>
           </div>
@@ -121,9 +121,9 @@ export default function PatrolHistory() {
       {/* Patrols Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('security.patrols.patrolRecords', 'Patrol Records')}</CardTitle>
+          <CardTitle>{t('security.patrols.history.patrolRecords', 'Patrol Records')}</CardTitle>
           <CardDescription>
-            {filteredPatrols.length} {t('security.patrols.recordsFound', 'records found')}
+            {filteredPatrols.length} {t('security.patrols.history.recordsFound', 'records found')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,11 +138,11 @@ export default function PatrolHistory() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('security.patrols.route', 'Route')}</TableHead>
-                    <TableHead>{t('security.patrols.guard', 'Guard')}</TableHead>
-                    <TableHead>{t('security.patrols.date', 'Date')}</TableHead>
-                    <TableHead>{t('security.patrols.duration', 'Duration')}</TableHead>
-                    <TableHead>{t('security.patrols.status', 'Status')}</TableHead>
+                    <TableHead>{t('security.patrols.history.route', 'Route')}</TableHead>
+                    <TableHead>{t('security.patrols.history.guard', 'Guard')}</TableHead>
+                    <TableHead>{t('security.patrols.history.date', 'Date')}</TableHead>
+                    <TableHead>{t('security.patrols.history.duration', 'Duration')}</TableHead>
+                    <TableHead>{t('security.patrols.history.status', 'Status')}</TableHead>
                     <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -189,10 +189,10 @@ export default function PatrolHistory() {
             <div className="flex flex-col items-center justify-center py-12">
               <Clock className="h-12 w-12 text-muted-foreground/50" />
               <p className="mt-4 text-lg font-medium">
-                {t('security.patrols.noPatrolHistory', 'No patrol history')}
+                {t('security.patrols.history.noPatrolHistory', 'No patrol history')}
               </p>
               <p className="text-muted-foreground">
-                {t('security.patrols.noPatrolHistoryDescription', 'Completed patrols will appear here')}
+                {t('security.patrols.history.noPatrolHistoryDescription', 'Completed patrols will appear here')}
               </p>
             </div>
           )}
