@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -15,6 +14,7 @@ import {
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import { DataFreshnessBadge } from "./DataFreshnessBadge";
+import { WaterfallChartSkeleton } from "./ChartSkeletons";
 
 export interface WaterfallStage {
   stage: string;
@@ -38,17 +38,7 @@ export function IncidentWaterfallChart({ data, isLoading, dataUpdatedAt, isFetch
   const { drillDown } = useDashboardDrilldown();
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64 mt-1" />
-        </CardHeader>
-        <CardContent className="h-[320px] flex items-center justify-center">
-          <Skeleton className="h-[280px] w-full" />
-        </CardContent>
-      </Card>
-    );
+    return <WaterfallChartSkeleton />;
   }
 
   if (!data || data.length === 0) {

@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   ComposedChart,
   Bar,
@@ -17,6 +16,7 @@ import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import { RootCauseDistribution } from "@/hooks/use-rca-analytics";
 import { DataFreshnessBadge } from "./DataFreshnessBadge";
+import { ParetoChartSkeleton } from "./ChartSkeletons";
 
 interface RootCauseParetoChartProps {
   data: RootCauseDistribution[];
@@ -38,17 +38,7 @@ export function RootCauseParetoChart({ data, isLoading, dataUpdatedAt, isFetchin
   const { drillDown } = useDashboardDrilldown();
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64 mt-1" />
-        </CardHeader>
-        <CardContent className="h-[320px] flex items-center justify-center">
-          <Skeleton className="h-[280px] w-full" />
-        </CardContent>
-      </Card>
-    );
+    return <ParetoChartSkeleton />;
   }
 
   if (!data || data.length === 0) {
