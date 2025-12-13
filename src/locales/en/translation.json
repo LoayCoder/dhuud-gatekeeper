@@ -735,6 +735,7 @@
       "verificationNotesPlaceholder": "Optional notes about this verification...",
       "rejectionNotes": "Rejection Notes",
       "rejectionNotesPlaceholder": "Explain why this action is being rejected...",
+      "rejectionNotesRequired": "Please provide a reason for rejection",
       "rejectWarning": "Rejecting will return the action to the assignee.",
       "actionVerified": "Action verified successfully",
       "actionRejected": "Action rejected and returned to assignee",
