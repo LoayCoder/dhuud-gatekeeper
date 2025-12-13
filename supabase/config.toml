@@ -65,3 +65,24 @@ verify_jwt = false
 
 [functions.email-retry-processor]
 verify_jwt = false
+
+[functions.anpr-scan-plate]
+verify_jwt = true
+
+[functions.send-gate-whatsapp]
+verify_jwt = false
+
+[functions.validate-contractor]
+verify_jwt = true
+
+[functions.send-contractor-alert]
+verify_jwt = false
+
+[functions.track-guard-location]
+verify_jwt = true
+
+[functions.check-geofence-compliance]
+verify_jwt = false
+
+[functions.generate-shift-report]
+verify_jwt = true
