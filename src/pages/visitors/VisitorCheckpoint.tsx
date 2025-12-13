@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { QrCode, Search, CheckCircle2, LogOut, AlertTriangle, User, Building, Calendar, ShieldAlert } from 'lucide-react';
+import { QrCode, Search, CheckCircle2, LogOut, AlertTriangle, User, Building, Calendar, ShieldAlert, MapPin } from 'lucide-react';
 import { useVisitorByQRToken } from '@/hooks/use-visitors';
 import { useVisitRequests, useCheckInVisitor, useCheckOutVisitor } from '@/hooks/use-visit-requests';
 import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
@@ -191,8 +191,8 @@ export default function VisitorCheckpoint() {
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-sm">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{t('visitors.host')}: {currentRequest.host?.full_name}</span>
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{t('visitors.site')}: {currentRequest.site?.name}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />

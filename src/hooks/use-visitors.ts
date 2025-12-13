@@ -14,7 +14,8 @@ interface UseVisitorsFilters {
 }
 
 export function useVisitors(filters?: UseVisitorsFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['visitors', tenantId, filters],
@@ -44,7 +45,8 @@ export function useVisitors(filters?: UseVisitorsFilters) {
 }
 
 export function useVisitor(id: string | undefined) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['visitor', id],
@@ -68,7 +70,8 @@ export function useVisitor(id: string | undefined) {
 export function useCreateVisitor() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
     mutationFn: async (visitor: Omit<VisitorInsert, 'tenant_id' | 'qr_code_token'>) => {
@@ -127,7 +130,8 @@ export function useUpdateVisitor() {
 }
 
 export function useVisitorByQRToken(token: string | undefined) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
     queryKey: ['visitor-qr', token],

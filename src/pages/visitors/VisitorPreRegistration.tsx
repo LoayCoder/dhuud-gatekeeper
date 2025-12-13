@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowStart, UserPlus, QrCode, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, QrCode, CheckCircle2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -121,7 +121,7 @@ export default function VisitorPreRegistration() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/visitors')}>
-          <ArrowStart className="h-4 w-4 rtl:rotate-180" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold">{t('visitors.register.title')}</h1>
