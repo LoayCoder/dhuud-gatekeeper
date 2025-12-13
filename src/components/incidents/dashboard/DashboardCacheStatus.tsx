@@ -20,7 +20,8 @@ export function DashboardCacheStatus({ cacheInfos, className = "" }: DashboardCa
 
   const isAnyFetching = cacheInfos.some(c => c.isFetching);
   const isAnyStale = cacheInfos.some(c => c.isStale);
-  const latestUpdate = Math.max(...cacheInfos.map(c => c.dataUpdatedAt || 0).filter(Boolean));
+  const validUpdates = cacheInfos.map(c => c.dataUpdatedAt || 0).filter(v => v > 0);
+  const latestUpdate = validUpdates.length > 0 ? Math.max(...validUpdates) : 0;
 
   const getOverallStatus = () => {
     if (isAnyFetching) {
@@ -51,7 +52,7 @@ export function DashboardCacheStatus({ cacheInfos, className = "" }: DashboardCa
 
   const { icon: Icon, label, className: statusClassName, iconClass } = getOverallStatus();
   
-  const lastUpdatedTime = latestUpdate 
+  const lastUpdatedTime = latestUpdate > 0
     ? format(new Date(latestUpdate), 'HH:mm:ss')
     : null;
 
