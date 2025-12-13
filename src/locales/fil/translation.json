@@ -1538,7 +1538,89 @@
     "passwordBreachedWarning": "Ang iyong password ay natagpuan sa {{count}} data breaches. Mangyaring palitan ito sa Profile → Security.",
     "restrictedAccess": "Wala kang pahintulot na tingnan ang impormasyong ito",
     "sensitiveDataHidden": "Sensitibong data ay nakatago para sa seguridad",
-    "clickToReveal": "I-click upang ipakita"
+    "clickToReveal": "I-click upang ipakita",
+    "visitors": {
+      "dashboard": "Dashboard ng Bisita",
+      "preRegister": "Pre-Register",
+      "checkpoint": "Checkpoint",
+      "list": "Listahan ng Bisita",
+      "blacklist": "Blacklist"
+    },
+    "patrols": {
+      "title": "Security Patrols",
+      "description": "Pamahalaan ang patrol routes at subaybayan ang aktibidad ng mga guwardiya",
+      "dashboard": {
+        "title": "Patrol Dashboard",
+        "description": "Pangkalahatang-ideya ng patrol operations",
+        "activePatrols": "Aktibong Patrols",
+        "completedToday": "Nakumpleto Ngayon",
+        "totalRoutes": "Kabuuang Routes",
+        "complianceRate": "Rate ng Pagsunod",
+        "noActivePatrols": "Walang aktibong patrols",
+        "quickLinks": "Mabilisang Links",
+        "manageRoutes": "Pamahalaan ang Routes",
+        "patrolHistory": "Kasaysayan ng Patrol"
+      },
+      "routes": {
+        "title": "Patrol Routes",
+        "description": "Gumawa at pamahalaan ang patrol routes",
+        "create": "Gumawa ng Route",
+        "createTitle": "Gumawa ng Bagong Route",
+        "createDescription": "Tukuyin ang bagong patrol route na may mga checkpoint",
+        "name": "Pangalan ng Route",
+        "namePlaceholder": "Ilagay ang pangalan ng route",
+        "routeDescription": "Paglalarawan",
+        "descriptionPlaceholder": "Ilarawan ang patrol route",
+        "estimatedDuration": "Tinatayang Tagal (minuto)",
+        "checkpoints": "Mga Checkpoint",
+        "noRoutes": "Walang nahanap na patrol routes",
+        "noRoutesDescription": "Gumawa ng iyong unang patrol route upang magsimula",
+        "edit": "I-edit",
+        "delete": "Burahin"
+      },
+      "execution": {
+        "title": "Aktibong Patrol",
+        "start": "Simulan ang Patrol",
+        "startDescription": "Magsimula ng bagong patrol session",
+        "selectRoute": "Pumili ng Route",
+        "selectRoutePlaceholder": "Pumili ng patrol route",
+        "inProgress": "Patrol ay Nagaganap",
+        "complete": "Kumpletuhin ang Patrol",
+        "completeConfirm": "Sigurado ka bang nais mong kumpletuhin ang patrol na ito?",
+        "logCheckpoint": "I-log ang Checkpoint",
+        "gpsRequired": "Kinakailangan ang GPS location",
+        "gpsValidating": "Sine-verify ang GPS location...",
+        "gpsValid": "Na-verify ang lokasyon",
+        "gpsInvalid": "Lokasyon ay nasa labas ng checkpoint area",
+        "notes": "Patrol Notes",
+        "notesPlaceholder": "Magdagdag ng anumang obserbasyon o notes...",
+        "issueFound": "Natagpuan ang Isyu",
+        "issueDescription": "Ilarawan ang isyu"
+      },
+      "history": {
+        "title": "Kasaysayan ng Patrol",
+        "description": "Tingnan ang nakumpletong patrol records",
+        "filter": "Filter",
+        "filterByStatus": "Filter ayon sa Status",
+        "filterByDate": "Filter ayon sa Petsa",
+        "all": "Lahat",
+        "completed": "Nakumpleto",
+        "incomplete": "Hindi Kumpleto",
+        "export": "I-export",
+        "noHistory": "Walang nahanap na kasaysayan ng patrol",
+        "duration": "Tagal",
+        "checkpointsVisited": "Mga Checkpoint na Binisita",
+        "guard": "Guwardiya",
+        "startTime": "Oras ng Pagsisimula",
+        "endTime": "Oras ng Pagtatapos"
+      },
+      "status": {
+        "active": "Aktibo",
+        "completed": "Nakumpleto",
+        "incomplete": "Hindi Kumpleto",
+        "pending": "Nakabinbin"
+      }
+    }
   },
   "dashboard": {
     "welcomeTitle": "Maligayang Pagdating sa Dhuud HSSE Platform",
@@ -3945,6 +4027,87 @@
       "nationalId": "Ilagay ang national ID number",
       "site": "Piliin ang destinasyong site",
       "notes": "Magdagdag ng anumang security notes o instruksyon..."
+    }
+  },
+  "environmental": {
+    "title": "Detalye ng Kapaligiran",
+    "description": "Impormasyon tungkol sa insidente sa kapaligiran",
+    "sections": {
+      "spillRelease": "Impormasyon sa Pagtagas/Paglabas",
+      "containment": "Pagpigil at Paglilinis",
+      "regulatory": "Abiso sa Regulasyon",
+      "emissions": "Mga Emisyon sa Hangin"
+    },
+    "fields": {
+      "substanceType": "Uri ng Substansya",
+      "substanceName": "Pangalan ng Substansya",
+      "casNumber": "CAS Number",
+      "spillVolume": "Dami ng Pagtagas",
+      "spillUnit": "Yunit",
+      "affectedArea": "Apektadong Lugar (sq m)",
+      "affectedMedium": "Apektadong Medium",
+      "reachedWaterway": "Umabot sa Waterway",
+      "waterwayName": "Pangalan ng Waterway",
+      "containmentMethod": "Paraan ng Pagpigil",
+      "containmentSuccessful": "Matagumpay ang Pagpigil",
+      "cleanupRequired": "Kinakailangan ang Paglilinis",
+      "cleanupContractor": "Contractor sa Paglilinis",
+      "cleanupCompleted": "Nakumpleto ang Paglilinis",
+      "cleanupCompletedAt": "Petsa ng Pagkumpleto ng Paglilinis",
+      "estimatedCleanupCost": "Tinatayang Gastos sa Paglilinis (SAR)",
+      "actualCleanupCost": "Aktwal na Gastos sa Paglilinis (SAR)",
+      "regulatoryNotificationRequired": "Kinakailangan ang Abiso sa Regulasyon",
+      "reportableQuantityExceeded": "Lumampas sa Reportable Quantity",
+      "regulatoryAgency": "Regulatory Agency",
+      "regulatoryNotificationSentAt": "Petsa ng Pagpapadala ng Abiso",
+      "regulatoryReferenceNumber": "Reference Number",
+      "emissionType": "Uri ng Emisyon",
+      "estimatedEmissionKg": "Tinatayang Emisyon (kg)",
+      "emissionDurationHours": "Tagal ng Emisyon (oras)"
+    },
+    "substanceTypes": {
+      "chemical": "Kemikal",
+      "petroleum": "Petrolyo",
+      "wastewater": "Tubig-basura",
+      "hazardous": "Mapanganib na Materyal",
+      "biological": "Biolohikal",
+      "radioactive": "Radioactive",
+      "other": "Iba pa"
+    },
+    "affectedMedia": {
+      "soil": "Lupa",
+      "groundwater": "Tubig sa Ilalim ng Lupa",
+      "surfaceWater": "Tubig sa Ibabaw",
+      "air": "Hangin",
+      "vegetation": "Mga Halaman"
+    },
+    "emissionTypes": {
+      "voc": "VOC (Volatile Organic Compounds)",
+      "particulateMatter": "Particulate Matter",
+      "sulfurDioxide": "Sulfur Dioxide",
+      "nitrogenOxides": "Nitrogen Oxides",
+      "carbonMonoxide": "Carbon Monoxide",
+      "other": "Iba pa"
+    },
+    "spillUnits": {
+      "liters": "Litro",
+      "gallons": "Galon",
+      "barrels": "Bariles",
+      "cubicMeters": "Cubic Meters"
+    },
+    "placeholders": {
+      "substanceName": "Ilagay ang pangalan ng substansya",
+      "casNumber": "hal., 7732-18-5",
+      "waterwayName": "Ilagay ang pangalan ng waterway",
+      "containmentMethod": "Ilarawan ang paraan ng pagpigil na ginamit",
+      "cleanupContractor": "Ilagay ang pangalan ng contractor",
+      "regulatoryAgency": "hal., NCEC, EPA",
+      "regulatoryReferenceNumber": "Ilagay ang reference number"
+    },
+    "tooltips": {
+      "casNumber": "Chemical Abstracts Service registry number",
+      "reportableQuantity": "Dami na nangangailangan ng mandatory regulatory notification",
+      "affectedMedium": "Mga environmental media na naapektuhan ng paglabas"
     }
   }
 }

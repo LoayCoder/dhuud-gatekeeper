@@ -1552,7 +1552,89 @@
     "passwordBreachedWarning": "تم العثور على كلمة المرور الخاصة بك في {{count}} اختراق للبيانات. يرجى تغييرها في الملف الشخصي ← الأمان.",
     "restrictedAccess": "ليس لديك إذن لعرض هذه المعلومات",
     "sensitiveDataHidden": "البيانات الحساسة مخفية للأمان",
-    "clickToReveal": "انقر للكشف"
+    "clickToReveal": "انقر للكشف",
+    "visitors": {
+      "dashboard": "لوحة معلومات الزوار",
+      "preRegister": "التسجيل المسبق",
+      "checkpoint": "نقطة التفتيش",
+      "list": "قائمة الزوار",
+      "blacklist": "القائمة السوداء"
+    },
+    "patrols": {
+      "title": "دوريات الأمن",
+      "description": "إدارة مسارات الدوريات ومراقبة أنشطة الحراس",
+      "dashboard": {
+        "title": "لوحة معلومات الدوريات",
+        "description": "نظرة عامة على عمليات الدوريات",
+        "activePatrols": "الدوريات النشطة",
+        "completedToday": "المكتملة اليوم",
+        "totalRoutes": "إجمالي المسارات",
+        "complianceRate": "معدل الامتثال",
+        "noActivePatrols": "لا توجد دوريات نشطة",
+        "quickLinks": "روابط سريعة",
+        "manageRoutes": "إدارة المسارات",
+        "patrolHistory": "سجل الدوريات"
+      },
+      "routes": {
+        "title": "مسارات الدوريات",
+        "description": "إنشاء وإدارة مسارات الدوريات",
+        "create": "إنشاء مسار",
+        "createTitle": "إنشاء مسار جديد",
+        "createDescription": "تحديد مسار دورية جديد مع نقاط التفتيش",
+        "name": "اسم المسار",
+        "namePlaceholder": "أدخل اسم المسار",
+        "routeDescription": "الوصف",
+        "descriptionPlaceholder": "وصف مسار الدورية",
+        "estimatedDuration": "المدة المقدرة (دقائق)",
+        "checkpoints": "نقاط التفتيش",
+        "noRoutes": "لم يتم العثور على مسارات دوريات",
+        "noRoutesDescription": "أنشئ أول مسار دورية للبدء",
+        "edit": "تعديل",
+        "delete": "حذف"
+      },
+      "execution": {
+        "title": "دورية نشطة",
+        "start": "بدء الدورية",
+        "startDescription": "بدء جلسة دورية جديدة",
+        "selectRoute": "اختر المسار",
+        "selectRoutePlaceholder": "اختر مسار الدورية",
+        "inProgress": "الدورية قيد التنفيذ",
+        "complete": "إكمال الدورية",
+        "completeConfirm": "هل أنت متأكد من إكمال هذه الدورية؟",
+        "logCheckpoint": "تسجيل نقطة التفتيش",
+        "gpsRequired": "موقع GPS مطلوب",
+        "gpsValidating": "جاري التحقق من موقع GPS...",
+        "gpsValid": "تم التحقق من الموقع",
+        "gpsInvalid": "الموقع خارج منطقة نقطة التفتيش",
+        "notes": "ملاحظات الدورية",
+        "notesPlaceholder": "أضف أي ملاحظات أو مشاهدات...",
+        "issueFound": "تم العثور على مشكلة",
+        "issueDescription": "وصف المشكلة"
+      },
+      "history": {
+        "title": "سجل الدوريات",
+        "description": "عرض سجلات الدوريات المكتملة",
+        "filter": "تصفية",
+        "filterByStatus": "تصفية حسب الحالة",
+        "filterByDate": "تصفية حسب التاريخ",
+        "all": "الكل",
+        "completed": "مكتملة",
+        "incomplete": "غير مكتملة",
+        "export": "تصدير",
+        "noHistory": "لم يتم العثور على سجل دوريات",
+        "duration": "المدة",
+        "checkpointsVisited": "نقاط التفتيش التي تمت زيارتها",
+        "guard": "الحارس",
+        "startTime": "وقت البدء",
+        "endTime": "وقت الانتهاء"
+      },
+      "status": {
+        "active": "نشط",
+        "completed": "مكتمل",
+        "incomplete": "غير مكتمل",
+        "pending": "قيد الانتظار"
+      }
+    }
   },
   "dashboard": {
     "welcomeTitle": "مرحبًا بك في منصة ذود للصحة والسلامة",
@@ -4068,6 +4150,87 @@
       "nationalId": "أدخل رقم الهوية الوطنية",
       "site": "اختر الموقع المقصود",
       "notes": "أضف أي ملاحظات أو تعليمات أمنية..."
+    }
+  },
+  "environmental": {
+    "title": "التفاصيل البيئية",
+    "description": "معلومات الحادث البيئي",
+    "sections": {
+      "spillRelease": "معلومات التسرب/الإطلاق",
+      "containment": "الاحتواء والتنظيف",
+      "regulatory": "الإخطار التنظيمي",
+      "emissions": "الانبعاثات الهوائية"
+    },
+    "fields": {
+      "substanceType": "نوع المادة",
+      "substanceName": "اسم المادة",
+      "casNumber": "رقم CAS",
+      "spillVolume": "حجم التسرب",
+      "spillUnit": "الوحدة",
+      "affectedArea": "المساحة المتأثرة (م²)",
+      "affectedMedium": "الوسط المتأثر",
+      "reachedWaterway": "وصل إلى مجرى مائي",
+      "waterwayName": "اسم المجرى المائي",
+      "containmentMethod": "طريقة الاحتواء",
+      "containmentSuccessful": "الاحتواء ناجح",
+      "cleanupRequired": "التنظيف مطلوب",
+      "cleanupContractor": "مقاول التنظيف",
+      "cleanupCompleted": "التنظيف مكتمل",
+      "cleanupCompletedAt": "تاريخ اكتمال التنظيف",
+      "estimatedCleanupCost": "تكلفة التنظيف المقدرة (ريال)",
+      "actualCleanupCost": "تكلفة التنظيف الفعلية (ريال)",
+      "regulatoryNotificationRequired": "الإخطار التنظيمي مطلوب",
+      "reportableQuantityExceeded": "تم تجاوز الكمية الواجب الإبلاغ عنها",
+      "regulatoryAgency": "الجهة التنظيمية",
+      "regulatoryNotificationSentAt": "تاريخ إرسال الإخطار",
+      "regulatoryReferenceNumber": "الرقم المرجعي",
+      "emissionType": "نوع الانبعاث",
+      "estimatedEmissionKg": "الانبعاث المقدر (كجم)",
+      "emissionDurationHours": "مدة الانبعاث (ساعات)"
+    },
+    "substanceTypes": {
+      "chemical": "كيميائي",
+      "petroleum": "بترولي",
+      "wastewater": "مياه صرف",
+      "hazardous": "مادة خطرة",
+      "biological": "بيولوجي",
+      "radioactive": "مشع",
+      "other": "أخرى"
+    },
+    "affectedMedia": {
+      "soil": "تربة",
+      "groundwater": "مياه جوفية",
+      "surfaceWater": "مياه سطحية",
+      "air": "هواء",
+      "vegetation": "نباتات"
+    },
+    "emissionTypes": {
+      "voc": "مركبات عضوية متطايرة",
+      "particulateMatter": "جسيمات دقيقة",
+      "sulfurDioxide": "ثاني أكسيد الكبريت",
+      "nitrogenOxides": "أكاسيد النيتروجين",
+      "carbonMonoxide": "أول أكسيد الكربون",
+      "other": "أخرى"
+    },
+    "spillUnits": {
+      "liters": "لترات",
+      "gallons": "جالونات",
+      "barrels": "براميل",
+      "cubicMeters": "متر مكعب"
+    },
+    "placeholders": {
+      "substanceName": "أدخل اسم المادة",
+      "casNumber": "مثال: 7732-18-5",
+      "waterwayName": "أدخل اسم المجرى المائي",
+      "containmentMethod": "صف طريقة الاحتواء المستخدمة",
+      "cleanupContractor": "أدخل اسم المقاول",
+      "regulatoryAgency": "مثال: NCEC، EPA",
+      "regulatoryReferenceNumber": "أدخل الرقم المرجعي"
+    },
+    "tooltips": {
+      "casNumber": "رقم سجل خدمة الملخصات الكيميائية",
+      "reportableQuantity": "الكمية التي تتطلب إخطاراً تنظيمياً إلزامياً",
+      "affectedMedium": "الوسائط البيئية المتأثرة بالإطلاق"
     }
   }
 }
