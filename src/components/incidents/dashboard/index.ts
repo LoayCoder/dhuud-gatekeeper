@@ -43,3 +43,6 @@ export { PeopleMetricsCard } from './PeopleMetricsCard';
 export { KPIAlertsBanner } from './KPIAlertsBanner';
 export { IncidentMetricsCard } from './IncidentMetricsCard';
 export { KPIDashboardExport } from './KPIDashboardExport';
+export { KPISparkline } from './KPISparkline';
+export { KPITrendCard } from './KPITrendCard';
+export { KPIHistoricalTrendChart } from './KPIHistoricalTrendChart';

@@ -5698,6 +5698,42 @@ export type Database = {
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
+      get_kpi_historical_trend: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: {
+          action_closure_pct: number
+          dart: number
+          ltifr: number
+          month: string
+          near_miss_rate: number
+          severity_rate: number
+          total_incidents: number
+          total_manhours: number
+          trir: number
+        }[]
+      }
+      get_kpi_period_comparison: {
+        Args: {
+          p_branch_id?: string
+          p_current_end: string
+          p_current_start: string
+          p_previous_end: string
+          p_previous_start: string
+          p_site_id?: string
+        }
+        Returns: {
+          current_value: number
+          metric_name: string
+          percent_change: number
+          previous_value: number
+          trend_direction: string
+        }[]
+      }
       get_lagging_indicators: {
         Args: {
           p_branch_id?: string
