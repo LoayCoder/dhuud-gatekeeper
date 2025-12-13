@@ -90,10 +90,10 @@ export default function PatrolRoutes() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('security.patrols.routes', 'Patrol Routes')}
+            {t('security.patrols.routes.title', 'Patrol Routes')}
           </h1>
           <p className="text-muted-foreground">
-            {t('security.patrols.routesDescription', 'Configure and manage patrol routes and checkpoints')}
+            {t('security.patrols.routes.description', 'Configure and manage patrol routes and checkpoints')}
           </p>
         </div>
 
@@ -101,14 +101,14 @@ export default function PatrolRoutes() {
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              {t('security.patrols.createRoute', 'Create Route')}
+              {t('security.patrols.routes.create', 'Create Route')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('security.patrols.createRoute', 'Create Route')}</DialogTitle>
+              <DialogTitle>{t('security.patrols.routes.create', 'Create Route')}</DialogTitle>
               <DialogDescription>
-                {t('security.patrols.createRouteDescription', 'Add a new patrol route with checkpoints')}
+                {t('security.patrols.routes.createDescription', 'Add a new patrol route with checkpoints')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -118,7 +118,7 @@ export default function PatrolRoutes() {
                   id="name"
                   value={newRoute.name}
                   onChange={(e) => setNewRoute({ ...newRoute, name: e.target.value })}
-                  placeholder={t('security.patrols.routeNamePlaceholder', 'e.g., North Perimeter Patrol')}
+                  placeholder={t('security.patrols.routes.namePlaceholder', 'e.g., North Perimeter Patrol')}
                 />
               </div>
               <div className="space-y-2">
@@ -127,11 +127,11 @@ export default function PatrolRoutes() {
                   id="description"
                   value={newRoute.description}
                   onChange={(e) => setNewRoute({ ...newRoute, description: e.target.value })}
-                  placeholder={t('security.patrols.routeDescriptionPlaceholder', 'Describe the patrol route...')}
+                  placeholder={t('security.patrols.routes.descriptionPlaceholder', 'Describe the patrol route...')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">{t('security.patrols.estimatedDuration', 'Estimated Duration (minutes)')}</Label>
+                <Label htmlFor="duration">{t('security.patrols.routes.estimatedDuration', 'Estimated Duration (minutes)')}</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -178,14 +178,14 @@ export default function PatrolRoutes() {
                   </Badge>
                 </div>
                 <CardDescription className="line-clamp-2">
-                  {route.description || t('security.patrols.noDescription', 'No description')}
+                  {route.description || t('security.patrols.routes.noDescription', 'No description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    <span>{route.checkpoints?.length || 0} {t('security.patrols.checkpoints', 'checkpoints')}</span>
+                    <span>{route.checkpoints?.length || 0} {t('security.patrols.routes.checkpoints', 'checkpoints')}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
@@ -210,14 +210,14 @@ export default function PatrolRoutes() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Route className="h-12 w-12 text-muted-foreground/50" />
             <p className="mt-4 text-lg font-medium">
-              {t('security.patrols.noRoutes', 'No patrol routes yet')}
+              {t('security.patrols.routes.noRoutes', 'No patrol routes yet')}
             </p>
             <p className="text-muted-foreground">
-              {t('security.patrols.createFirstRoute', 'Create your first patrol route to get started')}
+              {t('security.patrols.routes.createFirstRoute', 'Create your first patrol route to get started')}
             </p>
             <Button onClick={() => setIsCreateOpen(true)} className="mt-4 gap-2">
               <Plus className="h-4 w-4" />
-              {t('security.patrols.createRoute', 'Create Route')}
+              {t('security.patrols.routes.create', 'Create Route')}
             </Button>
           </CardContent>
         </Card>

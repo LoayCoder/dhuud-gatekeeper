@@ -44,15 +44,15 @@ export default function PatrolDashboard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('security.patrols.dashboard', 'Patrol Dashboard')}
+            {t('security.patrols.dashboard.title', 'Patrol Dashboard')}
           </h1>
           <p className="text-muted-foreground">
-            {t('security.patrols.dashboardDescription', 'Monitor active patrols and security operations')}
+            {t('security.patrols.dashboard.description', 'Monitor active patrols and security operations')}
           </p>
         </div>
         <Button onClick={() => navigate('/security/patrols/execute')} size="lg" className="gap-2">
           <Play className="h-4 w-4" />
-          {t('security.patrols.startPatrol', 'Start Patrol')}
+          {t('security.patrols.execution.start', 'Start Patrol')}
         </Button>
       </div>
 
@@ -61,7 +61,7 @@ export default function PatrolDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t('security.patrols.activePatrols', 'Active Patrols')}
+              {t('security.patrols.dashboard.activePatrols', 'Active Patrols')}
             </CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -77,7 +77,7 @@ export default function PatrolDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t('security.patrols.completedToday', 'Completed Today')}
+              {t('security.patrols.dashboard.completedToday', 'Completed Today')}
             </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -89,7 +89,7 @@ export default function PatrolDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t('security.patrols.totalRoutes', 'Total Routes')}
+              {t('security.patrols.dashboard.totalRoutes', 'Total Routes')}
             </CardTitle>
             <Route className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -105,7 +105,7 @@ export default function PatrolDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t('security.patrols.compliance', 'Compliance Rate')}
+              {t('security.patrols.dashboard.complianceRate', 'Compliance Rate')}
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -120,10 +120,10 @@ export default function PatrolDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            {t('security.patrols.activePatrolsTitle', 'Active Patrols')}
+            {t('security.patrols.dashboard.activePatrols', 'Active Patrols')}
           </CardTitle>
           <CardDescription>
-            {t('security.patrols.activePatrolsDescription', 'Currently in-progress security patrols')}
+            {t('security.patrols.dashboard.activePatrolsDescription', 'Currently in-progress security patrols')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -147,12 +147,12 @@ export default function PatrolDashboard() {
                     <div>
                       <p className="font-medium">{patrol.route?.name || 'Unknown Route'}</p>
                       <p className="text-sm text-muted-foreground">
-                        {t('security.patrols.startedAt', 'Started')}: {format(new Date(patrol.actual_start), 'HH:mm')}
+                        {t('security.patrols.execution.startedAt', 'Started')}: {format(new Date(patrol.actual_start), 'HH:mm')}
                       </p>
                     </div>
                   </div>
                   <Badge variant="default">
-                    {t('security.patrols.inProgress', 'In Progress')}
+                    {t('security.patrols.status.active', 'In Progress')}
                   </Badge>
                 </div>
               ))}
@@ -161,14 +161,14 @@ export default function PatrolDashboard() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Shield className="h-12 w-12 text-muted-foreground/50" />
               <p className="mt-4 text-muted-foreground">
-                {t('security.patrols.noActivePatrols', 'No active patrols at the moment')}
+                {t('security.patrols.dashboard.noActivePatrols', 'No active patrols at the moment')}
               </p>
               <Button 
                 onClick={() => navigate('/security/patrols/execute')} 
                 variant="outline" 
                 className="mt-4"
               >
-                {t('security.patrols.startPatrol', 'Start Patrol')}
+                {t('security.patrols.execution.start', 'Start Patrol')}
               </Button>
             </div>
           )}
@@ -182,12 +182,12 @@ export default function PatrolDashboard() {
           onClick={() => navigate('/security/patrols/routes')}
         >
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
               <Route className="h-5 w-5" />
-              {t('security.patrols.manageRoutes', 'Manage Routes')}
+              {t('security.patrols.dashboard.manageRoutes', 'Manage Routes')}
             </CardTitle>
             <CardDescription>
-              {t('security.patrols.manageRoutesDescription', 'Configure patrol routes and checkpoints')}
+              {t('security.patrols.dashboard.manageRoutesDescription', 'Configure patrol routes and checkpoints')}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -199,10 +199,10 @@ export default function PatrolDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              {t('security.patrols.patrolHistory', 'Patrol History')}
+              {t('security.patrols.dashboard.patrolHistory', 'Patrol History')}
             </CardTitle>
             <CardDescription>
-              {t('security.patrols.patrolHistoryDescription', 'View completed patrols and reports')}
+              {t('security.patrols.dashboard.patrolHistoryDescription', 'View completed patrols and reports')}
             </CardDescription>
           </CardHeader>
         </Card>

@@ -69,7 +69,7 @@ export default function ExecutePatrol() {
     setLocationError(null);
 
     if (!navigator.geolocation) {
-      setLocationError(t('security.patrols.gpsNotSupported', 'GPS not supported on this device'));
+      setLocationError(t('security.patrols.execution.gpsNotSupported', 'GPS not supported on this device'));
       setIsLocating(false);
       return;
     }
@@ -83,7 +83,7 @@ export default function ExecutePatrol() {
         setIsLocating(false);
       },
       (error) => {
-        setLocationError(t('security.patrols.gpsError', 'Unable to get location'));
+        setLocationError(t('security.patrols.execution.gpsError', 'Unable to get location'));
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -101,12 +101,12 @@ export default function ExecutePatrol() {
       setActivePatrolId(result.id);
       toast({
         title: t('common.success'),
-        description: t('security.patrols.patrolStarted', 'Patrol started successfully'),
+        description: t('security.patrols.execution.patrolStarted', 'Patrol started successfully'),
       });
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: t('security.patrols.patrolStartFailed', 'Failed to start patrol'),
+        description: t('security.patrols.execution.patrolStartFailed', 'Failed to start patrol'),
         variant: 'destructive',
       });
     }
@@ -132,8 +132,8 @@ export default function ExecutePatrol() {
     if (currentCheckpoint.latitude && currentCheckpoint.longitude) {
       if (!userLocation) {
         toast({
-          title: t('security.patrols.locationRequired', 'Location Required'),
-          description: t('security.patrols.refreshLocationFirst', 'Please refresh your location first'),
+          title: t('security.patrols.execution.locationRequired', 'Location Required'),
+          description: t('security.patrols.execution.refreshLocationFirst', 'Please refresh your location first'),
           variant: 'destructive',
         });
         return;
@@ -141,8 +141,8 @@ export default function ExecutePatrol() {
 
       if (!validateLocation()) {
         toast({
-          title: t('security.patrols.tooFar', 'Too Far From Checkpoint'),
-          description: t('security.patrols.moveCloser', 'Please move closer to the checkpoint location'),
+          title: t('security.patrols.execution.tooFar', 'Too Far From Checkpoint'),
+          description: t('security.patrols.execution.moveCloser', 'Please move closer to the checkpoint location'),
           variant: 'destructive',
         });
         return;
@@ -168,12 +168,12 @@ export default function ExecutePatrol() {
 
       toast({
         title: t('common.success'),
-        description: t('security.patrols.checkpointLogged', 'Checkpoint logged successfully'),
+        description: t('security.patrols.execution.checkpointLogged', 'Checkpoint logged successfully'),
       });
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: t('security.patrols.checkpointLogFailed', 'Failed to log checkpoint'),
+        description: t('security.patrols.execution.checkpointLogFailed', 'Failed to log checkpoint'),
         variant: 'destructive',
       });
     }
@@ -190,14 +190,14 @@ export default function ExecutePatrol() {
 
       toast({
         title: t('common.success'),
-        description: t('security.patrols.patrolCompleted', 'Patrol completed successfully'),
+        description: t('security.patrols.execution.patrolCompleted', 'Patrol completed successfully'),
       });
 
       navigate('/security/patrols');
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: t('security.patrols.patrolCompleteFailed', 'Failed to complete patrol'),
+        description: t('security.patrols.execution.patrolCompleteFailed', 'Failed to complete patrol'),
         variant: 'destructive',
       });
     }
@@ -216,16 +216,16 @@ export default function ExecutePatrol() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('security.patrols.startPatrol', 'Start Patrol')}
+            {t('security.patrols.execution.start', 'Start Patrol')}
           </h1>
           <p className="text-muted-foreground">
-            {t('security.patrols.selectRouteDescription', 'Select a patrol route to begin')}
+            {t('security.patrols.execution.selectRouteDescription', 'Select a patrol route to begin')}
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('security.patrols.selectRoute', 'Select Route')}</CardTitle>
+            <CardTitle>{t('security.patrols.execution.selectRoute', 'Select Route')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {routesLoading ? (
@@ -233,12 +233,12 @@ export default function ExecutePatrol() {
             ) : (
               <Select value={selectedRouteId} onValueChange={setSelectedRouteId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('security.patrols.selectRoutePlaceholder', 'Choose a patrol route...')} />
+                  <SelectValue placeholder={t('security.patrols.execution.selectRoutePlaceholder', 'Choose a patrol route...')} />
                 </SelectTrigger>
                 <SelectContent>
                   {routes?.filter(r => r.is_active).map((route) => (
                     <SelectItem key={route.id} value={route.id}>
-                      {route.name} ({route.checkpoints?.length || 0} {t('security.patrols.checkpoints', 'checkpoints')})
+                      {route.name} ({route.checkpoints?.length || 0} {t('security.patrols.routes.checkpoints', 'checkpoints')})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -250,7 +250,7 @@ export default function ExecutePatrol() {
                 <p className="font-medium">{selectedRoute.name}</p>
                 <p className="text-sm text-muted-foreground">{selectedRoute.description}</p>
                 <div className="flex gap-4 text-sm">
-                  <span>{checkpoints.length} {t('security.patrols.checkpoints', 'checkpoints')}</span>
+                  <span>{checkpoints.length} {t('security.patrols.routes.checkpoints', 'checkpoints')}</span>
                   <span>{selectedRoute.estimated_duration_minutes} {t('common.minutes', 'min')}</span>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function ExecutePatrol() {
               {startPatrol.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin me-2" />
               ) : null}
-              {t('security.patrols.beginPatrol', 'Begin Patrol')}
+              {t('security.patrols.execution.begin', 'Begin Patrol')}
             </Button>
           </CardContent>
         </Card>
@@ -281,7 +281,7 @@ export default function ExecutePatrol() {
         <CardContent className="py-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">
-              {t('security.patrols.progress', 'Progress')}
+              {t('security.patrols.execution.progress', 'Progress')}
             </span>
             <span className="text-sm text-muted-foreground">
               {completedCheckpoints.size}/{checkpoints.length}
@@ -297,7 +297,7 @@ export default function ExecutePatrol() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="mb-2">
-                {t('security.patrols.checkpoint', 'Checkpoint')} {currentCheckpointIndex + 1}
+                {t('security.patrols.execution.checkpoint', 'Checkpoint')} {currentCheckpointIndex + 1}
               </Badge>
               {completedCheckpoints.has(currentCheckpoint.id) && (
                 <CheckCircle2 className="h-6 w-6 text-green-500" />
@@ -313,8 +313,8 @@ export default function ExecutePatrol() {
                 <MapPin className="h-5 w-5" />
                 <span className="text-sm">
                   {userLocation 
-                    ? t('security.patrols.locationCaptured', 'Location captured')
-                    : t('security.patrols.noLocation', 'No location')}
+                    ? t('security.patrols.execution.locationCaptured', 'Location captured')
+                    : t('security.patrols.execution.noLocation', 'No location')}
                 </span>
               </div>
               <Button 
@@ -340,11 +340,11 @@ export default function ExecutePatrol() {
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label>{t('security.patrols.observations', 'Observations')}</Label>
+              <Label>{t('security.patrols.execution.observations', 'Observations')}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder={t('security.patrols.notesPlaceholder', 'Any observations or findings...')}
+                placeholder={t('security.patrols.execution.notesPlaceholder', 'Any observations or findings...')}
                 rows={3}
               />
             </div>
@@ -363,8 +363,8 @@ export default function ExecutePatrol() {
                   <CheckCircle2 className="h-5 w-5 me-2" />
                 )}
                 {completedCheckpoints.has(currentCheckpoint.id)
-                  ? t('security.patrols.completed', 'Completed')
-                  : t('security.patrols.confirmLocation', 'I Am Here')}
+                  ? t('security.patrols.status.completed', 'Completed')
+                  : t('security.patrols.execution.confirmLocation', 'I Am Here')}
               </Button>
             </div>
           </CardContent>
@@ -374,7 +374,7 @@ export default function ExecutePatrol() {
       {/* Checkpoint List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t('security.patrols.allCheckpoints', 'All Checkpoints')}</CardTitle>
+          <CardTitle className="text-base">{t('security.patrols.execution.allCheckpoints', 'All Checkpoints')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -416,7 +416,7 @@ export default function ExecutePatrol() {
             ) : (
               <CheckCircle2 className="h-5 w-5 me-2" />
             )}
-            {t('security.patrols.completePatrol', 'Complete Patrol')}
+            {t('security.patrols.execution.complete', 'Complete Patrol')}
           </Button>
         </div>
       )}
