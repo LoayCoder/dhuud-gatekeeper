@@ -16,10 +16,13 @@ import {
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
 import { RootCauseDistribution } from "@/hooks/use-rca-analytics";
+import { DataFreshnessBadge } from "./DataFreshnessBadge";
 
 interface RootCauseParetoChartProps {
   data: RootCauseDistribution[];
   isLoading?: boolean;
+  dataUpdatedAt?: number;
+  isFetching?: boolean;
 }
 
 const CHART_COLORS = [
@@ -30,7 +33,7 @@ const CHART_COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-export function RootCauseParetoChart({ data, isLoading }: RootCauseParetoChartProps) {
+export function RootCauseParetoChart({ data, isLoading, dataUpdatedAt, isFetching }: RootCauseParetoChartProps) {
   const { t } = useTranslation();
   const { drillDown } = useDashboardDrilldown();
 
@@ -99,8 +102,13 @@ export function RootCauseParetoChart({ data, isLoading }: RootCauseParetoChartPr
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{t('hsseDashboard.paretoChart.title', 'Root Cause Pareto Analysis')}</CardTitle>
-        <CardDescription>{t('hsseDashboard.paretoChart.subtitle', 'Vital few causes (80/20 rule)')}</CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{t('hsseDashboard.paretoChart.title', 'Root Cause Pareto Analysis')}</CardTitle>
+            <CardDescription>{t('hsseDashboard.paretoChart.subtitle', 'Vital few causes (80/20 rule)')}</CardDescription>
+          </div>
+          <DataFreshnessBadge dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[320px] w-full">

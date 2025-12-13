@@ -86,7 +86,7 @@ function categorizeRootCause(text: string): string {
 export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
   const { profile } = useAuth();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['rca-analytics', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<RCAAnalyticsData> => {
       // Fetch investigations with RCA data
@@ -257,4 +257,11 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
     refetchInterval: 5 * 60 * 1000,      // Background refresh every 5 minutes
     placeholderData: (previousData) => previousData, // Show stale data while refetching
   });
+
+  return {
+    ...query,
+    dataUpdatedAt: query.dataUpdatedAt,
+    isFetching: query.isFetching,
+    isStale: query.isStale,
+  };
 }

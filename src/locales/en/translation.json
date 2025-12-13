@@ -159,8 +159,11 @@
       "currentOpen": "Current Open"
     },
     "caching": {
-      "refreshing": "Refreshing data...",
-      "lastUpdated": "Last updated"
+      "refreshing": "Refreshing...",
+      "lastUpdated": "Last updated",
+      "fresh": "Data is fresh",
+      "stale": "May be outdated",
+      "autoRefresh": "Auto-refreshes every 5 minutes"
     },
     "export": {
       "title": "Export",

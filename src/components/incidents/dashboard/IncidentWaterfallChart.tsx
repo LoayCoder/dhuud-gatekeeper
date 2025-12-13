@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useDashboardDrilldown } from "@/hooks/use-dashboard-drilldown";
+import { DataFreshnessBadge } from "./DataFreshnessBadge";
 
 export interface WaterfallStage {
   stage: string;
@@ -28,9 +29,11 @@ export interface WaterfallStage {
 interface IncidentWaterfallChartProps {
   data: WaterfallStage[];
   isLoading?: boolean;
+  dataUpdatedAt?: number;
+  isFetching?: boolean;
 }
 
-export function IncidentWaterfallChart({ data, isLoading }: IncidentWaterfallChartProps) {
+export function IncidentWaterfallChart({ data, isLoading, dataUpdatedAt, isFetching }: IncidentWaterfallChartProps) {
   const { t } = useTranslation();
   const { drillDown } = useDashboardDrilldown();
 
@@ -120,8 +123,13 @@ export function IncidentWaterfallChart({ data, isLoading }: IncidentWaterfallCha
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{t('hsseDashboard.waterfallChart.title', 'Incident Progression Flow')}</CardTitle>
-        <CardDescription>{t('hsseDashboard.waterfallChart.subtitle', 'Net movement through workflow stages')}</CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{t('hsseDashboard.waterfallChart.title', 'Incident Progression Flow')}</CardTitle>
+            <CardDescription>{t('hsseDashboard.waterfallChart.subtitle', 'Net movement through workflow stages')}</CardDescription>
+          </div>
+          <DataFreshnessBadge dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[320px] w-full">
