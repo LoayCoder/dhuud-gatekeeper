@@ -328,41 +328,16 @@ export default function HSSEEventDashboard() {
         ) : null}
       </div>
 
-      {/* Advanced Analytics Row - Pareto & Waterfall Charts */}
+      {/* Incident Progression & Major Events */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RootCauseParetoChart 
-          data={rcaData?.root_cause_distribution || []} 
-          isLoading={rcaLoading} 
-          dataUpdatedAt={rcaUpdatedAt}
-          isFetching={rcaFetching}
-        />
         <IncidentWaterfallChart 
           data={progressionData?.waterfall || []} 
           isLoading={progressionLoading}
           dataUpdatedAt={progressionUpdatedAt}
           isFetching={progressionFetching}
         />
-      </div>
-
-      {/* Major Events & RCA Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MajorEventsTimeline events={rcaData?.major_events || []} isLoading={rcaLoading} />
-        <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
       </div>
-
-      {/* Cause Flow Diagram */}
-      {rcaLoading ? (
-        <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-      ) : rcaData ? (
-        <CauseFlowDiagram data={rcaData.cause_flow} />
-      ) : null}
-
-      {/* Safety KPIs */}
-      {dashboardLoading ? (
-        <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
-      ) : dashboardData ? (
-        <SafetyKPICards summary={dashboardData.summary} actions={dashboardData.actions} />
-      ) : null}
 
       {/* Location Heatmaps */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -381,7 +356,7 @@ export default function HSSEEventDashboard() {
         ) : null}
       </div>
 
-      {/* Enhanced Location Analytics */}
+      {/* Location Analytics & Top Reporters */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {locationLoading ? (
           <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
@@ -393,6 +368,31 @@ export default function HSSEEventDashboard() {
           <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
         ) : reporters ? (
           <ReporterLeaderboard reporters={reporters} />
+        ) : null}
+      </div>
+
+      {/* Safety KPIs */}
+      {dashboardLoading ? (
+        <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+      ) : dashboardData ? (
+        <SafetyKPICards summary={dashboardData.summary} actions={dashboardData.actions} />
+      ) : null}
+
+      {/* Root Cause Pareto Analysis */}
+      <RootCauseParetoChart 
+        data={rcaData?.root_cause_distribution || []} 
+        isLoading={rcaLoading} 
+        dataUpdatedAt={rcaUpdatedAt}
+        isFetching={rcaFetching}
+      />
+
+      {/* Root Cause Distribution & Cause Flow */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
+        {rcaLoading ? (
+          <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+        ) : rcaData ? (
+          <CauseFlowDiagram data={rcaData.cause_flow} />
         ) : null}
       </div>
 
