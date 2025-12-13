@@ -571,7 +571,11 @@ export function AppSidebar() {
                         asChild
                         onMouseEnter={() => {
                           // Prefetch all child routes when hovering the section
-                          prefetchRoutes(item.items.map(sub => sub.url));
+                          const urls = item.items.flatMap(sub => 
+                            'url' in sub ? [sub.url] : 
+                            ('subItems' in sub && sub.subItems ? sub.subItems.map((s: { url: string }) => s.url) : [])
+                          );
+                          prefetchRoutes(urls);
                         }}
                       >
                         <SidebarMenuButton tooltip={item.title}>
@@ -583,12 +587,12 @@ export function AppSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.items.map((subItem) =>
-                            subItem.subItems ? (
+                            'subItems' in subItem && subItem.subItems ? (
                               // Nested collapsible for sub-items (e.g., Incidents)
                               <Collapsible
                                 key={subItem.title}
                                 asChild
-                                defaultOpen={subItem.isActive}
+                                defaultOpen={'isActive' in subItem ? subItem.isActive : false}
                                 className="group/nested"
                               >
                                 <SidebarMenuSubItem>
@@ -630,8 +634,8 @@ export function AppSidebar() {
                                   </CollapsibleContent>
                                 </SidebarMenuSubItem>
                               </Collapsible>
-                            ) : (
-                              // Regular sub-item
+                            ) : 'url' in subItem ? (
+                              // Regular sub-item with URL
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   asChild
@@ -648,7 +652,7 @@ export function AppSidebar() {
                                   </NavLink>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
-                            )
+                            ) : null
                           )}
                         </SidebarMenuSub>
                       </CollapsibleContent>
