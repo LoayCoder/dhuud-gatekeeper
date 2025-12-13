@@ -2244,10 +2244,13 @@ export type Database = {
           id: string
           immediate_actions: string | null
           immediate_actions_data: Json | null
+          injury_classification: string | null
           injury_details: Json | null
+          is_recordable: boolean | null
           latitude: number | null
           location: string | null
           longitude: number | null
+          lost_workdays: number | null
           manager_decision: string | null
           manager_decision_at: string | null
           manager_rejection_reason: string | null
@@ -2262,6 +2265,7 @@ export type Database = {
           reporter_disputes_rejection: boolean | null
           reporter_id: string | null
           reporter_rejection_confirmed_at: string | null
+          restricted_workdays: number | null
           resubmission_count: number | null
           return_instructions: string | null
           return_reason: string | null
@@ -2280,6 +2284,7 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at: string | null
+          worker_type: string | null
         }
         Insert: {
           ai_analysis_result?: Json | null
@@ -2317,10 +2322,13 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
+          injury_classification?: string | null
           injury_details?: Json | null
+          is_recordable?: boolean | null
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          lost_workdays?: number | null
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
@@ -2335,6 +2343,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          restricted_workdays?: number | null
           resubmission_count?: number | null
           return_instructions?: string | null
           return_reason?: string | null
@@ -2353,6 +2362,7 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at?: string | null
+          worker_type?: string | null
         }
         Update: {
           ai_analysis_result?: Json | null
@@ -2390,10 +2400,13 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
+          injury_classification?: string | null
           injury_details?: Json | null
+          is_recordable?: boolean | null
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          lost_workdays?: number | null
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
@@ -2408,6 +2421,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          restricted_workdays?: number | null
           resubmission_count?: number | null
           return_instructions?: string | null
           return_reason?: string | null
@@ -2426,6 +2440,7 @@ export type Database = {
           tenant_id?: string
           title?: string
           updated_at?: string | null
+          worker_type?: string | null
         }
         Relationships: [
           {
@@ -3430,6 +3445,69 @@ export type Database = {
           },
         ]
       }
+      kpi_targets: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          critical_threshold: number | null
+          deleted_at: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          kpi_code: string
+          period_type: string | null
+          target_value: number
+          tenant_id: string
+          updated_at: string | null
+          warning_threshold: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          critical_threshold?: number | null
+          deleted_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          kpi_code: string
+          period_type?: string | null
+          target_value: number
+          tenant_id: string
+          updated_at?: string | null
+          warning_threshold?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          critical_threshold?: number | null
+          deleted_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          kpi_code?: string
+          period_type?: string | null
+          target_value?: number
+          tenant_id?: string
+          updated_at?: string | null
+          warning_threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_targets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_targets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manager_team: {
         Row: {
           assigned_at: string | null
@@ -3478,6 +3556,93 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manhours: {
+        Row: {
+          branch_id: string | null
+          contractor_hours: number
+          created_at: string | null
+          deleted_at: string | null
+          department_id: string | null
+          employee_hours: number
+          id: string
+          notes: string | null
+          period_date: string
+          period_type: string
+          recorded_by: string | null
+          site_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          contractor_hours?: number
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id?: string | null
+          employee_hours?: number
+          id?: string
+          notes?: string | null
+          period_date: string
+          period_type?: string
+          recorded_by?: string | null
+          site_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          contractor_hours?: number
+          created_at?: string | null
+          deleted_at?: string | null
+          department_id?: string | null
+          employee_hours?: number
+          id?: string
+          notes?: string | null
+          period_date?: string
+          period_type?: string
+          recorded_by?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manhours_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manhours_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manhours_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manhours_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manhours_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -5529,11 +5694,44 @@ export type Database = {
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
+      get_lagging_indicators: {
+        Args: {
+          p_branch_id?: string
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      get_leading_indicators: {
+        Args: {
+          p_branch_id?: string
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       get_managers_for_team_assignment: {
         Args: { p_exclude_user_id: string; p_tenant_id: string }
         Returns: {
           full_name: string
           id: string
+        }[]
+      }
+      get_manhours_summary: {
+        Args: {
+          p_branch_id?: string
+          p_department_id?: string
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+        }
+        Returns: {
+          record_count: number
+          total_contractor_hours: number
+          total_employee_hours: number
+          total_hours: number
         }[]
       }
       get_monthly_hsse_summary: {
