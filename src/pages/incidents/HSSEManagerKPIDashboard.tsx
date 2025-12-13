@@ -22,6 +22,7 @@ import {
   useKPITargets,
   getKPIStatus,
 } from '@/hooks/use-kpi-indicators';
+import { useKPIHistoricalTrend, useKPIPeriodComparison, getPeriodLabel } from '@/hooks/use-kpi-trends';
 import { LaggingIndicatorsCard } from '@/components/incidents/dashboard/LaggingIndicatorsCard';
 import { LeadingIndicatorsCard } from '@/components/incidents/dashboard/LeadingIndicatorsCard';
 import { ResponseMetricsCard } from '@/components/incidents/dashboard/ResponseMetricsCard';
@@ -30,6 +31,9 @@ import { DaysSinceCounter } from '@/components/incidents/dashboard/DaysSinceCoun
 import { KPIAlertsBanner } from '@/components/incidents/dashboard/KPIAlertsBanner';
 import { IncidentMetricsCard } from '@/components/incidents/dashboard/IncidentMetricsCard';
 import { KPIDashboardExport } from '@/components/incidents/dashboard/KPIDashboardExport';
+import { KPITrendCard } from '@/components/incidents/dashboard/KPITrendCard';
+import { KPIHistoricalTrendChart } from '@/components/incidents/dashboard/KPIHistoricalTrendChart';
+import { TrendBadge } from '@/components/incidents/dashboard/TrendBadge';
 import {
   Activity,
   TrendingUp,
@@ -40,6 +44,7 @@ import {
   Building2,
   MapPin,
   RefreshCw,
+  LineChart,
 } from 'lucide-react';
 
 type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd' | 'custom';
@@ -116,7 +121,21 @@ export default function HSSEManagerKPIDashboard() {
     siteId || undefined
   );
 
-  const isLoading = laggingLoading || leadingLoading || responseLoading || peopleLoading;
+  // Fetch trend data
+  const periodForComparison = dateRange === 'week' ? 'week' : dateRange === '90days' ? '90days' : dateRange === 'ytd' ? 'ytd' : 'month';
+  const { data: trendData, isLoading: trendLoading, refetch: refetchTrend } = useKPIHistoricalTrend(
+    undefined,
+    undefined,
+    branchId || undefined,
+    siteId || undefined
+  );
+  const { data: periodComparison, refetch: refetchComparison } = useKPIPeriodComparison(
+    periodForComparison,
+    branchId || undefined,
+    siteId || undefined
+  );
+
+  const isLoading = laggingLoading || leadingLoading || responseLoading || peopleLoading || trendLoading;
 
   const handleRefresh = () => {
     refetchLagging();
@@ -124,6 +143,14 @@ export default function HSSEManagerKPIDashboard() {
     refetchResponse();
     refetchPeople();
     refetchDays();
+    refetchTrend();
+    refetchComparison();
+  };
+
+  // Convert trend data to sparkline format
+  const getSparklineData = (key: 'trir' | 'ltifr' | 'dart' | 'severity_rate' | 'action_closure_pct') => {
+    if (!trendData) return [];
+    return trendData.slice(-6).map(item => ({ value: Number(item[key]) || 0 }));
   };
 
   // Generate alerts from KPI data
@@ -257,43 +284,51 @@ export default function HSSEManagerKPIDashboard() {
           milestone={100}
         />
 
-        <Card className="md:col-span-3">
-          <CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">
-                {laggingData?.trir.toFixed(2) ?? '-'}
-              </p>
-              <p className="text-sm text-muted-foreground">TRIR</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">
-                {laggingData?.ltifr.toFixed(2) ?? '-'}
-              </p>
-              <p className="text-sm text-muted-foreground">LTIFR</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">
-                {leadingData?.action_closure_pct.toFixed(1) ?? '-'}%
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {t('kpiDashboard.actionClosure', 'Action Closure')}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">
-                {responseData?.avg_investigation_days.toFixed(1) ?? '-'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {t('kpiDashboard.avgInvestigationDays', 'Avg Investigation (days)')}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="md:col-span-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <KPITrendCard
+            title="TRIR"
+            value={laggingData?.trir ?? 0}
+            previousValue={periodComparison?.trir?.previous_value}
+            sparklineData={getSparklineData('trir')}
+            trend={periodComparison?.trir?.trend_direction as 'up' | 'down' | 'stable'}
+            invertColors={true}
+            isLoading={laggingLoading}
+            periodLabel={getPeriodLabel(periodForComparison)}
+          />
+          <KPITrendCard
+            title="LTIFR"
+            value={laggingData?.ltifr ?? 0}
+            previousValue={periodComparison?.ltifr?.previous_value}
+            sparklineData={getSparklineData('ltifr')}
+            trend={periodComparison?.ltifr?.trend_direction as 'up' | 'down' | 'stable'}
+            invertColors={true}
+            isLoading={laggingLoading}
+            periodLabel={getPeriodLabel(periodForComparison)}
+          />
+          <KPITrendCard
+            title={t('kpiDashboard.actionClosure', 'Action Closure')}
+            value={leadingData?.action_closure_pct ?? 0}
+            previousValue={periodComparison?.action_closure_pct?.previous_value}
+            sparklineData={getSparklineData('action_closure_pct')}
+            trend={periodComparison?.action_closure_pct?.trend_direction as 'up' | 'down' | 'stable'}
+            invertColors={false}
+            suffix="%"
+            isLoading={leadingLoading}
+            periodLabel={getPeriodLabel(periodForComparison)}
+          />
+          <KPITrendCard
+            title={t('kpiDashboard.avgInvestigationDays', 'Avg Investigation')}
+            value={responseData?.avg_investigation_days ?? 0}
+            invertColors={true}
+            suffix=" days"
+            isLoading={responseLoading}
+          />
+        </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="lagging" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-6">
           <TabsTrigger value="lagging" className="gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">
@@ -318,6 +353,12 @@ export default function HSSEManagerKPIDashboard() {
               {t('kpiDashboard.people', 'People')}
             </span>
           </TabsTrigger>
+          <TabsTrigger value="trends" className="gap-2">
+            <LineChart className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {t('kpiDashboard.trends', 'Trends')}
+            </span>
+          </TabsTrigger>
           <TabsTrigger value="metrics" className="gap-2">
             <BarChart3 className="h-4 w-4" />
             <span className="hidden sm:inline">
@@ -340,6 +381,10 @@ export default function HSSEManagerKPIDashboard() {
 
         <TabsContent value="people">
           <PeopleMetricsCard data={peopleData ?? null} isLoading={peopleLoading} />
+        </TabsContent>
+
+        <TabsContent value="trends">
+          <KPIHistoricalTrendChart data={trendData || []} isLoading={trendLoading} />
         </TabsContent>
 
         <TabsContent value="metrics">
