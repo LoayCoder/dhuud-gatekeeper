@@ -41,3 +41,5 @@ export { LeadingIndicatorsCard } from './LeadingIndicatorsCard';
 export { ResponseMetricsCard } from './ResponseMetricsCard';
 export { PeopleMetricsCard } from './PeopleMetricsCard';
 export { KPIAlertsBanner } from './KPIAlertsBanner';
+export { IncidentMetricsCard } from './IncidentMetricsCard';
+export { KPIDashboardExport } from './KPIDashboardExport';

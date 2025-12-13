@@ -324,6 +324,14 @@ const App = () => (
                           </AdminRoute>
                         }
                       />
+                      <Route
+                        path="/admin/kpi-targets"
+                        element={
+                          <AdminRoute>
+                            <KPITargetsManagement />
+                          </AdminRoute>
+                        }
+                      />
 
                       {/* User Routes */}
                       <Route path="/support" element={<Support />} />

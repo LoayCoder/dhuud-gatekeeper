@@ -28,6 +28,8 @@ import { ResponseMetricsCard } from '@/components/incidents/dashboard/ResponseMe
 import { PeopleMetricsCard } from '@/components/incidents/dashboard/PeopleMetricsCard';
 import { DaysSinceCounter } from '@/components/incidents/dashboard/DaysSinceCounter';
 import { KPIAlertsBanner } from '@/components/incidents/dashboard/KPIAlertsBanner';
+import { IncidentMetricsCard } from '@/components/incidents/dashboard/IncidentMetricsCard';
+import { KPIDashboardExport } from '@/components/incidents/dashboard/KPIDashboardExport';
 import {
   Activity,
   TrendingUp,
@@ -232,6 +234,15 @@ export default function HSSEManagerKPIDashboard() {
           <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
+
+          {/* Export Button */}
+          <KPIDashboardExport
+            laggingData={laggingData ?? null}
+            leadingData={leadingData ?? null}
+            responseData={responseData ?? null}
+            peopleData={peopleData ?? null}
+            dateRange={{ start: startDate, end: endDate }}
+          />
         </div>
       </div>
 
@@ -282,7 +293,7 @@ export default function HSSEManagerKPIDashboard() {
 
       {/* Tabs */}
       <Tabs defaultValue="lagging" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-5">
           <TabsTrigger value="lagging" className="gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">
@@ -307,6 +318,12 @@ export default function HSSEManagerKPIDashboard() {
               {t('kpiDashboard.people', 'People')}
             </span>
           </TabsTrigger>
+          <TabsTrigger value="metrics" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {t('kpiDashboard.metrics', 'Metrics')}
+            </span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="lagging">
@@ -323,6 +340,15 @@ export default function HSSEManagerKPIDashboard() {
 
         <TabsContent value="people">
           <PeopleMetricsCard data={peopleData ?? null} isLoading={peopleLoading} />
+        </TabsContent>
+
+        <TabsContent value="metrics">
+          <IncidentMetricsCard
+            startDate={startDate}
+            endDate={endDate}
+            branchId={branchId || undefined}
+            siteId={siteId || undefined}
+          />
         </TabsContent>
       </Tabs>
     </div>
