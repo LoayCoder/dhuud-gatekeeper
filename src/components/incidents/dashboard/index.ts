@@ -33,3 +33,4 @@ export { RootCauseParetoChart } from './RootCauseParetoChart';
 export { IncidentWaterfallChart } from './IncidentWaterfallChart';
 export { DataFreshnessBadge } from './DataFreshnessBadge';
 export { DashboardCacheStatus } from './DashboardCacheStatus';
+export { ParetoChartSkeleton, WaterfallChartSkeleton, DonutChartSkeleton, BarChartSkeleton, LineChartSkeleton } from './ChartSkeletons';

@@ -67,8 +67,13 @@ export function DrilldownModal() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeDrilldown()}>
       <DialogContent className="max-w-4xl max-h-[85vh] animate-scale-in">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
             <span>{title}</span>
+            {filters.rootCauseCategory && (
+              <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/30">
+                {t("hsseDashboard.drilldown.rootCause", "Root Cause")}: {filters.rootCauseCategory}
+              </Badge>
+            )}
             {events && (
               <Badge variant="secondary" className="font-normal">
                 {events.length} {t("hsseDashboard.drilldown.eventsFound", "events")}
