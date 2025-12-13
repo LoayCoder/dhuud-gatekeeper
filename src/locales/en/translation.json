@@ -1065,6 +1065,7 @@
     "auditsInspections": "Audits & Inspections",
     "security": "Security",
     "visitorGatekeeper": "Visitor Gatekeeper",
+    "securityPatrols": "Security Patrols",
     "assetManagement": "Asset Management",
     "assetDashboard": "Asset Dashboard",
     "assetList": "Asset List",

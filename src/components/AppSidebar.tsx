@@ -47,6 +47,8 @@ import {
   Menu,
   Workflow,
   Clock,
+  UserCheck,
+  Route,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -200,52 +202,68 @@ export function AppSidebar() {
           isActive: location.pathname.startsWith("/visitors") || location.pathname.startsWith("/security"),
           subItems: [
             {
-              title: t('security.visitors.dashboard', 'Visitor Dashboard'),
-              url: "/visitors",
-              icon: LayoutDashboard,
-              menuCode: 'visitor_dashboard',
+              title: t('navigation.visitorGatekeeper'),
+              icon: UserCheck,
+              menuCode: 'visitor_gatekeeper',
+              isActive: location.pathname.startsWith("/visitors"),
+              subItems: [
+                {
+                  title: t('security.visitors.dashboard', 'Visitor Dashboard'),
+                  url: "/visitors",
+                  icon: LayoutDashboard,
+                  menuCode: 'visitor_dashboard',
+                },
+                {
+                  title: t('security.visitors.preRegister', 'Pre-Register'),
+                  url: "/visitors/register",
+                  icon: Plus,
+                  menuCode: 'visitor_register',
+                },
+                {
+                  title: t('security.visitors.checkpoint', 'Checkpoint'),
+                  url: "/visitors/checkpoint",
+                  icon: Shield,
+                  menuCode: 'visitor_checkpoint',
+                },
+                {
+                  title: t('security.visitors.list', 'Visitor List'),
+                  url: "/visitors/list",
+                  icon: List,
+                  menuCode: 'visitor_list',
+                },
+                {
+                  title: t('security.visitors.blacklist', 'Blacklist'),
+                  url: "/visitors/blacklist",
+                  icon: ShieldAlert,
+                  menuCode: 'visitor_blacklist',
+                },
+              ],
             },
             {
-              title: t('security.visitors.preRegister', 'Pre-Register'),
-              url: "/visitors/register",
-              icon: Plus,
-              menuCode: 'visitor_register',
-            },
-            {
-              title: t('security.visitors.checkpoint', 'Checkpoint'),
-              url: "/visitors/checkpoint",
-              icon: Shield,
-              menuCode: 'visitor_checkpoint',
-            },
-            {
-              title: t('security.visitors.list', 'Visitor List'),
-              url: "/visitors/list",
-              icon: List,
-              menuCode: 'visitor_list',
-            },
-            {
-              title: t('security.visitors.blacklist', 'Blacklist'),
-              url: "/visitors/blacklist",
-              icon: ShieldAlert,
-              menuCode: 'visitor_blacklist',
-            },
-            {
-              title: t('security.patrols.dashboard', 'Patrol Dashboard'),
-              url: "/security/patrols",
-              icon: Network,
-              menuCode: 'patrol_dashboard',
-            },
-            {
-              title: t('security.patrols.routes', 'Patrol Routes'),
-              url: "/security/patrols/routes",
-              icon: Network,
-              menuCode: 'patrol_routes',
-            },
-            {
-              title: t('security.patrols.history', 'Patrol History'),
-              url: "/security/patrols/history",
-              icon: Clock,
-              menuCode: 'patrol_history',
+              title: t('navigation.securityPatrols'),
+              icon: Route,
+              menuCode: 'security_patrols',
+              isActive: location.pathname.startsWith("/security/patrols"),
+              subItems: [
+                {
+                  title: t('security.patrols.dashboard', 'Patrol Dashboard'),
+                  url: "/security/patrols",
+                  icon: Network,
+                  menuCode: 'patrol_dashboard',
+                },
+                {
+                  title: t('security.patrols.routes', 'Patrol Routes'),
+                  url: "/security/patrols/routes",
+                  icon: Route,
+                  menuCode: 'patrol_routes',
+                },
+                {
+                  title: t('security.patrols.history', 'Patrol History'),
+                  url: "/security/patrols/history",
+                  icon: Clock,
+                  menuCode: 'patrol_history',
+                },
+              ],
             },
           ],
         },
@@ -564,11 +582,16 @@ export function AppSidebar() {
                         asChild
                         onMouseEnter={() => {
                           // Prefetch all child routes when hovering the section
-                          const urls = item.items.flatMap(sub => 
-                            'url' in sub ? [sub.url] : 
-                            ('subItems' in sub && sub.subItems ? sub.subItems.map((s: { url: string }) => s.url) : [])
-                          );
-                          prefetchRoutes(urls);
+                          const collectUrls = (items: typeof item.items): string[] => {
+                            return items.flatMap(sub => {
+                              if ('url' in sub) return [sub.url];
+                              if ('subItems' in sub && sub.subItems) {
+                                return collectUrls(sub.subItems as typeof item.items);
+                              }
+                              return [];
+                            });
+                          };
+                          prefetchRoutes(collectUrls(item.items));
                         }}
                       >
                         <SidebarMenuButton tooltip={item.title}>
@@ -581,7 +604,7 @@ export function AppSidebar() {
                         <SidebarMenuSub>
                           {item.items.map((subItem) =>
                             'subItems' in subItem && subItem.subItems ? (
-                              // Nested collapsible for sub-items (e.g., Incidents)
+                              // Nested collapsible for sub-items (e.g., Incidents, Security)
                               <Collapsible
                                 key={subItem.title}
                                 asChild
@@ -590,12 +613,7 @@ export function AppSidebar() {
                               >
                                 <SidebarMenuSubItem>
                                   <CollapsibleTrigger asChild>
-                                    <SidebarMenuSubButton
-                                      className="cursor-pointer"
-                                      onMouseEnter={() => {
-                                        prefetchRoutes(subItem.subItems.map((s: { url: string }) => s.url));
-                                      }}
-                                    >
+                                    <SidebarMenuSubButton className="cursor-pointer">
                                       {subItem.icon && (
                                         <subItem.icon className="me-2 h-4 w-4 opacity-70" />
                                       )}
@@ -605,24 +623,69 @@ export function AppSidebar() {
                                   </CollapsibleTrigger>
                                   <CollapsibleContent>
                                     <SidebarMenuSub className="ms-4 border-s ps-2">
-                                      {subItem.subItems.map((nestedItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
-                                        <SidebarMenuSubItem key={nestedItem.title}>
-                                          <SidebarMenuSubButton
+                                      {subItem.subItems.map((nestedItem) =>
+                                        'subItems' in nestedItem && nestedItem.subItems ? (
+                                          // Level 4: Nested collapsible (e.g., Visitor Gatekeeper, Security Patrols)
+                                          <Collapsible
+                                            key={nestedItem.title}
                                             asChild
-                                            isActive={location.pathname === nestedItem.url}
+                                            defaultOpen={'isActive' in nestedItem ? nestedItem.isActive : false}
+                                            className="group/deep"
                                           >
-                                            <NavLink
-                                              to={nestedItem.url}
-                                              onMouseEnter={() => prefetchRoute(nestedItem.url)}
+                                            <SidebarMenuSubItem>
+                                              <CollapsibleTrigger asChild>
+                                                <SidebarMenuSubButton className="cursor-pointer">
+                                                  {nestedItem.icon && (
+                                                    <nestedItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                                  )}
+                                                  <span>{nestedItem.title}</span>
+                                                  <ChevronRight className="ms-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/deep:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/deep:rotate-90" />
+                                                </SidebarMenuSubButton>
+                                              </CollapsibleTrigger>
+                                              <CollapsibleContent>
+                                                <SidebarMenuSub className="ms-4 border-s ps-2">
+                                                  {nestedItem.subItems.map((deepItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
+                                                    <SidebarMenuSubItem key={deepItem.title}>
+                                                      <SidebarMenuSubButton
+                                                        asChild
+                                                        isActive={location.pathname === deepItem.url}
+                                                      >
+                                                        <NavLink
+                                                          to={deepItem.url}
+                                                          onMouseEnter={() => prefetchRoute(deepItem.url)}
+                                                        >
+                                                          {deepItem.icon && (
+                                                            <deepItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                                          )}
+                                                          <span>{deepItem.title}</span>
+                                                        </NavLink>
+                                                      </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                  ))}
+                                                </SidebarMenuSub>
+                                              </CollapsibleContent>
+                                            </SidebarMenuSubItem>
+                                          </Collapsible>
+                                        ) : 'url' in nestedItem ? (
+                                          // Level 3: Regular link item
+                                          <SidebarMenuSubItem key={nestedItem.title}>
+                                            <SidebarMenuSubButton
+                                              asChild
+                                              isActive={location.pathname === nestedItem.url}
                                             >
-                                              {nestedItem.icon && (
-                                                <nestedItem.icon className="me-2 h-4 w-4 opacity-70" />
-                                              )}
-                                              <span>{nestedItem.title}</span>
-                                            </NavLink>
-                                          </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                      ))}
+                                              <NavLink
+                                                to={nestedItem.url}
+                                                onMouseEnter={() => prefetchRoute(nestedItem.url)}
+                                              >
+                                                {nestedItem.icon && (
+                                                  <nestedItem.icon className="me-2 h-4 w-4 opacity-70" />
+                                                )}
+                                                <span>{nestedItem.title}</span>
+                                              </NavLink>
+                                            </SidebarMenuSubButton>
+                                          </SidebarMenuSubItem>
+                                        ) : null
+                                      )}
                                     </SidebarMenuSub>
                                   </CollapsibleContent>
                                 </SidebarMenuSubItem>
