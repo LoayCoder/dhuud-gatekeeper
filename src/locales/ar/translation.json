@@ -3936,5 +3936,138 @@
       "trend": "الاتجاه",
       "trendDescription": "اتجاه ساعات العمل التاريخي"
     }
+  },
+  "visitors": {
+    "site": "الموقع",
+    "dashboard": {
+      "title": "لوحة معلومات الزوار",
+      "description": "نظرة عامة فورية على نشاط الزوار"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "pending_security": "بانتظار الأمن",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
+      "checkedIn": "تم تسجيل الدخول",
+      "checkedOut": "تم تسجيل الخروج",
+      "expired": "منتهي الصلاحية"
+    },
+    "stats": {
+      "pending": "طلبات معلقة",
+      "awaitingApproval": "في انتظار موافقة الأمن",
+      "todayExpected": "المتوقعون اليوم",
+      "scheduledToday": "المجدولون لليوم",
+      "onSite": "في الموقع",
+      "currentlyOnSite": "حالياً في الموقع"
+    },
+    "tabs": {
+      "pending": "معلق",
+      "today": "اليوم",
+      "onSite": "في الموقع"
+    },
+    "pending": {
+      "title": "طلبات بانتظار الموافقة",
+      "description": "طلبات الزيارة بانتظار مراجعة الأمن",
+      "noRequests": "لا توجد طلبات معلقة"
+    },
+    "today": {
+      "title": "زوار اليوم",
+      "description": "جميع الزوار المجدولين لليوم",
+      "noVisitors": "لا يوجد زوار مجدولين لليوم"
+    },
+    "onSite": {
+      "title": "المتواجدون حالياً",
+      "description": "الزوار المسجلون حالياً",
+      "noVisitors": "لا يوجد زوار في الموقع حالياً"
+    },
+    "actions": {
+      "review": "مراجعة",
+      "checkIn": "تسجيل دخول",
+      "checkOut": "تسجيل خروج"
+    },
+    "checkpoint": {
+      "title": "نقطة التفتيش الأمني",
+      "description": "مسح رموز QR للزوار أو البحث يدوياً",
+      "scan": "مسح / بحث",
+      "scanDescription": "مسح رمز QR للزائر أو البحث بالاسم/الهوية",
+      "qrScan": "مسح QR",
+      "manualSearch": "بحث يدوي",
+      "searchLabel": "البحث عن زائر",
+      "searchPlaceholder": "الاسم أو رقم الهوية",
+      "visitorDetails": "تفاصيل الزائر",
+      "scanToStart": "امسح رمز QR أو ابحث لعرض تفاصيل الزائر",
+      "noValidVisit": "لا توجد زيارة صالحة",
+      "noValidVisitDescription": "لم يتم العثور على زيارة معتمدة لهذا الزائر",
+      "blockedByBlacklist": "الدخول محظور - الزائر في القائمة السوداء",
+      "notApproved": "الزيارة غير معتمدة للتسجيل",
+      "scanAnother": "مسح زائر آخر"
+    },
+    "blacklist": {
+      "title": "القائمة السوداء الأمنية",
+      "description": "إدارة الزوار المحظورين",
+      "manage": "إدارة القائمة السوداء",
+      "warning": "زائر محظور",
+      "reason": "السبب",
+      "add": "إضافة للقائمة السوداء",
+      "addTo": "إضافة للقائمة السوداء",
+      "addTitle": "إضافة للقائمة السوداء",
+      "addDescription": "إضافة شخص إلى القائمة السوداء الأمنية",
+      "reasonLabel": "سبب الحظر",
+      "reasonPlaceholder": "صف سبب حظر هذا الشخص...",
+      "allEntries": "جميع سجلات القائمة السوداء",
+      "allEntriesDescription": "الأشخاص الممنوعون من دخول الموقع",
+      "searchPlaceholder": "البحث بالاسم أو الهوية",
+      "noEntries": "لا توجد سجلات في القائمة السوداء",
+      "listedAt": "تاريخ الإضافة",
+      "removeTitle": "إزالة من القائمة السوداء",
+      "removeDescription": "هل أنت متأكد من إزالة هذا الشخص من القائمة السوداء؟",
+      "remove": "إزالة"
+    },
+    "register": {
+      "title": "تسجيل زائر مسبقاً",
+      "description": "تسجيل زائر جديد وإنشاء رمز QR للوصول",
+      "success": "تم تسجيل الزائر بنجاح!",
+      "successDescription": "تم تسجيل الزائر وإنشاء رمز QR",
+      "qrInstructions": "شارك رمز QR هذا مع الزائر للتسجيل",
+      "registerAnother": "تسجيل زائر آخر",
+      "backToDashboard": "العودة للوحة المعلومات",
+      "submit": "تسجيل وإنشاء QR",
+      "form": {
+        "title": "نموذج تسجيل الزائر"
+      },
+      "sections": {
+        "visitor": "معلومات الزائر",
+        "visit": "تفاصيل الزيارة"
+      }
+    },
+    "list": {
+      "title": "دليل الزوار",
+      "description": "جميع الزوار المسجلين",
+      "allVisitors": "جميع الزوار",
+      "allVisitorsDescription": "قائمة كاملة بالزوار المسجلين",
+      "searchPlaceholder": "البحث بالاسم أو البريد أو الهوية",
+      "noVisitors": "لم يتم العثور على زوار",
+      "neverVisited": "لم يزر من قبل",
+      "viewQR": "عرض رمز QR"
+    },
+    "fields": {
+      "name": "الاسم الكامل",
+      "company": "الشركة",
+      "email": "البريد الإلكتروني",
+      "nationalId": "رقم الهوية الوطنية",
+      "lastVisit": "آخر زيارة",
+      "site": "الموقع المقصود",
+      "validFrom": "صالح من",
+      "validUntil": "صالح حتى",
+      "notes": "ملاحظات أمنية"
+    },
+    "placeholders": {
+      "name": "أدخل الاسم الكامل",
+      "company": "أدخل اسم الشركة",
+      "email": "أدخل البريد الإلكتروني",
+      "nationalId": "أدخل رقم الهوية الوطنية",
+      "site": "اختر الموقع المقصود",
+      "notes": "أضف أي ملاحظات أو تعليمات أمنية..."
+    }
   }
 }

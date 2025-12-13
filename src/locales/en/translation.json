@@ -4102,5 +4102,138 @@
       "trend": "Trend",
       "trendDescription": "Historical manhours trend over time"
     }
+  },
+  "visitors": {
+    "site": "Site",
+    "dashboard": {
+      "title": "Visitor Dashboard",
+      "description": "Real-time overview of visitor activity"
+    },
+    "status": {
+      "pending": "Pending",
+      "pending_security": "Pending Security",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "checkedIn": "Checked In",
+      "checkedOut": "Checked Out",
+      "expired": "Expired"
+    },
+    "stats": {
+      "pending": "Pending Requests",
+      "awaitingApproval": "Awaiting security approval",
+      "todayExpected": "Expected Today",
+      "scheduledToday": "Scheduled for today",
+      "onSite": "On Site",
+      "currentlyOnSite": "Currently on site"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "today": "Today",
+      "onSite": "On Site"
+    },
+    "pending": {
+      "title": "Pending Approval Requests",
+      "description": "Visit requests awaiting security review",
+      "noRequests": "No pending requests"
+    },
+    "today": {
+      "title": "Today's Visitors",
+      "description": "All visitors scheduled for today",
+      "noVisitors": "No visitors scheduled for today"
+    },
+    "onSite": {
+      "title": "Currently On Site",
+      "description": "Visitors currently checked in",
+      "noVisitors": "No visitors currently on site"
+    },
+    "actions": {
+      "review": "Review",
+      "checkIn": "Check In",
+      "checkOut": "Check Out"
+    },
+    "checkpoint": {
+      "title": "Security Checkpoint",
+      "description": "Scan visitor QR codes or search manually",
+      "scan": "Scan / Search",
+      "scanDescription": "Scan visitor QR code or search by name/ID",
+      "qrScan": "QR Scan",
+      "manualSearch": "Manual Search",
+      "searchLabel": "Search Visitor",
+      "searchPlaceholder": "Name or National ID",
+      "visitorDetails": "Visitor Details",
+      "scanToStart": "Scan a QR code or search to view visitor details",
+      "noValidVisit": "No Valid Visit",
+      "noValidVisitDescription": "No approved visit found for this visitor",
+      "blockedByBlacklist": "Entry blocked - visitor is blacklisted",
+      "notApproved": "Visit not approved for check-in",
+      "scanAnother": "Scan Another Visitor"
+    },
+    "blacklist": {
+      "title": "Security Blacklist",
+      "description": "Manage restricted visitors",
+      "manage": "Manage Blacklist",
+      "warning": "Blacklisted Visitor",
+      "reason": "Reason",
+      "add": "Add to Blacklist",
+      "addTo": "Add to Blacklist",
+      "addTitle": "Add to Blacklist",
+      "addDescription": "Add a person to the security blacklist",
+      "reasonLabel": "Reason for Blacklisting",
+      "reasonPlaceholder": "Describe why this person is being blacklisted...",
+      "allEntries": "All Blacklist Entries",
+      "allEntriesDescription": "Persons restricted from site access",
+      "searchPlaceholder": "Search by name or ID",
+      "noEntries": "No blacklist entries",
+      "listedAt": "Listed Date",
+      "removeTitle": "Remove from Blacklist",
+      "removeDescription": "Are you sure you want to remove this person from the blacklist?",
+      "remove": "Remove"
+    },
+    "register": {
+      "title": "Pre-Register Visitor",
+      "description": "Register a new visitor and generate access QR code",
+      "success": "Visitor Registered Successfully!",
+      "successDescription": "The visitor has been registered and a QR code has been generated",
+      "qrInstructions": "Share this QR code with the visitor for check-in",
+      "registerAnother": "Register Another",
+      "backToDashboard": "Back to Dashboard",
+      "submit": "Register & Generate QR",
+      "form": {
+        "title": "Visitor Registration Form"
+      },
+      "sections": {
+        "visitor": "Visitor Information",
+        "visit": "Visit Details"
+      }
+    },
+    "list": {
+      "title": "Visitor Directory",
+      "description": "All registered visitors",
+      "allVisitors": "All Visitors",
+      "allVisitorsDescription": "Complete list of registered visitors",
+      "searchPlaceholder": "Search by name, email, or ID",
+      "noVisitors": "No visitors found",
+      "neverVisited": "Never visited",
+      "viewQR": "View QR Code"
+    },
+    "fields": {
+      "name": "Full Name",
+      "company": "Company",
+      "email": "Email",
+      "nationalId": "National ID",
+      "lastVisit": "Last Visit",
+      "site": "Destination Site",
+      "validFrom": "Valid From",
+      "validUntil": "Valid Until",
+      "notes": "Security Notes"
+    },
+    "placeholders": {
+      "name": "Enter full name",
+      "company": "Enter company name",
+      "email": "Enter email address",
+      "nationalId": "Enter national ID number",
+      "site": "Select destination site",
+      "notes": "Add any security notes or instructions..."
+    }
   }
 }
