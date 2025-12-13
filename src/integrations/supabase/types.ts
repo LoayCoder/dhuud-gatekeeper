@@ -6140,6 +6140,7 @@ export type Database = {
           is_active: boolean | null
           last_visit_at: string | null
           national_id: string | null
+          phone: string | null
           qr_code_token: string
           tenant_id: string
         }
@@ -6152,6 +6153,7 @@ export type Database = {
           is_active?: boolean | null
           last_visit_at?: string | null
           national_id?: string | null
+          phone?: string | null
           qr_code_token?: string
           tenant_id: string
         }
@@ -6164,6 +6166,7 @@ export type Database = {
           is_active?: boolean | null
           last_visit_at?: string | null
           national_id?: string | null
+          phone?: string | null
           qr_code_token?: string
           tenant_id?: string
         }

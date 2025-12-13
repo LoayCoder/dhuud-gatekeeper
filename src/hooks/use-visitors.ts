@@ -24,7 +24,7 @@ export function useVisitors(filters?: UseVisitorsFilters) {
 
       let query = supabase
         .from('visitors')
-        .select('id, full_name, email, company_name, national_id, qr_code_token, is_active, last_visit_at, created_at')
+        .select('id, full_name, phone, company_name, national_id, qr_code_token, is_active, last_visit_at, created_at')
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
 
@@ -74,7 +74,7 @@ export function useCreateVisitor() {
   const tenantId = profile?.tenant_id;
 
   return useMutation({
-    mutationFn: async (visitor: Omit<VisitorInsert, 'tenant_id' | 'qr_code_token'>) => {
+    mutationFn: async (visitor: Omit<VisitorInsert, 'tenant_id' | 'qr_code_token' | 'email'> & { phone?: string | null }) => {
       if (!tenantId) throw new Error('No tenant');
 
       // Generate a unique QR token

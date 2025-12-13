@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, UserPlus, QrCode, CheckCircle2 } from 'lucide-react';
@@ -17,15 +16,25 @@ import { useCreateVisitRequest } from '@/hooks/use-visit-requests';
 import { useSites } from '@/hooks/use-sites';
 import { useAuth } from '@/contexts/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
+import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
+
+const DURATION_OPTIONS = [
+  { value: '10', label: '10 minutes', minutes: 10 },
+  { value: '30', label: '30 minutes', minutes: 30 },
+  { value: '60', label: '1 hour', minutes: 60 },
+  { value: '120', label: '2 hours', minutes: 120 },
+  { value: '240', label: '4 hours', minutes: 240 },
+  { value: '480', label: '8 hours', minutes: 480 },
+];
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
-  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().min(8, 'Valid phone number is required').optional().or(z.literal('')),
   company_name: z.string().optional(),
   national_id: z.string().optional(),
   site_id: z.string().min(1, 'Site is required'),
   valid_from: z.string().min(1, 'Start date is required'),
-  valid_until: z.string().min(1, 'End date is required'),
+  duration_minutes: z.string().min(1, 'Duration is required'),
   notes: z.string().optional(),
 });
 
@@ -37,7 +46,7 @@ export default function VisitorPreRegistration() {
   const { user } = useAuth();
   const [createdVisitor, setCreatedVisitor] = useState<{ qr_code_token: string; full_name: string } | null>(null);
   
-  const { data: sites, isLoading: sitesLoading } = useSites();
+  const { data: sites } = useSites();
   const createVisitor = useCreateVisitor();
   const createVisitRequest = useCreateVisitRequest();
 
@@ -45,22 +54,27 @@ export default function VisitorPreRegistration() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       full_name: '',
-      email: '',
+      phone: '',
       company_name: '',
       national_id: '',
       site_id: '',
       valid_from: new Date().toISOString().slice(0, 16),
-      valid_until: '',
+      duration_minutes: '10', // Default 10 minutes
       notes: '',
     },
   });
 
   const onSubmit = async (values: FormValues) => {
     try {
+      // Calculate valid_until from valid_from + duration
+      const validFromDate = new Date(values.valid_from);
+      const durationMinutes = parseInt(values.duration_minutes, 10);
+      const validUntilDate = new Date(validFromDate.getTime() + durationMinutes * 60 * 1000);
+
       // First create the visitor
       const visitor = await createVisitor.mutateAsync({
         full_name: values.full_name,
-        email: values.email || null,
+        phone: values.phone || null,
         company_name: values.company_name || null,
         national_id: values.national_id || null,
       });
@@ -71,7 +85,7 @@ export default function VisitorPreRegistration() {
         host_id: user?.id ?? '',
         site_id: values.site_id,
         valid_from: values.valid_from,
-        valid_until: values.valid_until,
+        valid_until: validUntilDate.toISOString(),
         security_notes: values.notes || null,
       });
 
@@ -82,6 +96,10 @@ export default function VisitorPreRegistration() {
     } catch (error) {
       // Error is handled by mutation
     }
+  };
+
+  const handleIdScan = (scannedValue: string) => {
+    form.setValue('national_id', scannedValue);
   };
 
   if (createdVisitor) {
@@ -158,12 +176,16 @@ export default function VisitorPreRegistration() {
                   />
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.email')}</FormLabel>
+                        <FormLabel>{t('visitors.fields.phone', 'Mobile Number')}</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder={t('visitors.placeholders.email')} />
+                          <Input 
+                            {...field} 
+                            type="tel" 
+                            placeholder={t('visitors.placeholders.phone', 'Enter mobile number')} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -188,9 +210,12 @@ export default function VisitorPreRegistration() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('visitors.fields.nationalId')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder={t('visitors.placeholders.nationalId')} />
-                        </FormControl>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input {...field} placeholder={t('visitors.placeholders.nationalId')} />
+                          </FormControl>
+                          <VisitorIdScanner onScan={handleIdScan} />
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -226,7 +251,6 @@ export default function VisitorPreRegistration() {
                       </FormItem>
                     )}
                   />
-                  <div /> {/* Spacer */}
                   <FormField
                     control={form.control}
                     name="valid_from"
@@ -242,13 +266,24 @@ export default function VisitorPreRegistration() {
                   />
                   <FormField
                     control={form.control}
-                    name="valid_until"
+                    name="duration_minutes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.validUntil')} *</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="datetime-local" />
-                        </FormControl>
+                        <FormLabel>{t('visitors.fields.duration', 'Visit Duration')} *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('visitors.placeholders.duration', 'Select duration')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {DURATION_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {t(`visitors.duration.${option.value}`, option.label)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
