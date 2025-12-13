@@ -63,7 +63,7 @@ export function KPITrendCard({
             
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold">
-                {typeof value === 'number' ? value.toFixed(2) : value}
+                {typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : (value ?? '0')}
                 {suffix}
               </span>
               {target !== undefined && (

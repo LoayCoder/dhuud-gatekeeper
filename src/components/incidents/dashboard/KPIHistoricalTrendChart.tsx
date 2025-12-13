@@ -53,10 +53,9 @@ export function KPIHistoricalTrendChart({ data, isLoading }: KPIHistoricalTrendC
       </Card>
     );
   }
-
-  const formattedData = data.map(item => ({
+  const formattedData = (data || []).map(item => ({
     ...item,
-    monthLabel: format(parseISO(item.month), 'MMM yyyy'),
+    monthLabel: item.month ? format(parseISO(item.month), 'MMM yyyy') : '',
   }));
 
   const toggleMetric = (metric: MetricKey) => {
