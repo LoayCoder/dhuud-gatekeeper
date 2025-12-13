@@ -82,6 +82,7 @@ const TeamPerformance = lazy(() => import(/* webpackChunkName: "admin-team-perfo
 const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-report" */ "./pages/admin/ExecutiveReport"));
 const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-access" */ "./pages/admin/MenuAccessConfig"));
 const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-diagrams" */ "./pages/admin/WorkflowDiagrams"));
+const ManhoursManagement = lazy(() => import(/* webpackChunkName: "admin-manhours" */ "./pages/admin/ManhoursManagement"));
 
 const queryClient = new QueryClient();
 
@@ -309,6 +310,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <WorkflowDiagrams />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/manhours"
+                        element={
+                          <AdminRoute>
+                            <ManhoursManagement />
                           </AdminRoute>
                         }
                       />
