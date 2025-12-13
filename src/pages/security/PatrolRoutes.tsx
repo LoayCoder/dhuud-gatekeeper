@@ -66,6 +66,9 @@ export default function PatrolRoutes() {
         name_ar: null,
         site_id: null,
         route_map_path: null,
+        checkpoint_radius_meters: 20,
+        require_gps_validation: true,
+        require_photo: false,
       });
 
       toast({
