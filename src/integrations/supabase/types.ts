@@ -5514,10 +5514,15 @@ export type Database = {
         Returns: Json
       }
       get_findings_distribution: { Args: never; Returns: Json }
-      get_hsse_event_dashboard_stats: {
-        Args: { p_end_date?: string; p_start_date?: string }
-        Returns: Json
-      }
+      get_hsse_event_dashboard_stats:
+        | {
+            Args: { p_end_date?: string; p_start_date?: string }
+            Returns: Json
+          }
+        | {
+            Args: { p_end_date?: string; p_start_date?: string }
+            Returns: Json
+          }
       get_incident_department_manager: {
         Args: { p_incident_id: string }
         Returns: string

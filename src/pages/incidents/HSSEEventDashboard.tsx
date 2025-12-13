@@ -158,10 +158,33 @@ export default function HSSEEventDashboard() {
 
   const handleGenerateAIInsights = () => {
     if (dashboardData && locationData) {
-      generateInsights({
+      // Build richer context for AI analysis
+      const aiContext = {
         ...dashboardData,
         locationData,
-      });
+        // Add RCA data for root cause pattern analysis
+        rca_data: rcaData ? {
+          total_rcas: rcaData.root_cause_distribution?.length || 0,
+          top_categories: rcaData.root_cause_distribution?.slice(0, 5).map((r: any) => r.category) || [],
+          major_events_count: rcaData.major_events?.length || 0,
+        } : null,
+        // Add observation behavior data
+        observation_behaviors: dashboardData.by_subtype ? {
+          positive: (dashboardData.by_subtype as any)?.safe_condition || 0,
+          negative: ((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0),
+          ratio: ((dashboardData.by_subtype as any)?.safe_condition || 0) > 0 && 
+                 (((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0)) > 0
+            ? `${(((dashboardData.by_subtype as any)?.safe_condition || 0) / 
+                  (((dashboardData.by_subtype as any)?.unsafe_act || 0) + ((dashboardData.by_subtype as any)?.unsafe_condition || 0) || 1)).toFixed(2)}:1`
+            : 'N/A',
+        } : null,
+        // Add near miss data for leading indicator analysis
+        near_miss_data: {
+          total: dashboardData.summary?.near_miss_count || 0,
+          rate: `${dashboardData.summary?.near_miss_rate || 0}%`,
+        },
+      };
+      generateInsights(aiContext);
     }
   };
 
