@@ -245,20 +245,20 @@ export function AppSidebar() {
               menuCode: 'security_patrols',
               isActive: location.pathname.startsWith("/security/patrols"),
               subItems: [
-                {
-                  title: t('security.patrols.dashboard', 'Patrol Dashboard'),
+              {
+                  title: t('security.patrols.dashboard.title', 'Patrol Dashboard'),
                   url: "/security/patrols",
                   icon: Network,
                   menuCode: 'patrol_dashboard',
                 },
                 {
-                  title: t('security.patrols.routes', 'Patrol Routes'),
+                  title: t('security.patrols.routes.title', 'Patrol Routes'),
                   url: "/security/patrols/routes",
                   icon: Route,
                   menuCode: 'patrol_routes',
                 },
                 {
-                  title: t('security.patrols.history', 'Patrol History'),
+                  title: t('security.patrols.history.title', 'Patrol History'),
                   url: "/security/patrols/history",
                   icon: Clock,
                   menuCode: 'patrol_history',
