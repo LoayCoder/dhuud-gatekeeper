@@ -14,7 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "18rem";
+// Responsive sidebar widths - base is used for CSS variable, responsive handled via Tailwind
+const SIDEBAR_WIDTH = "15rem"; // Base width for tablets (768-1023px)
 const SIDEBAR_WIDTH_MOBILE = "20rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
@@ -116,7 +117,12 @@ const SidebarProvider = React.forwardRef<
               ...style,
             } as React.CSSProperties
           }
-          className={cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", className)}
+          className={cn(
+            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+            // Responsive sidebar width: 15rem tablet, 17rem laptop, 20rem desktop
+            "lg:[--sidebar-width:17rem] xl:[--sidebar-width:20rem]",
+            className
+          )}
           ref={ref}
           {...props}
         >
