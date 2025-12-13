@@ -1459,7 +1459,89 @@
     "passwordBreachedWarning": "Your password has been found in {{count}} data breaches. Please change it in Profile → Security.",
     "restrictedAccess": "You don't have permission to view this information",
     "sensitiveDataHidden": "Sensitive data hidden for security",
-    "clickToReveal": "Click to reveal"
+    "clickToReveal": "Click to reveal",
+    "visitors": {
+      "dashboard": "Visitor Dashboard",
+      "preRegister": "Pre-Register",
+      "checkpoint": "Checkpoint",
+      "list": "Visitor List",
+      "blacklist": "Blacklist"
+    },
+    "patrols": {
+      "title": "Security Patrols",
+      "description": "Manage patrol routes and monitor guard activities",
+      "dashboard": {
+        "title": "Patrol Dashboard",
+        "description": "Overview of patrol operations",
+        "activePatrols": "Active Patrols",
+        "completedToday": "Completed Today",
+        "totalRoutes": "Total Routes",
+        "complianceRate": "Compliance Rate",
+        "noActivePatrols": "No active patrols",
+        "quickLinks": "Quick Links",
+        "manageRoutes": "Manage Routes",
+        "patrolHistory": "Patrol History"
+      },
+      "routes": {
+        "title": "Patrol Routes",
+        "description": "Create and manage patrol routes",
+        "create": "Create Route",
+        "createTitle": "Create New Route",
+        "createDescription": "Define a new patrol route with checkpoints",
+        "name": "Route Name",
+        "namePlaceholder": "Enter route name",
+        "routeDescription": "Description",
+        "descriptionPlaceholder": "Describe the patrol route",
+        "estimatedDuration": "Estimated Duration (minutes)",
+        "checkpoints": "Checkpoints",
+        "noRoutes": "No patrol routes found",
+        "noRoutesDescription": "Create your first patrol route to get started",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "execution": {
+        "title": "Active Patrol",
+        "start": "Start Patrol",
+        "startDescription": "Begin a new patrol session",
+        "selectRoute": "Select Route",
+        "selectRoutePlaceholder": "Choose a patrol route",
+        "inProgress": "Patrol in Progress",
+        "complete": "Complete Patrol",
+        "completeConfirm": "Are you sure you want to complete this patrol?",
+        "logCheckpoint": "Log Checkpoint",
+        "gpsRequired": "GPS location required",
+        "gpsValidating": "Validating GPS location...",
+        "gpsValid": "Location verified",
+        "gpsInvalid": "Location outside checkpoint area",
+        "notes": "Patrol Notes",
+        "notesPlaceholder": "Add any observations or notes...",
+        "issueFound": "Issue Found",
+        "issueDescription": "Describe the issue"
+      },
+      "history": {
+        "title": "Patrol History",
+        "description": "View completed patrol records",
+        "filter": "Filter",
+        "filterByStatus": "Filter by Status",
+        "filterByDate": "Filter by Date",
+        "all": "All",
+        "completed": "Completed",
+        "incomplete": "Incomplete",
+        "export": "Export",
+        "noHistory": "No patrol history found",
+        "duration": "Duration",
+        "checkpointsVisited": "Checkpoints Visited",
+        "guard": "Guard",
+        "startTime": "Start Time",
+        "endTime": "End Time"
+      },
+      "status": {
+        "active": "Active",
+        "completed": "Completed",
+        "incomplete": "Incomplete",
+        "pending": "Pending"
+      }
+    }
   },
   "dashboard": {
     "welcomeTitle": "Welcome to Dhuud HSSE Platform",
@@ -4234,6 +4316,87 @@
       "nationalId": "Enter national ID number",
       "site": "Select destination site",
       "notes": "Add any security notes or instructions..."
+    }
+  },
+  "environmental": {
+    "title": "Environmental Details",
+    "description": "Environmental incident information",
+    "sections": {
+      "spillRelease": "Spill/Release Information",
+      "containment": "Containment & Cleanup",
+      "regulatory": "Regulatory Notification",
+      "emissions": "Air Emissions"
+    },
+    "fields": {
+      "substanceType": "Substance Type",
+      "substanceName": "Substance Name",
+      "casNumber": "CAS Number",
+      "spillVolume": "Spill Volume",
+      "spillUnit": "Unit",
+      "affectedArea": "Affected Area (sq m)",
+      "affectedMedium": "Affected Medium",
+      "reachedWaterway": "Reached Waterway",
+      "waterwayName": "Waterway Name",
+      "containmentMethod": "Containment Method",
+      "containmentSuccessful": "Containment Successful",
+      "cleanupRequired": "Cleanup Required",
+      "cleanupContractor": "Cleanup Contractor",
+      "cleanupCompleted": "Cleanup Completed",
+      "cleanupCompletedAt": "Cleanup Completed Date",
+      "estimatedCleanupCost": "Estimated Cleanup Cost (SAR)",
+      "actualCleanupCost": "Actual Cleanup Cost (SAR)",
+      "regulatoryNotificationRequired": "Regulatory Notification Required",
+      "reportableQuantityExceeded": "Reportable Quantity Exceeded",
+      "regulatoryAgency": "Regulatory Agency",
+      "regulatoryNotificationSentAt": "Notification Sent Date",
+      "regulatoryReferenceNumber": "Reference Number",
+      "emissionType": "Emission Type",
+      "estimatedEmissionKg": "Estimated Emission (kg)",
+      "emissionDurationHours": "Emission Duration (hours)"
+    },
+    "substanceTypes": {
+      "chemical": "Chemical",
+      "petroleum": "Petroleum",
+      "wastewater": "Wastewater",
+      "hazardous": "Hazardous Material",
+      "biological": "Biological",
+      "radioactive": "Radioactive",
+      "other": "Other"
+    },
+    "affectedMedia": {
+      "soil": "Soil",
+      "groundwater": "Groundwater",
+      "surfaceWater": "Surface Water",
+      "air": "Air",
+      "vegetation": "Vegetation"
+    },
+    "emissionTypes": {
+      "voc": "VOC (Volatile Organic Compounds)",
+      "particulateMatter": "Particulate Matter",
+      "sulfurDioxide": "Sulfur Dioxide",
+      "nitrogenOxides": "Nitrogen Oxides",
+      "carbonMonoxide": "Carbon Monoxide",
+      "other": "Other"
+    },
+    "spillUnits": {
+      "liters": "Liters",
+      "gallons": "Gallons",
+      "barrels": "Barrels",
+      "cubicMeters": "Cubic Meters"
+    },
+    "placeholders": {
+      "substanceName": "Enter substance name",
+      "casNumber": "e.g., 7732-18-5",
+      "waterwayName": "Enter waterway name",
+      "containmentMethod": "Describe containment method used",
+      "cleanupContractor": "Enter contractor name",
+      "regulatoryAgency": "e.g., NCEC, EPA",
+      "regulatoryReferenceNumber": "Enter reference number"
+    },
+    "tooltips": {
+      "casNumber": "Chemical Abstracts Service registry number",
+      "reportableQuantity": "Quantity requiring mandatory regulatory notification",
+      "affectedMedium": "Environmental media impacted by the release"
     }
   }
 }

@@ -1538,7 +1538,89 @@
     "passwordBreachedWarning": "आपका पासवर्ड {{count}} डेटा उल्लंघनों में पाया गया है। कृपया इसे प्रोफ़ाइल → सुरक्षा में बदलें।",
     "restrictedAccess": "आपके पास इस जानकारी को देखने की अनुमति नहीं है",
     "sensitiveDataHidden": "संवेदनशील डेटा सुरक्षा के लिए छिपा हुआ है",
-    "clickToReveal": "प्रकट करने के लिए क्लिक करें"
+    "clickToReveal": "प्रकट करने के लिए क्लिक करें",
+    "visitors": {
+      "dashboard": "विज़िटर डैशबोर्ड",
+      "preRegister": "पूर्व-पंजीकरण",
+      "checkpoint": "चेकपॉइंट",
+      "list": "विज़िटर सूची",
+      "blacklist": "ब्लैकलिस्ट"
+    },
+    "patrols": {
+      "title": "सुरक्षा गश्त",
+      "description": "गश्त मार्गों का प्रबंधन और गार्ड गतिविधियों की निगरानी",
+      "dashboard": {
+        "title": "गश्त डैशबोर्ड",
+        "description": "गश्त संचालन का अवलोकन",
+        "activePatrols": "सक्रिय गश्त",
+        "completedToday": "आज पूर्ण",
+        "totalRoutes": "कुल मार्ग",
+        "complianceRate": "अनुपालन दर",
+        "noActivePatrols": "कोई सक्रिय गश्त नहीं",
+        "quickLinks": "त्वरित लिंक",
+        "manageRoutes": "मार्ग प्रबंधित करें",
+        "patrolHistory": "गश्त इतिहास"
+      },
+      "routes": {
+        "title": "गश्त मार्ग",
+        "description": "गश्त मार्ग बनाएं और प्रबंधित करें",
+        "create": "मार्ग बनाएं",
+        "createTitle": "नया मार्ग बनाएं",
+        "createDescription": "चेकपॉइंट के साथ नया गश्त मार्ग परिभाषित करें",
+        "name": "मार्ग का नाम",
+        "namePlaceholder": "मार्ग का नाम दर्ज करें",
+        "routeDescription": "विवरण",
+        "descriptionPlaceholder": "गश्त मार्ग का वर्णन करें",
+        "estimatedDuration": "अनुमानित अवधि (मिनट)",
+        "checkpoints": "चेकपॉइंट",
+        "noRoutes": "कोई गश्त मार्ग नहीं मिले",
+        "noRoutesDescription": "शुरू करने के लिए अपना पहला गश्त मार्ग बनाएं",
+        "edit": "संपादित करें",
+        "delete": "हटाएं"
+      },
+      "execution": {
+        "title": "सक्रिय गश्त",
+        "start": "गश्त शुरू करें",
+        "startDescription": "नया गश्त सत्र शुरू करें",
+        "selectRoute": "मार्ग चुनें",
+        "selectRoutePlaceholder": "गश्त मार्ग चुनें",
+        "inProgress": "गश्त जारी",
+        "complete": "गश्त पूर्ण करें",
+        "completeConfirm": "क्या आप वाकई इस गश्त को पूर्ण करना चाहते हैं?",
+        "logCheckpoint": "चेकपॉइंट लॉग करें",
+        "gpsRequired": "GPS स्थान आवश्यक",
+        "gpsValidating": "GPS स्थान सत्यापित हो रहा है...",
+        "gpsValid": "स्थान सत्यापित",
+        "gpsInvalid": "स्थान चेकपॉइंट क्षेत्र से बाहर",
+        "notes": "गश्त नोट्स",
+        "notesPlaceholder": "कोई अवलोकन या नोट्स जोड़ें...",
+        "issueFound": "समस्या मिली",
+        "issueDescription": "समस्या का वर्णन करें"
+      },
+      "history": {
+        "title": "गश्त इतिहास",
+        "description": "पूर्ण गश्त रिकॉर्ड देखें",
+        "filter": "फ़िल्टर",
+        "filterByStatus": "स्थिति के अनुसार फ़िल्टर",
+        "filterByDate": "तिथि के अनुसार फ़िल्टर",
+        "all": "सभी",
+        "completed": "पूर्ण",
+        "incomplete": "अपूर्ण",
+        "export": "निर्यात",
+        "noHistory": "कोई गश्त इतिहास नहीं मिला",
+        "duration": "अवधि",
+        "checkpointsVisited": "विज़िट किए गए चेकपॉइंट",
+        "guard": "गार्ड",
+        "startTime": "प्रारंभ समय",
+        "endTime": "समाप्ति समय"
+      },
+      "status": {
+        "active": "सक्रिय",
+        "completed": "पूर्ण",
+        "incomplete": "अपूर्ण",
+        "pending": "लंबित"
+      }
+    }
   },
   "dashboard": {
     "welcomeTitle": "Dhuud HSSE प्लेटफ़ॉर्म में आपका स्वागत है",
@@ -3945,6 +4027,87 @@
       "nationalId": "राष्ट्रीय ID नंबर दर्ज करें",
       "site": "गंतव्य साइट चुनें",
       "notes": "कोई सुरक्षा नोट्स या निर्देश जोड़ें..."
+    }
+  },
+  "environmental": {
+    "title": "पर्यावरणीय विवरण",
+    "description": "पर्यावरणीय घटना की जानकारी",
+    "sections": {
+      "spillRelease": "रिसाव/उत्सर्जन जानकारी",
+      "containment": "नियंत्रण और सफाई",
+      "regulatory": "नियामक अधिसूचना",
+      "emissions": "वायु उत्सर्जन"
+    },
+    "fields": {
+      "substanceType": "पदार्थ का प्रकार",
+      "substanceName": "पदार्थ का नाम",
+      "casNumber": "CAS नंबर",
+      "spillVolume": "रिसाव की मात्रा",
+      "spillUnit": "इकाई",
+      "affectedArea": "प्रभावित क्षेत्र (वर्ग मीटर)",
+      "affectedMedium": "प्रभावित माध्यम",
+      "reachedWaterway": "जलमार्ग तक पहुंचा",
+      "waterwayName": "जलमार्ग का नाम",
+      "containmentMethod": "नियंत्रण विधि",
+      "containmentSuccessful": "नियंत्रण सफल",
+      "cleanupRequired": "सफाई आवश्यक",
+      "cleanupContractor": "सफाई ठेकेदार",
+      "cleanupCompleted": "सफाई पूर्ण",
+      "cleanupCompletedAt": "सफाई पूर्ण होने की तिथि",
+      "estimatedCleanupCost": "अनुमानित सफाई लागत (रियाल)",
+      "actualCleanupCost": "वास्तविक सफाई लागत (रियाल)",
+      "regulatoryNotificationRequired": "नियामक अधिसूचना आवश्यक",
+      "reportableQuantityExceeded": "रिपोर्ट योग्य मात्रा से अधिक",
+      "regulatoryAgency": "नियामक एजेंसी",
+      "regulatoryNotificationSentAt": "अधिसूचना भेजी गई तिथि",
+      "regulatoryReferenceNumber": "संदर्भ संख्या",
+      "emissionType": "उत्सर्जन का प्रकार",
+      "estimatedEmissionKg": "अनुमानित उत्सर्जन (किग्रा)",
+      "emissionDurationHours": "उत्सर्जन अवधि (घंटे)"
+    },
+    "substanceTypes": {
+      "chemical": "रासायनिक",
+      "petroleum": "पेट्रोलियम",
+      "wastewater": "अपशिष्ट जल",
+      "hazardous": "खतरनाक सामग्री",
+      "biological": "जैविक",
+      "radioactive": "रेडियोधर्मी",
+      "other": "अन्य"
+    },
+    "affectedMedia": {
+      "soil": "मिट्टी",
+      "groundwater": "भूजल",
+      "surfaceWater": "सतही जल",
+      "air": "वायु",
+      "vegetation": "वनस्पति"
+    },
+    "emissionTypes": {
+      "voc": "VOC (वाष्पशील कार्बनिक यौगिक)",
+      "particulateMatter": "कणिका पदार्थ",
+      "sulfurDioxide": "सल्फर डाइऑक्साइड",
+      "nitrogenOxides": "नाइट्रोजन ऑक्साइड",
+      "carbonMonoxide": "कार्बन मोनोऑक्साइड",
+      "other": "अन्य"
+    },
+    "spillUnits": {
+      "liters": "लीटर",
+      "gallons": "गैलन",
+      "barrels": "बैरल",
+      "cubicMeters": "घन मीटर"
+    },
+    "placeholders": {
+      "substanceName": "पदार्थ का नाम दर्ज करें",
+      "casNumber": "उदा.: 7732-18-5",
+      "waterwayName": "जलमार्ग का नाम दर्ज करें",
+      "containmentMethod": "उपयोग की गई नियंत्रण विधि का वर्णन करें",
+      "cleanupContractor": "ठेकेदार का नाम दर्ज करें",
+      "regulatoryAgency": "उदा.: NCEC, EPA",
+      "regulatoryReferenceNumber": "संदर्भ संख्या दर्ज करें"
+    },
+    "tooltips": {
+      "casNumber": "केमिकल एब्स्ट्रैक्ट्स सर्विस रजिस्ट्री नंबर",
+      "reportableQuantity": "अनिवार्य नियामक अधिसूचना के लिए मात्रा",
+      "affectedMedium": "उत्सर्जन से प्रभावित पर्यावरणीय माध्यम"
     }
   }
 }

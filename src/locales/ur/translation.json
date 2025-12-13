@@ -1538,7 +1538,89 @@
     "passwordBreachedWarning": "آپ کا پاس ورڈ {{count}} ڈیٹا خلاف ورزیوں میں پایا گیا۔ براہ کرم اسے پروفائل ← سیکیورٹی میں تبدیل کریں۔",
     "restrictedAccess": "آپ کو یہ معلومات دیکھنے کی اجازت نہیں ہے",
     "sensitiveDataHidden": "حساس ڈیٹا سیکیورٹی کے لیے چھپایا گیا",
-    "clickToReveal": "ظاہر کرنے کے لیے کلک کریں"
+    "clickToReveal": "ظاہر کرنے کے لیے کلک کریں",
+    "visitors": {
+      "dashboard": "مہمانوں کا ڈیش بورڈ",
+      "preRegister": "پیشگی رجسٹریشن",
+      "checkpoint": "چیک پوائنٹ",
+      "list": "مہمانوں کی فہرست",
+      "blacklist": "بلیک لسٹ"
+    },
+    "patrols": {
+      "title": "سیکیورٹی گشت",
+      "description": "گشت کے راستوں کا انتظام اور گارڈز کی سرگرمیوں کی نگرانی",
+      "dashboard": {
+        "title": "گشت ڈیش بورڈ",
+        "description": "گشت کی کارروائیوں کا جائزہ",
+        "activePatrols": "فعال گشت",
+        "completedToday": "آج مکمل",
+        "totalRoutes": "کل راستے",
+        "complianceRate": "تعمیل کی شرح",
+        "noActivePatrols": "کوئی فعال گشت نہیں",
+        "quickLinks": "فوری لنکس",
+        "manageRoutes": "راستوں کا انتظام",
+        "patrolHistory": "گشت کی تاریخ"
+      },
+      "routes": {
+        "title": "گشت کے راستے",
+        "description": "گشت کے راستے بنائیں اور ان کا انتظام کریں",
+        "create": "راستہ بنائیں",
+        "createTitle": "نیا راستہ بنائیں",
+        "createDescription": "چیک پوائنٹس کے ساتھ نیا گشت راستہ متعین کریں",
+        "name": "راستے کا نام",
+        "namePlaceholder": "راستے کا نام درج کریں",
+        "routeDescription": "تفصیل",
+        "descriptionPlaceholder": "گشت کے راستے کی وضاحت کریں",
+        "estimatedDuration": "تخمینی مدت (منٹ)",
+        "checkpoints": "چیک پوائنٹس",
+        "noRoutes": "کوئی گشت راستے نہیں ملے",
+        "noRoutesDescription": "شروع کرنے کے لیے پہلا گشت راستہ بنائیں",
+        "edit": "ترمیم",
+        "delete": "حذف"
+      },
+      "execution": {
+        "title": "فعال گشت",
+        "start": "گشت شروع کریں",
+        "startDescription": "نیا گشت سیشن شروع کریں",
+        "selectRoute": "راستہ منتخب کریں",
+        "selectRoutePlaceholder": "گشت کا راستہ منتخب کریں",
+        "inProgress": "گشت جاری",
+        "complete": "گشت مکمل کریں",
+        "completeConfirm": "کیا آپ واقعی یہ گشت مکمل کرنا چاہتے ہیں؟",
+        "logCheckpoint": "چیک پوائنٹ لاگ کریں",
+        "gpsRequired": "GPS مقام درکار",
+        "gpsValidating": "GPS مقام کی تصدیق ہو رہی ہے...",
+        "gpsValid": "مقام کی تصدیق ہوگئی",
+        "gpsInvalid": "مقام چیک پوائنٹ علاقے سے باہر",
+        "notes": "گشت کے نوٹس",
+        "notesPlaceholder": "کوئی مشاہدات یا نوٹس شامل کریں...",
+        "issueFound": "مسئلہ ملا",
+        "issueDescription": "مسئلے کی وضاحت کریں"
+      },
+      "history": {
+        "title": "گشت کی تاریخ",
+        "description": "مکمل گشت ریکارڈز دیکھیں",
+        "filter": "فلٹر",
+        "filterByStatus": "حالت کے مطابق فلٹر",
+        "filterByDate": "تاریخ کے مطابق فلٹر",
+        "all": "سب",
+        "completed": "مکمل",
+        "incomplete": "نامکمل",
+        "export": "برآمد",
+        "noHistory": "کوئی گشت تاریخ نہیں ملی",
+        "duration": "مدت",
+        "checkpointsVisited": "دورہ کیے گئے چیک پوائنٹس",
+        "guard": "گارڈ",
+        "startTime": "شروع کا وقت",
+        "endTime": "اختتام کا وقت"
+      },
+      "status": {
+        "active": "فعال",
+        "completed": "مکمل",
+        "incomplete": "نامکمل",
+        "pending": "زیر التوا"
+      }
+    }
   },
   "dashboard": {
     "welcomeTitle": "ذود HSSE پلیٹ فارم میں خوش آمدید",
@@ -3945,6 +4027,87 @@
       "nationalId": "قومی شناختی نمبر درج کریں",
       "site": "منزل کی سائٹ منتخب کریں",
       "notes": "کوئی سیکورٹی نوٹس یا ہدایات شامل کریں..."
+    }
+  },
+  "environmental": {
+    "title": "ماحولیاتی تفصیلات",
+    "description": "ماحولیاتی واقعے کی معلومات",
+    "sections": {
+      "spillRelease": "اخراج/رساو کی معلومات",
+      "containment": "قابو اور صفائی",
+      "regulatory": "ریگولیٹری اطلاع",
+      "emissions": "فضائی اخراج"
+    },
+    "fields": {
+      "substanceType": "مادے کی قسم",
+      "substanceName": "مادے کا نام",
+      "casNumber": "CAS نمبر",
+      "spillVolume": "رساو کی مقدار",
+      "spillUnit": "یونٹ",
+      "affectedArea": "متاثرہ علاقہ (مربع میٹر)",
+      "affectedMedium": "متاثرہ ذریعہ",
+      "reachedWaterway": "آبی گزرگاہ تک پہنچا",
+      "waterwayName": "آبی گزرگاہ کا نام",
+      "containmentMethod": "قابو کا طریقہ",
+      "containmentSuccessful": "قابو کامیاب",
+      "cleanupRequired": "صفائی درکار",
+      "cleanupContractor": "صفائی ٹھیکیدار",
+      "cleanupCompleted": "صفائی مکمل",
+      "cleanupCompletedAt": "صفائی مکمل ہونے کی تاریخ",
+      "estimatedCleanupCost": "تخمینی صفائی لاگت (ریال)",
+      "actualCleanupCost": "اصل صفائی لاگت (ریال)",
+      "regulatoryNotificationRequired": "ریگولیٹری اطلاع درکار",
+      "reportableQuantityExceeded": "قابل رپورٹ مقدار سے تجاوز",
+      "regulatoryAgency": "ریگولیٹری ایجنسی",
+      "regulatoryNotificationSentAt": "اطلاع بھیجنے کی تاریخ",
+      "regulatoryReferenceNumber": "حوالہ نمبر",
+      "emissionType": "اخراج کی قسم",
+      "estimatedEmissionKg": "تخمینی اخراج (کلوگرام)",
+      "emissionDurationHours": "اخراج کی مدت (گھنٹے)"
+    },
+    "substanceTypes": {
+      "chemical": "کیمیائی",
+      "petroleum": "پیٹرولیم",
+      "wastewater": "گندا پانی",
+      "hazardous": "خطرناک مواد",
+      "biological": "حیاتیاتی",
+      "radioactive": "تابکار",
+      "other": "دیگر"
+    },
+    "affectedMedia": {
+      "soil": "مٹی",
+      "groundwater": "زیر زمین پانی",
+      "surfaceWater": "سطحی پانی",
+      "air": "ہوا",
+      "vegetation": "پودے"
+    },
+    "emissionTypes": {
+      "voc": "VOC (فرار نامیاتی مرکبات)",
+      "particulateMatter": "ذرات",
+      "sulfurDioxide": "سلفر ڈائی آکسائیڈ",
+      "nitrogenOxides": "نائٹروجن آکسائیڈز",
+      "carbonMonoxide": "کاربن مونو آکسائیڈ",
+      "other": "دیگر"
+    },
+    "spillUnits": {
+      "liters": "لیٹر",
+      "gallons": "گیلن",
+      "barrels": "بیرل",
+      "cubicMeters": "کیوبک میٹر"
+    },
+    "placeholders": {
+      "substanceName": "مادے کا نام درج کریں",
+      "casNumber": "مثال: 7732-18-5",
+      "waterwayName": "آبی گزرگاہ کا نام درج کریں",
+      "containmentMethod": "استعمال شدہ قابو کا طریقہ بیان کریں",
+      "cleanupContractor": "ٹھیکیدار کا نام درج کریں",
+      "regulatoryAgency": "مثال: NCEC، EPA",
+      "regulatoryReferenceNumber": "حوالہ نمبر درج کریں"
+    },
+    "tooltips": {
+      "casNumber": "کیمیکل ابسٹریکٹس سروس رجسٹری نمبر",
+      "reportableQuantity": "لازمی ریگولیٹری اطلاع کے لیے مقدار",
+      "affectedMedium": "اخراج سے متاثرہ ماحولیاتی ذرائع"
     }
   }
 }
