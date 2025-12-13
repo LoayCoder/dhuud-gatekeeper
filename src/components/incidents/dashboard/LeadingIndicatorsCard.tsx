@@ -61,8 +61,8 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
     {
       code: 'near_miss_rate',
       label: t('kpiDashboard.nearMissRate', 'Near Miss Rate'),
-      value: data.near_miss_rate,
-      count: data.total_near_misses,
+      value: data.near_miss_rate ?? 0,
+      count: data.total_near_misses ?? 0,
       countLabel: t('kpiDashboard.nearMisses', 'near misses'),
       icon: AlertTriangle,
       isPercentage: false,
@@ -71,8 +71,8 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
     {
       code: 'observation_completion',
       label: t('kpiDashboard.observationCompletion', 'Observation Completion'),
-      value: data.observation_completion_pct,
-      count: `${data.closed_observations}/${data.total_observations}`,
+      value: data.observation_completion_pct ?? 0,
+      count: `${data.closed_observations ?? 0}/${data.total_observations ?? 0}`,
       countLabel: t('kpiDashboard.completed', 'completed'),
       icon: Eye,
       isPercentage: true,
@@ -81,8 +81,8 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
     {
       code: 'action_closure',
       label: t('kpiDashboard.actionClosure', 'Action Closure Rate'),
-      value: data.action_closure_pct,
-      count: `${data.closed_actions}/${data.total_actions}`,
+      value: data.action_closure_pct ?? 0,
+      count: `${data.closed_actions ?? 0}/${data.total_actions ?? 0}`,
       countLabel: t('kpiDashboard.closed', 'closed'),
       icon: CheckCircle,
       isPercentage: true,
@@ -91,8 +91,8 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
     {
       code: 'hazard_rate',
       label: t('kpiDashboard.hazardRate', 'Hazard Identification'),
-      value: data.hazard_identification_rate,
-      count: data.total_hazards,
+      value: data.hazard_identification_rate ?? 0,
+      count: data.total_hazards ?? 0,
       countLabel: t('kpiDashboard.hazardsIdentified', 'hazards identified'),
       icon: Target,
       isPercentage: false,
