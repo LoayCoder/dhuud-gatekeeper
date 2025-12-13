@@ -50,6 +50,7 @@ import {
   DrilldownModal,
   RootCauseParetoChart,
   IncidentWaterfallChart,
+  DashboardCacheStatus,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -127,13 +128,13 @@ export default function HSSEEventDashboard() {
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard } = useHSSEEventDashboard(startDate, endDate);
-  const { data: locationData, isLoading: locationLoading } = useEventsByLocation();
+  const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard, dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching } = useHSSEEventDashboard(startDate, endDate);
+  const { data: locationData, isLoading: locationLoading, dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching } = useEventsByLocation();
   const { data: reporters, isLoading: reportersLoading } = useTopReporters(10);
   const { insights, isLoading: aiLoading, generateInsights } = useHSSERiskAnalytics();
-  const { data: rcaData, isLoading: rcaLoading } = useRCAAnalytics(startDate, endDate);
+  const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate);
   const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
-  const { data: progressionData, isLoading: progressionLoading } = useIncidentProgression(startDate, endDate);
+  const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate);
 
   // Prefetch dashboard data for improved performance
   useDashboardPrefetch(startDate, endDate);
@@ -176,6 +177,14 @@ export default function HSSEEventDashboard() {
           <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <DashboardCacheStatus 
+            cacheInfos={[
+              { dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching },
+              { dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching },
+              { dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching },
+              { dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching },
+            ]}
+          />
           <LiveUpdateIndicator 
             isConnected={isConnected} 
             newEventCount={newEventCount}
@@ -298,8 +307,18 @@ export default function HSSEEventDashboard() {
 
       {/* Advanced Analytics Row - Pareto & Waterfall Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RootCauseParetoChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
-        <IncidentWaterfallChart data={progressionData?.waterfall || []} isLoading={progressionLoading} />
+        <RootCauseParetoChart 
+          data={rcaData?.root_cause_distribution || []} 
+          isLoading={rcaLoading} 
+          dataUpdatedAt={rcaUpdatedAt}
+          isFetching={rcaFetching}
+        />
+        <IncidentWaterfallChart 
+          data={progressionData?.waterfall || []} 
+          isLoading={progressionLoading}
+          dataUpdatedAt={progressionUpdatedAt}
+          isFetching={progressionFetching}
+        />
       </div>
 
       {/* Major Events & RCA Analytics */}

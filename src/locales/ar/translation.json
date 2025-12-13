@@ -159,8 +159,11 @@
       "currentOpen": "المفتوحة حالياً"
     },
     "caching": {
-      "refreshing": "جاري تحديث البيانات...",
-      "lastUpdated": "آخر تحديث"
+      "refreshing": "جاري التحديث...",
+      "lastUpdated": "آخر تحديث",
+      "fresh": "البيانات محدثة",
+      "stale": "قد تكون قديمة",
+      "autoRefresh": "يتم التحديث تلقائياً كل 5 دقائق"
     },
     "closureProgress": "تقدم الإغلاق الإجمالي",
     "actionProgress": "تقدم إتمام الإجراءات",

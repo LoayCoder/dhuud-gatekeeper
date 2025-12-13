@@ -115,8 +115,11 @@
       "noData": "پیشرفت کا ڈیٹا دستیاب نہیں"
     },
     "caching": {
-      "refreshing": "ڈیٹا تازہ ہو رہا ہے...",
-      "lastUpdated": "آخری اپڈیٹ"
+      "refreshing": "تازہ ہو رہا ہے...",
+      "lastUpdated": "آخری اپڈیٹ",
+      "fresh": "ڈیٹا تازہ ہے",
+      "stale": "پرانا ہو سکتا ہے",
+      "autoRefresh": "ہر 5 منٹ میں خودکار تازہ ہوتا ہے"
     },
     "actionStatus": {
       "inProgress": "جاری ہے",

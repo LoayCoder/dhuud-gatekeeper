@@ -115,8 +115,11 @@
       "noData": "Walang available na data ng progreso"
     },
     "caching": {
-      "refreshing": "Nire-refresh ang data...",
-      "lastUpdated": "Huling na-update"
+      "refreshing": "Nire-refresh...",
+      "lastUpdated": "Huling na-update",
+      "fresh": "Fresh ang data",
+      "stale": "Maaaring luma na",
+      "autoRefresh": "Auto-refresh bawat 5 minuto"
     },
     "actionStatus": {
       "inProgress": "Isinasagawa",

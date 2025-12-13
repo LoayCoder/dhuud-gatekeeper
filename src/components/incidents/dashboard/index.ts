@@ -31,3 +31,5 @@ export { AutoRefreshToggle } from './AutoRefreshToggle';
 export { DrilldownModal } from './DrilldownModal';
 export { RootCauseParetoChart } from './RootCauseParetoChart';
 export { IncidentWaterfallChart } from './IncidentWaterfallChart';
+export { DataFreshnessBadge } from './DataFreshnessBadge';
+export { DashboardCacheStatus } from './DashboardCacheStatus';

@@ -32,7 +32,7 @@ const STATUS_STAGES: { key: string; label: string; order: number }[] = [
 export function useIncidentProgression(startDate?: Date, endDate?: Date) {
   const { profile } = useAuth();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['incident-progression', profile?.tenant_id, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<IncidentProgressionData> => {
       // Fetch all non-deleted incidents
@@ -131,4 +131,11 @@ export function useIncidentProgression(startDate?: Date, endDate?: Date) {
     ...DASHBOARD_CACHE_CONFIG,
     placeholderData: (previousData) => previousData, // Show stale data while refetching
   });
+
+  return {
+    ...query,
+    dataUpdatedAt: query.dataUpdatedAt,
+    isFetching: query.isFetching,
+    isStale: query.isStale,
+  };
 }

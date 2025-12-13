@@ -115,8 +115,11 @@
       "noData": "प्रगति डेटा उपलब्ध नहीं"
     },
     "caching": {
-      "refreshing": "डेटा रिफ्रेश हो रहा है...",
-      "lastUpdated": "अंतिम अपडेट"
+      "refreshing": "रिफ्रेश हो रहा है...",
+      "lastUpdated": "अंतिम अपडेट",
+      "fresh": "डेटा ताज़ा है",
+      "stale": "पुराना हो सकता है",
+      "autoRefresh": "हर 5 मिनट में ऑटो-रिफ्रेश"
     },
     "actionStatus": {
       "inProgress": "प्रगति में",
