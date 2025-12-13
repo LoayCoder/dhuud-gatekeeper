@@ -32,11 +32,11 @@ const partSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   unit_of_measure: z.string().min(1, 'Unit is required'),
-  quantity_on_hand: z.number().min(0).default(0),
-  minimum_quantity: z.number().min(0).default(0),
-  reorder_level: z.number().min(0).default(0),
+  quantity_in_stock: z.number().min(0).default(0),
+  min_stock_level: z.number().min(0).default(0),
+  reorder_point: z.number().min(0).default(0),
   unit_cost: z.number().min(0).optional(),
-  preferred_vendor: z.string().optional(),
+  manufacturer: z.string().optional(),
   storage_location: z.string().optional(),
   is_active: z.boolean().default(true),
 });
@@ -78,11 +78,11 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
       description: '',
       category: '',
       unit_of_measure: 'each',
-      quantity_on_hand: 0,
-      minimum_quantity: 0,
-      reorder_level: 5,
+      quantity_in_stock: 0,
+      min_stock_level: 0,
+      reorder_point: 5,
       unit_cost: undefined,
-      preferred_vendor: '',
+      manufacturer: '',
       storage_location: '',
       is_active: true,
     },
@@ -96,23 +96,23 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
         name_ar: part.name_ar || '',
         description: part.description || '',
         category: part.category || '',
-        unit_of_measure: part.unit_of_measure,
-        quantity_on_hand: part.quantity_on_hand,
-        minimum_quantity: part.minimum_quantity,
-        reorder_level: part.reorder_level,
-        unit_cost: part.unit_cost || undefined,
-        preferred_vendor: part.preferred_vendor || '',
+        unit_of_measure: part.unit_of_measure || 'each',
+        quantity_in_stock: part.quantity_in_stock ?? 0,
+        min_stock_level: part.min_stock_level ?? 0,
+        reorder_point: part.reorder_point ?? 0,
+        unit_cost: part.unit_cost ?? undefined,
+        manufacturer: part.manufacturer || '',
         storage_location: part.storage_location || '',
-        is_active: part.is_active,
+        is_active: part.is_active ?? true,
       });
     } else {
       form.reset({
         part_number: `PT-${Date.now().toString(36).toUpperCase()}`,
         name: '',
         unit_of_measure: 'each',
-        quantity_on_hand: 0,
-        minimum_quantity: 0,
-        reorder_level: 5,
+        quantity_in_stock: 0,
+        min_stock_level: 0,
+        reorder_point: 5,
         is_active: true,
       });
     }
@@ -123,7 +123,22 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
       if (isEditing && part) {
         await updatePart.mutateAsync({ id: part.id, ...values });
       } else {
-        await createPart.mutateAsync(values);
+        // Ensure required fields are present
+        await createPart.mutateAsync({
+          part_number: values.part_number,
+          name: values.name,
+          name_ar: values.name_ar || null,
+          description: values.description || null,
+          category: values.category || null,
+          unit_of_measure: values.unit_of_measure || null,
+          quantity_in_stock: values.quantity_in_stock ?? 0,
+          min_stock_level: values.min_stock_level ?? 0,
+          reorder_point: values.reorder_point ?? 0,
+          unit_cost: values.unit_cost ?? null,
+          manufacturer: values.manufacturer || null,
+          storage_location: values.storage_location || null,
+          is_active: values.is_active ?? true,
+        });
       }
       onOpenChange(false);
     } catch (error) {
@@ -256,7 +271,7 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
 
               <FormField
                 control={form.control}
-                name="quantity_on_hand"
+                name="quantity_in_stock"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('parts.quantityOnHand', 'Current Qty')}</FormLabel>
@@ -295,7 +310,7 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
-                name="minimum_quantity"
+                name="min_stock_level"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('parts.minimumQuantity', 'Minimum Qty')}</FormLabel>
@@ -313,7 +328,7 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
 
               <FormField
                 control={form.control}
-                name="reorder_level"
+                name="reorder_point"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('parts.reorderLevel', 'Reorder Level')}</FormLabel>
@@ -333,10 +348,10 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
-                name="preferred_vendor"
+                name="manufacturer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('parts.preferredVendor', 'Preferred Vendor')}</FormLabel>
+                    <FormLabel>{t('parts.manufacturer', 'Manufacturer')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
