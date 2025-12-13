@@ -622,7 +622,7 @@ export function AppSidebar() {
                                     </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                   <CollapsibleContent>
-                                    <SidebarMenuSub className="ms-4 border-s ps-2">
+                                    <SidebarMenuSub className="ms-2 border-s ps-1">
                                       {subItem.subItems.map((nestedItem) =>
                                         'subItems' in nestedItem && nestedItem.subItems ? (
                                           // Level 4: Nested collapsible (e.g., Visitor Gatekeeper, Security Patrols)
@@ -643,7 +643,7 @@ export function AppSidebar() {
                                                 </SidebarMenuSubButton>
                                               </CollapsibleTrigger>
                                               <CollapsibleContent>
-                                                <SidebarMenuSub className="ms-4 border-s ps-2">
+                                                <SidebarMenuSub className="ms-2 border-s ps-1">
                                                   {nestedItem.subItems.map((deepItem: { title: string; url: string; icon?: React.ComponentType<{ className?: string }> }) => (
                                                     <SidebarMenuSubItem key={deepItem.title}>
                                                       <SidebarMenuSubButton
