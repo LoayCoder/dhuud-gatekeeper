@@ -122,15 +122,28 @@ export default function CommandCenter() {
     battery_level: loc.battery_level,
   })) || [];
 
-  const mapZones = zones?.map(zone => ({
-    id: zone.id,
-    zone_name: zone.zone_name,
-    zone_code: zone.zone_code,
-    zone_type: zone.zone_type || 'building',
-    risk_level: zone.risk_level || 'medium',
-    polygon_coords: [] as number[][], // Placeholder - zones don't have polygon in current schema
-    is_active: zone.is_active ?? true,
-  })) || [];
+  const mapZones = zones?.map(zone => {
+    // Parse polygon_coords from JSONB - it could be stored as array or need parsing
+    let coords: number[][] = [];
+    if (zone.polygon_coords) {
+      try {
+        coords = Array.isArray(zone.polygon_coords) 
+          ? zone.polygon_coords as number[][]
+          : JSON.parse(zone.polygon_coords as unknown as string);
+      } catch {
+        coords = [];
+      }
+    }
+    return {
+      id: zone.id,
+      zone_name: zone.zone_name,
+      zone_code: zone.zone_code,
+      zone_type: zone.zone_type || 'building',
+      risk_level: zone.risk_level || 'medium',
+      polygon_coords: coords,
+      is_active: zone.is_active ?? true,
+    };
+  }) || [];
 
   const mapAlerts = alerts?.map(alert => ({
     id: alert.id,

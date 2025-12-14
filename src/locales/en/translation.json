@@ -1790,6 +1790,14 @@
       "activeAlerts": "Active Alerts",
       "liveTracking": "Live Guard Positions",
       "liveTrackingDesc": "Real-time location of on-duty guards",
+      "liveMap": "Live Map",
+      "guardsActive": "active",
+      "live": "Live",
+      "connecting": "Connecting...",
+      "generateReport": "Report",
+      "noShiftData": "No shift data available",
+      "reportGenerated": "Report generated successfully",
+      "reportError": "Failed to generate report",
       "alerts": "Alerts",
       "zoneCoverage": "Zone Coverage",
       "acknowledge": "Acknowledge",
@@ -1802,6 +1810,8 @@
       "noAlerts": "No active alerts",
       "noZone": "Unassigned",
       "acknowledged": "Acknowledged",
+      "inZone": "In Zone",
+      "zoneViolation": "Zone Violation",
       "alertTypes": {
         "zone_breach": "Zone Breach",
         "no_signal": "Signal Lost"
@@ -1811,6 +1821,9 @@
       "title": "My Location",
       "description": "Track your location and manage shift check-in",
       "todayAssignment": "Today's Assignment",
+      "shiftDetails": "Shift Details",
+      "shiftProgress": "Shift Progress",
+      "nextCheckpoint": "Next Checkpoint",
       "noAssignment": "No Assignment Today",
       "noAssignmentDesc": "You do not have a shift assignment for today. Contact your supervisor if you believe this is an error.",
       "zone": "Assigned Zone",
@@ -1836,6 +1849,19 @@
       "shiftCompleted": "Shift Completed",
       "lastTracked": "Last tracked",
       "acquiringGps": "Acquiring GPS..."
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "noGps": "No GPS",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "batteryLow": "Low Battery",
+      "batteryCritical": "Battery Critical!",
+      "chargeSoon": "Please charge your device immediately",
+      "chargeWhenPossible": "Consider charging when possible"
     }
   },
   "dashboard": {

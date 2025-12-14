@@ -1884,6 +1884,14 @@
       "activeAlerts": "فعال الرٹس",
       "liveTracking": "لائیو گارڈ پوزیشنز",
       "liveTrackingDesc": "ڈیوٹی پر گارڈز کا ریئل ٹائم مقام",
+      "liveMap": "لائیو نقشہ",
+      "guardsActive": "فعال",
+      "live": "لائیو",
+      "connecting": "کنیکٹ ہو رہا ہے...",
+      "generateReport": "رپورٹ",
+      "noShiftData": "کوئی شفٹ ڈیٹا دستیاب نہیں",
+      "reportGenerated": "رپورٹ کامیابی سے بنائی گئی",
+      "reportError": "رپورٹ بنانے میں ناکام",
       "alerts": "الرٹس",
       "zoneCoverage": "زون کوریج",
       "acknowledge": "تصدیق",
@@ -1896,6 +1904,8 @@
       "noAlerts": "کوئی فعال الرٹ نہیں",
       "noZone": "غیر تفویض شدہ",
       "acknowledged": "تصدیق شدہ",
+      "inZone": "زون میں",
+      "zoneViolation": "زون کی خلاف ورزی",
       "alertTypes": {
         "zone_breach": "زون کی خلاف ورزی",
         "no_signal": "سگنل نہیں"
@@ -1905,6 +1915,9 @@
       "title": "میرا مقام",
       "description": "اپنا مقام ٹریک کریں اور شفٹ چیک ان کریں",
       "todayAssignment": "آج کی تفویض",
+      "shiftDetails": "شفٹ کی تفصیلات",
+      "shiftProgress": "شفٹ کی پیشرفت",
+      "nextCheckpoint": "اگلا چیک پوائنٹ",
       "noAssignment": "آج کوئی تفویض نہیں",
       "noAssignmentDesc": "آج آپ کی کوئی شفٹ تفویض نہیں ہے۔ اگر یہ غلطی ہے تو اپنے سپروائزر سے رابطہ کریں۔",
       "zone": "تفویض شدہ زون",
@@ -1930,6 +1943,19 @@
       "shiftCompleted": "شفٹ مکمل",
       "lastTracked": "آخری ٹریکنگ",
       "acquiringGps": "GPS حاصل ہو رہا ہے..."
+    },
+    "status": {
+      "online": "آن لائن",
+      "offline": "آف لائن",
+      "noGps": "GPS نہیں",
+      "excellent": "بہترین",
+      "good": "اچھا",
+      "fair": "معقول",
+      "poor": "کمزور",
+      "batteryLow": "بیٹری کم",
+      "batteryCritical": "بیٹری نازک!",
+      "chargeSoon": "براہ کرم فوری طور پر اپنا آلہ چارج کریں",
+      "chargeWhenPossible": "جب ممکن ہو چارج کریں"
     }
   },
   "dashboard": {

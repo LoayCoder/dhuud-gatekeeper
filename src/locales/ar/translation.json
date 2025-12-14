@@ -1883,6 +1883,14 @@
       "activeAlerts": "التنبيهات النشطة",
       "liveTracking": "مواقع الحراس المباشرة",
       "liveTrackingDesc": "الموقع الفوري للحراس في الخدمة",
+      "liveMap": "الخريطة المباشرة",
+      "guardsActive": "نشط",
+      "live": "مباشر",
+      "connecting": "جاري الاتصال...",
+      "generateReport": "تقرير",
+      "noShiftData": "لا توجد بيانات وردية متاحة",
+      "reportGenerated": "تم إنشاء التقرير بنجاح",
+      "reportError": "فشل في إنشاء التقرير",
       "alerts": "التنبيهات",
       "zoneCoverage": "تغطية المناطق",
       "acknowledge": "تأكيد",
@@ -1895,6 +1903,8 @@
       "noAlerts": "لا توجد تنبيهات نشطة",
       "noZone": "غير معين",
       "acknowledged": "تم التأكيد",
+      "inZone": "داخل المنطقة",
+      "zoneViolation": "خرق المنطقة",
       "alertTypes": {
         "zone_breach": "اختراق المنطقة",
         "no_signal": "فقدان الإشارة"
@@ -1904,6 +1914,9 @@
       "title": "موقعي",
       "description": "تتبع موقعك وإدارة تسجيل الوردية",
       "todayAssignment": "تعيين اليوم",
+      "shiftDetails": "تفاصيل الوردية",
+      "shiftProgress": "تقدم الوردية",
+      "nextCheckpoint": "نقطة التفتيش التالية",
       "noAssignment": "لا يوجد تعيين اليوم",
       "noAssignmentDesc": "ليس لديك تعيين وردية لهذا اليوم. تواصل مع مشرفك إذا كنت تعتقد أن هذا خطأ.",
       "zone": "المنطقة المعينة",
@@ -1929,6 +1942,19 @@
       "shiftCompleted": "اكتملت الوردية",
       "lastTracked": "آخر تتبع",
       "acquiringGps": "جاري الحصول على GPS..."
+    },
+    "status": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "noGps": "لا يوجد GPS",
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "fair": "مقبول",
+      "poor": "ضعيف",
+      "batteryLow": "البطارية منخفضة",
+      "batteryCritical": "البطارية حرجة!",
+      "chargeSoon": "يرجى شحن جهازك فورًا",
+      "chargeWhenPossible": "فكر في الشحن عند الإمكان"
     }
   },
   "dashboard": {

@@ -5614,6 +5614,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_occupancy: number | null
+          polygon_coords: Json | null
           polygon_geojson: Json
           requires_escort: boolean | null
           risk_level: string | null
@@ -5636,6 +5637,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_occupancy?: number | null
+          polygon_coords?: Json | null
           polygon_geojson: Json
           requires_escort?: boolean | null
           risk_level?: string | null
@@ -5658,6 +5660,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_occupancy?: number | null
+          polygon_coords?: Json | null
           polygon_geojson?: Json
           requires_escort?: boolean | null
           risk_level?: string | null
