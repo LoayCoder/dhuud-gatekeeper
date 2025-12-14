@@ -321,10 +321,40 @@ export function AppSidebar() {
               title: t('security.menu.contractors', 'Contractors'),
               icon: Briefcase,
               menuCode: 'contractors',
-              isActive: location.pathname.startsWith("/security/contractors") || location.pathname.startsWith("/security/contractor-check"),
+              isActive: location.pathname.startsWith("/security/contractors") || location.pathname.startsWith("/security/contractor-check") || location.pathname.startsWith("/contractors"),
               subItems: [
                 {
-                  title: t('security.menu.contractorList', 'Contractor List'),
+                  title: t('contractors.dashboard', 'Dashboard'),
+                  url: "/contractors",
+                  icon: LayoutDashboard,
+                  menuCode: 'contractor_dashboard',
+                },
+                {
+                  title: t('contractors.companies', 'Companies'),
+                  url: "/contractors/companies",
+                  icon: Building2,
+                  menuCode: 'contractor_companies',
+                },
+                {
+                  title: t('contractors.projects', 'Projects'),
+                  url: "/contractors/projects",
+                  icon: Briefcase,
+                  menuCode: 'contractor_projects',
+                },
+                {
+                  title: t('contractors.workers', 'Workers'),
+                  url: "/contractors/workers",
+                  icon: Users,
+                  menuCode: 'contractor_workers',
+                },
+                {
+                  title: t('contractors.gatePasses', 'Gate Passes'),
+                  url: "/contractors/gate-passes",
+                  icon: FileWarning,
+                  menuCode: 'contractor_gate_passes',
+                },
+                {
+                  title: t('security.menu.contractorList', 'Legacy Contractors'),
                   url: "/security/contractors",
                   icon: List,
                   menuCode: 'contractor_list',

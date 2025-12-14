@@ -83,6 +83,13 @@ const CommandCenter = lazy(() => import(/* webpackChunkName: "security-command-c
 const GuardLocation = lazy(() => import(/* webpackChunkName: "security-guard-location" */ "./pages/security/GuardLocation"));
 const SecurityDashboard = lazy(() => import(/* webpackChunkName: "security-dashboard" */ "./pages/security/SecurityDashboard"));
 
+// Contractor Management pages - lazy loaded
+const ContractorCompanies = lazy(() => import(/* webpackChunkName: "contractors-companies" */ "./pages/contractors/Companies"));
+const ContractorProjects = lazy(() => import(/* webpackChunkName: "contractors-projects" */ "./pages/contractors/Projects"));
+const ContractorWorkers = lazy(() => import(/* webpackChunkName: "contractors-workers" */ "./pages/contractors/Workers"));
+const ContractorGatePasses = lazy(() => import(/* webpackChunkName: "contractors-gate-passes" */ "./pages/contractors/GatePasses"));
+const ContractorDashboard = lazy(() => import(/* webpackChunkName: "contractors-dashboard" */ "./pages/contractors/Dashboard"));
+
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
@@ -186,6 +193,13 @@ const App = () => (
                       <Route path="/security/roster" element={<SecurityRoute><ShiftRoster /></SecurityRoute>} />
                       <Route path="/security/command-center" element={<SecurityRoute><CommandCenter /></SecurityRoute>} />
                       <Route path="/security/my-location" element={<SecurityRoute><GuardLocation /></SecurityRoute>} />
+
+                      {/* Contractor Management Routes */}
+                      <Route path="/contractors" element={<AdminRoute><ContractorDashboard /></AdminRoute>} />
+                      <Route path="/contractors/companies" element={<AdminRoute><ContractorCompanies /></AdminRoute>} />
+                      <Route path="/contractors/projects" element={<AdminRoute><ContractorProjects /></AdminRoute>} />
+                      <Route path="/contractors/workers" element={<AdminRoute><ContractorWorkers /></AdminRoute>} />
+                      <Route path="/contractors/gate-passes" element={<AdminRoute><ContractorGatePasses /></AdminRoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
