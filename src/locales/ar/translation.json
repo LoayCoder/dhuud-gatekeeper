@@ -1868,7 +1868,13 @@
       "vertices": "نقاط",
       "polygonDefined": "تم تحديد الحدود",
       "noBoundary": "لا توجد حدود",
-      "hasBoundary": "محدد على الخريطة"
+      "hasBoundary": "محدد على الخريطة",
+      "geofenceRadius": "نطاق السياج الجغرافي",
+      "geofenceRadiusDescription": "تحمل كشف الاختراق بالمتر",
+      "showRadiusBuffer": "إظهار منطقة النطاق",
+      "areaLabel": "المساحة",
+      "radiusMeters": "تحمل {{radius}} م",
+      "minVertices": "مطلوب 3 نقاط على الأقل"
     },
     "shifts": {
       "title": "ورديات الأمن",

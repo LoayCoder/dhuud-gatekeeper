@@ -1775,7 +1775,13 @@
       "vertices": "vertices",
       "polygonDefined": "Boundary Defined",
       "noBoundary": "No Boundary",
-      "hasBoundary": "Mapped"
+      "hasBoundary": "Mapped",
+      "geofenceRadius": "Geofence Radius",
+      "geofenceRadiusDescription": "Breach detection tolerance in meters",
+      "showRadiusBuffer": "Show radius buffer",
+      "areaLabel": "Area",
+      "radiusMeters": "{{radius}}m tolerance",
+      "minVertices": "Minimum 3 points required"
     },
     "shifts": {
       "title": "Security Shifts",

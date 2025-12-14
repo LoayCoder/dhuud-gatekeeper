@@ -1869,7 +1869,13 @@
       "vertices": "نقاط",
       "polygonDefined": "حدود متعین",
       "noBoundary": "کوئی حدود نہیں",
-      "hasBoundary": "نقشے پر"
+      "hasBoundary": "نقشے پر",
+      "geofenceRadius": "جیوفینس رداس",
+      "geofenceRadiusDescription": "میٹر میں خلاف ورزی کا پتہ لگانے کی رواداری",
+      "showRadiusBuffer": "رداس بفر دکھائیں",
+      "areaLabel": "رقبہ",
+      "radiusMeters": "{{radius}} میٹر رواداری",
+      "minVertices": "کم از کم 3 پوائنٹس درکار ہیں"
     },
     "shifts": {
       "title": "سیکیورٹی شفٹس",
