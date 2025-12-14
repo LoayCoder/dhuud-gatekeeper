@@ -274,7 +274,7 @@ export function ContractorFormDialog({ open, onOpenChange, contractor }: Contrac
                 name="safety_induction_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('security.contractors.inductionDate')}</FormLabel>
+                    <FormLabel>{t('security.contractors.safetyInductionDate')}</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>
@@ -288,7 +288,7 @@ export function ContractorFormDialog({ open, onOpenChange, contractor }: Contrac
                 name="safety_induction_expiry"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('security.contractors.inductionExpiry')}</FormLabel>
+                    <FormLabel>{t('security.contractors.safetyInductionExpiry')}</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>
@@ -302,7 +302,7 @@ export function ContractorFormDialog({ open, onOpenChange, contractor }: Contrac
                 name="medical_exam_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('security.contractors.medicalDate')}</FormLabel>
+                    <FormLabel>{t('security.contractors.medicalExamDate')}</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>
@@ -316,7 +316,7 @@ export function ContractorFormDialog({ open, onOpenChange, contractor }: Contrac
                 name="medical_exam_expiry"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('security.contractors.medicalExpiry')}</FormLabel>
+                    <FormLabel>{t('security.contractors.medicalExamExpiry')}</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>
