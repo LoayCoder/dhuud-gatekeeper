@@ -1869,6 +1869,14 @@
       "activeAlerts": "Active na Alerts",
       "liveTracking": "Live Guard Positions",
       "liveTrackingDesc": "Real-time na lokasyon ng mga guard na on-duty",
+      "liveMap": "Live Map",
+      "guardsActive": "aktibo",
+      "live": "Live",
+      "connecting": "Kumokonekta...",
+      "generateReport": "Report",
+      "noShiftData": "Walang shift data na available",
+      "reportGenerated": "Matagumpay na nalikha ang report",
+      "reportError": "Nabigo sa paglikha ng report",
       "alerts": "Alerts",
       "zoneCoverage": "Zone Coverage",
       "acknowledge": "Acknowledge",
@@ -1881,6 +1889,8 @@
       "noAlerts": "Walang active na alerts",
       "noZone": "Hindi naka-assign",
       "acknowledged": "Na-acknowledge",
+      "inZone": "Nasa Zone",
+      "zoneViolation": "Zone Violation",
       "alertTypes": {
         "zone_breach": "Zone Breach",
         "no_signal": "Nawala ang Signal"
@@ -1890,6 +1900,9 @@
       "title": "Aking Lokasyon",
       "description": "I-track ang iyong lokasyon at pamahalaan ang shift check-in",
       "todayAssignment": "Assignment Ngayon",
+      "shiftDetails": "Mga Detalye ng Shift",
+      "shiftProgress": "Progress ng Shift",
+      "nextCheckpoint": "Susunod na Checkpoint",
       "noAssignment": "Walang Assignment Ngayon",
       "noAssignmentDesc": "Wala kang shift assignment para ngayon. Makipag-ugnayan sa iyong supervisor kung sa tingin mo ay mali ito.",
       "zone": "Assigned na Zone",
@@ -1915,6 +1928,19 @@
       "shiftCompleted": "Tapos na ang Shift",
       "lastTracked": "Huling na-track",
       "acquiringGps": "Kinukuha ang GPS..."
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "noGps": "Walang GPS",
+      "excellent": "Napakahusay",
+      "good": "Mabuti",
+      "fair": "Katamtaman",
+      "poor": "Mahina",
+      "batteryLow": "Mababang Baterya",
+      "batteryCritical": "Kritikal ang Baterya!",
+      "chargeSoon": "Paki-charge ang iyong device kaagad",
+      "chargeWhenPossible": "I-charge kapag posible"
     }
   },
   "dashboard": {

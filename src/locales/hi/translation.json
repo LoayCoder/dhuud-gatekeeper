@@ -1869,6 +1869,14 @@
       "activeAlerts": "सक्रिय अलर्ट",
       "liveTracking": "लाइव गार्ड पोजीशन",
       "liveTrackingDesc": "ड्यूटी पर गार्ड्स का रियल-टाइम स्थान",
+      "liveMap": "लाइव मैप",
+      "guardsActive": "सक्रिय",
+      "live": "लाइव",
+      "connecting": "कनेक्ट हो रहा है...",
+      "generateReport": "रिपोर्ट",
+      "noShiftData": "कोई शिफ्ट डेटा उपलब्ध नहीं",
+      "reportGenerated": "रिपोर्ट सफलतापूर्वक बनाई गई",
+      "reportError": "रिपोर्ट बनाने में विफल",
       "alerts": "अलर्ट",
       "zoneCoverage": "क्षेत्र कवरेज",
       "acknowledge": "स्वीकार करें",
@@ -1881,6 +1889,8 @@
       "noAlerts": "कोई सक्रिय अलर्ट नहीं",
       "noZone": "असाइन नहीं",
       "acknowledged": "स्वीकृत",
+      "inZone": "क्षेत्र में",
+      "zoneViolation": "क्षेत्र उल्लंघन",
       "alertTypes": {
         "zone_breach": "क्षेत्र उल्लंघन",
         "no_signal": "सिग्नल नहीं"
@@ -1890,6 +1900,9 @@
       "title": "मेरा स्थान",
       "description": "अपना स्थान ट्रैक करें और शिफ्ट चेक-इन प्रबंधित करें",
       "todayAssignment": "आज का असाइनमेंट",
+      "shiftDetails": "शिफ्ट विवरण",
+      "shiftProgress": "शिफ्ट प्रगति",
+      "nextCheckpoint": "अगला चेकपॉइंट",
       "noAssignment": "आज कोई असाइनमेंट नहीं",
       "noAssignmentDesc": "आज आपका कोई शिफ्ट असाइनमेंट नहीं है। अगर यह गलती है तो अपने सुपरवाइजर से संपर्क करें।",
       "zone": "असाइन किया गया क्षेत्र",
@@ -1915,6 +1928,19 @@
       "shiftCompleted": "शिफ्ट पूर्ण",
       "lastTracked": "अंतिम ट्रैक",
       "acquiringGps": "GPS प्राप्त हो रहा है..."
+    },
+    "status": {
+      "online": "ऑनलाइन",
+      "offline": "ऑफलाइन",
+      "noGps": "GPS नहीं",
+      "excellent": "उत्कृष्ट",
+      "good": "अच्छा",
+      "fair": "ठीक",
+      "poor": "कमजोर",
+      "batteryLow": "कम बैटरी",
+      "batteryCritical": "बैटरी गंभीर!",
+      "chargeSoon": "कृपया तुरंत अपना डिवाइस चार्ज करें",
+      "chargeWhenPossible": "जब संभव हो चार्ज करें"
     }
   },
   "dashboard": {
