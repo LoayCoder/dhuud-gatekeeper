@@ -1576,7 +1576,9 @@
         "noRoutes": "Walang nahanap na patrol routes",
         "noRoutesDescription": "Gumawa ng iyong unang patrol route upang magsimula",
         "edit": "I-edit",
-        "delete": "Burahin"
+        "delete": "Burahin",
+        "checkpointRadius": "GPS Radius (metro)",
+        "checkpointRadiusHint": "Dapat nasa loob ng distansyang ito ang guwardiya upang i-log ang checkpoint"
       },
       "execution": {
         "title": "Aktibong Patrol",
@@ -1595,7 +1597,42 @@
         "notes": "Patrol Notes",
         "notesPlaceholder": "Magdagdag ng anumang obserbasyon o notes...",
         "issueFound": "Natagpuan ang Isyu",
-        "issueDescription": "Ilarawan ang isyu"
+        "issueDescription": "Ilarawan ang isyu",
+        "photos": "Mga Litrato",
+        "photosCount": "litrato",
+        "photoUploaded": "Na-upload ang litrato",
+        "photoUploadFailed": "Nabigo ang pag-upload ng litrato",
+        "takePhoto": "Kumuha ng Litrato",
+        "uploadPhoto": "I-upload",
+        "photoRequired": "Kailangan ang hindi bababa sa isang litrato para sa checkpoint na ito",
+        "reportIncident": "Iulat ang Insidente",
+        "reportIncidentDescription": "Iulat ang insidente na natagpuan sa",
+        "incidentCreated": "Matagumpay na naiulat ang insidente",
+        "incidentFailed": "Nabigo ang pag-ulat ng insidente",
+        "incidentTitlePlaceholder": "Maikling paglalarawan ng insidente",
+        "incidentDescriptionPlaceholder": "Magbigay ng mga detalye tungkol sa insidente...",
+        "gpsAttached": "Ilalakip ang GPS location",
+        "incidentLinked": "Naka-link ang insidente",
+        "inRange": "Nasa saklaw",
+        "outOfRange": "Labas sa saklaw",
+        "selectRouteDescription": "Pumili ng patrol route upang magsimula",
+        "begin": "Simulan ang Patrol",
+        "patrolStarted": "Matagumpay na nasimulan ang patrol",
+        "patrolStartFailed": "Nabigo ang pagsisimula ng patrol",
+        "progress": "Progreso",
+        "checkpoint": "Checkpoint",
+        "tooFar": "Masyadong Malayo sa Checkpoint",
+        "moveCloser": "Mangyaring lumapit sa lokasyon ng checkpoint",
+        "observations": "Mga Obserbasyon",
+        "locationCaptured": "Na-capture ang lokasyon",
+        "noLocation": "Walang lokasyon",
+        "locationRequired": "Kinakailangan ang Lokasyon",
+        "refreshLocationFirst": "Mangyaring i-refresh muna ang iyong lokasyon",
+        "takePhotoFirst": "Mangyaring kumuha ng kahit isang litrato bago i-log ang checkpoint na ito",
+        "checkpointLogged": "Matagumpay na na-log ang checkpoint",
+        "checkpointLogFailed": "Nabigo ang pag-log ng checkpoint",
+        "patrolCompleted": "Matagumpay na nakumpleto ang patrol",
+        "patrolCompleteFailed": "Nabigo ang pagkumpleto ng patrol"
       },
       "history": {
         "title": "Kasaysayan ng Patrol",
@@ -1612,13 +1649,33 @@
         "checkpointsVisited": "Mga Checkpoint na Binisita",
         "guard": "Guwardiya",
         "startTime": "Oras ng Pagsisimula",
-        "endTime": "Oras ng Pagtatapos"
+        "endTime": "Oras ng Pagtatapos",
+        "patrolRecords": "Mga Patrol Record",
+        "recordsFound": "mga record na nahanap",
+        "route": "Route",
+        "date": "Petsa",
+        "noPatrolHistory": "Walang kasaysayan ng patrol",
+        "noPatrolHistoryDescription": "Ang mga nakumpletong patrol ay lalabas dito",
+        "status": "Status"
+      },
+      "detail": {
+        "title": "Mga Detalye ng Patrol",
+        "checkpointLogs": "Mga Checkpoint Log",
+        "evidence": "Ebidensya",
+        "linkedIncident": "Insidente",
+        "gpsValidation": "GPS Validation",
+        "validated": "Na-validate",
+        "notValidated": "Hindi Na-validate",
+        "noNotes": "Walang notes",
+        "noPhotos": "Walang mga litratong nakuha",
+        "noCheckpoints": "Walang checkpoint logs"
       },
       "status": {
         "active": "Aktibo",
         "completed": "Nakumpleto",
         "incomplete": "Hindi Kumpleto",
-        "pending": "Nakabinbin"
+        "pending": "Nakabinbin",
+        "missed": "Na-miss"
       }
     },
     "contractors": {

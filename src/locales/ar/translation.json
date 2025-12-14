@@ -1590,7 +1590,9 @@
         "noRoutes": "لم يتم العثور على مسارات دوريات",
         "noRoutesDescription": "أنشئ أول مسار دورية للبدء",
         "edit": "تعديل",
-        "delete": "حذف"
+        "delete": "حذف",
+        "checkpointRadius": "نطاق GPS (بالأمتار)",
+        "checkpointRadiusHint": "يجب أن يكون الحارس ضمن هذه المسافة لتسجيل نقطة التفتيش"
       },
       "execution": {
         "title": "دورية نشطة",
@@ -1609,7 +1611,42 @@
         "notes": "ملاحظات الدورية",
         "notesPlaceholder": "أضف أي ملاحظات أو مشاهدات...",
         "issueFound": "تم العثور على مشكلة",
-        "issueDescription": "وصف المشكلة"
+        "issueDescription": "وصف المشكلة",
+        "photos": "الصور",
+        "photosCount": "صورة/صور",
+        "photoUploaded": "تم رفع الصورة",
+        "photoUploadFailed": "فشل رفع الصورة",
+        "takePhoto": "التقاط صورة",
+        "uploadPhoto": "رفع",
+        "photoRequired": "مطلوب صورة واحدة على الأقل لنقطة التفتيش هذه",
+        "reportIncident": "الإبلاغ عن حادث",
+        "reportIncidentDescription": "الإبلاغ عن حادث تم العثور عليه في",
+        "incidentCreated": "تم الإبلاغ عن الحادث بنجاح",
+        "incidentFailed": "فشل الإبلاغ عن الحادث",
+        "incidentTitlePlaceholder": "وصف موجز للحادث",
+        "incidentDescriptionPlaceholder": "قدم تفاصيل عن الحادث...",
+        "gpsAttached": "سيتم إرفاق موقع GPS",
+        "incidentLinked": "الحادث مرتبط",
+        "inRange": "ضمن النطاق",
+        "outOfRange": "خارج النطاق",
+        "selectRouteDescription": "اختر مسار دورية للبدء",
+        "begin": "بدء الدورية",
+        "patrolStarted": "تم بدء الدورية بنجاح",
+        "patrolStartFailed": "فشل بدء الدورية",
+        "progress": "التقدم",
+        "checkpoint": "نقطة التفتيش",
+        "tooFar": "بعيد جداً عن نقطة التفتيش",
+        "moveCloser": "يرجى الاقتراب من موقع نقطة التفتيش",
+        "observations": "الملاحظات",
+        "locationCaptured": "تم التقاط الموقع",
+        "noLocation": "لا يوجد موقع",
+        "locationRequired": "الموقع مطلوب",
+        "refreshLocationFirst": "يرجى تحديث موقعك أولاً",
+        "takePhotoFirst": "يرجى التقاط صورة واحدة على الأقل قبل تسجيل نقطة التفتيش",
+        "checkpointLogged": "تم تسجيل نقطة التفتيش بنجاح",
+        "checkpointLogFailed": "فشل تسجيل نقطة التفتيش",
+        "patrolCompleted": "تم إكمال الدورية بنجاح",
+        "patrolCompleteFailed": "فشل إكمال الدورية"
       },
       "history": {
         "title": "سجل الدوريات",
@@ -1626,13 +1663,33 @@
         "checkpointsVisited": "نقاط التفتيش التي تمت زيارتها",
         "guard": "الحارس",
         "startTime": "وقت البدء",
-        "endTime": "وقت الانتهاء"
+        "endTime": "وقت الانتهاء",
+        "patrolRecords": "سجلات الدوريات",
+        "recordsFound": "سجل تم العثور عليه",
+        "route": "المسار",
+        "date": "التاريخ",
+        "noPatrolHistory": "لا يوجد سجل دوريات",
+        "noPatrolHistoryDescription": "ستظهر الدوريات المكتملة هنا",
+        "status": "الحالة"
+      },
+      "detail": {
+        "title": "تفاصيل الدورية",
+        "checkpointLogs": "سجلات نقاط التفتيش",
+        "evidence": "الأدلة",
+        "linkedIncident": "حادث",
+        "gpsValidation": "التحقق من GPS",
+        "validated": "تم التحقق",
+        "notValidated": "لم يتم التحقق",
+        "noNotes": "لا توجد ملاحظات",
+        "noPhotos": "لم يتم التقاط صور",
+        "noCheckpoints": "لا توجد سجلات نقاط تفتيش"
       },
       "status": {
         "active": "نشط",
         "completed": "مكتمل",
         "incomplete": "غير مكتمل",
-        "pending": "قيد الانتظار"
+        "pending": "قيد الانتظار",
+        "missed": "فائت"
       }
     },
     "contractors": {

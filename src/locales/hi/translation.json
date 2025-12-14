@@ -1576,7 +1576,9 @@
         "noRoutes": "कोई गश्त मार्ग नहीं मिले",
         "noRoutesDescription": "शुरू करने के लिए अपना पहला गश्त मार्ग बनाएं",
         "edit": "संपादित करें",
-        "delete": "हटाएं"
+        "delete": "हटाएं",
+        "checkpointRadius": "GPS त्रिज्या (मीटर)",
+        "checkpointRadiusHint": "चेकपॉइंट लॉग करने के लिए गार्ड को इस दूरी के भीतर होना चाहिए"
       },
       "execution": {
         "title": "सक्रिय गश्त",
@@ -1595,7 +1597,42 @@
         "notes": "गश्त नोट्स",
         "notesPlaceholder": "कोई अवलोकन या नोट्स जोड़ें...",
         "issueFound": "समस्या मिली",
-        "issueDescription": "समस्या का वर्णन करें"
+        "issueDescription": "समस्या का वर्णन करें",
+        "photos": "फ़ोटो",
+        "photosCount": "फ़ोटो",
+        "photoUploaded": "फ़ोटो अपलोड हुई",
+        "photoUploadFailed": "फ़ोटो अपलोड विफल",
+        "takePhoto": "फ़ोटो लें",
+        "uploadPhoto": "अपलोड",
+        "photoRequired": "इस चेकपॉइंट के लिए कम से कम एक फ़ोटो आवश्यक है",
+        "reportIncident": "घटना की रिपोर्ट करें",
+        "reportIncidentDescription": "यहाँ पाई गई घटना की रिपोर्ट करें",
+        "incidentCreated": "घटना सफलतापूर्वक रिपोर्ट हुई",
+        "incidentFailed": "घटना रिपोर्ट करने में विफल",
+        "incidentTitlePlaceholder": "घटना का संक्षिप्त विवरण",
+        "incidentDescriptionPlaceholder": "घटना के बारे में विवरण प्रदान करें...",
+        "gpsAttached": "GPS स्थान संलग्न होगा",
+        "incidentLinked": "घटना जुड़ी",
+        "inRange": "सीमा में",
+        "outOfRange": "सीमा से बाहर",
+        "selectRouteDescription": "शुरू करने के लिए गश्त मार्ग चुनें",
+        "begin": "गश्त शुरू करें",
+        "patrolStarted": "गश्त सफलतापूर्वक शुरू हुई",
+        "patrolStartFailed": "गश्त शुरू करने में विफल",
+        "progress": "प्रगति",
+        "checkpoint": "चेकपॉइंट",
+        "tooFar": "चेकपॉइंट से बहुत दूर",
+        "moveCloser": "कृपया चेकपॉइंट स्थान के करीब जाएं",
+        "observations": "अवलोकन",
+        "locationCaptured": "स्थान कैप्चर हुआ",
+        "noLocation": "कोई स्थान नहीं",
+        "locationRequired": "स्थान आवश्यक",
+        "refreshLocationFirst": "कृपया पहले अपना स्थान रिफ्रेश करें",
+        "takePhotoFirst": "कृपया चेकपॉइंट लॉग करने से पहले कम से कम एक फ़ोटो लें",
+        "checkpointLogged": "चेकपॉइंट सफलतापूर्वक लॉग हुआ",
+        "checkpointLogFailed": "चेकपॉइंट लॉग करने में विफल",
+        "patrolCompleted": "गश्त सफलतापूर्वक पूर्ण",
+        "patrolCompleteFailed": "गश्त पूर्ण करने में विफल"
       },
       "history": {
         "title": "गश्त इतिहास",
@@ -1612,13 +1649,33 @@
         "checkpointsVisited": "विज़िट किए गए चेकपॉइंट",
         "guard": "गार्ड",
         "startTime": "प्रारंभ समय",
-        "endTime": "समाप्ति समय"
+        "endTime": "समाप्ति समय",
+        "patrolRecords": "गश्त रिकॉर्ड",
+        "recordsFound": "रिकॉर्ड मिले",
+        "route": "मार्ग",
+        "date": "तिथि",
+        "noPatrolHistory": "कोई गश्त इतिहास नहीं",
+        "noPatrolHistoryDescription": "पूर्ण गश्त यहाँ दिखाई देंगे",
+        "status": "स्थिति"
+      },
+      "detail": {
+        "title": "गश्त विवरण",
+        "checkpointLogs": "चेकपॉइंट लॉग्स",
+        "evidence": "साक्ष्य",
+        "linkedIncident": "घटना",
+        "gpsValidation": "GPS सत्यापन",
+        "validated": "सत्यापित",
+        "notValidated": "असत्यापित",
+        "noNotes": "कोई नोट्स नहीं",
+        "noPhotos": "कोई फ़ोटो नहीं लिए गए",
+        "noCheckpoints": "कोई चेकपॉइंट लॉग्स नहीं"
       },
       "status": {
         "active": "सक्रिय",
         "completed": "पूर्ण",
         "incomplete": "अपूर्ण",
-        "pending": "लंबित"
+        "pending": "लंबित",
+        "missed": "छूटा हुआ"
       }
     },
     "contractors": {

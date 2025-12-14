@@ -37,6 +37,7 @@ export default function PatrolRoutes() {
     name: '',
     description: '',
     estimated_duration_minutes: 30,
+    checkpoint_radius_meters: 20,
   });
 
   const { data: routes, isLoading } = usePatrolRoutes();
@@ -66,7 +67,7 @@ export default function PatrolRoutes() {
         name_ar: null,
         site_id: null,
         route_map_path: null,
-        checkpoint_radius_meters: 20,
+        checkpoint_radius_meters: newRoute.checkpoint_radius_meters,
         require_gps_validation: true,
         require_photo: false,
       });
@@ -77,7 +78,7 @@ export default function PatrolRoutes() {
       });
 
       setIsCreateOpen(false);
-      setNewRoute({ name: '', description: '', estimated_duration_minutes: 30 });
+      setNewRoute({ name: '', description: '', estimated_duration_minutes: 30, checkpoint_radius_meters: 20 });
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -143,6 +144,20 @@ export default function PatrolRoutes() {
                   value={newRoute.estimated_duration_minutes}
                   onChange={(e) => setNewRoute({ ...newRoute, estimated_duration_minutes: parseInt(e.target.value) || 30 })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="radius">{t('security.patrols.routes.checkpointRadius', 'GPS Radius (meters)')}</Label>
+                <Input
+                  id="radius"
+                  type="number"
+                  min={5}
+                  max={100}
+                  value={newRoute.checkpoint_radius_meters}
+                  onChange={(e) => setNewRoute({ ...newRoute, checkpoint_radius_meters: parseInt(e.target.value) || 20 })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('security.patrols.routes.checkpointRadiusHint', 'Guard must be within this distance to log checkpoint')}
+                </p>
               </div>
             </div>
             <DialogFooter>
