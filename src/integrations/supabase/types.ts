@@ -5165,6 +5165,56 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string | null
+          deleted_at: string | null
+          device_name: string | null
+          endpoint: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          p256dh_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string | null
+          deleted_at?: string | null
+          device_name?: string | null
+          endpoint: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          p256dh_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          device_name?: string | null
+          endpoint?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          p256dh_key?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_menu_access: {
         Row: {
           created_at: string | null
