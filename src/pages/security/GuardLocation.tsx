@@ -74,7 +74,7 @@ export default function GuardLocation() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
-            <div>Zone: {assignment.security_zone_id?.slice(0, 8)}...</div>
+            <div>Zone: {assignment.zone_id?.slice(0, 8)}...</div>
             <div>Shift: {assignment.shift_id?.slice(0, 8)}...</div>
             {assignment.check_in_time && <div className="flex items-center gap-1 text-green-600"><CheckCircle className="h-4 w-4" />Checked in at {format(new Date(assignment.check_in_time), 'HH:mm')}</div>}
             {assignment.check_out_time && <div className="flex items-center gap-1 text-muted-foreground"><LogOut className="h-4 w-4" />Checked out at {format(new Date(assignment.check_out_time), 'HH:mm')}</div>}

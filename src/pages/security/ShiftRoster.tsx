@@ -22,7 +22,7 @@ export default function ShiftRoster() {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
-  const [formData, setFormData] = useState({ guard_id: '', security_zone_id: '', shift_id: '', assignment_date: format(new Date(), 'yyyy-MM-dd') });
+  const [formData, setFormData] = useState({ guard_id: '', zone_id: '', shift_id: '', roster_date: format(new Date(), 'yyyy-MM-dd') });
 
   const weekDays = useMemo(() => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }), [weekStart]);
 
@@ -45,7 +45,7 @@ export default function ShiftRoster() {
     e.preventDefault();
     await createAssignment.mutateAsync({ ...formData, status: 'scheduled' });
     setDialogOpen(false);
-    setFormData({ guard_id: '', security_zone_id: '', shift_id: '', assignment_date: format(new Date(), 'yyyy-MM-dd') });
+    setFormData({ guard_id: '', zone_id: '', shift_id: '', roster_date: format(new Date(), 'yyyy-MM-dd') });
   };
 
   const getStatusBadge = (status: string) => {
@@ -56,7 +56,7 @@ export default function ShiftRoster() {
     }
   };
 
-  const getRosterForDay = (date: Date) => roster?.filter(r => r.assignment_date === format(date, 'yyyy-MM-dd')) || [];
+  const getRosterForDay = (date: Date) => roster?.filter(r => r.roster_date === format(date, 'yyyy-MM-dd')) || [];
 
   return (
     <div className="space-y-6">
@@ -71,9 +71,9 @@ export default function ShiftRoster() {
             <DialogHeader><DialogTitle>{t('security.roster.addAssignment', 'Add Assignment')}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2"><Label>{t('security.roster.guard', 'Guard')}</Label><Select value={formData.guard_id} onValueChange={(v) => setFormData({ ...formData, guard_id: v })}><SelectTrigger><SelectValue placeholder={t('common.select', 'Select')} /></SelectTrigger><SelectContent>{guards?.map(g => <SelectItem key={g.id} value={g.id}>{g.full_name}</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-2"><Label>{t('security.roster.zone', 'Zone')}</Label><Select value={formData.security_zone_id} onValueChange={(v) => setFormData({ ...formData, security_zone_id: v })}><SelectTrigger><SelectValue placeholder={t('common.select', 'Select')} /></SelectTrigger><SelectContent>{zones?.map(z => <SelectItem key={z.id} value={z.id}>{z.zone_code} - {z.zone_name}</SelectItem>)}</SelectContent></Select></div>
+              <div className="space-y-2"><Label>{t('security.roster.zone', 'Zone')}</Label><Select value={formData.zone_id} onValueChange={(v) => setFormData({ ...formData, zone_id: v })}><SelectTrigger><SelectValue placeholder={t('common.select', 'Select')} /></SelectTrigger><SelectContent>{zones?.map(z => <SelectItem key={z.id} value={z.id}>{z.zone_code} - {z.zone_name}</SelectItem>)}</SelectContent></Select></div>
               <div className="space-y-2"><Label>{t('security.roster.shift', 'Shift')}</Label><Select value={formData.shift_id} onValueChange={(v) => setFormData({ ...formData, shift_id: v })}><SelectTrigger><SelectValue placeholder={t('common.select', 'Select')} /></SelectTrigger><SelectContent>{shifts?.filter(s => s.is_active).map(s => <SelectItem key={s.id} value={s.id}>{s.shift_name} ({s.start_time} - {s.end_time})</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-2"><Label>{t('security.roster.date', 'Date')}</Label><Popover><PopoverTrigger asChild><Button variant="outline" className="w-full justify-start"><CalendarIcon className="h-4 w-4 me-2" />{format(new Date(formData.assignment_date), 'PPP')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={new Date(formData.assignment_date)} onSelect={(d) => d && setFormData({ ...formData, assignment_date: format(d, 'yyyy-MM-dd') })} /></PopoverContent></Popover></div>
+              <div className="space-y-2"><Label>{t('security.roster.date', 'Date')}</Label><Popover><PopoverTrigger asChild><Button variant="outline" className="w-full justify-start"><CalendarIcon className="h-4 w-4 me-2" />{format(new Date(formData.roster_date), 'PPP')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={new Date(formData.roster_date)} onSelect={(d) => d && setFormData({ ...formData, roster_date: format(d, 'yyyy-MM-dd') })} /></PopoverContent></Popover></div>
               <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button><Button type="submit" disabled={createAssignment.isPending}>{t('common.create', 'Create')}</Button></div>
             </form>
           </DialogContent>
@@ -114,7 +114,7 @@ export default function ShiftRoster() {
             <div className="space-y-2">
               {roster.slice(0, 20).map(a => (
                 <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div><div className="font-medium">{format(new Date(a.assignment_date), 'PP')}</div><div className="text-sm text-muted-foreground">Guard: {a.guard_id?.slice(0, 8)}... | Zone: {a.security_zone_id?.slice(0, 8)}...</div></div>
+                  <div><div className="font-medium">{format(new Date(a.roster_date), 'PP')}</div><div className="text-sm text-muted-foreground">Guard: {a.guard_id?.slice(0, 8)}... | Zone: {a.zone_id?.slice(0, 8)}...</div></div>
                   <div className="flex items-center gap-2">{getStatusBadge(a.status || 'scheduled')}<AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t('security.roster.deleteConfirm', 'Delete?')}</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => deleteAssignment.mutate(a.id)} className="bg-destructive text-destructive-foreground">{t('common.delete', 'Delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div>
                 </div>
               ))}

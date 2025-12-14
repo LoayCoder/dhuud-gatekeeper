@@ -18,20 +18,19 @@ export function useGuardLocations() {
   });
 }
 
-export function useGeofenceAlerts(filters?: { status?: string }) {
+export function useGeofenceAlerts(statusFilter?: string) {
   return useQuery({
-    queryKey: ['geofence-alerts', filters],
-    queryFn: async () => {
-      let query = supabase
+    queryKey: ['geofence-alerts', statusFilter],
+    queryFn: async (): Promise<any[]> => {
+      const { data, error } = await supabase
         .from('geofence_alerts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
-
-      if (filters?.status) query = query.eq('alert_status', filters.status);
-
-      const { data, error } = await query;
       if (error) throw error;
+      if (statusFilter) {
+        return (data || []).filter((a: any) => a.alert_status === statusFilter);
+      }
       return data || [];
     },
     refetchInterval: 15000,
@@ -111,7 +110,7 @@ export function useTrackMyLocation() {
           longitude: lng,
           accuracy: accuracy || null,
           battery_level: batteryLevel || null,
-        })
+        } as any)
         .select()
         .single();
       if (error) throw error;

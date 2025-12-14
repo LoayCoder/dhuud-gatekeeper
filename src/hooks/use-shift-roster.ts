@@ -10,10 +10,10 @@ export function useShiftRoster(filters?: { date?: string; zoneId?: string; shift
         .from('shift_roster')
         .select('*')
         .is('deleted_at', null)
-        .order('assignment_date', { ascending: false });
+        .order('roster_date', { ascending: false });
 
-      if (filters?.date) query = query.eq('assignment_date', filters.date);
-      if (filters?.zoneId) query = query.eq('security_zone_id', filters.zoneId);
+      if (filters?.date) query = query.eq('roster_date', filters.date);
+      if (filters?.zoneId) query = query.eq('zone_id', filters.zoneId);
       if (filters?.shiftId) query = query.eq('shift_id', filters.shiftId);
 
       const { data, error } = await query;
@@ -35,7 +35,7 @@ export function useMyRosterAssignment() {
         .from('shift_roster')
         .select('*')
         .eq('guard_id', user.id)
-        .eq('assignment_date', today)
+        .eq('roster_date', today)
         .is('deleted_at', null)
         .maybeSingle();
 
@@ -50,13 +50,13 @@ export function useCreateRosterAssignment() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (assignment: { guard_id: string; security_zone_id: string; shift_id: string; assignment_date: string; notes?: string; status?: string }) => {
+    mutationFn: async (assignment: { guard_id: string; zone_id: string; shift_id: string; roster_date: string; notes?: string; status?: string }) => {
       const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase
         .from('shift_roster')
-        .insert({ ...assignment, tenant_id: profile.tenant_id })
+        .insert({ ...assignment, tenant_id: profile.tenant_id } as any)
         .select()
         .single();
       if (error) throw error;
