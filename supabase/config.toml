@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.generate-shift-report]
 verify_jwt = true
+
+[functions.send-push-notification]
+verify_jwt = false
