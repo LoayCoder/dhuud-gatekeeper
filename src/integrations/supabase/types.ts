@@ -1426,6 +1426,428 @@ export type Database = {
           },
         ]
       }
+      contractor_companies: {
+        Row: {
+          address: string | null
+          assigned_client_pm_id: string | null
+          city: string | null
+          commercial_registration_number: string | null
+          company_name: string
+          company_name_ar: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          status: string
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
+          tenant_id: string
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          assigned_client_pm_id?: string | null
+          city?: string | null
+          commercial_registration_number?: string | null
+          company_name: string
+          company_name_ar?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          status?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          tenant_id: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          assigned_client_pm_id?: string | null
+          city?: string | null
+          commercial_registration_number?: string | null
+          company_name?: string
+          company_name_ar?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          status?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          tenant_id?: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_companies_assigned_client_pm_id_fkey"
+            columns: ["assigned_client_pm_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_module_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_module_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_module_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_projects: {
+        Row: {
+          assigned_workers_count: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_date: string
+          id: string
+          location_description: string | null
+          notes: string | null
+          project_code: string
+          project_name: string
+          project_name_ar: string | null
+          required_safety_officers: number
+          site_id: string | null
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_workers_count?: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date: string
+          id?: string
+          location_description?: string | null
+          notes?: string | null
+          project_code: string
+          project_name: string
+          project_name_ar?: string | null
+          required_safety_officers?: number
+          site_id?: string | null
+          start_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_workers_count?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string
+          id?: string
+          location_description?: string | null
+          notes?: string | null
+          project_code?: string
+          project_name?: string
+          project_name_ar?: string | null
+          required_safety_officers?: number
+          site_id?: string | null
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_representatives: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          full_name_ar: string | null
+          id: string
+          is_primary: boolean
+          is_safety_officer_eligible: boolean
+          mobile_number: string
+          national_id: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          full_name_ar?: string | null
+          id?: string
+          is_primary?: boolean
+          is_safety_officer_eligible?: boolean
+          mobile_number: string
+          national_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          full_name_ar?: string | null
+          id?: string
+          is_primary?: boolean
+          is_safety_officer_eligible?: boolean
+          mobile_number?: string
+          national_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_representatives_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_representatives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_representatives_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_representatives_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_workers: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          full_name: string
+          full_name_ar: string | null
+          id: string
+          mobile_number: string
+          national_id: string
+          nationality: string | null
+          photo_path: string | null
+          preferred_language: string
+          rejection_reason: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name: string
+          full_name_ar?: string | null
+          id?: string
+          mobile_number: string
+          national_id: string
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string
+          rejection_reason?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name?: string
+          full_name_ar?: string | null
+          id?: string
+          mobile_number?: string
+          national_id?: string
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string
+          rejection_reason?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractors: {
         Row: {
           allowed_sites: string[] | null
@@ -3199,6 +3621,85 @@ export type Database = {
           },
         ]
       }
+      induction_videos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          is_active: boolean
+          language: string
+          site_id: string | null
+          tenant_id: string
+          thumbnail_url: string | null
+          title: string
+          title_ar: string | null
+          updated_at: string
+          valid_for_days: number
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          language: string
+          site_id?: string | null
+          tenant_id: string
+          thumbnail_url?: string | null
+          title: string
+          title_ar?: string | null
+          updated_at?: string
+          valid_for_days?: number
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          language?: string
+          site_id?: string | null
+          tenant_id?: string
+          thumbnail_url?: string | null
+          title?: string
+          title_ar?: string | null
+          updated_at?: string
+          valid_for_days?: number
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "induction_videos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "induction_videos_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "induction_videos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_findings: {
         Row: {
           action_id: string | null
@@ -4538,6 +5039,177 @@ export type Database = {
           },
         ]
       }
+      material_gate_passes: {
+        Row: {
+          company_id: string
+          created_at: string
+          deleted_at: string | null
+          driver_id: string | null
+          driver_mobile: string | null
+          driver_name: string | null
+          entry_gate_id: string | null
+          entry_time: string | null
+          exit_gate_id: string | null
+          exit_time: string | null
+          guard_verified_at: string | null
+          guard_verified_by: string | null
+          id: string
+          material_description: string
+          pass_date: string
+          pass_type: string
+          pm_approved_at: string | null
+          pm_approved_by: string | null
+          pm_notes: string | null
+          project_id: string
+          quantity: string | null
+          reference_number: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requested_by: string
+          safety_approved_at: string | null
+          safety_approved_by: string | null
+          safety_notes: string | null
+          status: string
+          tenant_id: string
+          time_window_end: string | null
+          time_window_start: string | null
+          updated_at: string
+          vehicle_plate: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          deleted_at?: string | null
+          driver_id?: string | null
+          driver_mobile?: string | null
+          driver_name?: string | null
+          entry_gate_id?: string | null
+          entry_time?: string | null
+          exit_gate_id?: string | null
+          exit_time?: string | null
+          guard_verified_at?: string | null
+          guard_verified_by?: string | null
+          id?: string
+          material_description: string
+          pass_date: string
+          pass_type?: string
+          pm_approved_at?: string | null
+          pm_approved_by?: string | null
+          pm_notes?: string | null
+          project_id: string
+          quantity?: string | null
+          reference_number: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by: string
+          safety_approved_at?: string | null
+          safety_approved_by?: string | null
+          safety_notes?: string | null
+          status?: string
+          tenant_id: string
+          time_window_end?: string | null
+          time_window_start?: string | null
+          updated_at?: string
+          vehicle_plate?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          driver_id?: string | null
+          driver_mobile?: string | null
+          driver_name?: string | null
+          entry_gate_id?: string | null
+          entry_time?: string | null
+          exit_gate_id?: string | null
+          exit_time?: string | null
+          guard_verified_at?: string | null
+          guard_verified_by?: string | null
+          id?: string
+          material_description?: string
+          pass_date?: string
+          pass_type?: string
+          pm_approved_at?: string | null
+          pm_approved_by?: string | null
+          pm_notes?: string | null
+          project_id?: string
+          quantity?: string | null
+          reference_number?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by?: string
+          safety_approved_at?: string | null
+          safety_approved_by?: string | null
+          safety_notes?: string | null
+          status?: string
+          tenant_id?: string
+          time_window_end?: string | null
+          time_window_start?: string | null
+          updated_at?: string
+          vehicle_plate?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_gate_passes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_guard_verified_by_fkey"
+            columns: ["guard_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_pm_approved_by_fkey"
+            columns: ["pm_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "contractor_representatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_safety_approved_by_fkey"
+            columns: ["safety_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_access_audit_logs: {
         Row: {
           action: string
@@ -5161,6 +5833,170 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_safety_officers: {
+        Row: {
+          assigned_at: string
+          certification_expiry: string | null
+          certification_number: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          full_name: string
+          id: string
+          mobile_number: string | null
+          project_id: string
+          representative_id: string | null
+          safety_officer_type: string
+          tenant_id: string
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          certification_expiry?: string | null
+          certification_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name: string
+          id?: string
+          mobile_number?: string | null
+          project_id: string
+          representative_id?: string | null
+          safety_officer_type: string
+          tenant_id: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          certification_expiry?: string | null
+          certification_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name?: string
+          id?: string
+          mobile_number?: string | null
+          project_id?: string
+          representative_id?: string | null
+          safety_officer_type?: string
+          tenant_id?: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_safety_officers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_representative_id_fkey"
+            columns: ["representative_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_representatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_worker_assignments: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          project_id: string
+          removal_reason: string | null
+          removed_at: string | null
+          tenant_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          project_id: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          tenant_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          project_id?: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_worker_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_worker_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_worker_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_worker_assignments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
             referencedColumns: ["id"]
           },
         ]
@@ -7195,6 +8031,178 @@ export type Database = {
           },
         ]
       }
+      worker_inductions: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledgment_method: string | null
+          created_at: string
+          deleted_at: string | null
+          expires_at: string
+          id: string
+          project_id: string
+          sent_at: string | null
+          sent_via: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          video_id: string
+          viewed_at: string | null
+          whatsapp_message_id: string | null
+          worker_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledgment_method?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          expires_at: string
+          id?: string
+          project_id: string
+          sent_at?: string | null
+          sent_via?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          video_id: string
+          viewed_at?: string | null
+          whatsapp_message_id?: string | null
+          worker_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledgment_method?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          expires_at?: string
+          id?: string
+          project_id?: string
+          sent_at?: string | null
+          sent_via?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          video_id?: string
+          viewed_at?: string | null
+          whatsapp_message_id?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_inductions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_inductions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_inductions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "induction_videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_inductions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_qr_codes: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_revoked: boolean
+          project_id: string
+          qr_image_path: string | null
+          qr_token: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          tenant_id: string
+          updated_at: string
+          valid_from: string
+          valid_until: string
+          whatsapp_sent_at: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_revoked?: boolean
+          project_id: string
+          qr_image_path?: string | null
+          qr_token: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id: string
+          updated_at?: string
+          valid_from?: string
+          valid_until: string
+          whatsapp_sent_at?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_revoked?: boolean
+          project_id?: string
+          qr_image_path?: string | null
+          qr_token?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+          whatsapp_sent_at?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_qr_codes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_qr_codes_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_qr_codes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_qr_codes_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -7214,6 +8222,10 @@ export type Database = {
         Args: { p_billing_month: string; p_tenant_id: string }
         Returns: Json
       }
+      calculate_required_safety_officers: {
+        Args: { p_worker_count: number }
+        Returns: number
+      }
       calculate_subscription_price:
         | {
             Args: {
@@ -7232,6 +8244,10 @@ export type Database = {
             }
             Returns: Json
           }
+      can_add_contractor_project: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
       can_admin_delete_incident: {
         Args: { _incident_id: string }
         Returns: boolean
@@ -7583,6 +8599,10 @@ export type Database = {
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      validate_worker_qr_access: {
+        Args: { p_qr_token: string; p_site_id?: string }
+        Returns: Json
+      }
       verify_mfa_backup_code: {
         Args: { p_code_hash: string; p_user_id: string }
         Returns: boolean
