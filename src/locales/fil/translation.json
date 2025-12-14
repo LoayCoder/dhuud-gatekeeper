@@ -1242,7 +1242,8 @@
     "inspectionSessions": "Mga Inspection Session",
     "inspectionSchedules": "Mga Iskedyul ng Inspeksyon",
     "myInspectionActions": "Mga Aksyon Ko sa Inspeksyon",
-    "inspectionTemplates": "Mga Inspection Template"
+    "inspectionTemplates": "Mga Inspection Template",
+    "contractors": "Mga Contractor"
   },
   "actions": {
     "sessionActions": "Mga Aksyon ng Session",

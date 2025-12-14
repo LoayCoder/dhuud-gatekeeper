@@ -1256,7 +1256,8 @@
     "inspectionSessions": "جلسات التفتيش",
     "inspectionSchedules": "جداول التفتيش",
     "myInspectionActions": "إجراءات التفتيش الخاصة بي",
-    "inspectionTemplates": "قوالب التفتيش"
+    "inspectionTemplates": "قوالب التفتيش",
+    "contractors": "المقاولين"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

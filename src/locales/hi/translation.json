@@ -1242,7 +1242,8 @@
     "inspectionSessions": "निरीक्षण सत्र",
     "inspectionSchedules": "निरीक्षण शेड्यूल",
     "myInspectionActions": "मेरे निरीक्षण कार्य",
-    "inspectionTemplates": "निरीक्षण टेम्पलेट"
+    "inspectionTemplates": "निरीक्षण टेम्पलेट",
+    "contractors": "ठेकेदार"
   },
   "actions": {
     "sessionActions": "सत्र कार्रवाइयाँ",
