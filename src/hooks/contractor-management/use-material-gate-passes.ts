@@ -5,100 +5,335 @@ import { toast } from "sonner";
 
 export interface MaterialGatePass {
   id: string;
+  reference_number: string;
   project_id: string;
-  pass_number: string;
+  company_id: string;
   pass_type: string;
   material_description: string;
   quantity: string | null;
-  vehicle_number: string | null;
+  vehicle_plate: string | null;
   driver_name: string | null;
-  expected_date: string;
-  expected_time: string | null;
+  driver_mobile: string | null;
+  pass_date: string;
+  time_window_start: string | null;
+  time_window_end: string | null;
   status: string;
+  requested_by: string;
+  pm_approved_by: string | null;
+  pm_approved_at: string | null;
+  pm_notes: string | null;
+  safety_approved_by: string | null;
+  safety_approved_at: string | null;
+  safety_notes: string | null;
+  rejected_by: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+  guard_verified_by: string | null;
+  guard_verified_at: string | null;
+  entry_time: string | null;
+  exit_time: string | null;
   created_at: string;
   project?: { project_name: string; company?: { company_name: string } } | null;
+  company?: { company_name: string } | null;
 }
 
 export interface GatePassFilters {
   search?: string;
   projectId?: string;
+  companyId?: string;
   status?: string;
+  passDate?: string;
 }
 
-// Mock hook - table doesn't exist yet
+export interface CreateGatePassData {
+  project_id: string;
+  company_id: string;
+  pass_type: string;
+  material_description: string;
+  quantity?: string;
+  vehicle_plate?: string;
+  driver_name?: string;
+  driver_mobile?: string;
+  pass_date: string;
+  time_window_start?: string;
+  time_window_end?: string;
+}
+
 export function useMaterialGatePasses(filters: GatePassFilters = {}) {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ["material-gate-passes", filters],
-    queryFn: async () => [] as MaterialGatePass[],
+    queryKey: ["material-gate-passes", tenantId, filters],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      let query = supabase
+        .from("material_gate_passes")
+        .select(`
+          id, reference_number, project_id, company_id, pass_type, material_description,
+          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+          time_window_start, time_window_end, status, requested_by,
+          pm_approved_by, pm_approved_at, pm_notes,
+          safety_approved_by, safety_approved_at, safety_notes,
+          rejected_by, rejected_at, rejection_reason,
+          guard_verified_by, guard_verified_at, entry_time, exit_time, created_at,
+          project:contractor_projects(project_name, company:contractor_companies(company_name)),
+          company:contractor_companies(company_name)
+        `)
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+      if (filters.projectId) {
+        query = query.eq("project_id", filters.projectId);
+      }
+      if (filters.companyId) {
+        query = query.eq("company_id", filters.companyId);
+      }
+      if (filters.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters.passDate) {
+        query = query.eq("pass_date", filters.passDate);
+      }
+      if (filters.search) {
+        query = query.or(`reference_number.ilike.%${filters.search}%,material_description.ilike.%${filters.search}%,vehicle_plate.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as MaterialGatePass[];
+    },
+    enabled: !!tenantId,
   });
 }
 
 export function usePendingGatePassApprovals() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ["pending-gate-pass-approvals"],
-    queryFn: async () => [] as MaterialGatePass[],
+    queryKey: ["pending-gate-pass-approvals", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("material_gate_passes")
+        .select(`
+          id, reference_number, project_id, company_id, pass_type, material_description,
+          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+          time_window_start, time_window_end, status, requested_by, created_at,
+          project:contractor_projects(project_name, company:contractor_companies(company_name)),
+          company:contractor_companies(company_name)
+        `)
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
+        .in("status", ["pending_pm_approval", "pending_safety_approval"])
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as MaterialGatePass[];
+    },
+    enabled: !!tenantId,
   });
 }
 
 export function useTodayApprovedPasses() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const today = new Date().toISOString().split("T")[0];
+
   return useQuery({
-    queryKey: ["today-approved-passes"],
-    queryFn: async () => [] as MaterialGatePass[],
+    queryKey: ["today-approved-passes", tenantId, today],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("material_gate_passes")
+        .select(`
+          id, reference_number, project_id, company_id, pass_type, material_description,
+          quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+          time_window_start, time_window_end, status, guard_verified_by,
+          guard_verified_at, entry_time, exit_time, created_at,
+          project:contractor_projects(project_name, company:contractor_companies(company_name)),
+          company:contractor_companies(company_name)
+        `)
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
+        .eq("pass_date", today)
+        .eq("status", "approved")
+        .order("time_window_start", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as MaterialGatePass[];
+    },
+    enabled: !!tenantId,
   });
 }
 
 export function useCreateGatePass() {
   const queryClient = useQueryClient();
+  const { profile, user } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useMutation({
-    mutationFn: async (data: Partial<MaterialGatePass>) => {
-      toast.info("Gate passes table not yet created");
-      return data;
+    mutationFn: async (data: CreateGatePassData) => {
+      if (!tenantId || !user?.id) throw new Error("Not authenticated");
+
+      // Generate reference number
+      const year = new Date().getFullYear();
+      const { count } = await supabase
+        .from("material_gate_passes")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId);
+      
+      const sequence = (count || 0) + 1;
+      const reference_number = `GP-${year}-${String(sequence).padStart(5, "0")}`;
+
+      const { data: result, error } = await supabase
+        .from("material_gate_passes")
+        .insert({
+          ...data,
+          tenant_id: tenantId,
+          requested_by: user.id,
+          reference_number,
+          status: "pending_pm_approval",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
+      toast.success("Gate pass created successfully");
+    },
+    onError: (error) => {
+      toast.error(`Failed to create gate pass: ${error.message}`);
     },
   });
 }
 
 export function useApproveGatePass() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ passId, approvalType }: { passId: string; approvalType: "pm" | "safety" }) => {
-      toast.info("Gate passes table not yet created");
-      return { passId, approvalType };
+    mutationFn: async ({ passId, approvalType, notes }: { passId: string; approvalType: "pm" | "safety"; notes?: string }) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const now = new Date().toISOString();
+      let updateData: Record<string, unknown> = {};
+      let newStatus: string;
+
+      if (approvalType === "pm") {
+        updateData = {
+          pm_approved_by: user.id,
+          pm_approved_at: now,
+          pm_notes: notes || null,
+          status: "pending_safety_approval",
+        };
+        newStatus = "pending_safety_approval";
+      } else {
+        updateData = {
+          safety_approved_by: user.id,
+          safety_approved_at: now,
+          safety_notes: notes || null,
+          status: "approved",
+        };
+        newStatus = "approved";
+      }
+
+      const { error } = await supabase
+        .from("material_gate_passes")
+        .update(updateData)
+        .eq("id", passId);
+
+      if (error) throw error;
+      return { passId, newStatus };
     },
-    onSuccess: () => {
+    onSuccess: (_, { approvalType }) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
+      toast.success(approvalType === "pm" ? "Pass approved by PM" : "Pass fully approved");
+    },
+    onError: (error) => {
+      toast.error(`Failed to approve: ${error.message}`);
     },
   });
 }
 
 export function useRejectGatePass() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ passId, reason }: { passId: string; reason: string }) => {
-      toast.info("Gate passes table not yet created");
-      return { passId, reason };
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("material_gate_passes")
+        .update({
+          rejected_by: user.id,
+          rejected_at: new Date().toISOString(),
+          rejection_reason: reason,
+          status: "rejected",
+        })
+        .eq("id", passId);
+
+      if (error) throw error;
+      return { passId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-gate-pass-approvals"] });
+      toast.success("Gate pass rejected");
+    },
+    onError: (error) => {
+      toast.error(`Failed to reject: ${error.message}`);
     },
   });
 }
 
 export function useVerifyGatePass() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ passId, action }: { passId: string; action: "entry" | "exit" }) => {
-      toast.info("Gate passes table not yet created");
+      if (!user?.id) throw new Error("Not authenticated");
+
+      const now = new Date().toISOString();
+      const updateData: Record<string, unknown> = {
+        guard_verified_by: user.id,
+        guard_verified_at: now,
+      };
+
+      if (action === "entry") {
+        updateData.entry_time = now;
+      } else {
+        updateData.exit_time = now;
+        updateData.status = "completed";
+      }
+
+      const { error } = await supabase
+        .from("material_gate_passes")
+        .update(updateData)
+        .eq("id", passId);
+
+      if (error) throw error;
       return { passId, action };
     },
-    onSuccess: () => {
+    onSuccess: (_, { action }) => {
       queryClient.invalidateQueries({ queryKey: ["material-gate-passes"] });
+      queryClient.invalidateQueries({ queryKey: ["today-approved-passes"] });
+      toast.success(action === "entry" ? "Entry recorded" : "Exit recorded - Pass completed");
+    },
+    onError: (error) => {
+      toast.error(`Failed to verify: ${error.message}`);
     },
   });
 }
