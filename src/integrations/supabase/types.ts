@@ -5611,6 +5611,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           description: string | null
+          geofence_radius_meters: number | null
           id: string
           is_active: boolean | null
           max_occupancy: number | null
@@ -5634,6 +5635,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          geofence_radius_meters?: number | null
           id?: string
           is_active?: boolean | null
           max_occupancy?: number | null
@@ -5657,6 +5659,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          geofence_radius_meters?: number | null
           id?: string
           is_active?: boolean | null
           max_occupancy?: number | null

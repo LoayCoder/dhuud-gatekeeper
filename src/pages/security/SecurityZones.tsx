@@ -11,8 +11,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, MapPin, Shield, Pencil, Trash2, Search, Map } from 'lucide-react';
 import { useSecurityZones, useCreateSecurityZone, useUpdateSecurityZone, useDeleteSecurityZone } from '@/hooks/use-security-zones';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ZonePolygonEditor from '@/components/security/ZonePolygonEditor';
+import { Slider } from '@/components/ui/slider';
 
 const ZONE_TYPES = ['perimeter', 'building', 'restricted', 'parking', 'entrance', 'exit'];
 const RISK_LEVELS = ['low', 'medium', 'high', 'critical'];
@@ -24,6 +25,7 @@ interface FormData {
   risk_level: string;
   is_active: boolean;
   polygon_coords: [number, number][] | null;
+  geofence_radius_meters: number;
 }
 
 const initialFormData: FormData = {
@@ -33,6 +35,7 @@ const initialFormData: FormData = {
   risk_level: 'medium',
   is_active: true,
   polygon_coords: null,
+  geofence_radius_meters: 50,
 };
 
 export default function SecurityZones() {
@@ -59,6 +62,7 @@ export default function SecurityZones() {
       risk_level: formData.risk_level,
       is_active: formData.is_active,
       polygon_coords: formData.polygon_coords,
+      geofence_radius_meters: formData.geofence_radius_meters,
     };
     if (editingZone) {
       await updateZone.mutateAsync({ id: editingZone, ...payload });
@@ -79,6 +83,7 @@ export default function SecurityZones() {
       risk_level: zone.risk_level || 'medium',
       is_active: zone.is_active ?? true,
       polygon_coords: zone.polygon_coords as [number, number][] | null,
+      geofence_radius_meters: zone.geofence_radius_meters ?? 50,
     });
     setDialogOpen(true);
   };
@@ -146,11 +151,31 @@ export default function SecurityZones() {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="boundary" className="mt-4">
+                <TabsContent value="boundary" className="mt-4 space-y-4">
+                  {/* Geofence Radius Configuration */}
+                  <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">{t('security.zones.geofenceRadius', 'Geofence Radius')}</Label>
+                      <Badge variant="outline">{formData.geofence_radius_meters}m</Badge>
+                    </div>
+                    <Slider
+                      value={[formData.geofence_radius_meters]}
+                      onValueChange={([val]) => setFormData(prev => ({ ...prev, geofence_radius_meters: val }))}
+                      min={10}
+                      max={500}
+                      step={10}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t('security.zones.geofenceRadiusDescription', 'Breach detection tolerance in meters')}
+                    </p>
+                  </div>
+                  
                   <ZonePolygonEditor
                     polygonCoords={formData.polygon_coords}
                     onChange={(coords) => setFormData({ ...formData, polygon_coords: coords })}
                     zoneType={formData.zone_type}
+                    geofenceRadius={formData.geofence_radius_meters}
                   />
                 </TabsContent>
               </Tabs>

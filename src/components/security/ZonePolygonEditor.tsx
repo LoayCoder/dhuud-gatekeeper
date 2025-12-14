@@ -4,12 +4,52 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Trash2, Undo2, Check, Pencil } from 'lucide-react';
+import { MapPin, Trash2, Undo2, Check, Pencil, Ruler } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface ZonePolygonEditorProps {
   polygonCoords: [number, number][] | null;
   onChange: (coords: [number, number][] | null) => void;
   zoneType?: string;
+  geofenceRadius?: number;
+}
+
+// Calculate polygon area using Shoelace formula with geodetic projection
+function calculatePolygonArea(coords: [number, number][]): number {
+  if (coords.length < 3) return 0;
+  
+  const earthRadius = 6371000; // meters
+  const toRad = (deg: number) => deg * Math.PI / 180;
+  
+  // Convert to projected meters using center point
+  const centerLat = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
+  const centerLng = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+  
+  // Project coordinates to local meters
+  const projected = coords.map(([lat, lng]) => {
+    const x = earthRadius * toRad(lng - centerLng) * Math.cos(toRad(centerLat));
+    const y = earthRadius * toRad(lat - centerLat);
+    return [x, y];
+  });
+  
+  // Shoelace formula
+  let area = 0;
+  for (let i = 0; i < projected.length; i++) {
+    const j = (i + 1) % projected.length;
+    area += projected[i][0] * projected[j][1];
+    area -= projected[j][0] * projected[i][1];
+  }
+  
+  return Math.abs(area / 2);
+}
+
+// Format area for display
+function formatArea(areaM2: number): string {
+  if (areaM2 >= 10000) {
+    return `${(areaM2 / 10000).toFixed(2)} ha`;
+  }
+  return `${Math.round(areaM2).toLocaleString()} m²`;
 }
 
 const ZONE_COLORS: Record<string, string> = {
@@ -21,19 +61,26 @@ const ZONE_COLORS: Record<string, string> = {
   exit: '#ec4899',
 };
 
-export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 'building' }: ZonePolygonEditorProps) {
+export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 'building', geofenceRadius = 50 }: ZonePolygonEditorProps) {
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const polygonLayerRef = useRef<L.Polygon | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
   const previewLineRef = useRef<L.Polyline | null>(null);
+  const radiusLayerRef = useRef<L.LayerGroup | null>(null);
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingPoints, setDrawingPoints] = useState<[number, number][]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [showRadiusBuffer, setShowRadiusBuffer] = useState(false);
 
   const zoneColor = ZONE_COLORS[zoneType] || '#3b82f6';
+  
+  // Calculate area
+  const polygonArea = polygonCoords && polygonCoords.length >= 3 
+    ? calculatePolygonArea(polygonCoords) 
+    : 0;
 
   // Initialize map
   useEffect(() => {
@@ -51,6 +98,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
     }).addTo(map);
 
     mapInstanceRef.current = map;
+    radiusLayerRef.current = L.layerGroup().addTo(map);
 
     return () => {
       map.remove();
@@ -70,6 +118,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
     }
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
+    radiusLayerRef.current?.clearLayers();
 
     if (polygonCoords && polygonCoords.length >= 3 && !isDrawing) {
       const polygon = L.polygon(polygonCoords, {
@@ -81,6 +130,21 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
       
       polygonLayerRef.current = polygon;
       map.fitBounds(polygon.getBounds(), { padding: [50, 50] });
+
+      // Draw radius buffer if enabled
+      if (showRadiusBuffer && geofenceRadius > 0 && radiusLayerRef.current) {
+        polygonCoords.forEach((coord) => {
+          const circle = L.circle(coord, {
+            radius: geofenceRadius,
+            color: zoneColor,
+            fillColor: zoneColor,
+            fillOpacity: 0.1,
+            weight: 1,
+            dashArray: '5, 5'
+          });
+          radiusLayerRef.current?.addLayer(circle);
+        });
+      }
 
       // Add vertex markers if editing
       if (isEditing) {
@@ -107,7 +171,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
         });
       }
     }
-  }, [polygonCoords, isDrawing, isEditing, zoneColor, onChange]);
+  }, [polygonCoords, isDrawing, isEditing, zoneColor, onChange, showRadiusBuffer, geofenceRadius]);
 
   // Drawing mode handlers
   useEffect(() => {
@@ -207,12 +271,18 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {hasPolygon ? (
-            <Badge variant="default" className="bg-green-600">
-              <Check className="h-3 w-3 me-1" />
-              {t('security.zones.polygonDefined', 'Boundary Defined')} ({polygonCoords.length} {t('security.zones.vertices', 'vertices')})
-            </Badge>
+            <>
+              <Badge variant="default" className="bg-green-600">
+                <Check className="h-3 w-3 me-1" />
+                {t('security.zones.polygonDefined', 'Boundary Defined')} ({polygonCoords.length} {t('security.zones.vertices', 'vertices')})
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <Ruler className="h-3 w-3" />
+                {formatArea(polygonArea)}
+              </Badge>
+            </>
           ) : (
             <Badge variant="secondary">
               <MapPin className="h-3 w-3 me-1" />
@@ -254,6 +324,20 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
         <p className="text-sm text-muted-foreground">
           {t('security.zones.clickToAddPoint', 'Click on the map to add boundary points. Minimum 3 points required.')}
         </p>
+      )}
+
+      {/* Radius buffer toggle */}
+      {hasPolygon && (
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            id="show-radius" 
+            checked={showRadiusBuffer}
+            onCheckedChange={(checked) => setShowRadiusBuffer(checked === true)}
+          />
+          <Label htmlFor="show-radius" className="text-sm text-muted-foreground cursor-pointer">
+            {t('security.zones.showRadiusBuffer', 'Show radius buffer')} ({geofenceRadius}m)
+          </Label>
+        </div>
       )}
 
       <div ref={mapRef} className="h-[300px] w-full rounded-lg border border-border overflow-hidden" />

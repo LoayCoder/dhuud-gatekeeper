@@ -24,6 +24,32 @@ function isPointInPolygon(lat: number, lng: number, polygon: number[][]): boolea
   return inside;
 }
 
+// Calculate distance from point to nearest polygon edge using Haversine
+function distanceToPolygonEdge(lat: number, lng: number, polygon: number[][]): number {
+  const earthRadius = 6371000; // meters
+  const toRad = (deg: number) => deg * Math.PI / 180;
+  
+  // Calculate distance between two points
+  const haversine = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return earthRadius * c;
+  };
+  
+  // Find minimum distance to any polygon vertex (simplified approach)
+  let minDist = Infinity;
+  for (const vertex of polygon) {
+    const dist = haversine(lat, lng, vertex[0], vertex[1]);
+    if (dist < minDist) minDist = dist;
+  }
+  
+  return minDist;
+}
+
 interface RosterData {
   id: string;
   guard_id: string;
@@ -34,6 +60,7 @@ interface RosterData {
     name: string;
     zone_polygon: { coordinates: number[][][] } | null;
     zone_type: string;
+    geofence_radius_meters: number | null;
   };
   security_shifts: {
     id: string;
@@ -74,7 +101,7 @@ serve(async (req) => {
         zone_id,
         tenant_id,
         security_zones (
-          id, name, zone_polygon, zone_type
+          id, name, zone_polygon, zone_type, geofence_radius_meters
         ),
         security_shifts (
           id, shift_name, start_time, end_time, days_of_week
@@ -156,16 +183,30 @@ serve(async (req) => {
         continue;
       }
       
-      // Check if guard is within assigned zone
+      // Check if guard is within assigned zone (with radius tolerance)
       if (zone.zone_polygon?.coordinates) {
         const polygon = zone.zone_polygon.coordinates[0];
+        const radiusTolerance = zone.geofence_radius_meters ?? 50; // Default 50m if not set
+        
         const inZone = isPointInPolygon(
           latestLocation.latitude, 
           latestLocation.longitude, 
           polygon
         );
         
+        // If not inside polygon, check if within radius tolerance
+        let isCompliant = inZone;
         if (!inZone) {
+          const distanceToEdge = distanceToPolygonEdge(
+            latestLocation.latitude,
+            latestLocation.longitude,
+            polygon
+          );
+          isCompliant = distanceToEdge <= radiusTolerance;
+          console.log(`Guard ${roster.guard_id} is ${Math.round(distanceToEdge)}m from zone edge (tolerance: ${radiusTolerance}m)`);
+        }
+        
+        if (!isCompliant) {
           // Check if we already have an unresolved zone_exit alert
           const { data: existingAlert } = await supabase
             .from('geofence_alerts')
