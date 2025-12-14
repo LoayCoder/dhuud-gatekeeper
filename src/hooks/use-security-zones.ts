@@ -31,7 +31,15 @@ export function useCreateSecurityZone() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (zone: { zone_name: string; zone_code?: string; zone_type?: string; risk_level?: string; site_id?: string; is_active?: boolean }) => {
+    mutationFn: async (zone: { 
+      zone_name: string; 
+      zone_code?: string; 
+      zone_type?: string; 
+      risk_level?: string; 
+      site_id?: string; 
+      is_active?: boolean;
+      polygon_coords?: [number, number][] | null;
+    }) => {
       const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 

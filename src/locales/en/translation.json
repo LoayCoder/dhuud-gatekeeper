@@ -1762,7 +1762,20 @@
         "medium": "Medium",
         "high": "High",
         "critical": "Critical"
-      }
+      },
+      "basicInfo": "Basic Info",
+      "boundary": "Zone Boundary",
+      "drawPolygon": "Draw Boundary",
+      "redrawPolygon": "Redraw",
+      "editPolygon": "Edit",
+      "clearPolygon": "Clear",
+      "completePolygon": "Complete",
+      "undoPoint": "Undo",
+      "clickToAddPoint": "Click on the map to add boundary points. Minimum 3 points required.",
+      "vertices": "vertices",
+      "polygonDefined": "Boundary Defined",
+      "noBoundary": "No Boundary",
+      "hasBoundary": "Mapped"
     },
     "shifts": {
       "title": "Security Shifts",

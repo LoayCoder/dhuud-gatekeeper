@@ -1855,7 +1855,20 @@
         "medium": "متوسط",
         "high": "عالي",
         "critical": "حرج"
-      }
+      },
+      "basicInfo": "المعلومات الأساسية",
+      "boundary": "حدود المنطقة",
+      "drawPolygon": "رسم الحدود",
+      "redrawPolygon": "إعادة الرسم",
+      "editPolygon": "تعديل",
+      "clearPolygon": "مسح",
+      "completePolygon": "إكمال",
+      "undoPoint": "تراجع",
+      "clickToAddPoint": "انقر على الخريطة لإضافة نقاط الحدود. الحد الأدنى 3 نقاط مطلوبة.",
+      "vertices": "نقاط",
+      "polygonDefined": "تم تحديد الحدود",
+      "noBoundary": "لا توجد حدود",
+      "hasBoundary": "محدد على الخريطة"
     },
     "shifts": {
       "title": "ورديات الأمن",
