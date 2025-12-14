@@ -1757,12 +1757,36 @@
       "allowedSites": "Mga Pinapayagang Site",
       "allowedZones": "Mga Pinapayagang Zone",
       "createContractor": "Gumawa ng Contractor",
+      "editContractor": "I-edit ang Contractor",
       "updateContractor": "I-update ang Contractor",
       "createSuccess": "Matagumpay na nagawa ang contractor",
       "updateSuccess": "Matagumpay na na-update ang contractor",
       "banSuccess": "Matagumpay na na-ban ang contractor",
       "unbanSuccess": "Matagumpay na na-unban ang contractor",
-      "validationFailed": "Nabigo ang validation"
+      "validationFailed": "Nabigo ang validation",
+      "mobile": "Mobile Number",
+      "permit": "Permit",
+      "induction": "Induction",
+      "medical": "Medical",
+      "denialReasons": "Mga Dahilan ng Pagtanggi",
+      "warnings": "Mga Babala",
+      "noAccessLogs": "Walang nakitang access logs",
+      "entryTime": "Oras ng Pagpasok",
+      "exitTime": "Oras ng Paglabas",
+      "accessType": "Uri",
+      "entry": "Pasok",
+      "exit": "Labas",
+      "recordExit": "I-record ang Paglabas",
+      "banContractor": "I-ban ang Contractor",
+      "banDescription": "I-ban si {{name}} mula sa site access",
+      "banDuration": "Tagal ng Ban",
+      "permanentBan": "Permanente",
+      "banUntilDate": "Hanggang sa tiyak na petsa",
+      "banExpiryDate": "Petsa ng Pagtatapos ng Ban",
+      "accessGranted": "Pinapayagan ang Access",
+      "accessDenied": "Tinanggihan ang Access",
+      "accessWarning": "Access na may Babala",
+      "logEntry": "I-log ang Entry"
     },
     "contractorCheck": {
       "title": "Pagsuri ng Access ng Contractor",
@@ -1798,16 +1822,18 @@
       "warning": "Babala"
     },
     "validationErrors": {
-      "contractor_banned": "Ang contractor ay ipinagbabawal sa site access",
-      "permit_expired": "Nag-expire na ang work permit",
-      "induction_expired": "Nag-expire na ang safety induction",
-      "medical_expired": "Nag-expire na ang medical exam",
-      "not_found": "Hindi natagpuan ang contractor sa system"
+      "contractorNotFound": "Hindi natagpuan ang contractor sa system",
+      "contractorBanned": "Ang contractor ay ipinagbabawal sa site access",
+      "permitExpired": "Nag-expire na ang work permit",
+      "inductionExpired": "Nag-expire na ang safety induction",
+      "medicalExpired": "Nag-expire na ang medical exam",
+      "siteNotAuthorized": "Hindi awtorisado ang contractor sa site na ito",
+      "zoneNotAuthorized": "Hindi awtorisado ang contractor sa zone na ito"
     },
     "validationWarnings": {
-      "permit_expiring": "Malapit nang mag-expire ang work permit",
-      "induction_expiring": "Malapit nang mag-expire ang safety induction",
-      "medical_expiring": "Malapit nang mag-expire ang medical exam"
+      "permitExpiringSoon": "Malapit nang mag-expire ang work permit",
+      "inductionExpiringSoon": "Malapit nang mag-expire ang safety induction",
+      "medicalExpiringSoon": "Malapit nang mag-expire ang medical exam"
     },
     "zones": {
       "title": "Security Zones",

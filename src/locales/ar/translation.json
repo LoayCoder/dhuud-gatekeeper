@@ -1771,12 +1771,36 @@
       "allowedSites": "المواقع المسموح بها",
       "allowedZones": "المناطق المسموح بها",
       "createContractor": "إنشاء مقاول",
+      "editContractor": "تعديل المقاول",
       "updateContractor": "تحديث المقاول",
       "createSuccess": "تم إنشاء المقاول بنجاح",
       "updateSuccess": "تم تحديث المقاول بنجاح",
       "banSuccess": "تم حظر المقاول بنجاح",
       "unbanSuccess": "تم إلغاء حظر المقاول بنجاح",
-      "validationFailed": "فشل التحقق"
+      "validationFailed": "فشل التحقق",
+      "mobile": "رقم الجوال",
+      "permit": "التصريح",
+      "induction": "التعريف",
+      "medical": "الفحص الطبي",
+      "denialReasons": "أسباب الرفض",
+      "warnings": "تحذيرات",
+      "noAccessLogs": "لا توجد سجلات وصول",
+      "entryTime": "وقت الدخول",
+      "exitTime": "وقت الخروج",
+      "accessType": "النوع",
+      "entry": "دخول",
+      "exit": "خروج",
+      "recordExit": "تسجيل الخروج",
+      "banContractor": "حظر المقاول",
+      "banDescription": "حظر {{name}} من دخول الموقع",
+      "banDuration": "مدة الحظر",
+      "permanentBan": "دائم",
+      "banUntilDate": "حتى تاريخ محدد",
+      "banExpiryDate": "تاريخ انتهاء الحظر",
+      "accessGranted": "تم السماح بالدخول",
+      "accessDenied": "تم رفض الدخول",
+      "accessWarning": "دخول مع تحذير",
+      "logEntry": "تسجيل الدخول"
     },
     "contractorCheck": {
       "title": "فحص وصول المقاول",
@@ -1812,16 +1836,18 @@
       "warning": "تحذير"
     },
     "validationErrors": {
-      "contractor_banned": "المقاول محظور من دخول الموقع",
-      "permit_expired": "انتهت صلاحية تصريح العمل",
-      "induction_expired": "انتهت صلاحية التعريف بالسلامة",
-      "medical_expired": "انتهت صلاحية الفحص الطبي",
-      "not_found": "لم يتم العثور على المقاول في النظام"
+      "contractorNotFound": "لم يتم العثور على المقاول في النظام",
+      "contractorBanned": "المقاول محظور من دخول الموقع",
+      "permitExpired": "انتهت صلاحية تصريح العمل",
+      "inductionExpired": "انتهت صلاحية التعريف بالسلامة",
+      "medicalExpired": "انتهت صلاحية الفحص الطبي",
+      "siteNotAuthorized": "المقاول غير مصرح له بدخول هذا الموقع",
+      "zoneNotAuthorized": "المقاول غير مصرح له بدخول هذه المنطقة"
     },
     "validationWarnings": {
-      "permit_expiring": "تصريح العمل قريب من الانتهاء",
-      "induction_expiring": "التعريف بالسلامة قريب من الانتهاء",
-      "medical_expiring": "الفحص الطبي قريب من الانتهاء"
+      "permitExpiringSoon": "تصريح العمل قريب من الانتهاء",
+      "inductionExpiringSoon": "التعريف بالسلامة قريب من الانتهاء",
+      "medicalExpiringSoon": "الفحص الطبي قريب من الانتهاء"
     },
     "zones": {
       "title": "مناطق الأمن",

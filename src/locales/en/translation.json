@@ -1678,12 +1678,36 @@
       "allowedSites": "Allowed Sites",
       "allowedZones": "Allowed Zones",
       "createContractor": "Create Contractor",
+      "editContractor": "Edit Contractor",
       "updateContractor": "Update Contractor",
       "createSuccess": "Contractor created successfully",
       "updateSuccess": "Contractor updated successfully",
       "banSuccess": "Contractor banned successfully",
       "unbanSuccess": "Contractor unbanned successfully",
-      "validationFailed": "Validation failed"
+      "validationFailed": "Validation failed",
+      "mobile": "Mobile Number",
+      "permit": "Permit",
+      "induction": "Induction",
+      "medical": "Medical",
+      "denialReasons": "Denial Reasons",
+      "warnings": "Warnings",
+      "noAccessLogs": "No access logs found",
+      "entryTime": "Entry Time",
+      "exitTime": "Exit Time",
+      "accessType": "Type",
+      "entry": "Entry",
+      "exit": "Exit",
+      "recordExit": "Record Exit",
+      "banContractor": "Ban Contractor",
+      "banDescription": "Ban {{name}} from site access",
+      "banDuration": "Ban Duration",
+      "permanentBan": "Permanent",
+      "banUntilDate": "Until specific date",
+      "banExpiryDate": "Ban Expiry Date",
+      "accessGranted": "Access Granted",
+      "accessDenied": "Access Denied",
+      "accessWarning": "Access with Warning",
+      "logEntry": "Log Entry"
     },
     "contractorCheck": {
       "title": "Contractor Access Check",
@@ -1719,16 +1743,18 @@
       "warning": "Warning"
     },
     "validationErrors": {
-      "contractor_banned": "Contractor is banned from site access",
-      "permit_expired": "Work permit has expired",
-      "induction_expired": "Safety induction has expired",
-      "medical_expired": "Medical exam has expired",
-      "not_found": "Contractor not found in the system"
+      "contractorNotFound": "Contractor not found in the system",
+      "contractorBanned": "Contractor is banned from site access",
+      "permitExpired": "Work permit has expired",
+      "inductionExpired": "Safety induction has expired",
+      "medicalExpired": "Medical exam has expired",
+      "siteNotAuthorized": "Contractor not authorized for this site",
+      "zoneNotAuthorized": "Contractor not authorized for this zone"
     },
     "validationWarnings": {
-      "permit_expiring": "Work permit expiring soon",
-      "induction_expiring": "Safety induction expiring soon",
-      "medical_expiring": "Medical exam expiring soon"
+      "permitExpiringSoon": "Work permit expiring soon",
+      "inductionExpiringSoon": "Safety induction expiring soon",
+      "medicalExpiringSoon": "Medical exam expiring soon"
     },
     "zones": {
       "title": "Security Zones",
