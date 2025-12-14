@@ -4814,6 +4814,7 @@ export type Database = {
           notes_required: boolean | null
           photo_required: boolean | null
           qr_code_data: string | null
+          radius_meters: number | null
           route_id: string
           sequence_order: number
           tenant_id: string
@@ -4836,6 +4837,7 @@ export type Database = {
           notes_required?: boolean | null
           photo_required?: boolean | null
           qr_code_data?: string | null
+          radius_meters?: number | null
           route_id: string
           sequence_order: number
           tenant_id: string
@@ -4858,6 +4860,7 @@ export type Database = {
           notes_required?: boolean | null
           photo_required?: boolean | null
           qr_code_data?: string | null
+          radius_meters?: number | null
           route_id?: string
           sequence_order?: number
           tenant_id?: string
