@@ -4636,11 +4636,14 @@
   },
   "contractors": {
     "title": "إدارة المقاولين",
-    "dashboard": "لوحة المعلومات",
-    "companies": "الشركات",
-    "projects": "المشاريع",
-    "workers": "العمال",
-    "gatePasses": "تصاريح البوابة",
+    "nav": {
+      "dashboard": "لوحة المعلومات",
+      "companies": "الشركات",
+      "projects": "المشاريع",
+      "workers": "العمال",
+      "gatePasses": "تصاريح البوابة",
+      "inductionVideos": "فيديوهات التعريف"
+    },
     "companyManagement": {
       "title": "إدارة الشركات",
       "description": "إدارة شركات المقاولين وممثليهم وحالتهم",

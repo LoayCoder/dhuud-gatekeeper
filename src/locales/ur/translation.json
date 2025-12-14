@@ -4528,11 +4528,14 @@
   },
   "contractors": {
     "title": "ٹھیکیداروں کا انتظام",
-    "dashboard": "ڈیش بورڈ",
-    "companies": "کمپنیاں",
-    "projects": "منصوبے",
-    "workers": "کارکنان",
-    "gatePasses": "گیٹ پاسز",
+    "nav": {
+      "dashboard": "ڈیش بورڈ",
+      "companies": "کمپنیاں",
+      "projects": "منصوبے",
+      "workers": "کارکنان",
+      "gatePasses": "گیٹ پاسز",
+      "inductionVideos": "تعارفی ویڈیوز"
+    },
     "companyManagement": {
       "title": "کمپنی مینجمنٹ",
       "description": "ٹھیکیدار کمپنیوں، نمائندوں اور ان کی حیثیت کا انتظام کریں",
