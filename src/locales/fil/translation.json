@@ -1854,7 +1854,13 @@
       "vertices": "vertices",
       "polygonDefined": "Natukoy ang Hangganan",
       "noBoundary": "Walang Hangganan",
-      "hasBoundary": "Naka-map"
+      "hasBoundary": "Naka-map",
+      "geofenceRadius": "Geofence Radius",
+      "geofenceRadiusDescription": "Tolerance ng pagtuklas ng paglabag sa metro",
+      "showRadiusBuffer": "Ipakita ang radius buffer",
+      "areaLabel": "Lugar",
+      "radiusMeters": "{{radius}}m tolerance",
+      "minVertices": "Minimum 3 puntos ang kailangan"
     },
     "shifts": {
       "title": "Security Shifts",

@@ -1854,7 +1854,13 @@
       "vertices": "बिंदु",
       "polygonDefined": "सीमा निर्धारित",
       "noBoundary": "कोई सीमा नहीं",
-      "hasBoundary": "मैप किया गया"
+      "hasBoundary": "मैप किया गया",
+      "geofenceRadius": "जियोफेंस त्रिज्या",
+      "geofenceRadiusDescription": "मीटर में उल्लंघन पहचान सहिष्णुता",
+      "showRadiusBuffer": "त्रिज्या बफर दिखाएं",
+      "areaLabel": "क्षेत्रफल",
+      "radiusMeters": "{{radius}}m सहिष्णुता",
+      "minVertices": "न्यूनतम 3 बिंदु आवश्यक"
     },
     "shifts": {
       "title": "सुरक्षा शिफ्ट",
