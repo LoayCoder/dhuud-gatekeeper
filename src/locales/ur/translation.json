@@ -1856,7 +1856,20 @@
         "medium": "درمیانی",
         "high": "زیادہ",
         "critical": "نازک"
-      }
+      },
+      "basicInfo": "بنیادی معلومات",
+      "boundary": "زون کی حدود",
+      "drawPolygon": "حدود بنائیں",
+      "redrawPolygon": "دوبارہ بنائیں",
+      "editPolygon": "ترمیم",
+      "clearPolygon": "صاف کریں",
+      "completePolygon": "مکمل",
+      "undoPoint": "واپس",
+      "clickToAddPoint": "حدود کے پوائنٹس شامل کرنے کے لیے نقشے پر کلک کریں۔ کم از کم 3 پوائنٹس درکار ہیں۔",
+      "vertices": "نقاط",
+      "polygonDefined": "حدود متعین",
+      "noBoundary": "کوئی حدود نہیں",
+      "hasBoundary": "نقشے پر"
     },
     "shifts": {
       "title": "سیکیورٹی شفٹس",

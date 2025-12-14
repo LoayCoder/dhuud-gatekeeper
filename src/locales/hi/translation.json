@@ -1841,7 +1841,20 @@
         "medium": "मध्यम",
         "high": "उच्च",
         "critical": "गंभीर"
-      }
+      },
+      "basicInfo": "मूल जानकारी",
+      "boundary": "क्षेत्र सीमा",
+      "drawPolygon": "सीमा बनाएं",
+      "redrawPolygon": "फिर से बनाएं",
+      "editPolygon": "संपादित करें",
+      "clearPolygon": "हटाएं",
+      "completePolygon": "पूर्ण करें",
+      "undoPoint": "वापस",
+      "clickToAddPoint": "सीमा बिंदु जोड़ने के लिए मानचित्र पर क्लिक करें। न्यूनतम 3 बिंदु आवश्यक हैं।",
+      "vertices": "बिंदु",
+      "polygonDefined": "सीमा निर्धारित",
+      "noBoundary": "कोई सीमा नहीं",
+      "hasBoundary": "मैप किया गया"
     },
     "shifts": {
       "title": "सुरक्षा शिफ्ट",

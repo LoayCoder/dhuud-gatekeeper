@@ -1841,7 +1841,20 @@
         "medium": "Katamtaman",
         "high": "Mataas",
         "critical": "Kritikal"
-      }
+      },
+      "basicInfo": "Pangunahing Impormasyon",
+      "boundary": "Hangganan ng Zone",
+      "drawPolygon": "Iguhit ang Hangganan",
+      "redrawPolygon": "Iguhit Muli",
+      "editPolygon": "I-edit",
+      "clearPolygon": "Burahin",
+      "completePolygon": "Kumpletuhin",
+      "undoPoint": "I-undo",
+      "clickToAddPoint": "Mag-click sa mapa para magdagdag ng boundary points. Minimum 3 points ang kinakailangan.",
+      "vertices": "vertices",
+      "polygonDefined": "Natukoy ang Hangganan",
+      "noBoundary": "Walang Hangganan",
+      "hasBoundary": "Naka-map"
     },
     "shifts": {
       "title": "Security Shifts",
