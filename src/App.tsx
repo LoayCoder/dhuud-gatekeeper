@@ -81,6 +81,7 @@ const SecurityShifts = lazy(() => import(/* webpackChunkName: "security-shifts" 
 const ShiftRoster = lazy(() => import(/* webpackChunkName: "security-roster" */ "./pages/security/ShiftRoster"));
 const CommandCenter = lazy(() => import(/* webpackChunkName: "security-command-center" */ "./pages/security/CommandCenter"));
 const GuardLocation = lazy(() => import(/* webpackChunkName: "security-guard-location" */ "./pages/security/GuardLocation"));
+const SecurityDashboard = lazy(() => import(/* webpackChunkName: "security-dashboard" */ "./pages/security/SecurityDashboard"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -171,7 +172,8 @@ const App = () => (
                       <Route path="/visitors/list" element={<SecurityRoute><VisitorList /></SecurityRoute>} />
                       <Route path="/visitors/blacklist" element={<SecurityRoute><BlacklistManagement /></SecurityRoute>} />
 
-                      {/* Security Patrol Routes */}
+                      {/* Security Routes */}
+                      <Route path="/security" element={<SecurityRoute><SecurityDashboard /></SecurityRoute>} />
                       <Route path="/security/patrols" element={<SecurityRoute><PatrolDashboard /></SecurityRoute>} />
                       <Route path="/security/patrols/routes" element={<SecurityRoute><PatrolRoutes /></SecurityRoute>} />
                       <Route path="/security/patrols/execute" element={<SecurityRoute><ExecutePatrol /></SecurityRoute>} />

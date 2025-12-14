@@ -47,6 +47,10 @@ import {
   Menu,
   Workflow,
   Clock,
+  Radio,
+  Calendar,
+  MapPin,
+  Briefcase,
   UserCheck,
   Route,
 } from "lucide-react";
@@ -202,6 +206,12 @@ export function AppSidebar() {
           isActive: location.pathname.startsWith("/visitors") || location.pathname.startsWith("/security"),
           subItems: [
             {
+              title: t('security.menu.securityDashboard', 'Security Dashboard'),
+              url: "/security",
+              icon: LayoutDashboard,
+              menuCode: 'security_dashboard',
+            },
+            {
               title: t('navigation.visitorGatekeeper'),
               icon: UserCheck,
               menuCode: 'visitor_gatekeeper',
@@ -262,6 +272,68 @@ export function AppSidebar() {
                   url: "/security/patrols/history",
                   icon: Clock,
                   menuCode: 'patrol_history',
+                },
+              ],
+            },
+            {
+              title: t('security.menu.workforceCommand', 'Workforce Command'),
+              icon: Radio,
+              menuCode: 'workforce_command',
+              isActive: location.pathname.startsWith("/security/command") || 
+                        location.pathname.startsWith("/security/zones") ||
+                        location.pathname.startsWith("/security/shifts") ||
+                        location.pathname.startsWith("/security/roster") ||
+                        location.pathname.startsWith("/security/my-location"),
+              subItems: [
+                {
+                  title: t('security.menu.commandCenter', 'Command Center'),
+                  url: "/security/command-center",
+                  icon: Radio,
+                  menuCode: 'command_center',
+                },
+                {
+                  title: t('security.menu.securityZones', 'Security Zones'),
+                  url: "/security/zones",
+                  icon: MapPin,
+                  menuCode: 'security_zones',
+                },
+                {
+                  title: t('security.menu.shifts', 'Shifts'),
+                  url: "/security/shifts",
+                  icon: Clock,
+                  menuCode: 'security_shifts',
+                },
+                {
+                  title: t('security.menu.roster', 'Shift Roster'),
+                  url: "/security/roster",
+                  icon: Calendar,
+                  menuCode: 'shift_roster',
+                },
+                {
+                  title: t('security.menu.myLocation', 'My Location'),
+                  url: "/security/my-location",
+                  icon: MapPin,
+                  menuCode: 'my_location',
+                },
+              ],
+            },
+            {
+              title: t('security.menu.contractors', 'Contractors'),
+              icon: Briefcase,
+              menuCode: 'contractors',
+              isActive: location.pathname.startsWith("/security/contractors") || location.pathname.startsWith("/security/contractor-check"),
+              subItems: [
+                {
+                  title: t('security.menu.contractorList', 'Contractor List'),
+                  url: "/security/contractors",
+                  icon: List,
+                  menuCode: 'contractor_list',
+                },
+                {
+                  title: t('security.menu.contractorCheck', 'Contractor Check'),
+                  url: "/security/contractor-check",
+                  icon: Shield,
+                  menuCode: 'contractor_check',
                 },
               ],
             },
