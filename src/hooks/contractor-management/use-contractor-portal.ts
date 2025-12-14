@@ -100,8 +100,8 @@ export function useContractorPortalGatePasses(companyId: string | undefined) {
       const { data, error } = await supabase
         .from("material_gate_passes")
         .select(`
-          id, reference_number, pass_type, material_description, quantity,
-          vehicle_plate, driver_name, pass_date, time_window, status,
+          id, reference_number, pass_type, quantity,
+          vehicle_plate, driver_name, pass_date, status,
           pm_approved_at, safety_approved_at, created_at,
           project:contractor_projects(project_name)
         `)
@@ -227,12 +227,11 @@ export function useContractorPortalRequestGatePass() {
       company_id: string;
       project_id: string;
       pass_type: string;
-      material_description: string;
       quantity?: number;
       vehicle_plate?: string;
       driver_name?: string;
+      driver_mobile?: string;
       pass_date: string;
-      time_window?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
@@ -242,14 +241,13 @@ export function useContractorPortalRequestGatePass() {
           company_id: data.company_id,
           project_id: data.project_id,
           pass_type: data.pass_type,
-          material_description: data.material_description,
           quantity: data.quantity?.toString(),
           vehicle_plate: data.vehicle_plate,
           driver_name: data.driver_name,
+          driver_mobile: data.driver_mobile,
           pass_date: data.pass_date,
-          time_window: data.time_window,
           tenant_id: profile.tenant_id,
-          status: "pending_pm",
+          status: "pending_pm_approval",
           requested_by: user.id,
         }])
         .select()
@@ -267,3 +265,29 @@ export function useContractorPortalRequestGatePass() {
     },
   });
 }
+
+// Combined hook for portal data - provides company, projects, workers in one query
+export function useContractorPortalData() {
+  const rep = useContractorRepresentative();
+  const companyId = rep.data?.company?.id;
+  const projects = useContractorPortalProjects(companyId);
+  const workers = useContractorPortalWorkers(companyId);
+
+  return {
+    representative: rep.data,
+    company: rep.data?.company,
+    projects: projects.data,
+    workers: workers.data,
+    isLoading: rep.isLoading || projects.isLoading || workers.isLoading,
+    isError: rep.isError || projects.isError || workers.isError,
+  };
+}
+
+// Alias for gate passes hook
+export const useContractorGatePasses = useContractorPortalGatePasses;
+
+// Alias for create worker
+export const useCreateContractorWorker = useContractorPortalCreateWorker;
+
+// Alias for create gate pass
+export const useCreateContractorGatePass = useContractorPortalRequestGatePass;
