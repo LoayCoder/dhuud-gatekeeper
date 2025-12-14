@@ -89,3 +89,24 @@ verify_jwt = true
 
 [functions.send-push-notification]
 verify_jwt = false
+
+[functions.send-contractor-invitation]
+verify_jwt = true
+
+[functions.validate-worker-qr]
+verify_jwt = true
+
+[functions.send-induction-video]
+verify_jwt = true
+
+[functions.generate-worker-qr]
+verify_jwt = true
+
+[functions.approve-gate-pass]
+verify_jwt = true
+
+[functions.revoke-worker-access]
+verify_jwt = true
+
+[functions.contractor-audit-log]
+verify_jwt = false
