@@ -75,7 +75,7 @@ export function ContractorQRScanner({ open, onOpenChange, onScan }: ContractorQR
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="h-5 w-5" />
-            {t('security.contractors.scanQRCode')}
+            {t('security.contractorCheck.scannerTitle')}
           </DialogTitle>
         </DialogHeader>
 
@@ -91,7 +91,7 @@ export function ContractorQRScanner({ open, onOpenChange, onScan }: ContractorQR
           )}
 
           <p className="text-sm text-muted-foreground text-center">
-            {t('security.contractors.scanInstructions')}
+            {t('security.contractorCheck.scannerDescription')}
           </p>
 
           <Button variant="outline" className="w-full" onClick={handleClose}>
