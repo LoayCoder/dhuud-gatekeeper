@@ -76,6 +76,11 @@ const PatrolHistory = lazy(() => import(/* webpackChunkName: "security-patrol-hi
 const GateControl = lazy(() => import(/* webpackChunkName: "security-gate-control" */ "./pages/security/GateControl"));
 const Contractors = lazy(() => import(/* webpackChunkName: "security-contractors" */ "./pages/security/Contractors"));
 const ContractorCheck = lazy(() => import(/* webpackChunkName: "security-contractor-check" */ "./pages/security/ContractorCheck"));
+const SecurityZones = lazy(() => import(/* webpackChunkName: "security-zones" */ "./pages/security/SecurityZones"));
+const SecurityShifts = lazy(() => import(/* webpackChunkName: "security-shifts" */ "./pages/security/SecurityShifts"));
+const ShiftRoster = lazy(() => import(/* webpackChunkName: "security-roster" */ "./pages/security/ShiftRoster"));
+const CommandCenter = lazy(() => import(/* webpackChunkName: "security-command-center" */ "./pages/security/CommandCenter"));
+const GuardLocation = lazy(() => import(/* webpackChunkName: "security-guard-location" */ "./pages/security/GuardLocation"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -174,6 +179,11 @@ const App = () => (
                       <Route path="/security/gate" element={<SecurityRoute><GateControl /></SecurityRoute>} />
                       <Route path="/security/contractors" element={<SecurityRoute><Contractors /></SecurityRoute>} />
                       <Route path="/security/contractor-check" element={<SecurityRoute><ContractorCheck /></SecurityRoute>} />
+                      <Route path="/security/zones" element={<SecurityRoute><SecurityZones /></SecurityRoute>} />
+                      <Route path="/security/shifts" element={<SecurityRoute><SecurityShifts /></SecurityRoute>} />
+                      <Route path="/security/roster" element={<SecurityRoute><ShiftRoster /></SecurityRoute>} />
+                      <Route path="/security/command-center" element={<SecurityRoute><CommandCenter /></SecurityRoute>} />
+                      <Route path="/security/my-location" element={<SecurityRoute><GuardLocation /></SecurityRoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
