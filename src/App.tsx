@@ -74,6 +74,8 @@ const PatrolRoutes = lazy(() => import(/* webpackChunkName: "security-patrol-rou
 const ExecutePatrol = lazy(() => import(/* webpackChunkName: "security-execute-patrol" */ "./pages/security/ExecutePatrol"));
 const PatrolHistory = lazy(() => import(/* webpackChunkName: "security-patrol-history" */ "./pages/security/PatrolHistory"));
 const GateControl = lazy(() => import(/* webpackChunkName: "security-gate-control" */ "./pages/security/GateControl"));
+const Contractors = lazy(() => import(/* webpackChunkName: "security-contractors" */ "./pages/security/Contractors"));
+const ContractorCheck = lazy(() => import(/* webpackChunkName: "security-contractor-check" */ "./pages/security/ContractorCheck"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -170,6 +172,8 @@ const App = () => (
                       <Route path="/security/patrols/execute" element={<SecurityRoute><ExecutePatrol /></SecurityRoute>} />
                       <Route path="/security/patrols/history" element={<SecurityRoute><PatrolHistory /></SecurityRoute>} />
                       <Route path="/security/gate" element={<SecurityRoute><GateControl /></SecurityRoute>} />
+                      <Route path="/security/contractors" element={<SecurityRoute><Contractors /></SecurityRoute>} />
+                      <Route path="/security/contractor-check" element={<SecurityRoute><ContractorCheck /></SecurityRoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
