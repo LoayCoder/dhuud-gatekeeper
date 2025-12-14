@@ -235,12 +235,17 @@ export function useContractorPortalRequestGatePass() {
     }) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
+      // Generate reference number
+      const refNumber = `GP-${Date.now().toString(36).toUpperCase()}`;
+      
       const { data: result, error } = await supabase
         .from("material_gate_passes")
         .insert([{
           company_id: data.company_id,
           project_id: data.project_id,
           pass_type: data.pass_type,
+          material_description: data.pass_type, // Required field
+          reference_number: refNumber, // Required field
           quantity: data.quantity?.toString(),
           vehicle_plate: data.vehicle_plate,
           driver_name: data.driver_name,

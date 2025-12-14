@@ -46,7 +46,16 @@ export default function ContractorGatePassRequest({ open, onOpenChange, companyI
   });
 
   const onSubmit = async (data: GatePassFormData) => {
-    await createGatePass.mutateAsync({ ...data, company_id: companyId });
+    await createGatePass.mutateAsync({
+      company_id: companyId,
+      project_id: data.project_id,
+      pass_type: data.pass_type,
+      quantity: data.quantity,
+      vehicle_plate: data.vehicle_plate,
+      driver_name: data.driver_name,
+      driver_mobile: data.driver_mobile,
+      pass_date: data.pass_date,
+    });
     form.reset();
     onOpenChange(false);
   };
