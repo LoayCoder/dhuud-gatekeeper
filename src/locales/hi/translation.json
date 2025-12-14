@@ -1757,12 +1757,36 @@
       "allowedSites": "अनुमत साइट",
       "allowedZones": "अनुमत क्षेत्र",
       "createContractor": "ठेकेदार बनाएं",
+      "editContractor": "ठेकेदार संपादित करें",
       "updateContractor": "ठेकेदार अपडेट करें",
       "createSuccess": "ठेकेदार सफलतापूर्वक बनाया गया",
       "updateSuccess": "ठेकेदार सफलतापूर्वक अपडेट हुआ",
       "banSuccess": "ठेकेदार पर सफलतापूर्वक प्रतिबंध लगाया गया",
       "unbanSuccess": "ठेकेदार से सफलतापूर्वक प्रतिबंध हटाया गया",
-      "validationFailed": "सत्यापन विफल"
+      "validationFailed": "सत्यापन विफल",
+      "mobile": "मोबाइल नंबर",
+      "permit": "परमिट",
+      "induction": "प्रशिक्षण",
+      "medical": "चिकित्सा",
+      "denialReasons": "अस्वीकृति के कारण",
+      "warnings": "चेतावनियां",
+      "noAccessLogs": "कोई पहुंच लॉग नहीं मिले",
+      "entryTime": "प्रवेश समय",
+      "exitTime": "निकास समय",
+      "accessType": "प्रकार",
+      "entry": "प्रवेश",
+      "exit": "निकास",
+      "recordExit": "निकास दर्ज करें",
+      "banContractor": "ठेकेदार पर प्रतिबंध",
+      "banDescription": "{{name}} को साइट पहुंच से रोकें",
+      "banDuration": "प्रतिबंध अवधि",
+      "permanentBan": "स्थायी",
+      "banUntilDate": "विशिष्ट तिथि तक",
+      "banExpiryDate": "प्रतिबंध समाप्ति तिथि",
+      "accessGranted": "पहुंच स्वीकृत",
+      "accessDenied": "पहुंच अस्वीकृत",
+      "accessWarning": "चेतावनी के साथ पहुंच",
+      "logEntry": "प्रवेश दर्ज"
     },
     "contractorCheck": {
       "title": "ठेकेदार पहुंच जांच",
@@ -1798,16 +1822,18 @@
       "warning": "चेतावनी"
     },
     "validationErrors": {
-      "contractor_banned": "ठेकेदार की साइट पहुंच प्रतिबंधित है",
-      "permit_expired": "कार्य परमिट समाप्त हो गया है",
-      "induction_expired": "सुरक्षा प्रशिक्षण समाप्त हो गया है",
-      "medical_expired": "चिकित्सा परीक्षा समाप्त हो गई है",
-      "not_found": "सिस्टम में ठेकेदार नहीं मिला"
+      "contractorNotFound": "सिस्टम में ठेकेदार नहीं मिला",
+      "contractorBanned": "ठेकेदार की साइट पहुंच प्रतिबंधित है",
+      "permitExpired": "कार्य परमिट समाप्त हो गया है",
+      "inductionExpired": "सुरक्षा प्रशिक्षण समाप्त हो गया है",
+      "medicalExpired": "चिकित्सा परीक्षा समाप्त हो गई है",
+      "siteNotAuthorized": "ठेकेदार को इस साइट की अनुमति नहीं",
+      "zoneNotAuthorized": "ठेकेदार को इस क्षेत्र की अनुमति नहीं"
     },
     "validationWarnings": {
-      "permit_expiring": "कार्य परमिट जल्द समाप्त हो रहा है",
-      "induction_expiring": "सुरक्षा प्रशिक्षण जल्द समाप्त हो रहा है",
-      "medical_expiring": "चिकित्सा परीक्षा जल्द समाप्त हो रही है"
+      "permitExpiringSoon": "कार्य परमिट जल्द समाप्त हो रहा है",
+      "inductionExpiringSoon": "सुरक्षा प्रशिक्षण जल्द समाप्त हो रहा है",
+      "medicalExpiringSoon": "चिकित्सा परीक्षा जल्द समाप्त हो रही है"
     },
     "zones": {
       "title": "सुरक्षा क्षेत्र",

@@ -1772,12 +1772,36 @@
       "allowedSites": "اجازت یافتہ سائٹس",
       "allowedZones": "اجازت یافتہ زون",
       "createContractor": "ٹھیکیدار بنائیں",
+      "editContractor": "ٹھیکیدار میں ترمیم",
       "updateContractor": "ٹھیکیدار اپڈیٹ کریں",
       "createSuccess": "ٹھیکیدار کامیابی سے بنایا گیا",
       "updateSuccess": "ٹھیکیدار کامیابی سے اپڈیٹ ہوا",
       "banSuccess": "ٹھیکیدار پر کامیابی سے پابندی لگائی گئی",
       "unbanSuccess": "ٹھیکیدار سے کامیابی سے پابندی ہٹائی گئی",
-      "validationFailed": "توثیق ناکام"
+      "validationFailed": "توثیق ناکام",
+      "mobile": "موبائل نمبر",
+      "permit": "پرمٹ",
+      "induction": "تعارف",
+      "medical": "طبی",
+      "denialReasons": "رد کی وجوہات",
+      "warnings": "انتباہات",
+      "noAccessLogs": "کوئی رسائی لاگ نہیں ملے",
+      "entryTime": "داخلے کا وقت",
+      "exitTime": "خروج کا وقت",
+      "accessType": "قسم",
+      "entry": "داخلہ",
+      "exit": "خروج",
+      "recordExit": "خروج درج کریں",
+      "banContractor": "ٹھیکیدار پر پابندی",
+      "banDescription": "{{name}} کو سائٹ تک رسائی سے روکیں",
+      "banDuration": "پابندی کی مدت",
+      "permanentBan": "مستقل",
+      "banUntilDate": "مخصوص تاریخ تک",
+      "banExpiryDate": "پابندی کی میعاد",
+      "accessGranted": "رسائی منظور",
+      "accessDenied": "رسائی مسترد",
+      "accessWarning": "انتباہ کے ساتھ رسائی",
+      "logEntry": "داخلے کا اندراج"
     },
     "contractorCheck": {
       "title": "ٹھیکیدار کی رسائی کی جانچ",
@@ -1813,16 +1837,18 @@
       "warning": "انتباہ"
     },
     "validationErrors": {
-      "contractor_banned": "ٹھیکیدار پر سائٹ تک رسائی پر پابندی ہے",
-      "permit_expired": "ورک پرمٹ کی میعاد ختم ہو گئی",
-      "induction_expired": "سیفٹی بریفنگ کی میعاد ختم ہو گئی",
-      "medical_expired": "طبی معائنہ کی میعاد ختم ہو گئی",
-      "not_found": "سسٹم میں ٹھیکیدار نہیں ملا"
+      "contractorNotFound": "سسٹم میں ٹھیکیدار نہیں ملا",
+      "contractorBanned": "ٹھیکیدار پر سائٹ تک رسائی پر پابندی ہے",
+      "permitExpired": "ورک پرمٹ کی میعاد ختم ہو گئی",
+      "inductionExpired": "سیفٹی بریفنگ کی میعاد ختم ہو گئی",
+      "medicalExpired": "طبی معائنہ کی میعاد ختم ہو گئی",
+      "siteNotAuthorized": "ٹھیکیدار کو اس سائٹ کی اجازت نہیں",
+      "zoneNotAuthorized": "ٹھیکیدار کو اس زون کی اجازت نہیں"
     },
     "validationWarnings": {
-      "permit_expiring": "ورک پرمٹ جلد ختم ہو رہا ہے",
-      "induction_expiring": "سیفٹی بریفنگ جلد ختم ہو رہی ہے",
-      "medical_expiring": "طبی معائنہ جلد ختم ہو رہا ہے"
+      "permitExpiringSoon": "ورک پرمٹ جلد ختم ہو رہا ہے",
+      "inductionExpiringSoon": "سیفٹی بریفنگ جلد ختم ہو رہی ہے",
+      "medicalExpiringSoon": "طبی معائنہ جلد ختم ہو رہا ہے"
     },
     "zones": {
       "title": "سیکیورٹی زونز",
