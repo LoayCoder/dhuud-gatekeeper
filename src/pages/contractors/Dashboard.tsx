@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Building2, FolderKanban, HardHat, Ticket, TrendingUp, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Building2, FolderKanban, HardHat, Ticket, TrendingUp, AlertTriangle, CheckCircle, Clock, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { useContractorWorkers, usePendingWorkerApprovals } from "@/hooks/contractor-management/use-contractor-workers";
 import { usePendingGatePassApprovals } from "@/hooks/contractor-management/use-material-gate-passes";
+import { InductionComplianceWidget } from "@/components/contractors/InductionComplianceWidget";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -94,6 +95,9 @@ export default function ContractorDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Induction Compliance Widget */}
+      <InductionComplianceWidget />
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Pending Worker Approvals */}
@@ -198,6 +202,12 @@ export default function ContractorDashboard() {
               <Button variant="outline">
                 <Ticket className="h-4 w-4 me-2" />
                 {t("contractors.dashboard.createGatePass", "Create Gate Pass")}
+              </Button>
+            </Link>
+            <Link to="/contractors/induction-videos">
+              <Button variant="outline">
+                <Video className="h-4 w-4 me-2" />
+                {t("contractors.dashboard.manageInductions", "Manage Inductions")}
               </Button>
             </Link>
           </div>

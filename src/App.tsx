@@ -89,6 +89,13 @@ const ContractorProjects = lazy(() => import(/* webpackChunkName: "contractors-p
 const ContractorWorkers = lazy(() => import(/* webpackChunkName: "contractors-workers" */ "./pages/contractors/Workers"));
 const ContractorGatePasses = lazy(() => import(/* webpackChunkName: "contractors-gate-passes" */ "./pages/contractors/GatePasses"));
 const ContractorDashboard = lazy(() => import(/* webpackChunkName: "contractors-dashboard" */ "./pages/contractors/Dashboard"));
+const InductionVideos = lazy(() => import(/* webpackChunkName: "contractors-induction" */ "./pages/contractors/InductionVideos"));
+
+// Contractor Portal pages - external contractor representatives
+const ContractorPortalDashboard = lazy(() => import(/* webpackChunkName: "contractor-portal-dashboard" */ "./pages/contractor-portal/Dashboard"));
+const ContractorPortalWorkers = lazy(() => import(/* webpackChunkName: "contractor-portal-workers" */ "./pages/contractor-portal/Workers"));
+const ContractorPortalProjects = lazy(() => import(/* webpackChunkName: "contractor-portal-projects" */ "./pages/contractor-portal/Projects"));
+const ContractorPortalGatePasses = lazy(() => import(/* webpackChunkName: "contractor-portal-gate-passes" */ "./pages/contractor-portal/GatePasses"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -200,6 +207,13 @@ const App = () => (
                       <Route path="/contractors/projects" element={<AdminRoute><ContractorProjects /></AdminRoute>} />
                       <Route path="/contractors/workers" element={<AdminRoute><ContractorWorkers /></AdminRoute>} />
                       <Route path="/contractors/gate-passes" element={<AdminRoute><ContractorGatePasses /></AdminRoute>} />
+                      <Route path="/contractors/induction-videos" element={<AdminRoute><InductionVideos /></AdminRoute>} />
+
+                      {/* Contractor Portal Routes (for external contractor reps) */}
+                      <Route path="/contractor-portal" element={<ContractorPortalDashboard />} />
+                      <Route path="/contractor-portal/workers" element={<ContractorPortalWorkers />} />
+                      <Route path="/contractor-portal/projects" element={<ContractorPortalProjects />} />
+                      <Route path="/contractor-portal/gate-passes" element={<ContractorPortalGatePasses />} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />

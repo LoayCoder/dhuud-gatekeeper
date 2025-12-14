@@ -53,6 +53,7 @@ import {
   Briefcase,
   UserCheck,
   Route,
+  Video,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -352,6 +353,12 @@ export function AppSidebar() {
                   url: "/contractors/gate-passes",
                   icon: FileWarning,
                   menuCode: 'contractor_gate_passes',
+                },
+                {
+                  title: t('contractors.inductionVideos', 'Induction Videos'),
+                  url: "/contractors/induction-videos",
+                  icon: Video,
+                  menuCode: 'contractor_induction_videos',
                 },
                 {
                   title: t('security.menu.contractorList', 'Legacy Contractors'),

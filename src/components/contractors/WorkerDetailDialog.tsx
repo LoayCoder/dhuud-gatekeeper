@@ -5,10 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Building2, Phone, Globe, Calendar, FileText, QrCode, Video } from "lucide-react";
+import { User, Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
+import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-inductions";
+import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -21,6 +25,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [isSendingInduction, setIsSendingInduction] = useState(false);
 
+  const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
+  const { data: videos = [] } = useInductionVideos();
+
   if (!worker) return null;
 
   const statusVariant = {
@@ -29,11 +36,24 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
     rejected: "destructive",
   }[worker.approval_status] as "secondary" | "default" | "destructive";
 
+  // Find the latest induction for this worker
+  const latestInduction = inductions[0];
+  const hasCompletedInduction = latestInduction?.status === "completed" || !!latestInduction?.acknowledged_at;
+  const isInductionExpired = latestInduction?.expires_at 
+    ? new Date(latestInduction.expires_at) < new Date() 
+    : false;
+
   const handleGenerateQR = async () => {
     setIsGeneratingQR(true);
     try {
-      // TODO: Call generate-worker-qr edge function
-      console.log("Generating QR for worker:", worker.id);
+      const { error } = await supabase.functions.invoke("generate-worker-qr", {
+        body: { workerId: worker.id },
+      });
+      if (error) throw error;
+      toast.success(t("contractors.messages.qrGenerated", "QR code generated successfully"));
+    } catch (error) {
+      console.error("Error generating QR:", error);
+      toast.error(t("contractors.messages.qrError", "Failed to generate QR code"));
     } finally {
       setIsGeneratingQR(false);
     }
@@ -42,10 +62,50 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const handleSendInduction = async () => {
     setIsSendingInduction(true);
     try {
-      // TODO: Call send-induction-video edge function
-      console.log("Sending induction video to worker:", worker.id);
+      // Find the appropriate video for the worker's preferred language
+      const languageVideo = videos.find((v) => v.language === worker.preferred_language && v.is_active);
+      const defaultVideo = videos.find((v) => v.language === "en" && v.is_active);
+      const videoToSend = languageVideo || defaultVideo;
+
+      if (!videoToSend) {
+        toast.error(t("contractors.messages.noVideoAvailable", "No induction video available for this language"));
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke("send-induction-video", {
+        body: { 
+          workerId: worker.id, 
+          videoId: videoToSend.id,
+          mobileNumber: worker.mobile_number,
+          language: worker.preferred_language,
+        },
+      });
+      if (error) throw error;
+      toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
+    } catch (error) {
+      console.error("Error sending induction:", error);
+      toast.error(t("contractors.messages.inductionError", "Failed to send induction video"));
     } finally {
       setIsSendingInduction(false);
+    }
+  };
+
+  const getInductionStatusBadge = () => {
+    if (!latestInduction) {
+      return <Badge variant="secondary">{t("contractors.induction.notSent", "Not Sent")}</Badge>;
+    }
+    if (isInductionExpired) {
+      return <Badge variant="destructive">{t("contractors.induction.expired", "Expired")}</Badge>;
+    }
+    switch (latestInduction.status) {
+      case "completed":
+        return <Badge variant="default" className="bg-green-500">{t("contractors.induction.completed", "Completed")}</Badge>;
+      case "viewed":
+        return <Badge variant="secondary" className="bg-blue-500 text-white">{t("contractors.induction.viewed", "Viewed")}</Badge>;
+      case "sent":
+        return <Badge variant="outline">{t("contractors.induction.sent", "Sent")}</Badge>;
+      default:
+        return <Badge variant="secondary">{t("contractors.induction.pending", "Pending")}</Badge>;
     }
   };
 
@@ -127,7 +187,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
               <WorkerQRCode
                 workerId={worker.id}
                 workerName={worker.full_name}
-                qrData={null} // TODO: Fetch from worker_qr_codes table
+                qrData={null}
                 onGenerateQR={handleGenerateQR}
                 isGenerating={isGeneratingQR}
               />
@@ -143,23 +203,80 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
             )}
           </TabsContent>
 
-          <TabsContent value="induction" className="mt-4">
+          <TabsContent value="induction" className="mt-4 space-y-4">
+            {/* Induction Status Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">{t("contractors.induction.status", "Induction Status")}</CardTitle>
+                  {getInductionStatusBadge()}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {latestInduction ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Send className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">{t("contractors.induction.sentAt", "Sent")}:</span>
+                      <span>{format(new Date(latestInduction.sent_at), "PPp")}</span>
+                    </div>
+                    {latestInduction.viewed_at && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-blue-500" />
+                        <span className="text-muted-foreground">{t("contractors.induction.viewedAt", "Viewed")}:</span>
+                        <span>{format(new Date(latestInduction.viewed_at), "PPp")}</span>
+                      </div>
+                    )}
+                    {latestInduction.acknowledged_at && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-muted-foreground">{t("contractors.induction.completedAt", "Completed")}:</span>
+                        <span>{format(new Date(latestInduction.acknowledged_at), "PPp")}</span>
+                      </div>
+                    )}
+                    {latestInduction.expires_at && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">{t("contractors.induction.expiresAt", "Expires")}:</span>
+                        <span className={isInductionExpired ? "text-destructive font-medium" : ""}>
+                          {format(new Date(latestInduction.expires_at), "PPp")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <AlertTriangle className="h-4 w-4" />
+                    {t("contractors.induction.noInductionSent", "No induction has been sent to this worker yet.")}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Send Induction Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("contractors.workers.safetyInduction", "Safety Induction")}</CardTitle>
+                <CardTitle className="text-sm">{t("contractors.induction.sendVideo", "Send Induction Video")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-sm text-muted-foreground">
-                  {t("contractors.workers.inductionDescription", "Send safety induction video to worker via WhatsApp based on their preferred language.")}
+                  {t("contractors.induction.description", "Send safety induction video to worker via WhatsApp based on their preferred language.")}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t("contractors.workers.preferredLanguage", "Language")}:</span>
                   <Badge variant="outline">{worker.preferred_language.toUpperCase()}</Badge>
                 </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{t("contractors.workers.mobile", "Mobile")}:</span>
+                  <span dir="ltr">{worker.mobile_number}</span>
+                </div>
                 <Button onClick={handleSendInduction} disabled={isSendingInduction}>
                   <Video className={`h-4 w-4 me-2 ${isSendingInduction ? "animate-pulse" : ""}`} />
-                  {t("contractors.workers.sendInduction", "Send Induction Video")}
+                  {latestInduction 
+                    ? t("contractors.induction.resend", "Resend Induction Video")
+                    : t("contractors.induction.send", "Send Induction Video")}
                 </Button>
               </CardContent>
             </Card>
