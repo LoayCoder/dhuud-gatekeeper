@@ -1097,7 +1097,8 @@
     "inspectionTemplates": "Inspection Templates",
     "managerKPIDashboard": "Manager KPI Dashboard",
     "kpiTargets": "KPI Targets",
-    "eventDashboard": "Event Dashboard"
+    "eventDashboard": "Event Dashboard",
+    "contractors": "Contractors"
   },
   "actions": {
     "sessionActions": "Session Actions",
