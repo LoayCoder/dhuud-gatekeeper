@@ -155,7 +155,7 @@ export default function ContractorDashboard() {
                 {pendingPasses.slice(0, 5).map((pass) => (
                   <div key={pass.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                     <div>
-                      <p className="font-medium">{pass.pass_number}</p>
+                      <p className="font-medium">{pass.reference_number}</p>
                       <p className="text-sm text-muted-foreground">{pass.material_description}</p>
                     </div>
                     <Clock className="h-4 w-4 text-yellow-500" />

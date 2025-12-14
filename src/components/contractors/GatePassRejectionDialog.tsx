@@ -9,18 +9,18 @@ import { MaterialGatePass, useRejectGatePass } from "@/hooks/contractor-manageme
 interface GatePassRejectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  gatePass: MaterialGatePass | null;
+  pass: MaterialGatePass | null;
 }
 
-export function GatePassRejectionDialog({ open, onOpenChange, gatePass }: GatePassRejectionDialogProps) {
+export function GatePassRejectionDialog({ open, onOpenChange, pass }: GatePassRejectionDialogProps) {
   const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const rejectPass = useRejectGatePass();
 
   const handleReject = async () => {
-    if (!gatePass || !reason.trim()) return;
+    if (!pass || !reason.trim()) return;
     
-    await rejectPass.mutateAsync({ passId: gatePass.id, reason: reason.trim() });
+    await rejectPass.mutateAsync({ passId: pass.id, reason: reason.trim() });
     setReason("");
     onOpenChange(false);
   };
@@ -32,10 +32,10 @@ export function GatePassRejectionDialog({ open, onOpenChange, gatePass }: GatePa
           <DialogTitle>{t("contractors.gatePasses.rejectPass", "Reject Gate Pass")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {gatePass && (
+          {pass && (
             <div className="text-sm space-y-1">
-              <p className="font-mono font-medium">{gatePass.pass_number}</p>
-              <p className="text-muted-foreground">{gatePass.material_description}</p>
+              <p className="font-mono font-medium">{pass.reference_number}</p>
+              <p className="text-muted-foreground">{pass.material_description}</p>
             </div>
           )}
           <div className="space-y-2">
