@@ -44,7 +44,15 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
   });
 
   const onSubmit = async (data: WorkerFormData) => {
-    await createWorker.mutateAsync({ ...data, company_id: companyId });
+    await createWorker.mutateAsync({
+      company_id: companyId,
+      full_name: data.full_name,
+      full_name_ar: data.full_name_ar,
+      national_id: data.national_id,
+      mobile_number: data.mobile_number,
+      nationality: data.nationality,
+      preferred_language: data.preferred_language,
+    });
     form.reset();
     onOpenChange(false);
   };
