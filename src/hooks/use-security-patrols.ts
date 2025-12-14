@@ -239,9 +239,11 @@ export function useLogCheckpoint() {
       gpsLat,
       gpsLng,
       gpsAccuracy,
+      gpsValidated,
+      validationDistance,
+      validationThreshold,
       observationNotes,
-      photoPath,
-      incidentReported,
+      photoPaths,
       linkedIncidentId,
     }: {
       patrolId: string;
@@ -250,14 +252,16 @@ export function useLogCheckpoint() {
       gpsLat?: number;
       gpsLng?: number;
       gpsAccuracy?: number;
+      gpsValidated?: boolean;
+      validationDistance?: number;
+      validationThreshold?: number;
       observationNotes?: string;
-      photoPath?: string;
-      incidentReported?: boolean;
+      photoPaths?: string[];
       linkedIncidentId?: string;
     }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
-      // Log the checkpoint
+      // Log the checkpoint with enhanced GPS validation data
       const { error: logError } = await supabase
         .from('patrol_checkpoint_logs')
         .insert({
@@ -265,12 +269,16 @@ export function useLogCheckpoint() {
           checkpoint_id: checkpointId,
           tenant_id: profile.tenant_id,
           scanned_at: new Date().toISOString(),
-          verification_method: verificationMethod,
-          latitude: gpsLat,
-          longitude: gpsLng,
+          scan_method: verificationMethod,
+          gps_latitude: gpsLat,
+          gps_longitude: gpsLng,
           gps_accuracy: gpsAccuracy,
+          gps_validated: gpsValidated,
+          validation_distance: validationDistance,
+          validation_threshold: validationThreshold,
           notes: observationNotes,
-          photo_url: photoPath,
+          photo_paths: photoPaths ? JSON.stringify(photoPaths) : null,
+          linked_incident_id: linkedIncidentId,
         });
 
       if (logError) throw logError;

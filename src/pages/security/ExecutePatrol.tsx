@@ -8,9 +8,10 @@ import {
   CheckCircle2, 
   AlertCircle,
   Navigation,
-  Camera,
-  FileText,
-  Loader2
+  AlertTriangle,
+  Loader2,
+  Battery,
+  Signal
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -34,8 +35,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-
-const GPS_RADIUS_METERS = 50; // Configurable radius for GPS validation
+import { CheckpointPhotoCapture } from "@/components/security/CheckpointPhotoCapture";
+import { CheckpointIncidentDialog } from "@/components/security/CheckpointIncidentDialog";
 
 export default function ExecutePatrol() {
   const { t } = useTranslation();
@@ -46,11 +47,15 @@ export default function ExecutePatrol() {
   const [selectedRouteId, setSelectedRouteId] = useState<string>('');
   const [activePatrolId, setActivePatrolId] = useState<string | null>(null);
   const [currentCheckpointIndex, setCurrentCheckpointIndex] = useState(0);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [notes, setNotes] = useState('');
   const [completedCheckpoints, setCompletedCheckpoints] = useState<Set<string>>(new Set());
+  const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
+  const [linkedIncidentId, setLinkedIncidentId] = useState<string | null>(null);
+  const [showIncidentDialog, setShowIncidentDialog] = useState(false);
+  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
 
   const { data: routes, isLoading: routesLoading } = usePatrolRoutes();
   const { data: selectedRoute, isLoading: routeLoading } = usePatrolRoute(selectedRouteId);
@@ -63,6 +68,26 @@ export default function ExecutePatrol() {
   const progress = checkpoints.length > 0
     ? (completedCheckpoints.size / checkpoints.length) * 100 
     : 0;
+
+  // Get GPS validation radius from checkpoint or use default
+  const gpsRadius = currentCheckpoint?.radius_meters ?? 20;
+
+  // Calculate distance to current checkpoint
+  const distanceToCheckpoint = userLocation && currentCheckpoint?.latitude && currentCheckpoint?.longitude
+    ? calculateDistance(userLocation.lat, userLocation.lng, currentCheckpoint.latitude, currentCheckpoint.longitude)
+    : null;
+
+  // Check battery level
+  useEffect(() => {
+    if ('getBattery' in navigator) {
+      (navigator as any).getBattery().then((battery: any) => {
+        setBatteryLevel(Math.round(battery.level * 100));
+        battery.addEventListener('levelchange', () => {
+          setBatteryLevel(Math.round(battery.level * 100));
+        });
+      });
+    }
+  }, []);
 
   const refreshLocation = () => {
     setIsLocating(true);
@@ -79,6 +104,7 @@ export default function ExecutePatrol() {
         setUserLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
         });
         setIsLocating(false);
       },
@@ -114,21 +140,22 @@ export default function ExecutePatrol() {
 
   const validateLocation = (): boolean => {
     if (!userLocation || !currentCheckpoint) return false;
+    if (!currentCheckpoint.latitude || !currentCheckpoint.longitude) return true; // No GPS required
 
     const distance = calculateDistance(
       userLocation.lat,
       userLocation.lng,
-      currentCheckpoint.latitude!,
-      currentCheckpoint.longitude!
+      currentCheckpoint.latitude,
+      currentCheckpoint.longitude
     );
 
-    return distance <= GPS_RADIUS_METERS;
+    return distance <= gpsRadius;
   };
 
   const handleLogCheckpoint = async () => {
     if (!activePatrolId || !currentCheckpoint || !profile?.tenant_id) return;
 
-    // Validate GPS location
+    // Validate GPS location if checkpoint has coordinates
     if (currentCheckpoint.latitude && currentCheckpoint.longitude) {
       if (!userLocation) {
         toast({
@@ -142,11 +169,21 @@ export default function ExecutePatrol() {
       if (!validateLocation()) {
         toast({
           title: t('security.patrols.execution.tooFar', 'Too Far From Checkpoint'),
-          description: t('security.patrols.execution.moveCloser', 'Please move closer to the checkpoint location'),
+          description: t('security.patrols.execution.moveCloser', 'Please move closer to the checkpoint location') + ` (${Math.round(distanceToCheckpoint || 0)}m > ${gpsRadius}m)`,
           variant: 'destructive',
         });
         return;
       }
+    }
+
+    // Validate photo requirement
+    if (currentCheckpoint.photo_required && capturedPhotos.length === 0) {
+      toast({
+        title: t('security.patrols.execution.photoRequired', 'Photo Required'),
+        description: t('security.patrols.execution.takePhotoFirst', 'Please take at least one photo before logging this checkpoint'),
+        variant: 'destructive',
+      });
+      return;
     }
 
     try {
@@ -156,11 +193,19 @@ export default function ExecutePatrol() {
         verificationMethod: 'gps',
         gpsLat: userLocation?.lat,
         gpsLng: userLocation?.lng,
+        gpsAccuracy: userLocation?.accuracy,
+        gpsValidated: !!userLocation && validateLocation(),
+        validationDistance: distanceToCheckpoint ?? undefined,
+        validationThreshold: gpsRadius,
         observationNotes: notes || undefined,
+        photoPaths: capturedPhotos.length > 0 ? capturedPhotos : undefined,
+        linkedIncidentId: linkedIncidentId ?? undefined,
       });
 
       setCompletedCheckpoints(prev => new Set([...prev, currentCheckpoint.id]));
       setNotes('');
+      setCapturedPhotos([]);
+      setLinkedIncidentId(null);
 
       if (currentCheckpointIndex < checkpoints.length - 1) {
         setCurrentCheckpointIndex(prev => prev + 1);
@@ -276,6 +321,24 @@ export default function ExecutePatrol() {
   // Patrol Execution Screen (Mobile-first, large buttons)
   return (
     <div className="space-y-4 pb-24">
+      {/* Status Bar */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          {batteryLevel !== null && batteryLevel < 20 && (
+            <div className="flex items-center gap-1 text-warning">
+              <Battery className="h-4 w-4" />
+              {batteryLevel}%
+            </div>
+          )}
+          {userLocation && (
+            <div className="flex items-center gap-1">
+              <Signal className="h-4 w-4 text-green-500" />
+              ±{Math.round(userLocation.accuracy)}m
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Progress Header */}
       <Card>
         <CardContent className="py-4">
@@ -296,9 +359,14 @@ export default function ExecutePatrol() {
         <Card className="border-2 border-primary">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="mb-2">
-                {t('security.patrols.execution.checkpoint', 'Checkpoint')} {currentCheckpointIndex + 1}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="mb-2">
+                  {t('security.patrols.execution.checkpoint', 'Checkpoint')} {currentCheckpointIndex + 1}
+                </Badge>
+                {currentCheckpoint.photo_required && (
+                  <Badge variant="secondary" className="mb-2">📷</Badge>
+                )}
+              </div>
               {completedCheckpoints.has(currentCheckpoint.id) && (
                 <CheckCircle2 className="h-6 w-6 text-green-500" />
               )}
@@ -307,6 +375,25 @@ export default function ExecutePatrol() {
             <CardDescription>{currentCheckpoint.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Distance to Checkpoint */}
+            {distanceToCheckpoint !== null && (
+              <div className={`flex items-center justify-between p-3 rounded-lg ${
+                distanceToCheckpoint <= gpsRadius ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-destructive/10 text-destructive'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  <span className="text-sm font-medium">
+                    {distanceToCheckpoint <= gpsRadius 
+                      ? t('security.patrols.execution.inRange', 'In range')
+                      : t('security.patrols.execution.outOfRange', 'Out of range')}
+                  </span>
+                </div>
+                <span className="text-sm font-medium">
+                  {Math.round(distanceToCheckpoint)}m / {gpsRadius}m
+                </span>
+              </div>
+            )}
+
             {/* Location Status */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-2">
@@ -338,6 +425,15 @@ export default function ExecutePatrol() {
               </div>
             )}
 
+            {/* Photo Capture */}
+            <CheckpointPhotoCapture
+              patrolId={activePatrolId}
+              checkpointId={currentCheckpoint.id}
+              onPhotosCaptured={setCapturedPhotos}
+              existingPhotos={capturedPhotos}
+              required={currentCheckpoint.photo_required ?? false}
+            />
+
             {/* Notes */}
             <div className="space-y-2">
               <Label>{t('security.patrols.execution.observations', 'Observations')}</Label>
@@ -348,6 +444,14 @@ export default function ExecutePatrol() {
                 rows={3}
               />
             </div>
+
+            {/* Linked Incident */}
+            {linkedIncidentId && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 text-warning">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm">{t('security.patrols.execution.incidentLinked', 'Incident linked')}</span>
+              </div>
+            )}
 
             {/* Action Buttons - Large for mobile */}
             <div className="grid gap-3">
@@ -366,6 +470,18 @@ export default function ExecutePatrol() {
                   ? t('security.patrols.status.completed', 'Completed')
                   : t('security.patrols.execution.confirmLocation', 'I Am Here')}
               </Button>
+
+              {!completedCheckpoints.has(currentCheckpoint.id) && (
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  className="h-12 gap-2"
+                  onClick={() => setShowIncidentDialog(true)}
+                >
+                  <AlertTriangle className="h-5 w-5" />
+                  {t('security.patrols.execution.reportIncident', 'Report Incident')}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -394,8 +510,16 @@ export default function ExecutePatrol() {
                   }`}>
                     {completedCheckpoints.has(cp.id) ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
                   </div>
-                  <span className="font-medium">{cp.name}</span>
+                  <div>
+                    <span className="font-medium">{cp.name}</span>
+                    {cp.radius_meters && cp.radius_meters !== 20 && (
+                      <span className="ms-2 text-xs text-muted-foreground">({cp.radius_meters}m)</span>
+                    )}
+                  </div>
                 </div>
+                {cp.photo_required && (
+                  <Badge variant="secondary" className="text-xs">📷</Badge>
+                )}
               </div>
             ))}
           </div>
@@ -419,6 +543,20 @@ export default function ExecutePatrol() {
             {t('security.patrols.execution.complete', 'Complete Patrol')}
           </Button>
         </div>
+      )}
+
+      {/* Incident Dialog */}
+      {currentCheckpoint && (
+        <CheckpointIncidentDialog
+          open={showIncidentDialog}
+          onOpenChange={setShowIncidentDialog}
+          checkpointName={currentCheckpoint.name}
+          patrolId={activePatrolId}
+          checkpointId={currentCheckpoint.id}
+          gpsLat={userLocation?.lat}
+          gpsLng={userLocation?.lng}
+          onIncidentCreated={setLinkedIncidentId}
+        />
       )}
     </div>
   );
