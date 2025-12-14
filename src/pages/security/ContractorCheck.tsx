@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,7 +68,7 @@ export default function ContractorCheck() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">{t('security.contractorCheck.title')}</h1>
@@ -135,6 +134,6 @@ export default function ContractorCheck() {
         onOpenChange={setScannerOpen}
         onScan={handleScan}
       />
-    </DashboardLayout>
+    </>
   );
 }
