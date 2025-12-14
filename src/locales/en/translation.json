@@ -1497,7 +1497,9 @@
         "noRoutes": "No patrol routes found",
         "noRoutesDescription": "Create your first patrol route to get started",
         "edit": "Edit",
-        "delete": "Delete"
+        "delete": "Delete",
+        "checkpointRadius": "GPS Radius (meters)",
+        "checkpointRadiusHint": "Guard must be within this distance to log checkpoint"
       },
       "execution": {
         "title": "Active Patrol",
@@ -1516,7 +1518,42 @@
         "notes": "Patrol Notes",
         "notesPlaceholder": "Add any observations or notes...",
         "issueFound": "Issue Found",
-        "issueDescription": "Describe the issue"
+        "issueDescription": "Describe the issue",
+        "photos": "Photos",
+        "photosCount": "photo(s)",
+        "photoUploaded": "Photo uploaded",
+        "photoUploadFailed": "Failed to upload photo",
+        "takePhoto": "Take Photo",
+        "uploadPhoto": "Upload",
+        "photoRequired": "At least one photo is required for this checkpoint",
+        "reportIncident": "Report Incident",
+        "reportIncidentDescription": "Report an incident found at",
+        "incidentCreated": "Incident reported successfully",
+        "incidentFailed": "Failed to report incident",
+        "incidentTitlePlaceholder": "Brief description of the incident",
+        "incidentDescriptionPlaceholder": "Provide details about the incident...",
+        "gpsAttached": "GPS location will be attached",
+        "incidentLinked": "Incident linked",
+        "inRange": "In range",
+        "outOfRange": "Out of range",
+        "selectRouteDescription": "Select a patrol route to begin",
+        "begin": "Begin Patrol",
+        "patrolStarted": "Patrol started successfully",
+        "patrolStartFailed": "Failed to start patrol",
+        "progress": "Progress",
+        "checkpoint": "Checkpoint",
+        "tooFar": "Too Far From Checkpoint",
+        "moveCloser": "Please move closer to the checkpoint location",
+        "observations": "Observations",
+        "locationCaptured": "Location captured",
+        "noLocation": "No location",
+        "locationRequired": "Location Required",
+        "refreshLocationFirst": "Please refresh your location first",
+        "takePhotoFirst": "Please take at least one photo before logging this checkpoint",
+        "checkpointLogged": "Checkpoint logged successfully",
+        "checkpointLogFailed": "Failed to log checkpoint",
+        "patrolCompleted": "Patrol completed successfully",
+        "patrolCompleteFailed": "Failed to complete patrol"
       },
       "history": {
         "title": "Patrol History",
@@ -1533,13 +1570,33 @@
         "checkpointsVisited": "Checkpoints Visited",
         "guard": "Guard",
         "startTime": "Start Time",
-        "endTime": "End Time"
+        "endTime": "End Time",
+        "patrolRecords": "Patrol Records",
+        "recordsFound": "records found",
+        "route": "Route",
+        "date": "Date",
+        "noPatrolHistory": "No patrol history",
+        "noPatrolHistoryDescription": "Completed patrols will appear here",
+        "status": "Status"
+      },
+      "detail": {
+        "title": "Patrol Details",
+        "checkpointLogs": "Checkpoint Logs",
+        "evidence": "Evidence",
+        "linkedIncident": "Incident",
+        "gpsValidation": "GPS Validation",
+        "validated": "Validated",
+        "notValidated": "Not Validated",
+        "noNotes": "No notes",
+        "noPhotos": "No photos captured",
+        "noCheckpoints": "No checkpoint logs"
       },
       "status": {
         "active": "Active",
         "completed": "Completed",
         "incomplete": "Incomplete",
-        "pending": "Pending"
+        "pending": "Pending",
+        "missed": "Missed"
       }
     },
     "contractors": {

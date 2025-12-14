@@ -31,11 +31,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { PatrolDetailDialog } from "@/components/security/PatrolDetailDialog";
 
 export default function PatrolHistory() {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [selectedPatrolId, setSelectedPatrolId] = useState<string | null>(null);
 
   const { data: patrols, isLoading } = useSecurityPatrols({
     status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -175,7 +177,12 @@ export default function PatrolHistory() {
                       </TableCell>
                       <TableCell>{getStatusBadge(patrol.status)}</TableCell>
                       <TableCell className="text-end">
-                        <Button variant="ghost" size="sm" className="gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={() => setSelectedPatrolId(patrol.id)}
+                        >
                           <Eye className="h-4 w-4" />
                           {t('common.view', 'View')}
                         </Button>
@@ -198,6 +205,15 @@ export default function PatrolHistory() {
           )}
         </CardContent>
       </Card>
+
+      {/* Patrol Detail Dialog */}
+      {selectedPatrolId && (
+        <PatrolDetailDialog
+          patrolId={selectedPatrolId}
+          open={!!selectedPatrolId}
+          onOpenChange={(open) => !open && setSelectedPatrolId(null)}
+        />
+      )}
     </div>
   );
 }
