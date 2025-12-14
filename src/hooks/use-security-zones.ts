@@ -39,6 +39,7 @@ export function useCreateSecurityZone() {
       site_id?: string; 
       is_active?: boolean;
       polygon_coords?: [number, number][] | null;
+      geofence_radius_meters?: number;
     }) => {
       const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
