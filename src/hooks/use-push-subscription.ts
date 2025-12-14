@@ -30,7 +30,7 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
  * Hook to manage push notification subscriptions
  */
 export function usePushSubscription() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [state, setState] = useState<PushSubscriptionState>({
     isSubscribed: false,
     isSupported: false,
@@ -104,7 +104,7 @@ export function usePushSubscription() {
       const subscriptionJSON = subscription.toJSON();
 
       const subscriptionData = {
-        user_id: profile?.user_id,
+        user_id: user?.id,
         tenant_id: profile?.tenant_id,
         endpoint: subscriptionJSON.endpoint,
         p256dh_key: subscriptionJSON.keys?.p256dh,
@@ -133,7 +133,7 @@ export function usePushSubscription() {
       }));
       return false;
     }
-  }, [isSupported, profile?.user_id, profile?.tenant_id]);
+  }, [isSupported, user?.id, profile?.tenant_id]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     if (!state.subscription) return true;
