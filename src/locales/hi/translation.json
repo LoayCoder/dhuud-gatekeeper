@@ -4513,11 +4513,14 @@
   },
   "contractors": {
     "title": "ठेकेदार प्रबंधन",
-    "dashboard": "डैशबोर्ड",
-    "companies": "कंपनियाँ",
-    "projects": "परियोजनाएं",
-    "workers": "कर्मचारी",
-    "gatePasses": "गेट पास",
+    "nav": {
+      "dashboard": "डैशबोर्ड",
+      "companies": "कंपनियाँ",
+      "projects": "परियोजनाएं",
+      "workers": "कर्मचारी",
+      "gatePasses": "गेट पास",
+      "inductionVideos": "प्रेरण वीडियो"
+    },
     "companyManagement": {
       "title": "कंपनी प्रबंधन",
       "description": "ठेकेदार कंपनियों, प्रतिनिधियों और उनकी स्थिति का प्रबंधन करें",

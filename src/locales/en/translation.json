@@ -4802,11 +4802,14 @@
   },
   "contractors": {
     "title": "Contractor Management",
-    "dashboard": "Dashboard",
-    "companies": "Companies",
-    "projects": "Projects",
-    "workers": "Workers",
-    "gatePasses": "Gate Passes",
+    "nav": {
+      "dashboard": "Dashboard",
+      "companies": "Companies",
+      "projects": "Projects",
+      "workers": "Workers",
+      "gatePasses": "Gate Passes",
+      "inductionVideos": "Induction Videos"
+    },
     "companyManagement": {
       "title": "Company Management",
       "description": "Manage contractor companies, representatives, and their status",

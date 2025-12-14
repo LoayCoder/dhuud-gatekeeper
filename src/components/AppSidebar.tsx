@@ -373,37 +373,37 @@ export function AppSidebar() {
       isActive: location.pathname.startsWith("/contractors"),
       items: [
         {
-          title: t('contractors.dashboard', 'Dashboard'),
+          title: t('contractors.nav.dashboard', 'Dashboard'),
           url: "/contractors",
           icon: LayoutDashboard,
           menuCode: 'contractor_dashboard',
         },
         {
-          title: t('contractors.companies', 'Companies'),
+          title: t('contractors.nav.companies', 'Companies'),
           url: "/contractors/companies",
           icon: Building2,
           menuCode: 'contractor_companies',
         },
         {
-          title: t('contractors.projects', 'Projects'),
+          title: t('contractors.nav.projects', 'Projects'),
           url: "/contractors/projects",
           icon: Briefcase,
           menuCode: 'contractor_projects',
         },
         {
-          title: t('contractors.workers', 'Workers'),
+          title: t('contractors.nav.workers', 'Workers'),
           url: "/contractors/workers",
           icon: Users,
           menuCode: 'contractor_workers',
         },
         {
-          title: t('contractors.gatePasses', 'Gate Passes'),
+          title: t('contractors.nav.gatePasses', 'Gate Passes'),
           url: "/contractors/gate-passes",
           icon: FileWarning,
           menuCode: 'contractor_gate_passes',
         },
         {
-          title: t('contractors.inductionVideos', 'Induction Videos'),
+          title: t('contractors.nav.inductionVideos', 'Induction Videos'),
           url: "/contractors/induction-videos",
           icon: Video,
           menuCode: 'contractor_induction_videos',

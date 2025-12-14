@@ -4513,11 +4513,14 @@
   },
   "contractors": {
     "title": "Pamamahala ng Contractor",
-    "dashboard": "Dashboard",
-    "companies": "Mga Kumpanya",
-    "projects": "Mga Proyekto",
-    "workers": "Mga Manggagawa",
-    "gatePasses": "Mga Gate Pass",
+    "nav": {
+      "dashboard": "Dashboard",
+      "companies": "Mga Kumpanya",
+      "projects": "Mga Proyekto",
+      "workers": "Mga Manggagawa",
+      "gatePasses": "Mga Gate Pass",
+      "inductionVideos": "Mga Induction Video"
+    },
     "companyManagement": {
       "title": "Pamamahala ng Kumpanya",
       "description": "Pamahalaan ang mga contractor company, kinatawan, at kanilang status",
