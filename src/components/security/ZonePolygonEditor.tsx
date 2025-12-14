@@ -276,7 +276,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
             <>
               <Badge variant="default" className="bg-green-600">
                 <Check className="h-3 w-3 me-1" />
-                {t('security.zones.polygonDefined', 'Boundary Defined')} ({polygonCoords.length} {t('security.zones.vertices', 'vertices')})
+                {t('security.zones.polygonDefined')} ({polygonCoords.length} {t('security.zones.vertices')})
               </Badge>
               <Badge variant="outline" className="gap-1">
                 <Ruler className="h-3 w-3" />
@@ -286,7 +286,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
           ) : (
             <Badge variant="secondary">
               <MapPin className="h-3 w-3 me-1" />
-              {t('security.zones.noBoundary', 'No Boundary')}
+              {t('security.zones.noBoundary')}
             </Badge>
           )}
         </div>
@@ -294,21 +294,21 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
           {isDrawing ? (
             <>
               <Button type="button" variant="outline" size="sm" onClick={undoLastPoint} disabled={drawingPoints.length === 0}>
-                <Undo2 className="h-4 w-4 me-1" />{t('security.zones.undoPoint', 'Undo')}
+                <Undo2 className="h-4 w-4 me-1" />{t('security.zones.undoPoint')}
               </Button>
               <Button type="button" size="sm" onClick={completePolygon} disabled={drawingPoints.length < 3}>
-                <Check className="h-4 w-4 me-1" />{t('security.zones.completePolygon', 'Complete')} ({drawingPoints.length}/3+)
+                <Check className="h-4 w-4 me-1" />{t('security.zones.completePolygon')} ({drawingPoints.length}/3+)
               </Button>
             </>
           ) : (
             <>
               {hasPolygon && (
                 <Button type="button" variant={isEditing ? 'default' : 'outline'} size="sm" onClick={toggleEditing}>
-                  <Pencil className="h-4 w-4 me-1" />{isEditing ? t('common.done', 'Done') : t('security.zones.editPolygon', 'Edit')}
+                  <Pencil className="h-4 w-4 me-1" />{isEditing ? t('common.done') : t('security.zones.editPolygon')}
                 </Button>
               )}
               <Button type="button" variant="outline" size="sm" onClick={startDrawing}>
-                <MapPin className="h-4 w-4 me-1" />{hasPolygon ? t('security.zones.redrawPolygon', 'Redraw') : t('security.zones.drawPolygon', 'Draw')}
+                <MapPin className="h-4 w-4 me-1" />{hasPolygon ? t('security.zones.redrawPolygon') : t('security.zones.drawPolygon')}
               </Button>
               {hasPolygon && (
                 <Button type="button" variant="ghost" size="sm" onClick={clearPolygon} className="text-destructive">
@@ -322,7 +322,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
 
       {isDrawing && (
         <p className="text-sm text-muted-foreground">
-          {t('security.zones.clickToAddPoint', 'Click on the map to add boundary points. Minimum 3 points required.')}
+          {t('security.zones.clickToAddPoint')}
         </p>
       )}
 
@@ -335,7 +335,7 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
             onCheckedChange={(checked) => setShowRadiusBuffer(checked === true)}
           />
           <Label htmlFor="show-radius" className="text-sm text-muted-foreground cursor-pointer">
-            {t('security.zones.showRadiusBuffer', 'Show radius buffer')} ({geofenceRadius}m)
+            {t('security.zones.showRadiusBuffer')} ({geofenceRadius}m)
           </Label>
         </div>
       )}

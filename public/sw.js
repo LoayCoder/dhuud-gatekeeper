@@ -1,8 +1,13 @@
-const CACHE_NAME = 'dhuud-cache-v2';
+const CACHE_NAME = 'dhuud-cache-v3';
+const API_CACHE_NAME = 'dhuud-api-cache-v1';
+const STATIC_CACHE_NAME = 'dhuud-static-cache-v1';
 const OFFLINE_URL = '/offline.html';
 const SYNC_TAG = 'offline-mutations-sync';
 const PERIODIC_SYNC_TAG = 'server-updates-sync';
 const MUTATION_STORE_KEY = 'offline-mutation-queue';
+
+// Maximum entries for API cache
+const API_CACHE_MAX_ENTRIES = 100;
 
 const STATIC_ASSETS = [
   '/',
@@ -26,11 +31,12 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  const currentCaches = [CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => !currentCaches.includes(name))
           .map((name) => caches.delete(name))
       );
     })
@@ -367,30 +373,81 @@ async function executeMutation(mutation) {
   });
 }
 
-// Fetch event - serve from cache, fallback to network
+// Trim cache to max entries (LRU-style)
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    // Delete oldest entries (first in cache)
+    const keysToDelete = keys.slice(0, keys.length - maxEntries);
+    await Promise.all(keysToDelete.map(key => cache.delete(key)));
+  }
+}
+
+// Fetch event - serve from cache with different strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests and API calls
-  if (request.method !== 'GET' || url.pathname.startsWith('/api')) {
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
 
-  // Cache-first for static assets (fonts, images)
+  // STRATEGY 1: Network First with cache fallback for API responses
+  // This ensures fresh data while surviving brief outages
+  if (url.pathname.startsWith('/rest/') || url.pathname.includes('/functions/')) {
+    event.respondWith(
+      fetch(request)
+        .then(async (response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            const cache = await caches.open(API_CACHE_NAME);
+            await cache.put(request, clone);
+            // Trim API cache to max entries
+            trimCache(API_CACHE_NAME, API_CACHE_MAX_ENTRIES);
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) {
+            console.log('[SW] Serving API from cache:', url.pathname);
+            return cached;
+          }
+          return new Response(JSON.stringify({ error: 'Offline', cached: false }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
+    );
+    return;
+  }
+
+  // STRATEGY 2: Cache First for static assets (fonts, images, icons)
+  // These rarely change and benefit from instant loading
   if (
     url.pathname.startsWith('/fonts/') ||
     url.pathname.startsWith('/images/') ||
+    url.pathname.startsWith('/assets/') ||
     url.pathname.endsWith('.woff2') ||
+    url.pathname.endsWith('.woff') ||
+    url.pathname.endsWith('.ttf') ||
     url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.jpeg') ||
     url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg')
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.webp') ||
+    url.pathname.endsWith('.ico')
   ) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        return cached || fetch(request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
           return response;
         });
       })
@@ -398,30 +455,44 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for JS/CSS bundles (ensures latest code)
+  // STRATEGY 3: Stale-While-Revalidate for JS/CSS bundles
+  // Instant load from cache, update in background for next visit
   if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+      caches.match(request).then((cached) => {
+        const fetchPromise = fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
           return response;
-        })
-        .catch(() => caches.match(request))
+        });
+        // Return cached immediately, update cache in background
+        return cached || fetchPromise;
+      })
     );
     return;
   }
 
-  // Network-first for HTML (SPA navigation)
+  // STRATEGY 4: Stale-While-Revalidate for HTML pages
+  // Fast initial load, background refresh for SPA navigation
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok && url.origin === self.location.origin) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL)))
+    caches.match(request).then((cached) => {
+      const fetchPromise = fetch(request)
+        .then((response) => {
+          if (response.ok && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed, return cached or offline page
+          return cached || caches.match(OFFLINE_URL);
+        });
+      
+      // Return cached immediately if available, otherwise wait for network
+      return cached || fetchPromise;
+    })
   );
 });
