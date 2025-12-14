@@ -82,6 +82,7 @@ const ShiftRoster = lazy(() => import(/* webpackChunkName: "security-roster" */ 
 const CommandCenter = lazy(() => import(/* webpackChunkName: "security-command-center" */ "./pages/security/CommandCenter"));
 const GuardLocation = lazy(() => import(/* webpackChunkName: "security-guard-location" */ "./pages/security/GuardLocation"));
 const SecurityDashboard = lazy(() => import(/* webpackChunkName: "security-dashboard" */ "./pages/security/SecurityDashboard"));
+const ContractorAccess = lazy(() => import(/* webpackChunkName: "security-contractor-access" */ "./pages/security/ContractorAccess"));
 
 // Contractor Management pages - lazy loaded
 const ContractorCompanies = lazy(() => import(/* webpackChunkName: "contractors-companies" */ "./pages/contractors/Companies"));
@@ -200,6 +201,7 @@ const App = () => (
                       <Route path="/security/roster" element={<SecurityRoute><ShiftRoster /></SecurityRoute>} />
                       <Route path="/security/command-center" element={<SecurityRoute><CommandCenter /></SecurityRoute>} />
                       <Route path="/security/my-location" element={<SecurityRoute><GuardLocation /></SecurityRoute>} />
+                      <Route path="/security/contractor-access" element={<SecurityRoute><ContractorAccess /></SecurityRoute>} />
 
                       {/* Contractor Management Routes */}
                       <Route path="/contractors" element={<AdminRoute><ContractorDashboard /></AdminRoute>} />

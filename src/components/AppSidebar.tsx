@@ -319,6 +319,12 @@ export function AppSidebar() {
               ],
             },
             {
+              title: t('security.menu.contractorAccess', 'Contractor Access'),
+              url: "/security/contractor-access",
+              icon: UserCheck,
+              menuCode: 'contractor_access',
+            },
+            {
               title: t('security.menu.contractorList', 'Legacy Contractors'),
               url: "/security/contractors",
               icon: List,

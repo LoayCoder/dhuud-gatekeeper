@@ -46,7 +46,7 @@ export function SecurityRoute({ children }: SecurityRouteProps) {
 
         const roleCodes = roles?.map(r => (r.role as { code: string })?.code) || [];
         const hasSecurityRole = roleCodes.some(code => 
-          code === 'security_officer' || code === 'security_supervisor'
+          code === 'security_officer' || code === 'security_supervisor' || code === 'security_manager'
         );
 
         setHasAccess(hasSecurityRole);
