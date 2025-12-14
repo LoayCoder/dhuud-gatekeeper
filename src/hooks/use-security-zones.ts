@@ -37,7 +37,7 @@ export function useCreateSecurityZone() {
 
       const { data, error } = await supabase
         .from('security_zones')
-        .insert({ ...zone, tenant_id: profile.tenant_id })
+        .insert({ ...zone, tenant_id: profile.tenant_id } as any)
         .select()
         .single();
       if (error) throw error;

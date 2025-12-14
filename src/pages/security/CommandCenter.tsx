@@ -22,8 +22,8 @@ export default function CommandCenter() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const { data: guardLocations, isLoading: locationsLoading, refetch: refetchLocations } = useGuardLocations();
-  const { data: alerts } = useGeofenceAlerts({ status: 'pending' });
-  const { data: acknowledgedAlerts } = useGeofenceAlerts({ status: 'acknowledged' });
+  const { data: alerts } = useGeofenceAlerts('pending');
+  const { data: acknowledgedAlerts } = useGeofenceAlerts('acknowledged');
   const { data: todayRoster } = useShiftRoster({ date: format(new Date(), 'yyyy-MM-dd') });
   const { data: zones } = useSecurityZones({ isActive: true });
 
