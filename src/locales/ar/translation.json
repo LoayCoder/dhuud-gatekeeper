@@ -1651,7 +1651,29 @@
         "entryBreakdown": "توزيع أنواع الدخول",
         "entries": "الداخلون",
         "exits": "الخارجون"
-      }
+      },
+      "notifyHost": "إشعار المستضيف عبر واتساب",
+      "hostNotified": "تم إشعار المستضيف",
+      "hostNotifiedDesc": "تم إرسال إشعار واتساب إلى المستضيف"
+    },
+    "qrScanner": {
+      "title": "مسح رمز QR",
+      "cameraError": "خطأ في الكاميرا",
+      "cameraPermission": "يرجى السماح بالوصول إلى الكاميرا",
+      "verifying": "جارٍ التحقق...",
+      "valid": "صالح",
+      "expired": "منتهي الصلاحية",
+      "revoked": "ملغى",
+      "invalid": "غير صالح",
+      "notFound": "غير موجود",
+      "workerQR": "رمز QR للعامل",
+      "visitorQR": "رمز QR للزائر",
+      "unknownQR": "رمز QR غير معروف",
+      "project": "المشروع",
+      "scanAgain": "مسح مرة أخرى",
+      "useAnyway": "استخدام على أي حال",
+      "instructions": "وجّه الكاميرا نحو رمز QR للزائر أو العامل",
+      "unknownFormat": "صيغة QR غير معروفة"
     },
     "contractorAccess": {
       "title": "التحكم في وصول المقاولين",

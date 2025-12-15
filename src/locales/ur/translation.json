@@ -1637,7 +1637,29 @@
         "entryBreakdown": "داخلہ قسم کی تقسیم",
         "entries": "داخلے",
         "exits": "خروج"
-      }
+      },
+      "notifyHost": "واٹس ایپ کے ذریعے میزبان کو مطلع کریں",
+      "hostNotified": "میزبان کو مطلع کر دیا گیا",
+      "hostNotifiedDesc": "میزبان کو واٹس ایپ نوٹیفیکیشن بھیج دی گئی"
+    },
+    "qrScanner": {
+      "title": "QR کوڈ اسکین کریں",
+      "cameraError": "کیمرہ میں خرابی",
+      "cameraPermission": "براہ کرم کیمرہ تک رسائی کی اجازت دیں",
+      "verifying": "تصدیق ہو رہی ہے...",
+      "valid": "درست",
+      "expired": "ختم شدہ",
+      "revoked": "منسوخ",
+      "invalid": "غلط",
+      "notFound": "نہیں ملا",
+      "workerQR": "کارکن QR",
+      "visitorQR": "مہمان QR",
+      "unknownQR": "نامعلوم QR",
+      "project": "پروجیکٹ",
+      "scanAgain": "دوبارہ اسکین کریں",
+      "useAnyway": "بہرحال استعمال کریں",
+      "instructions": "مہمان یا کارکن کے QR کوڈ پر کیمرہ رکھیں",
+      "unknownFormat": "نامعلوم QR فارمیٹ"
     },
     "contractorAccess": {
       "title": "ٹھیکیدار رسائی کنٹرول",
