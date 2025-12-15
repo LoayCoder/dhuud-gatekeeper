@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut } from 'lucide-react';
+import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, Bell, WifiOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useGateEntries, useCreateGateEntry, useRecordExit } from '@/hooks/use-gate-entries';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import { GateQRScanner, QRScanResult } from './GateQRScanner';
+import { gateOfflineCache } from '@/lib/gate-offline-cache';
 
 interface VerificationResult {
   status: 'granted' | 'denied' | 'warning';
@@ -19,19 +24,25 @@ interface VerificationResult {
   company?: string;
   nationalId?: string;
   host?: string;
+  hostMobile?: string;
   purpose?: string;
   warnings?: string[];
   entryId?: string;
   isOnSite?: boolean;
+  type?: 'visitor' | 'worker';
 }
 
 export function VisitorVerificationPanel() {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { isOnline } = useNetworkStatus();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [notifyHost, setNotifyHost] = useState(true);
+  const [isCachedData, setIsCachedData] = useState(false);
   
   const createEntry = useCreateGateEntry();
   const recordExit = useRecordExit();
@@ -103,19 +114,45 @@ export function VisitorVerificationPanel() {
     }
   };
 
-  const handleLogEntry = () => {
+  const handleLogEntry = async () => {
     if (!verificationResult) return;
     
-    createEntry.mutate({
+    const entryData = {
       person_name: verificationResult.name,
-      entry_type: 'visitor',
+      entry_type: verificationResult.type === 'worker' ? 'worker' : 'visitor',
       entry_time: new Date().toISOString(),
       purpose: verificationResult.purpose,
       destination_name: verificationResult.host,
-    }, {
-      onSuccess: () => {
-        setVerificationResult(prev => prev ? { ...prev, isOnSite: true } : null);
+      host_mobile: verificationResult.hostMobile,
+      notify_host: notifyHost,
+    };
+
+    createEntry.mutate(entryData, {
+      onSuccess: async (data) => {
+        setVerificationResult(prev => prev ? { ...prev, isOnSite: true, entryId: data?.id } : null);
         toast({ title: t('security.gate.entryRecorded', 'Entry recorded successfully') });
+        
+        // Send host notification if enabled
+        if (notifyHost && verificationResult.hostMobile && data?.id) {
+          try {
+            await supabase.functions.invoke('send-gate-whatsapp', {
+              body: {
+                notification_type: 'host_notification',
+                host_mobile: verificationResult.hostMobile,
+                visitor_name: verificationResult.name,
+                tenant_id: profile?.tenant_id,
+                entry_id: data.id,
+                language: 'en',
+              },
+            });
+            toast({ 
+              title: t('security.gate.hostNotified', 'Host notified'),
+              description: t('security.gate.hostNotifiedDesc', 'WhatsApp notification sent to host'),
+            });
+          } catch (error) {
+            console.error('Failed to notify host:', error);
+          }
+        }
       }
     });
   };
@@ -129,6 +166,33 @@ export function VisitorVerificationPanel() {
         toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
       }
     });
+  };
+
+  // Handle QR scan result
+  const handleQRScanResult = (result: QRScanResult) => {
+    if (result.status === 'valid' && result.data?.name) {
+      setVerificationResult({
+        status: 'granted',
+        name: result.data.name,
+        company: result.data.company,
+        type: result.type === 'worker' ? 'worker' : 'visitor',
+        warnings: result.data.warnings,
+      });
+      setSearchQuery(result.data.name);
+    } else if (result.status === 'not_found') {
+      setVerificationResult({
+        status: 'warning',
+        name: result.rawCode,
+        warnings: [t('security.qrScanner.notFound', 'No record found for this QR code')],
+      });
+      setSearchQuery(result.rawCode);
+    } else {
+      setVerificationResult({
+        status: 'denied',
+        name: result.data?.name || result.rawCode,
+        warnings: result.data?.warnings || [t('security.qrScanner.invalid', 'Invalid or expired QR code')],
+      });
+    }
   };
 
   const getStatusConfig = (status: VerificationResult['status']) => {
@@ -163,6 +227,17 @@ export function VisitorVerificationPanel() {
         <CardTitle className="text-base flex items-center gap-2">
           <Search className="h-4 w-4" />
           {t('security.gateDashboard.verifyVisitor', 'Verify Visitor')}
+          {!isOnline && (
+            <Badge variant="outline" className="ms-auto text-warning">
+              <WifiOff className="h-3 w-3 me-1" />
+              {t('common.offline', 'Offline')}
+            </Badge>
+          )}
+          {isCachedData && (
+            <Badge variant="secondary" className="ms-2">
+              {t('common.cached', 'Cached')}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -177,12 +252,17 @@ export function VisitorVerificationPanel() {
           />
           <Button onClick={handleSearch} disabled={isSearching || !searchQuery.trim()}>
             {isSearching ? (
-              <span className="animate-spin">⏳</span>
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Search className="h-4 w-4" />
             )}
           </Button>
-          <Button variant="outline" size="icon" title={t('security.gateDashboard.scanQR', 'Scan QR')}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            title={t('security.gateDashboard.scanQR', 'Scan QR')}
+            onClick={() => setIsQRScannerOpen(true)}
+          >
             <QrCode className="h-4 w-4" />
           </Button>
         </div>
@@ -254,33 +334,65 @@ export function VisitorVerificationPanel() {
 
               {/* Action Buttons */}
               {verificationResult.status !== 'denied' && (
-                <div className="flex gap-2 mt-4 pt-4 border-t">
+                <div className="flex flex-col gap-3 mt-4 pt-4 border-t">
+                  {/* Notify Host Toggle */}
                   {!verificationResult.isOnSite && (
-                    <Button 
-                      className="flex-1" 
-                      onClick={handleLogEntry}
-                      disabled={createEntry.isPending}
-                    >
-                      <LogIn className="h-4 w-4 me-2" />
-                      {t('security.gateDashboard.logEntry', 'Log Entry')}
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="notify-host" 
+                        checked={notifyHost}
+                        onCheckedChange={(checked) => setNotifyHost(checked === true)}
+                      />
+                      <Label htmlFor="notify-host" className="text-sm flex items-center gap-1 cursor-pointer">
+                        <Bell className="h-3 w-3" />
+                        {t('security.gateDashboard.notifyHost', 'Notify host via WhatsApp')}
+                      </Label>
+                    </div>
                   )}
-                  {verificationResult.isOnSite && verificationResult.entryId && (
-                    <Button 
-                      variant="secondary" 
-                      className="flex-1"
-                      onClick={handleRecordExit}
-                      disabled={recordExit.isPending}
-                    >
-                      <LogOut className="h-4 w-4 me-2" />
-                      {t('security.gateDashboard.recordExit', 'Record Exit')}
-                    </Button>
-                  )}
+                  
+                  <div className="flex gap-2">
+                    {!verificationResult.isOnSite && (
+                      <Button 
+                        className="flex-1" 
+                        onClick={handleLogEntry}
+                        disabled={createEntry.isPending}
+                      >
+                        {createEntry.isPending ? (
+                          <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                        ) : (
+                          <LogIn className="h-4 w-4 me-2" />
+                        )}
+                        {t('security.gateDashboard.logEntry', 'Log Entry')}
+                      </Button>
+                    )}
+                    {verificationResult.isOnSite && verificationResult.entryId && (
+                      <Button 
+                        variant="secondary" 
+                        className="flex-1"
+                        onClick={handleRecordExit}
+                        disabled={recordExit.isPending}
+                      >
+                        {recordExit.isPending ? (
+                          <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                        ) : (
+                          <LogOut className="h-4 w-4 me-2" />
+                        )}
+                        {t('security.gateDashboard.recordExit', 'Record Exit')}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
         )}
+        
+        {/* QR Scanner Dialog */}
+        <GateQRScanner
+          open={isQRScannerOpen}
+          onOpenChange={setIsQRScannerOpen}
+          onScanResult={handleQRScanResult}
+        />
       </CardContent>
     </Card>
   );

@@ -90,15 +90,22 @@ export function useCreateGateEntry() {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async (entry: Omit<GateEntryInsert, 'tenant_id' | 'guard_id'>) => {
+    mutationFn: async (entry: Omit<GateEntryInsert, 'tenant_id' | 'guard_id'> & { 
+      host_mobile?: string; 
+      notify_host?: boolean;
+    }) => {
       if (!tenantId) throw new Error('No tenant ID');
+
+      const { host_mobile, notify_host, ...entryData } = entry;
 
       const { data, error } = await supabase
         .from('gate_entry_logs')
         .insert({
-          ...entry,
+          ...entryData,
           tenant_id: tenantId,
           guard_id: user?.id,
+          host_mobile,
+          notify_host: notify_host ?? true,
         })
         .select()
         .single();

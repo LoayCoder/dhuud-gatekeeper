@@ -1558,7 +1558,29 @@
         "entryBreakdown": "Entry Type Breakdown",
         "entries": "Entries",
         "exits": "Exits"
-      }
+      },
+      "notifyHost": "Notify host via WhatsApp",
+      "hostNotified": "Host notified",
+      "hostNotifiedDesc": "WhatsApp notification sent to host"
+    },
+    "qrScanner": {
+      "title": "Scan QR Code",
+      "cameraError": "Camera Error",
+      "cameraPermission": "Please allow camera access",
+      "verifying": "Verifying...",
+      "valid": "Valid",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "invalid": "Invalid",
+      "notFound": "Not Found",
+      "workerQR": "Worker QR",
+      "visitorQR": "Visitor QR",
+      "unknownQR": "Unknown QR",
+      "project": "Project",
+      "scanAgain": "Scan Again",
+      "useAnyway": "Use Anyway",
+      "instructions": "Point camera at visitor or worker QR code",
+      "unknownFormat": "Unknown QR format"
     },
     "contractorAccess": {
       "title": "Contractor Access Control",
