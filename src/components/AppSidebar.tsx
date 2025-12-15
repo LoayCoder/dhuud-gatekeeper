@@ -319,6 +319,12 @@ export function AppSidebar() {
               ],
             },
             {
+              title: t('security.menu.gateDashboard', 'Gate Dashboard'),
+              url: "/security/gate-dashboard",
+              icon: Shield,
+              menuCode: 'gate_dashboard',
+            },
+            {
               title: t('security.menu.contractorAccess', 'Contractor Access'),
               url: "/security/contractor-access",
               icon: UserCheck,
