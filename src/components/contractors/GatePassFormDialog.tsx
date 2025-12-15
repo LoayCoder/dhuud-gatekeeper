@@ -25,6 +25,24 @@ interface GatePassItem {
   unit: string;
 }
 
+const UNIT_OPTIONS = [
+  { value: "pcs", label: "Pieces" },
+  { value: "bags", label: "Bags" },
+  { value: "boxes", label: "Boxes" },
+  { value: "kg", label: "Kilograms (kg)" },
+  { value: "tons", label: "Tons" },
+  { value: "liters", label: "Liters" },
+  { value: "meters", label: "Meters" },
+  { value: "sqm", label: "Square Meters (m²)" },
+  { value: "rolls", label: "Rolls" },
+  { value: "sheets", label: "Sheets" },
+  { value: "pallets", label: "Pallets" },
+  { value: "drums", label: "Drums" },
+  { value: "cylinders", label: "Cylinders" },
+  { value: "sets", label: "Sets" },
+  { value: "units", label: "Units" },
+];
+
 const createEmptyItem = (): GatePassItem => ({
   id: crypto.randomUUID(),
   item_name: "",
@@ -194,8 +212,6 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                   <SelectItem value="material_out">{t("contractors.gatePasses.materialOut", "Material Out")}</SelectItem>
                   <SelectItem value="equipment_in">{t("contractors.gatePasses.equipmentIn", "Equipment In")}</SelectItem>
                   <SelectItem value="equipment_out">{t("contractors.gatePasses.equipmentOut", "Equipment Out")}</SelectItem>
-                  <SelectItem value="vehicle_in">{t("contractors.gatePasses.vehicleIn", "Vehicle In")}</SelectItem>
-                  <SelectItem value="vehicle_out">{t("contractors.gatePasses.vehicleOut", "Vehicle Out")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -208,16 +224,18 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px] text-center">SR#</TableHead>
                     <TableHead className="w-[180px]">{t("contractors.gatePasses.itemName", "Item Name")} *</TableHead>
                     <TableHead>{t("contractors.gatePasses.description", "Description")}</TableHead>
-                    <TableHead className="w-[100px]">{t("contractors.gatePasses.quantity", "Qty")}</TableHead>
-                    <TableHead className="w-[100px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
+                    <TableHead className="w-[80px]">{t("contractors.gatePasses.quantity", "Qty")}</TableHead>
+                    <TableHead className="w-[140px]">{t("contractors.gatePasses.unit", "Unit")}</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <TableRow key={item.id}>
+                      <TableCell className="text-center font-medium">{index + 1}</TableCell>
                       <TableCell>
                         <Input
                           value={item.item_name}
@@ -243,12 +261,21 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
+                        <Select
                           value={item.unit}
-                          onChange={(e) => handleItemChange(item.id, "unit", e.target.value)}
-                          placeholder={t("contractors.gatePasses.unitPlaceholder", "bags")}
-                          className="h-8"
-                        />
+                          onValueChange={(v) => handleItemChange(item.id, "unit", v)}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder={t("contractors.gatePasses.selectUnit", "Select")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {UNIT_OPTIONS.map((unit) => (
+                              <SelectItem key={unit.value} value={unit.value}>
+                                {t(`contractors.gatePasses.units.${unit.value}`, unit.label)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Button
