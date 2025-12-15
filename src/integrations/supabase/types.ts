@@ -2734,6 +2734,118 @@ export type Database = {
           },
         ]
       }
+      gate_pass_items: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          gate_pass_id: string
+          id: string
+          item_name: string
+          quantity: string | null
+          tenant_id: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id: string
+          id?: string
+          item_name: string
+          quantity?: string | null
+          tenant_id: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id?: string
+          id?: string
+          item_name?: string
+          quantity?: string | null
+          tenant_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_items_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gate_pass_photos: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          file_name: string
+          file_size: number | null
+          gate_pass_id: string
+          id: string
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name: string
+          file_size?: number | null
+          gate_pass_id: string
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          gate_pass_id?: string
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_photos_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_photos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_pass_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofence_alerts: {
         Row: {
           acknowledged_at: string | null

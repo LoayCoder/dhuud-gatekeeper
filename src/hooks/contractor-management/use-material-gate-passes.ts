@@ -45,18 +45,25 @@ export interface GatePassFilters {
   passDate?: string;
 }
 
+export interface GatePassItemInput {
+  item_name: string;
+  description?: string;
+  quantity?: string;
+  unit?: string;
+}
+
 export interface CreateGatePassData {
   project_id: string;
   company_id: string;
   pass_type: string;
-  material_description: string;
-  quantity?: string;
   vehicle_plate?: string;
   driver_name?: string;
   driver_mobile?: string;
   pass_date: string;
   time_window_start?: string;
   time_window_end?: string;
+  items: GatePassItemInput[];
+  photos: File[];
 }
 
 export function useMaterialGatePasses(filters: GatePassFilters = {}) {
@@ -191,10 +198,31 @@ export function useCreateGatePass() {
       const sequence = (count || 0) + 1;
       const reference_number = `GP-${year}-${String(sequence).padStart(5, "0")}`;
 
+      // Create combined material description from items for backward compatibility
+      const materialDescription = data.items
+        .map((item) => {
+          let desc = item.item_name;
+          if (item.quantity) desc += ` (${item.quantity}${item.unit ? " " + item.unit : ""})`;
+          if (item.description) desc += ` - ${item.description}`;
+          return desc;
+        })
+        .join("; ");
+
+      // Insert gate pass
       const { data: result, error } = await supabase
         .from("material_gate_passes")
         .insert({
-          ...data,
+          project_id: data.project_id,
+          company_id: data.company_id,
+          pass_type: data.pass_type,
+          material_description: materialDescription,
+          quantity: data.items.length > 1 ? `${data.items.length} items` : data.items[0]?.quantity || null,
+          vehicle_plate: data.vehicle_plate || null,
+          driver_name: data.driver_name || null,
+          driver_mobile: data.driver_mobile || null,
+          pass_date: data.pass_date,
+          time_window_start: data.time_window_start || null,
+          time_window_end: data.time_window_end || null,
           tenant_id: tenantId,
           requested_by: user.id,
           reference_number,
@@ -204,6 +232,60 @@ export function useCreateGatePass() {
         .single();
 
       if (error) throw error;
+
+      // Insert items
+      if (data.items.length > 0) {
+        const itemsToInsert = data.items.map((item) => ({
+          gate_pass_id: result.id,
+          item_name: item.item_name,
+          description: item.description || null,
+          quantity: item.quantity || null,
+          unit: item.unit || null,
+          tenant_id: tenantId,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("gate_pass_items")
+          .insert(itemsToInsert);
+
+        if (itemsError) console.error("Items insert error:", itemsError);
+      }
+
+      // Upload photos
+      if (data.photos.length > 0) {
+        const photoRecords = [];
+
+        for (const photo of data.photos) {
+          const fileName = `${result.id}/${crypto.randomUUID()}-${photo.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from("gate-pass-photos")
+            .upload(fileName, photo);
+
+          if (uploadError) {
+            console.error("Photo upload error:", uploadError);
+            continue;
+          }
+
+          photoRecords.push({
+            gate_pass_id: result.id,
+            storage_path: fileName,
+            file_name: photo.name,
+            file_size: photo.size,
+            mime_type: photo.type,
+            uploaded_by: user.id,
+            tenant_id: tenantId,
+          });
+        }
+
+        if (photoRecords.length > 0) {
+          const { error: photosError } = await supabase
+            .from("gate_pass_photos")
+            .insert(photoRecords);
+
+          if (photosError) console.error("Photos insert error:", photosError);
+        }
+      }
+
       return result;
     },
     onSuccess: () => {
