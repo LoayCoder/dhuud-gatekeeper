@@ -18,10 +18,12 @@ export interface ContractorProject {
   assigned_workers_count: number;
   required_safety_officers: number;
   notes: string | null;
+  project_manager_id: string | null;
   created_at: string;
   updated_at: string;
   company?: { company_name: string } | null;
   site?: { name: string } | null;
+  project_manager?: { id: string; full_name: string } | null;
 }
 
 export interface ContractorProjectFilters {
@@ -44,9 +46,10 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
         .select(`
           id, tenant_id, company_id, project_code, project_name, project_name_ar,
           site_id, location_description, start_date, end_date, status,
-          assigned_workers_count, required_safety_officers, notes, created_at, updated_at,
+          assigned_workers_count, required_safety_officers, notes, project_manager_id, created_at, updated_at,
           company:contractor_companies(company_name),
-          site:sites(name)
+          site:sites(name),
+          project_manager:profiles!contractor_projects_project_manager_id_fkey(id, full_name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -86,6 +89,7 @@ export function useCreateContractorProject() {
           start_date: data.start_date!,
           end_date: data.end_date!,
           notes: data.notes,
+          project_manager_id: data.project_manager_id,
           tenant_id: profile.tenant_id,
           status: "planned",
         })

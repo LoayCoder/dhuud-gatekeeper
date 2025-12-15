@@ -1593,6 +1593,7 @@ export type Database = {
           location_description: string | null
           notes: string | null
           project_code: string
+          project_manager_id: string | null
           project_name: string
           project_name_ar: string | null
           required_safety_officers: number
@@ -1613,6 +1614,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           project_code: string
+          project_manager_id?: string | null
           project_name: string
           project_name_ar?: string | null
           required_safety_officers?: number
@@ -1633,6 +1635,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           project_code?: string
+          project_manager_id?: string | null
           project_name?: string
           project_name_ar?: string | null
           required_safety_officers?: number
@@ -1653,6 +1656,13 @@ export type Database = {
           {
             foreignKeyName: "contractor_projects_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_project_manager_id_fkey"
+            columns: ["project_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -5222,8 +5232,12 @@ export type Database = {
           driver_id: string | null
           driver_mobile: string | null
           driver_name: string | null
+          entry_confirmed_at: string | null
+          entry_confirmed_by: string | null
           entry_gate_id: string | null
           entry_time: string | null
+          exit_confirmed_at: string | null
+          exit_confirmed_by: string | null
           exit_gate_id: string | null
           exit_time: string | null
           guard_verified_at: string | null
@@ -5236,6 +5250,8 @@ export type Database = {
           pm_approved_by: string | null
           pm_notes: string | null
           project_id: string
+          qr_code_token: string | null
+          qr_generated_at: string | null
           quantity: string | null
           reference_number: string
           rejected_at: string | null
@@ -5260,8 +5276,12 @@ export type Database = {
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          entry_confirmed_at?: string | null
+          entry_confirmed_by?: string | null
           entry_gate_id?: string | null
           entry_time?: string | null
+          exit_confirmed_at?: string | null
+          exit_confirmed_by?: string | null
           exit_gate_id?: string | null
           exit_time?: string | null
           guard_verified_at?: string | null
@@ -5274,6 +5294,8 @@ export type Database = {
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id: string
+          qr_code_token?: string | null
+          qr_generated_at?: string | null
           quantity?: string | null
           reference_number: string
           rejected_at?: string | null
@@ -5298,8 +5320,12 @@ export type Database = {
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          entry_confirmed_at?: string | null
+          entry_confirmed_by?: string | null
           entry_gate_id?: string | null
           entry_time?: string | null
+          exit_confirmed_at?: string | null
+          exit_confirmed_by?: string | null
           exit_gate_id?: string | null
           exit_time?: string | null
           guard_verified_at?: string | null
@@ -5312,6 +5338,8 @@ export type Database = {
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id?: string
+          qr_code_token?: string | null
+          qr_generated_at?: string | null
           quantity?: string | null
           reference_number?: string
           rejected_at?: string | null
@@ -5341,6 +5369,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_entry_confirmed_by_fkey"
+            columns: ["entry_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_exit_confirmed_by_fkey"
+            columns: ["exit_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

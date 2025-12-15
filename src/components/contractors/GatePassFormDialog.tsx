@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
-import { useGatePassApprovers } from "@/hooks/contractor-management/use-gate-pass-approvers";
-import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Trash2, X, ImageIcon, User } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -53,16 +52,14 @@ const createEmptyItem = (): GatePassItem => ({
 });
 
 export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFormDialogProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const createPass = useCreateGatePass();
-  const { data: approvers = [] } = useGatePassApprovers();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     project_id: "",
     company_id: "",
     pass_type: "material_in",
-    approval_from_id: "",
     vehicle_plate: "",
     driver_name: "",
     driver_mobile: "",
@@ -71,18 +68,26 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
     time_window_end: "",
   });
 
+  const [selectedProject, setSelectedProject] = useState<ContractorProject | null>(null);
   const [items, setItems] = useState<GatePassItem[]>([createEmptyItem()]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
 
   const handleProjectChange = (projectId: string) => {
     const project = projects.find((p) => p.id === projectId);
+    setSelectedProject(project || null);
     setFormData({
       ...formData,
       project_id: projectId,
       company_id: project?.company_id || "",
     });
   };
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedProject(null);
+    }
+  }, [open]);
 
   const handleAddItem = () => {
     setItems([...items, createEmptyItem()]);
@@ -112,7 +117,6 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
         const previewUrl = URL.createObjectURL(compressed);
         setPhotoPreviewUrls((prev) => [...prev, previewUrl]);
       } catch {
-        // If compression fails, use original
         setPhotos((prev) => [...prev, file]);
         const previewUrl = URL.createObjectURL(file);
         setPhotoPreviewUrls((prev) => [...prev, previewUrl]);
@@ -135,7 +139,6 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
       project_id: "",
       company_id: "",
       pass_type: "material_in",
-      approval_from_id: "",
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
@@ -143,6 +146,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
       time_window_start: "",
       time_window_end: "",
     });
+    setSelectedProject(null);
     setItems([createEmptyItem()]);
     photoPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     setPhotos([]);
@@ -155,11 +159,15 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
     const validItems = items.filter((item) => item.item_name.trim() !== "");
     if (validItems.length === 0) return;
 
+    // Project manager ID comes from the selected project
+    const pmId = selectedProject?.project_manager_id;
+    if (!pmId) return;
+
     await createPass.mutateAsync({
       project_id: formData.project_id,
       company_id: formData.company_id,
       pass_type: formData.pass_type,
-      approval_from_id: formData.approval_from_id || undefined,
+      pm_approval_by: pmId, // Auto-set to project's PM
       vehicle_plate: formData.vehicle_plate || undefined,
       driver_name: formData.driver_name || undefined,
       driver_mobile: formData.driver_mobile || undefined,
@@ -180,6 +188,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
   };
 
   const hasValidItem = items.some((item) => item.item_name.trim() !== "");
+  const hasProjectManager = !!selectedProject?.project_manager_id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -188,8 +197,8 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
           <DialogTitle>{t("contractors.gatePasses.createPass", "Create Gate Pass")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Project, Pass Type & Approval From */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* Project & Pass Type */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t("contractors.gatePasses.project", "Project")} *</Label>
               <Select value={formData.project_id} onValueChange={handleProjectChange}>
@@ -220,26 +229,27 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label>{t("contractors.gatePasses.approvalFrom", "Approval From")} *</Label>
-              <Select 
-                value={formData.approval_from_id} 
-                onValueChange={(v) => setFormData({ ...formData, approval_from_id: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("contractors.gatePasses.selectApprover", "Select approver")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {approvers.map((approver) => (
-                    <SelectItem key={approver.id} value={approver.id}>
-                      {i18n.language === 'ar' ? (approver.name_ar || approver.name) : approver.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
+
+          {/* Project Manager (Auto-selected, Read-only) */}
+          {selectedProject && (
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <div className="flex items-center gap-2 text-sm">
+                <User className="h-4 w-4 text-primary" />
+                <span className="font-medium">{t("contractors.gatePasses.approvalFrom", "Approval From")}:</span>
+                {selectedProject.project_manager ? (
+                  <span className="text-foreground">{selectedProject.project_manager.full_name}</span>
+                ) : (
+                  <span className="text-destructive">{t("contractors.gatePasses.noProjectManager", "No project manager assigned")}</span>
+                )}
+              </div>
+              {!hasProjectManager && (
+                <p className="text-xs text-destructive mt-1">
+                  {t("contractors.gatePasses.assignPMFirst", "Please assign a project manager to this project first.")}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Items Table */}
           <div className="space-y-2">
@@ -427,7 +437,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel", "Cancel")}
             </Button>
-            <Button type="submit" disabled={createPass.isPending || !formData.project_id || !hasValidItem}>
+            <Button type="submit" disabled={createPass.isPending || !formData.project_id || !hasValidItem || !hasProjectManager}>
               {t("common.create", "Create")}
             </Button>
           </div>

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { ContractorProject, useCreateContractorProject, useUpdateContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
+import { useProjectManagers } from "@/hooks/contractor-management/use-project-managers";
 
 interface ProjectFormDialogProps {
   open: boolean;
@@ -20,11 +21,12 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const createProject = useCreateContractorProject();
   const updateProject = useUpdateContractorProject();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
+  const { data: managers = [] } = useProjectManagers();
   const isEditing = !!project;
 
   const [formData, setFormData] = useState({
     company_id: "", project_code: "", project_name: "", project_name_ar: "",
-    start_date: "", end_date: "", location_description: "", notes: "",
+    start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
   });
 
   useEffect(() => {
@@ -38,18 +40,23 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         end_date: project.end_date,
         location_description: project.location_description || "",
         notes: project.notes || "",
+        project_manager_id: project.project_manager_id || "",
       });
     } else {
-      setFormData({ company_id: "", project_code: "", project_name: "", project_name_ar: "", start_date: "", end_date: "", location_description: "", notes: "" });
+      setFormData({ company_id: "", project_code: "", project_name: "", project_name_ar: "", start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "" });
     }
   }, [project, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const submitData = {
+      ...formData,
+      project_manager_id: formData.project_manager_id || null,
+    };
     if (isEditing) {
-      await updateProject.mutateAsync({ id: project.id, data: formData });
+      await updateProject.mutateAsync({ id: project.id, data: submitData });
     } else {
-      await createProject.mutateAsync(formData);
+      await createProject.mutateAsync(submitData);
     }
     onOpenChange(false);
   };
@@ -67,6 +74,15 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
               <SelectContent>
                 {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("contractors.projects.projectManager", "Project Manager")} *</Label>
+            <Select value={formData.project_manager_id} onValueChange={(v) => setFormData({ ...formData, project_manager_id: v })}>
+              <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectProjectManager", "Select project manager")} /></SelectTrigger>
+              <SelectContent>
+                {managers.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -96,7 +112,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-            <Button type="submit" disabled={createProject.isPending || updateProject.isPending}>
+            <Button type="submit" disabled={createProject.isPending || updateProject.isPending || !formData.project_manager_id}>
               {isEditing ? t("common.save", "Save") : t("common.create", "Create")}
             </Button>
           </div>
