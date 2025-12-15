@@ -1637,7 +1637,29 @@
         "entryBreakdown": "Breakdown ng Uri ng Entry",
         "entries": "Mga Pasok",
         "exits": "Mga Labas"
-      }
+      },
+      "notifyHost": "Abisuhan ang host sa pamamagitan ng WhatsApp",
+      "hostNotified": "Naabisuhan ang host",
+      "hostNotifiedDesc": "Naipadala ang WhatsApp notification sa host"
+    },
+    "qrScanner": {
+      "title": "I-scan ang QR Code",
+      "cameraError": "Camera Error",
+      "cameraPermission": "Pakibigay ang access sa camera",
+      "verifying": "Vine-verify...",
+      "valid": "Valid",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "invalid": "Invalid",
+      "notFound": "Hindi Nahanap",
+      "workerQR": "Worker QR",
+      "visitorQR": "Visitor QR",
+      "unknownQR": "Hindi Kilalang QR",
+      "project": "Proyekto",
+      "scanAgain": "I-scan Muli",
+      "useAnyway": "Gamitin Pa Rin",
+      "instructions": "Itutok ang camera sa QR code ng bisita o manggagawa",
+      "unknownFormat": "Hindi kilalang QR format"
     },
     "contractorAccess": {
       "title": "Contractor Access Control",

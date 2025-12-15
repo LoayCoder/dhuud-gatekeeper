@@ -1637,7 +1637,29 @@
         "entryBreakdown": "प्रवेश प्रकार वितरण",
         "entries": "प्रवेश",
         "exits": "निकास"
-      }
+      },
+      "notifyHost": "व्हाट्सएप के माध्यम से मेजबान को सूचित करें",
+      "hostNotified": "मेजबान को सूचित किया गया",
+      "hostNotifiedDesc": "मेजबान को व्हाट्सएप सूचना भेजी गई"
+    },
+    "qrScanner": {
+      "title": "QR कोड स्कैन करें",
+      "cameraError": "कैमरा त्रुटि",
+      "cameraPermission": "कृपया कैमरा एक्सेस की अनुमति दें",
+      "verifying": "सत्यापित हो रहा है...",
+      "valid": "मान्य",
+      "expired": "समाप्त",
+      "revoked": "निरस्त",
+      "invalid": "अमान्य",
+      "notFound": "नहीं मिला",
+      "workerQR": "श्रमिक QR",
+      "visitorQR": "विज़िटर QR",
+      "unknownQR": "अज्ञात QR",
+      "project": "परियोजना",
+      "scanAgain": "फिर से स्कैन करें",
+      "useAnyway": "फिर भी उपयोग करें",
+      "instructions": "विज़िटर या श्रमिक के QR कोड पर कैमरा रखें",
+      "unknownFormat": "अज्ञात QR प्रारूप"
     },
     "contractorAccess": {
       "title": "ठेकेदार पहुंच नियंत्रण",
