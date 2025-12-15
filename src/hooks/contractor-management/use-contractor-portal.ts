@@ -227,11 +227,14 @@ export function useContractorPortalRequestGatePass() {
       company_id: string;
       project_id: string;
       pass_type: string;
+      material_description: string;
       quantity?: number;
       vehicle_plate?: string;
       driver_name?: string;
       driver_mobile?: string;
       pass_date: string;
+      time_window_start?: string;
+      time_window_end?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
@@ -244,13 +247,15 @@ export function useContractorPortalRequestGatePass() {
           company_id: data.company_id,
           project_id: data.project_id,
           pass_type: data.pass_type,
-          material_description: data.pass_type, // Required field
-          reference_number: refNumber, // Required field
+          material_description: data.material_description,
+          reference_number: refNumber,
           quantity: data.quantity?.toString(),
           vehicle_plate: data.vehicle_plate,
           driver_name: data.driver_name,
           driver_mobile: data.driver_mobile,
           pass_date: data.pass_date,
+          time_window_start: data.time_window_start || null,
+          time_window_end: data.time_window_end || null,
           tenant_id: profile.tenant_id,
           status: "pending_pm_approval",
           requested_by: user.id,
