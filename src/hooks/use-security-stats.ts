@@ -39,8 +39,8 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
   const { count: totalGuards } = await supabase
     .from('shift_roster')
     .select('*', { count: 'exact', head: true })
-    .gte('shift_date', format(today, 'yyyy-MM-dd'))
-    .lte('shift_date', format(today, 'yyyy-MM-dd'))
+    .gte('roster_date', format(today, 'yyyy-MM-dd'))
+    .lte('roster_date', format(today, 'yyyy-MM-dd'))
     .is('deleted_at', null);
 
   // Visitors today
@@ -137,14 +137,14 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
     .from('geofence_alerts')
     .select(`
       zone_id,
-      security_zones(name)
+      security_zones(zone_name)
     `)
     .is('deleted_at', null)
     .limit(100);
 
   const zoneAlertCounts: Record<string, number> = {};
   alertsData?.forEach(alert => {
-    const zoneName = (alert.security_zones as unknown as { name: string })?.name || 'Unknown';
+    const zoneName = (alert.security_zones as unknown as { zone_name: string })?.zone_name || 'Unknown';
     zoneAlertCounts[zoneName] = (zoneAlertCounts[zoneName] || 0) + 1;
   });
 
@@ -165,7 +165,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
       acknowledged_at,
       resolved_at,
       created_at,
-      security_zones(name)
+      security_zones(zone_name)
     `)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
@@ -176,7 +176,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
     recentActivity.push({
       type: 'alert',
       description: `Geofence ${alert.alert_type?.replace('_', ' ')}`,
-      location: (alert.security_zones as unknown as { name: string })?.name || 'Unknown Zone',
+      location: (alert.security_zones as unknown as { zone_name: string })?.zone_name || 'Unknown Zone',
       timestamp: alert.created_at ?? new Date().toISOString(),
       status
     });

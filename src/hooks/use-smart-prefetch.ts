@@ -60,7 +60,7 @@ const PREFETCH_RULES: PrefetchRule[] = [
         queryFn: async () => {
           const { data } = await supabase
             .from('security_zones')
-            .select('id, name, zone_type, is_active')
+            .select('id, zone_name, zone_type, is_active')
             .is('deleted_at', null)
             .eq('is_active', true);
           return data;
