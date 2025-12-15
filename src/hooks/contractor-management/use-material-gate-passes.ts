@@ -56,6 +56,7 @@ export interface CreateGatePassData {
   project_id: string;
   company_id: string;
   pass_type: string;
+  approval_from_id?: string;
   vehicle_plate?: string;
   driver_name?: string;
   driver_mobile?: string;
@@ -215,6 +216,7 @@ export function useCreateGatePass() {
           project_id: data.project_id,
           company_id: data.company_id,
           pass_type: data.pass_type,
+          approval_from_id: data.approval_from_id || null,
           material_description: materialDescription,
           quantity: data.items.length > 1 ? `${data.items.length} items` : data.items[0]?.quantity || null,
           vehicle_plate: data.vehicle_plate || null,

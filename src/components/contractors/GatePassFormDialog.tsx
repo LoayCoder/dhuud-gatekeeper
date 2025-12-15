@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useRef } from "react";
 import { useCreateGatePass } from "@/hooks/contractor-management/use-material-gate-passes";
 import { ContractorProject } from "@/hooks/contractor-management/use-contractor-projects";
+import { useGatePassApprovers } from "@/hooks/contractor-management/use-gate-pass-approvers";
 import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
 import { compressImage } from "@/lib/upload-utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,14 +53,16 @@ const createEmptyItem = (): GatePassItem => ({
 });
 
 export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFormDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const createPass = useCreateGatePass();
+  const { data: approvers = [] } = useGatePassApprovers();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     project_id: "",
     company_id: "",
     pass_type: "material_in",
+    approval_from_id: "",
     vehicle_plate: "",
     driver_name: "",
     driver_mobile: "",
@@ -132,6 +135,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
       project_id: "",
       company_id: "",
       pass_type: "material_in",
+      approval_from_id: "",
       vehicle_plate: "",
       driver_name: "",
       driver_mobile: "",
@@ -155,6 +159,7 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
       project_id: formData.project_id,
       company_id: formData.company_id,
       pass_type: formData.pass_type,
+      approval_from_id: formData.approval_from_id || undefined,
       vehicle_plate: formData.vehicle_plate || undefined,
       driver_name: formData.driver_name || undefined,
       driver_mobile: formData.driver_mobile || undefined,
@@ -183,8 +188,8 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
           <DialogTitle>{t("contractors.gatePasses.createPass", "Create Gate Pass")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Project & Pass Type */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Project, Pass Type & Approval From */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>{t("contractors.gatePasses.project", "Project")} *</Label>
               <Select value={formData.project_id} onValueChange={handleProjectChange}>
@@ -212,6 +217,25 @@ export function GatePassFormDialog({ open, onOpenChange, projects }: GatePassFor
                   <SelectItem value="material_out">{t("contractors.gatePasses.materialOut", "Material Out")}</SelectItem>
                   <SelectItem value="equipment_in">{t("contractors.gatePasses.equipmentIn", "Equipment In")}</SelectItem>
                   <SelectItem value="equipment_out">{t("contractors.gatePasses.equipmentOut", "Equipment Out")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("contractors.gatePasses.approvalFrom", "Approval From")} *</Label>
+              <Select 
+                value={formData.approval_from_id} 
+                onValueChange={(v) => setFormData({ ...formData, approval_from_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("contractors.gatePasses.selectApprover", "Select approver")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {approvers.map((approver) => (
+                    <SelectItem key={approver.id} value={approver.id}>
+                      {i18n.language === 'ar' ? (approver.name_ar || approver.name) : approver.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
