@@ -1501,7 +1501,64 @@
       "contractors": "Contractors",
       "contractorList": "Contractor List",
       "contractorCheck": "Contractor Check",
-      "contractorAccess": "Contractor Access"
+      "contractorAccess": "Contractor Access",
+      "gateDashboard": "Gate Dashboard"
+    },
+    "gateDashboard": {
+      "title": "Gate Guard Dashboard",
+      "description": "Central control for all gate operations",
+      "refresh": "Refresh",
+      "guardOnDuty": "Guard on Duty",
+      "shift": "Shift",
+      "tabs": {
+        "visitors": "Visitors",
+        "workers": "Workers",
+        "gatePasses": "Gate Passes",
+        "activityLog": "Activity Log"
+      },
+      "stats": {
+        "onSite": "On Site",
+        "visitorsToday": "Visitors Today",
+        "activeWorkers": "Active Workers",
+        "openAlerts": "Open Alerts"
+      },
+      "alerts": {
+        "title": "Active Alerts",
+        "expiredPermit": "Expired Permit",
+        "blacklistMatch": "Blacklist Match",
+        "geofenceBreach": "Geofence Breach",
+        "pendingPass": "Pending Gate Pass",
+        "acknowledge": "Acknowledge",
+        "dismiss": "Dismiss",
+        "noAlerts": "No active alerts"
+      },
+      "verification": {
+        "title": "Verify Visitor",
+        "searchPlaceholder": "Search by name, ID, or phone...",
+        "scanQR": "Scan QR",
+        "check": "Check",
+        "logEntry": "Log Entry",
+        "recordExit": "Record Exit",
+        "accessGranted": "Access Granted",
+        "accessDenied": "Access Denied",
+        "blacklisted": "Blacklisted",
+        "notFound": "Visitor not found"
+      },
+      "activeVisitors": {
+        "title": "Active Visitors",
+        "name": "Name",
+        "company": "Company",
+        "host": "Host",
+        "entryTime": "Entry Time",
+        "duration": "Duration",
+        "noVisitors": "No visitors currently on site"
+      },
+      "charts": {
+        "hourlyTrend": "Hourly Entry/Exit Trend",
+        "entryBreakdown": "Entry Type Breakdown",
+        "entries": "Entries",
+        "exits": "Exits"
+      }
     },
     "contractorAccess": {
       "title": "Contractor Access Control",
