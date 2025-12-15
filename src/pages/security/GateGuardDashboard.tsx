@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity } from 'lucide-react';
+import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGateGuardStats, useGateAlerts } from '@/hooks/use-gate-guard-stats';
 import { GateAlertCards } from '@/components/security/GateAlertCards';
 import { VisitorVerificationPanel } from '@/components/security/VisitorVerificationPanel';
@@ -15,14 +17,33 @@ import { WorkerApprovalQueueWrapper } from '@/components/security/WorkerApproval
 import { WorkerVerificationPanel } from '@/components/security/WorkerVerificationPanel';
 import { TodayGatePassesWrapper } from '@/components/security/TodayGatePassesWrapper';
 import { GateLogTable } from '@/components/security/GateLogTable';
+import { GatePassListTable } from '@/components/contractors/GatePassListTable';
+import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
+import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
+import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { cn } from '@/lib/utils';
 
 const GateGuardDashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('visitors');
   
+  // Gate pass sub-tab state
+  const [gatePassTab, setGatePassTab] = useState('today');
+  const [gatePassSearch, setGatePassSearch] = useState('');
+  const [gatePassStatus, setGatePassStatus] = useState('all');
+  const [gatePassProject, setGatePassProject] = useState('all');
+  
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGateGuardStats();
   const { data: alerts = [], refetch: refetchAlerts } = useGateAlerts();
+  
+  // Gate pass data
+  const { data: allGatePasses = [], isLoading: passesLoading } = useMaterialGatePasses({
+    search: gatePassSearch || undefined,
+    status: gatePassStatus !== 'all' ? gatePassStatus : undefined,
+    projectId: gatePassProject !== 'all' ? gatePassProject : undefined,
+  });
+  const { data: pendingApprovals = [] } = usePendingGatePassApprovals();
+  const { data: projects = [] } = useContractorProjects({ status: 'active' });
 
   const handleRefresh = () => {
     refetchStats();
@@ -169,7 +190,80 @@ const GateGuardDashboard = () => {
 
         {/* Gate Passes Tab */}
         <TabsContent value="gatePasses" className="space-y-4 mt-4">
-          <TodayGatePassesWrapper />
+          <Tabs value={gatePassTab} onValueChange={setGatePassTab}>
+            <TabsList className="w-full md:w-auto md:inline-grid grid-cols-3">
+              <TabsTrigger value="today">
+                {t('contractors.gatePasses.todayPasses', "Today's Passes")}
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="gap-1">
+                {t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}
+                {pendingApprovals.length > 0 && (
+                  <Badge variant="secondary" className="ms-1 text-xs">
+                    {pendingApprovals.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="all">
+                {t('contractors.gatePasses.allPasses', 'All Passes')}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Today's Passes Sub-Tab */}
+            <TabsContent value="today" className="mt-4">
+              <TodayGatePassesWrapper />
+            </TabsContent>
+
+            {/* Pending Approvals Sub-Tab */}
+            <TabsContent value="pending" className="mt-4">
+              <GatePassApprovalQueue passes={pendingApprovals} />
+            </TabsContent>
+
+            {/* All Passes Sub-Tab */}
+            <TabsContent value="all" className="mt-4 space-y-4">
+              {/* Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('contractors.gatePasses.searchPlaceholder', 'Search by reference, material, vehicle...')}
+                    value={gatePassSearch}
+                    onChange={(e) => setGatePassSearch(e.target.value)}
+                    className="ps-9"
+                  />
+                </div>
+                <Select value={gatePassStatus} onValueChange={setGatePassStatus}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <Filter className="h-4 w-4 me-2" />
+                    <SelectValue placeholder={t('common.status', 'Status')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.allStatuses', 'All Statuses')}</SelectItem>
+                    <SelectItem value="pending_pm_approval">{t('contractors.gatePasses.status.pendingPm', 'Pending PM')}</SelectItem>
+                    <SelectItem value="pending_safety_approval">{t('contractors.gatePasses.status.pendingSafety', 'Pending Safety')}</SelectItem>
+                    <SelectItem value="approved">{t('contractors.gatePasses.status.approved', 'Approved')}</SelectItem>
+                    <SelectItem value="rejected">{t('contractors.gatePasses.status.rejected', 'Rejected')}</SelectItem>
+                    <SelectItem value="completed">{t('contractors.gatePasses.status.completed', 'Completed')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={gatePassProject} onValueChange={setGatePassProject}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder={t('contractors.gatePasses.filterByProject', 'Filter by Project')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.allProjects', 'All Projects')}</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.project_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Gate Pass Table */}
+              <GatePassListTable gatePasses={allGatePasses} isLoading={passesLoading} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         {/* Activity Log Tab */}
