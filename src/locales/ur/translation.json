@@ -1580,7 +1580,64 @@
       "contractors": "ٹھیکیدار",
       "contractorList": "ٹھیکیداروں کی فہرست",
       "contractorCheck": "ٹھیکیدار کی جانچ",
-      "contractorAccess": "ٹھیکیدار رسائی کنٹرول"
+      "contractorAccess": "ٹھیکیدار رسائی کنٹرول",
+      "gateDashboard": "گیٹ ڈیش بورڈ"
+    },
+    "gateDashboard": {
+      "title": "گیٹ گارڈ ڈیش بورڈ",
+      "description": "تمام گیٹ آپریشنز کا مرکزی کنٹرول",
+      "refresh": "تازہ کریں",
+      "guardOnDuty": "ڈیوٹی پر گارڈ",
+      "shift": "شفٹ",
+      "tabs": {
+        "visitors": "مہمان",
+        "workers": "کارکن",
+        "gatePasses": "گیٹ پاس",
+        "activityLog": "سرگرمی لاگ"
+      },
+      "stats": {
+        "onSite": "سائٹ پر",
+        "visitorsToday": "آج کے مہمان",
+        "activeWorkers": "فعال کارکن",
+        "openAlerts": "کھلے الرٹس"
+      },
+      "alerts": {
+        "title": "فعال الرٹس",
+        "expiredPermit": "ختم شدہ اجازت نامہ",
+        "blacklistMatch": "بلیک لسٹ مماثلت",
+        "geofenceBreach": "جیوفینس کی خلاف ورزی",
+        "pendingPass": "زیر التوا گیٹ پاس",
+        "acknowledge": "تسلیم",
+        "dismiss": "خارج",
+        "noAlerts": "کوئی فعال الرٹس نہیں"
+      },
+      "verification": {
+        "title": "مہمان کی تصدیق",
+        "searchPlaceholder": "نام، شناخت یا فون سے تلاش کریں...",
+        "scanQR": "QR اسکین کریں",
+        "check": "چیک",
+        "logEntry": "داخلہ ریکارڈ",
+        "recordExit": "خروج ریکارڈ",
+        "accessGranted": "رسائی دی گئی",
+        "accessDenied": "رسائی سے انکار",
+        "blacklisted": "بلیک لسٹ میں",
+        "notFound": "مہمان نہیں ملا"
+      },
+      "activeVisitors": {
+        "title": "فعال مہمان",
+        "name": "نام",
+        "company": "کمپنی",
+        "host": "میزبان",
+        "entryTime": "داخلے کا وقت",
+        "duration": "دورانیہ",
+        "noVisitors": "فی الحال سائٹ پر کوئی مہمان نہیں"
+      },
+      "charts": {
+        "hourlyTrend": "فی گھنٹہ داخلہ/خروج کا رجحان",
+        "entryBreakdown": "داخلہ قسم کی تقسیم",
+        "entries": "داخلے",
+        "exits": "خروج"
+      }
     },
     "contractorAccess": {
       "title": "ٹھیکیدار رسائی کنٹرول",

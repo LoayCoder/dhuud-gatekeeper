@@ -1580,7 +1580,64 @@
       "contractors": "ठेकेदार",
       "contractorList": "ठेकेदार सूची",
       "contractorCheck": "ठेकेदार जांच",
-      "contractorAccess": "ठेकेदार पहुंच नियंत्रण"
+      "contractorAccess": "ठेकेदार पहुंच नियंत्रण",
+      "gateDashboard": "गेट डैशबोर्ड"
+    },
+    "gateDashboard": {
+      "title": "गेट गार्ड डैशबोर्ड",
+      "description": "सभी गेट संचालन का केंद्रीय नियंत्रण",
+      "refresh": "रिफ्रेश",
+      "guardOnDuty": "ड्यूटी पर गार्ड",
+      "shift": "शिफ्ट",
+      "tabs": {
+        "visitors": "विज़िटर",
+        "workers": "श्रमिक",
+        "gatePasses": "गेट पास",
+        "activityLog": "गतिविधि लॉग"
+      },
+      "stats": {
+        "onSite": "साइट पर",
+        "visitorsToday": "आज के विज़िटर",
+        "activeWorkers": "सक्रिय श्रमिक",
+        "openAlerts": "खुले अलर्ट"
+      },
+      "alerts": {
+        "title": "सक्रिय अलर्ट",
+        "expiredPermit": "समाप्त परमिट",
+        "blacklistMatch": "ब्लैकलिस्ट मिलान",
+        "geofenceBreach": "जियोफेंस उल्लंघन",
+        "pendingPass": "लंबित गेट पास",
+        "acknowledge": "स्वीकार",
+        "dismiss": "खारिज",
+        "noAlerts": "कोई सक्रिय अलर्ट नहीं"
+      },
+      "verification": {
+        "title": "विज़िटर सत्यापन",
+        "searchPlaceholder": "नाम, आईडी या फोन से खोजें...",
+        "scanQR": "QR स्कैन करें",
+        "check": "जांचें",
+        "logEntry": "प्रवेश लॉग करें",
+        "recordExit": "निकास रिकॉर्ड करें",
+        "accessGranted": "पहुंच प्रदान",
+        "accessDenied": "पहुंच अस्वीकृत",
+        "blacklisted": "ब्लैकलिस्ट में",
+        "notFound": "विज़िटर नहीं मिला"
+      },
+      "activeVisitors": {
+        "title": "सक्रिय विज़िटर",
+        "name": "नाम",
+        "company": "कंपनी",
+        "host": "मेजबान",
+        "entryTime": "प्रवेश समय",
+        "duration": "अवधि",
+        "noVisitors": "वर्तमान में साइट पर कोई विज़िटर नहीं"
+      },
+      "charts": {
+        "hourlyTrend": "प्रति घंटा प्रवेश/निकास प्रवृत्ति",
+        "entryBreakdown": "प्रवेश प्रकार वितरण",
+        "entries": "प्रवेश",
+        "exits": "निकास"
+      }
     },
     "contractorAccess": {
       "title": "ठेकेदार पहुंच नियंत्रण",

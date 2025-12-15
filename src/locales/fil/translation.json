@@ -1580,7 +1580,64 @@
       "contractors": "Mga Contractor",
       "contractorList": "Listahan ng Contractor",
       "contractorCheck": "Contractor Check",
-      "contractorAccess": "Contractor Access Control"
+      "contractorAccess": "Contractor Access Control",
+      "gateDashboard": "Gate Dashboard"
+    },
+    "gateDashboard": {
+      "title": "Gate Guard Dashboard",
+      "description": "Sentral na kontrol para sa lahat ng gate operations",
+      "refresh": "I-refresh",
+      "guardOnDuty": "Guard na Naka-duty",
+      "shift": "Shift",
+      "tabs": {
+        "visitors": "Mga Bisita",
+        "workers": "Mga Manggagawa",
+        "gatePasses": "Gate Passes",
+        "activityLog": "Log ng Aktibidad"
+      },
+      "stats": {
+        "onSite": "Sa Site",
+        "visitorsToday": "Mga Bisita Ngayon",
+        "activeWorkers": "Aktibong Manggagawa",
+        "openAlerts": "Bukas na Alerts"
+      },
+      "alerts": {
+        "title": "Mga Aktibong Alert",
+        "expiredPermit": "Expired na Permit",
+        "blacklistMatch": "Nakita sa Blacklist",
+        "geofenceBreach": "Geofence Breach",
+        "pendingPass": "Pending Gate Pass",
+        "acknowledge": "Kilalanin",
+        "dismiss": "Tanggalin",
+        "noAlerts": "Walang aktibong alerts"
+      },
+      "verification": {
+        "title": "I-verify ang Bisita",
+        "searchPlaceholder": "Maghanap sa pangalan, ID, o telepono...",
+        "scanQR": "I-scan ang QR",
+        "check": "Check",
+        "logEntry": "Log Entry",
+        "recordExit": "Record Exit",
+        "accessGranted": "Access Granted",
+        "accessDenied": "Access Denied",
+        "blacklisted": "Nasa Blacklist",
+        "notFound": "Hindi nahanap ang bisita"
+      },
+      "activeVisitors": {
+        "title": "Mga Aktibong Bisita",
+        "name": "Pangalan",
+        "company": "Kumpanya",
+        "host": "Host",
+        "entryTime": "Oras ng Pagpasok",
+        "duration": "Tagal",
+        "noVisitors": "Walang bisita sa site ngayon"
+      },
+      "charts": {
+        "hourlyTrend": "Oras-oras na Entry/Exit Trend",
+        "entryBreakdown": "Breakdown ng Uri ng Entry",
+        "entries": "Mga Pasok",
+        "exits": "Mga Labas"
+      }
     },
     "contractorAccess": {
       "title": "Contractor Access Control",

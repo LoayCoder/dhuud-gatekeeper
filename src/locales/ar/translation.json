@@ -1594,7 +1594,64 @@
       "contractors": "المقاولون",
       "contractorList": "قائمة المقاولين",
       "contractorCheck": "فحص المقاول",
-      "contractorAccess": "التحكم في وصول المقاولين"
+      "contractorAccess": "التحكم في وصول المقاولين",
+      "gateDashboard": "لوحة تحكم البوابة"
+    },
+    "gateDashboard": {
+      "title": "لوحة تحكم حارس البوابة",
+      "description": "التحكم المركزي لجميع عمليات البوابة",
+      "refresh": "تحديث",
+      "guardOnDuty": "الحارس المناوب",
+      "shift": "الوردية",
+      "tabs": {
+        "visitors": "الزوار",
+        "workers": "العمال",
+        "gatePasses": "تصاريح البوابة",
+        "activityLog": "سجل النشاط"
+      },
+      "stats": {
+        "onSite": "في الموقع",
+        "visitorsToday": "زوار اليوم",
+        "activeWorkers": "العمال النشطون",
+        "openAlerts": "التنبيهات المفتوحة"
+      },
+      "alerts": {
+        "title": "التنبيهات النشطة",
+        "expiredPermit": "تصريح منتهي",
+        "blacklistMatch": "مطابقة القائمة السوداء",
+        "geofenceBreach": "اختراق النطاق الجغرافي",
+        "pendingPass": "تصريح بوابة معلق",
+        "acknowledge": "إقرار",
+        "dismiss": "رفض",
+        "noAlerts": "لا توجد تنبيهات نشطة"
+      },
+      "verification": {
+        "title": "التحقق من الزائر",
+        "searchPlaceholder": "البحث بالاسم أو الهوية أو الهاتف...",
+        "scanQR": "مسح QR",
+        "check": "تحقق",
+        "logEntry": "تسجيل الدخول",
+        "recordExit": "تسجيل الخروج",
+        "accessGranted": "تم منح الوصول",
+        "accessDenied": "تم رفض الوصول",
+        "blacklisted": "في القائمة السوداء",
+        "notFound": "لم يتم العثور على الزائر"
+      },
+      "activeVisitors": {
+        "title": "الزوار النشطون",
+        "name": "الاسم",
+        "company": "الشركة",
+        "host": "المستضيف",
+        "entryTime": "وقت الدخول",
+        "duration": "المدة",
+        "noVisitors": "لا يوجد زوار حالياً في الموقع"
+      },
+      "charts": {
+        "hourlyTrend": "اتجاه الدخول/الخروج بالساعة",
+        "entryBreakdown": "توزيع أنواع الدخول",
+        "entries": "الداخلون",
+        "exits": "الخارجون"
+      }
     },
     "contractorAccess": {
       "title": "التحكم في وصول المقاولين",
