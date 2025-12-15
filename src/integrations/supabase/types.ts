@@ -2626,10 +2626,14 @@ export type Database = {
           exit_time: string | null
           gate_id: string | null
           guard_id: string | null
+          host_mobile: string | null
+          host_notified_at: string | null
           id: string
           mobile_number: string | null
           nationality: string | null
           notes: string | null
+          notification_status: string | null
+          notify_host: boolean | null
           passenger_count: number | null
           person_name: string
           preferred_language: string | null
@@ -2652,10 +2656,14 @@ export type Database = {
           exit_time?: string | null
           gate_id?: string | null
           guard_id?: string | null
+          host_mobile?: string | null
+          host_notified_at?: string | null
           id?: string
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
+          notification_status?: string | null
+          notify_host?: boolean | null
           passenger_count?: number | null
           person_name: string
           preferred_language?: string | null
@@ -2678,10 +2686,14 @@ export type Database = {
           exit_time?: string | null
           gate_id?: string | null
           guard_id?: string | null
+          host_mobile?: string | null
+          host_notified_at?: string | null
           id?: string
           mobile_number?: string | null
           nationality?: string | null
           notes?: string | null
+          notification_status?: string | null
+          notify_host?: boolean | null
           passenger_count?: number | null
           person_name?: string
           preferred_language?: string | null

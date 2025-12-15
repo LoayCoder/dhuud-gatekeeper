@@ -17,6 +17,16 @@ const STATIC_ASSETS = [
   '/fonts/Rubik-Latin.woff2',
   '/fonts/Rubik-LatinExt.woff2',
   '/images/industrial-safety.jpg',
+  // Gate Guard Dashboard - precache for offline access
+  '/security/gate-dashboard',
+];
+
+// Gate-specific API endpoints for enhanced caching
+const GATE_API_PATTERNS = [
+  '/rest/v1/gate_entry_logs',
+  '/rest/v1/security_blacklist',
+  '/rest/v1/contractor_access_logs',
+  '/rest/v1/geofence_alerts',
 ];
 
 // Install event - cache static assets
@@ -395,7 +405,9 @@ self.addEventListener('fetch', (event) => {
   }
 
   // STRATEGY 1: Network First with cache fallback for API responses
-  // This ensures fresh data while surviving brief outages
+  // Enhanced caching for gate-specific endpoints with longer retention
+  const isGateEndpoint = GATE_API_PATTERNS.some(pattern => url.pathname.includes(pattern));
+  
   if (url.pathname.startsWith('/rest/') || url.pathname.includes('/functions/')) {
     event.respondWith(
       fetch(request)
@@ -404,16 +416,24 @@ self.addEventListener('fetch', (event) => {
             const clone = response.clone();
             const cache = await caches.open(API_CACHE_NAME);
             await cache.put(request, clone);
-            // Trim API cache to max entries
-            trimCache(API_CACHE_NAME, API_CACHE_MAX_ENTRIES);
+            // Keep more entries for gate endpoints
+            const maxEntries = isGateEndpoint ? API_CACHE_MAX_ENTRIES * 2 : API_CACHE_MAX_ENTRIES;
+            trimCache(API_CACHE_NAME, maxEntries);
           }
           return response;
         })
         .catch(async () => {
           const cached = await caches.match(request);
           if (cached) {
-            console.log('[SW] Serving API from cache:', url.pathname);
-            return cached;
+            console.log('[SW] Serving API from cache:', url.pathname, isGateEndpoint ? '(gate)' : '');
+            // Add offline header to indicate cached response
+            const headers = new Headers(cached.headers);
+            headers.set('X-Served-From', 'sw-cache');
+            return new Response(cached.body, {
+              status: cached.status,
+              statusText: cached.statusText,
+              headers
+            });
           }
           return new Response(JSON.stringify({ error: 'Offline', cached: false }), {
             status: 503,
