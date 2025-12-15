@@ -51,9 +51,9 @@ export default function VisitorDashboard() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link to="/visitors/checkpoint">
+            <Link to="/security/gate-dashboard?tab=visitors">
               <QrCode className="me-2 h-4 w-4" />
-              {t('visitors.checkpoint.title')}
+              {t('security.gateDashboard.title', 'Gate Dashboard')}
             </Link>
           </Button>
           <Button asChild>
@@ -235,7 +235,7 @@ export default function VisitorDashboard() {
                         </div>
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/visitors/checkpoint?requestId=${request.id}`}>
+                        <Link to={`/security/gate-dashboard?tab=visitors`}>
                           {t('visitors.actions.checkOut')}
                         </Link>
                       </Button>

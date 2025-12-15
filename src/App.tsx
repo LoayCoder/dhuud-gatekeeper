@@ -184,7 +184,7 @@ const App = () => (
                       {/* Visitor Routes */}
                       <Route path="/visitors" element={<SecurityRoute><VisitorDashboard /></SecurityRoute>} />
                       <Route path="/visitors/register" element={<SecurityRoute><VisitorPreRegistration /></SecurityRoute>} />
-                      <Route path="/visitors/checkpoint" element={<SecurityRoute><VisitorCheckpoint /></SecurityRoute>} />
+                      <Route path="/visitors/checkpoint" element={<Navigate to="/security/gate-dashboard" replace />} />
                       <Route path="/visitors/list" element={<SecurityRoute><VisitorList /></SecurityRoute>} />
                       <Route path="/visitors/blacklist" element={<SecurityRoute><BlacklistManagement /></SecurityRoute>} />
 

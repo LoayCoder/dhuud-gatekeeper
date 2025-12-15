@@ -231,12 +231,6 @@ export function AppSidebar() {
                   menuCode: 'visitor_register',
                 },
                 {
-                  title: t('security.visitors.checkpoint', 'Checkpoint'),
-                  url: "/visitors/checkpoint",
-                  icon: Shield,
-                  menuCode: 'visitor_checkpoint',
-                },
-                {
                   title: t('security.visitors.list', 'Visitor List'),
                   url: "/visitors/list",
                   icon: List,
