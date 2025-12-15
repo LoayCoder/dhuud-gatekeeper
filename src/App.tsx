@@ -92,6 +92,7 @@ const ContractorWorkers = lazy(() => import(/* webpackChunkName: "contractors-wo
 const ContractorGatePasses = lazy(() => import(/* webpackChunkName: "contractors-gate-passes" */ "./pages/contractors/GatePasses"));
 const ContractorDashboard = lazy(() => import(/* webpackChunkName: "contractors-dashboard" */ "./pages/contractors/Dashboard"));
 const InductionVideos = lazy(() => import(/* webpackChunkName: "contractors-induction" */ "./pages/contractors/InductionVideos"));
+const GatePassSettings = lazy(() => import(/* webpackChunkName: "contractors-settings" */ "./pages/contractors/GatePassSettings"));
 
 // Contractor Portal pages - external contractor representatives
 const ContractorPortalDashboard = lazy(() => import(/* webpackChunkName: "contractor-portal-dashboard" */ "./pages/contractor-portal/Dashboard"));
@@ -212,6 +213,7 @@ const App = () => (
                       <Route path="/contractors/workers" element={<AdminRoute><ContractorWorkers /></AdminRoute>} />
                       <Route path="/contractors/gate-passes" element={<AdminRoute><ContractorGatePasses /></AdminRoute>} />
                       <Route path="/contractors/induction-videos" element={<AdminRoute><InductionVideos /></AdminRoute>} />
+                      <Route path="/contractors/settings" element={<AdminRoute><GatePassSettings /></AdminRoute>} />
 
                       {/* Contractor Portal Routes (for external contractor reps) */}
                       <Route path="/contractor-portal" element={<ContractorPortalDashboard />} />

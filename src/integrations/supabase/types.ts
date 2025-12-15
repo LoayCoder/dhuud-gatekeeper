@@ -2734,6 +2734,56 @@ export type Database = {
           },
         ]
       }
+      gate_pass_approvers: {
+        Row: {
+          code: string
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_approvers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gate_pass_items: {
         Row: {
           created_at: string | null
@@ -5165,6 +5215,7 @@ export type Database = {
       }
       material_gate_passes: {
         Row: {
+          approval_from_id: string | null
           company_id: string
           created_at: string
           deleted_at: string | null
@@ -5202,6 +5253,7 @@ export type Database = {
           vehicle_plate: string | null
         }
         Insert: {
+          approval_from_id?: string | null
           company_id: string
           created_at?: string
           deleted_at?: string | null
@@ -5239,6 +5291,7 @@ export type Database = {
           vehicle_plate?: string | null
         }
         Update: {
+          approval_from_id?: string | null
           company_id?: string
           created_at?: string
           deleted_at?: string | null
@@ -5276,6 +5329,13 @@ export type Database = {
           vehicle_plate?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "material_gate_passes_approval_from_id_fkey"
+            columns: ["approval_from_id"]
+            isOneToOne: false
+            referencedRelation: "gate_pass_approvers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "material_gate_passes_company_id_fkey"
             columns: ["company_id"]
