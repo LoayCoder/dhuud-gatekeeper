@@ -44,12 +44,31 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+  const [isContainerReady, setIsContainerReady] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerId = 'gate-qr-scanner';
 
-  // Initialize scanner
+  // Wait for DOM container to be ready
   useEffect(() => {
-    if (open && !scannerRef.current) {
+    if (open) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(scannerContainerId);
+        if (element) {
+          setIsContainerReady(true);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setIsContainerReady(false);
+    }
+  }, [open]);
+
+  // Initialize scanner after container is ready
+  useEffect(() => {
+    if (open && isContainerReady && !scannerRef.current) {
+      const element = document.getElementById(scannerContainerId);
+      if (!element) return;
+
       scannerRef.current = new Html5Qrcode(scannerContainerId);
       
       // Get available cameras
@@ -71,7 +90,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
     return () => {
       stopScanning();
     };
-  }, [open]);
+  }, [open, isContainerReady]);
 
   const startScanning = useCallback(async (cameraId: string) => {
     if (!scannerRef.current || isScanning) return;
@@ -233,7 +252,16 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
 
   const handleClose = useCallback(() => {
     stopScanning();
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.clear();
+      } catch (e) {
+        // Ignore clear errors
+      }
+      scannerRef.current = null;
+    }
     setScanResult(null);
+    setIsContainerReady(false);
     onOpenChange(false);
   }, [stopScanning, onOpenChange]);
 
