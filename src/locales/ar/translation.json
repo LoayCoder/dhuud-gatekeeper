@@ -3511,6 +3511,16 @@
   "assets": {
     "title": "إدارة الأصول",
     "description": "إدارة وتتبع جميع أصول الصحة والسلامة",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "inspections": "الفحوصات",
+      "photos": "الصور",
+      "documents": "المستندات",
+      "maintenance": "الصيانة",
+      "incidents": "الحوادث",
+      "transfers": "التحويلات",
+      "audit": "سجل التدقيق"
+    },
     "registerNew": "تسجيل أصل جديد",
     "registerAsset": "تسجيل أصل جديد",
     "editAsset": "تعديل الأصل",

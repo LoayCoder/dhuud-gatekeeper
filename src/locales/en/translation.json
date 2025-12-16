@@ -3680,6 +3680,16 @@
   "assets": {
     "title": "Asset Management",
     "description": "Manage and track all HSSE assets",
+    "tabs": {
+      "overview": "Overview",
+      "inspections": "Inspections",
+      "photos": "Photos",
+      "documents": "Documents",
+      "maintenance": "Maintenance",
+      "incidents": "Incidents",
+      "transfers": "Transfers",
+      "audit": "Audit Log"
+    },
     "registerNew": "Register New Asset",
     "registerAsset": "Register New Asset",
     "editAsset": "Edit Asset",

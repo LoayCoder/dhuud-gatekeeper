@@ -3431,6 +3431,16 @@
   "assets": {
     "title": "Pamamahala ng Asset",
     "description": "Pamahalaan at i-track ang lahat ng HSSE asset",
+    "tabs": {
+      "overview": "Pangkalahatang-ideya",
+      "inspections": "Mga Inspeksyon",
+      "photos": "Mga Larawan",
+      "documents": "Mga Dokumento",
+      "maintenance": "Pagpapanatili",
+      "incidents": "Mga Insidente",
+      "transfers": "Mga Paglipat",
+      "audit": "Audit Log"
+    },
     "registerNew": "Mag-register ng Bagong Asset",
     "registerAsset": "Mag-register ng Bagong Asset",
     "editAsset": "I-edit ang Asset",

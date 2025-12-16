@@ -3446,6 +3446,16 @@
   "assets": {
     "title": "اثاثوں کا انتظام",
     "description": "تمام HSSE اثاثوں کا انتظام اور ٹریکنگ",
+    "tabs": {
+      "overview": "جائزہ",
+      "inspections": "معائنے",
+      "photos": "تصاویر",
+      "documents": "دستاویزات",
+      "maintenance": "دیکھ بھال",
+      "incidents": "واقعات",
+      "transfers": "منتقلی",
+      "audit": "آڈٹ لاگ"
+    },
     "registerNew": "نیا اثاثہ رجسٹر کریں",
     "registerAsset": "نیا اثاثہ رجسٹر کریں",
     "editAsset": "اثاثہ میں ترمیم کریں",
