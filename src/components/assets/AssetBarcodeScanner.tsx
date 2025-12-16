@@ -10,12 +10,16 @@ import { toast } from 'sonner';
 import { useAssetByCode } from '@/hooks/use-asset-by-code';
 import { logAssetScan } from '@/lib/asset-scan-logger';
 
-// Barcode formats to support
+// Extended barcode formats for better compatibility
 const BARCODE_FORMATS = [
   Html5QrcodeSupportedFormats.CODE_128,
   Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.CODE_93,
   Html5QrcodeSupportedFormats.EAN_13,
   Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.ITF,
 ];
 
 interface AssetBarcodeScannerProps {
@@ -84,18 +88,34 @@ export function AssetBarcodeScanner({
     setScannedCode(null);
 
     try {
+      // Create scanner with native BarcodeDetector API support for faster detection
       const scanner = new Html5Qrcode(scannerContainerId, {
         formatsToSupport: BARCODE_FORMATS,
+        useBarCodeDetectorIfSupported: true, // Use native API when available (faster)
         verbose: false,
       });
       scannerRef.current = scanner;
 
+      // Dynamic scan box that adapts to viewport size
+      const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        return {
+          width: Math.floor(viewfinderWidth * 0.85), // 85% of viewport width
+          height: Math.floor(Math.min(minEdge * 0.35, 120)), // Max 120px height for barcodes
+        };
+      };
+
       await scanner.start(
-        { facingMode: 'environment' },
         {
-          fps: 10,
-          qrbox: { width: 300, height: 100 }, // Wide rectangular for 1D barcodes
-          aspectRatio: 3, // Landscape aspect ratio
+          facingMode: { ideal: 'environment' },
+          // Request HD resolution for sharper image
+          width: { min: 640, ideal: 1280, max: 1920 },
+          height: { min: 480, ideal: 720, max: 1080 },
+        },
+        {
+          fps: 15, // Higher FPS for faster detection
+          qrbox: qrboxFunction,
+          aspectRatio: 2, // Better aspect ratio for HD cameras
         },
         (decodedText) => {
           // Vibrate on scan (mobile)
@@ -107,7 +127,7 @@ export function AssetBarcodeScanner({
           stopScanning();
         },
         () => {
-          // Ignore QR scan failures (continuous scanning)
+          // Ignore scan failures (continuous scanning)
         }
       );
 
@@ -258,7 +278,7 @@ export function AssetBarcodeScanner({
 
         {/* Supported Formats Info */}
         <p className="text-xs text-muted-foreground text-center">
-          {t('assets.supportedFormats')}: Code 128, Code 39, EAN-13, EAN-8
+          {t('assets.supportedFormats')}: Code 128, Code 39, Code 93, EAN-13, EAN-8, UPC-A, UPC-E, ITF
         </p>
       </CardContent>
     </Card>
