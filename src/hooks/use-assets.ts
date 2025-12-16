@@ -411,3 +411,90 @@ export function generateAssetCode(categoryCode: string, sequence: number): strin
   const paddedSeq = String(sequence).padStart(4, '0');
   return `${categoryCode}-${year}-${paddedSeq}`;
 }
+
+// Generate sequential codes from a base code
+export function generateSequentialCodes(baseCode: string, quantity: number): string[] {
+  if (quantity <= 0) return [];
+  if (quantity === 1) return [baseCode];
+
+  const codes: string[] = [];
+  
+  // Try to find trailing number pattern (e.g., "FE-001" -> "001")
+  const match = baseCode.match(/(\d+)$/);
+  
+  if (match) {
+    const numberPart = match[0];
+    const prefix = baseCode.slice(0, -numberPart.length);
+    const startNum = parseInt(numberPart, 10);
+    const padLength = numberPart.length;
+    
+    for (let i = 0; i < quantity; i++) {
+      const newNum = startNum + i;
+      codes.push(`${prefix}${String(newNum).padStart(padLength, '0')}`);
+    }
+  } else {
+    // No number suffix found - append sequential numbers
+    for (let i = 0; i < quantity; i++) {
+      codes.push(`${baseCode}-${String(i + 1).padStart(3, '0')}`);
+    }
+  }
+  
+  return codes;
+}
+
+// Bulk create assets mutation
+export function useCreateBulkAssets() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { profile, user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (params: {
+      baseAsset: Omit<AssetInsert, 'tenant_id' | 'created_by' | 'asset_code'>;
+      quantity: number;
+      startCode: string;
+    }) => {
+      if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
+      
+      const { baseAsset, quantity, startCode } = params;
+      const codes = generateSequentialCodes(startCode, quantity);
+      
+      // Check for existing codes to avoid duplicates
+      const { data: existingAssets } = await supabase
+        .from('hsse_assets')
+        .select('asset_code')
+        .eq('tenant_id', profile.tenant_id)
+        .in('asset_code', codes)
+        .is('deleted_at', null);
+      
+      if (existingAssets && existingAssets.length > 0) {
+        const duplicates = existingAssets.map(a => a.asset_code).join(', ');
+        throw new Error(`Asset codes already exist: ${duplicates}`);
+      }
+      
+      // Create assets array
+      const assetsToInsert = codes.map(code => ({
+        ...baseAsset,
+        asset_code: code,
+        tenant_id: profile.tenant_id,
+        created_by: user.id,
+      }));
+      
+      const { data, error } = await supabase
+        .from('hsse_assets')
+        .insert(assetsToInsert)
+        .select('id, asset_code');
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      toast.success(t('assets.bulkCreateSuccess', { count: data.length }));
+    },
+    onError: (error: Error) => {
+      console.error('Bulk create assets error:', error);
+      toast.error(error.message || t('assets.bulkCreateError'));
+    },
+  });
+}

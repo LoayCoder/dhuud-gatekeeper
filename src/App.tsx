@@ -53,6 +53,7 @@ const AssetList = lazy(() => import(/* webpackChunkName: "assets-list" */ "./pag
 const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ "./pages/assets/AssetDetail"));
 const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
 const AssetScanner = lazy(() => import(/* webpackChunkName: "assets-scanner" */ "./pages/assets/AssetScanner"));
+const BulkPrintLabels = lazy(() => import(/* webpackChunkName: "assets-bulk-print" */ "./pages/assets/BulkPrintLabels"));
 const InspectionWorkspaceAsset = lazy(() => import(/* webpackChunkName: "assets-inspection" */ "./pages/assets/InspectionWorkspace"));
 const InspectionSessionsDashboard = lazy(() => import(/* webpackChunkName: "inspections-sessions" */ "./pages/inspections/InspectionSessionsDashboard"));
 const SessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-session-workspace" */ "./pages/inspections/SessionWorkspace"));
@@ -242,6 +243,7 @@ const App = () => (
                       <Route path="/assets/dashboard" element={<AssetDashboard />} />
                       <Route path="/assets/register" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/scan" element={<AssetScanner />} />
+                      <Route path="/assets/bulk-print" element={<HSSERoute><BulkPrintLabels /></HSSERoute>} />
                       <Route path="/assets/:id" element={<AssetDetail />} />
                       <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
