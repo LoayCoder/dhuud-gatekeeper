@@ -2,23 +2,27 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
   <title>Offline - DHUUD Platform</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
     body {
       font-family: 'IBM Plex Sans Arabic', 'Rubik', system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 17%) 100%);
       min-height: 100vh;
+      min-height: 100dvh; /* Dynamic viewport height for mobile */
       display: flex;
       align-items: center;
       justify-content: center;
       color: hsl(210 40% 98%);
-      padding: 1rem;
+      /* Safe area padding for notched devices */
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
     .container {
       text-align: center;
@@ -119,6 +123,9 @@
       cursor: pointer;
       transition: all 0.2s;
       text-decoration: none;
+      /* Minimum touch target 44x44px */
+      min-height: 44px;
+      min-width: 44px;
     }
     .btn-primary {
       background: hsl(221 83% 53%);
@@ -142,9 +149,10 @@
       height: 18px;
     }
     .lang-selector {
-      position: absolute;
-      top: 1rem;
-      inset-inline-end: 1rem;
+      position: fixed;
+      top: max(1rem, env(safe-area-inset-top));
+      inset-inline-end: max(1rem, env(safe-area-inset-right));
+      z-index: 10;
     }
     .lang-selector select {
       background: hsl(217 33% 20%);
@@ -154,6 +162,8 @@
       padding: 0.5rem 0.75rem;
       font-size: 0.875rem;
       cursor: pointer;
+      /* Minimum touch target */
+      min-height: 44px;
     }
     .lang-selector select:focus {
       outline: none;
