@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { useTrustedDevice } from '@/hooks/use-trusted-device';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
 import { logUserActivity, startSessionTracking } from '@/lib/activity-logger';
 import { MFAVerificationDialog } from '@/components/auth/MFAVerificationDialog';
+import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -26,8 +28,14 @@ export default function Login() {
   const passwordRef = useRef<string>('');
   const navigate = useNavigate();
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
+  const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
+
+  // Determine the logo to display with fallback
+  const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
+  const displayLogo = activeLogoUrl || fallbackLogo;
+  const displayName = tenantName || DHUUD_TENANT_NAME;
 
   const loginSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -232,20 +240,15 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
           <div className="text-center">
-            {activeLogoUrl ? (
-              <img src={activeLogoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
-            ) : (
-              <div 
-                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-                style={{ backgroundColor: activePrimaryColor ? `hsl(${activePrimaryColor} / 0.1)` : 'hsl(var(--primary) / 0.1)' }}
-              >
-                <Shield 
-                  className="h-8 w-8" 
-                  style={{ color: activePrimaryColor ? `hsl(${activePrimaryColor})` : 'hsl(var(--primary))' }}
-                />
-              </div>
-            )}
-            <h2 className="text-3xl font-bold">{tenantName}</h2>
+            <img 
+              src={displayLogo} 
+              alt={displayName} 
+              className="mx-auto mb-4 h-16 object-contain"
+              onError={(e) => {
+                e.currentTarget.src = fallbackLogo;
+              }}
+            />
+            <h2 className="text-3xl font-bold">{displayName}</h2>
             <p className="mt-2 text-muted-foreground">{t('auth.signInToAccount')}</p>
           </div>
 
