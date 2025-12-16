@@ -34,9 +34,15 @@ export const CACHE_STORES = {
   REFERENCE_DATA: 'reference_data',
   PATROL_ROUTES: 'patrol_routes',
   SECURITY_ZONES: 'security_zones',
+  // PWA Enhancement stores
+  PTW_PERMITS: 'ptw_permits',
+  CONTRACTORS: 'contractors',
+  GATE_ENTRIES: 'gate_entries',
+  PENDING_ACTIONS: 'pending_actions',
+  DASHBOARD_STATS: 'dashboard_stats',
 } as const;
 
-type CacheStoreName = typeof CACHE_STORES[keyof typeof CACHE_STORES];
+export type CacheStoreName = typeof CACHE_STORES[keyof typeof CACHE_STORES];
 
 class OfflineDataCache {
   private db: IDBDatabase | null = null;

@@ -19,7 +19,35 @@ interface PrefetchRule {
  */
 const PREFETCH_RULES: PrefetchRule[] = [
   {
-    fromRoute: /^\/dashboard/,
+    fromRoute: /^\/$|^\/dashboard/,
+    queries: [
+      {
+        queryKey: ['dashboard-module-stats'],
+        queryFn: async () => {
+          const { data } = await supabase.rpc('get_dashboard_module_stats');
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      },
+      {
+        queryKey: ['overdue-actions'],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('corrective_actions')
+            .select('id, title, priority, due_date, status')
+            .is('deleted_at', null)
+            .not('status', 'in', '(verified,closed,rejected)')
+            .lt('due_date', new Date().toISOString())
+            .order('due_date', { ascending: true })
+            .limit(10);
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      },
+    ],
+  },
+  {
+    fromRoute: /^\/incidents$/,
     queries: [
       {
         queryKey: ['incidents-list', 'active'],
@@ -37,18 +65,33 @@ const PREFETCH_RULES: PrefetchRule[] = [
     ],
   },
   {
-    fromRoute: /^\/incidents$/,
+    fromRoute: /^\/ptw/,
     queries: [
       {
-        queryKey: ['incident-count'],
+        queryKey: ['ptw-permits-active'],
         queryFn: async () => {
-          const { count } = await supabase
-            .from('incidents')
-            .select('id', { count: 'exact', head: true })
-            .is('deleted_at', null);
-          return count;
+          const { data } = await supabase
+            .from('ptw_permits')
+            .select('id, reference_id, permit_type, status, valid_from, valid_until')
+            .is('deleted_at', null)
+            .in('status', ['issued', 'activated'])
+            .order('created_at', { ascending: false })
+            .limit(20);
+          return data;
         },
-        staleTime: 10 * 60 * 1000,
+        staleTime: 5 * 60 * 1000,
+      },
+      {
+        queryKey: ['ptw-types'],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('ptw_types')
+            .select('id, code, name, name_ar, color, icon')
+            .is('deleted_at', null)
+            .eq('is_active', true);
+          return data;
+        },
+        staleTime: 30 * 60 * 1000,
       },
     ],
   },
@@ -67,6 +110,19 @@ const PREFETCH_RULES: PrefetchRule[] = [
         },
         staleTime: 10 * 60 * 1000,
       },
+      {
+        queryKey: ['active-visitors'],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('visit_requests')
+            .select('id, full_name, status, check_in_time')
+            .is('deleted_at', null)
+            .eq('status', 'checked_in')
+            .limit(50);
+          return data;
+        },
+        staleTime: 2 * 60 * 1000,
+      },
     ],
   },
   {
@@ -83,6 +139,24 @@ const PREFETCH_RULES: PrefetchRule[] = [
           return data;
         },
         staleTime: 30 * 60 * 1000,
+      },
+    ],
+  },
+  {
+    fromRoute: /^\/contractors/,
+    queries: [
+      {
+        queryKey: ['contractor-workers-active'],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('contractor_workers')
+            .select('id, full_name, company_id, approval_status')
+            .is('deleted_at', null)
+            .eq('approval_status', 'approved')
+            .limit(50);
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
       },
     ],
   },
