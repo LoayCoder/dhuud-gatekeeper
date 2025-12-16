@@ -36,12 +36,23 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
     setLocalSettings(prev => ({ ...prev, size }));
   };
 
-  const handleCustomDimensionChange = (dimension: 'width' | 'height', value: number) => {
-    const clampedValue = Math.min(200, Math.max(10, value || 10));
-    
+  const handleCustomDimensionChange = (dimension: 'width' | 'height', value: string) => {
+    const numValue = parseInt(value);
+    // Allow empty or partial input during typing - store raw value
     setLocalSettings(prev => ({
       ...prev,
-      [dimension === 'width' ? 'customWidthMM' : 'customHeightMM']: clampedValue
+      [dimension === 'width' ? 'customWidthMM' : 'customHeightMM']: isNaN(numValue) ? '' : numValue
+    }));
+  };
+
+  const handleCustomDimensionBlur = (dimension: 'width' | 'height') => {
+    const key = dimension === 'width' ? 'customWidthMM' : 'customHeightMM';
+    const currentValue = localSettings[key];
+    // Clamp to valid range on blur
+    const clampedValue = Math.min(200, Math.max(10, Number(currentValue) || 10));
+    setLocalSettings(prev => ({
+      ...prev,
+      [key]: clampedValue
     }));
   };
 
@@ -61,8 +72,14 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
   };
 
   const handleApply = () => {
-    saveLabelSettings(localSettings);
-    onSettingsChange(localSettings);
+    // Ensure custom dimensions are valid before saving
+    const finalSettings: LabelSettings = {
+      ...localSettings,
+      customWidthMM: Math.min(200, Math.max(10, Number(localSettings.customWidthMM) || 10)),
+      customHeightMM: Math.min(200, Math.max(10, Number(localSettings.customHeightMM) || 10)),
+    };
+    saveLabelSettings(finalSettings);
+    onSettingsChange(finalSettings);
     setOpen(false);
   };
 
@@ -150,7 +167,8 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
                       min={10}
                       max={200}
                       value={localSettings.customWidthMM}
-                      onChange={(e) => handleCustomDimensionChange('width', parseInt(e.target.value))}
+                      onChange={(e) => handleCustomDimensionChange('width', e.target.value)}
+                      onBlur={() => handleCustomDimensionBlur('width')}
                       className="h-8"
                     />
                   </div>
@@ -162,7 +180,8 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
                       min={10}
                       max={200}
                       value={localSettings.customHeightMM}
-                      onChange={(e) => handleCustomDimensionChange('height', parseInt(e.target.value))}
+                      onChange={(e) => handleCustomDimensionChange('height', e.target.value)}
+                      onBlur={() => handleCustomDimensionBlur('height')}
                       className="h-8"
                     />
                   </div>
