@@ -16,10 +16,10 @@ interface AssetQRCodeProps {
   size?: number;
 }
 
-// Industrial label specifications
+// Industrial label specifications - 30mm × 20mm landscape format
 const LABEL_SPECS = {
-  LABEL_WIDTH_MM: 15,
-  LABEL_HEIGHT_MM: 30,
+  LABEL_WIDTH_MM: 30,
+  LABEL_HEIGHT_MM: 20,
   QR_SIZE_MM: 15,
   QUIET_ZONE_MM: 2,
   DPI: 300,
@@ -50,11 +50,11 @@ export function AssetQRCode({
     const svg = qrRef.current?.querySelector('svg');
     if (!svg) return;
     
-    // High resolution at 300 DPI
-    const QR_SIZE_PX = mmToPx(LABEL_SPECS.QR_SIZE_MM - (LABEL_SPECS.QUIET_ZONE_MM * 2));
+    // High resolution at 300 DPI - landscape layout
     const LABEL_WIDTH_PX = mmToPx(LABEL_SPECS.LABEL_WIDTH_MM);
     const LABEL_HEIGHT_PX = mmToPx(LABEL_SPECS.LABEL_HEIGHT_MM);
     const QUIET_ZONE_PX = mmToPx(LABEL_SPECS.QUIET_ZONE_MM);
+    const QR_SIZE_PX = mmToPx(LABEL_SPECS.QR_SIZE_MM - (LABEL_SPECS.QUIET_ZONE_MM * 2));
     
     const canvas = document.createElement('canvas');
     canvas.width = LABEL_WIDTH_PX;
@@ -71,28 +71,40 @@ export function AssetQRCode({
     const img = new Image();
     
     img.onload = () => {
-      // Center QR horizontally, position at top with quiet zone
-      const qrX = (LABEL_WIDTH_PX - QR_SIZE_PX) / 2;
-      const qrY = QUIET_ZONE_PX;
+      // QR on left side with quiet zone, vertically centered
+      const qrX = QUIET_ZONE_PX;
+      const qrY = (LABEL_HEIGHT_PX - QR_SIZE_PX) / 2;
       ctx.drawImage(img, qrX, qrY, QR_SIZE_PX, QR_SIZE_PX);
+      
+      // Text area starts after QR + small gap
+      const textAreaX = qrX + QR_SIZE_PX + mmToPx(2);
+      const textAreaWidth = LABEL_WIDTH_PX - textAreaX - QUIET_ZONE_PX;
+      const textCenterX = textAreaX + (textAreaWidth / 2);
       
       // Draw Asset ID text
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+      ctx.textBaseline = 'middle';
       
       // Asset ID - larger, bold
-      const assetIdFontSize = Math.round(LABEL_HEIGHT_PX * 0.045);
+      const assetIdFontSize = Math.round(LABEL_HEIGHT_PX * 0.12);
       ctx.font = `bold ${assetIdFontSize}px Arial, sans-serif`;
-      const textY = qrY + QR_SIZE_PX + mmToPx(1);
-      ctx.fillText(assetCode, LABEL_WIDTH_PX / 2, textY);
       
-      // Zone/Site code if enabled
-      if (includeZone && locationCode) {
-        const zoneFontSize = Math.round(LABEL_HEIGHT_PX * 0.035);
+      // Calculate vertical positions
+      const hasZone = includeZone && locationCode;
+      const centerY = LABEL_HEIGHT_PX / 2;
+      
+      if (hasZone) {
+        // Two lines: Asset ID above center, Zone below
+        ctx.fillText(assetCode, textCenterX, centerY - assetIdFontSize * 0.6);
+        
+        const zoneFontSize = Math.round(LABEL_HEIGHT_PX * 0.09);
         ctx.font = `${zoneFontSize}px Arial, sans-serif`;
         ctx.fillStyle = '#333333';
-        ctx.fillText(locationCode, LABEL_WIDTH_PX / 2, textY + assetIdFontSize + mmToPx(0.5));
+        ctx.fillText(locationCode, textCenterX, centerY + zoneFontSize * 0.8);
+      } else {
+        // Single line: Asset ID centered
+        ctx.fillText(assetCode, textCenterX, centerY);
       }
       
       // Download as PNG
@@ -143,7 +155,7 @@ export function AssetQRCode({
               width: ${LABEL_WIDTH_MM}mm;
               height: ${LABEL_HEIGHT_MM}mm;
               display: flex;
-              flex-direction: column;
+              flex-direction: row;
               align-items: center;
               padding: ${QUIET_ZONE_MM}mm;
               background: white;
@@ -152,6 +164,7 @@ export function AssetQRCode({
             .qr-container {
               width: ${effectiveQrSize}mm;
               height: ${effectiveQrSize}mm;
+              flex-shrink: 0;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -160,28 +173,38 @@ export function AssetQRCode({
               width: 100%;
               height: 100%;
             }
+            .text-container {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              padding-left: 2mm;
+              overflow: hidden;
+            }
             .asset-id {
-              font-size: 6pt;
+              font-size: 8pt;
               font-weight: bold;
               text-align: center;
-              margin-top: 1mm;
               color: #000000;
               word-break: break-all;
-              max-width: ${LABEL_WIDTH_MM - (QUIET_ZONE_MM * 2)}mm;
+              max-width: 100%;
             }
             .zone-code {
-              font-size: 5pt;
+              font-size: 6pt;
               text-align: center;
               color: #333333;
-              margin-top: 0.5mm;
-              max-width: ${LABEL_WIDTH_MM - (QUIET_ZONE_MM * 2)}mm;
+              margin-top: 1mm;
+              max-width: 100%;
             }
           </style>
         </head>
         <body>
           <div class="qr-container">${svgData}</div>
-          <div class="asset-id">${assetCode}</div>
-          ${includeZone && locationCode ? `<div class="zone-code">${locationCode}</div>` : ''}
+          <div class="text-container">
+            <div class="asset-id">${assetCode}</div>
+            ${includeZone && locationCode ? `<div class="zone-code">${locationCode}</div>` : ''}
+          </div>
           <script>
             window.onload = function() {
               window.print();
@@ -205,7 +228,7 @@ export function AssetQRCode({
           <QRCodeSVG
             value={qrValue}
             size={size}
-            level="M"
+            level="H"
             marginSize={0}
             bgColor="#FFFFFF"
             fgColor="#000000"
@@ -221,7 +244,7 @@ export function AssetQRCode({
         </div>
         
         <p className="text-xs text-muted-foreground text-center">
-          {t('assets.labelSize')}: 15×30mm | {t('assets.qrSize')}: 15×15mm | 300 DPI
+          {t('assets.labelSize')}: 30×20mm | {t('assets.qrSize')}: 15×15mm | Level H | 300 DPI
         </p>
         
         {/* Include Zone Option */}
