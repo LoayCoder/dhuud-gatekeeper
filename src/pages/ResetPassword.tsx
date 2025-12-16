@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { useTheme as useNextTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
 export default function ResetPassword() {
   const { t } = useTranslation();
@@ -15,6 +17,10 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { resolvedTheme } = useNextTheme();
+
+  // Determine the logo to display
+  const displayLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
 
   const passwordSchema = z.object({
     password: z.string().min(6, t('auth.passwordMinLength')),
@@ -81,9 +87,11 @@ export default function ResetPassword() {
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Shield className="h-8 w-8 text-primary" />
-          </div>
+          <img 
+            src={displayLogo} 
+            alt={DHUUD_TENANT_NAME} 
+            className="mx-auto mb-4 h-16 object-contain"
+          />
           <h1 className="text-3xl font-bold">{t('resetPassword.title')}</h1>
           <p className="mt-2 text-muted-foreground">
             {t('resetPassword.description')}

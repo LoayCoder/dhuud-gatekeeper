@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme, TenantBrandingData } from '@/contexts/ThemeContext';
+import { useTheme as useNextTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
 export default function InviteGatekeeper() {
   const { t } = useTranslation();
@@ -23,6 +25,12 @@ export default function InviteGatekeeper() {
     activeLogoUrl,
     isLoading: themeLoading
   } = useTheme();
+  const { resolvedTheme } = useNextTheme();
+
+  // Determine the logo to display with fallback
+  const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
+  const displayLogo = activeLogoUrl || fallbackLogo;
+  const displayName = tenantName || DHUUD_TENANT_NAME;
 
   const inviteSchema = z.object({
     code: z.string().min(1, t('invite.codeRequired'))
@@ -134,18 +142,19 @@ export default function InviteGatekeeper() {
           <div className="mx-auto mb-6 flex items-center justify-center">
             {themeLoading ? (
               <Skeleton className="h-20 w-48 sm:h-28 sm:w-64 md:h-32 md:w-72" />
-            ) : activeLogoUrl ? (
-              <img
-                src={activeLogoUrl}
-                alt={tenantName}
-                className="h-20 w-auto max-w-[280px] sm:h-28 sm:max-w-[360px] md:h-32 md:max-w-[420px] object-contain"
-              />
             ) : (
-              <Shield className="h-20 w-20 sm:h-28 sm:w-28 text-primary" />
+              <img
+                src={displayLogo}
+                alt={displayName}
+                className="h-20 w-auto max-w-[280px] sm:h-28 sm:max-w-[360px] md:h-32 md:max-w-[420px] object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = fallbackLogo;
+                }}
+              />
             )}
           </div>
           <h1 className="text-4xl font-bold py-[14px]">
-            {themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : tenantName}
+            {themeLoading ? <Skeleton className="h-10 w-48 mx-auto" /> : displayName}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             {t('invite.enterCodeToContinue')}

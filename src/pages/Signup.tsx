@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { Shield, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
+import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
 export default function Signup() {
   const { t } = useTranslation();
@@ -20,8 +22,14 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [breachWarning, setBreachWarning] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { tenantName, logoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
+  const { tenantName, logoUrl, activeLogoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
+  const { resolvedTheme } = useNextTheme();
   const { checkPassword, isChecking } = usePasswordBreachCheck();
+
+  // Determine the logo to display with fallback
+  const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
+  const displayLogo = activeLogoUrl || logoUrl || fallbackLogo;
+  const displayName = tenantName || DHUUD_TENANT_NAME;
 
   const signupSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
@@ -237,14 +245,15 @@ export default function Signup() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
           <div className="text-center">
-            {logoUrl ? (
-              <img src={logoUrl} alt={tenantName} className="mx-auto mb-4 h-16" />
-            ) : (
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Shield className="h-8 w-8 text-primary" />
-              </div>
-            )}
-            <h2 className="text-3xl font-bold">{tenantName}</h2>
+            <img 
+              src={displayLogo} 
+              alt={displayName} 
+              className="mx-auto mb-4 h-16 object-contain"
+              onError={(e) => {
+                e.currentTarget.src = fallbackLogo;
+              }}
+            />
+            <h2 className="text-3xl font-bold">{displayName}</h2>
             <p className="mt-2 text-muted-foreground">{t('auth.createYourAccount')}</p>
           </div>
 
