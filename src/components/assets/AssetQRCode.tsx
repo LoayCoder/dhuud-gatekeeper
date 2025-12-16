@@ -36,7 +36,8 @@ export function AssetQRCode({
   const qrRef = useRef<HTMLDivElement>(null);
   const sizeSpec = getLabelSizeSpec(settings.size, settings.customWidthMM, settings.customHeightMM);
   
-  const qrValue = `${window.location.origin}/assets/${assetId}`;
+  // Encode only the asset code for faster scanning and simpler QR patterns
+  const qrValue = assetCode;
 
   const getContentLines = (): string[] => {
     const lines: string[] = [];
