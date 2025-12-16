@@ -3739,6 +3739,13 @@
     "enableCameraInstructions": "To scan QR codes, please allow camera access when prompted by your browser.",
     "assetScanner": "Asset Scanner",
     "assetScannerDescription": "Quickly find assets by scanning their QR code or entering the asset code",
+    "scanner": {
+      "assetFound": "Asset Found",
+      "assetNotFound": "Asset not found",
+      "viewDetails": "View Details",
+      "reportEvent": "Report Event",
+      "scanAgain": "Scan Again"
+    },
     "manualEntry": "Manual Entry",
     "manualEntryDescription": "Enter an asset code to search",
     "enterAssetCode": "Enter asset code...",
