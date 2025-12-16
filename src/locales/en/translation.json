@@ -3531,6 +3531,41 @@
       "level": "Level"
     }
   },
+  "pushNotifications": {
+    "title": "Push Notification Types",
+    "description": "Choose which events trigger push notifications to your device",
+    "enableAll": "Enable All",
+    "disableAll": "Disable All",
+    "updateError": "Failed to update notification preferences",
+    "category": {
+      "incidents": "Incidents",
+      "approvals": "Approvals",
+      "sla": "SLA & Deadlines",
+      "system": "System"
+    },
+    "types": {
+      "incidents_new": "New incidents in my area",
+      "incidents_assigned": "Assigned as investigator",
+      "incidents_status_change": "Status changes on my incidents",
+      "approvals_requested": "Approval requests needing my action",
+      "approvals_decision": "Decisions on my submitted requests",
+      "sla_warnings": "Actions approaching due date",
+      "sla_overdue": "Overdue action alerts",
+      "sla_escalations": "Escalation notifications",
+      "system_announcements": "Platform announcements"
+    },
+    "descriptions": {
+      "incidents_new": "Get notified when new incidents are reported in your assigned area",
+      "incidents_assigned": "Get notified when you're assigned to investigate an incident",
+      "incidents_status_change": "Get notified when incidents you're involved with change status",
+      "approvals_requested": "Get notified when someone needs your approval",
+      "approvals_decision": "Get notified when your requests are approved or rejected",
+      "sla_warnings": "Get notified 48 hours before action due dates",
+      "sla_overdue": "Get notified when actions become overdue",
+      "sla_escalations": "Get notified when actions are escalated",
+      "system_announcements": "Receive important platform updates and announcements"
+    }
+  },
   "currencies": {
     "SAR": "Saudi Riyal",
     "AED": "UAE Dirham",
