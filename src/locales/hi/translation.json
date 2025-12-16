@@ -2197,7 +2197,30 @@
     "dayWed": "बुध",
     "dayThu": "गुरु",
     "dayFri": "शुक्र",
-    "daySat": "शनि"
+    "daySat": "शनि",
+    "widgets": {
+      "ptwActive": "सक्रिय परमिट",
+      "pending": "लंबित",
+      "ptwDescription": "वर्क परमिट स्थिति",
+      "expiringToday": "समाप्त हो रहे",
+      "viewAll": "सभी देखें",
+      "securityAlerts": "सुरक्षा अलर्ट",
+      "securityDescription": "सक्रिय अलर्ट और आगंतुक",
+      "visitors": "साइट पर",
+      "inspectionsDue": "निरीक्षण देय",
+      "overdue": "विलंबित",
+      "inspectionsDescription": "निर्धारित निरीक्षण",
+      "thisWeek": "इस सप्ताह",
+      "contractorWorkers": "ठेकेदार कर्मी",
+      "contractorDescription": "सक्रिय ठेकेदार कार्यबल",
+      "expiringInductions": "समाप्त हो रहे"
+    }
+  },
+  "offline": {
+    "youAreOffline": "आप ऑफ़लाइन हैं",
+    "pendingChanges": "{{count}} लंबित परिवर्तन",
+    "syncComplete": "सभी परिवर्तन सिंक हो गए",
+    "sync": "सिंक"
   },
   "branding": {
     "title": "Dhuud HSSE प्लेटफ़ॉर्म",
@@ -4959,6 +4982,14 @@
       "newPermit": "नया परमिट",
       "recentPermits": "हाल के परमिट",
       "noRecentPermits": "कोई हाल के परमिट नहीं"
+    },
+    "simops": {
+      "criticalConflict": "गंभीर SIMOPS संघर्ष - परमिट अवरुद्ध",
+      "warningConflict": "SIMOPS संघर्ष चेतावनी",
+      "criticalDescription": "मौजूदा सक्रिय परमिट के साथ सुरक्षा संघर्ष के कारण यह परमिट जारी नहीं किया जा सकता।",
+      "warningDescription": "आगे बढ़ने से पहले निम्नलिखित संघर्षों की समीक्षा करें।",
+      "distanceViolation": "दूरी: {{distance}}मी",
+      "timeOverlap": "ओवरलैप: {{minutes}} मिनट"
     },
     "project": {
       "title": "परियोजना गतिशीलता",

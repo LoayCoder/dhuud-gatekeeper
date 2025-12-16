@@ -2211,7 +2211,30 @@
     "dayWed": "أربع",
     "dayThu": "خمس",
     "dayFri": "جمع",
-    "daySat": "سبت"
+    "daySat": "سبت",
+    "widgets": {
+      "ptwActive": "التصاريح النشطة",
+      "pending": "معلقة",
+      "ptwDescription": "حالة تصريح العمل",
+      "expiringToday": "تنتهي",
+      "viewAll": "عرض الكل",
+      "securityAlerts": "تنبيهات الأمن",
+      "securityDescription": "التنبيهات والزوار النشطون",
+      "visitors": "في الموقع",
+      "inspectionsDue": "التفتيشات المستحقة",
+      "overdue": "متأخرة",
+      "inspectionsDescription": "التفتيشات المجدولة",
+      "thisWeek": "هذا الأسبوع",
+      "contractorWorkers": "عمال المقاولين",
+      "contractorDescription": "القوى العاملة للمقاولين النشطين",
+      "expiringInductions": "تنتهي"
+    }
+  },
+  "offline": {
+    "youAreOffline": "أنت غير متصل بالإنترنت",
+    "pendingChanges": "{{count}} تغييرات معلقة",
+    "syncComplete": "تمت مزامنة جميع التغييرات",
+    "sync": "مزامنة"
   },
   "branding": {
     "title": "منصة ذود للصحة والسلامة",
@@ -5082,6 +5105,14 @@
       "newPermit": "تصريح جديد",
       "recentPermits": "التصاريح الأخيرة",
       "noRecentPermits": "لا توجد تصاريح حديثة"
+    },
+    "simops": {
+      "criticalConflict": "تعارض SIMOPS حرج - التصريح محظور",
+      "warningConflict": "تحذير تعارض SIMOPS",
+      "criticalDescription": "لا يمكن إصدار هذا التصريح بسبب تعارضات السلامة مع التصاريح النشطة الحالية.",
+      "warningDescription": "راجع التعارضات التالية قبل المتابعة.",
+      "distanceViolation": "المسافة: {{distance}} متر",
+      "timeOverlap": "التداخل: {{minutes}} دقيقة"
     },
     "project": {
       "title": "تعبئة المشروع",

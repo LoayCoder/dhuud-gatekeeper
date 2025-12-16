@@ -5,6 +5,8 @@ import { Outlet } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { TrialBanner } from "@/components/TrialBanner";
+import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
+
 export default function MainLayout() {
   const {
     tenantName
@@ -32,5 +34,8 @@ export default function MainLayout() {
           </main>
         </SidebarInset>
       </div>
+      
+      {/* Offline Status Banner - Fixed position */}
+      <OfflineStatusBanner />
     </SidebarProvider>;
 }

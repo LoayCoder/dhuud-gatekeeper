@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { PermitOperationalStep } from "@/components/ptw/wizard/PermitOperational
 import { PermitSafetyStep } from "@/components/ptw/wizard/PermitSafetyStep";
 import { PermitReviewStep } from "@/components/ptw/wizard/PermitReviewStep";
 import { useCreatePTWPermit } from "@/hooks/ptw";
+import { useSIMOPSCheck } from "@/hooks/ptw/use-simops-check";
+import { SIMOPSConflictWarning } from "@/components/ptw/SIMOPSConflictWarning";
 
 export interface PermitFormData {
   // Step 1: Basics
@@ -54,6 +56,24 @@ export default function CreatePermit() {
   });
 
   const createPermit = useCreatePTWPermit();
+
+  // SIMOPS conflict checking
+  const { conflicts, isChecking, checkConflicts } = useSIMOPSCheck();
+  const hasCriticalConflicts = conflicts.some(c => c.is_blocking);
+
+  // Check for SIMOPS conflicts when relevant data changes
+  useEffect(() => {
+    if (formData.type_id && formData.site_id && formData.planned_start_time && formData.planned_end_time) {
+      checkConflicts({
+        type_id: formData.type_id,
+        site_id: formData.site_id,
+        planned_start_time: formData.planned_start_time,
+        planned_end_time: formData.planned_end_time,
+        building_id: formData.building_id,
+        floor_zone_id: formData.floor_zone_id,
+      });
+    }
+  }, [formData.type_id, formData.site_id, formData.planned_start_time, formData.planned_end_time, formData.building_id, formData.floor_zone_id, checkConflicts]);
 
   const progress = (currentStep / STEPS.length) * 100;
 
@@ -100,6 +120,8 @@ export default function CreatePermit() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
+        // Block if critical SIMOPS conflicts exist
+        if (hasCriticalConflicts) return false;
         return !!(
           formData.project_id &&
           formData.type_id &&
@@ -112,7 +134,7 @@ export default function CreatePermit() {
       case 3:
         return !!(formData.emergency_contact_name && formData.emergency_contact_number);
       case 4:
-        return true;
+        return !hasCriticalConflicts; // Also block submission if critical conflicts
       default:
         return false;
     }
@@ -174,7 +196,12 @@ export default function CreatePermit() {
             {t(`ptw.create.step.${STEPS[currentStep - 1].name}Desc`, `Step ${currentStep} of ${STEPS.length}`)}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* SIMOPS Conflict Warning */}
+          {conflicts.length > 0 && (currentStep === 1 || currentStep === 4) && (
+            <SIMOPSConflictWarning conflicts={conflicts} />
+          )}
+          
           {currentStep === 1 && (
             <PermitBasicsStep data={formData} onChange={updateFormData} />
           )}
