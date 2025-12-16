@@ -3563,15 +3563,6 @@
     "commissioningDate": "کمیشننگ کی تاریخ",
     "warrantyExpiry": "وارنٹی کی میعاد",
     "nextInspection": "اگلا معائنہ",
-    "tabs": {
-      "overview": "جائزہ",
-      "photos": "تصاویر",
-      "documents": "دستاویزات",
-      "maintenance": "دیکھ بھال",
-      "incidents": "واقعات",
-      "transfers": "منتقلی",
-      "audit": "آڈٹ ٹریل"
-    },
     "transfer": {
       "title": "اثاثہ منتقل کریں",
       "requestTransfer": "منتقلی کی درخواست",

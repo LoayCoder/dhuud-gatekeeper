@@ -3673,15 +3673,6 @@
       "invalidWarrantyDate": "تنسيق تاريخ الضمان غير صالح",
       "invalidInspectionInterval": "فترة الفحص يجب أن تكون إيجابية"
     },
-    "tabs": {
-      "overview": "نظرة عامة",
-      "photos": "الصور",
-      "documents": "المستندات",
-      "maintenance": "الصيانة",
-      "incidents": "الحوادث",
-      "transfers": "التحويلات",
-      "audit": "سجل التدقيق"
-    },
     "transfer": {
       "title": "تحويل الأصل",
       "requestTransfer": "طلب تحويل",

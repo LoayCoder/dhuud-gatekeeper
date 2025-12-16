@@ -3842,15 +3842,6 @@
       "invalidWarrantyDate": "Invalid warranty date format",
       "invalidInspectionInterval": "Inspection interval must be positive"
     },
-    "tabs": {
-      "overview": "Overview",
-      "photos": "Photos",
-      "documents": "Documents",
-      "maintenance": "Maintenance",
-      "incidents": "Incidents",
-      "audit": "Audit Trail",
-      "transfers": "Transfers"
-    },
     "transfer": {
       "title": "Transfer Asset",
       "requestTransfer": "Request Transfer",
