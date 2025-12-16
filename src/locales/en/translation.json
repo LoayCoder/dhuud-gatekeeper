@@ -5227,5 +5227,105 @@
       "createGatePass": "Create Gate Pass",
       "manageInductions": "Manage Inductions"
     }
+  },
+  "ptw": {
+    "nav": {
+      "title": "Permit to Work",
+      "dashboard": "PTW Dashboard",
+      "projects": "Project Mobilization",
+      "console": "Permit Console",
+      "createPermit": "Create Permit"
+    },
+    "dashboard": {
+      "title": "Permit to Work Dashboard",
+      "description": "Overview of active projects and work permits",
+      "activeProjects": "Active Projects",
+      "pendingMobilization": "Pending Mobilization",
+      "activePermits": "Active Permits",
+      "pendingPermits": "Pending Permits",
+      "quickActions": "Quick Actions",
+      "projectMobilization": "Project Mobilization",
+      "permitConsole": "Permit Console",
+      "newPermit": "New Permit",
+      "recentPermits": "Recent Permits",
+      "noRecentPermits": "No recent permits"
+    },
+    "project": {
+      "title": "Project Mobilization",
+      "description": "Manage project strategic clearances before work begins (Gate 1)",
+      "newProject": "New Project",
+      "searchProjects": "Search projects...",
+      "statusFilter": "Filter by Status",
+      "all": "All",
+      "pendingClearance": "Pending Clearance",
+      "active": "Active",
+      "suspended": "Suspended",
+      "completed": "Completed",
+      "mobilizationProgress": "Mobilization",
+      "clearanceChecks": "Clearance Checks",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "contractor": "Contractor"
+    },
+    "permit": {
+      "title": "Work Permit",
+      "console": "Permit Console",
+      "consoleDescription": "Real-time view of all active work permits across the site",
+      "map": "Map View",
+      "list": "List View",
+      "newPermit": "New Permit",
+      "createPermit": "Create New Work Permit",
+      "createDescription": "Request a permit for high-risk work activities",
+      "types": {
+        "hot_work": "Hot Work",
+        "lifting": "Lifting Operations",
+        "radiography": "Radiography",
+        "excavation": "Excavation",
+        "confined_space": "Confined Space",
+        "electrical": "Electrical Work",
+        "other": "Other High-Risk Work"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending_approval": "Pending Approval",
+        "approved": "Approved",
+        "active": "Active",
+        "suspended": "Suspended",
+        "closed": "Closed",
+        "rejected": "Rejected"
+      },
+      "details": {
+        "permitType": "Permit Type",
+        "project": "Project",
+        "workLocation": "Work Location",
+        "plannedStart": "Planned Start",
+        "plannedEnd": "Planned End",
+        "workScope": "Work Scope",
+        "jobDescription": "Job Description"
+      }
+    },
+    "wizard": {
+      "basics": "Permit Basics",
+      "operational": "Operational Details",
+      "safety": "Safety Requirements",
+      "review": "Review & Submit",
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Submit Permit",
+      "saveDraft": "Save Draft"
+    },
+    "clearance": {
+      "title": "Project Clearance",
+      "gate1": "Gate 1 - Strategic Clearances",
+      "gate1Description": "All clearances must be approved before project activation",
+      "insurance": "Insurance Certificate",
+      "hsePlan": "HSE Plan",
+      "riskAssessment": "Risk Assessment",
+      "methodStatement": "Method Statement",
+      "competencyCerts": "Competency Certificates",
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    }
   }
 }

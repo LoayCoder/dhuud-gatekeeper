@@ -54,6 +54,9 @@ import {
   UserCheck,
   Route,
   Video,
+  FileKey,
+  HardHat,
+  Map,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -413,6 +416,38 @@ export function AppSidebar() {
           url: "/contractors/induction-videos",
           icon: Video,
           menuCode: 'contractor_induction_videos',
+        },
+      ],
+    },
+    {
+      title: t('ptw.nav.title', 'Permit to Work'),
+      icon: FileKey,
+      menuCode: 'ptw_module',
+      isActive: location.pathname.startsWith("/ptw"),
+      items: [
+        {
+          title: t('ptw.nav.dashboard', 'PTW Dashboard'),
+          url: "/ptw",
+          icon: LayoutDashboard,
+          menuCode: 'ptw_dashboard',
+        },
+        {
+          title: t('ptw.nav.projects', 'Project Mobilization'),
+          url: "/ptw/projects",
+          icon: HardHat,
+          menuCode: 'ptw_projects',
+        },
+        {
+          title: t('ptw.nav.console', 'Permit Console'),
+          url: "/ptw/console",
+          icon: Map,
+          menuCode: 'ptw_console',
+        },
+        {
+          title: t('ptw.nav.createPermit', 'Create Permit'),
+          url: "/ptw/create",
+          icon: Plus,
+          menuCode: 'ptw_create',
         },
       ],
     },

@@ -4937,5 +4937,105 @@
       "createGatePass": "Lumikha ng Gate Pass",
       "manageInductions": "Pamahalaan ang mga Induction"
     }
+  },
+  "ptw": {
+    "nav": {
+      "title": "Permit to Work",
+      "dashboard": "PTW Dashboard",
+      "projects": "Project Mobilization",
+      "console": "Permit Console",
+      "createPermit": "Lumikha ng Permit"
+    },
+    "dashboard": {
+      "title": "Permit to Work Dashboard",
+      "description": "Pangkalahatang-ideya ng mga aktibong proyekto at work permit",
+      "activeProjects": "Mga Aktibong Proyekto",
+      "pendingMobilization": "Nakabinbing Mobilization",
+      "activePermits": "Mga Aktibong Permit",
+      "pendingPermits": "Mga Nakabinbing Permit",
+      "quickActions": "Mga Mabilis na Aksyon",
+      "projectMobilization": "Project Mobilization",
+      "permitConsole": "Permit Console",
+      "newPermit": "Bagong Permit",
+      "recentPermits": "Mga Kamakailang Permit",
+      "noRecentPermits": "Walang kamakailang permit"
+    },
+    "project": {
+      "title": "Project Mobilization",
+      "description": "Pamahalaan ang mga strategic clearance ng proyekto bago magsimula ang trabaho (Gate 1)",
+      "newProject": "Bagong Proyekto",
+      "searchProjects": "Maghanap ng mga proyekto...",
+      "statusFilter": "I-filter ayon sa Status",
+      "all": "Lahat",
+      "pendingClearance": "Nakabinbing Clearance",
+      "active": "Aktibo",
+      "suspended": "Suspendido",
+      "completed": "Nakumpleto",
+      "mobilizationProgress": "Mobilization",
+      "clearanceChecks": "Mga Clearance Check",
+      "startDate": "Petsa ng Simula",
+      "endDate": "Petsa ng Katapusan",
+      "contractor": "Kontratista"
+    },
+    "permit": {
+      "title": "Work Permit",
+      "console": "Permit Console",
+      "consoleDescription": "Real-time na view ng lahat ng aktibong work permit sa site",
+      "map": "Map View",
+      "list": "List View",
+      "newPermit": "Bagong Permit",
+      "createPermit": "Lumikha ng Bagong Work Permit",
+      "createDescription": "Mag-request ng permit para sa mga high-risk na aktibidad sa trabaho",
+      "types": {
+        "hot_work": "Hot Work",
+        "lifting": "Lifting Operations",
+        "radiography": "Radiography",
+        "excavation": "Excavation",
+        "confined_space": "Confined Space",
+        "electrical": "Electrical Work",
+        "other": "Iba pang High-Risk na Trabaho"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending_approval": "Nakabinbing Pag-apruba",
+        "approved": "Inaprubahan",
+        "active": "Aktibo",
+        "suspended": "Suspendido",
+        "closed": "Sarado",
+        "rejected": "Tinanggihan"
+      },
+      "details": {
+        "permitType": "Uri ng Permit",
+        "project": "Proyekto",
+        "workLocation": "Lokasyon ng Trabaho",
+        "plannedStart": "Nakaplanong Simula",
+        "plannedEnd": "Nakaplanong Katapusan",
+        "workScope": "Saklaw ng Trabaho",
+        "jobDescription": "Paglalarawan ng Trabaho"
+      }
+    },
+    "wizard": {
+      "basics": "Mga Batayan ng Permit",
+      "operational": "Mga Operational na Detalye",
+      "safety": "Mga Kinakailangan sa Kaligtasan",
+      "review": "Suriin at I-submit",
+      "next": "Susunod",
+      "previous": "Nakaraan",
+      "submit": "I-submit ang Permit",
+      "saveDraft": "I-save ang Draft"
+    },
+    "clearance": {
+      "title": "Project Clearance",
+      "gate1": "Gate 1 - Strategic Clearances",
+      "gate1Description": "Lahat ng clearance ay dapat aprubahan bago ma-activate ang proyekto",
+      "insurance": "Insurance Certificate",
+      "hsePlan": "HSE Plan",
+      "riskAssessment": "Risk Assessment",
+      "methodStatement": "Method Statement",
+      "competencyCerts": "Competency Certificates",
+      "approved": "Inaprubahan",
+      "pending": "Nakabinbin",
+      "rejected": "Tinanggihan"
+    }
   }
 }

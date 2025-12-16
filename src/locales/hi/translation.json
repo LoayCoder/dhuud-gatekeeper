@@ -4937,5 +4937,105 @@
       "createGatePass": "गेट पास बनाएं",
       "manageInductions": "प्रेरण प्रबंधित करें"
     }
+  },
+  "ptw": {
+    "nav": {
+      "title": "कार्य अनुमति",
+      "dashboard": "PTW डैशबोर्ड",
+      "projects": "परियोजना गतिशीलता",
+      "console": "परमिट कंसोल",
+      "createPermit": "परमिट बनाएं"
+    },
+    "dashboard": {
+      "title": "कार्य अनुमति डैशबोर्ड",
+      "description": "सक्रिय परियोजनाओं और कार्य परमिट का अवलोकन",
+      "activeProjects": "सक्रिय परियोजनाएं",
+      "pendingMobilization": "लंबित गतिशीलता",
+      "activePermits": "सक्रिय परमिट",
+      "pendingPermits": "लंबित परमिट",
+      "quickActions": "त्वरित कार्य",
+      "projectMobilization": "परियोजना गतिशीलता",
+      "permitConsole": "परमिट कंसोल",
+      "newPermit": "नया परमिट",
+      "recentPermits": "हाल के परमिट",
+      "noRecentPermits": "कोई हाल के परमिट नहीं"
+    },
+    "project": {
+      "title": "परियोजना गतिशीलता",
+      "description": "कार्य शुरू होने से पहले परियोजना रणनीतिक मंजूरी प्रबंधित करें (गेट 1)",
+      "newProject": "नई परियोजना",
+      "searchProjects": "परियोजनाएं खोजें...",
+      "statusFilter": "स्थिति के अनुसार फ़िल्टर करें",
+      "all": "सभी",
+      "pendingClearance": "मंजूरी लंबित",
+      "active": "सक्रिय",
+      "suspended": "निलंबित",
+      "completed": "पूर्ण",
+      "mobilizationProgress": "गतिशीलता",
+      "clearanceChecks": "मंजूरी जांच",
+      "startDate": "आरंभ तिथि",
+      "endDate": "समाप्ति तिथि",
+      "contractor": "ठेकेदार"
+    },
+    "permit": {
+      "title": "कार्य अनुमति",
+      "console": "परमिट कंसोल",
+      "consoleDescription": "साइट पर सभी सक्रिय कार्य परमिट का वास्तविक समय दृश्य",
+      "map": "मानचित्र दृश्य",
+      "list": "सूची दृश्य",
+      "newPermit": "नया परमिट",
+      "createPermit": "नया कार्य परमिट बनाएं",
+      "createDescription": "उच्च जोखिम वाली कार्य गतिविधियों के लिए परमिट का अनुरोध करें",
+      "types": {
+        "hot_work": "गर्म कार्य",
+        "lifting": "उठाने का संचालन",
+        "radiography": "रेडियोग्राफी",
+        "excavation": "खुदाई",
+        "confined_space": "सीमित स्थान",
+        "electrical": "विद्युत कार्य",
+        "other": "अन्य उच्च जोखिम कार्य"
+      },
+      "status": {
+        "draft": "ड्राफ्ट",
+        "pending_approval": "अनुमोदन लंबित",
+        "approved": "अनुमोदित",
+        "active": "सक्रिय",
+        "suspended": "निलंबित",
+        "closed": "बंद",
+        "rejected": "अस्वीकृत"
+      },
+      "details": {
+        "permitType": "परमिट प्रकार",
+        "project": "परियोजना",
+        "workLocation": "कार्य स्थान",
+        "plannedStart": "योजनित आरंभ",
+        "plannedEnd": "योजनित समाप्ति",
+        "workScope": "कार्य क्षेत्र",
+        "jobDescription": "कार्य विवरण"
+      }
+    },
+    "wizard": {
+      "basics": "परमिट मूल बातें",
+      "operational": "परिचालन विवरण",
+      "safety": "सुरक्षा आवश्यकताएं",
+      "review": "समीक्षा और जमा करें",
+      "next": "अगला",
+      "previous": "पिछला",
+      "submit": "परमिट जमा करें",
+      "saveDraft": "ड्राफ्ट सहेजें"
+    },
+    "clearance": {
+      "title": "परियोजना मंजूरी",
+      "gate1": "गेट 1 - रणनीतिक मंजूरी",
+      "gate1Description": "परियोजना सक्रियण से पहले सभी मंजूरी आवश्यक है",
+      "insurance": "बीमा प्रमाणपत्र",
+      "hsePlan": "HSE योजना",
+      "riskAssessment": "जोखिम मूल्यांकन",
+      "methodStatement": "विधि विवरण",
+      "competencyCerts": "योग्यता प्रमाणपत्र",
+      "approved": "अनुमोदित",
+      "pending": "लंबित",
+      "rejected": "अस्वीकृत"
+    }
   }
 }
