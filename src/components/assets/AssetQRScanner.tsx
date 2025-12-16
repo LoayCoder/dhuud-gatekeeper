@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAssetByCode } from '@/hooks/use-asset-by-code';
+import { logAssetScan } from '@/lib/asset-scan-logger';
 
 interface AssetQRScannerProps {
   onScanSuccess?: (assetId: string) => void;
   autoNavigate?: boolean;
+  scanAction?: 'view' | 'inspect' | 'maintenance' | 'transfer';
 }
 
-export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRScannerProps) {
+export function AssetQRScanner({ onScanSuccess, autoNavigate = true, scanAction = 'view' }: AssetQRScannerProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
@@ -96,6 +98,16 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
     if (urlMatch && urlMatch[1]) {
       // Found UUID in URL - navigate directly
       const assetId = urlMatch[1];
+      
+      // Log successful scan
+      logAssetScan({
+        asset_id: assetId,
+        asset_code: decodedText,
+        scan_action: scanAction,
+        scan_method: 'qrcode',
+        scan_result: 'success',
+      });
+      
       if (onScanSuccess) {
         onScanSuccess(assetId);
       }
@@ -108,6 +120,16 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
     if (uuidPattern.test(decodedText.trim())) {
       // Raw UUID - navigate directly
       const assetId = decodedText.trim();
+      
+      // Log successful scan
+      logAssetScan({
+        asset_id: assetId,
+        asset_code: assetId,
+        scan_action: scanAction,
+        scan_method: 'qrcode',
+        scan_result: 'success',
+      });
+      
       if (onScanSuccess) {
         onScanSuccess(assetId);
       }
@@ -127,6 +149,16 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
     
     if (assetResult?.found && assetResult.asset) {
       const assetId = assetResult.asset.id;
+      
+      // Log successful code-resolved scan
+      logAssetScan({
+        asset_id: assetId,
+        asset_code: scannedCode,
+        scan_action: scanAction,
+        scan_method: 'qrcode',
+        scan_result: 'success',
+      });
+      
       if (onScanSuccess) {
         onScanSuccess(assetId);
       }
@@ -135,10 +167,19 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
       }
       setScannedCode(null);
     } else if (assetResult && !assetResult.found) {
+      // Log failed scan - asset not found
+      logAssetScan({
+        asset_id: null,
+        asset_code: scannedCode,
+        scan_action: scanAction,
+        scan_method: 'qrcode',
+        scan_result: 'not_found',
+      });
+      
       setError(t('assets.assetNotFound'));
       setScannedCode(null);
     }
-  }, [assetResult, isResolving, scannedCode, onScanSuccess, autoNavigate, navigate, t]);
+  }, [assetResult, isResolving, scannedCode, onScanSuccess, autoNavigate, navigate, t, scanAction]);
 
   useEffect(() => {
     return () => {
