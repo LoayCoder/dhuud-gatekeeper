@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Package, MapPin, Settings, Calendar, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Settings, Calendar, Save, Loader2, Copy, Printer, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -12,9 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ModuleGate } from '@/components/ModuleGate';
 import { HSSERoute } from '@/components/HSSERoute';
-import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, generateAssetCode } from '@/hooks/use-assets';
+import { useAsset, useAssetCategories, useAssetTypes, useAssetSubtypes, useCreateAsset, useUpdateAsset, useCreateBulkAssets, generateAssetCode, generateSequentialCodes } from '@/hooks/use-assets';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -81,6 +84,9 @@ function AssetRegisterContent() {
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [bulkQuantity, setBulkQuantity] = useState(1);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [createdAssetIds, setCreatedAssetIds] = useState<string[]>([]);
 
   const { data: existingAsset, isLoading: loadingAsset } = useAsset(editId || undefined);
   const { data: categories } = useAssetCategories();
@@ -89,6 +95,7 @@ function AssetRegisterContent() {
 
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
+  const createBulkAssets = useCreateBulkAssets();
 
   // Fetch location data
   const { data: branches } = useQuery({
@@ -228,20 +235,38 @@ function AssetRegisterContent() {
       
       if (editId) {
         await updateAsset.mutateAsync({ id: editId, ...assetData });
+        navigate('/assets');
+      } else if (bulkQuantity > 1) {
+        // Bulk creation
+        const { asset_code, ...baseAssetWithoutCode } = assetData;
+        const result = await createBulkAssets.mutateAsync({
+          baseAsset: baseAssetWithoutCode,
+          quantity: bulkQuantity,
+          startCode: asset_code,
+        });
+        setCreatedAssetIds(result.map(a => a.id));
+        setShowSuccessDialog(true);
       } else {
-        await createAsset.mutateAsync(assetData);
+        // Single asset creation
+        const result = await createAsset.mutateAsync(assetData);
+        setCreatedAssetIds([result.id]);
+        setShowSuccessDialog(true);
       }
-      navigate('/assets');
     } catch (error) {
       // Error handled in mutation
     }
   };
 
-  const isSubmitting = createAsset.isPending || updateAsset.isPending;
+  const isSubmitting = createAsset.isPending || updateAsset.isPending || createBulkAssets.isPending;
 
   const filteredSites = selectedBranchId 
     ? sites?.filter(s => s.branch_id === selectedBranchId) 
     : sites;
+
+  // Generate preview codes for bulk creation
+  const previewCodes = bulkQuantity > 1 && form.watch('asset_code')
+    ? generateSequentialCodes(form.watch('asset_code'), Math.min(bulkQuantity, 5))
+    : [];
 
   if (loadingAsset && editId) {
     return (
@@ -402,16 +427,70 @@ function AssetRegisterContent() {
                       name="asset_code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('assets.assetCode')} *</FormLabel>
+                          <FormLabel>{bulkQuantity > 1 ? t('assets.startTagNumber') : t('assets.assetCode')} *</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="FE-2025-0001" className="font-mono" />
                           </FormControl>
-                          <FormDescription>{t('assets.assetCodeHint')}</FormDescription>
+                          <FormDescription>
+                            {bulkQuantity > 1 ? t('assets.startTagHint') : t('assets.assetCodeHint')}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+
+                  {/* Bulk Registration Section - Only show in create mode */}
+                  {!editId && (
+                    <Card className="border-dashed bg-muted/30">
+                      <CardHeader className="py-4">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Copy className="h-4 w-4" />
+                          {t('assets.bulkRegistration')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <FormLabel>{t('assets.quantity')}: {bulkQuantity}</FormLabel>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={bulkQuantity}
+                              onChange={(e) => setBulkQuantity(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))}
+                              className="w-20 h-8 text-center"
+                            />
+                          </div>
+                          <Slider
+                            value={[bulkQuantity]}
+                            onValueChange={(val) => setBulkQuantity(val[0])}
+                            min={1}
+                            max={50}
+                            step={1}
+                            className="w-full"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {t('assets.quantityHint')}
+                          </p>
+                        </div>
+
+                        {/* Bulk Preview */}
+                        {bulkQuantity > 1 && form.watch('asset_code') && (
+                          <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertDescription className="space-y-2">
+                              <p className="font-medium">{t('assets.bulkPreview')}</p>
+                              <div className="text-xs space-y-1">
+                                <p>• {form.watch('name') || t('assets.name')} (×{bulkQuantity})</p>
+                                <p>• {t('assets.tagRange')}: <span className="font-mono">{previewCodes[0]}</span> → <span className="font-mono">{generateSequentialCodes(form.watch('asset_code'), bulkQuantity).slice(-1)[0]}</span></p>
+                              </div>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <FormField
                     control={form.control}
@@ -894,11 +973,48 @@ function AssetRegisterContent() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {editId ? t('common.saveChanges') : t('assets.registerAsset')}
+              {editId 
+                ? t('common.saveChanges') 
+                : bulkQuantity > 1 
+                  ? t('assets.createBulkAssets', { count: bulkQuantity })
+                  : t('assets.registerAsset')
+              }
             </Button>
           </div>
         </form>
       </Form>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('assets.createSuccess')}</DialogTitle>
+            <DialogDescription>
+              {createdAssetIds.length > 1 
+                ? t('assets.bulkCreateSuccessDescription', { count: createdAssetIds.length })
+                : t('assets.createSuccessDescription')
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => {
+              setShowSuccessDialog(false);
+              navigate('/assets');
+            }}>
+              {t('assets.viewAssets')}
+            </Button>
+            {createdAssetIds.length > 0 && (
+              <Button onClick={() => {
+                setShowSuccessDialog(false);
+                navigate('/assets/bulk-print', { state: { assetIds: createdAssetIds } });
+              }} className="gap-2">
+                <Printer className="h-4 w-4" />
+                {t('assets.printLabels')}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
