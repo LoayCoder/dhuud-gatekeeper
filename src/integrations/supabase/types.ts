@@ -9826,6 +9826,27 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: Json
       }
+      check_simops_conflicts: {
+        Args: {
+          p_end_time: string
+          p_exclude_permit_id?: string
+          p_gps_lat: number
+          p_gps_lng: number
+          p_site_id: string
+          p_start_time: string
+          p_type_id: string
+        }
+        Returns: {
+          auto_reject: boolean
+          conflict_type: string
+          conflicting_permit_id: string
+          conflicting_permit_type: string
+          conflicting_reference_id: string
+          distance_meters: number
+          rule_description: string
+          time_overlap_minutes: number
+        }[]
+      }
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
@@ -9855,6 +9876,7 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
+      get_dashboard_module_stats: { Args: never; Returns: Json }
       get_dashboard_quick_action_counts: { Args: never; Returns: Json }
       get_days_since_last_recordable: {
         Args: { p_branch_id?: string; p_site_id?: string }
