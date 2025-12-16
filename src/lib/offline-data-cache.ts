@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'dhuud-offline-cache';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented to trigger onupgradeneeded for new stores
 
 export interface CacheEntry<T> {
   key: string;
