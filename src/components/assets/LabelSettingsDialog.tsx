@@ -36,6 +36,17 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
     setLocalSettings(prev => ({ ...prev, size }));
   };
 
+  const handleCustomDimensionChange = (dimension: 'width' | 'height', value: number) => {
+    const clampedValue = dimension === 'width' 
+      ? Math.min(200, Math.max(20, value || 20))
+      : Math.min(150, Math.max(15, value || 15));
+    
+    setLocalSettings(prev => ({
+      ...prev,
+      [dimension === 'width' ? 'customWidthMM' : 'customHeightMM']: clampedValue
+    }));
+  };
+
   const handleContentToggle = (key: keyof LabelSettings['content']) => {
     if (key === 'customText') return;
     setLocalSettings(prev => ({
@@ -69,6 +80,10 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
     { key: 'showDepartment', label: t('assets.labelSettings.showDepartment') },
   ] as const;
 
+  // Separate predefined sizes from custom
+  const predefinedSizes = LABEL_SIZES.filter(s => s.key !== 'custom');
+  const customSize = LABEL_SIZES.find(s => s.key === 'custom')!;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -88,24 +103,76 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
             <RadioGroup 
               value={localSettings.size} 
               onValueChange={(v) => handleSizeChange(v as LabelSizeKey)}
-              className="grid grid-cols-2 gap-2"
+              className="space-y-2"
             >
-              {LABEL_SIZES.map((size) => (
-                <div key={size.key} className="relative">
-                  <RadioGroupItem
-                    value={size.key}
-                    id={`size-${size.key}`}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={`size-${size.key}`}
-                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-colors"
-                  >
-                    <span className="text-sm font-medium">{size.label}</span>
-                    <span className="text-xs text-muted-foreground">{t(size.description)}</span>
-                  </Label>
+              {/* Predefined sizes in 2x2 grid */}
+              <div className="grid grid-cols-2 gap-2">
+                {predefinedSizes.map((size) => (
+                  <div key={size.key} className="relative">
+                    <RadioGroupItem
+                      value={size.key}
+                      id={`size-${size.key}`}
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor={`size-${size.key}`}
+                      className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-colors"
+                    >
+                      <span className="text-sm font-medium">{size.label}</span>
+                      <span className="text-xs text-muted-foreground">{t(size.description)}</span>
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Custom size option - full width */}
+              <div className="relative">
+                <RadioGroupItem
+                  value="custom"
+                  id="size-custom"
+                  className="peer sr-only"
+                />
+                <Label
+                  htmlFor="size-custom"
+                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-colors"
+                >
+                  <span className="text-sm font-medium">{t(customSize.label)}</span>
+                  <span className="text-xs text-muted-foreground">{t(customSize.description)}</span>
+                </Label>
+              </div>
+              
+              {/* Custom dimension inputs */}
+              {localSettings.size === 'custom' && (
+                <div className="grid grid-cols-2 gap-3 p-3 border rounded-md bg-muted/50">
+                  <div className="space-y-1">
+                    <Label htmlFor="custom-width" className="text-xs">{t('assets.labelSettings.widthMM')}</Label>
+                    <Input
+                      id="custom-width"
+                      type="number"
+                      min={20}
+                      max={200}
+                      value={localSettings.customWidthMM}
+                      onChange={(e) => handleCustomDimensionChange('width', parseInt(e.target.value))}
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="custom-height" className="text-xs">{t('assets.labelSettings.heightMM')}</Label>
+                    <Input
+                      id="custom-height"
+                      type="number"
+                      min={15}
+                      max={150}
+                      value={localSettings.customHeightMM}
+                      onChange={(e) => handleCustomDimensionChange('height', parseInt(e.target.value))}
+                      className="h-8"
+                    />
+                  </div>
+                  <p className="col-span-2 text-xs text-muted-foreground">
+                    {t('assets.labelSettings.customSizeHint')}
+                  </p>
                 </div>
-              ))}
+              )}
             </RadioGroup>
           </div>
 

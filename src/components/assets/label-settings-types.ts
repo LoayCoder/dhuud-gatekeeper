@@ -1,4 +1,4 @@
-export type LabelSizeKey = 'small' | 'medium' | 'large' | 'xlarge';
+export type LabelSizeKey = 'small' | 'medium' | 'large' | 'xlarge' | 'custom';
 
 export interface LabelSizeSpec {
   key: LabelSizeKey;
@@ -13,6 +13,7 @@ export const LABEL_SIZES: LabelSizeSpec[] = [
   { key: 'medium', widthMM: 50, heightMM: 25, label: '50×25mm', description: 'assets.labelSettings.mediumDescription' },
   { key: 'large', widthMM: 70, heightMM: 30, label: '70×30mm', description: 'assets.labelSettings.largeDescription' },
   { key: 'xlarge', widthMM: 100, heightMM: 50, label: '100×50mm', description: 'assets.labelSettings.xlargeDescription' },
+  { key: 'custom', widthMM: 50, heightMM: 30, label: 'assets.labelSettings.customSize', description: 'assets.labelSettings.customDescription' },
 ];
 
 export interface LabelContentSettings {
@@ -26,11 +27,15 @@ export interface LabelContentSettings {
 
 export interface LabelSettings {
   size: LabelSizeKey;
+  customWidthMM: number;
+  customHeightMM: number;
   content: LabelContentSettings;
 }
 
 export const DEFAULT_LABEL_SETTINGS: LabelSettings = {
   size: 'small',
+  customWidthMM: 50,
+  customHeightMM: 30,
   content: {
     showAssetName: false,
     showZone: true,
@@ -43,7 +48,16 @@ export const DEFAULT_LABEL_SETTINGS: LabelSettings = {
 
 export const LABEL_SETTINGS_STORAGE_KEY = 'asset-label-settings';
 
-export function getLabelSizeSpec(key: LabelSizeKey): LabelSizeSpec {
+export function getLabelSizeSpec(key: LabelSizeKey, customWidth?: number, customHeight?: number): LabelSizeSpec {
+  if (key === 'custom' && customWidth && customHeight) {
+    return {
+      key: 'custom',
+      widthMM: customWidth,
+      heightMM: customHeight,
+      label: `${customWidth}×${customHeight}mm`,
+      description: 'assets.labelSettings.customDescription',
+    };
+  }
   return LABEL_SIZES.find(s => s.key === key) || LABEL_SIZES[0];
 }
 

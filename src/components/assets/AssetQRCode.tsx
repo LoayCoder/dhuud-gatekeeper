@@ -34,7 +34,7 @@ export function AssetQRCode({
 }: AssetQRCodeProps) {
   const { t } = useTranslation();
   const qrRef = useRef<HTMLDivElement>(null);
-  const sizeSpec = getLabelSizeSpec(settings.size);
+  const sizeSpec = getLabelSizeSpec(settings.size, settings.customWidthMM, settings.customHeightMM);
   
   const qrValue = `${window.location.origin}/assets/${assetId}`;
 

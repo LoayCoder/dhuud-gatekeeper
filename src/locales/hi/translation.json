@@ -3810,7 +3810,12 @@
       "smallDescription": "छोटा लेबल",
       "mediumDescription": "मध्यम लेबल",
       "largeDescription": "बड़ा लेबल",
-      "xlargeDescription": "अतिरिक्त बड़ा"
+      "xlargeDescription": "अतिरिक्त बड़ा",
+      "customSize": "कस्टम",
+      "customDescription": "अपने आयाम दर्ज करें",
+      "widthMM": "चौड़ाई (मिमी)",
+      "heightMM": "ऊंचाई (मिमी)",
+      "customSizeHint": "चौड़ाई: 20-200मिमी, ऊंचाई: 15-150मिमी"
     }
   },
   "maintenance": {

@@ -3810,7 +3810,12 @@
       "smallDescription": "Maliit na label",
       "mediumDescription": "Medium na label",
       "largeDescription": "Malaking label",
-      "xlargeDescription": "Extra large"
+      "xlargeDescription": "Extra large",
+      "customSize": "Custom",
+      "customDescription": "Ilagay ang iyong mga sukat",
+      "widthMM": "Lapad (mm)",
+      "heightMM": "Taas (mm)",
+      "customSizeHint": "Lapad: 20-200mm, Taas: 15-150mm"
     }
   },
   "maintenance": {
