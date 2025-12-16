@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog } from '@/components/assets';
+import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog } from '@/components/assets';
+import { Tabs as LabelTabs, TabsContent as LabelTabsContent, TabsList as LabelTabsList, TabsTrigger as LabelTabsTrigger } from '@/components/ui/tabs';
 import { InspectionHistoryTab } from '@/components/inspections';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
@@ -204,16 +205,42 @@ function AssetDetailContent() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* QR Code - appears first on right side in larger screens */}
+            {/* Label Card - QR/Barcode toggle */}
             <div className="lg:col-start-3 lg:row-span-2">
-              <AssetQRCode 
-                assetId={asset.id} 
-                assetCode={asset.asset_code} 
-                assetName={asset.name}
-                siteName={asset.site?.name}
-                zoneName={asset.floor_zone?.name}
-                size={180}
-              />
+              <Card>
+                <CardHeader className="pb-2">
+                  <LabelTabs defaultValue="qrcode">
+                    <LabelTabsList className="grid w-full grid-cols-2">
+                      <LabelTabsTrigger value="qrcode" className="gap-1.5 text-xs">
+                        <QrCode className="h-4 w-4" />
+                        {t('assets.qrCode')}
+                      </LabelTabsTrigger>
+                      <LabelTabsTrigger value="barcode" className="gap-1.5 text-xs">
+                        <Barcode className="h-4 w-4" />
+                        {t('assets.barcodeLabel')}
+                      </LabelTabsTrigger>
+                    </LabelTabsList>
+                    <LabelTabsContent value="qrcode" className="mt-4">
+                      <AssetQRCode 
+                        assetId={asset.id} 
+                        assetCode={asset.asset_code} 
+                        assetName={asset.name}
+                        siteName={asset.site?.name}
+                        zoneName={asset.floor_zone?.name}
+                        size={160}
+                      />
+                    </LabelTabsContent>
+                    <LabelTabsContent value="barcode" className="mt-4">
+                      <AssetBarcodeLabel
+                        assetId={asset.id}
+                        assetCode={asset.asset_code}
+                        siteName={asset.site?.name}
+                        zoneName={asset.floor_zone?.name}
+                      />
+                    </LabelTabsContent>
+                  </LabelTabs>
+                </CardHeader>
+              </Card>
             </div>
             {/* Classification */}
             <Card>

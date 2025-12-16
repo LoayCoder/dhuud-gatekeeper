@@ -1,9 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import JsBarcode from 'jsbarcode';
-import { Download, Printer, Barcode } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -207,65 +206,57 @@ export function AssetBarcodeLabel({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Barcode className="h-5 w-5" />
-          {t('assets.barcodeLabel')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Barcode Preview */}
-        <div className="flex justify-center p-4 bg-white rounded-lg border">
-          <div className="flex flex-col items-center gap-2">
-            <svg ref={barcodeRef} />
-            {showZone && (siteName || zoneName) && (
-              <p className="text-xs font-medium text-black">
-                {[siteName, zoneName].filter(Boolean).join(' / ')}
-              </p>
-            )}
-          </div>
+    <div className="space-y-4">
+      {/* Barcode Preview */}
+      <div className="flex justify-center p-4 bg-white rounded-lg border">
+        <div className="flex flex-col items-center gap-2">
+          <svg ref={barcodeRef} />
+          {showZone && (siteName || zoneName) && (
+            <p className="text-xs font-medium text-black">
+              {[siteName, zoneName].filter(Boolean).join(' / ')}
+            </p>
+          )}
         </div>
+      </div>
 
-        {/* Options */}
-        <div className="flex items-center justify-between">
-          <Label htmlFor="show-zone" className="text-sm">
-            {t('assets.includeZoneCode')}
-          </Label>
-          <Switch
-            id="show-zone"
-            checked={showZone}
-            onCheckedChange={setShowZone}
-          />
-        </div>
+      {/* Options */}
+      <div className="flex items-center justify-between">
+        <Label htmlFor="show-zone" className="text-sm">
+          {t('assets.includeZoneCode')}
+        </Label>
+        <Switch
+          id="show-zone"
+          checked={showZone}
+          onCheckedChange={setShowZone}
+        />
+      </div>
 
-        {/* Info */}
-        <p className="text-xs text-muted-foreground text-center">
-          {t('assets.code128Format')} • 30×20mm • 300 DPI
-        </p>
+      {/* Info */}
+      <p className="text-xs text-muted-foreground text-center">
+        {t('assets.code128Format')} • 30×20mm • 300 DPI
+      </p>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={handleDownload}
-          >
-            <Download className="h-4 w-4 me-2" />
-            {t('assets.downloadBarcode')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={handlePrint}
-          >
-            <Printer className="h-4 w-4 me-2" />
-            {t('assets.printBarcode')}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={handleDownload}
+        >
+          <Download className="h-4 w-4 me-2" />
+          {t('assets.downloadBarcode')}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={handlePrint}
+        >
+          <Printer className="h-4 w-4 me-2" />
+          {t('assets.printBarcode')}
+        </Button>
+      </div>
+    </div>
   );
 }
