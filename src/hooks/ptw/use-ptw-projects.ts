@@ -112,11 +112,11 @@ export function usePTWProjectClearances(projectId: string | undefined) {
 
 export function useCreatePTWProject() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: Partial<PTWProject>) => {
-      if (!profile?.tenant_id || !profile?.id) throw new Error("No tenant");
+      if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
       const { data: result, error } = await supabase
         .from("ptw_projects")
@@ -130,7 +130,7 @@ export function useCreatePTWProject() {
           start_date: data.start_date!,
           end_date: data.end_date!,
           tenant_id: profile.tenant_id,
-          created_by: profile.id,
+          created_by: user.id,
         })
         .select()
         .single();
@@ -150,17 +150,17 @@ export function useCreatePTWProject() {
 
 export function useApproveClearanceCheck() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ checkId, comments }: { checkId: string; comments?: string }) => {
-      if (!profile?.id) throw new Error("Not authenticated");
+      if (!user?.id) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
         .from("ptw_clearance_checks")
         .update({
           status: "approved",
-          approved_by: profile.id,
+          approved_by: user.id,
           approved_at: new Date().toISOString(),
           comments,
         })
@@ -184,17 +184,17 @@ export function useApproveClearanceCheck() {
 
 export function useRejectClearanceCheck() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ checkId, comments }: { checkId: string; comments: string }) => {
-      if (!profile?.id) throw new Error("Not authenticated");
+      if (!user?.id) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
         .from("ptw_clearance_checks")
         .update({
           status: "rejected",
-          approved_by: profile.id,
+          approved_by: user.id,
           approved_at: new Date().toISOString(),
           comments,
         })
