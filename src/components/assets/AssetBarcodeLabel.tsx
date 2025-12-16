@@ -20,6 +20,13 @@ interface AssetBarcodeLabelProps {
 
 const MM_TO_PX = 11.811; // 300 DPI / 25.4mm
 
+// Calculate optimal bar width based on label size
+const calculateBarWidth = (labelWidthMM: number): number => {
+  if (labelWidthMM >= 70) return 4;
+  if (labelWidthMM >= 50) return 3;
+  return 2;
+};
+
 export function AssetBarcodeLabel({
   assetCode,
   assetId,
@@ -35,13 +42,14 @@ export function AssetBarcodeLabel({
   const isRTL = i18n.dir() === 'rtl';
   const barcodeRef = useRef<SVGSVGElement>(null);
   const sizeSpec = getLabelSizeSpec(settings.size, settings.customWidthMM, settings.customHeightMM);
+  const barWidth = calculateBarWidth(sizeSpec.widthMM);
 
   useEffect(() => {
     if (barcodeRef.current) {
       JsBarcode(barcodeRef.current, assetCode, {
         format: 'CODE128',
-        width: 2,
-        height: 40,
+        width: barWidth,
+        height: 30,
         displayValue: true,
         fontSize: 12,
         margin: 2,
@@ -49,7 +57,7 @@ export function AssetBarcodeLabel({
         lineColor: '#000000',
       });
     }
-  }, [assetCode]);
+  }, [assetCode, barWidth]);
 
   const getContentLines = (): string[] => {
     const lines: string[] = [];
@@ -83,14 +91,14 @@ export function AssetBarcodeLabel({
       ctx.fillRect(0, 0, width, height);
 
       const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      const barcodeHeight = Math.min(80, height * 0.4);
+      const barcodeHeight = Math.min(60, height * 0.35);
       JsBarcode(tempSvg, assetCode, {
         format: 'CODE128',
-        width: 3,
+        width: barWidth + 1,
         height: barcodeHeight,
         displayValue: true,
-        fontSize: 24,
-        margin: 10,
+        fontSize: 20,
+        margin: 5,
         background: '#FFFFFF',
         lineColor: '#000000',
       });
@@ -152,11 +160,11 @@ export function AssetBarcodeLabel({
     const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     JsBarcode(tempSvg, assetCode, {
       format: 'CODE128',
-      width: 2,
-      height: 50,
+      width: barWidth,
+      height: 40,
       displayValue: true,
-      fontSize: 14,
-      margin: 5,
+      fontSize: 12,
+      margin: 3,
       background: '#FFFFFF',
       lineColor: '#000000',
     });
