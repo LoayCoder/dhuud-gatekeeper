@@ -931,6 +931,76 @@ export type Database = {
           },
         ]
       }
+      asset_scan_logs: {
+        Row: {
+          asset_code: string
+          asset_id: string | null
+          created_at: string | null
+          device_info: Json | null
+          id: string
+          is_offline_scan: boolean | null
+          location_data: Json | null
+          scan_action: string
+          scan_method: string
+          scan_result: string
+          scanned_by: string
+          synced_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          asset_code: string
+          asset_id?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          is_offline_scan?: boolean | null
+          location_data?: Json | null
+          scan_action: string
+          scan_method: string
+          scan_result: string
+          scanned_by: string
+          synced_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          asset_code?: string
+          asset_id?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          is_offline_scan?: boolean | null
+          location_data?: Json | null
+          scan_action?: string
+          scan_method?: string
+          scan_result?: string
+          scanned_by?: string
+          synced_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_scan_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_scan_logs_scanned_by_fkey"
+            columns: ["scanned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_scan_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_subtypes: {
         Row: {
           code: string
@@ -3101,6 +3171,7 @@ export type Database = {
       hsse_assets: {
         Row: {
           asset_code: string
+          barcode_value: string | null
           branch_id: string | null
           building_id: string | null
           category_id: string
@@ -3158,6 +3229,7 @@ export type Database = {
         }
         Insert: {
           asset_code: string
+          barcode_value?: string | null
           branch_id?: string | null
           building_id?: string | null
           category_id: string
@@ -3215,6 +3287,7 @@ export type Database = {
         }
         Update: {
           asset_code?: string
+          barcode_value?: string | null
           branch_id?: string | null
           building_id?: string | null
           category_id?: string

@@ -3775,7 +3775,25 @@
         "invalidDate": "Invalid na format ng petsa",
         "duplicateSerial": "Duplicate na serial number"
       }
-    }
+    },
+    "barcodeScan": "Barcode Scan",
+    "qrCodeScan": "QR Code Scan",
+    "barcodeLabel": "Barcode Label",
+    "code128Format": "Code 128 Format",
+    "scanBarcode": "I-scan ang Barcode",
+    "barcodeScanDescription": "Itutok ang camera sa Code 128 barcode para matukoy ang asset",
+    "barcodeNotFound": "Hindi nakarehistro ang asset",
+    "barcodeDownloaded": "Matagumpay na na-download ang barcode",
+    "barcodeDownloadError": "Hindi ma-download ang barcode",
+    "downloadBarcode": "I-download ang Barcode",
+    "printBarcode": "I-print ang Barcode",
+    "tapToStartScanning": "I-tap para magsimulang mag-scan",
+    "resolvingAsset": "Hinahanap ang asset...",
+    "scannedCode": "Na-scan na Code",
+    "cameraAccessDenied": "Tinanggihan ang camera access. Mangyaring i-enable ang camera sa browser settings.",
+    "scanAgain": "I-scan Muli",
+    "assetFound": "Nahanap ang asset",
+    "supportedFormats": "Mga Sinusuportahang Format"
   },
   "maintenance": {
     "title": "Pamamahala ng Maintenance",

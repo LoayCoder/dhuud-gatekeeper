@@ -3861,7 +3861,25 @@
       "fair": "مقبول",
       "poor": "ضعيف",
       "critical": "حرج"
-    }
+    },
+    "barcodeScan": "مسح الباركود",
+    "qrCodeScan": "مسح رمز QR",
+    "barcodeLabel": "ملصق الباركود",
+    "code128Format": "صيغة Code 128",
+    "scanBarcode": "مسح الباركود",
+    "barcodeScanDescription": "وجّه الكاميرا نحو باركود Code 128 لتحديد الأصل",
+    "barcodeNotFound": "الأصل غير مسجل",
+    "barcodeDownloaded": "تم تنزيل الباركود بنجاح",
+    "barcodeDownloadError": "فشل تنزيل الباركود",
+    "downloadBarcode": "تنزيل الباركود",
+    "printBarcode": "طباعة الباركود",
+    "tapToStartScanning": "اضغط لبدء المسح",
+    "resolvingAsset": "جارٍ البحث عن الأصل...",
+    "scannedCode": "الكود الممسوح",
+    "cameraAccessDenied": "تم رفض الوصول للكاميرا. يرجى تفعيل الكاميرا في إعدادات المتصفح.",
+    "scanAgain": "مسح مرة أخرى",
+    "assetFound": "تم العثور على الأصل",
+    "supportedFormats": "الصيغ المدعومة"
   },
   "maintenance": {
     "title": "إدارة الصيانة",

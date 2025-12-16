@@ -3775,7 +3775,25 @@
         "invalidDate": "अमान्य तारीख प्रारूप",
         "duplicateSerial": "डुप्लिकेट सीरियल नंबर"
       }
-    }
+    },
+    "barcodeScan": "बारकोड स्कैन",
+    "qrCodeScan": "QR कोड स्कैन",
+    "barcodeLabel": "बारकोड लेबल",
+    "code128Format": "Code 128 फॉर्मेट",
+    "scanBarcode": "बारकोड स्कैन करें",
+    "barcodeScanDescription": "संपत्ति की पहचान के लिए कैमरे को Code 128 बारकोड की ओर करें",
+    "barcodeNotFound": "संपत्ति पंजीकृत नहीं",
+    "barcodeDownloaded": "बारकोड सफलतापूर्वक डाउनलोड हुआ",
+    "barcodeDownloadError": "बारकोड डाउनलोड करने में विफल",
+    "downloadBarcode": "बारकोड डाउनलोड करें",
+    "printBarcode": "बारकोड प्रिंट करें",
+    "tapToStartScanning": "स्कैनिंग शुरू करने के लिए टैप करें",
+    "resolvingAsset": "संपत्ति खोज रहे हैं...",
+    "scannedCode": "स्कैन किया गया कोड",
+    "cameraAccessDenied": "कैमरा एक्सेस अस्वीकृत। कृपया ब्राउज़र सेटिंग्स में कैमरा सक्षम करें।",
+    "scanAgain": "फिर से स्कैन करें",
+    "assetFound": "संपत्ति मिली",
+    "supportedFormats": "समर्थित फॉर्मेट"
   },
   "maintenance": {
     "title": "रखरखाव प्रबंधन",
