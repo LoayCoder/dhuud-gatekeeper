@@ -23,7 +23,7 @@ export interface PermitFormData {
   gps_lng?: number;
   planned_start_time: string;
   planned_end_time: string;
-  work_description: string;
+  job_description: string;
   // Step 2: Operational (dynamic based on permit type)
   operational_data: Record<string, unknown>;
   // Step 3: Safety
@@ -86,7 +86,7 @@ export default function CreatePermit() {
         gps_lng: formData.gps_lng,
         planned_start_time: formData.planned_start_time!,
         planned_end_time: formData.planned_end_time!,
-        work_description: formData.work_description,
+        job_description: formData.job_description,
         emergency_contact_name: formData.emergency_contact_name,
         emergency_contact_number: formData.emergency_contact_number,
         risk_assessment_ref: formData.risk_assessment_ref,
@@ -105,7 +105,7 @@ export default function CreatePermit() {
           formData.type_id &&
           formData.planned_start_time &&
           formData.planned_end_time &&
-          formData.work_description
+          formData.job_description
         );
       case 2:
         return true; // Operational data is optional based on type

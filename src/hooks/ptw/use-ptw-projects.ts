@@ -118,20 +118,22 @@ export function useCreatePTWProject() {
     mutationFn: async (data: Partial<PTWProject>) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
+      const insertData = {
+        name: data.name!,
+        name_ar: data.name_ar,
+        description: data.description,
+        site_id: data.site_id,
+        contractor_company_id: data.contractor_company_id,
+        project_manager_id: data.project_manager_id,
+        start_date: data.start_date!,
+        end_date: data.end_date!,
+        tenant_id: profile.tenant_id,
+        created_by: user.id,
+      };
+
       const { data: result, error } = await supabase
         .from("ptw_projects")
-        .insert({
-          name: data.name!,
-          name_ar: data.name_ar,
-          description: data.description,
-          site_id: data.site_id,
-          contractor_company_id: data.contractor_company_id,
-          project_manager_id: data.project_manager_id,
-          start_date: data.start_date!,
-          end_date: data.end_date!,
-          tenant_id: profile.tenant_id,
-          created_by: user.id,
-        })
+        .insert(insertData as never)
         .select()
         .single();
 
