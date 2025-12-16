@@ -7545,6 +7545,65 @@ export type Database = {
           },
         ]
       }
+      push_notification_preferences: {
+        Row: {
+          approvals_decision: boolean | null
+          approvals_requested: boolean | null
+          created_at: string | null
+          id: string
+          incidents_assigned: boolean | null
+          incidents_new: boolean | null
+          incidents_status_change: boolean | null
+          sla_escalations: boolean | null
+          sla_overdue: boolean | null
+          sla_warnings: boolean | null
+          system_announcements: boolean | null
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approvals_decision?: boolean | null
+          approvals_requested?: boolean | null
+          created_at?: string | null
+          id?: string
+          incidents_assigned?: boolean | null
+          incidents_new?: boolean | null
+          incidents_status_change?: boolean | null
+          sla_escalations?: boolean | null
+          sla_overdue?: boolean | null
+          sla_warnings?: boolean | null
+          system_announcements?: boolean | null
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approvals_decision?: boolean | null
+          approvals_requested?: boolean | null
+          created_at?: string | null
+          id?: string
+          incidents_assigned?: boolean | null
+          incidents_new?: boolean | null
+          incidents_status_change?: boolean | null
+          sla_escalations?: boolean | null
+          sla_overdue?: boolean | null
+          sla_warnings?: boolean | null
+          system_announcements?: boolean | null
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notification_preferences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth_key: string

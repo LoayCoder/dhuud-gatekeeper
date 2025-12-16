@@ -11,6 +11,8 @@ import { toast } from "@/hooks/use-toast";
 import { NotificationHistory } from "./NotificationHistory";
 import { NotificationSoundSettings } from "./NotificationSoundSettings";
 import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
+import { PushNotificationTypePreferences } from "./PushNotificationTypePreferences";
+import { usePushSubscription } from "@/hooks/use-push-subscription";
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -19,6 +21,7 @@ export function NotificationPreferences() {
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
   const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
+  const { isSubscribed } = usePushSubscription();
   
   const [syncNotifications, setSyncNotifications] = useState(() => {
     return localStorage.getItem('sync-notifications-enabled') !== 'false';
@@ -179,6 +182,14 @@ export function NotificationPreferences() {
             {t('notifications.blockedInstructions')}
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* Push Notification Type Preferences - Only show if subscribed */}
+      {isSubscribed && (
+        <>
+          <Separator className="my-6" />
+          <PushNotificationTypePreferences />
+        </>
       )}
 
       <Separator className="my-6" />

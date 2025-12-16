@@ -3323,6 +3323,41 @@
       "level": "Antas"
     }
   },
+  "pushNotifications": {
+    "title": "Mga Uri ng Push Notification",
+    "description": "Piliin kung aling mga kaganapan ang magti-trigger ng push notification sa iyong device",
+    "enableAll": "I-enable Lahat",
+    "disableAll": "I-disable Lahat",
+    "updateError": "Hindi na-update ang mga preference sa notification",
+    "category": {
+      "incidents": "Mga Insidente",
+      "approvals": "Mga Approval",
+      "sla": "SLA at Mga Deadline",
+      "system": "Sistema"
+    },
+    "types": {
+      "incidents_new": "Mga bagong insidente sa aking lugar",
+      "incidents_assigned": "Itinalaga bilang investigator",
+      "incidents_status_change": "Mga pagbabago sa status ng aking mga insidente",
+      "approvals_requested": "Mga request ng approval na nangangailangan ng aking aksyon",
+      "approvals_decision": "Mga desisyon sa aking mga isinumiteng request",
+      "sla_warnings": "Mga aksyon na papalapit sa due date",
+      "sla_overdue": "Mga alerto sa overdue na aksyon",
+      "sla_escalations": "Mga notification sa escalation",
+      "system_announcements": "Mga anunsyo ng platform"
+    },
+    "descriptions": {
+      "incidents_new": "Ma-notify kapag may iniulat na bagong insidente sa iyong itinalagang lugar",
+      "incidents_assigned": "Ma-notify kapag itinalaga ka para mag-investigate ng insidente",
+      "incidents_status_change": "Ma-notify kapag nagbago ang status ng mga insidenteng kinasasangkutan mo",
+      "approvals_requested": "Ma-notify kapag kailangan ng iba ang iyong approval",
+      "approvals_decision": "Ma-notify kapag naaprubahan o tinanggihan ang iyong mga request",
+      "sla_warnings": "Ma-notify 48 oras bago ang due date ng mga aksyon",
+      "sla_overdue": "Ma-notify kapag naging overdue ang mga aksyon",
+      "sla_escalations": "Ma-notify kapag na-escalate ang mga aksyon",
+      "system_announcements": "Tumanggap ng mahahalagang update at anunsyo ng platform"
+    }
+  },
   "currencies": {
     "SAR": "Saudi Riyal",
     "AED": "UAE Dirham",

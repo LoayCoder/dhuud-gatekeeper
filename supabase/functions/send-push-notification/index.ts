@@ -17,10 +17,22 @@ interface PushPayload {
   requireInteraction?: boolean;
 }
 
+type NotificationType = 
+  | 'incidents_new'
+  | 'incidents_assigned'
+  | 'incidents_status_change'
+  | 'approvals_requested'
+  | 'approvals_decision'
+  | 'sla_warnings'
+  | 'sla_overdue'
+  | 'sla_escalations'
+  | 'system_announcements';
+
 interface RequestBody {
   user_ids?: string[];
   tenant_id?: string;
   payload: PushPayload;
+  notification_type?: NotificationType;
 }
 
 serve(async (req) => {
@@ -44,7 +56,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { user_ids, tenant_id, payload }: RequestBody = await req.json();
+    const { user_ids, tenant_id, payload, notification_type }: RequestBody = await req.json();
 
     if (!payload || !payload.title || !payload.body) {
       return new Response(
@@ -76,6 +88,31 @@ serve(async (req) => {
 
     const { data: subscriptions, error: fetchError } = await query;
 
+    // Filter by notification preferences if notification_type is specified
+    let filteredSubscriptions = subscriptions || [];
+    if (notification_type && filteredSubscriptions.length > 0) {
+      const userIds = filteredSubscriptions.map(s => s.user_id);
+      
+      const { data: preferences, error: prefsError } = await supabase
+        .from('push_notification_preferences')
+        .select('user_id, incidents_new, incidents_assigned, incidents_status_change, approvals_requested, approvals_decision, sla_warnings, sla_overdue, sla_escalations, system_announcements')
+        .in('user_id', userIds);
+
+      if (!prefsError && preferences) {
+        // Filter to only users who have this notification type enabled
+        // Users without preferences default to receiving notifications
+        const usersWithPrefsDisabled = (preferences as Array<Record<string, unknown>>)
+          .filter(p => p[notification_type] === false)
+          .map(p => p.user_id as string);
+        
+        filteredSubscriptions = filteredSubscriptions.filter(
+          s => !usersWithPrefsDisabled.includes(s.user_id)
+        );
+        
+        console.log(`Filtered ${subscriptions?.length || 0} subscriptions to ${filteredSubscriptions.length} based on ${notification_type} preferences`);
+      }
+    }
+
     if (fetchError) {
       console.error('Error fetching subscriptions:', fetchError);
       return new Response(
@@ -84,15 +121,15 @@ serve(async (req) => {
       );
     }
 
-    if (!subscriptions || subscriptions.length === 0) {
-      console.log('No active subscriptions found');
+    if (filteredSubscriptions.length === 0) {
+      console.log('No active subscriptions found after filtering');
       return new Response(
         JSON.stringify({ sent: 0, failed: 0, message: 'No active subscriptions' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found ${subscriptions.length} active subscriptions`);
+    console.log(`Found ${filteredSubscriptions.length} active subscriptions after preference filtering`);
 
     // Prepare notification payload
     const notificationPayload = JSON.stringify({
@@ -113,7 +150,7 @@ serve(async (req) => {
     // Send to each subscription
     // Note: In production, you'd use web-push library or implement VAPID signing
     // For now, we'll simulate the push and track delivery
-    for (const subscription of subscriptions) {
+    for (const subscription of filteredSubscriptions) {
       try {
         // Web Push requires VAPID signing - this is a simplified implementation
         // In production, use a proper web-push library or implement full VAPID
@@ -164,7 +201,8 @@ serve(async (req) => {
       JSON.stringify({
         sent,
         failed,
-        total: subscriptions.length,
+        total: filteredSubscriptions.length,
+        filtered_by_preferences: notification_type ? (subscriptions?.length || 0) - filteredSubscriptions.length : 0,
         message: `Successfully sent ${sent} notifications, ${failed} failed`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
