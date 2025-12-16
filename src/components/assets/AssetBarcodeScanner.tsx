@@ -177,16 +177,20 @@ export function AssetBarcodeScanner({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Scanner Container */}
-        <div
-          id={scannerContainerId}
-          ref={containerRef}
-          className={`relative overflow-hidden rounded-lg bg-muted ${
-            isScanning ? 'aspect-[3/1]' : 'aspect-video'
-          }`}
-        >
+        {/* Scanner Container Wrapper */}
+        <div className="relative">
+          {/* Scanner Container - MUST be empty, html5-qrcode controls its DOM */}
+          <div
+            id={scannerContainerId}
+            ref={containerRef}
+            className={`overflow-hidden rounded-lg bg-muted ${
+              isScanning ? 'aspect-[3/1]' : 'aspect-video'
+            }`}
+          />
+          
+          {/* Overlay - positioned outside scanner container to avoid DOM conflicts */}
           {!isScanning && !scannedCode && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
               <Camera className="h-12 w-12 text-muted-foreground" />
               <p className="text-sm text-muted-foreground text-center px-4">
                 {t('assets.tapToStartScanning')}
@@ -194,8 +198,9 @@ export function AssetBarcodeScanner({
             </div>
           )}
           
+          {/* Loading overlay */}
           {scannedCode && isResolving && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 rounded-lg">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
               <p className="text-sm text-muted-foreground">
                 {t('assets.resolvingAsset')}
