@@ -3209,7 +3209,18 @@
     "updateAvailable": "اپڈیٹ دستیاب ہے",
     "updateDescription": "ایپ کا نیا ورژن تیار ہے۔ تازہ ترین خصوصیات حاصل کرنے کے لیے ریفریش کریں۔",
     "updateNow": "ابھی ریفریش کریں",
-    "later": "بعد میں"
+    "later": "بعد میں",
+    "dashboardTitle": "ایپ حاصل کریں",
+    "dashboardSubtitle": "بہترین تجربے کے لیے انسٹال کریں",
+    "benefitOffline": "آف لائن کام کرتا ہے",
+    "benefitFaster": "تیز لوڈنگ",
+    "benefitNotifications": "پش نوٹیفیکیشنز",
+    "benefitHomeScreen": "ہوم اسکرین رسائی",
+    "installNow": "ابھی انسٹال کریں",
+    "maybeLater": "شاید بعد میں",
+    "iosTitle": "iPhone پر انسٹال کریں",
+    "iosStep1": "شیئر پر ٹیپ کریں",
+    "iosStep2": "ہوم اسکرین میں شامل کریں"
   },
   "network": {
     "offline": "آپ آف لائن ہیں",
