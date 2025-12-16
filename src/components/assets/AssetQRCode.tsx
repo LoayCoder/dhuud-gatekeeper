@@ -59,6 +59,9 @@ export function AssetQRCode({
     const svg = qrRef.current?.querySelector('svg');
     if (!svg) return;
     
+    // 3x scale factor for high-quality output (900 effective DPI)
+    const SCALE_FACTOR = 3;
+    
     const contentLines = [assetCode, ...getContentLines()];
     const QUIET_ZONE_PX = mmToPx(2);
     const QR_SIZE_PX = mmToPx(Math.min(sizeSpec.widthMM - 4, sizeSpec.heightMM * 0.6));
@@ -73,10 +76,17 @@ export function AssetQRCode({
     const LABEL_HEIGHT_PX = QR_SIZE_PX + textAreaHeight + QUIET_ZONE_PX * 2;
     
     const canvas = document.createElement('canvas');
-    canvas.width = LABEL_WIDTH_PX;
-    canvas.height = LABEL_HEIGHT_PX;
+    // Scale canvas for high-resolution output
+    canvas.width = LABEL_WIDTH_PX * SCALE_FACTOR;
+    canvas.height = LABEL_HEIGHT_PX * SCALE_FACTOR;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    
+    // Scale context for HiDPI rendering
+    ctx.scale(SCALE_FACTOR, SCALE_FACTOR);
+    
+    // Disable image smoothing for crisp QR edges
+    ctx.imageSmoothingEnabled = false;
     
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, LABEL_WIDTH_PX, LABEL_HEIGHT_PX);
@@ -85,6 +95,9 @@ export function AssetQRCode({
     const img = new Image();
     
     img.onload = () => {
+      // Re-apply after image load for crisp QR rendering
+      ctx.imageSmoothingEnabled = false;
+      
       // QR centered horizontally at top
       const qrX = (LABEL_WIDTH_PX - QR_SIZE_PX) / 2;
       const qrY = QUIET_ZONE_PX;
@@ -106,8 +119,9 @@ export function AssetQRCode({
       });
       
       const link = document.createElement('a');
-      link.download = `${assetCode}-label-300dpi.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `${assetCode}-label-900dpi.png`;
+      // Maximum PNG quality
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     };
     
@@ -236,7 +250,7 @@ export function AssetQRCode({
       </div>
       
       <p className="text-xs text-muted-foreground text-center">
-        {t('assets.labelSize')}: {sizeSpec.label} | Level H | 300 DPI
+        {t('assets.labelSize')}: {sizeSpec.label} | Level H | 900 DPI
       </p>
       
       {/* Action Buttons */}
