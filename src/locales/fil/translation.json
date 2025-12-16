@@ -3793,7 +3793,25 @@
     "cameraAccessDenied": "Tinanggihan ang camera access. Mangyaring i-enable ang camera sa browser settings.",
     "scanAgain": "I-scan Muli",
     "assetFound": "Nahanap ang asset",
-    "supportedFormats": "Mga Sinusuportahang Format"
+    "supportedFormats": "Mga Sinusuportahang Format",
+    "assetLabel": "Label ng Asset",
+    "labelSettings": {
+      "title": "Mga Setting ng Label",
+      "labelSize": "Laki ng Label",
+      "labelContent": "Nilalaman ng Label",
+      "showAssetName": "Pangalan ng Asset",
+      "showZone": "Site / Zone",
+      "showCategory": "Kategorya",
+      "showSerialNumber": "Serial Number",
+      "showDepartment": "Departamento",
+      "customText": "Custom na Teksto",
+      "customTextPlaceholder": "Ilagay ang custom na teksto...",
+      "customTextHint": "Maximum na 50 character",
+      "smallDescription": "Maliit na label",
+      "mediumDescription": "Medium na label",
+      "largeDescription": "Malaking label",
+      "xlargeDescription": "Extra large"
+    }
   },
   "maintenance": {
     "title": "Pamamahala ng Maintenance",

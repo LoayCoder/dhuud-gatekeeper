@@ -3879,7 +3879,25 @@
     "cameraAccessDenied": "تم رفض الوصول للكاميرا. يرجى تفعيل الكاميرا في إعدادات المتصفح.",
     "scanAgain": "مسح مرة أخرى",
     "assetFound": "تم العثور على الأصل",
-    "supportedFormats": "الصيغ المدعومة"
+    "supportedFormats": "الصيغ المدعومة",
+    "assetLabel": "ملصق الأصل",
+    "labelSettings": {
+      "title": "إعدادات الملصق",
+      "labelSize": "حجم الملصق",
+      "labelContent": "محتوى الملصق",
+      "showAssetName": "اسم الأصل",
+      "showZone": "الموقع / المنطقة",
+      "showCategory": "الفئة",
+      "showSerialNumber": "الرقم التسلسلي",
+      "showDepartment": "القسم",
+      "customText": "نص مخصص",
+      "customTextPlaceholder": "أدخل نص مخصص...",
+      "customTextHint": "الحد الأقصى 50 حرفاً",
+      "smallDescription": "ملصق صغير",
+      "mediumDescription": "ملصق متوسط",
+      "largeDescription": "ملصق كبير",
+      "xlargeDescription": "ملصق كبير جداً"
+    }
   },
   "maintenance": {
     "title": "إدارة الصيانة",

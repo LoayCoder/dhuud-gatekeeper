@@ -3808,7 +3808,25 @@
     "cameraAccessDenied": "کیمرے کی رسائی مسترد۔ براہ کرم براؤزر سیٹنگز میں کیمرہ فعال کریں۔",
     "scanAgain": "دوبارہ اسکین کریں",
     "assetFound": "اثاثہ مل گیا",
-    "supportedFormats": "تعاون یافتہ فارمیٹس"
+    "supportedFormats": "تعاون یافتہ فارمیٹس",
+    "assetLabel": "اثاثے کا لیبل",
+    "labelSettings": {
+      "title": "لیبل کی ترتیبات",
+      "labelSize": "لیبل کا سائز",
+      "labelContent": "لیبل کا مواد",
+      "showAssetName": "اثاثے کا نام",
+      "showZone": "سائٹ / زون",
+      "showCategory": "قسم",
+      "showSerialNumber": "سیریل نمبر",
+      "showDepartment": "محکمہ",
+      "customText": "اپنی مرضی کا متن",
+      "customTextPlaceholder": "اپنی مرضی کا متن درج کریں...",
+      "customTextHint": "زیادہ سے زیادہ 50 حروف",
+      "smallDescription": "چھوٹا لیبل",
+      "mediumDescription": "درمیانہ لیبل",
+      "largeDescription": "بڑا لیبل",
+      "xlargeDescription": "بہت بڑا"
+    }
   },
   "maintenance": {
     "title": "دیکھ بھال کا انتظام",

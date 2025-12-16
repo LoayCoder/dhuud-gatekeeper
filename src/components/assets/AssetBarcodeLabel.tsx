@@ -1,39 +1,40 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import JsBarcode from 'jsbarcode';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-
-// Label specifications: 30mm × 20mm at 300 DPI
-const LABEL_SPECS = {
-  LABEL_WIDTH_MM: 30,
-  LABEL_HEIGHT_MM: 20,
-  BARCODE_WIDTH_MM: 20,
-  BARCODE_HEIGHT_MM: 10,
-  DPI: 300,
-  MM_TO_PX: 11.811, // 300 DPI / 25.4mm
-};
+import { LabelSettings, getLabelSizeSpec, DEFAULT_LABEL_SETTINGS } from './label-settings-types';
 
 interface AssetBarcodeLabelProps {
   assetCode: string;
   assetId: string;
+  assetName?: string;
   siteName?: string;
   zoneName?: string;
+  categoryName?: string;
+  serialNumber?: string;
+  departmentName?: string;
+  settings?: LabelSettings;
 }
+
+const MM_TO_PX = 11.811; // 300 DPI / 25.4mm
 
 export function AssetBarcodeLabel({
   assetCode,
   assetId,
+  assetName,
   siteName,
   zoneName,
+  categoryName,
+  serialNumber,
+  departmentName,
+  settings = DEFAULT_LABEL_SETTINGS,
 }: AssetBarcodeLabelProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const barcodeRef = useRef<SVGSVGElement>(null);
-  const [showZone, setShowZone] = useState(true);
+  const sizeSpec = getLabelSizeSpec(settings.size);
 
   useEffect(() => {
     if (barcodeRef.current) {
@@ -50,29 +51,43 @@ export function AssetBarcodeLabel({
     }
   }, [assetCode]);
 
+  const getContentLines = (): string[] => {
+    const lines: string[] = [];
+    const { content } = settings;
+    
+    if (content.showAssetName && assetName) lines.push(assetName);
+    if (content.showZone && (siteName || zoneName)) {
+      lines.push([siteName, zoneName].filter(Boolean).join(' / '));
+    }
+    if (content.showCategory && categoryName) lines.push(categoryName);
+    if (content.showSerialNumber && serialNumber) lines.push(`S/N: ${serialNumber}`);
+    if (content.showDepartment && departmentName) lines.push(departmentName);
+    if (content.customText) lines.push(content.customText);
+    
+    return lines;
+  };
+
   const handleDownload = async () => {
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // 30mm × 20mm at 300 DPI
-      const width = Math.round(LABEL_SPECS.LABEL_WIDTH_MM * LABEL_SPECS.MM_TO_PX);
-      const height = Math.round(LABEL_SPECS.LABEL_HEIGHT_MM * LABEL_SPECS.MM_TO_PX);
+      const width = Math.round(sizeSpec.widthMM * MM_TO_PX);
+      const height = Math.round(sizeSpec.heightMM * MM_TO_PX);
       
       canvas.width = width;
       canvas.height = height;
 
-      // White background
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, width, height);
 
-      // Generate barcode on temporary canvas
       const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const barcodeHeight = Math.min(80, height * 0.4);
       JsBarcode(tempSvg, assetCode, {
         format: 'CODE128',
         width: 3,
-        height: 80,
+        height: barcodeHeight,
         displayValue: true,
         fontSize: 24,
         margin: 10,
@@ -80,30 +95,37 @@ export function AssetBarcodeLabel({
         lineColor: '#000000',
       });
 
-      // Convert SVG to image
       const svgData = new XMLSerializer().serializeToString(tempSvg);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const svgUrl = URL.createObjectURL(svgBlob);
 
       const img = new Image();
       img.onload = () => {
-        // Draw barcode centered horizontally, top area
-        const barcodeX = (width - img.width * 0.7) / 2;
+        const scale = Math.min(0.8, (width * 0.9) / img.width);
+        const barcodeX = (width - img.width * scale) / 2;
         const barcodeY = 10;
-        ctx.drawImage(img, barcodeX, barcodeY, img.width * 0.7, img.height * 0.7);
+        ctx.drawImage(img, barcodeX, barcodeY, img.width * scale, img.height * scale);
 
-        // Draw zone info if enabled
-        if (showZone && (siteName || zoneName)) {
+        const contentLines = getContentLines();
+        if (contentLines.length > 0) {
           ctx.fillStyle = '#000000';
-          ctx.font = 'bold 18px Arial';
           ctx.textAlign = 'center';
-          const zoneText = [siteName, zoneName].filter(Boolean).join(' / ');
-          ctx.fillText(zoneText, width / 2, height - 20);
+          const fontSize = Math.max(14, Math.min(18, height * 0.08));
+          ctx.font = `bold ${fontSize}px Arial`;
+          
+          const startY = barcodeY + img.height * scale + 20;
+          const lineHeight = fontSize * 1.3;
+          
+          contentLines.forEach((line, i) => {
+            const y = startY + (i * lineHeight);
+            if (y < height - 10) {
+              ctx.fillText(line, width / 2, y, width - 20);
+            }
+          });
         }
 
         URL.revokeObjectURL(svgUrl);
 
-        // Download
         const link = document.createElement('a');
         link.download = `barcode-${assetCode}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
@@ -125,11 +147,8 @@ export function AssetBarcodeLabel({
       return;
     }
 
-    const zoneText = showZone && (siteName || zoneName) 
-      ? [siteName, zoneName].filter(Boolean).join(' / ')
-      : '';
+    const contentLines = getContentLines();
 
-    // Generate barcode SVG for print
     const tempSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     JsBarcode(tempSvg, assetCode, {
       format: 'CODE128',
@@ -150,7 +169,7 @@ export function AssetBarcodeLabel({
         <title>${t('assets.printBarcode')}</title>
         <style>
           @page {
-            size: 30mm 20mm;
+            size: ${sizeSpec.widthMM}mm ${sizeSpec.heightMM}mm;
             margin: 0;
           }
           * {
@@ -159,8 +178,8 @@ export function AssetBarcodeLabel({
             box-sizing: border-box;
           }
           body {
-            width: 30mm;
-            height: 20mm;
+            width: ${sizeSpec.widthMM}mm;
+            height: ${sizeSpec.heightMM}mm;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -175,14 +194,14 @@ export function AssetBarcodeLabel({
             gap: 1mm;
           }
           .barcode-container svg {
-            max-width: 28mm;
+            max-width: ${sizeSpec.widthMM - 4}mm;
             height: auto;
           }
-          .zone-text {
-            font-size: 6pt;
+          .content-line {
+            font-size: ${sizeSpec.heightMM > 30 ? '7pt' : '6pt'};
             font-weight: bold;
             text-align: center;
-            max-width: 28mm;
+            max-width: ${sizeSpec.widthMM - 4}mm;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -192,7 +211,7 @@ export function AssetBarcodeLabel({
       <body>
         <div class="barcode-container">
           ${svgString}
-          ${zoneText ? `<div class="zone-text">${zoneText}</div>` : ''}
+          ${contentLines.map(line => `<div class="content-line">${line}</div>`).join('')}
         </div>
       </body>
       </html>
@@ -205,35 +224,25 @@ export function AssetBarcodeLabel({
     }, 250);
   };
 
+  const contentLines = getContentLines();
+
   return (
     <div className="space-y-4">
       {/* Barcode Preview */}
       <div className="flex justify-center p-4 bg-white rounded-lg border">
         <div className="flex flex-col items-center gap-2">
           <svg ref={barcodeRef} />
-          {showZone && (siteName || zoneName) && (
-            <p className="text-xs font-medium text-black">
-              {[siteName, zoneName].filter(Boolean).join(' / ')}
+          {contentLines.map((line, i) => (
+            <p key={i} className="text-xs font-medium text-black text-center">
+              {line}
             </p>
-          )}
+          ))}
         </div>
-      </div>
-
-      {/* Options */}
-      <div className="flex items-center justify-between">
-        <Label htmlFor="show-zone" className="text-sm">
-          {t('assets.includeZoneCode')}
-        </Label>
-        <Switch
-          id="show-zone"
-          checked={showZone}
-          onCheckedChange={setShowZone}
-        />
       </div>
 
       {/* Info */}
       <p className="text-xs text-muted-foreground text-center">
-        {t('assets.code128Format')} • 30×20mm • 300 DPI
+        {t('assets.code128Format')} • {sizeSpec.label} • 300 DPI
       </p>
 
       {/* Actions */}

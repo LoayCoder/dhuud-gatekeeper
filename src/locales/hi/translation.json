@@ -3793,7 +3793,25 @@
     "cameraAccessDenied": "कैमरा एक्सेस अस्वीकृत। कृपया ब्राउज़र सेटिंग्स में कैमरा सक्षम करें।",
     "scanAgain": "फिर से स्कैन करें",
     "assetFound": "संपत्ति मिली",
-    "supportedFormats": "समर्थित फॉर्मेट"
+    "supportedFormats": "समर्थित फॉर्मेट",
+    "assetLabel": "एसेट लेबल",
+    "labelSettings": {
+      "title": "लेबल सेटिंग्स",
+      "labelSize": "लेबल आकार",
+      "labelContent": "लेबल सामग्री",
+      "showAssetName": "एसेट नाम",
+      "showZone": "साइट / ज़ोन",
+      "showCategory": "श्रेणी",
+      "showSerialNumber": "सीरियल नंबर",
+      "showDepartment": "विभाग",
+      "customText": "कस्टम टेक्स्ट",
+      "customTextPlaceholder": "कस्टम टेक्स्ट दर्ज करें...",
+      "customTextHint": "अधिकतम 50 अक्षर",
+      "smallDescription": "छोटा लेबल",
+      "mediumDescription": "मध्यम लेबल",
+      "largeDescription": "बड़ा लेबल",
+      "xlargeDescription": "अतिरिक्त बड़ा"
+    }
   },
   "maintenance": {
     "title": "रखरखाव प्रबंधन",

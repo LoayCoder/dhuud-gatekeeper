@@ -1,59 +1,67 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { LabelSettings, getLabelSizeSpec, DEFAULT_LABEL_SETTINGS } from './label-settings-types';
 
 interface AssetQRCodeProps {
   assetId: string;
   assetCode: string;
-  assetName: string;
+  assetName?: string;
   siteName?: string;
   zoneName?: string;
+  categoryName?: string;
+  serialNumber?: string;
+  departmentName?: string;
   size?: number;
+  settings?: LabelSettings;
 }
 
-// Industrial label specifications - 30mm × 20mm landscape format
-const LABEL_SPECS = {
-  LABEL_WIDTH_MM: 30,
-  LABEL_HEIGHT_MM: 20,
-  QR_SIZE_MM: 15,
-  QUIET_ZONE_MM: 2,
-  DPI: 300,
-};
-
-// Convert mm to pixels at 300 DPI
-const mmToPx = (mm: number, dpi: number = LABEL_SPECS.DPI) => Math.round((mm / 25.4) * dpi);
+const mmToPx = (mm: number, dpi: number = 300) => Math.round((mm / 25.4) * dpi);
 
 export function AssetQRCode({ 
   assetId, 
   assetCode, 
-  assetName, 
+  assetName,
   siteName,
   zoneName,
-  size = 180 
+  categoryName,
+  serialNumber,
+  departmentName,
+  size = 180,
+  settings = DEFAULT_LABEL_SETTINGS,
 }: AssetQRCodeProps) {
   const { t } = useTranslation();
   const qrRef = useRef<HTMLDivElement>(null);
-  const [includeZone, setIncludeZone] = useState(true);
+  const sizeSpec = getLabelSizeSpec(settings.size);
   
-  // Dynamic QR - URL to asset detail page
   const qrValue = `${window.location.origin}/assets/${assetId}`;
-  
-  // Get zone/site code for label
-  const locationCode = zoneName || siteName || '';
+
+  const getContentLines = (): string[] => {
+    const lines: string[] = [];
+    const { content } = settings;
+    
+    if (content.showAssetName && assetName) lines.push(assetName);
+    if (content.showZone && (siteName || zoneName)) {
+      lines.push([siteName, zoneName].filter(Boolean).join(' / '));
+    }
+    if (content.showCategory && categoryName) lines.push(categoryName);
+    if (content.showSerialNumber && serialNumber) lines.push(`S/N: ${serialNumber}`);
+    if (content.showDepartment && departmentName) lines.push(departmentName);
+    if (content.customText) lines.push(content.customText);
+    
+    return lines;
+  };
   
   const handleDownload = () => {
     const svg = qrRef.current?.querySelector('svg');
     if (!svg) return;
     
-    // High resolution at 300 DPI - landscape layout
-    const LABEL_WIDTH_PX = mmToPx(LABEL_SPECS.LABEL_WIDTH_MM);
-    const LABEL_HEIGHT_PX = mmToPx(LABEL_SPECS.LABEL_HEIGHT_MM);
-    const QUIET_ZONE_PX = mmToPx(LABEL_SPECS.QUIET_ZONE_MM);
-    const QR_SIZE_PX = mmToPx(LABEL_SPECS.QR_SIZE_MM - (LABEL_SPECS.QUIET_ZONE_MM * 2));
+    const LABEL_WIDTH_PX = mmToPx(sizeSpec.widthMM);
+    const LABEL_HEIGHT_PX = mmToPx(sizeSpec.heightMM);
+    const QUIET_ZONE_PX = mmToPx(2);
+    const QR_SIZE_PX = Math.min(mmToPx(sizeSpec.heightMM - 4), LABEL_HEIGHT_PX * 0.8);
     
     const canvas = document.createElement('canvas');
     canvas.width = LABEL_WIDTH_PX;
@@ -61,52 +69,38 @@ export function AssetQRCode({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // White background
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, LABEL_WIDTH_PX, LABEL_HEIGHT_PX);
     
-    // Draw QR code
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();
     
     img.onload = () => {
-      // QR on left side with quiet zone, vertically centered
       const qrX = QUIET_ZONE_PX;
       const qrY = (LABEL_HEIGHT_PX - QR_SIZE_PX) / 2;
       ctx.drawImage(img, qrX, qrY, QR_SIZE_PX, QR_SIZE_PX);
       
-      // Text area starts after QR + small gap
       const textAreaX = qrX + QR_SIZE_PX + mmToPx(2);
       const textAreaWidth = LABEL_WIDTH_PX - textAreaX - QUIET_ZONE_PX;
       const textCenterX = textAreaX + (textAreaWidth / 2);
       
-      // Draw Asset ID text
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Asset ID - larger, bold
-      const assetIdFontSize = Math.round(LABEL_HEIGHT_PX * 0.12);
-      ctx.font = `bold ${assetIdFontSize}px Arial, sans-serif`;
+      const contentLines = [assetCode, ...getContentLines()];
+      const fontSize = Math.max(12, Math.min(24, LABEL_HEIGHT_PX * 0.08));
+      const lineHeight = fontSize * 1.3;
+      const totalTextHeight = contentLines.length * lineHeight;
+      const startY = (LABEL_HEIGHT_PX - totalTextHeight) / 2 + fontSize / 2;
       
-      // Calculate vertical positions
-      const hasZone = includeZone && locationCode;
-      const centerY = LABEL_HEIGHT_PX / 2;
+      contentLines.forEach((line, i) => {
+        const isFirst = i === 0;
+        ctx.font = isFirst ? `bold ${fontSize}px Arial, sans-serif` : `${fontSize * 0.85}px Arial, sans-serif`;
+        ctx.fillStyle = isFirst ? '#000000' : '#333333';
+        ctx.fillText(line, textCenterX, startY + i * lineHeight, textAreaWidth - 10);
+      });
       
-      if (hasZone) {
-        // Two lines: Asset ID above center, Zone below
-        ctx.fillText(assetCode, textCenterX, centerY - assetIdFontSize * 0.6);
-        
-        const zoneFontSize = Math.round(LABEL_HEIGHT_PX * 0.09);
-        ctx.font = `${zoneFontSize}px Arial, sans-serif`;
-        ctx.fillStyle = '#333333';
-        ctx.fillText(locationCode, textCenterX, centerY + zoneFontSize * 0.8);
-      } else {
-        // Single line: Asset ID centered
-        ctx.fillText(assetCode, textCenterX, centerY);
-      }
-      
-      // Download as PNG
       const link = document.createElement('a');
       link.download = `${assetCode}-label-300dpi.png`;
       link.href = canvas.toDataURL('image/png');
@@ -124,9 +118,9 @@ export function AssetQRCode({
     if (!svg) return;
     
     const svgData = new XMLSerializer().serializeToString(svg);
-    const { LABEL_WIDTH_MM, LABEL_HEIGHT_MM, QR_SIZE_MM, QUIET_ZONE_MM } = LABEL_SPECS;
-    const effectiveQrSize = QR_SIZE_MM - (QUIET_ZONE_MM * 2);
-    
+    const effectiveQrSize = sizeSpec.heightMM - 4;
+    const contentLines = getContentLines();
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -134,13 +128,13 @@ export function AssetQRCode({
           <title>${assetCode} - Asset Label</title>
           <style>
             @page {
-              size: ${LABEL_WIDTH_MM}mm ${LABEL_HEIGHT_MM}mm;
+              size: ${sizeSpec.widthMM}mm ${sizeSpec.heightMM}mm;
               margin: 0;
             }
             @media print {
               html, body {
-                width: ${LABEL_WIDTH_MM}mm;
-                height: ${LABEL_HEIGHT_MM}mm;
+                width: ${sizeSpec.widthMM}mm;
+                height: ${sizeSpec.heightMM}mm;
                 margin: 0;
                 padding: 0;
               }
@@ -151,12 +145,12 @@ export function AssetQRCode({
               box-sizing: border-box;
             }
             body {
-              width: ${LABEL_WIDTH_MM}mm;
-              height: ${LABEL_HEIGHT_MM}mm;
+              width: ${sizeSpec.widthMM}mm;
+              height: ${sizeSpec.heightMM}mm;
               display: flex;
               flex-direction: row;
               align-items: center;
-              padding: ${QUIET_ZONE_MM}mm;
+              padding: 2mm;
               background: white;
               font-family: Arial, Helvetica, sans-serif;
             }
@@ -182,15 +176,15 @@ export function AssetQRCode({
               overflow: hidden;
             }
             .asset-id {
-              font-size: 8pt;
+              font-size: ${sizeSpec.heightMM > 30 ? '9pt' : '8pt'};
               font-weight: bold;
               text-align: center;
               color: #000000;
               word-break: break-all;
               max-width: 100%;
             }
-            .zone-code {
-              font-size: 6pt;
+            .content-line {
+              font-size: ${sizeSpec.heightMM > 30 ? '7pt' : '6pt'};
               text-align: center;
               color: #333333;
               margin-top: 1mm;
@@ -202,7 +196,7 @@ export function AssetQRCode({
           <div class="qr-container">${svgData}</div>
           <div class="text-container">
             <div class="asset-id">${assetCode}</div>
-            ${includeZone && locationCode ? `<div class="zone-code">${locationCode}</div>` : ''}
+            ${contentLines.map(line => `<div class="content-line">${line}</div>`).join('')}
           </div>
           <script>
             window.onload = function() {
@@ -215,6 +209,8 @@ export function AssetQRCode({
     `);
     printWindow.document.close();
   };
+
+  const contentLines = getContentLines();
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -233,28 +229,14 @@ export function AssetQRCode({
       {/* Label Preview Info */}
       <div className="text-center space-y-1">
         <p className="font-mono font-bold text-sm">{assetCode}</p>
-        {includeZone && locationCode && (
-          <p className="text-xs text-muted-foreground">{locationCode}</p>
-        )}
+        {contentLines.map((line, i) => (
+          <p key={i} className="text-xs text-muted-foreground">{line}</p>
+        ))}
       </div>
       
       <p className="text-xs text-muted-foreground text-center">
-        {t('assets.labelSize')}: 30×20mm | {t('assets.qrSize')}: 15×15mm | Level H | 300 DPI
+        {t('assets.labelSize')}: {sizeSpec.label} | Level H | 300 DPI
       </p>
-      
-      {/* Include Zone Option */}
-      {locationCode && (
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="includeZone"
-            checked={includeZone}
-            onCheckedChange={(checked) => setIncludeZone(checked === true)}
-          />
-          <Label htmlFor="includeZone" className="text-sm cursor-pointer">
-            {t('assets.includeZoneCode')}
-          </Label>
-        </div>
-      )}
       
       {/* Action Buttons */}
       <div className="flex gap-2">
