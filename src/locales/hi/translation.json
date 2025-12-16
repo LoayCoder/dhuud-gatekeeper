@@ -3548,15 +3548,6 @@
     "commissioningDate": "कमीशनिंग तिथि",
     "warrantyExpiry": "वारंटी समाप्ति",
     "nextInspection": "अगला निरीक्षण",
-    "tabs": {
-      "overview": "अवलोकन",
-      "photos": "फ़ोटो",
-      "documents": "दस्तावेज़",
-      "maintenance": "रखरखाव",
-      "incidents": "घटनाएं",
-      "transfers": "स्थानांतरण",
-      "audit": "ऑडिट ट्रेल"
-    },
     "transfer": {
       "title": "संपत्ति स्थानांतरित करें",
       "requestTransfer": "स्थानांतरण का अनुरोध",

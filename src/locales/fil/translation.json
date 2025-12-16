@@ -3548,15 +3548,6 @@
     "commissioningDate": "Petsa ng Commissioning",
     "warrantyExpiry": "Expiry ng Warranty",
     "nextInspection": "Susunod na Inspeksyon",
-    "tabs": {
-      "overview": "Overview",
-      "photos": "Mga Larawan",
-      "documents": "Mga Dokumento",
-      "maintenance": "Maintenance",
-      "incidents": "Mga Insidente",
-      "transfers": "Mga Transfer",
-      "audit": "Audit Trail"
-    },
     "transfer": {
       "title": "I-transfer ang Asset",
       "requestTransfer": "Humiling ng Transfer",
