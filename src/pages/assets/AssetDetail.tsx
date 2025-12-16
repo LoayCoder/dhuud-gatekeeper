@@ -210,6 +210,8 @@ function AssetDetailContent() {
                 assetId={asset.id} 
                 assetCode={asset.asset_code} 
                 assetName={asset.name}
+                siteName={asset.site?.name}
+                zoneName={asset.floor_zone?.name}
                 size={180}
               />
             </div>
