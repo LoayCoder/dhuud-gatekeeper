@@ -35,6 +35,7 @@ export function AssetBarcodeScanner({
   const [scannedCode, setScannedCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const scannerContainerId = 'barcode-scanner-container';
 
   // Resolve asset by scanned code
@@ -120,10 +121,18 @@ export function AssetBarcodeScanner({
   const stopScanning = async () => {
     if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        scannerRef.current = null;
+        const isRunning = scannerRef.current.isScanning;
+        if (isRunning) {
+          await scannerRef.current.stop();
+        }
       } catch (err) {
         console.error('Error stopping scanner:', err);
+      } finally {
+        scannerRef.current = null;
+        // Clear the container to prevent React reconciliation issues
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
       }
     }
     setIsScanning(false);
@@ -139,7 +148,19 @@ export function AssetBarcodeScanner({
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(console.error);
+        try {
+          if (scannerRef.current.isScanning) {
+            scannerRef.current.stop().catch(console.error);
+          }
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        } finally {
+          scannerRef.current = null;
+          // Clear container to prevent React DOM conflicts
+          if (containerRef.current) {
+            containerRef.current.innerHTML = '';
+          }
+        }
       }
     };
   }, []);
@@ -159,6 +180,7 @@ export function AssetBarcodeScanner({
         {/* Scanner Container */}
         <div
           id={scannerContainerId}
+          ref={containerRef}
           className={`relative overflow-hidden rounded-lg bg-muted ${
             isScanning ? 'aspect-[3/1]' : 'aspect-video'
           }`}
