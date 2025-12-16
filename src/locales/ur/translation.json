@@ -4952,5 +4952,105 @@
       "createGatePass": "گیٹ پاس بنائیں",
       "manageInductions": "تعارف کا انتظام"
     }
+  },
+  "ptw": {
+    "nav": {
+      "title": "کام کی اجازت",
+      "dashboard": "PTW ڈیش بورڈ",
+      "projects": "پروجیکٹ موبلائزیشن",
+      "console": "پرمٹ کنسول",
+      "createPermit": "پرمٹ بنائیں"
+    },
+    "dashboard": {
+      "title": "کام کی اجازت کا ڈیش بورڈ",
+      "description": "فعال پروجیکٹس اور کام کے پرمٹس کا جائزہ",
+      "activeProjects": "فعال پروجیکٹس",
+      "pendingMobilization": "زیر التواء موبلائزیشن",
+      "activePermits": "فعال پرمٹس",
+      "pendingPermits": "زیر التواء پرمٹس",
+      "quickActions": "فوری اقدامات",
+      "projectMobilization": "پروجیکٹ موبلائزیشن",
+      "permitConsole": "پرمٹ کنسول",
+      "newPermit": "نیا پرمٹ",
+      "recentPermits": "حالیہ پرمٹس",
+      "noRecentPermits": "کوئی حالیہ پرمٹ نہیں"
+    },
+    "project": {
+      "title": "پروجیکٹ موبلائزیشن",
+      "description": "کام شروع ہونے سے پہلے پروجیکٹ کی اسٹریٹجک کلیئرنسز کا انتظام (گیٹ 1)",
+      "newProject": "نیا پروجیکٹ",
+      "searchProjects": "پروجیکٹس تلاش کریں...",
+      "statusFilter": "حالت کے لحاظ سے فلٹر کریں",
+      "all": "سب",
+      "pendingClearance": "کلیئرنس کے منتظر",
+      "active": "فعال",
+      "suspended": "معطل",
+      "completed": "مکمل",
+      "mobilizationProgress": "موبلائزیشن",
+      "clearanceChecks": "کلیئرنس چیکس",
+      "startDate": "شروع کی تاریخ",
+      "endDate": "اختتام کی تاریخ",
+      "contractor": "ٹھیکیدار"
+    },
+    "permit": {
+      "title": "کام کی اجازت",
+      "console": "پرمٹ کنسول",
+      "consoleDescription": "سائٹ پر تمام فعال کام کے پرمٹس کا حقیقی وقت کا منظر",
+      "map": "نقشہ منظر",
+      "list": "فہرست منظر",
+      "newPermit": "نیا پرمٹ",
+      "createPermit": "نیا کام کا پرمٹ بنائیں",
+      "createDescription": "زیادہ خطرے والی کام کی سرگرمیوں کے لیے پرمٹ کی درخواست کریں",
+      "types": {
+        "hot_work": "گرم کام",
+        "lifting": "لفٹنگ آپریشنز",
+        "radiography": "ریڈیوگرافی",
+        "excavation": "کھدائی",
+        "confined_space": "محدود جگہ",
+        "electrical": "بجلی کا کام",
+        "other": "دیگر زیادہ خطرے والا کام"
+      },
+      "status": {
+        "draft": "مسودہ",
+        "pending_approval": "منظوری کے منتظر",
+        "approved": "منظور شدہ",
+        "active": "فعال",
+        "suspended": "معطل",
+        "closed": "بند",
+        "rejected": "مسترد"
+      },
+      "details": {
+        "permitType": "پرمٹ کی قسم",
+        "project": "پروجیکٹ",
+        "workLocation": "کام کی جگہ",
+        "plannedStart": "منصوبہ بند آغاز",
+        "plannedEnd": "منصوبہ بند اختتام",
+        "workScope": "کام کا دائرہ",
+        "jobDescription": "کام کی تفصیل"
+      }
+    },
+    "wizard": {
+      "basics": "پرمٹ کی بنیادیں",
+      "operational": "آپریشنل تفصیلات",
+      "safety": "حفاظتی تقاضے",
+      "review": "جائزہ اور جمع کرائیں",
+      "next": "اگلا",
+      "previous": "پچھلا",
+      "submit": "پرمٹ جمع کرائیں",
+      "saveDraft": "مسودہ محفوظ کریں"
+    },
+    "clearance": {
+      "title": "پروجیکٹ کلیئرنس",
+      "gate1": "گیٹ 1 - اسٹریٹجک کلیئرنسز",
+      "gate1Description": "پروجیکٹ کو فعال کرنے سے پہلے تمام کلیئرنسز کی منظوری ضروری ہے",
+      "insurance": "انشورنس سرٹیفکیٹ",
+      "hsePlan": "HSE پلان",
+      "riskAssessment": "خطرے کی تشخیص",
+      "methodStatement": "طریقہ بیان",
+      "competencyCerts": "قابلیت کے سرٹیفکیٹس",
+      "approved": "منظور شدہ",
+      "pending": "زیر التواء",
+      "rejected": "مسترد"
+    }
   }
 }

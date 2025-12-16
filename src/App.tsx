@@ -100,6 +100,13 @@ const ContractorPortalWorkers = lazy(() => import(/* webpackChunkName: "contract
 const ContractorPortalProjects = lazy(() => import(/* webpackChunkName: "contractor-portal-projects" */ "./pages/contractor-portal/Projects"));
 const ContractorPortalGatePasses = lazy(() => import(/* webpackChunkName: "contractor-portal-gate-passes" */ "./pages/contractor-portal/GatePasses"));
 
+// PTW (Permit to Work) pages - lazy loaded
+const PTWDashboard = lazy(() => import(/* webpackChunkName: "ptw-dashboard" */ "./pages/ptw/PTWDashboard"));
+const ProjectMobilization = lazy(() => import(/* webpackChunkName: "ptw-projects" */ "./pages/ptw/ProjectMobilization"));
+const PermitConsole = lazy(() => import(/* webpackChunkName: "ptw-console" */ "./pages/ptw/PermitConsole"));
+const CreatePermit = lazy(() => import(/* webpackChunkName: "ptw-create" */ "./pages/ptw/CreatePermit"));
+const PermitView = lazy(() => import(/* webpackChunkName: "ptw-view" */ "./pages/ptw/PermitView"));
+
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
 const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
@@ -220,6 +227,13 @@ const App = () => (
                       <Route path="/contractor-portal/workers" element={<ContractorPortalWorkers />} />
                       <Route path="/contractor-portal/projects" element={<ContractorPortalProjects />} />
                       <Route path="/contractor-portal/gate-passes" element={<ContractorPortalGatePasses />} />
+
+                      {/* PTW (Permit to Work) Routes */}
+                      <Route path="/ptw" element={<HSSERoute><PTWDashboard /></HSSERoute>} />
+                      <Route path="/ptw/projects" element={<HSSERoute><ProjectMobilization /></HSSERoute>} />
+                      <Route path="/ptw/console" element={<HSSERoute><PermitConsole /></HSSERoute>} />
+                      <Route path="/ptw/create" element={<HSSERoute><CreatePermit /></HSSERoute>} />
+                      <Route path="/ptw/permits/:id" element={<HSSERoute><PermitView /></HSSERoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />

@@ -5060,5 +5060,105 @@
       "createGatePass": "إنشاء تصريح بوابة",
       "manageInductions": "إدارة التعريفات"
     }
+  },
+  "ptw": {
+    "nav": {
+      "title": "تصريح العمل",
+      "dashboard": "لوحة تصاريح العمل",
+      "projects": "تعبئة المشاريع",
+      "console": "وحدة التحكم في التصاريح",
+      "createPermit": "إنشاء تصريح"
+    },
+    "dashboard": {
+      "title": "لوحة تصاريح العمل",
+      "description": "نظرة عامة على المشاريع النشطة وتصاريح العمل",
+      "activeProjects": "المشاريع النشطة",
+      "pendingMobilization": "في انتظار التعبئة",
+      "activePermits": "التصاريح النشطة",
+      "pendingPermits": "التصاريح المعلقة",
+      "quickActions": "إجراءات سريعة",
+      "projectMobilization": "تعبئة المشروع",
+      "permitConsole": "وحدة التحكم في التصاريح",
+      "newPermit": "تصريح جديد",
+      "recentPermits": "التصاريح الأخيرة",
+      "noRecentPermits": "لا توجد تصاريح حديثة"
+    },
+    "project": {
+      "title": "تعبئة المشروع",
+      "description": "إدارة الموافقات الاستراتيجية للمشروع قبل بدء العمل (البوابة 1)",
+      "newProject": "مشروع جديد",
+      "searchProjects": "البحث في المشاريع...",
+      "statusFilter": "التصفية حسب الحالة",
+      "all": "الكل",
+      "pendingClearance": "في انتظار الموافقة",
+      "active": "نشط",
+      "suspended": "معلق",
+      "completed": "مكتمل",
+      "mobilizationProgress": "تقدم التعبئة",
+      "clearanceChecks": "فحوصات الموافقة",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "contractor": "المقاول"
+    },
+    "permit": {
+      "title": "تصريح العمل",
+      "console": "وحدة التحكم في التصاريح",
+      "consoleDescription": "عرض فوري لجميع تصاريح العمل النشطة في الموقع",
+      "map": "عرض الخريطة",
+      "list": "عرض القائمة",
+      "newPermit": "تصريح جديد",
+      "createPermit": "إنشاء تصريح عمل جديد",
+      "createDescription": "طلب تصريح لأنشطة العمل عالية المخاطر",
+      "types": {
+        "hot_work": "أعمال ساخنة",
+        "lifting": "عمليات الرفع",
+        "radiography": "التصوير الإشعاعي",
+        "excavation": "الحفر",
+        "confined_space": "الأماكن المحصورة",
+        "electrical": "الأعمال الكهربائية",
+        "other": "أعمال أخرى عالية المخاطر"
+      },
+      "status": {
+        "draft": "مسودة",
+        "pending_approval": "في انتظار الموافقة",
+        "approved": "معتمد",
+        "active": "نشط",
+        "suspended": "معلق",
+        "closed": "مغلق",
+        "rejected": "مرفوض"
+      },
+      "details": {
+        "permitType": "نوع التصريح",
+        "project": "المشروع",
+        "workLocation": "موقع العمل",
+        "plannedStart": "البدء المخطط",
+        "plannedEnd": "الانتهاء المخطط",
+        "workScope": "نطاق العمل",
+        "jobDescription": "وصف الوظيفة"
+      }
+    },
+    "wizard": {
+      "basics": "أساسيات التصريح",
+      "operational": "التفاصيل التشغيلية",
+      "safety": "متطلبات السلامة",
+      "review": "المراجعة والإرسال",
+      "next": "التالي",
+      "previous": "السابق",
+      "submit": "إرسال التصريح",
+      "saveDraft": "حفظ المسودة"
+    },
+    "clearance": {
+      "title": "موافقة المشروع",
+      "gate1": "البوابة 1 - الموافقات الاستراتيجية",
+      "gate1Description": "يجب الموافقة على جميع الموافقات قبل تفعيل المشروع",
+      "insurance": "شهادة التأمين",
+      "hsePlan": "خطة السلامة والصحة والبيئة",
+      "riskAssessment": "تقييم المخاطر",
+      "methodStatement": "بيان الطريقة",
+      "competencyCerts": "شهادات الكفاءة",
+      "approved": "معتمد",
+      "pending": "قيد الانتظار",
+      "rejected": "مرفوض"
+    }
   }
 }
