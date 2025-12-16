@@ -3815,7 +3815,7 @@
       "customDescription": "Ilagay ang iyong mga sukat",
       "widthMM": "Lapad (mm)",
       "heightMM": "Taas (mm)",
-      "customSizeHint": "Lapad: 20-200mm, Taas: 15-150mm"
+      "customSizeHint": "Lapad: 10-200mm, Taas: 10-200mm"
     }
   },
   "maintenance": {

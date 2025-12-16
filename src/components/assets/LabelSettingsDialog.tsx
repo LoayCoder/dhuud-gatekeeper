@@ -37,9 +37,7 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
   };
 
   const handleCustomDimensionChange = (dimension: 'width' | 'height', value: number) => {
-    const clampedValue = dimension === 'width' 
-      ? Math.min(200, Math.max(20, value || 20))
-      : Math.min(150, Math.max(15, value || 15));
+    const clampedValue = Math.min(200, Math.max(10, value || 10));
     
     setLocalSettings(prev => ({
       ...prev,
@@ -149,7 +147,7 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
                     <Input
                       id="custom-width"
                       type="number"
-                      min={20}
+                      min={10}
                       max={200}
                       value={localSettings.customWidthMM}
                       onChange={(e) => handleCustomDimensionChange('width', parseInt(e.target.value))}
@@ -161,8 +159,8 @@ export function LabelSettingsDialog({ settings, onSettingsChange }: LabelSetting
                     <Input
                       id="custom-height"
                       type="number"
-                      min={15}
-                      max={150}
+                      min={10}
+                      max={200}
                       value={localSettings.customHeightMM}
                       onChange={(e) => handleCustomDimensionChange('height', parseInt(e.target.value))}
                       className="h-8"
