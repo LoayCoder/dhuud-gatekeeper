@@ -29,6 +29,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import InviteGatekeeper from "./pages/InviteGatekeeper";
 import NotFound from "./pages/NotFound";
+import Install from "./pages/Install";
 
 // Lazy loaded pages - loaded on demand with named chunks
 const Signup = lazy(() => import(/* webpackChunkName: "auth-signup" */ "./pages/Signup"));
@@ -167,6 +168,7 @@ const App = () => (
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/register" element={<Navigate to="/invite" replace />} />
+                    <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<MFASetup />} />
 
                     {/* Protected Routes with MainLayout */}
