@@ -1,5 +1,6 @@
 export { AssetQRCode } from './AssetQRCode';
 export { AssetQRScanner } from './AssetQRScanner';
+export { AssetBarcodeLabel } from './AssetBarcodeLabel';
 export { MaintenanceScheduleForm } from './MaintenanceScheduleForm';
 export { MaintenanceCompleteDialog } from './MaintenanceCompleteDialog';
 export { MaintenanceScheduleList } from './MaintenanceScheduleList';

@@ -3,7 +3,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
@@ -218,61 +217,56 @@ export function AssetQRCode({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{t('assets.qrCode')}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        {/* QR Code Preview */}
-        <div ref={qrRef} className="p-4 bg-white rounded-lg border">
-          <QRCodeSVG
-            value={qrValue}
-            size={size}
-            level="H"
-            marginSize={0}
-            bgColor="#FFFFFF"
-            fgColor="#000000"
-          />
-        </div>
-        
-        {/* Label Preview Info */}
-        <div className="text-center space-y-1">
-          <p className="font-mono font-bold text-sm">{assetCode}</p>
-          {includeZone && locationCode && (
-            <p className="text-xs text-muted-foreground">{locationCode}</p>
-          )}
-        </div>
-        
-        <p className="text-xs text-muted-foreground text-center">
-          {t('assets.labelSize')}: 30×20mm | {t('assets.qrSize')}: 15×15mm | Level H | 300 DPI
-        </p>
-        
-        {/* Include Zone Option */}
-        {locationCode && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="includeZone"
-              checked={includeZone}
-              onCheckedChange={(checked) => setIncludeZone(checked === true)}
-            />
-            <Label htmlFor="includeZone" className="text-sm cursor-pointer">
-              {t('assets.includeZoneCode')}
-            </Label>
-          </div>
+    <div className="flex flex-col items-center gap-4">
+      {/* QR Code Preview */}
+      <div ref={qrRef} className="p-4 bg-white rounded-lg border">
+        <QRCodeSVG
+          value={qrValue}
+          size={size}
+          level="H"
+          marginSize={0}
+          bgColor="#FFFFFF"
+          fgColor="#000000"
+        />
+      </div>
+      
+      {/* Label Preview Info */}
+      <div className="text-center space-y-1">
+        <p className="font-mono font-bold text-sm">{assetCode}</p>
+        {includeZone && locationCode && (
+          <p className="text-xs text-muted-foreground">{locationCode}</p>
         )}
-        
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleDownload}>
-            <Download className="h-4 w-4 me-2" />
-            {t('assets.download300dpi')}
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Printer className="h-4 w-4 me-2" />
-            {t('common.print')}
-          </Button>
+      </div>
+      
+      <p className="text-xs text-muted-foreground text-center">
+        {t('assets.labelSize')}: 30×20mm | {t('assets.qrSize')}: 15×15mm | Level H | 300 DPI
+      </p>
+      
+      {/* Include Zone Option */}
+      {locationCode && (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="includeZone"
+            checked={includeZone}
+            onCheckedChange={(checked) => setIncludeZone(checked === true)}
+          />
+          <Label htmlFor="includeZone" className="text-sm cursor-pointer">
+            {t('assets.includeZoneCode')}
+          </Label>
         </div>
-      </CardContent>
-    </Card>
+      )}
+      
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={handleDownload}>
+          <Download className="h-4 w-4 me-2" />
+          {t('assets.download300dpi')}
+        </Button>
+        <Button variant="outline" size="sm" onClick={handlePrint}>
+          <Printer className="h-4 w-4 me-2" />
+          {t('common.print')}
+        </Button>
+      </div>
+    </div>
   );
 }
