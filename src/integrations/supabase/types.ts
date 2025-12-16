@@ -6227,6 +6227,1324 @@ export type Database = {
           },
         ]
       }
+      ptw_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          permit_id: string | null
+          project_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          permit_id?: string | null
+          project_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          permit_id?: string | null
+          project_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_audit_logs_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_audit_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_clearance_checks: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          category: string | null
+          comments: string | null
+          created_at: string | null
+          deleted_at: string | null
+          document_url: string | null
+          id: string
+          is_mandatory: boolean | null
+          project_id: string
+          rejection_reason: string | null
+          requirement_name: string
+          requirement_name_ar: string | null
+          sort_order: number | null
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          comments?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document_url?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          project_id: string
+          rejection_reason?: string | null
+          requirement_name: string
+          requirement_name_ar?: string | null
+          sort_order?: number | null
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          comments?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document_url?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          project_id?: string
+          rejection_reason?: string | null
+          requirement_name?: string
+          requirement_name_ar?: string | null
+          sort_order?: number | null
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_clearance_checks_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_clearance_checks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_clearance_checks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_confined_space_details: {
+        Row: {
+          atmospheric_hazards: string | null
+          attendant_name: string
+          attendant_trained: boolean | null
+          communication_method: string | null
+          created_at: string | null
+          emergency_extraction_plan: string | null
+          entry_method: string | null
+          entry_supervisor_name: string
+          max_occupants: number | null
+          permit_id: string
+          physical_hazards: string | null
+          rescue_equipment_available: boolean | null
+          rescue_plan_url: string | null
+          rescue_team_standby: boolean | null
+          space_description: string
+          space_type: string | null
+          updated_at: string | null
+          ventilation_cfm: number | null
+          ventilation_type: string | null
+        }
+        Insert: {
+          atmospheric_hazards?: string | null
+          attendant_name: string
+          attendant_trained?: boolean | null
+          communication_method?: string | null
+          created_at?: string | null
+          emergency_extraction_plan?: string | null
+          entry_method?: string | null
+          entry_supervisor_name: string
+          max_occupants?: number | null
+          permit_id: string
+          physical_hazards?: string | null
+          rescue_equipment_available?: boolean | null
+          rescue_plan_url?: string | null
+          rescue_team_standby?: boolean | null
+          space_description: string
+          space_type?: string | null
+          updated_at?: string | null
+          ventilation_cfm?: number | null
+          ventilation_type?: string | null
+        }
+        Update: {
+          atmospheric_hazards?: string | null
+          attendant_name?: string
+          attendant_trained?: boolean | null
+          communication_method?: string | null
+          created_at?: string | null
+          emergency_extraction_plan?: string | null
+          entry_method?: string | null
+          entry_supervisor_name?: string
+          max_occupants?: number | null
+          permit_id?: string
+          physical_hazards?: string | null
+          rescue_equipment_available?: boolean | null
+          rescue_plan_url?: string | null
+          rescue_team_standby?: boolean | null
+          space_description?: string
+          space_type?: string | null
+          updated_at?: string | null
+          ventilation_cfm?: number | null
+          ventilation_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_confined_space_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_electrical_details: {
+        Row: {
+          arc_flash_boundary_meters: number | null
+          arc_flash_ppe_required: boolean | null
+          created_at: string | null
+          electrical_competent_person: string
+          equipment_isolated: string
+          grounding_applied: boolean | null
+          isolation_points: string
+          loto_applied: boolean | null
+          loto_tag_numbers: string | null
+          permit_id: string
+          test_equipment_used: string | null
+          updated_at: string | null
+          voltage_level: string | null
+          voltage_value: number | null
+          zero_energy_verified: boolean | null
+        }
+        Insert: {
+          arc_flash_boundary_meters?: number | null
+          arc_flash_ppe_required?: boolean | null
+          created_at?: string | null
+          electrical_competent_person: string
+          equipment_isolated: string
+          grounding_applied?: boolean | null
+          isolation_points: string
+          loto_applied?: boolean | null
+          loto_tag_numbers?: string | null
+          permit_id: string
+          test_equipment_used?: string | null
+          updated_at?: string | null
+          voltage_level?: string | null
+          voltage_value?: number | null
+          zero_energy_verified?: boolean | null
+        }
+        Update: {
+          arc_flash_boundary_meters?: number | null
+          arc_flash_ppe_required?: boolean | null
+          created_at?: string | null
+          electrical_competent_person?: string
+          equipment_isolated?: string
+          grounding_applied?: boolean | null
+          isolation_points?: string
+          loto_applied?: boolean | null
+          loto_tag_numbers?: string | null
+          permit_id?: string
+          test_equipment_used?: string | null
+          updated_at?: string | null
+          voltage_level?: string | null
+          voltage_value?: number | null
+          zero_energy_verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_electrical_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_excavation_details: {
+        Row: {
+          access_egress_method: string | null
+          competent_person_name: string
+          created_at: string | null
+          daily_inspection_required: boolean | null
+          depth_meters: number
+          excavation_type: string | null
+          gas_detection_required: boolean | null
+          length_meters: number | null
+          permit_id: string
+          shoring_method: string | null
+          soil_type: string | null
+          spoil_placement_distance_meters: number | null
+          underground_utilities_checked: boolean | null
+          updated_at: string | null
+          utility_clearance_ref: string | null
+          water_accumulation_controls: string | null
+          width_meters: number | null
+        }
+        Insert: {
+          access_egress_method?: string | null
+          competent_person_name: string
+          created_at?: string | null
+          daily_inspection_required?: boolean | null
+          depth_meters: number
+          excavation_type?: string | null
+          gas_detection_required?: boolean | null
+          length_meters?: number | null
+          permit_id: string
+          shoring_method?: string | null
+          soil_type?: string | null
+          spoil_placement_distance_meters?: number | null
+          underground_utilities_checked?: boolean | null
+          updated_at?: string | null
+          utility_clearance_ref?: string | null
+          water_accumulation_controls?: string | null
+          width_meters?: number | null
+        }
+        Update: {
+          access_egress_method?: string | null
+          competent_person_name?: string
+          created_at?: string | null
+          daily_inspection_required?: boolean | null
+          depth_meters?: number
+          excavation_type?: string | null
+          gas_detection_required?: boolean | null
+          length_meters?: number | null
+          permit_id?: string
+          shoring_method?: string | null
+          soil_type?: string | null
+          spoil_placement_distance_meters?: number | null
+          underground_utilities_checked?: boolean | null
+          updated_at?: string | null
+          utility_clearance_ref?: string | null
+          water_accumulation_controls?: string | null
+          width_meters?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_excavation_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_gas_tests: {
+        Row: {
+          action_taken: string | null
+          co_ppm: number | null
+          created_at: string | null
+          equipment_calibration_date: string | null
+          equipment_id: string | null
+          h2s_ppm: number | null
+          id: string
+          lel_percentage: number | null
+          other_gas_name: string | null
+          other_gas_reading: number | null
+          oxygen_percentage: number | null
+          permit_id: string
+          result: string | null
+          tenant_id: string
+          test_location: string | null
+          test_time: string
+          tested_by: string
+        }
+        Insert: {
+          action_taken?: string | null
+          co_ppm?: number | null
+          created_at?: string | null
+          equipment_calibration_date?: string | null
+          equipment_id?: string | null
+          h2s_ppm?: number | null
+          id?: string
+          lel_percentage?: number | null
+          other_gas_name?: string | null
+          other_gas_reading?: number | null
+          oxygen_percentage?: number | null
+          permit_id: string
+          result?: string | null
+          tenant_id: string
+          test_location?: string | null
+          test_time?: string
+          tested_by: string
+        }
+        Update: {
+          action_taken?: string | null
+          co_ppm?: number | null
+          created_at?: string | null
+          equipment_calibration_date?: string | null
+          equipment_id?: string | null
+          h2s_ppm?: number | null
+          id?: string
+          lel_percentage?: number | null
+          other_gas_name?: string | null
+          other_gas_reading?: number | null
+          oxygen_percentage?: number | null
+          permit_id?: string
+          result?: string | null
+          tenant_id?: string
+          test_location?: string | null
+          test_time?: string
+          tested_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_gas_tests_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_gas_tests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_gas_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_hot_work_details: {
+        Row: {
+          combustibles_covered: boolean | null
+          combustibles_removed: boolean | null
+          created_at: string | null
+          equipment_type: string | null
+          fire_alarm_notified: boolean | null
+          fire_extinguisher_location: string | null
+          fire_extinguisher_type: string | null
+          fire_watch_duration_hours: number | null
+          fire_watch_name: string
+          flash_back_arrestors: boolean | null
+          floor_swept: boolean | null
+          gas_test_required: boolean | null
+          permit_id: string
+          sprinklers_impaired: boolean | null
+          updated_at: string | null
+          ventilation_adequate: boolean | null
+          work_type: string | null
+        }
+        Insert: {
+          combustibles_covered?: boolean | null
+          combustibles_removed?: boolean | null
+          created_at?: string | null
+          equipment_type?: string | null
+          fire_alarm_notified?: boolean | null
+          fire_extinguisher_location?: string | null
+          fire_extinguisher_type?: string | null
+          fire_watch_duration_hours?: number | null
+          fire_watch_name: string
+          flash_back_arrestors?: boolean | null
+          floor_swept?: boolean | null
+          gas_test_required?: boolean | null
+          permit_id: string
+          sprinklers_impaired?: boolean | null
+          updated_at?: string | null
+          ventilation_adequate?: boolean | null
+          work_type?: string | null
+        }
+        Update: {
+          combustibles_covered?: boolean | null
+          combustibles_removed?: boolean | null
+          created_at?: string | null
+          equipment_type?: string | null
+          fire_alarm_notified?: boolean | null
+          fire_extinguisher_location?: string | null
+          fire_extinguisher_type?: string | null
+          fire_watch_duration_hours?: number | null
+          fire_watch_name?: string
+          flash_back_arrestors?: boolean | null
+          floor_swept?: boolean | null
+          gas_test_required?: boolean | null
+          permit_id?: string
+          sprinklers_impaired?: boolean | null
+          updated_at?: string | null
+          ventilation_adequate?: boolean | null
+          work_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_hot_work_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_lifting_details: {
+        Row: {
+          crane_capacity_kg: number
+          crane_description: string | null
+          crane_id: string | null
+          created_at: string | null
+          current_wind_speed_knots: number | null
+          exclusion_zone_meters: number | null
+          ground_conditions: string | null
+          lift_height_meters: number | null
+          lift_plan_url: string | null
+          lift_radius_meters: number | null
+          lift_type: string | null
+          load_description: string
+          load_weight_kg: number
+          max_wind_speed_knots: number | null
+          outriggers_extended: boolean | null
+          permit_id: string
+          rigger_certification_ref: string | null
+          rigger_name: string
+          signal_person_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          crane_capacity_kg: number
+          crane_description?: string | null
+          crane_id?: string | null
+          created_at?: string | null
+          current_wind_speed_knots?: number | null
+          exclusion_zone_meters?: number | null
+          ground_conditions?: string | null
+          lift_height_meters?: number | null
+          lift_plan_url?: string | null
+          lift_radius_meters?: number | null
+          lift_type?: string | null
+          load_description: string
+          load_weight_kg: number
+          max_wind_speed_knots?: number | null
+          outriggers_extended?: boolean | null
+          permit_id: string
+          rigger_certification_ref?: string | null
+          rigger_name: string
+          signal_person_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          crane_capacity_kg?: number
+          crane_description?: string | null
+          crane_id?: string | null
+          created_at?: string | null
+          current_wind_speed_knots?: number | null
+          exclusion_zone_meters?: number | null
+          ground_conditions?: string | null
+          lift_height_meters?: number | null
+          lift_plan_url?: string | null
+          lift_radius_meters?: number | null
+          lift_type?: string | null
+          load_description?: string
+          load_weight_kg?: number
+          max_wind_speed_knots?: number | null
+          outriggers_extended?: boolean | null
+          permit_id?: string
+          rigger_certification_ref?: string | null
+          rigger_name?: string
+          signal_person_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_lifting_details_crane_id_fkey"
+            columns: ["crane_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_lifting_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_permits: {
+        Row: {
+          activated_at: string | null
+          actual_end_time: string | null
+          actual_start_time: string | null
+          applicant_id: string
+          building_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closure_notes: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_number: string | null
+          endorsed_at: string | null
+          endorser_id: string | null
+          evacuation_point: string | null
+          extended_until: string | null
+          extension_count: number | null
+          floor_zone_id: string | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          issued_at: string | null
+          issuer_id: string | null
+          job_description: string | null
+          location_details: string | null
+          planned_end_time: string
+          planned_start_time: string
+          project_id: string
+          qr_code_token: string | null
+          reference_id: string
+          requested_at: string | null
+          risk_assessment_ref: string | null
+          simops_notes: string | null
+          simops_status: string | null
+          site_id: string | null
+          status: string | null
+          suspended_at: string | null
+          tenant_id: string
+          type_id: string
+          updated_at: string | null
+          work_scope: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          applicant_id: string
+          building_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_notes?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
+          endorsed_at?: string | null
+          endorser_id?: string | null
+          evacuation_point?: string | null
+          extended_until?: string | null
+          extension_count?: number | null
+          floor_zone_id?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          issued_at?: string | null
+          issuer_id?: string | null
+          job_description?: string | null
+          location_details?: string | null
+          planned_end_time: string
+          planned_start_time: string
+          project_id: string
+          qr_code_token?: string | null
+          reference_id: string
+          requested_at?: string | null
+          risk_assessment_ref?: string | null
+          simops_notes?: string | null
+          simops_status?: string | null
+          site_id?: string | null
+          status?: string | null
+          suspended_at?: string | null
+          tenant_id: string
+          type_id: string
+          updated_at?: string | null
+          work_scope?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          applicant_id?: string
+          building_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_notes?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
+          endorsed_at?: string | null
+          endorser_id?: string | null
+          evacuation_point?: string | null
+          extended_until?: string | null
+          extension_count?: number | null
+          floor_zone_id?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          issued_at?: string | null
+          issuer_id?: string | null
+          job_description?: string | null
+          location_details?: string | null
+          planned_end_time?: string
+          planned_start_time?: string
+          project_id?: string
+          qr_code_token?: string | null
+          reference_id?: string
+          requested_at?: string | null
+          risk_assessment_ref?: string | null
+          simops_notes?: string | null
+          simops_status?: string | null
+          site_id?: string | null
+          status?: string | null
+          suspended_at?: string | null
+          tenant_id?: string
+          type_id?: string
+          updated_at?: string | null
+          work_scope?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_permits_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_endorser_id_fkey"
+            columns: ["endorser_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_floor_zone_id_fkey"
+            columns: ["floor_zone_id"]
+            isOneToOne: false
+            referencedRelation: "floors_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_issuer_id_fkey"
+            columns: ["issuer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_projects: {
+        Row: {
+          building_id: string | null
+          contractor_company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_date: string
+          hsse_coordinator_id: string | null
+          id: string
+          mobilization_percentage: number | null
+          name: string
+          name_ar: string | null
+          project_manager_id: string | null
+          reference_id: string
+          site_id: string | null
+          start_date: string
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          building_id?: string | null
+          contractor_company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_date: string
+          hsse_coordinator_id?: string | null
+          id?: string
+          mobilization_percentage?: number | null
+          name: string
+          name_ar?: string | null
+          project_manager_id?: string | null
+          reference_id: string
+          site_id?: string | null
+          start_date: string
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          building_id?: string | null
+          contractor_company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string
+          hsse_coordinator_id?: string | null
+          id?: string
+          mobilization_percentage?: number | null
+          name?: string
+          name_ar?: string | null
+          project_manager_id?: string | null
+          reference_id?: string
+          site_id?: string | null
+          start_date?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_projects_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_contractor_company_id_fkey"
+            columns: ["contractor_company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_hsse_coordinator_id_fkey"
+            columns: ["hsse_coordinator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_radiography_details: {
+        Row: {
+          barrier_distance_meters: number
+          collimator_used: boolean | null
+          created_at: string | null
+          dosimeter_readings_after: number | null
+          dosimeter_readings_before: number | null
+          emergency_procedures_reviewed: boolean | null
+          exposure_time_minutes: number | null
+          isotope_type: string
+          permit_id: string
+          radiation_area_marked: boolean | null
+          rpo_license_number: string | null
+          rpo_name: string
+          source_serial_number: string | null
+          source_strength_curies: number | null
+          survey_meter_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          barrier_distance_meters: number
+          collimator_used?: boolean | null
+          created_at?: string | null
+          dosimeter_readings_after?: number | null
+          dosimeter_readings_before?: number | null
+          emergency_procedures_reviewed?: boolean | null
+          exposure_time_minutes?: number | null
+          isotope_type: string
+          permit_id: string
+          radiation_area_marked?: boolean | null
+          rpo_license_number?: string | null
+          rpo_name: string
+          source_serial_number?: string | null
+          source_strength_curies?: number | null
+          survey_meter_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          barrier_distance_meters?: number
+          collimator_used?: boolean | null
+          created_at?: string | null
+          dosimeter_readings_after?: number | null
+          dosimeter_readings_before?: number | null
+          emergency_procedures_reviewed?: boolean | null
+          exposure_time_minutes?: number | null
+          isotope_type?: string
+          permit_id?: string
+          radiation_area_marked?: boolean | null
+          rpo_license_number?: string | null
+          rpo_name?: string
+          source_serial_number?: string | null
+          source_strength_curies?: number | null
+          survey_meter_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_radiography_details_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: true
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_safety_requirements: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          is_critical: boolean | null
+          is_mandatory: boolean | null
+          ptw_type_id: string | null
+          requirement_text: string
+          requirement_text_ar: string | null
+          sort_order: number | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          is_mandatory?: boolean | null
+          ptw_type_id?: string | null
+          requirement_text: string
+          requirement_text_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          is_mandatory?: boolean | null
+          ptw_type_id?: string | null
+          requirement_text?: string
+          requirement_text_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_safety_requirements_ptw_type_id_fkey"
+            columns: ["ptw_type_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_safety_requirements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_safety_responses: {
+        Row: {
+          comments: string | null
+          created_at: string | null
+          id: string
+          is_checked: boolean | null
+          is_not_applicable: boolean | null
+          permit_id: string
+          requirement_id: string
+          tenant_id: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          is_checked?: boolean | null
+          is_not_applicable?: boolean | null
+          permit_id: string
+          requirement_id: string
+          tenant_id: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          is_checked?: boolean | null
+          is_not_applicable?: boolean | null
+          permit_id?: string
+          requirement_id?: string
+          tenant_id?: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_safety_responses_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_safety_responses_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_safety_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_safety_responses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_safety_responses_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_signatures: {
+        Row: {
+          comments: string | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          permit_id: string
+          signature_data: string | null
+          signature_type: string
+          signed_at: string
+          signer_id: string
+          signer_name: string
+          signer_role: string | null
+          tenant_id: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          permit_id: string
+          signature_data?: string | null
+          signature_type: string
+          signed_at?: string
+          signer_id: string
+          signer_name: string
+          signer_role?: string | null
+          tenant_id: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          permit_id?: string
+          signature_data?: string | null
+          signature_type?: string
+          signed_at?: string
+          signer_id?: string
+          signer_name?: string
+          signer_role?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_signatures_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_signatures_signer_id_fkey"
+            columns: ["signer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_signatures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_simops_rules: {
+        Row: {
+          auto_reject: boolean | null
+          conflict_type: string | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          minimum_distance_meters: number
+          permit_type_a_id: string
+          permit_type_b_id: string
+          rule_description: string | null
+          rule_description_ar: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_reject?: boolean | null
+          conflict_type?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_distance_meters?: number
+          permit_type_a_id: string
+          permit_type_b_id: string
+          rule_description?: string | null
+          rule_description_ar?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_reject?: boolean | null
+          conflict_type?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_distance_meters?: number
+          permit_type_a_id?: string
+          permit_type_b_id?: string
+          rule_description?: string | null
+          rule_description_ar?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_simops_rules_permit_type_a_id_fkey"
+            columns: ["permit_type_a_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_simops_rules_permit_type_b_id_fkey"
+            columns: ["permit_type_b_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_simops_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_types: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          deleted_at: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          requires_gas_test: boolean | null
+          requires_loto: boolean | null
+          risk_level: string | null
+          sort_order: number | null
+          tenant_id: string | null
+          updated_at: string | null
+          validity_hours: number | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          requires_gas_test?: boolean | null
+          requires_loto?: boolean | null
+          risk_level?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          validity_hours?: number | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          requires_gas_test?: boolean | null
+          requires_loto?: boolean | null
+          risk_level?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          validity_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth_key: string
@@ -8781,6 +10099,7 @@ export type Database = {
       }
       has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
+      has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
