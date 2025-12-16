@@ -3901,7 +3901,7 @@
       "customDescription": "أدخل الأبعاد المخصصة",
       "widthMM": "العرض (مم)",
       "heightMM": "الارتفاع (مم)",
-      "customSizeHint": "العرض: 20-200مم، الارتفاع: 15-150مم"
+      "customSizeHint": "العرض: 10-200مم، الارتفاع: 10-200مم"
     }
   },
   "maintenance": {

@@ -3815,7 +3815,7 @@
       "customDescription": "अपने आयाम दर्ज करें",
       "widthMM": "चौड़ाई (मिमी)",
       "heightMM": "ऊंचाई (मिमी)",
-      "customSizeHint": "चौड़ाई: 20-200मिमी, ऊंचाई: 15-150मिमी"
+      "customSizeHint": "चौड़ाई: 10-200मिमी, ऊंचाई: 10-200मिमी"
     }
   },
   "maintenance": {

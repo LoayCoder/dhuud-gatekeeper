@@ -4066,7 +4066,7 @@
       "customDescription": "Enter your own dimensions",
       "widthMM": "Width (mm)",
       "heightMM": "Height (mm)",
-      "customSizeHint": "Width: 20-200mm, Height: 15-150mm"
+      "customSizeHint": "Width: 10-200mm, Height: 10-200mm"
     }
   },
   "maintenance": {
