@@ -8,14 +8,14 @@ export interface PTWType {
   name: string;
   name_ar: string | null;
   code: string;
-  risk_level: string;
+  risk_level: string | null;
   requires_gas_test: boolean;
   requires_loto: boolean;
   validity_hours: number;
   icon_name: string | null;
   color: string | null;
-  description: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
 }
 
@@ -31,14 +31,13 @@ export function usePTWTypes() {
       const { data, error } = await supabase
         .from("ptw_types")
         .select(`
-          id, tenant_id, name, name_ar, code, risk_level,
-          requires_gas_test, requires_loto,
-          validity_hours, icon_name, color, description, is_active, created_at
+          id, tenant_id, name, name_ar, code, risk_level, requires_gas_test,
+          requires_loto, validity_hours, icon_name, color, is_active, sort_order, created_at
         `)
         .eq("tenant_id", tenantId)
         .eq("is_active", true)
         .is("deleted_at", null)
-        .order("name");
+        .order("sort_order");
 
       if (error) throw error;
       return data as PTWType[];
