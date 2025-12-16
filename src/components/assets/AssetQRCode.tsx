@@ -59,10 +59,18 @@ export function AssetQRCode({
     const svg = qrRef.current?.querySelector('svg');
     if (!svg) return;
     
-    const LABEL_WIDTH_PX = mmToPx(sizeSpec.widthMM);
-    const LABEL_HEIGHT_PX = mmToPx(sizeSpec.heightMM);
+    const contentLines = [assetCode, ...getContentLines()];
     const QUIET_ZONE_PX = mmToPx(2);
-    const QR_SIZE_PX = Math.min(mmToPx(sizeSpec.heightMM - 4), LABEL_HEIGHT_PX * 0.8);
+    const QR_SIZE_PX = mmToPx(Math.min(sizeSpec.widthMM - 4, sizeSpec.heightMM * 0.6));
+    
+    // Calculate text area height
+    const fontSize = Math.max(12, Math.min(24, QR_SIZE_PX * 0.1));
+    const lineHeight = fontSize * 1.3;
+    const textAreaHeight = contentLines.length * lineHeight + mmToPx(2);
+    
+    // Vertical layout: QR on top, text below
+    const LABEL_WIDTH_PX = mmToPx(sizeSpec.widthMM);
+    const LABEL_HEIGHT_PX = QR_SIZE_PX + textAreaHeight + QUIET_ZONE_PX * 2;
     
     const canvas = document.createElement('canvas');
     canvas.width = LABEL_WIDTH_PX;
@@ -77,29 +85,24 @@ export function AssetQRCode({
     const img = new Image();
     
     img.onload = () => {
-      const qrX = QUIET_ZONE_PX;
-      const qrY = (LABEL_HEIGHT_PX - QR_SIZE_PX) / 2;
+      // QR centered horizontally at top
+      const qrX = (LABEL_WIDTH_PX - QR_SIZE_PX) / 2;
+      const qrY = QUIET_ZONE_PX;
       ctx.drawImage(img, qrX, qrY, QR_SIZE_PX, QR_SIZE_PX);
       
-      const textAreaX = qrX + QR_SIZE_PX + mmToPx(2);
-      const textAreaWidth = LABEL_WIDTH_PX - textAreaX - QUIET_ZONE_PX;
-      const textCenterX = textAreaX + (textAreaWidth / 2);
+      // Text below QR code
+      const textStartY = qrY + QR_SIZE_PX + mmToPx(2);
+      const textCenterX = LABEL_WIDTH_PX / 2;
       
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      const contentLines = [assetCode, ...getContentLines()];
-      const fontSize = Math.max(12, Math.min(24, LABEL_HEIGHT_PX * 0.08));
-      const lineHeight = fontSize * 1.3;
-      const totalTextHeight = contentLines.length * lineHeight;
-      const startY = (LABEL_HEIGHT_PX - totalTextHeight) / 2 + fontSize / 2;
+      ctx.textBaseline = 'top';
       
       contentLines.forEach((line, i) => {
         const isFirst = i === 0;
         ctx.font = isFirst ? `bold ${fontSize}px Arial, sans-serif` : `${fontSize * 0.85}px Arial, sans-serif`;
         ctx.fillStyle = isFirst ? '#000000' : '#333333';
-        ctx.fillText(line, textCenterX, startY + i * lineHeight, textAreaWidth - 10);
+        ctx.fillText(line, textCenterX, textStartY + i * lineHeight, LABEL_WIDTH_PX - QUIET_ZONE_PX * 2);
       });
       
       const link = document.createElement('a');
@@ -119,7 +122,7 @@ export function AssetQRCode({
     if (!svg) return;
     
     const svgData = new XMLSerializer().serializeToString(svg);
-    const effectiveQrSize = sizeSpec.heightMM - 4;
+    const effectiveQrSize = Math.min(sizeSpec.widthMM - 4, sizeSpec.heightMM * 0.6);
     const contentLines = getContentLines();
 
     printWindow.document.write(`
@@ -129,13 +132,12 @@ export function AssetQRCode({
           <title>${assetCode} - Asset Label</title>
           <style>
             @page {
-              size: ${sizeSpec.widthMM}mm ${sizeSpec.heightMM}mm;
+              size: ${sizeSpec.widthMM}mm auto;
               margin: 0;
             }
             @media print {
               html, body {
                 width: ${sizeSpec.widthMM}mm;
-                height: ${sizeSpec.heightMM}mm;
                 margin: 0;
                 padding: 0;
               }
@@ -147,9 +149,8 @@ export function AssetQRCode({
             }
             body {
               width: ${sizeSpec.widthMM}mm;
-              height: ${sizeSpec.heightMM}mm;
               display: flex;
-              flex-direction: row;
+              flex-direction: column;
               align-items: center;
               padding: 2mm;
               background: white;
@@ -168,16 +169,16 @@ export function AssetQRCode({
               height: 100%;
             }
             .text-container {
-              flex: 1;
               display: flex;
               flex-direction: column;
               justify-content: center;
               align-items: center;
-              padding-left: 2mm;
+              padding-top: 2mm;
               overflow: hidden;
+              width: 100%;
             }
             .asset-id {
-              font-size: ${sizeSpec.heightMM > 30 ? '9pt' : '8pt'};
+              font-size: ${sizeSpec.widthMM > 40 ? '9pt' : '8pt'};
               font-weight: bold;
               text-align: center;
               color: #000000;
@@ -185,7 +186,7 @@ export function AssetQRCode({
               max-width: 100%;
             }
             .content-line {
-              font-size: ${sizeSpec.heightMM > 30 ? '7pt' : '6pt'};
+              font-size: ${sizeSpec.widthMM > 40 ? '7pt' : '6pt'};
               text-align: center;
               color: #333333;
               margin-top: 1mm;
@@ -215,8 +216,8 @@ export function AssetQRCode({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* QR Code Preview */}
-      <div ref={qrRef} className="p-4 bg-white rounded-lg border">
+      {/* QR Code Preview with Label Content Below */}
+      <div ref={qrRef} className="p-4 bg-white rounded-lg border flex flex-col items-center">
         <QRCodeSVG
           value={qrValue}
           size={size}
@@ -225,14 +226,13 @@ export function AssetQRCode({
           bgColor="#FFFFFF"
           fgColor="#000000"
         />
-      </div>
-      
-      {/* Label Preview Info */}
-      <div className="text-center space-y-1">
-        <p className="font-mono font-bold text-sm">{assetCode}</p>
-        {contentLines.map((line, i) => (
-          <p key={i} className="text-xs text-muted-foreground">{line}</p>
-        ))}
+        {/* Label content below QR code */}
+        <div className="mt-2 text-center">
+          <p className="font-mono font-bold text-sm text-black">{assetCode}</p>
+          {contentLines.map((line, i) => (
+            <p key={i} className="text-xs text-gray-600">{line}</p>
+          ))}
+        </div>
       </div>
       
       <p className="text-xs text-muted-foreground text-center">
