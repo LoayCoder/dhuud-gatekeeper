@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+      font-family: 'IBM Plex Sans Arabic', 'Rubik', system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 17%) 100%);
       min-height: 100vh;
       display: flex;
@@ -22,13 +22,15 @@
     }
     .container {
       text-align: center;
-      max-width: 400px;
+      max-width: 420px;
+      width: 100%;
     }
     .icon {
       width: 80px;
       height: 80px;
       margin: 0 auto 1.5rem;
-      opacity: 0.8;
+      opacity: 0.9;
+      color: hsl(221 83% 53%);
     }
     .icon svg {
       width: 100%;
@@ -39,48 +41,302 @@
       font-weight: 600;
       margin-bottom: 0.75rem;
     }
-    p {
+    .subtitle {
       color: hsl(215 20% 65%);
       line-height: 1.6;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
-    .retry-btn {
+    .cached-info {
+      background: hsl(221 83% 53% / 0.15);
+      border: 1px solid hsl(221 83% 53% / 0.3);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: hsl(210 40% 90%);
+    }
+    .cached-info svg {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-inline-end: 0.5rem;
+    }
+    .pending-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: hsl(221 83% 53%);
-      color: white;
+      background: hsl(38 92% 50% / 0.2);
+      border: 1px solid hsl(38 92% 50% / 0.4);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      color: hsl(38 92% 70%);
+    }
+    .pending-badge.hidden {
+      display: none;
+    }
+    .pending-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      color: hsl(0 84% 60%);
+    }
+    .status-indicator .dot {
+      width: 8px;
+      height: 8px;
+      background: hsl(0 84% 60%);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
       border: none;
       padding: 0.75rem 1.5rem;
       border-radius: 0.5rem;
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      text-decoration: none;
     }
-    .retry-btn:hover {
+    .btn-primary {
+      background: hsl(221 83% 53%);
+      color: white;
+    }
+    .btn-primary:hover {
       background: hsl(221 83% 45%);
     }
-    .retry-btn:active {
+    .btn-primary:active {
       transform: scale(0.98);
+    }
+    .btn-secondary {
+      background: hsl(217 33% 25%);
+      color: hsl(210 40% 90%);
+    }
+    .btn-secondary:hover {
+      background: hsl(217 33% 30%);
+    }
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .lang-selector {
+      position: absolute;
+      top: 1rem;
+      inset-inline-end: 1rem;
+    }
+    .lang-selector select {
+      background: hsl(217 33% 20%);
+      color: hsl(210 40% 90%);
+      border: 1px solid hsl(217 33% 30%);
+      border-radius: 0.375rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .lang-selector select:focus {
+      outline: none;
+      border-color: hsl(221 83% 53%);
+    }
+    /* RTL support */
+    [dir="rtl"] {
+      text-align: center;
     }
   </style>
 </head>
 <body>
+  <div class="lang-selector">
+    <select id="langSelect" onchange="changeLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
+      <option value="ur">اردو</option>
+      <option value="hi">हिन्दी</option>
+      <option value="fil">Filipino</option>
+    </select>
+  </div>
+
   <div class="container">
+    <!-- WiFi Off Icon -->
     <div class="icon">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" stroke-width="2" />
       </svg>
     </div>
-    <h1>You're Offline</h1>
-    <p>It looks like you've lost your internet connection. Please check your network and try again.</p>
-    <button class="retry-btn" onclick="window.location.reload()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+
+    <h1 id="title">You're Offline</h1>
+    <p class="subtitle" id="subtitle">It looks like you've lost your internet connection.</p>
+
+    <div class="cached-info" id="cachedInfo">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      Try Again
-    </button>
+      <span id="cachedText">Your cached data is still available. You can continue viewing previously loaded content.</span>
+    </div>
+
+    <div class="pending-badge hidden" id="pendingBadge">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span id="pendingText">0 pending changes will sync when online</span>
+    </div>
+
+    <div class="status-indicator">
+      <span class="dot"></span>
+      <span id="statusText">No network connection</span>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-primary" onclick="window.location.reload()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span id="retryBtn">Try Again</span>
+      </button>
+      <a href="/" class="btn btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span id="dashboardBtn">Go to Dashboard</span>
+      </a>
+    </div>
   </div>
+
+  <script>
+    const translations = {
+      en: {
+        title: "You're Offline",
+        subtitle: "It looks like you've lost your internet connection.",
+        cachedText: "Your cached data is still available. You can continue viewing previously loaded content.",
+        pendingText: "{count} pending changes will sync when online",
+        statusText: "No network connection",
+        retryBtn: "Try Again",
+        dashboardBtn: "Go to Dashboard",
+        dir: "ltr"
+      },
+      ar: {
+        title: "أنت غير متصل",
+        subtitle: "يبدو أنك فقدت اتصالك بالإنترنت.",
+        cachedText: "البيانات المخزنة مؤقتاً لا تزال متاحة. يمكنك الاستمرار في عرض المحتوى الذي تم تحميله مسبقاً.",
+        pendingText: "{count} تغييرات معلقة ستتم مزامنتها عند الاتصال",
+        statusText: "لا يوجد اتصال بالشبكة",
+        retryBtn: "حاول مرة أخرى",
+        dashboardBtn: "الذهاب إلى لوحة التحكم",
+        dir: "rtl"
+      },
+      ur: {
+        title: "آپ آف لائن ہیں",
+        subtitle: "ایسا لگتا ہے کہ آپ کا انٹرنیٹ کنکشن منقطع ہو گیا ہے۔",
+        cachedText: "آپ کا کیش شدہ ڈیٹا اب بھی دستیاب ہے۔ آپ پہلے سے لوڈ کردہ مواد دیکھ سکتے ہیں۔",
+        pendingText: "{count} زیر التواء تبدیلیاں آن لائن ہونے پر مطابقت پذیر ہوں گی",
+        statusText: "نیٹ ورک کنکشن نہیں ہے",
+        retryBtn: "دوبارہ کوشش کریں",
+        dashboardBtn: "ڈیش بورڈ پر جائیں",
+        dir: "rtl"
+      },
+      hi: {
+        title: "आप ऑफ़लाइन हैं",
+        subtitle: "ऐसा लगता है कि आपका इंटरनेट कनेक्शन टूट गया है।",
+        cachedText: "आपका कैश्ड डेटा अभी भी उपलब्ध है। आप पहले से लोड की गई सामग्री देखना जारी रख सकते हैं।",
+        pendingText: "{count} लंबित परिवर्तन ऑनलाइन होने पर सिंक होंगे",
+        statusText: "कोई नेटवर्क कनेक्शन नहीं",
+        retryBtn: "पुनः प्रयास करें",
+        dashboardBtn: "डैशबोर्ड पर जाएं",
+        dir: "ltr"
+      },
+      fil: {
+        title: "Ikaw ay Offline",
+        subtitle: "Mukhang nawala ang iyong koneksyon sa internet.",
+        cachedText: "Ang iyong naka-cache na data ay available pa rin. Maaari kang magpatuloy sa pagtingin ng dating na-load na nilalaman.",
+        pendingText: "{count} nakabinbing pagbabago ang magsi-sync kapag online",
+        statusText: "Walang koneksyon sa network",
+        retryBtn: "Subukan Muli",
+        dashboardBtn: "Pumunta sa Dashboard",
+        dir: "ltr"
+      }
+    };
+
+    function getStoredLanguage() {
+      try {
+        const i18nLang = localStorage.getItem('i18nextLng');
+        if (i18nLang && translations[i18nLang.split('-')[0]]) {
+          return i18nLang.split('-')[0];
+        }
+        const browserLang = navigator.language.split('-')[0];
+        if (translations[browserLang]) {
+          return browserLang;
+        }
+      } catch (e) {}
+      return 'en';
+    }
+
+    function getPendingCount() {
+      try {
+        const queue = localStorage.getItem('offline-mutation-queue');
+        if (queue) {
+          const parsed = JSON.parse(queue);
+          return Array.isArray(parsed) ? parsed.length : 0;
+        }
+      } catch (e) {}
+      return 0;
+    }
+
+    function changeLanguage(lang) {
+      const t = translations[lang] || translations.en;
+      
+      document.documentElement.lang = lang;
+      document.documentElement.dir = t.dir;
+      
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('subtitle').textContent = t.subtitle;
+      document.getElementById('cachedText').textContent = t.cachedText;
+      document.getElementById('statusText').textContent = t.statusText;
+      document.getElementById('retryBtn').textContent = t.retryBtn;
+      document.getElementById('dashboardBtn').textContent = t.dashboardBtn;
+      
+      const pendingCount = getPendingCount();
+      const pendingBadge = document.getElementById('pendingBadge');
+      if (pendingCount > 0) {
+        pendingBadge.classList.remove('hidden');
+        document.getElementById('pendingText').textContent = t.pendingText.replace('{count}', pendingCount);
+      } else {
+        pendingBadge.classList.add('hidden');
+      }
+      
+      document.getElementById('langSelect').value = lang;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+      const lang = getStoredLanguage();
+      changeLanguage(lang);
+    });
+
+    // Listen for online status
+    window.addEventListener('online', function() {
+      window.location.reload();
+    });
+  </script>
 </body>
 </html>
