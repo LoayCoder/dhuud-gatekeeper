@@ -216,6 +216,55 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Push event handler - receive and display server push notifications
+self.addEventListener('push', (event) => {
+  if (!event.data) {
+    console.log('[SW] Push received but no data');
+    return;
+  }
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    payload = {
+      title: 'New Notification',
+      body: event.data.text(),
+      type: 'info'
+    };
+  }
+
+  const {
+    title = 'DHUUD Platform',
+    body = 'You have a new notification',
+    icon = '/pwa-192x192.png',
+    badge = '/pwa-192x192.png',
+    tag,
+    data = {},
+    actions = [],
+    requireInteraction = false,
+    vibrate = [100, 50, 100],
+  } = payload;
+
+  const notificationOptions = {
+    body,
+    icon,
+    badge,
+    tag: tag || `push-${Date.now()}`,
+    data: { ...data, timestamp: Date.now() },
+    actions,
+    requireInteraction,
+    vibrate,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, notificationOptions).then(() => {
+      // Store in notification history via client
+      storeNotificationInHistory(title, body, data.type || 'info');
+    })
+  );
+});
+
 // Background Sync event handler
 self.addEventListener('sync', (event) => {
   if (event.tag === SYNC_TAG) {

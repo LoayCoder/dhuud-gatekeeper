@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-// VAPID public key would be provided by environment
+// VAPID public key from environment
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 interface PushSubscriptionState {
@@ -24,6 +25,54 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray.buffer;
+}
+
+/**
+ * Save subscription to Supabase database
+ */
+async function saveSubscriptionToDatabase(
+  userId: string,
+  tenantId: string,
+  subscription: PushSubscriptionJSON
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        user_id: userId,
+        tenant_id: tenantId,
+        endpoint: subscription.endpoint,
+        p256dh_key: subscription.keys?.p256dh,
+        auth_key: subscription.keys?.auth,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,endpoint',
+      });
+
+    if (error) {
+      console.error('Failed to save subscription to database:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error saving subscription:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark subscription as inactive in database
+ */
+async function deactivateSubscriptionInDatabase(endpoint: string): Promise<void> {
+  try {
+    await supabase
+      .from('push_subscriptions')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('endpoint', endpoint);
+  } catch (error) {
+    console.error('Error deactivating subscription:', error);
+  }
 }
 
 /**
@@ -76,7 +125,15 @@ export function usePushSubscription() {
     if (!isSupported || !VAPID_PUBLIC_KEY) {
       setState((prev) => ({
         ...prev,
-        error: 'Push notifications are not supported or not configured',
+        error: 'Push notifications are not supported or VAPID key not configured',
+      }));
+      return false;
+    }
+
+    if (!user?.id || !profile?.tenant_id) {
+      setState((prev) => ({
+        ...prev,
+        error: 'User must be logged in to subscribe',
       }));
       return false;
     }
@@ -103,17 +160,22 @@ export function usePushSubscription() {
 
       const subscriptionJSON = subscription.toJSON();
 
-      const subscriptionData = {
-        user_id: user?.id,
-        tenant_id: profile?.tenant_id,
-        endpoint: subscriptionJSON.endpoint,
-        p256dh_key: subscriptionJSON.keys?.p256dh,
-        auth_key: subscriptionJSON.keys?.auth,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      };
+      // Save to Supabase database for server-side push
+      const saved = await saveSubscriptionToDatabase(
+        user.id,
+        profile.tenant_id,
+        subscriptionJSON
+      );
 
-      localStorage.setItem('push_subscription', JSON.stringify(subscriptionData));
+      if (!saved) {
+        console.warn('Subscription created but failed to save to database');
+      }
+
+      // Also keep in localStorage as backup
+      localStorage.setItem('push_subscription', JSON.stringify({
+        endpoint: subscriptionJSON.endpoint,
+        created_at: new Date().toISOString(),
+      }));
 
       setState({
         isSubscribed: true,
@@ -141,7 +203,12 @@ export function usePushSubscription() {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
+      const endpoint = state.subscription.endpoint;
       await state.subscription.unsubscribe();
+      
+      // Mark as inactive in database
+      await deactivateSubscriptionInDatabase(endpoint);
+      
       localStorage.removeItem('push_subscription');
 
       setState({
