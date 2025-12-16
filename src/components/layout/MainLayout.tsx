@@ -6,6 +6,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { TrialBanner } from "@/components/TrialBanner";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
+import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
 
 export default function MainLayout() {
   const {
@@ -23,6 +24,7 @@ export default function MainLayout() {
               <span className="text-sm font-medium truncate">{tenantName}</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <OfflineStatusBadge />
               <LanguageSelector />
             </div>
           </header>
