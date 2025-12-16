@@ -110,7 +110,13 @@ export default function PermitConsole() {
           {mapLoading ? (
             <Skeleton className="h-[600px] w-full rounded-lg" />
           ) : (
-            <PermitConsoleMap permits={mapPermits || []} />
+            <PermitConsoleMap permits={(mapPermits || []).map(p => ({
+              id: p.id,
+              reference_id: p.reference_id,
+              gps_lat: p.gps_lat ?? 0,
+              gps_lng: p.gps_lng ?? 0,
+              permit_type: p.permit_type ? { name: p.permit_type.name, code: p.permit_type.name.toLowerCase().replace(' ', '_') } : undefined
+            }))} />
           )}
         </TabsContent>
 

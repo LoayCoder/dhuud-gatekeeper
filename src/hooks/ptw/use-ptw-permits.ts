@@ -150,25 +150,27 @@ export function useCreatePTWPermit() {
     mutationFn: async (data: Partial<PTWPermit>) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
 
+      const insertData = {
+        project_id: data.project_id!,
+        type_id: data.type_id!,
+        applicant_id: user.id,
+        job_description: data.job_description,
+        work_scope: data.work_scope,
+        location_details: data.location_details,
+        site_id: data.site_id,
+        building_id: data.building_id,
+        floor_zone_id: data.floor_zone_id,
+        planned_start_time: data.planned_start_time!,
+        planned_end_time: data.planned_end_time!,
+        emergency_contact_name: data.emergency_contact_name,
+        emergency_contact_number: data.emergency_contact_number,
+        tenant_id: profile.tenant_id,
+        created_by: user.id,
+      };
+
       const { data: result, error } = await supabase
         .from("ptw_permits")
-        .insert({
-          project_id: data.project_id!,
-          type_id: data.type_id!,
-          applicant_id: user.id,
-          job_description: data.job_description,
-          work_scope: data.work_scope,
-          location_details: data.location_details,
-          site_id: data.site_id,
-          building_id: data.building_id,
-          floor_zone_id: data.floor_zone_id,
-          planned_start_time: data.planned_start_time!,
-          planned_end_time: data.planned_end_time!,
-          emergency_contact_name: data.emergency_contact_name,
-          emergency_contact_number: data.emergency_contact_number,
-          tenant_id: profile.tenant_id,
-          created_by: user.id,
-        })
+        .insert(insertData as never)
         .select()
         .single();
 

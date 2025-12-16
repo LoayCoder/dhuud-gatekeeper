@@ -160,7 +160,7 @@ export default function PermitView() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{permit.work_description || "-"}</p>
+              <p className="text-sm">{permit.job_description || "-"}</p>
             </CardContent>
           </Card>
 
