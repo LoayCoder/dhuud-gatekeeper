@@ -4044,7 +4044,25 @@
     "cameraAccessDenied": "Camera access denied. Please enable camera in your browser settings.",
     "scanAgain": "Scan Again",
     "assetFound": "Asset found",
-    "supportedFormats": "Supported Formats"
+    "supportedFormats": "Supported Formats",
+    "assetLabel": "Asset Label",
+    "labelSettings": {
+      "title": "Label Settings",
+      "labelSize": "Label Size",
+      "labelContent": "Label Content",
+      "showAssetName": "Asset Name",
+      "showZone": "Site / Zone",
+      "showCategory": "Category",
+      "showSerialNumber": "Serial Number",
+      "showDepartment": "Department",
+      "customText": "Custom Text",
+      "customTextPlaceholder": "Enter custom text...",
+      "customTextHint": "Max 50 characters",
+      "smallDescription": "Small label",
+      "mediumDescription": "Medium label",
+      "largeDescription": "Large label",
+      "xlargeDescription": "Extra large"
+    }
   },
   "maintenance": {
     "title": "Maintenance Management",

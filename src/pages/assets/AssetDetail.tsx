@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModuleGate } from '@/components/ModuleGate';
-import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog } from '@/components/assets';
+import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog, LabelSettingsDialog, LabelSettings, loadLabelSettings } from '@/components/assets';
 import { Tabs as LabelTabs, TabsContent as LabelTabsContent, TabsList as LabelTabsList, TabsTrigger as LabelTabsTrigger } from '@/components/ui/tabs';
 import { InspectionHistoryTab } from '@/components/inspections';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
@@ -57,6 +57,7 @@ function AssetDetailContent() {
   const { hasModuleAccess } = useUserRoles();
   const canManage = hasModuleAccess('asset_management');
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [labelSettings, setLabelSettings] = useState<LabelSettings>(() => loadLabelSettings());
 
   const handleDelete = async () => {
     if (!id) return;
@@ -209,6 +210,13 @@ function AssetDetailContent() {
             <div className="lg:col-start-3 lg:row-span-2">
               <Card>
                 <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{t('assets.assetLabel')}</span>
+                    <LabelSettingsDialog 
+                      settings={labelSettings} 
+                      onSettingsChange={setLabelSettings} 
+                    />
+                  </div>
                   <LabelTabs defaultValue="qrcode">
                     <LabelTabsList className="grid w-full grid-cols-2">
                       <LabelTabsTrigger value="qrcode" className="gap-1.5 text-xs">
@@ -227,15 +235,22 @@ function AssetDetailContent() {
                         assetName={asset.name}
                         siteName={asset.site?.name}
                         zoneName={asset.floor_zone?.name}
+                        categoryName={isArabic && asset.category?.name_ar ? asset.category.name_ar : asset.category?.name}
+                        serialNumber={asset.serial_number || undefined}
                         size={160}
+                        settings={labelSettings}
                       />
                     </LabelTabsContent>
                     <LabelTabsContent value="barcode" className="mt-4">
                       <AssetBarcodeLabel
                         assetId={asset.id}
                         assetCode={asset.asset_code}
+                        assetName={asset.name}
                         siteName={asset.site?.name}
                         zoneName={asset.floor_zone?.name}
+                        categoryName={isArabic && asset.category?.name_ar ? asset.category.name_ar : asset.category?.name}
+                        serialNumber={asset.serial_number || undefined}
+                        settings={labelSettings}
                       />
                     </LabelTabsContent>
                   </LabelTabs>

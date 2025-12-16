@@ -1,6 +1,8 @@
 export { AssetQRCode } from './AssetQRCode';
 export { AssetQRScanner } from './AssetQRScanner';
 export { AssetBarcodeLabel } from './AssetBarcodeLabel';
+export { LabelSettingsDialog } from './LabelSettingsDialog';
+export * from './label-settings-types';
 export { MaintenanceScheduleForm } from './MaintenanceScheduleForm';
 export { MaintenanceCompleteDialog } from './MaintenanceCompleteDialog';
 export { MaintenanceScheduleList } from './MaintenanceScheduleList';
