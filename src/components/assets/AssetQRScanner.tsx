@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Camera, XCircle, QrCode, AlertCircle } from 'lucide-react';
+import { Camera, XCircle, QrCode, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAssetByCode } from '@/hooks/use-asset-by-code';
 
 interface AssetQRScannerProps {
   onScanSuccess?: (assetId: string) => void;
@@ -18,8 +19,12 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerId = 'qr-reader';
+  
+  // Hook to resolve asset by code (for non-UUID scans)
+  const { data: assetResult, isLoading: isResolving } = useAssetByCode(scannedCode);
 
   const startScanning = async () => {
     setError(null);
@@ -81,32 +86,59 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
 
   const handleScanSuccess = async (decodedText: string) => {
     await stopScanning();
+    setError(null);
     
-    // Extract asset ID from URL or raw UUID
+    // Extract asset ID from URL or raw UUID (backward compatibility)
     const urlPattern = /\/assets\/([a-f0-9-]{36})/i;
     const uuidPattern = /^[a-f0-9-]{36}$/i;
     
-    let assetId: string | null = null;
-    
     const urlMatch = decodedText.match(urlPattern);
     if (urlMatch && urlMatch[1]) {
-      assetId = urlMatch[1];
-    } else if (uuidPattern.test(decodedText.trim())) {
-      assetId = decodedText.trim();
-    }
-    
-    if (assetId) {
+      // Found UUID in URL - navigate directly
+      const assetId = urlMatch[1];
       if (onScanSuccess) {
         onScanSuccess(assetId);
       }
-      
       if (autoNavigate) {
         navigate(`/assets/${assetId}`);
       }
-    } else {
-      setError(t('assets.invalidQRCode'));
+      return;
     }
+    
+    if (uuidPattern.test(decodedText.trim())) {
+      // Raw UUID - navigate directly
+      const assetId = decodedText.trim();
+      if (onScanSuccess) {
+        onScanSuccess(assetId);
+      }
+      if (autoNavigate) {
+        navigate(`/assets/${assetId}`);
+      }
+      return;
+    }
+    
+    // Not a UUID - treat as asset code and use hook to resolve
+    setScannedCode(decodedText.trim());
   };
+
+  // Handle async asset resolution by code
+  useEffect(() => {
+    if (!scannedCode || isResolving) return;
+    
+    if (assetResult?.found && assetResult.asset) {
+      const assetId = assetResult.asset.id;
+      if (onScanSuccess) {
+        onScanSuccess(assetId);
+      }
+      if (autoNavigate) {
+        navigate(`/assets/${assetId}`);
+      }
+      setScannedCode(null);
+    } else if (assetResult && !assetResult.found) {
+      setError(t('assets.assetNotFound'));
+      setScannedCode(null);
+    }
+  }, [assetResult, isResolving, scannedCode, onScanSuccess, autoNavigate, navigate, t]);
 
   useEffect(() => {
     return () => {
@@ -155,7 +187,7 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
           }`}
         />
         
-        {!isScanning && (
+        {!isScanning && !isResolving && (
           <div className="w-full max-w-[300px] aspect-square rounded-lg bg-muted flex flex-col items-center justify-center gap-4">
             <Camera className="h-16 w-16 text-muted-foreground" />
             <p className="text-sm text-muted-foreground text-center px-4">
@@ -163,19 +195,28 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
             </p>
           </div>
         )}
+        
+        {isResolving && (
+          <div className="w-full max-w-[300px] aspect-square rounded-lg bg-muted flex flex-col items-center justify-center gap-4">
+            <Loader2 className="h-16 w-16 text-primary animate-spin" />
+            <p className="text-sm text-muted-foreground text-center px-4">
+              {t('assets.resolvingAsset')}
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-2">
-          {!isScanning ? (
+          {!isScanning && !isResolving ? (
             <Button onClick={startScanning}>
               <Camera className="h-4 w-4 me-2" />
               {t('assets.startScanning')}
             </Button>
-          ) : (
+          ) : isScanning ? (
             <Button variant="destructive" onClick={stopScanning}>
               <XCircle className="h-4 w-4 me-2" />
               {t('assets.stopScanning')}
             </Button>
-          )}
+          ) : null}
         </div>
       </CardContent>
     </Card>
