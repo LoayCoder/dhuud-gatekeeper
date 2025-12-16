@@ -23,6 +23,10 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
 
   const startScanning = async () => {
     setError(null);
+    setIsScanning(true); // Make container visible FIRST
+    
+    // Wait for DOM to update so container has dimensions
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     try {
       // Check camera permission
@@ -47,9 +51,8 @@ export function AssetQRScanner({ onScanSuccess, autoNavigate = true }: AssetQRSc
           // QR code not found - ignore
         }
       );
-      
-      setIsScanning(true);
     } catch (err) {
+      setIsScanning(false); // Revert on failure
       console.error('Scanner error:', err);
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError') {
