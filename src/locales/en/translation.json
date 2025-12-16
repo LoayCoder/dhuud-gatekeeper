@@ -3402,7 +3402,18 @@
     "updateAvailable": "Update Available",
     "updateDescription": "A new version of the app is ready. Refresh to get the latest features.",
     "updateNow": "Refresh Now",
-    "later": "Later"
+    "later": "Later",
+    "dashboardTitle": "Get the App",
+    "dashboardSubtitle": "Install for the best experience",
+    "benefitOffline": "Works offline",
+    "benefitFaster": "Faster loading",
+    "benefitNotifications": "Push notifications",
+    "benefitHomeScreen": "Home screen access",
+    "installNow": "Install Now",
+    "maybeLater": "Maybe Later",
+    "iosTitle": "Install on iPhone",
+    "iosStep1": "Tap Share",
+    "iosStep2": "Add to Home Screen"
   },
   "network": {
     "offline": "You are offline",

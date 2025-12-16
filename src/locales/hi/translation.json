@@ -3194,7 +3194,18 @@
     "updateAvailable": "अपडेट उपलब्ध",
     "updateDescription": "ऐप का नया संस्करण तैयार है। नवीनतम सुविधाएं पाने के लिए रिफ्रेश करें।",
     "updateNow": "अभी रिफ्रेश करें",
-    "later": "बाद में"
+    "later": "बाद में",
+    "dashboardTitle": "ऐप प्राप्त करें",
+    "dashboardSubtitle": "सर्वश्रेष्ठ अनुभव के लिए इंस्टॉल करें",
+    "benefitOffline": "ऑफ़लाइन काम करता है",
+    "benefitFaster": "तेज़ लोडिंग",
+    "benefitNotifications": "पुश नोटिफिकेशन",
+    "benefitHomeScreen": "होम स्क्रीन एक्सेस",
+    "installNow": "अभी इंस्टॉल करें",
+    "maybeLater": "शायद बाद में",
+    "iosTitle": "iPhone पर इंस्टॉल करें",
+    "iosStep1": "शेयर पर टैप करें",
+    "iosStep2": "होम स्क्रीन पर जोड़ें"
   },
   "network": {
     "offline": "आप ऑफ़लाइन हैं",

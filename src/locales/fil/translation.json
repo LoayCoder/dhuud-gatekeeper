@@ -3194,7 +3194,18 @@
     "updateAvailable": "May Available na Update",
     "updateDescription": "Handa na ang bagong bersyon ng app. I-refresh para makuha ang pinakabagong features.",
     "updateNow": "I-refresh Ngayon",
-    "later": "Mamaya"
+    "later": "Mamaya",
+    "dashboardTitle": "Kunin ang App",
+    "dashboardSubtitle": "I-install para sa pinakamahusay na karanasan",
+    "benefitOffline": "Gumagana offline",
+    "benefitFaster": "Mas mabilis na loading",
+    "benefitNotifications": "Push notifications",
+    "benefitHomeScreen": "Access sa home screen",
+    "installNow": "I-install Ngayon",
+    "maybeLater": "Mamaya Na Lang",
+    "iosTitle": "I-install sa iPhone",
+    "iosStep1": "I-tap ang Share",
+    "iosStep2": "Add to Home Screen"
   },
   "network": {
     "offline": "Ikaw ay offline",

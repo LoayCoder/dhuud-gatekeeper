@@ -3260,7 +3260,18 @@
     "updateAvailable": "تحديث متوفر",
     "updateDescription": "إصدار جديد من التطبيق جاهز. قم بالتحديث للحصول على أحدث الميزات.",
     "updateNow": "تحديث الآن",
-    "later": "لاحقاً"
+    "later": "لاحقاً",
+    "dashboardTitle": "احصل على التطبيق",
+    "dashboardSubtitle": "ثبّت للحصول على أفضل تجربة",
+    "benefitOffline": "يعمل بدون اتصال",
+    "benefitFaster": "تحميل أسرع",
+    "benefitNotifications": "إشعارات فورية",
+    "benefitHomeScreen": "وصول من الشاشة الرئيسية",
+    "installNow": "ثبّت الآن",
+    "maybeLater": "ربما لاحقاً",
+    "iosTitle": "التثبيت على iPhone",
+    "iosStep1": "اضغط على مشاركة",
+    "iosStep2": "إضافة إلى الشاشة الرئيسية"
   },
   "network": {
     "offline": "أنت غير متصل",

@@ -9,6 +9,7 @@ import { SecurityAlertsSummaryWidget } from '@/components/dashboard/SecurityAler
 import { InspectionDueWidget } from '@/components/dashboard/InspectionDueWidget';
 import { ContractorStatsWidget } from '@/components/dashboard/ContractorStatsWidget';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
+import { InstallAppCard } from '@/components/dashboard/InstallAppCard';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { useDashboardStats } from '@/hooks/use-dashboard-stats';
@@ -74,6 +75,7 @@ export default function Dashboard() {
       {/* Quick Actions and Info Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <QuickActionsCard />
+        <InstallAppCard />
         
         <Card>
           <CardHeader>
