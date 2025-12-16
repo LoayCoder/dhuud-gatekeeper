@@ -4026,7 +4026,25 @@
       "fair": "Fair",
       "poor": "Poor",
       "critical": "Critical"
-    }
+    },
+    "barcodeScan": "Barcode Scan",
+    "qrCodeScan": "QR Code Scan",
+    "barcodeLabel": "Barcode Label",
+    "code128Format": "Code 128 Format",
+    "scanBarcode": "Scan Barcode",
+    "barcodeScanDescription": "Point your camera at a Code 128 barcode to identify the asset",
+    "barcodeNotFound": "Asset not registered",
+    "barcodeDownloaded": "Barcode downloaded successfully",
+    "barcodeDownloadError": "Failed to download barcode",
+    "downloadBarcode": "Download Barcode",
+    "printBarcode": "Print Barcode",
+    "tapToStartScanning": "Tap to start scanning",
+    "resolvingAsset": "Resolving asset...",
+    "scannedCode": "Scanned Code",
+    "cameraAccessDenied": "Camera access denied. Please enable camera in your browser settings.",
+    "scanAgain": "Scan Again",
+    "assetFound": "Asset found",
+    "supportedFormats": "Supported Formats"
   },
   "maintenance": {
     "title": "Maintenance Management",

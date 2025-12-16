@@ -3790,7 +3790,25 @@
         "invalidDate": "غلط تاریخ کی شکل",
         "duplicateSerial": "ڈپلیکیٹ سیریل نمبر"
       }
-    }
+    },
+    "barcodeScan": "بارکوڈ اسکین",
+    "qrCodeScan": "QR کوڈ اسکین",
+    "barcodeLabel": "بارکوڈ لیبل",
+    "code128Format": "Code 128 فارمیٹ",
+    "scanBarcode": "بارکوڈ اسکین کریں",
+    "barcodeScanDescription": "اثاثے کی شناخت کے لیے کیمرہ Code 128 بارکوڈ کی طرف کریں",
+    "barcodeNotFound": "اثاثہ رجسٹرڈ نہیں",
+    "barcodeDownloaded": "بارکوڈ کامیابی سے ڈاؤن لوڈ ہو گیا",
+    "barcodeDownloadError": "بارکوڈ ڈاؤن لوڈ کرنے میں ناکامی",
+    "downloadBarcode": "بارکوڈ ڈاؤن لوڈ کریں",
+    "printBarcode": "بارکوڈ پرنٹ کریں",
+    "tapToStartScanning": "اسکیننگ شروع کرنے کے لیے تھپتھپائیں",
+    "resolvingAsset": "اثاثہ تلاش ہو رہا ہے...",
+    "scannedCode": "اسکین شدہ کوڈ",
+    "cameraAccessDenied": "کیمرے کی رسائی مسترد۔ براہ کرم براؤزر سیٹنگز میں کیمرہ فعال کریں۔",
+    "scanAgain": "دوبارہ اسکین کریں",
+    "assetFound": "اثاثہ مل گیا",
+    "supportedFormats": "تعاون یافتہ فارمیٹس"
   },
   "maintenance": {
     "title": "دیکھ بھال کا انتظام",
