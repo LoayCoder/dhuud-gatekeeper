@@ -34,7 +34,7 @@ export function AssetBarcodeLabel({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   const barcodeRef = useRef<SVGSVGElement>(null);
-  const sizeSpec = getLabelSizeSpec(settings.size);
+  const sizeSpec = getLabelSizeSpec(settings.size, settings.customWidthMM, settings.customHeightMM);
 
   useEffect(() => {
     if (barcodeRef.current) {

@@ -4061,7 +4061,12 @@
       "smallDescription": "Small label",
       "mediumDescription": "Medium label",
       "largeDescription": "Large label",
-      "xlargeDescription": "Extra large"
+      "xlargeDescription": "Extra large",
+      "customSize": "Custom",
+      "customDescription": "Enter your own dimensions",
+      "widthMM": "Width (mm)",
+      "heightMM": "Height (mm)",
+      "customSizeHint": "Width: 20-200mm, Height: 15-150mm"
     }
   },
   "maintenance": {

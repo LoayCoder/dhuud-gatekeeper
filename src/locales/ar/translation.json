@@ -3896,7 +3896,12 @@
       "smallDescription": "ملصق صغير",
       "mediumDescription": "ملصق متوسط",
       "largeDescription": "ملصق كبير",
-      "xlargeDescription": "ملصق كبير جداً"
+      "xlargeDescription": "ملصق كبير جداً",
+      "customSize": "مخصص",
+      "customDescription": "أدخل الأبعاد المخصصة",
+      "widthMM": "العرض (مم)",
+      "heightMM": "الارتفاع (مم)",
+      "customSizeHint": "العرض: 20-200مم، الارتفاع: 15-150مم"
     }
   },
   "maintenance": {

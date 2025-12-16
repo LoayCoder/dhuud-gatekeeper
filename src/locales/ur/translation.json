@@ -3825,7 +3825,12 @@
       "smallDescription": "چھوٹا لیبل",
       "mediumDescription": "درمیانہ لیبل",
       "largeDescription": "بڑا لیبل",
-      "xlargeDescription": "بہت بڑا"
+      "xlargeDescription": "بہت بڑا",
+      "customSize": "اپنی مرضی کا",
+      "customDescription": "اپنی مرضی کے ابعاد درج کریں",
+      "widthMM": "چوڑائی (ملی میٹر)",
+      "heightMM": "اونچائی (ملی میٹر)",
+      "customSizeHint": "چوڑائی: 20-200ملی میٹر، اونچائی: 15-150ملی میٹر"
     }
   },
   "maintenance": {
