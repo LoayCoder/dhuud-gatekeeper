@@ -2212,7 +2212,30 @@
     "dayWed": "بدھ",
     "dayThu": "جمعرات",
     "dayFri": "جمعہ",
-    "daySat": "ہفتہ"
+    "daySat": "ہفتہ",
+    "widgets": {
+      "ptwActive": "فعال پرمٹس",
+      "pending": "زیر التواء",
+      "ptwDescription": "ورک پرمٹ کی حیثیت",
+      "expiringToday": "ختم ہو رہے",
+      "viewAll": "سب دیکھیں",
+      "securityAlerts": "سیکیورٹی الرٹس",
+      "securityDescription": "فعال الرٹس اور وزیٹرز",
+      "visitors": "سائٹ پر",
+      "inspectionsDue": "معائنہ واجب الادا",
+      "overdue": "تاخیر شدہ",
+      "inspectionsDescription": "شیڈول شدہ معائنہ",
+      "thisWeek": "اس ہفتے",
+      "contractorWorkers": "ٹھیکیدار کارکن",
+      "contractorDescription": "فعال ٹھیکیدار افرادی قوت",
+      "expiringInductions": "ختم ہو رہے"
+    }
+  },
+  "offline": {
+    "youAreOffline": "آپ آف لائن ہیں",
+    "pendingChanges": "{{count}} زیر التواء تبدیلیاں",
+    "syncComplete": "تمام تبدیلیاں مطابقت پذیر ہو گئیں",
+    "sync": "مطابقت پذیر کریں"
   },
   "branding": {
     "title": "ذود HSSE پلیٹ فارم",
@@ -4974,6 +4997,14 @@
       "newPermit": "نیا پرمٹ",
       "recentPermits": "حالیہ پرمٹس",
       "noRecentPermits": "کوئی حالیہ پرمٹ نہیں"
+    },
+    "simops": {
+      "criticalConflict": "نازک SIMOPS تصادم - پرمٹ بلاک",
+      "warningConflict": "SIMOPS تصادم کی وارننگ",
+      "criticalDescription": "موجودہ فعال پرمٹس کے ساتھ حفاظتی تصادم کی وجہ سے یہ پرمٹ جاری نہیں کیا جا سکتا۔",
+      "warningDescription": "آگے بڑھنے سے پہلے درج ذیل تصادموں کا جائزہ لیں۔",
+      "distanceViolation": "فاصلہ: {{distance}} میٹر",
+      "timeOverlap": "اوورلیپ: {{minutes}} منٹ"
     },
     "project": {
       "title": "پروجیکٹ موبلائزیشن",

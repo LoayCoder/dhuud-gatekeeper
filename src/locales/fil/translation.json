@@ -2197,7 +2197,30 @@
     "dayWed": "Miy",
     "dayThu": "Huw",
     "dayFri": "Biy",
-    "daySat": "Sab"
+    "daySat": "Sab",
+    "widgets": {
+      "ptwActive": "Mga Aktibong Permit",
+      "pending": "pending",
+      "ptwDescription": "Status ng Work Permit",
+      "expiringToday": "magfa-expire",
+      "viewAll": "Tingnan Lahat",
+      "securityAlerts": "Mga Security Alert",
+      "securityDescription": "Mga aktibong alert at bisita",
+      "visitors": "sa site",
+      "inspectionsDue": "Mga Inspeksyon na Dapat",
+      "overdue": "huli na",
+      "inspectionsDescription": "Mga nakaiskedyul na inspeksyon",
+      "thisWeek": "ngayong linggo",
+      "contractorWorkers": "Mga Kontratista",
+      "contractorDescription": "Aktibong workforce ng kontratista",
+      "expiringInductions": "magfa-expire"
+    }
+  },
+  "offline": {
+    "youAreOffline": "Ikaw ay offline",
+    "pendingChanges": "{{count}} mga pending na pagbabago",
+    "syncComplete": "Lahat ng pagbabago ay na-sync na",
+    "sync": "Sync"
   },
   "branding": {
     "title": "Dhuud HSSE Platform",
@@ -4959,6 +4982,14 @@
       "newPermit": "Bagong Permit",
       "recentPermits": "Mga Kamakailang Permit",
       "noRecentPermits": "Walang kamakailang permit"
+    },
+    "simops": {
+      "criticalConflict": "Kritikal na SIMOPS Conflict - Permit Blocked",
+      "warningConflict": "SIMOPS Conflict Warning",
+      "criticalDescription": "Hindi mai-issue ang permit na ito dahil sa mga safety conflict sa kasalukuyang aktibong permit.",
+      "warningDescription": "Suriin ang mga sumusunod na conflict bago magpatuloy.",
+      "distanceViolation": "Distansya: {{distance}}m",
+      "timeOverlap": "Overlap: {{minutes}} min"
     },
     "project": {
       "title": "Project Mobilization",

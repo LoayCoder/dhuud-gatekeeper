@@ -2118,7 +2118,30 @@
     "dayWed": "Wed",
     "dayThu": "Thu",
     "dayFri": "Fri",
-    "daySat": "Sat"
+    "daySat": "Sat",
+    "widgets": {
+      "ptwActive": "Active Permits",
+      "pending": "pending",
+      "ptwDescription": "Permit to Work status",
+      "expiringToday": "expiring",
+      "viewAll": "View All",
+      "securityAlerts": "Security Alerts",
+      "securityDescription": "Active alerts & visitors",
+      "visitors": "on site",
+      "inspectionsDue": "Inspections Due",
+      "overdue": "overdue",
+      "inspectionsDescription": "Scheduled inspections",
+      "thisWeek": "this week",
+      "contractorWorkers": "Contractor Workers",
+      "contractorDescription": "Active contractor workforce",
+      "expiringInductions": "expiring"
+    }
+  },
+  "offline": {
+    "youAreOffline": "You are offline",
+    "pendingChanges": "{{count}} pending changes",
+    "syncComplete": "All changes synced",
+    "sync": "Sync"
   },
   "branding": {
     "title": "Dhuud HSSE Platform",
@@ -5249,6 +5272,14 @@
       "newPermit": "New Permit",
       "recentPermits": "Recent Permits",
       "noRecentPermits": "No recent permits"
+    },
+    "simops": {
+      "criticalConflict": "Critical SIMOPS Conflict - Permit Blocked",
+      "warningConflict": "SIMOPS Conflict Warning",
+      "criticalDescription": "This permit cannot be issued due to safety conflicts with existing active permits.",
+      "warningDescription": "Review the following conflicts before proceeding.",
+      "distanceViolation": "Distance: {{distance}}m",
+      "timeOverlap": "Overlap: {{minutes}} min"
     },
     "project": {
       "title": "Project Mobilization",
