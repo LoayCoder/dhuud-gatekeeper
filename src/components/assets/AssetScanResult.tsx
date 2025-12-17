@@ -113,25 +113,31 @@ export function AssetScanResult({ assetId, onClear, mode = 'navigate', onSelect 
       <CardContent className="space-y-4">
         {/* Asset Info */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-lg font-bold">{asset.asset_code}</span>
-            <Badge variant={asset.status === 'active' ? 'default' : 'secondary'}>
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="font-mono text-lg font-bold truncate overflow-x-auto scrollbar-hide whitespace-nowrap max-w-[60%]">
+              {asset.asset_code}
+            </span>
+            <Badge variant={asset.status === 'active' ? 'default' : 'secondary'} className="flex-shrink-0">
               {t(`assets.status.${asset.status}`)}
             </Badge>
           </div>
-          <p className="text-lg">{asset.name}</p>
+          <p className="text-lg overflow-x-auto scrollbar-hide whitespace-nowrap pb-1">{asset.name}</p>
           
           {categoryName && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Tag className="h-4 w-4" />
-              {categoryName}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+              <Tag className="h-4 w-4 flex-shrink-0" />
+              <span className="overflow-x-auto scrollbar-hide whitespace-nowrap">
+                {categoryName}
+              </span>
             </div>
           )}
           
           {(asset.site?.name || asset.building?.name) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              {[asset.site?.name, asset.building?.name].filter(Boolean).join(' · ')}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="overflow-x-auto scrollbar-hide whitespace-nowrap">
+                {[asset.site?.name, asset.building?.name].filter(Boolean).join(' · ')}
+              </span>
             </div>
           )}
         </div>
