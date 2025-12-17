@@ -1,28 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
+import { sendWhatsAppTemplate, TEMPLATE_SIDS } from "../_shared/twilio-whatsapp.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Multi-language welcome templates for visitors
-const welcomeTemplates: Record<string, string> = {
-  en: "Welcome to {company}! Please proceed to {destination}. Your entry has been logged at {time}.",
-  ar: "أهلاً بك في {company}! يرجى التوجه إلى {destination}. تم تسجيل دخولك في {time}.",
-  ur: "{company} میں خوش آمدید! براہ کرم {destination} کی طرف جائیں۔ آپ کا داخلہ {time} پر درج ہوگیا۔",
-  hi: "{company} में आपका स्वागत है! कृपया {destination} की ओर बढ़ें। आपकी एंट्री {time} पर लॉग की गई है।",
-  fil: "Maligayang pagdating sa {company}! Mangyaring magpatuloy sa {destination}. Naitala ang iyong pagpasok noong {time}."
-};
-
-// Multi-language host notification templates
-const hostNotificationTemplates: Record<string, string> = {
-  en: "🔔 Visitor Alert: {visitor_name} has arrived at the gate and is heading to your location. Entry logged at {time}.",
-  ar: "🔔 تنبيه زائر: وصل {visitor_name} إلى البوابة ويتجه إلى موقعك. تم تسجيل الدخول في {time}.",
-  ur: "🔔 مہمان کی اطلاع: {visitor_name} گیٹ پر پہنچ گئے ہیں اور آپ کے مقام کی طرف آ رہے ہیں۔ اندراج {time} پر ہوا۔",
-  hi: "🔔 विज़िटर अलर्ट: {visitor_name} गेट पर पहुंच गए हैं और आपके स्थान की ओर आ रहे हैं। एंट्री {time} पर लॉग की गई।",
-  fil: "🔔 Visitor Alert: Dumating na si {visitor_name} sa gate at papunta sa iyong lokasyon. Naitala ang pagpasok noong {time}."
 };
 
 interface WhatsAppRequest {
@@ -53,7 +35,6 @@ serve(async (req) => {
     const requestData: WhatsAppRequest = await req.json();
     const { 
       mobile_number,
-      language = 'en',
       tenant_id,
       notification_type = 'visitor_welcome',
       visitor_name,
@@ -79,19 +60,22 @@ serve(async (req) => {
       minute: '2-digit' 
     });
     
-    let message: string;
     let recipientPhone: string;
+    let templateSid: string;
+    let variables: Record<string, string>;
     
     if (notification_type === 'host_notification' && host_mobile) {
       // Host notification when visitor arrives
       console.log(`[WhatsApp] Sending host notification to ${host_mobile}`);
       
-      const template = hostNotificationTemplates[language] || hostNotificationTemplates.en;
-      message = template
-        .replace('{visitor_name}', visitor_name || 'A visitor')
-        .replace('{time}', currentTime);
-      
       recipientPhone = host_mobile;
+      // TODO: Add HOST_NOTIFICATION template SID when created
+      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
+      variables = {
+        "1": visitor_name || 'A visitor',
+        "2": 'your location',
+        "3": currentTime,
+      };
       
       // Update entry log with notification status
       if (entry_id) {
@@ -105,19 +89,20 @@ serve(async (req) => {
       }
     } else {
       // Visitor welcome message
-      console.log(`[WhatsApp] Sending welcome to ${mobile_number} in ${language}`);
-      
-      const template = welcomeTemplates[language] || welcomeTemplates.en;
-      message = template
-        .replace('{company}', companyName)
-        .replace('{destination}', destination_name || 'reception')
-        .replace('{time}', currentTime);
+      console.log(`[WhatsApp] Sending welcome to ${mobile_number}`);
       
       recipientPhone = mobile_number;
+      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
+      // Template variables: {{1}}=company, {{2}}=destination, {{3}}=time
+      variables = {
+        "1": companyName,
+        "2": destination_name || 'reception',
+        "3": currentTime,
+      };
     }
     
-    // Send via Twilio WhatsApp API
-    const twilioResult = await sendWhatsAppMessage(recipientPhone, message);
+    // Send via Twilio WhatsApp Content Template API
+    const twilioResult = await sendWhatsAppTemplate(recipientPhone, templateSid, variables);
     
     if (!twilioResult.success) {
       console.error(`[WhatsApp] Failed to send message: ${twilioResult.error}`);
@@ -137,7 +122,7 @@ serve(async (req) => {
       message_sid: twilioResult.messageSid,
       recipient: recipientPhone,
       notification_type,
-      message_preview: message.substring(0, 50) + '...',
+      template_sid: templateSid,
       sent_at: new Date().toISOString()
     };
     
