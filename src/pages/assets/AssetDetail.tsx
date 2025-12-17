@@ -168,38 +168,38 @@ function AssetDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="overview" className="gap-2">
-            <Package className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.overview')}
+        <TabsList className="flex w-full overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="overview" className="gap-2 flex-shrink-0">
+            <Package className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.overview')}</span>
           </TabsTrigger>
-          <TabsTrigger value="inspections" className="gap-2">
-            <ClipboardCheck className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.inspections')}
+          <TabsTrigger value="inspections" className="gap-2 flex-shrink-0">
+            <ClipboardCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.inspections')}</span>
           </TabsTrigger>
-          <TabsTrigger value="photos" className="gap-2">
-            <ImageIcon className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.photos')}
+          <TabsTrigger value="photos" className="gap-2 flex-shrink-0">
+            <ImageIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.photos')}</span>
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2">
-            <FileText className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.documents')}
+          <TabsTrigger value="documents" className="gap-2 flex-shrink-0">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.documents')}</span>
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className="gap-2">
-            <Wrench className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.maintenance')}
+          <TabsTrigger value="maintenance" className="gap-2 flex-shrink-0">
+            <Wrench className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.maintenance')}</span>
           </TabsTrigger>
-          <TabsTrigger value="incidents" className="gap-2">
-            <ShieldAlert className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.incidents')}
+          <TabsTrigger value="incidents" className="gap-2 flex-shrink-0">
+            <ShieldAlert className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.incidents')}</span>
           </TabsTrigger>
-          <TabsTrigger value="transfers" className="gap-2">
-            <ArrowRightLeft className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.transfers')}
+          <TabsTrigger value="transfers" className="gap-2 flex-shrink-0">
+            <ArrowRightLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.transfers')}</span>
           </TabsTrigger>
-          <TabsTrigger value="audit" className="gap-2">
-            <History className="h-4 w-4 hidden sm:block" />
-            {t('assets.tabs.audit')}
+          <TabsTrigger value="audit" className="gap-2 flex-shrink-0">
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.audit')}</span>
           </TabsTrigger>
         </TabsList>
 
