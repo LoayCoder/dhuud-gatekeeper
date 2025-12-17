@@ -5247,6 +5247,8 @@
     "androidStep1": "I-tap ang menu button (⋮) sa Chrome",
     "androidStep2": "I-tap ang 'Install app' o 'Add to Home screen'",
     "androidStep3": "I-tap ang 'Install' para kumpirmahin",
-    "installed": "Naka-install na ang App"
+    "installed": "Naka-install na ang App",
+    "alreadyInstalled": "Naka-install Na",
+    "alreadyInstalledMessage": "Naka-install na ang DHUUD sa iyong device. Mahahanap mo ito sa iyong home screen."
   }
 }

@@ -59,6 +59,7 @@ import {
   Map,
   Download,
   Share,
+  CheckCircle2,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -91,7 +92,7 @@ export function AppSidebar() {
   const location = useLocation();
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
   const { canAccess, hasAccessibleChildren, isLoading: menuLoading } = useMenuAccess();
-  const { canInstall, canPromptNatively, isIOS, promptInstall } = usePWAInstall();
+  const { canInstall, canPromptNatively, isIOS, isInstalled, promptInstall } = usePWAInstall();
   
   // Get app icon for PWA install button
   const appIcon = activeSidebarIconUrl || DHUUD_APP_ICON;
@@ -900,83 +901,115 @@ export function AppSidebar() {
       {/* FOOTER: PWA Install & User Profile */}
       <SidebarFooter>
         <SidebarMenu>
-          {/* PWA Install Button - Shows when app can be installed */}
-          {canInstall && (
-            <SidebarMenuItem>
-              {canPromptNatively ? (
-                // Native install prompt available (Chrome on Android)
-                <SidebarMenuButton
-                  onClick={promptInstall}
-                  tooltip={t('pwa.installApp')}
-                  className="bg-primary/10 hover:bg-primary/20 text-primary"
-                >
-                  <img 
-                    src={appIcon} 
-                    alt={tenantName || 'DHUUD'} 
-                    className="h-5 w-5 rounded object-cover flex-shrink-0"
-                    onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
-                  />
-                  <span>{t('pwa.installApp')}</span>
-                  <Download className="ms-auto h-4 w-4 flex-shrink-0" />
-                </SidebarMenuButton>
-              ) : (
-                // Show instructions dialog (iOS or Android without native prompt)
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={t('pwa.installApp')}
-                      className="bg-primary/10 hover:bg-primary/20 text-primary"
-                    >
+          {/* PWA Install Button - Always visible */}
+          <SidebarMenuItem>
+            {isInstalled ? (
+              // Already installed - show confirmation dialog
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip={t('pwa.installed')}
+                    className="bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400"
+                  >
+                    <img 
+                      src={appIcon} 
+                      alt={tenantName || 'DHUUD'} 
+                      className="h-5 w-5 rounded object-cover flex-shrink-0"
+                      onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                    />
+                    <span>{t('pwa.installApp')}</span>
+                    <CheckCircle2 className="ms-auto h-4 w-4 flex-shrink-0" />
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
+                        <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      {t('pwa.alreadyInstalled')}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <p className="text-sm text-muted-foreground">
+                      {t('pwa.alreadyInstalledMessage')}
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : canPromptNatively ? (
+              // Native install prompt available (Chrome on Android)
+              <SidebarMenuButton
+                onClick={promptInstall}
+                tooltip={t('pwa.installApp')}
+                className="bg-primary/10 hover:bg-primary/20 text-primary"
+              >
+                <img 
+                  src={appIcon} 
+                  alt={tenantName || 'DHUUD'} 
+                  className="h-5 w-5 rounded object-cover flex-shrink-0"
+                  onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                />
+                <span>{t('pwa.installApp')}</span>
+                <Download className="ms-auto h-4 w-4 flex-shrink-0" />
+              </SidebarMenuButton>
+            ) : (
+              // Show instructions dialog (iOS or Android without native prompt)
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip={t('pwa.installApp')}
+                    className="bg-primary/10 hover:bg-primary/20 text-primary"
+                  >
+                    <img 
+                      src={appIcon} 
+                      alt={tenantName || 'DHUUD'} 
+                      className="h-5 w-5 rounded object-cover flex-shrink-0"
+                      onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                    />
+                    <span>{t('pwa.installApp')}</span>
+                    {isIOS ? (
+                      <Share className="ms-auto h-4 w-4 flex-shrink-0" />
+                    ) : (
+                      <Download className="ms-auto h-4 w-4 flex-shrink-0" />
+                    )}
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
                       <img 
                         src={appIcon} 
                         alt={tenantName || 'DHUUD'} 
-                        className="h-5 w-5 rounded object-cover flex-shrink-0"
+                        className="h-8 w-8 rounded object-cover"
                         onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
                       />
-                      <span>{t('pwa.installApp')}</span>
-                      {isIOS ? (
-                        <Share className="ms-auto h-4 w-4 flex-shrink-0" />
-                      ) : (
-                        <Download className="ms-auto h-4 w-4 flex-shrink-0" />
-                      )}
-                    </SidebarMenuButton>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <img 
-                          src={appIcon} 
-                          alt={tenantName || 'DHUUD'} 
-                          className="h-8 w-8 rounded object-cover"
-                          onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
-                        />
-                        {t('pwa.installApp')}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <p className="text-sm text-muted-foreground">
-                        {isIOS ? t('pwa.iosInstructions') : t('pwa.androidInstructions')}
-                      </p>
-                      <ol className="space-y-3 text-sm">
-                        <li className="flex items-center gap-3">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">1</span>
-                          <span>{isIOS ? t('pwa.iosStep1') : t('pwa.androidStep1')}</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">2</span>
-                          <span>{isIOS ? t('pwa.iosStep2') : t('pwa.androidStep2')}</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">3</span>
-                          <span>{isIOS ? t('pwa.iosStep3') : t('pwa.androidStep3')}</span>
-                        </li>
-                      </ol>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </SidebarMenuItem>
-          )}
+                      {t('pwa.installApp')}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <p className="text-sm text-muted-foreground">
+                      {isIOS ? t('pwa.iosInstructions') : t('pwa.androidInstructions')}
+                    </p>
+                    <ol className="space-y-3 text-sm">
+                      <li className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">1</span>
+                        <span>{isIOS ? t('pwa.iosStep1') : t('pwa.androidStep1')}</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">2</span>
+                        <span>{isIOS ? t('pwa.iosStep2') : t('pwa.androidStep2')}</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">3</span>
+                        <span>{isIOS ? t('pwa.iosStep3') : t('pwa.androidStep3')}</span>
+                      </li>
+                    </ol>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </SidebarMenuItem>
           
           {/* User Profile Section */}
           <SidebarMenuItem>

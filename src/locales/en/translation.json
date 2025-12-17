@@ -5544,6 +5544,8 @@
     "androidStep1": "Tap the menu button (⋮) in Chrome",
     "androidStep2": "Tap 'Install app' or 'Add to Home screen'",
     "androidStep3": "Tap 'Install' to confirm",
-    "installed": "App Installed"
+    "installed": "App Installed",
+    "alreadyInstalled": "Already Installed",
+    "alreadyInstalledMessage": "DHUUD is already installed on your device. You can find it on your home screen."
   }
 }
