@@ -1,3 +1,4 @@
+// Asset registration page with RTL-aware scrolling
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
