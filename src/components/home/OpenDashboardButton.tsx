@@ -10,7 +10,7 @@ export function OpenDashboardButton() {
   return (
     <Button
       size="lg"
-      className="w-full h-14 text-base font-medium"
+      className="w-full h-14 text-base font-medium bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-600 dark:hover:bg-slate-500"
       onClick={() => navigate('/dashboard')}
     >
       <LayoutDashboard className="h-5 w-5 me-2" />

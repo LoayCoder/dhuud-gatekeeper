@@ -78,10 +78,10 @@ export function HSSEContactCard() {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            {t('home.yourHSSEContact')}
-          </CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          <User className="h-5 w-5 text-muted-foreground" />
+          {t('home.yourHSSEContact')}
+        </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function HSSEContactCard() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <User className="h-5 w-5 text-primary" />
+          <User className="h-5 w-5 text-muted-foreground" />
           {t('home.yourHSSEContact')}
         </CardTitle>
       </CardHeader>
@@ -110,7 +110,7 @@ export function HSSEContactCard() {
               <div className="flex items-center gap-3 p-2 -m-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={contact.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
+                  <AvatarFallback className="bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                     {getInitials(contact.full_name)}
                   </AvatarFallback>
                 </Avatar>
@@ -132,7 +132,7 @@ export function HSSEContactCard() {
               <div className="flex flex-col items-center gap-3 py-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage src={contact.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                  <AvatarFallback className="bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-xl">
                     {getInitials(contact.full_name)}
                   </AvatarFallback>
                 </Avatar>

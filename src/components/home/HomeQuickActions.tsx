@@ -26,7 +26,7 @@ export function HomeQuickActions() {
       icon: <ClipboardCheck className="h-6 w-6" />,
       labelKey: 'home.startInspection',
       path: '/inspections',
-      variant: 'default',
+      variant: 'secondary',
     },
     {
       icon: <ListChecks className="h-6 w-6" />,
