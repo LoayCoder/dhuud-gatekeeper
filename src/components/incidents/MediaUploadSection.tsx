@@ -45,7 +45,9 @@ export default function MediaUploadSection({
 }: MediaUploadSectionProps) {
   const { t } = useTranslation();
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const photoCameraRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const videoCameraRef = useRef<HTMLInputElement>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
@@ -80,9 +82,12 @@ export default function MediaUploadSection({
       setPhotoUrls([...photoUrls, ...newUrls]);
     }
 
-    // Reset input
+    // Reset inputs
     if (photoInputRef.current) {
       photoInputRef.current.value = '';
+    }
+    if (photoCameraRef.current) {
+      photoCameraRef.current.value = '';
     }
   };
 
@@ -114,9 +119,12 @@ export default function MediaUploadSection({
     onVideoChange(file);
     setVideoUrl(URL.createObjectURL(file));
 
-    // Reset input
+    // Reset inputs
     if (videoInputRef.current) {
       videoInputRef.current.value = '';
+    }
+    if (videoCameraRef.current) {
+      videoCameraRef.current.value = '';
     }
   };
 
@@ -173,24 +181,48 @@ export default function MediaUploadSection({
             </div>
           ))}
 
-          {/* Add Photo Button */}
+          {/* Add Photo Buttons */}
           {canAddMorePhotos && (
-            <button
-              type="button"
-              onClick={() => photoInputRef.current?.click()}
-              className={cn(
-                "aspect-square rounded-lg border-2 border-dashed",
-                "flex flex-col items-center justify-center gap-1",
-                "text-muted-foreground hover:text-foreground hover:border-primary",
-                "transition-colors cursor-pointer"
-              )}
-            >
-              <Plus className="h-6 w-6" />
-              <span className="text-xs">{t('incidents.quickCapture.addPhoto')}</span>
-            </button>
+            <div className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 p-2">
+              <button
+                type="button"
+                onClick={() => photoCameraRef.current?.click()}
+                className={cn(
+                  "flex-1 w-full rounded-md flex flex-col items-center justify-center gap-1",
+                  "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  "transition-colors cursor-pointer"
+                )}
+              >
+                <Camera className="h-5 w-5" />
+                <span className="text-[10px]">{t('incidents.quickCapture.takePhoto')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                className={cn(
+                  "flex-1 w-full rounded-md flex flex-col items-center justify-center gap-1",
+                  "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  "transition-colors cursor-pointer"
+                )}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="text-[10px]">{t('incidents.quickCapture.fromGallery')}</span>
+              </button>
+            </div>
           )}
         </div>
 
+        {/* Camera capture input */}
+        <input
+          ref={photoCameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handlePhotoSelect}
+          className="hidden"
+        />
+
+        {/* Gallery input */}
         <input
           ref={photoInputRef}
           type="file"
@@ -228,22 +260,46 @@ export default function MediaUploadSection({
             </Button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => videoInputRef.current?.click()}
-            className={cn(
-              "w-full h-24 rounded-lg border-2 border-dashed",
-              "flex flex-col items-center justify-center gap-1",
-              "text-muted-foreground hover:text-foreground hover:border-primary",
-              "transition-colors cursor-pointer"
-            )}
-          >
-            <Video className="h-6 w-6" />
-            <span className="text-xs">{t('incidents.quickCapture.addVideo')}</span>
-            <span className="text-xs opacity-60">{t('incidents.quickCapture.maxVideoDuration')}</span>
-          </button>
+          <div className="w-full h-24 rounded-lg border-2 border-dashed flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => videoCameraRef.current?.click()}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 p-3 rounded-md",
+                "text-muted-foreground hover:text-foreground hover:bg-muted",
+                "transition-colors cursor-pointer"
+              )}
+            >
+              <Camera className="h-6 w-6" />
+              <span className="text-xs">{t('incidents.quickCapture.recordVideo')}</span>
+            </button>
+            <div className="h-12 w-px bg-border" />
+            <button
+              type="button"
+              onClick={() => videoInputRef.current?.click()}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 p-3 rounded-md",
+                "text-muted-foreground hover:text-foreground hover:bg-muted",
+                "transition-colors cursor-pointer"
+              )}
+            >
+              <Video className="h-6 w-6" />
+              <span className="text-xs">{t('incidents.quickCapture.fromGallery')}</span>
+            </button>
+          </div>
         )}
 
+        {/* Camera capture input */}
+        <input
+          ref={videoCameraRef}
+          type="file"
+          accept="video/*"
+          capture="environment"
+          onChange={handleVideoSelect}
+          className="hidden"
+        />
+
+        {/* Gallery input */}
         <input
           ref={videoInputRef}
           type="file"
