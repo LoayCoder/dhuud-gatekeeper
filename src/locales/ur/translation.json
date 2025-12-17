@@ -5265,5 +5265,20 @@
     "installed": "ایپ انسٹال ہو گئی",
     "alreadyInstalled": "پہلے سے انسٹال ہے",
     "alreadyInstalledMessage": "DHUUD پہلے سے آپ کے آلے پر انسٹال ہے۔ آپ اسے اپنی ہوم سکرین پر تلاش کر سکتے ہیں۔"
+  },
+  "home": {
+    "welcome": "خوش آمدید",
+    "yourLocation": "آپ کا مقام",
+    "yourHSSEContact": "آپ کے مقام کا حفاظتی افسر",
+    "call": "کال کریں",
+    "whatsapp": "واٹس ایپ",
+    "contactInfo": "رابطہ کی معلومات",
+    "noContactAssigned": "آپ کے مقام کے لیے کوئی حفاظتی افسر نہیں ہے",
+    "openDashboard": "ڈیش بورڈ کھولیں",
+    "quickActions": "فوری اقدامات",
+    "reportEvent": "واقعہ رپورٹ کریں",
+    "startInspection": "معائنہ شروع کریں",
+    "myActions": "میرے اقدامات",
+    "myApprovals": "میری منظوریاں"
   }
 }

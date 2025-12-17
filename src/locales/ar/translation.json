@@ -5380,5 +5380,20 @@
     "installed": "تم تثبيت التطبيق",
     "alreadyInstalled": "مثبت بالفعل",
     "alreadyInstalledMessage": "DHUUD مثبت بالفعل على جهازك. يمكنك العثور عليه على شاشتك الرئيسية."
+  },
+  "home": {
+    "welcome": "مرحباً",
+    "yourLocation": "موقعك",
+    "yourHSSEContact": "مسؤول السلامة لموقعك",
+    "call": "اتصال",
+    "whatsapp": "واتساب",
+    "contactInfo": "معلومات الاتصال",
+    "noContactAssigned": "لا يوجد مسؤول سلامة معين لموقعك",
+    "openDashboard": "فتح لوحة المعلومات",
+    "quickActions": "إجراءات سريعة",
+    "reportEvent": "الإبلاغ عن حدث",
+    "startInspection": "بدء التفتيش",
+    "myActions": "إجراءاتي",
+    "myApprovals": "موافقاتي"
   }
 }
