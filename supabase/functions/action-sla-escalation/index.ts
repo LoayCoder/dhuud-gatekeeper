@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,6 +36,8 @@ async function sendEscalationEmailFn(supabaseClient: any, action: CorrectiveActi
     .eq("profiles.tenant_id", action.tenant_id)
     .in("roles.code", ["hsse_manager", "hsse_officer", "admin"]);
 
+  const appUrl = getAppUrl();
+
   for (const manager of hsseManagers || []) {
     const userId = (manager as { user_id: string }).user_id;
     const { data: authUser } = await supabaseClient.auth.admin.getUserById(userId);
@@ -51,6 +53,7 @@ async function sendEscalationEmailFn(supabaseClient: any, action: CorrectiveActi
           <li><strong>Days Overdue:</strong> ${daysOverdue}</li>
           <li><strong>Escalation Level:</strong> ${level}</li>
         </ul>
+        ${emailButton("Review Escalated Actions", `${appUrl}/my-actions`, level === 2 ? "#dc2626" : "#ea580c")}
         <p>Please review and take necessary action.</p>
       `, 'action_escalation');
     }
@@ -105,6 +108,7 @@ Deno.serve(async (req) => {
         if (action.assigned_to) {
           const { data: assignee } = await supabase.from("profiles").select("full_name").eq("id", action.assigned_to).single();
           const { data: authUser } = await supabase.auth.admin.getUserById(action.assigned_to);
+          const appUrl = getAppUrl();
 
           if (authUser?.user?.email) {
             await sendEmailViaSES(authUser.user.email, `⚠️ Action Due Soon: ${action.title}`, `
@@ -113,6 +117,7 @@ Deno.serve(async (req) => {
               <p>Your assigned action "<strong>${action.title}</strong>" is due in <strong>${daysUntilDue} days</strong>.</p>
               <p>Please ensure it is completed on time to avoid escalation.</p>
               <p>Priority: ${action.priority || "Medium"}</p>
+              ${emailButton("View My Actions", `${appUrl}/my-actions`, "#ca8a04")}
             `, 'action_warning');
           }
         }

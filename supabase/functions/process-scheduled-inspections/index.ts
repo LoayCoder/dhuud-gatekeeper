@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
 
           if (authData?.user?.email && inspector) {
             const { data: tenant } = await supabase.from("tenants").select("name").eq("id", session.tenant_id).single();
+            const appUrl = getAppUrl();
 
             const emailHtml = `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -56,7 +57,7 @@ Deno.serve(async (req) => {
                   <p><strong>Schedule:</strong> ${session.schedule_name}</p>
                   <p><strong>Organization:</strong> ${tenant?.name || "N/A"}</p>
                 </div>
-                <p>Please log in to the HSSE platform to start this inspection.</p>
+                ${emailButton("Start Inspection", `${appUrl}/inspections/sessions/${session.session_id}`, "#16a34a")}
                 <p style="color: #6b7280; font-size: 12px; margin-top: 32px;">This is an automated message from the HSSE Platform.</p>
               </div>
             `;

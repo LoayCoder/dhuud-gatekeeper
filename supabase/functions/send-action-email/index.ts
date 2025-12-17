@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { sendEmail, type EmailModule } from "../_shared/email-sender.ts";
+import { sendEmail, type EmailModule, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,6 +64,7 @@ function getEmailModule(type: string): EmailModule {
 
 function buildActionAssignedEmail(data: ActionEmailRequest): { subject: string; html: string } {
   const priorityColor = getPriorityColor(data.action_priority || 'medium');
+  const appUrl = getAppUrl();
   
   return {
     subject: `[Action Required] ${data.action_title} - ${data.incident_reference || 'HSSE Event'}`,
@@ -114,7 +115,7 @@ function buildActionAssignedEmail(data: ActionEmailRequest): { subject: string; 
             ` : ''}
           </div>
           
-          <p style="margin-top: 25px;">Please log in to the platform to view the full details and update the action status.</p>
+          ${emailButton("View My Actions", `${appUrl}/my-actions`, "#1e40af")}
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
             <p>This is an automated message from ${data.tenant_name || 'DHUUD HSSE Platform'}</p>
@@ -126,7 +127,8 @@ function buildActionAssignedEmail(data: ActionEmailRequest): { subject: string; 
   };
 }
 
-function buildWitnessRequestEmail(data: ActionEmailRequest): { subject: string; html: string } {
+function buildWitnessRequestEmail(data: ActionEmailRequest, incidentId?: string): { subject: string; html: string } {
+  const appUrl = getAppUrl();
   return {
     subject: `[Witness Statement Request] ${data.incident_reference || 'HSSE Event Investigation'}`,
     html: `
@@ -172,9 +174,11 @@ function buildWitnessRequestEmail(data: ActionEmailRequest): { subject: string; 
             ` : ''}
           </div>
           
+          ${incidentId ? emailButton("Provide Statement", `${appUrl}/incidents/investigate?id=${incidentId}`, "#7c3aed") : ''}
+          
           <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0; color: #92400e; font-size: 14px;">
-              <strong>Important:</strong> Please log in to the platform to provide your witness statement. Your input is valuable to ensure a thorough investigation.
+              <strong>Important:</strong> Your input is valuable to ensure a thorough investigation.
             </p>
           </div>
           
@@ -192,6 +196,7 @@ function buildActionReturnedEmail(data: ActionEmailRequest): { subject: string; 
   const returnCountText = (data.return_count || 1) > 1 
     ? `This action has been returned ${data.return_count} times.`
     : '';
+  const appUrl = getAppUrl();
     
   return {
     subject: `[Action Returned] ${data.action_title} - Corrections Required`,
@@ -246,7 +251,7 @@ function buildActionReturnedEmail(data: ActionEmailRequest): { subject: string; 
             </p>
           ` : ''}
           
-          <p style="margin-top: 25px;">Please log in to the platform to review the feedback and resubmit your corrective action.</p>
+          ${emailButton("Review & Resubmit", `${appUrl}/my-actions`, "#dc2626")}
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
             <p>This is an automated message from ${data.tenant_name || 'DHUUD HSSE Platform'}</p>
@@ -259,6 +264,7 @@ function buildActionReturnedEmail(data: ActionEmailRequest): { subject: string; 
 }
 
 function buildActionClosedEmail(data: ActionEmailRequest): { subject: string; html: string } {
+  const appUrl = getAppUrl();
   return {
     subject: `✓ [Action Closed] ${data.action_title} - Successfully Verified`,
     html: `
@@ -309,6 +315,8 @@ function buildActionClosedEmail(data: ActionEmailRequest): { subject: string; ht
               <p style="margin: 0; color: #15803d;">"${data.verification_notes}"</p>
             </div>
           ` : ''}
+          
+          ${emailButton("View My Actions", `${appUrl}/my-actions`, "#16a34a")}
           
           <p style="margin-top: 25px;">Thank you for completing this action. Your contribution helps maintain a safe work environment.</p>
           

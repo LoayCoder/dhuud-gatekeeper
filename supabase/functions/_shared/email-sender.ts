@@ -3,6 +3,26 @@
 
 // AWS SES Configuration
 const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
+
+/**
+ * Get the application base URL from environment
+ */
+export function getAppUrl(): string {
+  return Deno.env.get("APP_URL") || "https://app.dhuud.com";
+}
+
+/**
+ * Generate a styled CTA button for emails
+ */
+export function emailButton(text: string, url: string, color = "#1e40af"): string {
+  return `
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${url}" style="display: inline-block; background: ${color}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+        ${text} →
+      </a>
+    </div>
+  `;
+}
 const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
 const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
 const AWS_SES_FROM_EMAIL = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";

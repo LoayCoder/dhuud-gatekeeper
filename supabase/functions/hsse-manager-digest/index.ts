@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +9,7 @@ const corsHeaders = {
 // deno-lint-ignore no-explicit-any
 function generateDigestHtml(tenantName: string, pendingClosures: any[], escalatedActions: any[], atRiskActions: any[]): string {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const appUrl = getAppUrl();
 
   let html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -22,6 +23,7 @@ function generateDigestHtml(tenantName: string, pendingClosures: any[], escalate
           <li>Actions at Risk: <strong>${atRiskActions.length}</strong></li>
         </ul>
       </div>
+      ${emailButton("Open Dashboard", `${appUrl}/dashboard`, "#1e40af")}
   `;
 
   if (pendingClosures.length > 0) {
@@ -51,7 +53,7 @@ function generateDigestHtml(tenantName: string, pendingClosures: any[], escalate
     html += `</table>`;
   }
 
-  html += `<p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 12px;">This is an automated digest from DHUUD Platform. Log in to take action.</p></div>`;
+  html += `<p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 12px;">This is an automated digest from DHUUD Platform.</p></div>`;
 
   return html;
 }
