@@ -1,6 +1,6 @@
 {
-  "name": "Dhuud HSSE Platform",
-  "short_name": "Dhuud HSSE",
+  "name": "DHUUD",
+  "short_name": "DHUUD",
   "description": "Zero Trust Multi-Tenant HSSE Platform for Health, Safety, Security & Environment management",
   "start_url": "/",
   "display": "standalone",
