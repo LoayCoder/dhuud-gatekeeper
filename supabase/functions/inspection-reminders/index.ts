@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
 
         if (inspectorEmail) {
           const dueText = schedule.days_until === 0 ? 'today' : schedule.days_until === 1 ? 'tomorrow' : `in ${schedule.days_until} days`;
+          const appUrl = getAppUrl();
 
           const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -96,6 +97,7 @@ Deno.serve(async (req) => {
                 <p style="margin: 8px 0 0;"><strong>Type:</strong> ${schedule.schedule_type}</p>
                 <p style="margin: 8px 0 0;"><strong>Due Date:</strong> ${new Date(schedule.next_due).toLocaleDateString()}</p>
               </div>
+              ${emailButton("View Schedule", `${appUrl}/inspections/schedules`, "#1e40af")}
               <p>Please ensure you complete this inspection on time.</p>
               <p style="color: #666; font-size: 12px; margin-top: 24px;">This is an automated reminder from ${tenant?.name || 'DHUUD Platform'}.</p>
             </div>

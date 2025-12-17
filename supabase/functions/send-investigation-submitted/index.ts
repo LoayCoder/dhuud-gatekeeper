@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SESClient, SendEmailCommand } from "https://esm.sh/@aws-sdk/client-ses@3.529.1";
+import { getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -100,6 +101,7 @@ serve(async (req) => {
     // Send email to each assignee
     let sentCount = 0;
     const errors: string[] = [];
+    const appUrl = getAppUrl();
 
     for (const [assigneeId, assigneeActions] of actionsByAssignee) {
       const profile = profileMap.get(assigneeId);
@@ -156,7 +158,7 @@ serve(async (req) => {
             </tbody>
           </table>
           
-          <p style="margin-top: 24px;">Please log in to the HSSE platform to review and complete your assigned actions.</p>
+          ${emailButton("View My Actions", `${appUrl}/my-actions`, "#1e40af")}
           
           <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
             This is an automated message from the DHUUD HSSE Platform.

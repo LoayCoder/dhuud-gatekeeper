@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmail, type EmailModule } from "../_shared/email-sender.ts";
+import { sendEmail, type EmailModule, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -104,23 +104,25 @@ serve(async (req: Request) => {
     let subject = "";
     let htmlContent = "";
 
+    const appUrl = getAppUrl();
+    
     switch (action) {
       case "expert_return":
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
         subject = `[${tenantName}] Action Required: Event Report Returned for Correction`;
-        htmlContent = `<h2>Event Report Returned for Correction</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been returned by the HSSE Expert for correction.</p>${payload.returnReason ? `<p><strong>Reason:</strong> ${payload.returnReason}</p>` : ""}${payload.returnInstructions ? `<p><strong>Instructions:</strong> ${payload.returnInstructions}</p>` : ""}<p>Please log in to review and resubmit your report.</p><p>Best regards,<br>${tenantName} HSSE Team</p>`;
+        htmlContent = `<h2>Event Report Returned for Correction</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been returned by the HSSE Expert for correction.</p>${payload.returnReason ? `<p><strong>Reason:</strong> ${payload.returnReason}</p>` : ""}${payload.returnInstructions ? `<p><strong>Instructions:</strong> ${payload.returnInstructions}</p>` : ""}${emailButton("Edit & Resubmit Report", `${appUrl}/incidents/report?edit=${incidentId}`, "#dc2626")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
         break;
       case "expert_reject":
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
         subject = `[${tenantName}] Event Report Rejected - Action Required`;
-        htmlContent = `<h2>Event Report Rejected</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been rejected by the HSSE Expert.</p>${payload.rejectionReason ? `<p><strong>Reason:</strong> ${payload.rejectionReason}</p>` : ""}<p>Please log in to confirm this rejection or dispute it.</p><p>Best regards,<br>${tenantName} HSSE Team</p>`;
+        htmlContent = `<h2>Event Report Rejected</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been rejected by the HSSE Expert.</p>${payload.rejectionReason ? `<p><strong>Reason:</strong> ${payload.rejectionReason}</p>` : ""}${emailButton("View Incident Details", `${appUrl}/incidents/${incidentId}`, "#6b7280")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
         break;
       case "expert_investigate":
         if (incident.approval_manager_id) {
           const { data: manager } = await supabase.from("profiles").select("email, full_name").eq("id", incident.approval_manager_id).single();
           if (manager?.email) recipients.push(manager.email);
           subject = `[${tenantName}] Investigation Approval Required`;
-          htmlContent = `<h2>Investigation Approval Required</h2><p>Dear ${manager?.full_name || "Manager"},</p><p>Event <strong>${incident.reference_id}</strong> has been recommended for investigation by the HSSE Expert.</p><p><strong>Event Title:</strong> ${incident.title}</p>${payload.notes ? `<p><strong>Expert Notes:</strong> ${payload.notes}</p>` : ""}<p>Please log in to review and approve or reject this investigation request.</p><p>Best regards,<br>${tenantName} HSSE Team</p>`;
+          htmlContent = `<h2>Investigation Approval Required</h2><p>Dear ${manager?.full_name || "Manager"},</p><p>Event <strong>${incident.reference_id}</strong> has been recommended for investigation by the HSSE Expert.</p><p><strong>Event Title:</strong> ${incident.title}</p>${payload.notes ? `<p><strong>Expert Notes:</strong> ${payload.notes}</p>` : ""}${emailButton("Review & Approve", `${appUrl}/incidents/investigate?id=${incidentId}`, "#1e40af")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
         }
         break;
       case "investigator_assigned":
@@ -128,7 +130,7 @@ serve(async (req: Request) => {
           const { data: investigator } = await supabase.from("profiles").select("email, full_name").eq("id", payload.investigatorId).single();
           if (investigator?.email) recipients.push(investigator.email);
           subject = `[${tenantName}] You Have Been Assigned to Investigate Event ${incident.reference_id}`;
-          htmlContent = `<h2>Investigation Assignment</h2><p>Dear ${investigator?.full_name || "Investigator"},</p><p>You have been assigned to investigate event <strong>${incident.reference_id}</strong>.</p><p><strong>Event Title:</strong> ${incident.title}</p><p>Please log in to begin your investigation.</p><p>Best regards,<br>${tenantName} HSSE Team</p>`;
+          htmlContent = `<h2>Investigation Assignment</h2><p>Dear ${investigator?.full_name || "Investigator"},</p><p>You have been assigned to investigate event <strong>${incident.reference_id}</strong>.</p><p><strong>Event Title:</strong> ${incident.title}</p>${emailButton("Start Investigation", `${appUrl}/incidents/investigate?id=${incidentId}`, "#16a34a")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
         }
         break;
       default:

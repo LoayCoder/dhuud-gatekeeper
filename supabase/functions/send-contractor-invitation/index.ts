@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
 
     const companyName = (rep.company as any)?.company_name || 'Your Company';
     const tenantName = tenant?.name || 'DHUUD Platform';
+    const appUrl = getAppUrl();
 
     // Generate portal access token
     const portalToken = crypto.randomUUID();
@@ -83,7 +84,7 @@ Deno.serve(async (req) => {
           <li>Track project assignments</li>
           <li>View induction video requirements</li>
         </ul>
-        <p>Please contact your project manager for portal access credentials.</p>
+        ${emailButton("Access Contractor Portal", `${appUrl}/contractor-portal`, "#1a56db")}
         <p style="color: #6b7280; font-size: 12px; margin-top: 32px;">This is an automated invitation from the HSSE Platform.</p>
       </div>
     `;
