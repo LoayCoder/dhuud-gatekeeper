@@ -57,6 +57,8 @@ import {
   FileKey,
   HardHat,
   Map,
+  Download,
+  Share,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -77,6 +79,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { prefetchRoute, prefetchRoutes } from "@/hooks/use-prefetch";
 import { useMenuAccess } from "@/hooks/use-menu-access";
+import { usePWAInstall } from "@/hooks/use-pwa-install";
+import { DHUUD_APP_ICON } from "@/constants/branding";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export function AppSidebar() {
   const { t, i18n } = useTranslation();
@@ -86,6 +91,10 @@ export function AppSidebar() {
   const location = useLocation();
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
   const { canAccess, hasAccessibleChildren, isLoading: menuLoading } = useMenuAccess();
+  const { canInstall, isIOS, promptInstall } = usePWAInstall();
+  
+  // Get app icon for PWA install button
+  const appIcon = activeSidebarIconUrl || DHUUD_APP_ICON;
 
   // Watch for direction changes
   useEffect(() => {
@@ -888,9 +897,82 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* FOOTER: User Profile & Logout */}
+      {/* FOOTER: PWA Install & User Profile */}
       <SidebarFooter>
         <SidebarMenu>
+          {/* PWA Install Button - Only shows when app can be installed */}
+          {canInstall && (
+            <SidebarMenuItem>
+              {isIOS ? (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <SidebarMenuButton
+                      tooltip={t('pwa.installApp')}
+                      className="bg-primary/10 hover:bg-primary/20 text-primary"
+                    >
+                      <img 
+                        src={appIcon} 
+                        alt={tenantName || 'DHUUD'} 
+                        className="h-5 w-5 rounded object-cover flex-shrink-0"
+                        onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                      />
+                      <span>{t('pwa.installApp')}</span>
+                      <Share className="ms-auto h-4 w-4 flex-shrink-0" />
+                    </SidebarMenuButton>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <img 
+                          src={appIcon} 
+                          alt={tenantName || 'DHUUD'} 
+                          className="h-8 w-8 rounded object-cover"
+                          onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                        />
+                        {t('pwa.installApp')}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <p className="text-sm text-muted-foreground">
+                        {t('pwa.iosInstructions')}
+                      </p>
+                      <ol className="space-y-3 text-sm">
+                        <li className="flex items-center gap-3">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">1</span>
+                          <span>{t('pwa.iosStep1')}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">2</span>
+                          <span>{t('pwa.iosStep2')}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">3</span>
+                          <span>{t('pwa.iosStep3')}</span>
+                        </li>
+                      </ol>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <SidebarMenuButton
+                  onClick={promptInstall}
+                  tooltip={t('pwa.installApp')}
+                  className="bg-primary/10 hover:bg-primary/20 text-primary"
+                >
+                  <img 
+                    src={appIcon} 
+                    alt={tenantName || 'DHUUD'} 
+                    className="h-5 w-5 rounded object-cover flex-shrink-0"
+                    onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON }}
+                  />
+                  <span>{t('pwa.installApp')}</span>
+                  <Download className="ms-auto h-4 w-4 flex-shrink-0" />
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+          )}
+          
+          {/* User Profile Section */}
           <SidebarMenuItem>
             <div className="flex items-center justify-between px-2">
               <DropdownMenu>

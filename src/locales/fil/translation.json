@@ -5235,5 +5235,14 @@
     "minsAgo": "{{count}} minuto na ang nakalipas",
     "allSynced": "Lahat ng pagbabago ay na-sync na",
     "installApp": "I-install ang App"
+  },
+  "pwa": {
+    "installApp": "I-install ang App",
+    "installDescription": "I-install ang DHUUD sa iyong device para sa mabilis na access",
+    "iosInstructions": "Para ma-install sa iOS:",
+    "iosStep1": "I-tap ang Share button",
+    "iosStep2": "Mag-scroll pababa at i-tap ang 'Add to Home Screen'",
+    "iosStep3": "I-tap ang 'Add' para kumpirmahin",
+    "installed": "Naka-install na ang App"
   }
 }
