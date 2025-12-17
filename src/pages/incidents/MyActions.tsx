@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,9 @@ import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { usePendingExtensionRequests, useHSSEPendingExtensionRequests } from '@/hooks/use-action-extensions';
 import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
+import { useMyInspectionActions } from '@/hooks/use-inspection-actions';
+import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
+import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
@@ -56,8 +59,10 @@ export default function MyActions() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { profile } = useAuth();
-  const { data: actions, isLoading: actionsLoading } = useMyCorrectiveActions();
+  const { data: incidentActions, isLoading: actionsLoading } = useMyCorrectiveActions();
+  const { data: inspectionActions, isLoading: inspectionActionsLoading } = useMyInspectionActions();
   const { data: witnessStatements, isLoading: witnessLoading, refetch: refetchWitness } = useMyAssignedWitnessStatements();
+  
   const updateStatus = useUpdateMyActionStatus();
   const uploadEvidence = useUploadActionEvidence();
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
@@ -85,9 +90,21 @@ export default function MyActions() {
   const { data: hssePendingExtensions, isLoading: hsseExtensionsLoading } = useHSSEPendingExtensionRequests();
   const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
   
+  // Contractor approvals - must be after hasRole is declared
+  const { data: pendingWorkers, isLoading: workersLoading } = usePendingWorkerApprovals();
+  const { data: pendingGatePasses, isLoading: gatePassesLoading } = usePendingGatePassApprovals();
+  const canApproveWorkers = hasRole('admin') || hasRole('security_supervisor') || hasRole('security_manager');
+  const canApproveGatePasses = hasRole('admin') || hasRole('security_supervisor') || hasRole('project_manager');
+  
   // Check if user can approve closures (HSSE Manager or Admin)
   const canApproveClosures = hasRole('admin') || hasRole('hsse_manager');
   const isHSSEManager = hasRole('hsse_manager');
+  
+  // Combine incident and inspection actions into a unified list with source indicator
+  const allActions = [
+    ...(incidentActions || []).map(a => ({ ...a, source: 'incident' as const })),
+    ...(inspectionActions || []).map(a => ({ ...a, source: 'inspection' as const })),
+  ];
 
   // Handle opening action dialog for "Start Work"
   const handleStartWork = (action: ActionForDialog) => {
@@ -162,16 +179,17 @@ export default function MyActions() {
     refetchWitness();
   };
 
-  const pendingActions = actions?.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction') || [];
-  const inProgressActions = actions?.filter(a => a.status === 'in_progress') || [];
-  const completedActions = actions?.filter(a => a.status === 'completed' || a.status === 'verified') || [];
+  const pendingActions = allActions?.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction') || [];
+  const inProgressActions = allActions?.filter(a => a.status === 'in_progress') || [];
+  const completedActions = allActions?.filter(a => a.status === 'completed' || a.status === 'verified') || [];
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
   const totalExtensions = (pendingExtensions?.length || 0) + (isHSSEManager ? (hssePendingExtensions?.length || 0) : 0);
-  const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions;
+  const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
+  const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions + contractorApprovalCount;
 
-  const isLoading = actionsLoading || witnessLoading;
+  const isLoading = actionsLoading || inspectionActionsLoading || witnessLoading;
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
@@ -243,7 +261,8 @@ export default function MyActions() {
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
         <TabsList>
           <TabsTrigger value="actions">
-            {t('investigation.correctiveActions', 'Corrective Actions')} ({actions?.length || 0})
+            <ClipboardList className="h-4 w-4 me-2" />
+            {t('investigation.correctiveActions', 'Corrective Actions')} ({allActions?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="witness">
             <MessageSquare className="h-4 w-4 me-2" />
@@ -263,7 +282,7 @@ export default function MyActions() {
         </TabsList>
 
         <TabsContent value="actions" className="mt-4">
-          {actionsLoading ? (
+          {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i}>
@@ -277,9 +296,19 @@ export default function MyActions() {
                 </Card>
               ))}
             </div>
-          ) : actions && actions.length > 0 ? (
+          ) : allActions && allActions.length > 0 ? (
             <div className="space-y-4">
-              {actions.map((action) => (
+              {allActions.map((action) => {
+                const isIncidentAction = action.source === 'incident';
+                const returnCount = isIncidentAction && 'return_count' in action ? (action.return_count || 0) : 0;
+                const lastReturnReason = isIncidentAction && 'last_return_reason' in action ? action.last_return_reason : null;
+                const rejectionNotes = isIncidentAction && 'rejection_notes' in action ? action.rejection_notes : null;
+                const rejectedByProfile = isIncidentAction && 'rejected_by_profile' in action ? action.rejected_by_profile : null;
+                const rejectedAt = isIncidentAction && 'rejected_at' in action ? action.rejected_at : null;
+                const incidentId = isIncidentAction && 'incident_id' in action ? action.incident_id : null;
+                const sessionId = !isIncidentAction && 'session_id' in action ? action.session_id : null;
+                
+                return (
                 <Card key={action.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
@@ -290,6 +319,13 @@ export default function MyActions() {
                             {action.reference_id}
                           </Badge>
                         )}
+                        {/* Source indicator */}
+                        <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
+                          {isIncidentAction 
+                            ? t('investigation.source.incident', 'Incident')
+                            : t('investigation.source.inspection', 'Inspection')
+                          }
+                        </Badge>
                         <CardTitle className="text-base">{action.title}</CardTitle>
                       </div>
                       <div className="flex items-center gap-2">
@@ -305,12 +341,14 @@ export default function MyActions() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Workflow Timeline */}
-                    <ActionWorkflowTimeline 
-                      currentStatus={action.status} 
-                      returnCount={action.return_count || 0}
-                      className="py-2 mb-2"
-                    />
+                    {/* Workflow Timeline - only for incident actions */}
+                    {isIncidentAction && (
+                      <ActionWorkflowTimeline 
+                        currentStatus={action.status} 
+                        returnCount={returnCount}
+                        className="py-2 mb-2"
+                      />
+                    )}
                     
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       {action.due_date && (
@@ -327,20 +365,20 @@ export default function MyActions() {
                       )}
                     </div>
                     
-                    {/* Show rejection notes if action was returned for correction */}
-                    {action.status === 'returned_for_correction' && (action.last_return_reason || action.rejection_notes) && (
+                    {/* Show rejection notes if action was returned for correction (incident only) */}
+                    {isIncidentAction && action.status === 'returned_for_correction' && (lastReturnReason || rejectionNotes) && (
                       <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
                         <div className="flex items-center gap-2 text-destructive font-medium text-sm">
                           <RotateCcw className="h-4 w-4" />
                           {t('actions.rejectionReason', 'Rejection Reason')}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {action.last_return_reason || action.rejection_notes}
+                          {lastReturnReason || rejectionNotes}
                         </p>
-                        {action.rejected_by_profile && (
+                        {rejectedByProfile && (
                           <p className="text-xs text-muted-foreground">
-                            {t('actions.rejectedBy', 'Rejected by')}: {action.rejected_by_profile.full_name}
-                            {action.rejected_at && ` • ${formatDistanceToNow(new Date(action.rejected_at), { addSuffix: true })}`}
+                            {t('actions.rejectedBy', 'Rejected by')}: {rejectedByProfile.full_name}
+                            {rejectedAt && ` • ${formatDistanceToNow(new Date(rejectedAt), { addSuffix: true })}`}
                           </p>
                         )}
                       </div>
@@ -391,8 +429,8 @@ export default function MyActions() {
                             {t('investigation.actions.markCompleted', 'Mark Completed')}
                           </Button>
                           
-                          {/* Extension request button if overdue */}
-                          {action.due_date && new Date(action.due_date) < new Date() && (
+                          {/* Extension request button if overdue (incident actions only) */}
+                          {isIncidentAction && action.due_date && new Date(action.due_date) < new Date() && (
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -420,18 +458,26 @@ export default function MyActions() {
                         </Badge>
                       )}
                       
-                      {action.incident_id && (
+                      {/* Navigate to source - Investigation Workspace for incidents, Session for inspections */}
+                      {isIncidentAction && incidentId ? (
                         <Button asChild variant="ghost" size="sm">
-                          <Link to={`/incidents/${action.incident_id}`} className="gap-2">
-                            {t('investigation.viewIncident', 'View Incident')}
+                          <Link to={`/incidents/investigate?incident=${incidentId}&from=my-actions`} className="gap-2">
+                            {t('investigation.viewInvestigation', 'View Investigation')}
                             <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                           </Link>
                         </Button>
-                      )}
+                      ) : sessionId ? (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link to={`/inspections/sessions/${sessionId}`} className="gap-2">
+                            {t('inspections.viewSession', 'View Session')}
+                            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                          </Link>
+                        </Button>
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )})}
             </div>
           ) : (
             <Card className="py-12">
@@ -790,13 +836,134 @@ export default function MyActions() {
                   </div>
                 )}
 
+                {/* Contractor Worker Approvals Section (Security Supervisor/Manager) */}
+                {canApproveWorkers && pendingWorkers && pendingWorkers.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <HardHat className="h-5 w-5 text-amber-500" />
+                      {t('contractors.workers.pendingApprovals', 'Worker Approvals')}
+                      <Badge variant="secondary">{pendingWorkers.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingWorkers.map((worker) => (
+                        <Card key={worker.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <HardHat className="h-4 w-4 text-amber-500" />
+                                <CardTitle className="text-base">{worker.full_name}</CardTitle>
+                              </div>
+                              <Badge variant="outline">
+                                {t('contractors.workers.pendingApproval', 'Pending Approval')}
+                              </Badge>
+                            </div>
+                            <CardDescription>
+                              {worker.company?.company_name || t('common.unknown', 'Unknown Company')}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              <div>
+                                <span className="font-medium">{t('contractors.workers.nationalId', 'National ID')}:</span>{' '}
+                                {worker.national_id}
+                              </div>
+                              {worker.nationality && (
+                                <div>
+                                  <span className="font-medium">{t('contractors.workers.nationality', 'Nationality')}:</span>{' '}
+                                  {worker.nationality}
+                                </div>
+                              )}
+                              {worker.created_at && (
+                                <div>
+                                  <span className="font-medium">{t('common.submitted', 'Submitted')}:</span>{' '}
+                                  {formatDistanceToNow(new Date(worker.created_at), { addSuffix: true })}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Button asChild size="sm">
+                              <Link to="/contractors/workers?tab=pending" className="gap-2">
+                                {t('contractors.workers.reviewWorker', 'Review & Approve')}
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Gate Pass Approvals Section (Project Manager/Safety Supervisor) */}
+                {canApproveGatePasses && pendingGatePasses && pendingGatePasses.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Truck className="h-5 w-5 text-amber-500" />
+                      {t('contractors.gatePasses.pendingApprovals', 'Gate Pass Approvals')}
+                      <Badge variant="secondary">{pendingGatePasses.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingGatePasses.map((pass) => (
+                        <Card key={pass.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <Truck className="h-4 w-4 text-amber-500" />
+                                <CardTitle className="text-base">{pass.reference_number}</CardTitle>
+                              </div>
+                              <Badge variant={pass.status === 'pending_pm_approval' ? 'secondary' : 'outline'}>
+                                {pass.status === 'pending_pm_approval' 
+                                  ? t('contractors.gatePasses.awaitingPM', 'Awaiting PM')
+                                  : t('contractors.gatePasses.awaitingSafety', 'Awaiting Safety')
+                                }
+                              </Badge>
+                            </div>
+                            <CardDescription>
+                              {pass.material_description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {pass.project?.project_name && (
+                                <div>
+                                  <span className="font-medium">{t('contractors.project', 'Project')}:</span>{' '}
+                                  {pass.project.project_name}
+                                </div>
+                              )}
+                              {pass.company?.company_name && (
+                                <div>
+                                  <span className="font-medium">{t('contractors.company', 'Company')}:</span>{' '}
+                                  {pass.company.company_name}
+                                </div>
+                              )}
+                              <div>
+                                <span className="font-medium">{t('contractors.gatePasses.passDate', 'Date')}:</span>{' '}
+                                {new Date(pass.pass_date).toLocaleDateString()}
+                              </div>
+                            </div>
+                            
+                            <Button asChild size="sm">
+                              <Link to="/contractors/gate-passes?tab=pending" className="gap-2">
+                                {t('contractors.gatePasses.reviewPass', 'Review & Approve')}
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Empty State */}
                 {(!pendingApprovals || pendingApprovals.length === 0) && 
                  (!canApproveSeverity || !pendingSeverity || pendingSeverity.length === 0) &&
                  (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) &&
                  (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) &&
                  (!pendingExtensions || pendingExtensions.length === 0) &&
-                 (!isHSSEManager || !hssePendingExtensions || hssePendingExtensions.length === 0) && (
+                 (!isHSSEManager || !hssePendingExtensions || hssePendingExtensions.length === 0) &&
+                 (!canApproveWorkers || !pendingWorkers || pendingWorkers.length === 0) &&
+                 (!canApproveGatePasses || !pendingGatePasses || pendingGatePasses.length === 0) && (
                   <Card className="py-12">
                     <CardContent className="flex flex-col items-center justify-center text-center">
                       <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
