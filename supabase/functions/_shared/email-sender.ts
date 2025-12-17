@@ -1,5 +1,14 @@
 // Shared AWS SES Email Sender with Module-Based Sender Names
 // This utility provides centralized email sending for all edge functions
+// Supports localized emails with RTL for Arabic/Urdu
+
+import { 
+  isRTL, 
+  type SupportedLanguage, 
+  COMMON_TRANSLATIONS, 
+  getTranslations, 
+  replaceVariables 
+} from "./email-translations.ts";
 
 // AWS SES Configuration
 const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
@@ -12,16 +21,104 @@ export function getAppUrl(): string {
 }
 
 /**
- * Generate a styled CTA button for emails
+ * Generate a styled CTA button for emails with RTL support
  */
-export function emailButton(text: string, url: string, color = "#1e40af"): string {
+export function emailButton(text: string, url: string, color = "#1e40af", isRtl = false): string {
+  const arrow = isRtl ? '←' : '→';
+  const textAlign = isRtl ? 'right' : 'left';
   return `
     <div style="text-align: center; margin: 24px 0;">
-      <a href="${url}" style="display: inline-block; background: ${color}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
-        ${text} →
+      <a href="${url}" style="display: inline-block; background: ${color}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; direction: ${isRtl ? 'rtl' : 'ltr'};">
+        ${isRtl ? `${arrow} ${text}` : `${text} ${arrow}`}
       </a>
     </div>
   `;
+}
+
+/**
+ * Get font family based on language (Arabic/Urdu need specific fonts)
+ */
+export function getEmailFontFamily(lang: string): string {
+  if (['ar', 'ur'].includes(lang)) {
+    return "'Segoe UI', 'Tahoma', 'Cairo', 'IBM Plex Sans Arabic', sans-serif";
+  }
+  return "'Segoe UI', 'Tahoma', sans-serif";
+}
+
+/**
+ * Wrap email HTML with proper RTL/LTR direction and font
+ */
+export function wrapEmailHtml(content: string, lang: string, tenantName?: string): string {
+  const rtl = isRTL(lang as SupportedLanguage);
+  const direction = rtl ? 'rtl' : 'ltr';
+  const textAlign = rtl ? 'right' : 'left';
+  const fontFamily = getEmailFontFamily(lang);
+  const common = getTranslations(COMMON_TRANSLATIONS, lang);
+  const footerText = replaceVariables(common.automatedMessage, { tenant: tenantName || 'DHUUD' });
+
+  return `
+    <!DOCTYPE html>
+    <html dir="${direction}" lang="${lang}">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: ${fontFamily}; direction: ${direction}; text-align: ${textAlign}; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      ${content}
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
+        <p>${footerText}</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Get common translation strings for a language
+ */
+export function getCommonTranslations(lang: string) {
+  return getTranslations(COMMON_TRANSLATIONS, lang);
+}
+
+/**
+ * Format date according to locale
+ */
+export function formatDateForLocale(dateString: string | undefined, lang: string): string {
+  if (!dateString) {
+    const common = getTranslations(COMMON_TRANSLATIONS, lang);
+    return common.notSpecified;
+  }
+  try {
+    const localeMap: Record<string, string> = {
+      en: 'en-US',
+      ar: 'ar-SA',
+      ur: 'ur-PK',
+      hi: 'hi-IN',
+      fil: 'fil-PH',
+    };
+    return new Date(dateString).toLocaleDateString(localeMap[lang] || 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return dateString;
+  }
+}
+
+/**
+ * Get priority label in the user's language
+ */
+export function getPriorityLabel(priority: string, lang: string): string {
+  const common = getTranslations(COMMON_TRANSLATIONS, lang);
+  const priorityMap: Record<string, keyof typeof common> = {
+    critical: 'critical',
+    high: 'high',
+    medium: 'medium',
+    low: 'low',
+  };
+  const key = priorityMap[priority?.toLowerCase()] || 'medium';
+  return common[key] as string;
 }
 const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
 const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
