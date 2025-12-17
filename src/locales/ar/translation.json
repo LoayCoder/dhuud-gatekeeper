@@ -3882,11 +3882,18 @@
       }
     },
     "condition": {
+      "label": "الحالة",
       "excellent": "ممتاز",
       "good": "جيد",
       "fair": "مقبول",
       "poor": "ضعيف",
       "critical": "حرج"
+    },
+    "status": {
+      "label": "الحالة"
+    },
+    "criticality": {
+      "label": "الأهمية"
     },
     "barcodeScan": "مسح الباركود",
     "qrCodeScan": "مسح رمز QR",
