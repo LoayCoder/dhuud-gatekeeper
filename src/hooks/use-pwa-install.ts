@@ -81,10 +81,14 @@ export function usePWAInstall() {
     setIsDismissed(true);
   }, []);
 
-  const canInstall = !isInstalled && !isDismissed && (!!deferredPrompt || isIOS);
+  // Show install button if not installed and not dismissed
+  // Even without deferredPrompt, we can show instructions
+  const canInstall = !isInstalled && !isDismissed;
+  const canPromptNatively = !!deferredPrompt;
 
   return {
     canInstall,
+    canPromptNatively,
     isInstalled,
     isIOS,
     isDismissed,
