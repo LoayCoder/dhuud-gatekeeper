@@ -16,16 +16,23 @@ export function usePWAInstall() {
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
     !(window as any).MSStream;
 
-  const isStandalone = typeof window !== 'undefined' && (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
-  );
+  // Detect if running in iframe (e.g., Lovable preview)
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
   useEffect(() => {
-    // Check if already installed
-    if (isStandalone) {
-      setIsInstalled(true);
-      return;
+    // If running in iframe, definitely NOT installed as standalone PWA
+    if (isInIframe) {
+      setIsInstalled(false);
+    } else {
+      // Only check standalone mode if NOT in iframe
+      const isStandalone = 
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+      
+      if (isStandalone) {
+        setIsInstalled(true);
+        return;
+      }
     }
 
     // Check if dismissed
@@ -53,7 +60,7 @@ export function usePWAInstall() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [isStandalone]);
+  }, [isInIframe]);
 
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) return false;
