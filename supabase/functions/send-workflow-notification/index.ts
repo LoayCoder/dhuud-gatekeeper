@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// AWS SES Configuration
-const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
-const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
-const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
-const AWS_SES_FROM_EMAIL = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
+import { sendEmail, type EmailModule } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,107 +21,6 @@ interface WorkflowNotificationRequest {
   investigatorId?: string;
 }
 
-// AWS SES Helper Functions
-async function sha256(message: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  return await crypto.subtle.digest("SHA-256", encoder.encode(message));
-}
-
-async function hmac(key: ArrayBuffer, message: string): Promise<ArrayBuffer> {
-  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(message));
-}
-
-async function hmacHex(key: ArrayBuffer, message: string): Promise<string> {
-  const sig = await hmac(key, message);
-  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function getSignatureKey(key: string, dateStamp: string, region: string, service: string): Promise<ArrayBuffer> {
-  const kDate = await hmac(new TextEncoder().encode("AWS4" + key).buffer as ArrayBuffer, dateStamp);
-  const kRegion = await hmac(kDate, region);
-  const kService = await hmac(kRegion, service);
-  return await hmac(kService, "aws4_request");
-}
-
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function sendEmailViaSES(to: string, subject: string, htmlBody: string, fromName?: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-    console.error("AWS credentials not configured");
-    return { success: false, error: "AWS credentials not configured" };
-  }
-
-  const service = "ses";
-  const host = `email.${AWS_SES_REGION}.amazonaws.com`;
-  const endpoint = `https://${host}/`;
-  const method = "POST";
-
-  const fromAddress = fromName ? `${fromName} <${AWS_SES_FROM_EMAIL}>` : AWS_SES_FROM_EMAIL;
-
-  const params = new URLSearchParams();
-  params.append("Action", "SendEmail");
-  params.append("Source", fromAddress);
-  params.append("Destination.ToAddresses.member.1", to);
-  params.append("Message.Subject.Data", subject);
-  params.append("Message.Subject.Charset", "UTF-8");
-  params.append("Message.Body.Html.Data", htmlBody);
-  params.append("Message.Body.Html.Charset", "UTF-8");
-  params.append("Version", "2010-12-01");
-
-  const body = params.toString();
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-
-  const contentType = "application/x-www-form-urlencoded";
-  const payloadHash = toHex(await sha256(body));
-
-  const canonicalHeaders = `content-type:${contentType}\nhost:${host}\nx-amz-date:${amzDate}\n`;
-  const signedHeaders = "content-type;host;x-amz-date";
-  const canonicalRequest = `${method}\n/\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
-
-  const algorithm = "AWS4-HMAC-SHA256";
-  const credentialScope = `${dateStamp}/${AWS_SES_REGION}/${service}/aws4_request`;
-  const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${toHex(await sha256(canonicalRequest))}`;
-
-  const signingKey = await getSignatureKey(AWS_SECRET_ACCESS_KEY, dateStamp, AWS_SES_REGION, service);
-  const signature = await hmacHex(signingKey, stringToSign);
-
-  const authorizationHeader = `${algorithm} Credential=${AWS_ACCESS_KEY_ID}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-  try {
-    const response = await fetch(endpoint, {
-      method,
-      headers: {
-        "Content-Type": contentType,
-        "X-Amz-Date": amzDate,
-        "Authorization": authorizationHeader,
-      },
-      body,
-    });
-
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      console.error("AWS SES error response:", responseText);
-      return { success: false, error: `SES error: ${response.status} - ${responseText}` };
-    }
-
-    const messageIdMatch = responseText.match(/<MessageId>(.+?)<\/MessageId>/);
-    const messageId = messageIdMatch ? messageIdMatch[1] : undefined;
-
-    console.log(`Email sent successfully via AWS SES to ${to}, MessageId: ${messageId}`);
-    return { success: true, messageId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("AWS SES request failed:", errorMessage);
-    return { success: false, error: errorMessage };
-  }
-}
-
 // deno-lint-ignore no-explicit-any
 async function createEmailLog(supabase: any, entry: Record<string, unknown>): Promise<string | null> {
   const { data, error } = await supabase.from('email_delivery_logs').insert(entry).select('id').single();
@@ -138,6 +32,17 @@ async function createEmailLog(supabase: any, entry: Record<string, unknown>): Pr
 async function updateEmailLog(supabase: any, logId: string, updates: Record<string, unknown>): Promise<void> {
   const { error } = await supabase.from('email_delivery_logs').update(updates).eq('id', logId);
   if (error) console.error('Failed to update email log:', error);
+}
+
+function getEmailModule(action: string): EmailModule {
+  switch (action) {
+    case 'investigator_assigned':
+      return 'investigation';
+    case 'expert_investigate':
+      return 'incident_workflow';
+    default:
+      return 'incident_workflow';
+  }
 }
 
 // deno-lint-ignore no-explicit-any
@@ -155,7 +60,13 @@ async function sendEmailWithTracking(supabase: any, tenantId: string, tenantName
     });
     if (!logId) continue;
 
-    const result = await sendEmailViaSES(recipientEmail, subject, htmlContent, tenantName);
+    const result = await sendEmail({
+      to: recipientEmail,
+      subject,
+      html: htmlContent,
+      module: getEmailModule(emailType),
+      tenantName,
+    });
     
     if (result.success) {
       await updateEmailLog(supabase, logId, { status: 'sent', provider_message_id: result.messageId, delivered_at: new Date().toISOString() });
