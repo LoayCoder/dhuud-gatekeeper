@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -137,6 +138,9 @@ Deno.serve(async (req) => {
 
     const whatsappMessage = getLocalizedMessage(preferredLang, worker.full_name, project.project_name, videoLinks);
 
+    // Send via Twilio WhatsApp API
+    const twilioResult = await sendWhatsAppMessage(worker.mobile_number, whatsappMessage);
+
     // Log the induction send
     await supabase.from('contractor_module_audit_logs').insert({
       tenant_id,
@@ -148,23 +152,39 @@ Deno.serve(async (req) => {
         videos_sent: inductionRecords.length,
         preferred_language: preferredLang,
         mobile_number: worker.mobile_number,
+        twilio_success: twilioResult.success,
+        twilio_message_sid: twilioResult.messageSid,
+        twilio_error: twilioResult.error,
       },
     });
 
-    console.log(`Induction videos sent to ${worker.full_name} (${worker.mobile_number}) for project ${project.project_name}`);
+    console.log(`[Induction] Videos sent to ${worker.full_name} (${worker.mobile_number}) for project ${project.project_name} - Twilio success: ${twilioResult.success}`);
 
-    // In production, send via WhatsApp Business API
-    // For now, return success with mock data
+    if (!twilioResult.success) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: twilioResult.error,
+          message: `Failed to send WhatsApp message to ${worker.mobile_number}`,
+          worker_name: worker.full_name,
+          project_name: project.project_name,
+          videos_prepared: inductionRecords.length,
+          induction_records: inductionRecords,
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
+        message_sid: twilioResult.messageSid,
         message: `Induction videos sent to ${worker.mobile_number}`,
         worker_name: worker.full_name,
         project_name: project.project_name,
         videos_sent: inductionRecords.length,
         induction_records: inductionRecords,
         expires_at: expiresAt.toISOString(),
-        whatsapp_message: whatsappMessage,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,7 +59,6 @@ serve(async (req) => {
       visitor_name,
       destination_name,
       host_mobile,
-      host_name,
       entry_id,
     } = requestData;
     
@@ -116,16 +116,25 @@ serve(async (req) => {
       recipientPhone = mobile_number;
     }
     
-    // TODO: Replace with actual WhatsApp Business API integration
-    // const whatsappApiUrl = Deno.env.get('WHATSAPP_API_URL');
-    // const whatsappToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+    // Send via Twilio WhatsApp API
+    const twilioResult = await sendWhatsAppMessage(recipientPhone, message);
     
-    console.log(`[MOCK] WhatsApp message to ${recipientPhone}: ${message}`);
+    if (!twilioResult.success) {
+      console.error(`[WhatsApp] Failed to send message: ${twilioResult.error}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: twilioResult.error,
+          recipient: recipientPhone,
+          notification_type 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
-    // Mock WhatsApp API response
-    const mockResponse = {
+    const response = {
       success: true,
-      message_id: `mock_${Date.now()}`,
+      message_sid: twilioResult.messageSid,
       recipient: recipientPhone,
       notification_type,
       message_preview: message.substring(0, 50) + '...',
@@ -133,7 +142,7 @@ serve(async (req) => {
     };
     
     return new Response(
-      JSON.stringify(mockResponse),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

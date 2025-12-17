@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,7 +90,7 @@ serve(async (req) => {
       language = nationalityToLanguage[nationality] || 'en';
     }
     
-    console.log(`Sending contractor alert to ${mobile_number} in ${language}`);
+    console.log(`[ContractorAlert] Sending alert to ${mobile_number} in ${language}`);
     
     // Build message with all applicable errors
     const messages: string[] = [];
@@ -102,16 +103,26 @@ serve(async (req) => {
     
     const fullMessage = messages.join('\n\n');
     
-    // TODO: Replace with actual WhatsApp Business API integration
-    // const whatsappApiUrl = Deno.env.get('WHATSAPP_API_URL');
-    // const whatsappToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+    // Send via Twilio WhatsApp API
+    const twilioResult = await sendWhatsAppMessage(mobile_number, fullMessage);
     
-    console.log(`[MOCK] WhatsApp alert to ${mobile_number}:\n${fullMessage}`);
+    if (!twilioResult.success) {
+      console.error(`[ContractorAlert] Failed to send message: ${twilioResult.error}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: twilioResult.error,
+          recipient: mobile_number,
+          language_used: language,
+          error_codes: errors
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
-    // Mock WhatsApp API response
-    const mockResponse = {
+    const response = {
       success: true,
-      message_id: `alert_${Date.now()}`,
+      message_sid: twilioResult.messageSid,
       recipient: mobile_number,
       language_used: language,
       error_codes: errors,
@@ -119,7 +130,7 @@ serve(async (req) => {
     };
     
     return new Response(
-      JSON.stringify(mockResponse),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
