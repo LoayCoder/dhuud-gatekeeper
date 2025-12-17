@@ -799,6 +799,7 @@ export default function UserManagement() {
         user={editingUser ? {
           id: editingUser.id,
           full_name: editingUser.full_name,
+          email: editingUser.email,
           phone_number: editingUser.phone_number,
           user_type: editingUser.user_type,
           has_login: editingUser.has_login,
