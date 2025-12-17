@@ -32,8 +32,12 @@ function formatWhatsAppNumber(phone: string): string {
   // Remove spaces, dashes, parentheses
   cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
   
+  // Handle 00 international prefix (replace with +)
+  if (cleaned.startsWith('00')) {
+    cleaned = '+' + cleaned.substring(2);
+  }
   // Ensure + prefix
-  if (!cleaned.startsWith('+')) {
+  else if (!cleaned.startsWith('+')) {
     cleaned = '+' + cleaned;
   }
   
