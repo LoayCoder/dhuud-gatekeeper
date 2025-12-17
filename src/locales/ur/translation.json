@@ -3745,11 +3745,18 @@
       "scanAgain": "دوبارہ سکین کریں"
     },
     "condition": {
+      "label": "حالت",
       "excellent": "بہترین",
       "good": "اچھی",
       "fair": "معمولی",
       "poor": "خراب",
       "critical": "نازک"
+    },
+    "status": {
+      "label": "حیثیت"
+    },
+    "criticality": {
+      "label": "اہمیت"
     },
     "linkAsset": "اثاثہ منسلک کریں",
     "linkAssetToIncident": "واقعے سے اثاثہ منسلک کریں",

@@ -4047,11 +4047,18 @@
       }
     },
     "condition": {
+      "label": "Condition",
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
       "poor": "Poor",
       "critical": "Critical"
+    },
+    "status": {
+      "label": "Status"
+    },
+    "criticality": {
+      "label": "Criticality"
     },
     "barcodeScan": "Barcode Scan",
     "qrCodeScan": "QR Code Scan",

@@ -3730,11 +3730,18 @@
       "scanAgain": "फिर से स्कैन करें"
     },
     "condition": {
+      "label": "स्थिति",
       "excellent": "उत्कृष्ट",
       "good": "अच्छी",
       "fair": "ठीक",
       "poor": "खराब",
       "critical": "गंभीर"
+    },
+    "status": {
+      "label": "स्थिति"
+    },
+    "criticality": {
+      "label": "महत्व"
     },
     "linkAsset": "संपत्ति लिंक करें",
     "linkAssetToIncident": "घटना से संपत्ति लिंक करें",
