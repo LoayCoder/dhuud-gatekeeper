@@ -3829,6 +3829,7 @@
       "scanAgain": "مسح آخر"
     },
     "status": {
+      "label": "الحالة",
       "active": "نشط",
       "missing": "مفقود",
       "out_of_service": "خارج الخدمة",
@@ -3880,20 +3881,6 @@
         "inspection_completed": "أكمل فحص",
         "maintenance_completed": "أكمل صيانة"
       }
-    },
-    "condition": {
-      "label": "الحالة",
-      "excellent": "ممتاز",
-      "good": "جيد",
-      "fair": "مقبول",
-      "poor": "ضعيف",
-      "critical": "حرج"
-    },
-    "status": {
-      "label": "الحالة"
-    },
-    "criticality": {
-      "label": "الأهمية"
     },
     "barcodeScan": "مسح الباركود",
     "qrCodeScan": "مسح رمز QR",

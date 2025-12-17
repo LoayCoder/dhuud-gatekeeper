@@ -3670,6 +3670,7 @@
       "other": "Iba pa"
     },
     "status": {
+      "label": "Katayuan",
       "active": "Active",
       "missing": "Nawawala",
       "out_of_service": "Wala sa Serbisyo",
@@ -3728,20 +3729,6 @@
       "viewDetails": "Tingnan ang Detalye",
       "reportEvent": "I-report ang Event",
       "scanAgain": "Mag-scan Ulit"
-    },
-    "condition": {
-      "label": "Kondisyon",
-      "excellent": "Napakahusay",
-      "good": "Mabuti",
-      "fair": "Katamtaman",
-      "poor": "Mahina",
-      "critical": "Kritikal"
-    },
-    "status": {
-      "label": "Katayuan"
-    },
-    "criticality": {
-      "label": "Kahalagahan"
     },
     "linkAsset": "I-link ang Asset",
     "linkAssetToIncident": "I-link ang Asset sa Insidente",

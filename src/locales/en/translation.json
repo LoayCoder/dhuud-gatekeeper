@@ -3987,6 +3987,7 @@
     "noIncidentHistory": "No Incident History",
     "noIncidentHistoryDescription": "This asset has not been linked to any incidents",
     "status": {
+      "label": "Status",
       "active": "Active",
       "missing": "Missing",
       "out_of_service": "Out of Service",
@@ -4045,20 +4046,6 @@
         "reportEvent": "Report HSSE Event",
         "scanAgain": "Scan Another"
       }
-    },
-    "condition": {
-      "label": "Condition",
-      "excellent": "Excellent",
-      "good": "Good",
-      "fair": "Fair",
-      "poor": "Poor",
-      "critical": "Critical"
-    },
-    "status": {
-      "label": "Status"
-    },
-    "criticality": {
-      "label": "Criticality"
     },
     "barcodeScan": "Barcode Scan",
     "qrCodeScan": "QR Code Scan",

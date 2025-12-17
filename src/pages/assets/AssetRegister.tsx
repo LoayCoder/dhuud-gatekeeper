@@ -790,7 +790,7 @@ function AssetRegisterContent() {
                       name="criticality_level"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('assets.criticality')}</FormLabel>
+                          <FormLabel>{t('assets.criticality.label')}</FormLabel>
                           <Select value={field.value} onValueChange={field.onChange} dir={direction}>
                             <FormControl>
                               <SelectTrigger>

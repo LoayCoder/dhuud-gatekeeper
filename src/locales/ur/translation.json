@@ -3685,6 +3685,7 @@
       "other": "دیگر"
     },
     "status": {
+      "label": "حیثیت",
       "active": "فعال",
       "missing": "گم",
       "out_of_service": "سروس سے باہر",
@@ -3743,20 +3744,6 @@
       "viewDetails": "تفصیلات دیکھیں",
       "reportEvent": "واقعہ رپورٹ کریں",
       "scanAgain": "دوبارہ سکین کریں"
-    },
-    "condition": {
-      "label": "حالت",
-      "excellent": "بہترین",
-      "good": "اچھی",
-      "fair": "معمولی",
-      "poor": "خراب",
-      "critical": "نازک"
-    },
-    "status": {
-      "label": "حیثیت"
-    },
-    "criticality": {
-      "label": "اہمیت"
     },
     "linkAsset": "اثاثہ منسلک کریں",
     "linkAssetToIncident": "واقعے سے اثاثہ منسلک کریں",
