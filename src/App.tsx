@@ -152,7 +152,6 @@ const App = () => (
           <Sonner />
           <NetworkStatusIndicator />
           <OnlineRetryHandler />
-          <InstallAppBanner />
           <ServiceWorkerUpdateNotifier />
           <NotificationPermissionPrompt />
           <AppInitializer />
@@ -160,6 +159,7 @@ const App = () => (
             <AuthProvider>
               <SessionTimeoutProvider>
                 <SessionTimeoutWarning />
+                <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Routes */}
