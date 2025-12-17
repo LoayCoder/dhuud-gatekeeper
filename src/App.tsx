@@ -26,6 +26,7 @@ import { usePrefetchOnIdle } from "./hooks/use-prefetch";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import InviteGatekeeper from "./pages/InviteGatekeeper";
 import NotFound from "./pages/NotFound";
@@ -172,7 +173,17 @@ const App = () => (
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<MFASetup />} />
 
-                    {/* Protected Routes with MainLayout */}
+                    {/* Home Screen - Simple landing without sidebar */}
+                    <Route
+                      path="/"
+                      element={
+                        <ProtectedRoute>
+                          <Home />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Protected Routes with MainLayout (sidebar) */}
                     <Route
                       element={
                         <ProtectedRoute>
@@ -180,7 +191,7 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     >
-                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/profile" element={<Profile />} />
                       
                       {/* HSSE Management Routes */}

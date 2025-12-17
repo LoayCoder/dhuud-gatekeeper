@@ -5250,5 +5250,20 @@
     "installed": "Naka-install na ang App",
     "alreadyInstalled": "Naka-install Na",
     "alreadyInstalledMessage": "Naka-install na ang DHUUD sa iyong device. Mahahanap mo ito sa iyong home screen."
+  },
+  "home": {
+    "welcome": "Maligayang pagdating",
+    "yourLocation": "Ang iyong lokasyon",
+    "yourHSSEContact": "Ang iyong HSSE Contact",
+    "call": "Tawagan",
+    "whatsapp": "WhatsApp",
+    "contactInfo": "Impormasyon sa Pakikipag-ugnayan",
+    "noContactAssigned": "Walang HSSE contact na nakatalaga sa iyong lokasyon",
+    "openDashboard": "Buksan ang Dashboard",
+    "quickActions": "Mabilis na Aksyon",
+    "reportEvent": "Mag-ulat ng Kaganapan",
+    "startInspection": "Magsimula ng Inspeksyon",
+    "myActions": "Aking mga Aksyon",
+    "myApprovals": "Aking mga Apruba"
   }
 }

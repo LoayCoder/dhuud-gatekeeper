@@ -5547,5 +5547,20 @@
     "installed": "App Installed",
     "alreadyInstalled": "Already Installed",
     "alreadyInstalledMessage": "DHUUD is already installed on your device. You can find it on your home screen."
+  },
+  "home": {
+    "welcome": "Welcome",
+    "yourLocation": "Your Location",
+    "yourHSSEContact": "Your HSSE Contact",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "contactInfo": "Contact Information",
+    "noContactAssigned": "No HSSE contact assigned to your location",
+    "openDashboard": "Open Full Dashboard",
+    "quickActions": "Quick Actions",
+    "reportEvent": "Report Event",
+    "startInspection": "Start Inspection",
+    "myActions": "My Actions",
+    "myApprovals": "My Approvals"
   }
 }
