@@ -1,3 +1,4 @@
+// MFA Setup Page - Two-Factor Authentication enrollment
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
