@@ -1,12 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Smartphone, Check, Share, Plus } from 'lucide-react';
+import { Check, Share, Plus } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
+import { useTheme } from '@/contexts/ThemeContext';
+import { DHUUD_APP_ICON } from '@/constants/branding';
 
 export function InstallAppCard() {
   const { t } = useTranslation();
   const { canInstall, isIOS, promptInstall, dismissUntil } = usePWAInstall();
+  const { activeAppIconUrl, tenantName } = useTheme();
+
+  // Determine app icon - use tenant's icon or DHUUD default
+  const appIcon = activeAppIconUrl || DHUUD_APP_ICON;
 
   if (!canInstall) {
     return null;
@@ -24,7 +30,12 @@ export function InstallAppCard() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5 text-primary" />
+            <img
+              src={appIcon}
+              alt={tenantName || 'App Icon'}
+              className="h-5 w-5 rounded object-cover"
+              onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON; }}
+            />
             <CardTitle className="text-base">{t('pwa.iosTitle')}</CardTitle>
           </div>
           <CardDescription>{t('pwa.dashboardSubtitle')}</CardDescription>
@@ -65,7 +76,12 @@ export function InstallAppCard() {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Smartphone className="h-5 w-5 text-primary" />
+          <img
+            src={appIcon}
+            alt={tenantName || 'App Icon'}
+            className="h-5 w-5 rounded object-cover"
+            onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON; }}
+          />
           <CardTitle className="text-base">{t('pwa.dashboardTitle')}</CardTitle>
         </div>
         <CardDescription>{t('pwa.dashboardSubtitle')}</CardDescription>

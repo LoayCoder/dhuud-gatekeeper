@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Download, X, Share, PlusSquare } from 'lucide-react';
+import { X, Share, PlusSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { DHUUD_APP_ICON } from '@/constants/branding';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -29,12 +32,22 @@ function isIOSSafari(): boolean {
 
 export function InstallAppBanner() {
   const { t } = useTranslation();
+  const { user, isLoading: authLoading } = useAuth();
+  const { activeAppIconUrl, tenantName } = useTheme();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const [showIOSBanner, setShowIOSBanner] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
 
+  // Determine app icon - use tenant's icon or DHUUD default
+  const appIcon = activeAppIconUrl || DHUUD_APP_ICON;
+
   useEffect(() => {
+    // Don't show until auth is loaded and user is authenticated
+    if (authLoading || !user) {
+      return;
+    }
+
     // Check if already installed
     if (isInStandaloneMode()) {
       return;
@@ -67,7 +80,7 @@ export function InstallAppBanner() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [authLoading, user]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -91,6 +104,11 @@ export function InstallAppBanner() {
     }, 300);
   };
 
+  // Don't show if not authenticated or auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
+
   // iOS Safari banner
   if (showIOSBanner) {
     return (
@@ -109,9 +127,12 @@ export function InstallAppBanner() {
         </button>
 
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Download className="h-5 w-5 text-primary" />
-          </div>
+          <img
+            src={appIcon}
+            alt={tenantName || 'App Icon'}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON; }}
+          />
           <div className="flex-1">
             <h3 className="font-semibold text-foreground">
               {t('pwa.installTitle', 'Install Dhuud HSSE')}
@@ -166,9 +187,12 @@ export function InstallAppBanner() {
       </button>
 
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Download className="h-5 w-5 text-primary" />
-        </div>
+        <img
+          src={appIcon}
+          alt={tenantName || 'App Icon'}
+          className="h-10 w-10 shrink-0 rounded-lg object-cover"
+          onError={(e) => { e.currentTarget.src = DHUUD_APP_ICON; }}
+        />
         <div className="flex-1">
           <h3 className="font-semibold text-foreground">
             {t('pwa.installTitle', 'Install Dhuud HSSE')}
@@ -177,7 +201,6 @@ export function InstallAppBanner() {
             {t('pwa.installDescription', 'Install the app for faster access and offline support.')}
           </p>
           <Button onClick={handleInstall} size="sm" className="mt-3">
-            <Download className="me-2 h-4 w-4" />
             {t('pwa.installButton', 'Install App')}
           </Button>
         </div>
