@@ -1,10 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-
-// AWS SES Configuration
-const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
-const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
-const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
-const AWS_SES_FROM_EMAIL = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
+import { sendEmail, type EmailModule } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,24 +11,19 @@ interface ActionEmailRequest {
   type: 'action_assigned' | 'witness_request_created' | 'action_returned' | 'action_closed';
   recipient_email: string;
   recipient_name: string;
-  // For actions
   action_title?: string;
   action_priority?: string;
   due_date?: string;
   incident_reference?: string;
   incident_title?: string;
   action_description?: string;
-  // For action returned
   rejection_notes?: string;
   return_count?: number;
-  // For action closed
   verification_notes?: string;
   verifier_name?: string;
-  // For witness requests
   witness_name?: string;
   relationship?: string;
   assignment_instructions?: string;
-  // Common
   tenant_name?: string;
 }
 
@@ -60,129 +50,16 @@ function formatDate(dateString: string | undefined): string {
   }
 }
 
-// AWS SES email sending helper
-async function sendEmailViaSES(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const host = `email.${AWS_SES_REGION}.amazonaws.com`;
-  const endpoint = `https://${host}/`;
-  const date = new Date();
-  const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const dateStamp = amzDate.slice(0, 8);
-
-  const params = new URLSearchParams({
-    Action: 'SendEmail',
-    Version: '2010-12-01',
-    'Source': AWS_SES_FROM_EMAIL,
-    'Destination.ToAddresses.member.1': to,
-    'Message.Subject.Data': subject,
-    'Message.Subject.Charset': 'UTF-8',
-    'Message.Body.Html.Data': html,
-    'Message.Body.Html.Charset': 'UTF-8',
-  });
-
-  const body = params.toString();
-  const hashedPayload = await sha256(body);
-  const canonicalRequest = [
-    'POST',
-    '/',
-    '',
-    `host:${host}`,
-    `x-amz-date:${amzDate}`,
-    '',
-    'host;x-amz-date',
-    hashedPayload,
-  ].join('\n');
-
-  const hashedCanonicalRequest = await sha256(canonicalRequest);
-  const credentialScope = `${dateStamp}/${AWS_SES_REGION}/ses/aws4_request`;
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    amzDate,
-    credentialScope,
-    hashedCanonicalRequest,
-  ].join('\n');
-
-  const signingKey = await getSignatureKey(
-    AWS_SECRET_ACCESS_KEY!,
-    dateStamp,
-    AWS_SES_REGION,
-    'ses'
-  );
-  const signature = await hmacHex(signingKey, stringToSign);
-
-  const authorizationHeader = [
-    `AWS4-HMAC-SHA256 Credential=${AWS_ACCESS_KEY_ID}/${credentialScope}`,
-    `SignedHeaders=host;x-amz-date`,
-    `Signature=${signature}`,
-  ].join(', ');
-
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Host': host,
-      'X-Amz-Date': amzDate,
-      'Authorization': authorizationHeader,
-    },
-    body,
-  });
-
-  const responseText = await response.text();
-  
-  if (!response.ok) {
-    console.error('SES Error Response:', responseText);
-    return { success: false, error: responseText };
+function getEmailModule(type: string): EmailModule {
+  switch (type) {
+    case 'action_returned':
+    case 'action_closed':
+      return 'action_sla';
+    case 'witness_request_created':
+      return 'investigation';
+    default:
+      return 'action_assigned';
   }
-
-  const messageIdMatch = responseText.match(/<MessageId>(.+?)<\/MessageId>/);
-  return { 
-    success: true, 
-    messageId: messageIdMatch ? messageIdMatch[1] : undefined 
-  };
-}
-
-// Helper functions for AWS signing
-async function sha256(message: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function hmac(key: Uint8Array, message: string): Promise<Uint8Array> {
-  // Convert Uint8Array to ArrayBuffer explicitly
-  const keyBuffer = new ArrayBuffer(key.length);
-  const keyView = new Uint8Array(keyBuffer);
-  keyView.set(key);
-  
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyBuffer,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(message));
-  return new Uint8Array(signature);
-}
-
-async function hmacHex(key: Uint8Array, message: string): Promise<string> {
-  const sig = await hmac(key, message);
-  return Array.from(sig)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function getSignatureKey(
-  key: string,
-  dateStamp: string,
-  regionName: string,
-  serviceName: string
-): Promise<Uint8Array> {
-  const kDate = await hmac(new TextEncoder().encode('AWS4' + key), dateStamp);
-  const kRegion = await hmac(kDate, regionName);
-  const kService = await hmac(kRegion, serviceName);
-  return await hmac(kService, 'aws4_request');
 }
 
 function buildActionAssignedEmail(data: ActionEmailRequest): { subject: string; html: string } {
@@ -428,16 +305,12 @@ function buildActionClosedEmail(data: ActionEmailRequest): { subject: string; ht
           
           ${data.verification_notes ? `
             <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #bbf7d0;">
-              <p style="color: #166534; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">📝 Verifier's Notes:</p>
-              <p style="margin: 0; color: #14532d;">"${data.verification_notes}"</p>
+              <p style="color: #166534; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">✓ Verification Notes:</p>
+              <p style="margin: 0; color: #15803d;">"${data.verification_notes}"</p>
             </div>
           ` : ''}
           
-          <div style="background: #ecfdf5; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
-            <p style="margin: 0; color: #166534; font-size: 16px; font-weight: 500;">
-              🎉 Thank you for your contribution to a safer workplace!
-            </p>
-          </div>
+          <p style="margin-top: 25px;">Thank you for completing this action. Your contribution helps maintain a safe work environment.</p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 12px;">
             <p>This is an automated message from ${data.tenant_name || 'DHUUD HSSE Platform'}</p>
@@ -449,21 +322,19 @@ function buildActionClosedEmail(data: ActionEmailRequest): { subject: string; ht
   };
 }
 
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req: Request) => {
+  console.log("Action email function called");
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const data: ActionEmailRequest = await req.json();
-    console.log("Received action email request:", { type: data.type, recipient: data.recipient_email });
-
-    if (!data.recipient_email) {
-      throw new Error("Recipient email is required");
-    }
+    console.log("Received action email request:", data.type);
 
     let emailContent: { subject: string; html: string };
-
+    
     switch (data.type) {
       case 'action_assigned':
         emailContent = buildActionAssignedEmail(data);
@@ -478,35 +349,37 @@ const handler = async (req: Request): Promise<Response> => {
         emailContent = buildActionClosedEmail(data);
         break;
       default:
-        throw new Error(`Unknown email type: ${data.type}`);
+        return new Response(
+          JSON.stringify({ error: "Unknown email type" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
     }
-    const result = await sendEmailViaSES(
-      data.recipient_email,
-      emailContent.subject,
-      emailContent.html
-    );
+
+    const result = await sendEmail({
+      to: data.recipient_email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      module: getEmailModule(data.type),
+      tenantName: data.tenant_name,
+    });
 
     if (!result.success) {
-      throw new Error(result.error || 'Failed to send email');
+      console.error("Email sending failed:", result.error);
+      throw new Error(result.error || "Email sending failed");
     }
 
-    console.log("Email sent successfully via AWS SES:", result.messageId);
+    console.log("Email sent successfully:", result.messageId);
 
-    return new Response(JSON.stringify({ success: true, messageId: result.messageId }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
+    return new Response(
+      JSON.stringify({ success: true, messageId: result.messageId }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
   } catch (error: unknown) {
     console.error("Error in send-action-email function:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
-};
-
-serve(handler);
+});
