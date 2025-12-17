@@ -5243,6 +5243,10 @@
     "iosStep1": "I-tap ang Share button",
     "iosStep2": "Mag-scroll pababa at i-tap ang 'Add to Home Screen'",
     "iosStep3": "I-tap ang 'Add' para kumpirmahin",
+    "androidInstructions": "Para ma-install sa Android:",
+    "androidStep1": "I-tap ang menu button (⋮) sa Chrome",
+    "androidStep2": "I-tap ang 'Install app' o 'Add to Home screen'",
+    "androidStep3": "I-tap ang 'Install' para kumpirmahin",
     "installed": "Naka-install na ang App"
   }
 }

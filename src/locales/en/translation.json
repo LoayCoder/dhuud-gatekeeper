@@ -5540,6 +5540,10 @@
     "iosStep1": "Tap the Share button",
     "iosStep2": "Scroll down and tap 'Add to Home Screen'",
     "iosStep3": "Tap 'Add' to confirm",
+    "androidInstructions": "To install on Android:",
+    "androidStep1": "Tap the menu button (⋮) in Chrome",
+    "androidStep2": "Tap 'Install app' or 'Add to Home screen'",
+    "androidStep3": "Tap 'Install' to confirm",
     "installed": "App Installed"
   }
 }
