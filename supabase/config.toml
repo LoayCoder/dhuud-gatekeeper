@@ -110,3 +110,6 @@ verify_jwt = true
 
 [functions.contractor-audit-log]
 verify_jwt = false
+
+[functions.test-email]
+verify_jwt = false
