@@ -18,10 +18,12 @@ export const EMAIL_SENDERS = {
   action_assigned: "DHUUD Action Management",
   action_sla: "DHUUD SLA Alerts",
   action_escalation: "DHUUD Critical Alerts",
+  action_warning: "DHUUD Action Reminders",
   
   // Inspection Module
   inspection_reminder: "DHUUD Inspections",
   inspection_schedule: "DHUUD Inspection Scheduler",
+  inspection_assigned: "DHUUD Inspections",
   
   // Support Module
   support_ticket: "DHUUD Support Center",
@@ -30,12 +32,14 @@ export const EMAIL_SENDERS = {
   // Security Module
   security_alert: "DHUUD Security Operations",
   contractor_access: "DHUUD Contractor Portal",
+  contractor_invitation: "DHUUD Contractor Portal",
   visitor_alert: "DHUUD Visitor Management",
   
   // Administration
   user_invitation: "DHUUD Platform",
   subscription: "DHUUD Billing",
   digest: "DHUUD Daily Digest",
+  hsse_digest: "DHUUD HSSE Digest",
   
   // System
   system_alert: "DHUUD System Notifications",
@@ -254,6 +258,20 @@ export async function sendEmailToMany(
   subject: string,
   html: string,
   module: EmailModule,
+  tenantName?: string
+): Promise<EmailResult> {
+  return sendEmail({ to, subject, html, module, tenantName });
+}
+
+/**
+ * Legacy-compatible function name for backward compatibility
+ * @deprecated Use sendEmail or sendEmailToOne instead
+ */
+export async function sendEmailViaSES(
+  to: string,
+  subject: string,
+  html: string,
+  module: EmailModule = 'default',
   tenantName?: string
 ): Promise<EmailResult> {
   return sendEmail({ to, subject, html, module, tenantName });
