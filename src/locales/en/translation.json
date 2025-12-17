@@ -5532,5 +5532,14 @@
     "minsAgo": "{{count}} mins ago",
     "allSynced": "All changes synced",
     "installApp": "Install App"
+  },
+  "pwa": {
+    "installApp": "Install App",
+    "installDescription": "Install DHUUD on your device for quick access",
+    "iosInstructions": "To install on iOS:",
+    "iosStep1": "Tap the Share button",
+    "iosStep2": "Scroll down and tap 'Add to Home Screen'",
+    "iosStep3": "Tap 'Add' to confirm",
+    "installed": "App Installed"
   }
 }
