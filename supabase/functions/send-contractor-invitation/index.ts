@@ -1,5 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailViaSES, getAppUrl, emailButton, wrapEmailHtml } from "../_shared/email-sender.ts";
+import { 
+  CONTRACTOR_TRANSLATIONS, 
+  getTranslations, 
+  replaceVariables,
+  isRTL,
+  type SupportedLanguage 
+} from "../_shared/email-translations.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,7 +38,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get representative and company details
+    // Get representative and company details including preferred_language
     const { data: rep, error: repError } = await supabase
       .from('contractor_representatives')
       .select('full_name, email, mobile_number, company:contractor_companies(company_name)')
@@ -60,38 +67,71 @@ Deno.serve(async (req) => {
       .eq('id', tenant_id)
       .single();
 
+    // Try to get user's preferred language if they have a profile
+    let userLanguage = 'en';
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('preferred_language')
+      .eq('email', rep.email)
+      .single();
+    
+    if (userProfile?.preferred_language) {
+      userLanguage = userProfile.preferred_language;
+    }
+
     const companyName = (rep.company as any)?.company_name || 'Your Company';
     const tenantName = tenant?.name || 'DHUUD Platform';
     const appUrl = getAppUrl();
+    const rtl = isRTL(userLanguage as SupportedLanguage);
+
+    // Get localized translations
+    const t = getTranslations(CONTRACTOR_TRANSLATIONS, userLanguage).invitation;
 
     // Generate portal access token
     const portalToken = crypto.randomUUID();
 
-    // Send invitation email
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1a56db;">Contractor Portal Invitation</h2>
-        <p>Hello ${rep.full_name},</p>
-        <p>You have been invited to access the ${tenantName} Contractor Portal as a representative of <strong>${companyName}</strong>.</p>
-        <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
-          <p><strong>Company:</strong> ${companyName}</p>
-          <p><strong>Organization:</strong> ${tenantName}</p>
+    // Build localized email content
+    const subject = replaceVariables(t.subject, { tenant: tenantName });
+    const bodyText = replaceVariables(t.body, { tenant: tenantName, company: companyName });
+
+    const emailContent = `
+      <div style="background: linear-gradient(135deg, #1a56db 0%, #3b82f6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">${t.title}</h1>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">${bodyText}</p>
+        
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-${rtl ? 'right' : 'left'}: 4px solid #1a56db;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; width: 140px;"><strong>${t.company}:</strong></td>
+              <td style="padding: 8px 0;">${companyName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b;"><strong>${t.organization}:</strong></td>
+              <td style="padding: 8px 0;">${tenantName}</td>
+            </tr>
+          </table>
         </div>
-        <p>Through the Contractor Portal, you will be able to:</p>
-        <ul>
-          <li>Manage worker registrations and documentation</li>
-          <li>Submit gate pass requests</li>
-          <li>Track project assignments</li>
-          <li>View induction video requirements</li>
+        
+        <p><strong>${t.features}</strong></p>
+        <ul style="margin: 16px 0; padding-${rtl ? 'right' : 'left'}: 20px;">
+          <li style="margin: 8px 0;">${t.feature1}</li>
+          <li style="margin: 8px 0;">${t.feature2}</li>
+          <li style="margin: 8px 0;">${t.feature3}</li>
+          <li style="margin: 8px 0;">${t.feature4}</li>
         </ul>
-        ${emailButton("Access Contractor Portal", `${appUrl}/contractor-portal`, "#1a56db")}
-        <p style="color: #6b7280; font-size: 12px; margin-top: 32px;">This is an automated invitation from the HSSE Platform.</p>
+        
+        ${emailButton(t.button, `${appUrl}/contractor-portal`, "#1a56db", rtl)}
       </div>
     `;
 
+    const emailHtml = wrapEmailHtml(emailContent, userLanguage, tenantName);
+
     const emailResult = await sendEmailViaSES(
       rep.email,
-      `Contractor Portal Invitation - ${tenantName}`,
+      `[${tenantName}] ${subject}`,
       emailHtml,
       'contractor_invitation'
     );
@@ -107,7 +147,8 @@ Deno.serve(async (req) => {
         company_id, 
         portal_token: portalToken,
         email_sent: emailResult.success,
-        email_error: emailResult.error 
+        email_error: emailResult.error,
+        language: userLanguage
       },
     });
 
@@ -123,7 +164,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Contractor invitation sent to ${rep.email} for company ${companyName}`);
+    console.log(`Contractor invitation sent to ${rep.email} for company ${companyName} in ${userLanguage}`);
 
     return new Response(
       JSON.stringify({
@@ -135,6 +176,7 @@ Deno.serve(async (req) => {
           company: companyName,
         },
         portal_token: portalToken,
+        language: userLanguage,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

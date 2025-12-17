@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmail, type EmailModule, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmail, type EmailModule, getAppUrl, emailButton, wrapEmailHtml, getCommonTranslations } from "../_shared/email-sender.ts";
+import { 
+  WORKFLOW_TRANSLATIONS, 
+  getTranslations, 
+  replaceVariables,
+  isRTL,
+  type SupportedLanguage 
+} from "../_shared/email-translations.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +87,12 @@ async function sendEmailWithTracking(supabase: any, tenantId: string, tenantName
   return { success: true, sentCount };
 }
 
+// deno-lint-ignore no-explicit-any
+async function getRecipientLanguage(supabase: any, recipientId: string): Promise<string> {
+  const { data } = await supabase.from("profiles").select("preferred_language").eq("id", recipientId).single();
+  return data?.preferred_language || 'en';
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -90,7 +103,7 @@ serve(async (req: Request) => {
     console.log(`Processing workflow notification: ${action} for incident ${incidentId}`);
 
     const { data: incident, error: incidentError } = await supabase.from("incidents")
-      .select(`id, reference_id, title, reporter_id, tenant_id, approval_manager_id, profiles!incidents_reporter_id_fkey(id, full_name, email)`)
+      .select(`id, reference_id, title, reporter_id, tenant_id, approval_manager_id, profiles!incidents_reporter_id_fkey(id, full_name, email, preferred_language)`)
       .eq("id", incidentId).single();
 
     if (incidentError || !incident) return new Response(JSON.stringify({ error: "Incident not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -103,46 +116,131 @@ serve(async (req: Request) => {
     let recipients: string[] = [];
     let subject = "";
     let htmlContent = "";
+    let recipientLang = reporterProfile?.preferred_language || 'en';
 
     const appUrl = getAppUrl();
     
     switch (action) {
-      case "expert_return":
+      case "expert_return": {
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
-        subject = `[${tenantName}] Action Required: Event Report Returned for Correction`;
-        htmlContent = `<h2>Event Report Returned for Correction</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been returned by the HSSE Expert for correction.</p>${payload.returnReason ? `<p><strong>Reason:</strong> ${payload.returnReason}</p>` : ""}${payload.returnInstructions ? `<p><strong>Instructions:</strong> ${payload.returnInstructions}</p>` : ""}${emailButton("Edit & Resubmit Report", `${appUrl}/incidents/report?edit=${incidentId}`, "#dc2626")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_return;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${t.subject}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'Reporter' })}</p>
+            <p>${bodyText}</p>
+            ${payload.returnReason ? `<p><strong>${common.reason}:</strong> ${payload.returnReason}</p>` : ""}
+            ${payload.returnInstructions ? `<p><strong>${common.instructions}:</strong> ${payload.returnInstructions}</p>` : ""}
+            ${emailButton(t.button, `${appUrl}/incidents/report?edit=${incidentId}`, "#dc2626", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
         break;
-      case "expert_reject":
+      }
+      case "expert_reject": {
         if (reporterProfile?.email) recipients.push(reporterProfile.email);
-        subject = `[${tenantName}] Event Report Rejected - Action Required`;
-        htmlContent = `<h2>Event Report Rejected</h2><p>Dear ${reporterProfile?.full_name || "Reporter"},</p><p>Your event report <strong>${incident.reference_id}</strong> has been rejected by the HSSE Expert.</p>${payload.rejectionReason ? `<p><strong>Reason:</strong> ${payload.rejectionReason}</p>` : ""}${emailButton("View Incident Details", `${appUrl}/incidents/${incidentId}`, "#6b7280")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_reject;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${t.subject}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'Reporter' })}</p>
+            <p>${bodyText}</p>
+            ${payload.rejectionReason ? `<p><strong>${common.reason}:</strong> ${payload.rejectionReason}</p>` : ""}
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#6b7280", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
         break;
-      case "expert_investigate":
+      }
+      case "expert_investigate": {
         if (incident.approval_manager_id) {
-          const { data: manager } = await supabase.from("profiles").select("email, full_name").eq("id", incident.approval_manager_id).single();
-          if (manager?.email) recipients.push(manager.email);
-          subject = `[${tenantName}] Investigation Approval Required`;
-          htmlContent = `<h2>Investigation Approval Required</h2><p>Dear ${manager?.full_name || "Manager"},</p><p>Event <strong>${incident.reference_id}</strong> has been recommended for investigation by the HSSE Expert.</p><p><strong>Event Title:</strong> ${incident.title}</p>${payload.notes ? `<p><strong>Expert Notes:</strong> ${payload.notes}</p>` : ""}${emailButton("Review & Approve", `${appUrl}/incidents/investigate?id=${incidentId}`, "#1e40af")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
+          const { data: manager } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
+          if (manager?.email) {
+            recipients.push(manager.email);
+            recipientLang = manager.preferred_language || 'en';
+          }
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_investigate;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${t.subject}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: manager?.full_name || 'Manager' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
+              ${payload.notes ? `<p><strong>${t.expertNotes}:</strong> ${payload.notes}</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#1e40af", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
         }
         break;
-      case "investigator_assigned":
+      }
+      case "investigator_assigned": {
         if (payload.investigatorId) {
-          const { data: investigator } = await supabase.from("profiles").select("email, full_name").eq("id", payload.investigatorId).single();
-          if (investigator?.email) recipients.push(investigator.email);
-          subject = `[${tenantName}] You Have Been Assigned to Investigate Event ${incident.reference_id}`;
-          htmlContent = `<h2>Investigation Assignment</h2><p>Dear ${investigator?.full_name || "Investigator"},</p><p>You have been assigned to investigate event <strong>${incident.reference_id}</strong>.</p><p><strong>Event Title:</strong> ${incident.title}</p>${emailButton("Start Investigation", `${appUrl}/incidents/investigate?id=${incidentId}`, "#16a34a")}<p>Best regards,<br>${tenantName} HSSE Team</p>`;
+          const { data: investigator } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", payload.investigatorId).single();
+          if (investigator?.email) {
+            recipients.push(investigator.email);
+            recipientLang = investigator.preferred_language || 'en';
+          }
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).investigator_assigned;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: investigator?.full_name || 'Investigator' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
+              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#16a34a", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
         }
         break;
+      }
       default:
         console.log(`Unknown action: ${action}`);
     }
 
     let result = { success: true, sentCount: 0 };
     if (recipients.length > 0 && subject && htmlContent) {
-      result = await sendEmailWithTracking(supabase, incident.tenant_id, tenantName, action, recipients, subject, htmlContent, incidentId, { ...payload });
+      result = await sendEmailWithTracking(supabase, incident.tenant_id, tenantName, action, recipients, subject, htmlContent, incidentId, { ...payload, language: recipientLang });
     }
 
-    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, action, recipientCount: recipients.length, sentCount: result.sentCount, language: recipientLang }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: unknown) {
     console.error("Error in send-workflow-notification:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
