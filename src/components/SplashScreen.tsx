@@ -3,6 +3,7 @@ import { useSplashSettings } from '@/hooks/use-splash-settings';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { DHUUD_LOGO_LIGHT } from '@/constants/branding';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -87,19 +88,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           phase === 'logo' ? "scale-90 opacity-0" : "scale-100 opacity-100"
         )}
       >
-        {activeLogoUrl ? (
-          <img
-            src={activeLogoUrl}
-            alt={tenantName || 'Logo'}
-            className="h-24 w-auto object-contain drop-shadow-2xl"
-          />
-        ) : (
-          <div className="h-24 w-24 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-            <span className="text-4xl font-bold text-primary-foreground">
-              {tenantName?.charAt(0) || 'H'}
-            </span>
-          </div>
-        )}
+        <img
+          src={activeLogoUrl || DHUUD_LOGO_LIGHT}
+          alt={tenantName || 'DHUUD'}
+          className="h-24 w-auto object-contain drop-shadow-2xl"
+          onError={(e) => {
+            e.currentTarget.src = DHUUD_LOGO_LIGHT;
+          }}
+        />
       </div>
 
       {/* Main Message */}
