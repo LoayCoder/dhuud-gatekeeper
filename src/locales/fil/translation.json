@@ -3189,11 +3189,19 @@
     "installTitle": "I-install ang Dhuud HSSE",
     "installDescription": "I-install ang app para sa mas mabilis na access at offline support.",
     "installButton": "I-install ang App",
-    "iosInstructions": "Para i-install ang app na ito sa iyong iPhone:",
+    "installApp": "I-install ang App",
+    "iosInstructions": "Para ma-install sa iOS:",
     "iosTapShare": "I-tap ang",
     "iosShareButton": "Share button",
     "iosScrollAndTap": "Mag-scroll at i-tap ang",
     "iosAddToHome": "Add to Home Screen",
+    "iosStep1": "I-tap ang Share button",
+    "iosStep2": "Mag-scroll pababa at i-tap ang 'Add to Home Screen'",
+    "iosStep3": "I-tap ang 'Add' para kumpirmahin",
+    "androidInstructions": "Para ma-install sa Android:",
+    "androidStep1": "I-tap ang menu button (⋮) sa Chrome",
+    "androidStep2": "I-tap ang 'Install app' o 'Add to Home screen'",
+    "androidStep3": "I-tap ang 'Install' para kumpirmahin",
     "updateAvailable": "May Available na Update",
     "updateDescription": "Handa na ang bagong bersyon ng app. I-refresh para makuha ang pinakabagong features.",
     "updateNow": "I-refresh Ngayon",
@@ -3207,8 +3215,9 @@
     "installNow": "I-install Ngayon",
     "maybeLater": "Mamaya Na Lang",
     "iosTitle": "I-install sa iPhone",
-    "iosStep1": "I-tap ang Share",
-    "iosStep2": "Add to Home Screen"
+    "installed": "Naka-install na ang App",
+    "alreadyInstalled": "Naka-install Na",
+    "alreadyInstalledMessage": "Naka-install na ang DHUUD sa iyong device. Mahahanap mo ito sa iyong home screen."
   },
   "network": {
     "offline": "Ikaw ay offline",
@@ -5239,21 +5248,6 @@
     "allSynced": "Lahat ng pagbabago ay na-sync na",
     "installApp": "I-install ang App"
   },
-  "pwa": {
-    "installApp": "I-install ang App",
-    "installDescription": "I-install ang DHUUD sa iyong device para sa mabilis na access",
-    "iosInstructions": "Para ma-install sa iOS:",
-    "iosStep1": "I-tap ang Share button",
-    "iosStep2": "Mag-scroll pababa at i-tap ang 'Add to Home Screen'",
-    "iosStep3": "I-tap ang 'Add' para kumpirmahin",
-    "androidInstructions": "Para ma-install sa Android:",
-    "androidStep1": "I-tap ang menu button (⋮) sa Chrome",
-    "androidStep2": "I-tap ang 'Install app' o 'Add to Home screen'",
-    "androidStep3": "I-tap ang 'Install' para kumpirmahin",
-    "installed": "Naka-install na ang App",
-    "alreadyInstalled": "Naka-install Na",
-    "alreadyInstalledMessage": "Naka-install na ang DHUUD sa iyong device. Mahahanap mo ito sa iyong home screen."
-  },
   "home": {
     "welcome": "Maligayang pagdating",
     "yourLocation": "Ang iyong lokasyon",
@@ -5268,5 +5262,21 @@
     "startInspection": "Magsimula ng Inspeksyon",
     "myActions": "Aking mga Aksyon",
     "myApprovals": "Aking mga Apruba"
+  },
+  "platformSettings": {
+    "title": "Mga Setting ng Platform",
+    "description": "I-configure ang mga global na setting ng platform",
+    "splashScreen": "Splash Screen",
+    "splashDescription": "I-configure ang intro screen na ipinapakita kapag binuksan ng mga user ang app",
+    "preview": "Preview",
+    "enableSplash": "I-enable ang Splash Screen",
+    "enableSplashDescription": "Ipakita ang intro screen kapag nagbukas ang app",
+    "duration": "Tagal",
+    "durationHint": "Gaano katagal ipinapakita ang splash screen (2-6 segundo)",
+    "arabicMessages": "Mga Arabic na Mensahe",
+    "englishMessages": "Mga English na Mensahe",
+    "mainMessage": "Pangunahing Mensahe",
+    "subtitle": "Subtitle",
+    "saved": "Matagumpay na na-save ang mga setting"
   }
 }
