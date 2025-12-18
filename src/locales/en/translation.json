@@ -5572,5 +5572,21 @@
     "startInspection": "Start Inspection",
     "myActions": "My Actions",
     "myApprovals": "My Approvals"
+  },
+  "platformSettings": {
+    "title": "Platform Settings",
+    "description": "Configure global platform settings",
+    "splashScreen": "Splash Screen",
+    "splashDescription": "Configure the intro screen shown when users open the app",
+    "preview": "Preview",
+    "enableSplash": "Enable Splash Screen",
+    "enableSplashDescription": "Show intro screen when app launches",
+    "duration": "Duration",
+    "durationHint": "How long the splash screen is shown (2-6 seconds)",
+    "arabicMessages": "Arabic Messages",
+    "englishMessages": "English Messages",
+    "mainMessage": "Main Message",
+    "subtitle": "Subtitle",
+    "saved": "Settings saved successfully"
   }
 }
