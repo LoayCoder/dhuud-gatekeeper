@@ -7139,6 +7139,7 @@ export type Database = {
           end_date: string
           hsse_coordinator_id: string | null
           id: string
+          is_internal_work: boolean
           linked_contractor_project_id: string | null
           mobilization_percentage: number | null
           name: string
@@ -7161,6 +7162,7 @@ export type Database = {
           end_date: string
           hsse_coordinator_id?: string | null
           id?: string
+          is_internal_work?: boolean
           linked_contractor_project_id?: string | null
           mobilization_percentage?: number | null
           name: string
@@ -7183,6 +7185,7 @@ export type Database = {
           end_date?: string
           hsse_coordinator_id?: string | null
           id?: string
+          is_internal_work?: boolean
           linked_contractor_project_id?: string | null
           mobilization_percentage?: number | null
           name?: string

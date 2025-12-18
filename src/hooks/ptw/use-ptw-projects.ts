@@ -14,6 +14,7 @@ export interface PTWProject {
   contractor_company_id: string | null;
   project_manager_id: string | null;
   linked_contractor_project_id: string | null;
+  is_internal_work: boolean;
   start_date: string;
   end_date: string;
   status: string;
@@ -63,7 +64,7 @@ export function usePTWProjects(filters: PTWProjectFilters = {}) {
         .select(`
           id, tenant_id, reference_id, name, name_ar, description,
           site_id, contractor_company_id, project_manager_id, linked_contractor_project_id,
-          start_date, end_date, status, mobilization_percentage,
+          is_internal_work, start_date, end_date, status, mobilization_percentage,
           created_by, created_at, updated_at,
           site:sites(name),
           contractor_company:contractor_companies(company_name),
@@ -129,6 +130,7 @@ export function useCreatePTWProject() {
         contractor_company_id: data.contractor_company_id,
         project_manager_id: data.project_manager_id,
         linked_contractor_project_id: data.linked_contractor_project_id,
+        is_internal_work: data.is_internal_work ?? false,
         start_date: data.start_date!,
         end_date: data.end_date!,
         tenant_id: profile.tenant_id,

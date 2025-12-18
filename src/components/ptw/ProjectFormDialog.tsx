@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useSites } from "@/hooks/use-sites";
 import { useCreatePTWProject } from "@/hooks/ptw";
 import { useContractorCompanies, useContractorProjects } from "@/hooks/contractor-management";
 import { toast } from "sonner";
-import { Loader2, Link2, X } from "lucide-react";
+import { Loader2, Link2, X, Building2, Users } from "lucide-react";
 
 interface ProjectFormDialogProps {
   open: boolean;
@@ -20,9 +21,9 @@ interface ProjectFormDialogProps {
 
 export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps) {
   const { t } = useTranslation();
-  const { data: sites, isLoading: sitesLoading } = useSites();
-  const { data: contractors, isLoading: contractorsLoading } = useContractorCompanies();
-  const { data: contractorProjects, isLoading: contractorProjectsLoading } = useContractorProjects({ status: "active" });
+  const { data: sites } = useSites();
+  const { data: contractors } = useContractorCompanies();
+  const { data: contractorProjects } = useContractorProjects({ status: "active" });
   const createProject = useCreatePTWProject();
 
   const [formData, setFormData] = useState({
@@ -32,6 +33,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     site_id: "",
     contractor_company_id: "",
     linked_contractor_project_id: "",
+    is_internal_work: false,
     start_date: "",
     end_date: "",
   });
@@ -41,7 +43,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
 
   // Handle contractor project selection - auto-populate fields
   useEffect(() => {
-    if (formData.linked_contractor_project_id && contractorProjects) {
+    if (!formData.is_internal_work && formData.linked_contractor_project_id && contractorProjects) {
       const linkedProject = contractorProjects.find(
         (p) => p.id === formData.linked_contractor_project_id
       );
@@ -57,7 +59,19 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     } else {
       setIsLinkedFieldsLocked(false);
     }
-  }, [formData.linked_contractor_project_id, contractorProjects]);
+  }, [formData.linked_contractor_project_id, formData.is_internal_work, contractorProjects]);
+
+  // Clear contractor fields when switching to internal work
+  useEffect(() => {
+    if (formData.is_internal_work) {
+      setFormData((prev) => ({
+        ...prev,
+        linked_contractor_project_id: "",
+        contractor_company_id: "",
+      }));
+      setIsLinkedFieldsLocked(false);
+    }
+  }, [formData.is_internal_work]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -80,6 +94,11 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       newErrors.end_date = t("validation.endAfterStart", "End date must be after start date");
     }
 
+    // Contractor project is mandatory for non-internal work
+    if (!formData.is_internal_work && !formData.linked_contractor_project_id) {
+      newErrors.linked_contractor_project_id = t("validation.required", "This field is required");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,8 +114,9 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
         name_ar: formData.name_ar.trim() || undefined,
         description: formData.description.trim() || undefined,
         site_id: formData.site_id || undefined,
-        contractor_company_id: formData.contractor_company_id || undefined,
-        linked_contractor_project_id: formData.linked_contractor_project_id || undefined,
+        contractor_company_id: formData.is_internal_work ? undefined : formData.contractor_company_id || undefined,
+        linked_contractor_project_id: formData.is_internal_work ? undefined : formData.linked_contractor_project_id || undefined,
+        is_internal_work: formData.is_internal_work,
         start_date: formData.start_date,
         end_date: formData.end_date,
       });
@@ -117,6 +137,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       site_id: "",
       contractor_company_id: "",
       linked_contractor_project_id: "",
+      is_internal_work: false,
       start_date: "",
       end_date: "",
     });
@@ -151,52 +172,100 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Link to Contractor Project */}
-          <div className="space-y-2">
-            <Label htmlFor="linked_contractor_project_id" className="flex items-center gap-2">
-              <Link2 className="h-4 w-4" />
-              {t("ptw.project.linkToContractor", "Link to Contractor Project")}
+          {/* Work Type Toggle */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">
+              {t("ptw.project.workType", "Work Type")}
             </Label>
-            <p className="text-sm text-muted-foreground">
-              {t("ptw.project.linkHelperText", "Optionally link to an existing contractor project to auto-populate company and site")}
-            </p>
-            
-            {selectedLinkedProject ? (
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Link2 className="h-3 w-3" />
-                  {selectedLinkedProject.project_code}
-                </Badge>
-                <span className="text-sm flex-1">{selectedLinkedProject.project_name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearLinkedProject}
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+              <div className="flex items-center gap-3">
+                {formData.is_internal_work ? (
+                  <Users className="h-5 w-5 text-primary" />
+                ) : (
+                  <Building2 className="h-5 w-5 text-primary" />
+                )}
+                <div>
+                  <p className="font-medium">
+                    {formData.is_internal_work 
+                      ? t("ptw.project.internalWork", "Internal Work")
+                      : t("ptw.project.contractorWork", "Contractor Work")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.is_internal_work 
+                      ? t("ptw.project.internalWorkDesc", "Only internal team members involved")
+                      : t("ptw.project.contractorWorkDesc", "External contractor involvement required")}
+                  </p>
+                </div>
               </div>
-            ) : (
-              <Select
-                value={formData.linked_contractor_project_id}
-                onValueChange={(value) => setFormData({ ...formData, linked_contractor_project_id: value })}
-              >
-                <SelectTrigger id="linked_contractor_project_id">
-                  <SelectValue placeholder={t("ptw.project.selectContractorProject", "Select contractor project (optional)")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {contractorProjects?.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      <span className="font-medium">{project.project_code}</span>
-                      <span className="text-muted-foreground ms-2">- {project.project_name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              <Switch
+                checked={formData.is_internal_work}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_internal_work: checked })}
+              />
+            </div>
           </div>
+
+          {/* Contractor Project Selection - Only for contractor work */}
+          {!formData.is_internal_work && (
+            <div className="space-y-2">
+              <Label htmlFor="linked_contractor_project_id" className="flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                {t("ptw.project.linkToContractor", "Link to Contractor Project")}
+                <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {t("ptw.project.linkMandatoryText", "Select a contractor project to auto-populate company and site")}
+              </p>
+              
+              {selectedLinkedProject ? (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Link2 className="h-3 w-3" />
+                    {selectedLinkedProject.project_code}
+                  </Badge>
+                  <span className="text-sm flex-1">{selectedLinkedProject.project_name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearLinkedProject}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Select
+                  value={formData.linked_contractor_project_id}
+                  onValueChange={(value) => setFormData({ ...formData, linked_contractor_project_id: value })}
+                >
+                  <SelectTrigger id="linked_contractor_project_id" className={errors.linked_contractor_project_id ? "border-destructive" : ""}>
+                    <SelectValue placeholder={t("ptw.project.selectContractorProject", "Select contractor project")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contractorProjects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        <span className="font-medium">{project.project_code}</span>
+                        <span className="text-muted-foreground ms-2">- {project.project_name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {errors.linked_contractor_project_id && (
+                <p className="text-sm text-destructive">{errors.linked_contractor_project_id}</p>
+              )}
+            </div>
+          )}
+
+          {/* Internal Work Info Banner */}
+          {formData.is_internal_work && (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <Users className="h-5 w-5 text-primary flex-shrink-0" />
+              <p className="text-sm text-primary">
+                {t("ptw.project.internalOnlyNote", "This project is for internal team only - no contractor involvement required")}
+              </p>
+            </div>
+          )}
 
           {/* Project Name */}
           <div className="space-y-2">
@@ -243,7 +312,7 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
             />
           </div>
 
-          {/* Site Selection */}
+          {/* Site Selection - Always visible */}
           <div className="space-y-2">
             <Label htmlFor="site_id" className="flex items-center gap-2">
               {t("ptw.project.site", "Site")}
@@ -271,33 +340,35 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
             </Select>
           </div>
 
-          {/* Contractor Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="contractor_company_id" className="flex items-center gap-2">
-              {t("ptw.project.contractor", "Contractor Company")}
-              {isLinkedFieldsLocked && (
-                <Badge variant="outline" className="text-xs">
-                  {t("ptw.project.autoPopulated", "Auto-populated")}
-                </Badge>
-              )}
-            </Label>
-            <Select
-              value={formData.contractor_company_id}
-              onValueChange={(value) => setFormData({ ...formData, contractor_company_id: value })}
-              disabled={isLinkedFieldsLocked}
-            >
-              <SelectTrigger id="contractor_company_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
-                <SelectValue placeholder={t("ptw.project.selectContractor", "Select contractor")} />
-              </SelectTrigger>
-              <SelectContent>
-                {contractors?.map((contractor) => (
-                  <SelectItem key={contractor.id} value={contractor.id}>
-                    {contractor.company_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Contractor Selection - Only for contractor work */}
+          {!formData.is_internal_work && (
+            <div className="space-y-2">
+              <Label htmlFor="contractor_company_id" className="flex items-center gap-2">
+                {t("ptw.project.contractor", "Contractor Company")}
+                {isLinkedFieldsLocked && (
+                  <Badge variant="outline" className="text-xs">
+                    {t("ptw.project.autoPopulated", "Auto-populated")}
+                  </Badge>
+                )}
+              </Label>
+              <Select
+                value={formData.contractor_company_id}
+                onValueChange={(value) => setFormData({ ...formData, contractor_company_id: value })}
+                disabled={isLinkedFieldsLocked}
+              >
+                <SelectTrigger id="contractor_company_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
+                  <SelectValue placeholder={t("ptw.project.selectContractor", "Select contractor")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {contractors?.map((contractor) => (
+                    <SelectItem key={contractor.id} value={contractor.id}>
+                      {contractor.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Date Range */}
           <div className="grid gap-4 sm:grid-cols-2">
