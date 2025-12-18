@@ -8,7 +8,6 @@ import {
   MapPin, 
   Calendar, 
   User, 
-  Building2, 
   Phone, 
   FileText,
   QrCode,
@@ -21,12 +20,15 @@ import {
   FileWarning,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  History
 } from "lucide-react";
 import { usePTWPermit, useUpdatePermitStatus } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
+import { PermitAuditTimeline } from "@/components/ptw/PermitAuditTimeline";
+import { PermitPDFExportButton } from "@/components/ptw/PermitPDFExportButton";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -99,7 +101,8 @@ export default function PermitView() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <PermitPDFExportButton permitId={permit.id} />
           {canApprove && (
             <>
               <Button
@@ -306,6 +309,22 @@ export default function PermitView() {
               >
                 {permit.simops_status}
               </Badge>
+            </CardContent>
+          </Card>
+
+          {/* Audit History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                {t("ptw.view.auditHistory", "Audit History")}
+              </CardTitle>
+              <CardDescription>
+                {t("ptw.view.auditHistoryDesc", "Timeline of all permit changes")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PermitAuditTimeline permitId={permit.id} maxHeight="300px" />
             </CardContent>
           </Card>
         </div>
