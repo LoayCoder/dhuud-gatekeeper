@@ -11,9 +11,11 @@ export interface SplashSettings {
   subtitle_en: string;
 }
 
+const MIN_DURATION_MS = 3000; // Minimum 3 seconds
+
 const DEFAULT_SETTINGS: SplashSettings = {
   enabled: true,
-  duration_ms: 3000,
+  duration_ms: 3500,
   message_ar: 'مرحباً بك في منصة الصحة والسلامة',
   message_en: 'Welcome to HSSE Platform',
   subtitle_ar: 'نحو بيئة عمل آمنة',
@@ -80,12 +82,15 @@ export function useSplashSettings() {
 
   const isArabic = i18n.language === 'ar';
   
+  const rawDuration = settings?.duration_ms ?? DEFAULT_SETTINGS.duration_ms;
+  const duration = Math.max(rawDuration, MIN_DURATION_MS); // Enforce minimum 3 seconds
+  
   return {
     settings,
     isLoading,
     message: settings ? (isArabic ? settings.message_ar : settings.message_en) : '',
     subtitle: settings ? (isArabic ? settings.subtitle_ar : settings.subtitle_en) : '',
-    duration: settings?.duration_ms ?? DEFAULT_SETTINGS.duration_ms,
+    duration,
     enabled: settings?.enabled ?? DEFAULT_SETTINGS.enabled,
   };
 }
