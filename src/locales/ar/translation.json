@@ -5404,5 +5404,21 @@
     "startInspection": "بدء التفتيش",
     "myActions": "إجراءاتي",
     "myApprovals": "موافقاتي"
+  },
+  "platformSettings": {
+    "title": "إعدادات المنصة",
+    "description": "تكوين إعدادات المنصة العامة",
+    "splashScreen": "شاشة البداية",
+    "splashDescription": "تكوين شاشة المقدمة التي تظهر عند فتح التطبيق",
+    "preview": "معاينة",
+    "enableSplash": "تفعيل شاشة البداية",
+    "enableSplashDescription": "عرض شاشة المقدمة عند تشغيل التطبيق",
+    "duration": "المدة",
+    "durationHint": "مدة عرض شاشة البداية (2-6 ثواني)",
+    "arabicMessages": "الرسائل بالعربية",
+    "englishMessages": "الرسائل بالإنجليزية",
+    "mainMessage": "الرسالة الرئيسية",
+    "subtitle": "العنوان الفرعي",
+    "saved": "تم حفظ الإعدادات بنجاح"
   }
 }

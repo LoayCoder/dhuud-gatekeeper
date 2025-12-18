@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +23,7 @@ import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNot
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
 import { usePrefetchOnIdle } from "./hooks/use-prefetch";
+import { SplashScreen } from "./components/SplashScreen";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -134,6 +135,7 @@ const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-acce
 const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-diagrams" */ "./pages/admin/WorkflowDiagrams"));
 const ManhoursManagement = lazy(() => import(/* webpackChunkName: "admin-manhours" */ "./pages/admin/ManhoursManagement"));
 const KPITargetsManagement = lazy(() => import(/* webpackChunkName: "admin-kpi-targets" */ "./pages/admin/KPITargetsManagement"));
+const PlatformSettings = lazy(() => import(/* webpackChunkName: "admin-platform-settings" */ "./pages/admin/PlatformSettings"));
 
 const queryClient = new QueryClient();
 
@@ -144,22 +146,39 @@ function AppInitializer() {
   return null;
 }
 
+// Wrapper component to handle splash screen state
+function AppWithSplash({ children }: { children: React.ReactNode }) {
+  const [showSplash, setShowSplash] = useState(true);
+  
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
+  return (
+    <>
+      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+      {children}
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <NetworkStatusIndicator />
-          <OnlineRetryHandler />
-          <ServiceWorkerUpdateNotifier />
-          <NotificationPermissionPrompt />
-          <AppInitializer />
-          <BrowserRouter>
-            <AuthProvider>
-              <SessionTimeoutProvider>
-                <SessionTimeoutWarning />
+        <AppWithSplash>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <NetworkStatusIndicator />
+            <OnlineRetryHandler />
+            <ServiceWorkerUpdateNotifier />
+            <NotificationPermissionPrompt />
+            <AppInitializer />
+            <BrowserRouter>
+              <AuthProvider>
+                <SessionTimeoutProvider>
+                  <SessionTimeoutWarning />
                 <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
@@ -451,7 +470,8 @@ const App = () => (
               </SessionTimeoutProvider>
             </AuthProvider>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </AppWithSplash>
       </ThemeProvider>
     </NextThemesProvider>
   </QueryClientProvider>
