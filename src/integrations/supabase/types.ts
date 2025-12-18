@@ -7139,6 +7139,7 @@ export type Database = {
           end_date: string
           hsse_coordinator_id: string | null
           id: string
+          linked_contractor_project_id: string | null
           mobilization_percentage: number | null
           name: string
           name_ar: string | null
@@ -7160,6 +7161,7 @@ export type Database = {
           end_date: string
           hsse_coordinator_id?: string | null
           id?: string
+          linked_contractor_project_id?: string | null
           mobilization_percentage?: number | null
           name: string
           name_ar?: string | null
@@ -7181,6 +7183,7 @@ export type Database = {
           end_date?: string
           hsse_coordinator_id?: string | null
           id?: string
+          linked_contractor_project_id?: string | null
           mobilization_percentage?: number | null
           name?: string
           name_ar?: string | null
@@ -7219,6 +7222,13 @@ export type Database = {
             columns: ["hsse_coordinator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_linked_contractor_project_id_fkey"
+            columns: ["linked_contractor_project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {

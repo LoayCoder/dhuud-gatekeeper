@@ -13,6 +13,7 @@ export interface PTWProject {
   site_id: string | null;
   contractor_company_id: string | null;
   project_manager_id: string | null;
+  linked_contractor_project_id: string | null;
   start_date: string;
   end_date: string;
   status: string;
@@ -23,6 +24,7 @@ export interface PTWProject {
   site?: { name: string } | null;
   contractor_company?: { company_name: string } | null;
   project_manager?: { full_name: string } | null;
+  linked_contractor_project?: { project_code: string; project_name: string } | null;
 }
 
 export interface PTWClearanceCheck {
@@ -60,12 +62,13 @@ export function usePTWProjects(filters: PTWProjectFilters = {}) {
         .from("ptw_projects")
         .select(`
           id, tenant_id, reference_id, name, name_ar, description,
-          site_id, contractor_company_id, project_manager_id,
+          site_id, contractor_company_id, project_manager_id, linked_contractor_project_id,
           start_date, end_date, status, mobilization_percentage,
           created_by, created_at, updated_at,
           site:sites(name),
           contractor_company:contractor_companies(company_name),
-          project_manager:profiles!ptw_projects_project_manager_id_fkey(full_name)
+          project_manager:profiles!ptw_projects_project_manager_id_fkey(full_name),
+          linked_contractor_project:contractor_projects(project_code, project_name)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -125,6 +128,7 @@ export function useCreatePTWProject() {
         site_id: data.site_id,
         contractor_company_id: data.contractor_company_id,
         project_manager_id: data.project_manager_id,
+        linked_contractor_project_id: data.linked_contractor_project_id,
         start_date: data.start_date!,
         end_date: data.end_date!,
         tenant_id: profile.tenant_id,
