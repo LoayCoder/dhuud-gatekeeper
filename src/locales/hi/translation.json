@@ -3189,11 +3189,19 @@
     "installTitle": "Dhuud HSSE इंस्टॉल करें",
     "installDescription": "तेज़ पहुंच और ऑफ़लाइन सहायता के लिए ऐप इंस्टॉल करें।",
     "installButton": "ऐप इंस्टॉल करें",
-    "iosInstructions": "अपने iPhone पर यह ऐप इंस्टॉल करने के लिए:",
+    "installApp": "ऐप इंस्टॉल करें",
+    "iosInstructions": "iOS पर इंस्टॉल करने के लिए:",
     "iosTapShare": "पर टैप करें",
     "iosShareButton": "शेयर बटन",
     "iosScrollAndTap": "स्क्रॉल करें और टैप करें",
     "iosAddToHome": "होम स्क्रीन पर जोड़ें",
+    "iosStep1": "शेयर बटन पर टैप करें",
+    "iosStep2": "नीचे स्क्रॉल करें और 'होम स्क्रीन में जोड़ें' पर टैप करें",
+    "iosStep3": "पुष्टि के लिए 'जोड़ें' पर टैप करें",
+    "androidInstructions": "Android पर इंस्टॉल करने के लिए:",
+    "androidStep1": "Chrome में मेनू बटन (⋮) पर टैप करें",
+    "androidStep2": "'ऐप इंस्टॉल करें' या 'होम स्क्रीन में जोड़ें' पर टैप करें",
+    "androidStep3": "पुष्टि के लिए 'इंस्टॉल' पर टैप करें",
     "updateAvailable": "अपडेट उपलब्ध",
     "updateDescription": "ऐप का नया संस्करण तैयार है। नवीनतम सुविधाएं पाने के लिए रिफ्रेश करें।",
     "updateNow": "अभी रिफ्रेश करें",
@@ -3207,8 +3215,9 @@
     "installNow": "अभी इंस्टॉल करें",
     "maybeLater": "शायद बाद में",
     "iosTitle": "iPhone पर इंस्टॉल करें",
-    "iosStep1": "शेयर पर टैप करें",
-    "iosStep2": "होम स्क्रीन पर जोड़ें"
+    "installed": "ऐप इंस्टॉल हो गया",
+    "alreadyInstalled": "पहले से इंस्टॉल है",
+    "alreadyInstalledMessage": "DHUUD पहले से आपके डिवाइस पर इंस्टॉल है। आप इसे अपनी होम स्क्रीन पर पा सकते हैं।"
   },
   "network": {
     "offline": "आप ऑफ़लाइन हैं",
@@ -5239,21 +5248,6 @@
     "allSynced": "सभी परिवर्तन सिंक हो गए",
     "installApp": "ऐप इंस्टॉल करें"
   },
-  "pwa": {
-    "installApp": "ऐप इंस्टॉल करें",
-    "installDescription": "त्वरित पहुँच के लिए DHUUD को अपने डिवाइस पर इंस्टॉल करें",
-    "iosInstructions": "iOS पर इंस्टॉल करने के लिए:",
-    "iosStep1": "शेयर बटन पर टैप करें",
-    "iosStep2": "नीचे स्क्रॉल करें और 'होम स्क्रीन में जोड़ें' पर टैप करें",
-    "iosStep3": "पुष्टि के लिए 'जोड़ें' पर टैप करें",
-    "androidInstructions": "Android पर इंस्टॉल करने के लिए:",
-    "androidStep1": "Chrome में मेनू बटन (⋮) पर टैप करें",
-    "androidStep2": "'ऐप इंस्टॉल करें' या 'होम स्क्रीन में जोड़ें' पर टैप करें",
-    "androidStep3": "पुष्टि के लिए 'इंस्टॉल' पर टैप करें",
-    "installed": "ऐप इंस्टॉल हो गया",
-    "alreadyInstalled": "पहले से इंस्टॉल है",
-    "alreadyInstalledMessage": "DHUUD पहले से आपके डिवाइस पर इंस्टॉल है। आप इसे अपनी होम स्क्रीन पर पा सकते हैं।"
-  },
   "home": {
     "welcome": "स्वागत है",
     "yourLocation": "आपका स्थान",
@@ -5268,5 +5262,21 @@
     "startInspection": "निरीक्षण शुरू करें",
     "myActions": "मेरी कार्रवाई",
     "myApprovals": "मेरी स्वीकृतियां"
+  },
+  "platformSettings": {
+    "title": "प्लेटफ़ॉर्म सेटिंग्स",
+    "description": "वैश्विक प्लेटफ़ॉर्म सेटिंग्स कॉन्फ़िगर करें",
+    "splashScreen": "स्प्लैश स्क्रीन",
+    "splashDescription": "जब उपयोगकर्ता ऐप खोलते हैं तो दिखाई देने वाली इंट्रो स्क्रीन को कॉन्फ़िगर करें",
+    "preview": "पूर्वावलोकन",
+    "enableSplash": "स्प्लैश स्क्रीन सक्षम करें",
+    "enableSplashDescription": "ऐप लॉन्च होने पर इंट्रो स्क्रीन दिखाएं",
+    "duration": "अवधि",
+    "durationHint": "स्प्लैश स्क्रीन कितने समय तक दिखाई दे (2-6 सेकंड)",
+    "arabicMessages": "अरबी संदेश",
+    "englishMessages": "अंग्रेजी संदेश",
+    "mainMessage": "मुख्य संदेश",
+    "subtitle": "उपशीर्षक",
+    "saved": "सेटिंग्स सफलतापूर्वक सहेजी गईं"
   }
 }
