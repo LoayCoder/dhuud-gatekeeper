@@ -5488,6 +5488,51 @@
       "approved": "Approved",
       "pending": "Pending",
       "rejected": "Rejected"
+    },
+    "mobile": {
+      "pass": "Pass",
+      "fail": "Fail",
+      "na": "N/A",
+      "photos": "photos",
+      "addPhoto": "Add Photo",
+      "comment": "Comment",
+      "commentPlaceholder": "Add your observation...",
+      "allComplete": "All items completed",
+      "captureGPS": "Capture GPS Location",
+      "gpsCapturing": "Capturing location...",
+      "gpsCaptured": "Location captured",
+      "gpsNotSupported": "GPS is not supported",
+      "gpsError": "Could not capture location",
+      "submitInspection": "Submit Inspection",
+      "incompleteItems": "Incomplete Items",
+      "completeRequired": "Please complete all required checklist items",
+      "signatureRequired": "Signature Required",
+      "applicantSignRequired": "Applicant signature is required",
+      "inspectionSubmitted": "Inspection Submitted",
+      "inspectionSuccess": "Field inspection completed successfully",
+      "submitError": "Failed to submit inspection",
+      "photoCapture": "Photo Capture",
+      "photoCaptureDesc": "Camera integration coming soon"
+    },
+    "realtime": {
+      "live": "Live",
+      "offline": "Offline",
+      "connected": "Receiving live updates",
+      "disconnected": "Not connected",
+      "lastUpdate": "Last update: {{time}}",
+      "newUpdates": "{{count}} new updates",
+      "statusChanged": "Permit {{reference}} status changed to {{status}}"
+    },
+    "inspection": {
+      "title": "Field Inspection",
+      "progress": "{{completed}}/{{total}} items",
+      "ppeSection": "PPE Checklist",
+      "safetySection": "Safety Requirements",
+      "typeSection": "{{type}} Requirements",
+      "signatures": "Signatures",
+      "applicantSign": "Applicant Signature",
+      "supervisorSign": "Supervisor Signature",
+      "issuerSign": "Issuer Signature"
     }
   },
   "install": {

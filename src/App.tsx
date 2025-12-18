@@ -110,6 +110,7 @@ const ProjectMobilization = lazy(() => import(/* webpackChunkName: "ptw-projects
 const PermitConsole = lazy(() => import(/* webpackChunkName: "ptw-console" */ "./pages/ptw/PermitConsole"));
 const CreatePermit = lazy(() => import(/* webpackChunkName: "ptw-create" */ "./pages/ptw/CreatePermit"));
 const PermitView = lazy(() => import(/* webpackChunkName: "ptw-view" */ "./pages/ptw/PermitView"));
+const PTWFieldInspection = lazy(() => import(/* webpackChunkName: "ptw-inspection" */ "./pages/ptw/PTWFieldInspection"));
 
 // Admin pages - lazy loaded with named chunks for better caching
 const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
@@ -267,6 +268,7 @@ const App = () => (
                       <Route path="/ptw/console" element={<HSSERoute><PermitConsole /></HSSERoute>} />
                       <Route path="/ptw/create" element={<HSSERoute><CreatePermit /></HSSERoute>} />
                       <Route path="/ptw/permits/:id" element={<HSSERoute><PermitView /></HSSERoute>} />
+                      <Route path="/ptw/inspection/:id" element={<HSSERoute><PTWFieldInspection /></HSSERoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />

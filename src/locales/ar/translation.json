@@ -5320,6 +5320,42 @@
       "approved": "معتمد",
       "pending": "قيد الانتظار",
       "rejected": "مرفوض"
+    },
+    "mobile": {
+      "pass": "ناجح",
+      "fail": "فاشل",
+      "na": "غير قابل للتطبيق",
+      "photos": "صور",
+      "addPhoto": "إضافة صورة",
+      "comment": "تعليق",
+      "commentPlaceholder": "أضف ملاحظتك...",
+      "allComplete": "تم إكمال جميع العناصر",
+      "captureGPS": "التقاط موقع GPS",
+      "gpsCapturing": "جاري التقاط الموقع...",
+      "gpsCaptured": "تم التقاط الموقع",
+      "submitInspection": "إرسال التفتيش",
+      "inspectionSubmitted": "تم إرسال التفتيش",
+      "inspectionSuccess": "تم إكمال التفتيش الميداني بنجاح"
+    },
+    "realtime": {
+      "live": "مباشر",
+      "offline": "غير متصل",
+      "connected": "استقبال التحديثات المباشرة",
+      "disconnected": "غير متصل",
+      "lastUpdate": "آخر تحديث: {{time}}",
+      "newUpdates": "{{count}} تحديثات جديدة",
+      "statusChanged": "تم تغيير حالة التصريح {{reference}} إلى {{status}}"
+    },
+    "inspection": {
+      "title": "التفتيش الميداني",
+      "progress": "{{completed}}/{{total}} عناصر",
+      "ppeSection": "قائمة معدات الوقاية الشخصية",
+      "safetySection": "متطلبات السلامة",
+      "typeSection": "متطلبات {{type}}",
+      "signatures": "التوقيعات",
+      "applicantSign": "توقيع مقدم الطلب",
+      "supervisorSign": "توقيع المشرف",
+      "issuerSign": "توقيع المُصدر"
     }
   },
   "install": {
