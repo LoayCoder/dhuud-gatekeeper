@@ -32,8 +32,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users } from 'lucide-react';
-import { UserType, isContractorType, userTypeHasLogin } from '@/lib/license-utils';
+import { Loader2, Users, LogIn, UserX, AlertCircle } from 'lucide-react';
+import { UserType, isContractorType, userTypeHasLogin, getUserTypeLabel } from '@/lib/license-utils';
+import { cn } from '@/lib/utils';
 import { useLicensedUserQuota } from '@/hooks/use-licensed-user-quota';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -212,11 +213,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     loadUserData();
   }, [user, form, fetchUserRoles, roles]);
 
-  // Auto-set has_login based on user type
+  // Auto-set has_login based on user type (only for new users)
   useEffect(() => {
-    const shouldHaveLogin = userTypeHasLogin(userType);
-    form.setValue('has_login', shouldHaveLogin);
-  }, [userType, form]);
+    if (!user) { // Only auto-set for new users
+      const shouldHaveLogin = userTypeHasLogin(userType);
+      form.setValue('has_login', shouldHaveLogin);
+    }
+  }, [userType, form, user]);
 
   // Filter departments by selected division (cascade filtering)
   const filteredDepartments = useMemo(() => {
@@ -368,21 +371,74 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
               />
             </div>
 
-            {/* Login & Status */}
-            <div className="flex items-center gap-4 mb-4" dir={direction}>
+            {/* Platform Access Section - Prominent Card */}
+            <div 
+              className={cn(
+                "p-4 border-2 rounded-lg transition-all",
+                hasLogin 
+                  ? "border-primary bg-primary/5" 
+                  : "border-muted bg-muted/30"
+              )}
+              dir={direction}
+            >
               <FormField
                 control={form.control}
                 name="has_login"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
+                  <FormItem className="flex items-center justify-between space-y-0">
+                    <div className="space-y-1.5">
+                      <FormLabel className="text-base font-semibold flex items-center gap-2">
+                        {hasLogin ? (
+                          <LogIn className="h-4 w-4 text-primary" />
+                        ) : (
+                          <UserX className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        {t('userManagement.platformAccess', 'Platform Access')}
+                      </FormLabel>
+                      <FormDescription className="text-sm">
+                        {hasLogin 
+                          ? t('userManagement.loginEnabled', 'This user can log in to the platform')
+                          : t('userManagement.loginDisabled', 'Profile only - no login access')}
+                      </FormDescription>
+                      {/* Billing indicator badge */}
+                      <span className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                        hasLogin 
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" 
+                          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                      )}>
+                        {hasLogin 
+                          ? t('userManagement.licensedUser', '🔐 Licensed User')
+                          : t('userManagement.billableProfile', '📋 Billable Profile')}
+                      </span>
+                    </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="scale-125"
+                      />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">{t('userManagement.hasLogin')}</FormLabel>
                   </FormItem>
                 )}
               />
+              
+              {/* Contextual warning when login enabled for non-typical user type */}
+              {!userTypeHasLogin(userType) && hasLogin && (
+                <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded mt-3">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    {t('userManagement.loginNotTypical', 
+                      'Note: {{userType}} users typically don\'t need login access. Enable only if required.',
+                      { userType: t(getUserTypeLabel(userType)) }
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
 
+            {/* Active Status */}
+            <div className="flex items-center gap-4" dir={direction}>
               <FormField
                 control={form.control}
                 name="is_active"
