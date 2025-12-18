@@ -15,6 +15,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Shield,
@@ -93,9 +94,17 @@ export function AppSidebar() {
   const [isRtl, setIsRtl] = useState(document.documentElement.dir === 'rtl');
   const { canAccess, hasAccessibleChildren, isLoading: menuLoading } = useMenuAccess();
   const { canInstall, canPromptNatively, isIOS, isInstalled, promptInstall } = usePWAInstall();
+  const { setOpenMobile, isMobile } = useSidebar();
   
   // Get app icon for PWA install button
   const appIcon = activeSidebarIconUrl || DHUUD_APP_ICON;
+
+  // Close mobile sidebar when a navigation link is clicked
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   // Watch for direction changes
   useEffect(() => {
@@ -812,6 +821,7 @@ export function AppSidebar() {
                                                       >
                                                         <NavLink
                                                           to={deepItem.url}
+                                                          onClick={handleNavClick}
                                                           onMouseEnter={() => prefetchRoute(deepItem.url)}
                                                         >
                                                           {deepItem.icon && (
@@ -835,6 +845,7 @@ export function AppSidebar() {
                                             >
                                               <NavLink
                                                 to={nestedItem.url}
+                                                onClick={handleNavClick}
                                                 onMouseEnter={() => prefetchRoute(nestedItem.url)}
                                               >
                                                 {nestedItem.icon && (
@@ -859,6 +870,7 @@ export function AppSidebar() {
                                 >
                                   <NavLink 
                                     to={subItem.url}
+                                    onClick={handleNavClick}
                                     onMouseEnter={() => prefetchRoute(subItem.url)}
                                   >
                                     {subItem.icon && (
@@ -884,6 +896,7 @@ export function AppSidebar() {
                     >
                       <NavLink 
                         to={item.url}
+                        onClick={handleNavClick}
                         onMouseEnter={() => item.url && prefetchRoute(item.url)}
                       >
                         {item.icon && <item.icon />}
