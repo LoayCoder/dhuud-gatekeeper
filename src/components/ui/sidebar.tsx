@@ -4,6 +4,7 @@ import { VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSwipeGesture } from "@/hooks/use-swipe-gesture";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,6 +144,26 @@ const Sidebar = React.forwardRef<
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  
+  // Determine swipe direction based on sidebar side and RTL
+  const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+  
+  // For left sidebar: swipe left to close (RTL: swipe right)
+  // For right sidebar: swipe right to close (RTL: swipe left)
+  const swipeGesture = useSwipeGesture({
+    onSwipeLeft: () => {
+      if ((side === 'left' && !isRtl) || (side === 'right' && isRtl)) {
+        setOpenMobile(false);
+      }
+    },
+    onSwipeRight: () => {
+      if ((side === 'right' && !isRtl) || (side === 'left' && isRtl)) {
+        setOpenMobile(false);
+      }
+    },
+    threshold: 50,
+    allowedTime: 300,
+  });
 
   if (collapsible === "none") {
     return (
@@ -170,7 +191,12 @@ const Sidebar = React.forwardRef<
           }
           side={side}
         >
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div 
+            className="flex h-full w-full flex-col touch-pan-y"
+            {...swipeGesture}
+          >
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     );
