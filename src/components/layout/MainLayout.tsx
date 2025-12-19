@@ -7,6 +7,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { TrialBanner } from "@/components/TrialBanner";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
 import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
+import { InstallPromptDialog } from "@/components/pwa/InstallPromptDialog";
 
 export default function MainLayout() {
   const {
@@ -39,5 +40,8 @@ export default function MainLayout() {
       
       {/* Offline Status Banner - Fixed position */}
       <OfflineStatusBanner />
+      
+      {/* PWA Install Prompt - Auto-shows after login */}
+      <InstallPromptDialog triggerOnLogin={true} />
     </SidebarProvider>;
 }

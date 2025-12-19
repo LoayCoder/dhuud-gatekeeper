@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -11,6 +11,8 @@ export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   const isIOS = typeof navigator !== 'undefined' && 
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
@@ -44,36 +46,46 @@ export function usePWAInstall() {
     // Listen for beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(promptEvent);
+      promptRef.current = promptEvent;
+      setIsReady(true);
     };
 
     // Listen for app installed
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      promptRef.current = null;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Mark as ready even if no prompt (for iOS or browsers that don't support it)
+    const readyTimer = setTimeout(() => setIsReady(true), 1000);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearTimeout(readyTimer);
     };
   }, [isInIframe]);
 
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return false;
+    const prompt = deferredPrompt || promptRef.current;
+    if (!prompt) return false;
 
     try {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
       
       if (outcome === 'accepted') {
         setIsInstalled(true);
       }
       
       setDeferredPrompt(null);
+      promptRef.current = null;
       return outcome === 'accepted';
     } catch (error) {
       console.error('Error prompting install:', error);
@@ -88,10 +100,15 @@ export function usePWAInstall() {
     setIsDismissed(true);
   }, []);
 
+  const clearDismiss = useCallback(() => {
+    localStorage.removeItem(DISMISS_KEY);
+    setIsDismissed(false);
+  }, []);
+
   // Show install button if not installed and not dismissed
   // Even without deferredPrompt, we can show instructions
   const canInstall = !isInstalled && !isDismissed;
-  const canPromptNatively = !!deferredPrompt;
+  const canPromptNatively = !!(deferredPrompt || promptRef.current);
 
   return {
     canInstall,
@@ -99,7 +116,9 @@ export function usePWAInstall() {
     isInstalled,
     isIOS,
     isDismissed,
+    isReady,
     promptInstall,
     dismissUntil,
+    clearDismiss,
   };
 }
