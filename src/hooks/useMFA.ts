@@ -67,7 +67,7 @@ export function useMFA(): UseMFAReturn {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'Authenticator App',
-        issuer: issuer || 'DHUUD-SaaS',
+        issuer: issuer || 'DHUUD',
       });
 
       if (error) {

@@ -60,7 +60,7 @@ export default function MFASetup() {
 
   const handleStartEnrollment = async () => {
     setLoading(true);
-    const result = await enroll(tenantName || 'DHUUD-SaaS');
+    const result = await enroll(tenantName || 'DHUUD');
     setLoading(false);
 
     if (result) {
@@ -195,12 +195,24 @@ export default function MFASetup() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <img
-                      src={enrollData.qrCode}
-                      alt="QR Code"
-                      className="w-48 h-48"
-                    />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="relative p-4 bg-white rounded-lg">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
+                        <img
+                          src="/lovable-uploads/dhuud-logo.png"
+                          alt="DHUUD"
+                          className="h-10 w-10 object-contain"
+                        />
+                      </div>
+                      <img
+                        src={enrollData.qrCode}
+                        alt="QR Code"
+                        className="w-48 h-48"
+                      />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      DHUUD HSSE Platform
+                    </p>
                   </div>
                   
                   <div className="text-center text-sm text-muted-foreground">

@@ -53,7 +53,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
 
   const handleStartEnrollment = async () => {
     setLoading(true);
-    const result = await enroll(tenantName || 'DHUUD-SaaS');
+    const result = await enroll(tenantName || 'DHUUD');
     setLoading(false);
 
     if (result) {
@@ -172,15 +172,25 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              {/* QR Code */}
-              <div className="flex justify-center">
-                <div className="rounded-lg border bg-white p-4">
+              {/* QR Code with Dhuud Logo */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="rounded-lg border bg-white p-4 relative">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
+                    <img
+                      src="/lovable-uploads/dhuud-logo.png"
+                      alt="DHUUD"
+                      className="h-10 w-10 object-contain"
+                    />
+                  </div>
                   <img
                     src={enrollData.qrCode}
                     alt="QR Code for 2FA setup"
                     className="h-48 w-48"
                   />
                 </div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  DHUUD HSSE Platform
+                </p>
               </div>
 
               {/* Manual Setup Key */}
