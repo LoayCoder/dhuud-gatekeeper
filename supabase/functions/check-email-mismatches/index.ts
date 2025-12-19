@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     // Check if caller is admin
     const { data: isAdminResult, error: adminCheckError } = await supabase
-      .rpc('is_admin', { _user_id: caller.id });
+      .rpc('is_admin', { p_user_id: caller.id });
     
     if (adminCheckError || !isAdminResult) {
       return new Response(
