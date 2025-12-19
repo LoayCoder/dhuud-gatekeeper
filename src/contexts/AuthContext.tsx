@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import i18n from '@/i18n';
+import { useProfileEmailWatcher } from '@/hooks/use-profile-email-watcher';
 
 interface Profile {
   full_name: string | null;
@@ -141,6 +142,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!session,
     refreshProfile,
   };
+
+  // Watch for email changes from admin actions
+  useProfileEmailWatcher({
+    userId: user?.id,
+    sessionEmail: user?.email,
+    enabled: !!session && !isLoading
+  });
 
   return (
     <AuthContext.Provider value={value}>
