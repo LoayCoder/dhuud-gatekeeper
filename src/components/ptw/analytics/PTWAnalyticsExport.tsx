@@ -231,7 +231,6 @@ export function PTWAnalyticsExport({
         filename: `ptw_analytics_${getDateRangeString()}.pdf`,
         header: {
           primaryText: "PTW Analytics Report",
-          showLogo: true,
         },
         footer: {
           showPageNumbers: true,
