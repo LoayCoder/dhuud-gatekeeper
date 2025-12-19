@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.process-scheduled-hsse-notifications]
 verify_jwt = false
+
+[functions.admin-update-user]
+verify_jwt = true

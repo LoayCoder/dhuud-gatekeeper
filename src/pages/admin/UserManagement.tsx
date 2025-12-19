@@ -157,7 +157,7 @@ export default function UserManagement() {
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
 
-  const handleSaveUser = async (data: any, selectedRoleIds: string[]) => {
+  const handleSaveUser = async (data: any, selectedRoleIds: string[], emailChanged: boolean = false, originalEmail: string | null = null) => {
     try {
       const updateData = {
         full_name: data.full_name,
@@ -188,11 +188,50 @@ export default function UserManagement() {
         const wasActive = editingUser.is_active;
         const isNowActive = data.is_active;
         
-        const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
-        if (error) throw error;
-        
-        if (profile?.tenant_id) {
-          await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+        // If email has changed, use the secure edge function to update auth.users first
+        if (emailChanged && originalEmail && data.email && data.email !== originalEmail) {
+          console.log('Email change detected, calling admin-update-user edge function...');
+          
+          const { data: edgeFnResult, error: edgeFnError } = await supabase.functions.invoke('admin-update-user', {
+            body: {
+              user_id: editingUser.id,
+              old_email: originalEmail,
+              new_email: data.email,
+              updates: updateData,
+            },
+          });
+          
+          if (edgeFnError) {
+            console.error('Edge function error:', edgeFnError);
+            throw new Error(edgeFnError.message || t('userManagement.emailUpdateFailed', 'Failed to update login credentials'));
+          }
+          
+          if (edgeFnResult?.error) {
+            console.error('Edge function returned error:', edgeFnResult.error);
+            throw new Error(edgeFnResult.error);
+          }
+          
+          console.log('Email update successful via edge function:', edgeFnResult);
+          
+          // Edge function already updated profiles, so we just need to handle roles
+          if (profile?.tenant_id) {
+            await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+          }
+          
+          toast({ 
+            title: t('userManagement.userUpdated'),
+            description: t('userManagement.emailCredentialsUpdated', 'Login credentials have been updated from {{oldEmail}} to {{newEmail}}', { oldEmail: originalEmail, newEmail: data.email }),
+          });
+        } else {
+          // Normal update without email change
+          const { error } = await supabase.from('profiles').update(updateData).eq('id', editingUser.id);
+          if (error) throw error;
+          
+          if (profile?.tenant_id) {
+            await assignRoles(editingUser.id, selectedRoleIds, profile.tenant_id);
+          }
+          
+          toast({ title: t('userManagement.userUpdated') });
         }
         
         if (wasActive && !isNowActive) {
@@ -204,8 +243,6 @@ export default function UserManagement() {
         if (Object.keys(changes).length > 0) {
           await logUserUpdated(editingUser.id, data.full_name, changes);
         }
-        
-        toast({ title: t('userManagement.userUpdated') });
       } else {
         // CREATE new user - different flows based on has_login
         if (data.has_login && data.email) {
