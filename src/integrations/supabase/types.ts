@@ -4922,6 +4922,98 @@ export type Database = {
           },
         ]
       }
+      login_history: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country_code: string | null
+          country_name: string | null
+          created_at: string | null
+          deleted_at: string | null
+          device_fingerprint: string | null
+          email: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          is_new_device: boolean | null
+          is_new_location: boolean | null
+          is_proxy: boolean | null
+          is_suspicious: boolean | null
+          is_vpn: boolean | null
+          isp: string | null
+          login_success: boolean | null
+          platform: string | null
+          region: string | null
+          risk_factors: Json | null
+          risk_score: number | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          device_fingerprint?: string | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean | null
+          is_new_location?: boolean | null
+          is_proxy?: boolean | null
+          is_suspicious?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          login_success?: boolean | null
+          platform?: string | null
+          region?: string | null
+          risk_factors?: Json | null
+          risk_score?: number | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          device_fingerprint?: string | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean | null
+          is_new_location?: boolean | null
+          is_proxy?: boolean | null
+          is_suspicious?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          login_success?: boolean | null
+          platform?: string | null
+          region?: string | null
+          risk_factors?: Json | null
+          risk_score?: number | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_part_usage: {
         Row: {
           asset_id: string | null

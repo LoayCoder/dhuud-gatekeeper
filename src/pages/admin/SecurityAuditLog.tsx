@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock } from "lucide-react";
+import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock, MapPin, Smartphone, Globe, Wifi } from "lucide-react";
 import { format } from "date-fns";
 import { useCursorPagination, CursorPosition, buildCursorCondition } from "@/hooks/use-cursor-pagination";
 import { CursorPagination } from "@/components/ui/cursor-pagination";
-
-
+import { toast } from "@/hooks/use-toast";
 
 interface ActivityLog {
   id: string;
@@ -32,8 +31,46 @@ interface ActivityLog {
     changes?: Record<string, { from: unknown; to: unknown }>;
     ip_address?: string;
     user_agent?: string;
+    risk_score?: number;
+    risk_factors?: string[];
+    is_suspicious?: boolean;
+    is_new_device?: boolean;
+    is_new_location?: boolean;
+    country?: string;
+    city?: string;
+    login_success?: boolean;
+    failure_reason?: string;
+    device_fingerprint?: string;
   } | null;
   session_duration_seconds?: number | null;
+  created_at: string;
+  user_name?: string | null;
+  ip_address?: string | null;
+}
+
+interface LoginHistoryRecord {
+  id: string;
+  user_id: string;
+  email: string;
+  ip_address: string | null;
+  country_code: string | null;
+  country_name: string | null;
+  city: string | null;
+  region: string | null;
+  isp: string | null;
+  is_vpn: boolean;
+  is_proxy: boolean;
+  device_fingerprint: string | null;
+  user_agent: string | null;
+  platform: string | null;
+  browser: string | null;
+  risk_score: number;
+  risk_factors: string[];
+  is_suspicious: boolean;
+  is_new_device: boolean;
+  is_new_location: boolean;
+  login_success: boolean;
+  failure_reason: string | null;
   created_at: string;
   user_name?: string | null;
 }
@@ -69,6 +106,19 @@ const securityEventLabels: Record<string, { label: string; icon: React.ReactNode
 const USER_MANAGEMENT_EVENTS = ['user_created', 'user_updated', 'user_deactivated', 'user_activated', 'user_deleted'] as const;
 const SECURITY_EVENTS = ['login', 'logout', 'session_timeout', 'session_extended', 'mfa_enabled', 'mfa_disabled', 'mfa_verification_failed', 'backup_code_used'] as const;
 
+function getRiskBadgeVariant(riskScore: number): "default" | "secondary" | "destructive" | "outline" {
+  if (riskScore >= 75) return "destructive";
+  if (riskScore >= 50) return "secondary";
+  return "outline";
+}
+
+function getRiskColor(riskScore: number): string {
+  if (riskScore >= 75) return "text-red-600";
+  if (riskScore >= 50) return "text-amber-600";
+  if (riskScore >= 25) return "text-yellow-600";
+  return "text-green-600";
+}
+
 export default function SecurityAuditLog() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -78,11 +128,16 @@ export default function SecurityAuditLog() {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [securityEventFilter, setSecurityEventFilter] = useState<string>("all");
   const [securitySearchQuery, setSecuritySearchQuery] = useState("");
+  const [suspiciousSearchQuery, setSuspiciousSearchQuery] = useState("");
+  const [suspiciousFilter, setSuspiciousFilter] = useState<string>("all");
+  const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
+  const [loginHistoryLoading, setLoginHistoryLoading] = useState(true);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(true);
 
   const PAGE_SIZE = 50;
 
   // Helper to enrich logs with user names
-  const enrichLogsWithUserNames = async (logs: Array<{ id: string; user_id: string; event_type: string; metadata: unknown; created_at: string }>) => {
+  const enrichLogsWithUserNames = async (logs: Array<{ id: string; user_id: string; event_type: string; metadata: unknown; created_at: string; ip_address?: string | null }>) => {
     if (logs.length === 0) return [];
     const userIds = [...new Set(logs.map(log => log.user_id))];
     const { data: profiles } = await supabase
@@ -99,11 +154,98 @@ export default function SecurityAuditLog() {
     })) as ActivityLog[];
   };
 
+  // Fetch login history with suspicious activity
+  const fetchLoginHistory = useCallback(async () => {
+    setLoginHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("login_history")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Enrich with user names
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(d => d.user_id).filter(Boolean))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+        setLoginHistory(data.map(d => ({
+          ...d,
+          risk_factors: d.risk_factors as string[] || [],
+          user_name: profileMap.get(d.user_id) || null,
+        })));
+      } else {
+        setLoginHistory([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch login history:", error);
+    } finally {
+      setLoginHistoryLoading(false);
+    }
+  }, []);
+
+  // Initial fetch and realtime subscription for login_history
+  useEffect(() => {
+    fetchLoginHistory();
+
+    if (realtimeEnabled) {
+      const channel = supabase
+        .channel('login-history-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'login_history',
+          },
+          async (payload) => {
+            console.log('New login history entry:', payload);
+            
+            // Fetch user name for the new entry
+            const newEntry = payload.new as LoginHistoryRecord;
+            if (newEntry.user_id) {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name")
+                .eq("id", newEntry.user_id)
+                .single();
+              
+              newEntry.user_name = profile?.full_name || null;
+            }
+            newEntry.risk_factors = (newEntry.risk_factors as string[]) || [];
+
+            setLoginHistory(prev => [newEntry, ...prev.slice(0, 99)]);
+            
+            // Show toast for suspicious logins
+            if (newEntry.is_suspicious) {
+              toast({
+                title: t("securityAudit.suspiciousLoginAlert", "Suspicious Login Alert"),
+                description: `${newEntry.email} - Risk Score: ${newEntry.risk_score}`,
+                variant: "destructive",
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [fetchLoginHistory, realtimeEnabled, t]);
+
   // Cursor pagination for security events
   const securityEventsQueryFn = useCallback(async (cursor?: CursorPosition) => {
     let query = supabase
       .from("user_activity_logs")
-      .select("id, user_id, event_type, metadata, created_at", { count: 'estimated' })
+      .select("id, user_id, event_type, metadata, created_at, ip_address", { count: 'estimated' })
       .in("event_type", [...SECURITY_EVENTS]);
 
     const cursorCondition = buildCursorCondition(cursor, 'created_at', false);
@@ -244,6 +386,30 @@ export default function SecurityAuditLog() {
     return matchesSearch && matchesType;
   });
 
+  // Filter login history
+  const filteredLoginHistory = loginHistory.filter(log => {
+    const matchesSearch = suspiciousSearchQuery === "" || 
+      log.email?.toLowerCase().includes(suspiciousSearchQuery.toLowerCase()) ||
+      log.user_name?.toLowerCase().includes(suspiciousSearchQuery.toLowerCase()) ||
+      log.city?.toLowerCase().includes(suspiciousSearchQuery.toLowerCase()) ||
+      log.country_name?.toLowerCase().includes(suspiciousSearchQuery.toLowerCase());
+    
+    let matchesFilter = true;
+    if (suspiciousFilter === "suspicious") {
+      matchesFilter = log.is_suspicious;
+    } else if (suspiciousFilter === "new_device") {
+      matchesFilter = log.is_new_device;
+    } else if (suspiciousFilter === "new_location") {
+      matchesFilter = log.is_new_location;
+    } else if (suspiciousFilter === "failed") {
+      matchesFilter = !log.login_success;
+    } else if (suspiciousFilter === "vpn") {
+      matchesFilter = log.is_vpn || log.is_proxy;
+    }
+    
+    return matchesSearch && matchesFilter;
+  });
+
   const accessTypes = sensitiveDataLogs 
     ? [...new Set(sensitiveDataLogs.map(log => log.metadata?.access_type).filter(Boolean))]
     : [];
@@ -257,6 +423,15 @@ export default function SecurityAuditLog() {
 
   const textAlign = 'text-start';
 
+  // Calculate suspicious activity stats
+  const suspiciousStats = {
+    total: loginHistory.length,
+    suspicious: loginHistory.filter(l => l.is_suspicious).length,
+    failed: loginHistory.filter(l => !l.login_success).length,
+    newDevices: loginHistory.filter(l => l.is_new_device).length,
+    vpnProxy: loginHistory.filter(l => l.is_vpn || l.is_proxy).length,
+  };
+
   return (
     <div className="container max-w-7xl py-8 space-y-8" dir={direction}>
       {/* Header */}
@@ -268,11 +443,24 @@ export default function SecurityAuditLog() {
         <p className="text-muted-foreground">
           {t("securityAudit.description", "Monitor and review security events and user management activities")}
         </p>
+        {realtimeEnabled && (
+          <Badge variant="outline" className="mt-2 gap-1">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            {t("securityAudit.realtime", "Real-time updates enabled")}
+          </Badge>
+        )}
       </div>
 
-      <Tabs defaultValue="security-events" className="space-y-6" dir={direction}>
+      <Tabs defaultValue="suspicious-activity" className="space-y-6" dir={direction}>
         <div className="flex justify-start">
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-2xl">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-3xl">
+            <TabsTrigger value="suspicious-activity" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {t("securityAudit.suspiciousActivity", "Suspicious Activity")}
+              {suspiciousStats.suspicious > 0 && (
+                <Badge variant="destructive" className="ms-1">{suspiciousStats.suspicious}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="security-events" className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" />
               {t("securityAudit.securityEvents", "Security Events")}
@@ -287,6 +475,209 @@ export default function SecurityAuditLog() {
             </TabsTrigger>
           </TabsList>
         </div>
+
+        {/* Suspicious Activity Tab (NEW) */}
+        <TabsContent value="suspicious-activity">
+          <Card>
+            <CardHeader className="text-start">
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                {t("securityAudit.suspiciousActivityTitle", "Suspicious Login Activity")}
+              </CardTitle>
+              <CardDescription>
+                {t("securityAudit.suspiciousActivityDescription", "Monitor failed logins, new devices, unusual locations, and VPN/proxy usage")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute top-3 start-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("securityAudit.searchByEmailLocation", "Search by email or location...")}
+                    value={suspiciousSearchQuery}
+                    onChange={(e) => setSuspiciousSearchQuery(e.target.value)}
+                    className="ps-10"
+                  />
+                </div>
+                <Select value={suspiciousFilter} onValueChange={setSuspiciousFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder={t("securityAudit.filterByType", "Filter by type")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all", "All Logins")}</SelectItem>
+                    <SelectItem value="suspicious">{t("securityAudit.suspicious", "Suspicious Only")}</SelectItem>
+                    <SelectItem value="failed">{t("securityAudit.failedOnly", "Failed Only")}</SelectItem>
+                    <SelectItem value="new_device">{t("securityAudit.newDevice", "New Device")}</SelectItem>
+                    <SelectItem value="new_location">{t("securityAudit.newLocation", "New Location")}</SelectItem>
+                    <SelectItem value="vpn">{t("securityAudit.vpnProxy", "VPN/Proxy")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <Card>
+                  <CardContent className={`pt-4 ${textAlign}`}>
+                    <div className="text-2xl font-bold">{suspiciousStats.total}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.totalLogins", "Total Logins")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className={`pt-4 ${textAlign}`}>
+                    <div className="text-2xl font-bold text-red-600">{suspiciousStats.suspicious}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.suspicious", "Suspicious")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className={`pt-4 ${textAlign}`}>
+                    <div className="text-2xl font-bold text-amber-600">{suspiciousStats.failed}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.failed", "Failed")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className={`pt-4 ${textAlign}`}>
+                    <div className="text-2xl font-bold text-blue-600">{suspiciousStats.newDevices}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.newDevices", "New Devices")}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className={`pt-4 ${textAlign}`}>
+                    <div className="text-2xl font-bold text-purple-600">{suspiciousStats.vpnProxy}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("securityAudit.vpnProxy", "VPN/Proxy")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Login History Table */}
+              {loginHistoryLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredLoginHistory.length > 0 ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className={textAlign}>{t("securityAudit.timestamp", "Timestamp")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.user", "User")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.status", "Status")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.riskScore", "Risk")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.location", "Location")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.device", "Device")}</TableHead>
+                        <TableHead className={textAlign}>{t("securityAudit.flags", "Flags")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLoginHistory.map((log) => (
+                        <TableRow key={log.id} className={log.is_suspicious ? "bg-red-50 dark:bg-red-900/10" : ""}>
+                          <TableCell className={`font-mono text-sm whitespace-nowrap ${textAlign}`}>
+                            {format(new Date(log.created_at), "MMM dd, HH:mm:ss")}
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{log.user_name || log.email}</span>
+                              {log.user_name && (
+                                <span className="text-xs text-muted-foreground">{log.email}</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            {log.login_success ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600 gap-1">
+                                <LogIn className="h-3 w-3" />
+                                {t("securityAudit.success", "Success")}
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                {t("securityAudit.failed", "Failed")}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-bold ${getRiskColor(log.risk_score)}`}>
+                                {log.risk_score}
+                              </span>
+                              {log.risk_score >= 50 && (
+                                <AlertTriangle className={`h-4 w-4 ${log.risk_score >= 75 ? 'text-red-500' : 'text-amber-500'}`} />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            <div className="flex items-center gap-1 text-sm">
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              <span>{log.city || 'Unknown'}, {log.country_code || '??'}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {log.ip_address || 'No IP'}
+                            </div>
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            <div className="flex items-center gap-1 text-sm">
+                              <Smartphone className="h-3 w-3 text-muted-foreground" />
+                              <span>{log.browser || 'Unknown'}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {log.platform || 'Unknown OS'}
+                            </div>
+                          </TableCell>
+                          <TableCell className={textAlign}>
+                            <div className="flex flex-wrap gap-1">
+                              {log.is_suspicious && (
+                                <Badge variant="destructive" className="text-xs">
+                                  <AlertTriangle className="h-3 w-3 me-1" />
+                                  {t("securityAudit.suspicious", "Suspicious")}
+                                </Badge>
+                              )}
+                              {log.is_new_device && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Smartphone className="h-3 w-3 me-1" />
+                                  {t("securityAudit.newDevice", "New Device")}
+                                </Badge>
+                              )}
+                              {log.is_new_location && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Globe className="h-3 w-3 me-1" />
+                                  {t("securityAudit.newLocation", "New Location")}
+                                </Badge>
+                              )}
+                              {(log.is_vpn || log.is_proxy) && (
+                                <Badge variant="outline" className="text-xs text-purple-600">
+                                  <Wifi className="h-3 w-3 me-1" />
+                                  VPN/Proxy
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("securityAudit.noSuspiciousActivity", "No login activity found")}</p>
+                  <p className="text-sm mt-1">
+                    {t("securityAudit.noSuspiciousActivityDescription", "Login attempts with risk assessment will appear here")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Security Events Tab (Login, MFA, Backup Codes) */}
         <TabsContent value="security-events">
@@ -405,13 +796,16 @@ export default function SecurityAuditLog() {
                               </Badge>
                             </TableCell>
                             <TableCell className={`text-sm text-muted-foreground ${textAlign}`}>
+                              {log.ip_address && (
+                                <span className="me-2">IP: {log.ip_address}</span>
+                              )}
                               {log.metadata?.ip_address && (
                                 <span className="me-2">IP: {log.metadata.ip_address}</span>
                               )}
                               {log.session_duration_seconds && (
                                 <span>Duration: {Math.round(log.session_duration_seconds / 60)}min</span>
                               )}
-                              {!log.metadata?.ip_address && !log.session_duration_seconds && "—"}
+                              {!log.ip_address && !log.metadata?.ip_address && !log.session_duration_seconds && "—"}
                             </TableCell>
                           </TableRow>
                         );
@@ -745,7 +1139,7 @@ export default function SecurityAuditLog() {
                                 </Badge>
                               )}
                             </TableCell>
-                            <TableCell className={`text-sm text-muted-foreground max-w-[200px] truncate ${textAlign}`}>
+                            <TableCell className={`text-sm text-muted-foreground ${textAlign}`}>
                               {log.metadata?.reason || "—"}
                             </TableCell>
                           </TableRow>
@@ -767,10 +1161,10 @@ export default function SecurityAuditLog() {
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{t("securityAudit.noLogs", "No sensitive data access logs found")}</p>
+                  <Lock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("securityAudit.noAccessLogs", "No sensitive data access logs found")}</p>
                   <p className="text-sm mt-1">
-                    {t("securityAudit.noLogsDescription", "Access attempts will appear here when users view protected information")}
+                    {t("securityAudit.noAccessLogsDescription", "Access to sensitive data will be logged here")}
                   </p>
                 </div>
               )}
