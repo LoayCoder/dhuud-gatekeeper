@@ -3531,12 +3531,15 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          email_delivery_status: string | null
+          email_sent_at: string | null
           expires_at: string | null
           id: string
           is_active: boolean
           notification_type: Database["public"]["Enums"]["hsse_notification_type"]
           priority: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at: string | null
+          send_email_notification: boolean | null
           send_push_notification: boolean
           target_audience: Database["public"]["Enums"]["hsse_notification_target"]
           target_branch_ids: string[] | null
@@ -3554,12 +3557,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email_delivery_status?: string | null
+          email_sent_at?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at?: string | null
+          send_email_notification?: boolean | null
           send_push_notification?: boolean
           target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
           target_branch_ids?: string[] | null
@@ -3577,12 +3583,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email_delivery_status?: string | null
+          email_sent_at?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at?: string | null
+          send_email_notification?: boolean | null
           send_push_notification?: boolean
           target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
           target_branch_ids?: string[] | null
@@ -3603,6 +3612,120 @@ export type Database = {
           },
           {
             foreignKeyName: "hsse_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hsse_scheduled_notifications: {
+        Row: {
+          body_ar: string | null
+          body_en: string
+          category: string
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          next_scheduled_at: string | null
+          notification_type: string
+          priority: string
+          schedule_day_of_month: number | null
+          schedule_days_of_week: number[] | null
+          schedule_time: string
+          schedule_timezone: string | null
+          schedule_type: string
+          send_email_notification: boolean | null
+          send_push_notification: boolean | null
+          start_date: string
+          target_audience: string
+          target_branch_ids: string[] | null
+          target_role_ids: string[] | null
+          target_site_ids: string[] | null
+          tenant_id: string
+          title_ar: string | null
+          title_en: string
+          total_sent_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          body_ar?: string | null
+          body_en: string
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          notification_type?: string
+          priority?: string
+          schedule_day_of_month?: number | null
+          schedule_days_of_week?: number[] | null
+          schedule_time?: string
+          schedule_timezone?: string | null
+          schedule_type: string
+          send_email_notification?: boolean | null
+          send_push_notification?: boolean | null
+          start_date?: string
+          target_audience?: string
+          target_branch_ids?: string[] | null
+          target_role_ids?: string[] | null
+          target_site_ids?: string[] | null
+          tenant_id: string
+          title_ar?: string | null
+          title_en: string
+          total_sent_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          body_ar?: string | null
+          body_en?: string
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          notification_type?: string
+          priority?: string
+          schedule_day_of_month?: number | null
+          schedule_days_of_week?: number[] | null
+          schedule_time?: string
+          schedule_timezone?: string | null
+          schedule_type?: string
+          send_email_notification?: boolean | null
+          send_push_notification?: boolean | null
+          start_date?: string
+          target_audience?: string
+          target_branch_ids?: string[] | null
+          target_role_ids?: string[] | null
+          target_site_ids?: string[] | null
+          tenant_id?: string
+          title_ar?: string | null
+          title_en?: string
+          total_sent_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_scheduled_notifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_scheduled_notifications_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -10220,6 +10343,17 @@ export type Database = {
         }
         Returns: string
       }
+      calculate_next_schedule_time: {
+        Args: {
+          p_last_sent_at?: string
+          p_schedule_day_of_month: number
+          p_schedule_days_of_week: number[]
+          p_schedule_time: string
+          p_schedule_timezone: string
+          p_schedule_type: string
+        }
+        Returns: string
+      }
       calculate_profile_billing: {
         Args: { p_billing_month: string; p_tenant_id: string }
         Returns: Json
@@ -10345,6 +10479,39 @@ export type Database = {
         Returns: Json
       }
       get_findings_distribution: { Args: never; Returns: Json }
+      get_hsse_acknowledgment_rates: {
+        Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
+        Returns: {
+          acknowledgment_rate: number
+          avg_response_hours: number
+          branch_id: string
+          branch_name: string
+          total_actual_acks: number
+          total_expected_acks: number
+          total_notifications: number
+        }[]
+      }
+      get_hsse_category_distribution: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          category: string
+          count: number
+          percentage: number
+        }[]
+      }
+      get_hsse_compliance_metrics: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          avg_response_time_hours: number
+          critical_pending: number
+          high_pending: number
+          overall_ack_rate: number
+          overdue_count: number
+          total_informational_notifications: number
+          total_mandatory_notifications: number
+          weekly_trend: Json
+        }[]
+      }
       get_hsse_contact_for_location: {
         Args: { p_branch_id: string }
         Returns: {
@@ -10365,6 +10532,16 @@ export type Database = {
             Args: { p_end_date?: string; p_start_date?: string }
             Returns: Json
           }
+      get_hsse_response_time_distribution: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          avg_hours: number
+          count: number
+          max_hours: number
+          min_hours: number
+          priority: string
+        }[]
+      }
       get_incident_department_manager: {
         Args: { p_incident_id: string }
         Returns: string
