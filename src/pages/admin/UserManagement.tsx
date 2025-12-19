@@ -41,6 +41,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserFormDialog, UserDetailPopover, UserImportDialog } from "@/components/users";
+import { EmailSyncBanner } from "@/components/users/EmailSyncBanner";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
 import { getUserTypeLabel, getContractorType } from "@/lib/license-utils";
@@ -604,6 +605,8 @@ export default function UserManagement() {
       </div>
 
       <LicensedUserQuotaCard quota={quota} breakdown={breakdown} isLoading={quotaLoading} showUpgradeCta={true} />
+
+      <EmailSyncBanner onSyncComplete={refetchUsers} />
 
       <Card>
         <CardHeader className="pb-4">
