@@ -1101,7 +1101,10 @@
     "managerKPIDashboard": "Manager KPI Dashboard",
     "kpiTargets": "KPI Targets",
     "eventDashboard": "Event Dashboard",
-    "contractors": "Contractors"
+    "contractors": "Contractors",
+    "hsseNotifications": "HSSE Notifications",
+    "notificationManagement": "Manage Notifications",
+    "notificationAnalytics": "Notification Analytics"
   },
   "actions": {
     "sessionActions": "Session Actions",
