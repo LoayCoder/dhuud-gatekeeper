@@ -6,3 +6,4 @@ export * from "./use-offline-permit-creation";
 export * from "./use-ptw-permit-pdf";
 export * from "./use-ptw-realtime";
 export * from "./use-ptw-dashboard-stats";
+export * from "./use-ptw-analytics";
