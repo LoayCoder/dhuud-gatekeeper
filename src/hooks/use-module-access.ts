@@ -103,12 +103,14 @@ export function useModuleAccess() {
 
   const isTrialActive = (): boolean => {
     if (!subscription?.trialEndDate) return false;
+    if (subscription?.subscriptionStatus !== 'trialing') return false;
     return new Date(subscription.trialEndDate) > new Date();
   };
 
   const isTrialExpired = (): boolean => {
     if (!subscription?.trialEndDate) return false;
-    return new Date(subscription.trialEndDate) <= new Date();
+    return subscription?.subscriptionStatus === 'trialing' && 
+           new Date(subscription.trialEndDate) <= new Date();
   };
 
   const getTrialDaysRemaining = (): number => {
