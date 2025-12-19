@@ -3985,6 +3985,11 @@
       "invalidWarrantyDate": "Invalid warranty date format",
       "invalidInspectionInterval": "Inspection interval must be positive"
     },
+    "exportToExcel": "Export to Excel",
+    "exportSuccess": "Assets exported successfully",
+    "noAssetsToExport": "No assets to export",
+    "branch": "Branch",
+    "site": "Site",
     "transfer": {
       "title": "Transfer Asset",
       "requestTransfer": "Request Transfer",

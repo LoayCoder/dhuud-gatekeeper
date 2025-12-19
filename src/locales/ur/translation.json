@@ -3689,6 +3689,11 @@
     "commissioningDate": "کمیشننگ کی تاریخ",
     "warrantyExpiry": "وارنٹی کی میعاد",
     "nextInspection": "اگلا معائنہ",
+    "exportToExcel": "Excel میں برآمد کریں",
+    "exportSuccess": "اثاثے کامیابی سے برآمد ہو گئے",
+    "noAssetsToExport": "برآمد کرنے کے لیے کوئی اثاثے نہیں",
+    "branch": "شاخ",
+    "site": "سائٹ",
     "transfer": {
       "title": "اثاثہ منتقل کریں",
       "requestTransfer": "منتقلی کی درخواست",

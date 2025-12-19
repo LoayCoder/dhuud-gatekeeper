@@ -3815,6 +3815,11 @@
       "invalidWarrantyDate": "تنسيق تاريخ الضمان غير صالح",
       "invalidInspectionInterval": "فترة الفحص يجب أن تكون إيجابية"
     },
+    "exportToExcel": "تصدير إلى Excel",
+    "exportSuccess": "تم تصدير الأصول بنجاح",
+    "noAssetsToExport": "لا توجد أصول للتصدير",
+    "branch": "الفرع",
+    "site": "الموقع",
     "transfer": {
       "title": "تحويل الأصل",
       "requestTransfer": "طلب تحويل",
