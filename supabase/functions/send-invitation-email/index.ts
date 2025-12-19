@@ -157,7 +157,8 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric',
     });
 
-    const invitationUrl = inviteUrl || "https://8feca61a-47e3-4736-9ecf-c70ee7c6acc3.lovableproject.com/invite";
+    const baseUrl = inviteUrl || Deno.env.get("APP_URL") || "https://app.dhuud.com";
+    const invitationUrl = `${baseUrl}/invite`;
 
     const emailHtml = `
       <!DOCTYPE html>

@@ -244,6 +244,7 @@ export default function UserManagement() {
               code: inviteCode,
               tenantName: tenant?.name || 'DHUUD Platform',
               expiresAt: expiresAt.toISOString(),
+              inviteUrl: window.location.origin,
             },
           });
           
