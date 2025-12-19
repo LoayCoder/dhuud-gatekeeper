@@ -3748,6 +3748,7 @@
     "manufacturer": "الشركة المصنعة",
     "model": "الموديل",
     "assetCode": "كود الأصل",
+    "assetNotFoundManual": "لم يتم العثور على أصل بهذا الكود",
     "building": "المبنى",
     "floorZone": "الطابق/المنطقة",
     "locationDetails": "تفاصيل الموقع",

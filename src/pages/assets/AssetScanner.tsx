@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, QrCode, Barcode } from 'lucide-react';
+import { ArrowRight, QrCode, Barcode, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,18 +8,71 @@ import { AssetQRScanner } from '@/components/assets/AssetQRScanner';
 import { AssetBarcodeScanner } from '@/components/assets/AssetBarcodeScanner';
 import { AssetScanResult } from '@/components/assets/AssetScanResult';
 import { ModuleGate } from '@/components/ModuleGate';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAssetByCode } from '@/hooks/use-asset-by-code';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+/**
+ * Auto-format asset code input to AST-YYYY-NNNNN pattern
+ */
+function formatAssetCode(input: string): string {
+  // Remove all non-alphanumeric characters and uppercase
+  const clean = input.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  
+  // Remove AST prefix if present
+  const withoutPrefix = clean.replace(/^AST/, '');
+  
+  // If we have digits, format them
+  if (withoutPrefix.length > 0) {
+    const digits = withoutPrefix.replace(/[^0-9]/g, '');
+    if (digits.length <= 4) {
+      // Just year part
+      return `AST-${digits}`;
+    } else {
+      // Year + number
+      const year = digits.slice(0, 4);
+      const number = digits.slice(4, 9); // Max 5 digits for number
+      return `AST-${year}-${number}`;
+    }
+  }
+  
+  return input;
+}
 
 function AssetScannerContent() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [manualCode, setManualCode] = useState('');
+  const [searchCode, setSearchCode] = useState<string | null>(null);
+  const [manualNotFound, setManualNotFound] = useState(false);
   const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'barcode' | 'qrcode'>('barcode');
 
+  // Hook for manual code lookup
+  const { data: assetResult, isLoading: isLookingUp } = useAssetByCode(searchCode);
+
+  // Handle asset lookup result
+  useEffect(() => {
+    if (searchCode && assetResult) {
+      if (assetResult.found && assetResult.asset) {
+        setScannedAssetId(assetResult.asset.id);
+        setManualNotFound(false);
+        setSearchCode(null);
+      } else {
+        setManualNotFound(true);
+        setSearchCode(null);
+      }
+    }
+  }, [assetResult, searchCode]);
+
+  const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatAssetCode(e.target.value);
+    setManualCode(formatted);
+    setManualNotFound(false);
+  };
+
   const handleManualSearch = () => {
-    if (manualCode.trim()) {
-      navigate(`/assets?search=${encodeURIComponent(manualCode.trim())}`);
+    if (manualCode.trim().length >= 5) {
+      setSearchCode(manualCode.trim());
     }
   };
 
@@ -90,18 +142,35 @@ function AssetScannerContent() {
             <CardTitle className="text-base">{t('assets.manualEntry')}</CardTitle>
             <CardDescription>{t('assets.manualEntryDescription')}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Input
-                placeholder={t('assets.enterAssetCode')}
+                placeholder="AST-2025-00001"
                 value={manualCode}
-                onChange={(e) => setManualCode(e.target.value)}
+                onChange={handleManualInputChange}
                 onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
+                disabled={isLookingUp}
+                className="font-mono"
               />
-              <Button onClick={handleManualSearch} disabled={!manualCode.trim()}>
-                <ArrowRight className="h-4 w-4" />
+              <Button 
+                onClick={handleManualSearch} 
+                disabled={manualCode.trim().length < 5 || isLookingUp}
+              >
+                {isLookingUp ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                )}
               </Button>
             </div>
+            {manualNotFound && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t('assets.assetNotFoundManual')}
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       </div>

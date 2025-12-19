@@ -3918,6 +3918,7 @@
     "manufacturer": "Manufacturer",
     "model": "Model",
     "assetCode": "Asset Code",
+    "assetNotFoundManual": "No asset found with this code",
     "building": "Building",
     "floorZone": "Floor/Zone",
     "locationDetails": "Location Details",
