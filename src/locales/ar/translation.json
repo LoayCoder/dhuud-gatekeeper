@@ -1260,7 +1260,10 @@
     "inspectionSchedules": "جداول التفتيش",
     "myInspectionActions": "إجراءات التفتيش الخاصة بي",
     "inspectionTemplates": "قوالب التفتيش",
-    "contractors": "المقاولين"
+    "contractors": "المقاولين",
+    "hsseNotifications": "إشعارات الصحة والسلامة",
+    "notificationManagement": "إدارة الإشعارات",
+    "notificationAnalytics": "تحليلات الإشعارات"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",
