@@ -47,7 +47,7 @@ serve(async (req) => {
 
     // Check if caller is admin
     const { data: isAdmin, error: adminCheckError } = await supabaseAdmin.rpc('is_admin', { 
-      _user_id: caller.id 
+      p_user_id: caller.id 
     });
 
     if (adminCheckError || !isAdmin) {
