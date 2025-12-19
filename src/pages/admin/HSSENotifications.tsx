@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle, Mail, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +58,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
     notification_type: 'informational',
     target_audience: 'all_users',
     send_push_notification: true,
+    send_email_notification: false,
     publish_immediately: true,
   });
 
@@ -74,6 +75,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
       notification_type: 'informational',
       target_audience: 'all_users',
       send_push_notification: true,
+      send_email_notification: false,
       publish_immediately: true,
     });
   };
@@ -245,7 +247,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
           </div>
 
           {/* Options Row */}
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <Switch
                 id="push"
@@ -259,6 +261,18 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
 
             <div className="flex items-center gap-2">
               <Switch
+                id="email"
+                checked={formData.send_email_notification}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, send_email_notification: checked }))}
+              />
+              <Label htmlFor="email" className="text-sm flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                {t('hsseNotifications.sendEmail')}
+              </Label>
+            </div>
+
+            <div className="flex items-center gap-2 col-span-2">
+              <Switch
                 id="publish"
                 checked={formData.publish_immediately}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, publish_immediately: checked }))}
@@ -268,6 +282,13 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
               </Label>
             </div>
           </div>
+
+          {/* Email hint for critical/mandatory */}
+          {formData.send_email_notification && (formData.priority === 'critical' || formData.notification_type === 'mandatory') && (
+            <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+              {t('hsseNotifications.emailCriticalHint')}
+            </p>
+          )}
         </div>
 
         <DialogFooter>
@@ -473,10 +494,16 @@ function HSSENotificationsContent() {
           <h1 className="text-2xl font-bold">{t('hsseNotifications.pageTitle')}</h1>
           <p className="text-muted-foreground">{t('hsseNotifications.pageDescription')}</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t('hsseNotifications.createNotification')}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => window.location.href = '/admin/hsse-notification-analytics'}>
+            <BarChart3 className="h-4 w-4 me-2" />
+            {t('hsseNotifications.viewAnalytics')}
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t('hsseNotifications.createNotification')}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
