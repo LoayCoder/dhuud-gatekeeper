@@ -22,6 +22,13 @@ export interface UserWithRoles {
   department_name: string | null;
   assigned_section_id: string | null;
   section_name: string | null;
+  contractor_company_name: string | null;
+  contract_start: string | null;
+  contract_end: string | null;
+  has_full_branch_access: boolean | null;
+  membership_id: string | null;
+  membership_start: string | null;
+  membership_end: string | null;
   role_assignments: Array<{
     role_id: string;
     role_code: string;
@@ -111,6 +118,13 @@ export function useUsersPaginated(options: UseUsersPaginatedOptions = {}) {
         department_name: row.department_name,
         assigned_section_id: row.assigned_section_id,
         section_name: row.section_name,
+        contractor_company_name: row.contractor_company_name,
+        contract_start: row.contract_start,
+        contract_end: row.contract_end,
+        has_full_branch_access: row.has_full_branch_access,
+        membership_id: row.membership_id,
+        membership_start: row.membership_start,
+        membership_end: row.membership_end,
         role_assignments: parseRoleAssignments(row.role_assignments),
       }));
 

@@ -806,11 +806,17 @@ export default function UserManagement() {
           is_active: editingUser.is_active,
           employee_id: editingUser.employee_id,
           job_title: editingUser.job_title,
-          has_full_branch_access: (editingUser as any).has_full_branch_access,
+          has_full_branch_access: editingUser.has_full_branch_access,
           assigned_branch_id: editingUser.assigned_branch_id,
           assigned_division_id: editingUser.assigned_division_id,
           assigned_department_id: editingUser.assigned_department_id,
           assigned_section_id: editingUser.assigned_section_id,
+          contractor_company_name: editingUser.contractor_company_name,
+          contract_start: editingUser.contract_start,
+          contract_end: editingUser.contract_end,
+          membership_id: editingUser.membership_id,
+          membership_start: editingUser.membership_start,
+          membership_end: editingUser.membership_end,
         } : null}
         onSave={handleSaveUser}
       />
