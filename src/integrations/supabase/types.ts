@@ -3416,6 +3416,200 @@ export type Database = {
           },
         ]
       }
+      hsse_notification_acknowledgments: {
+        Row: {
+          acknowledged_at: string
+          created_at: string
+          device_info: Json | null
+          id: string
+          ip_address: string | null
+          notification_id: string
+          tenant_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          notification_id: string
+          tenant_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          notification_id?: string
+          tenant_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_notification_acknowledgments_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_acknowledgments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_acknowledgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hsse_notification_reads: {
+        Row: {
+          created_at: string
+          id: string
+          notification_id: string
+          read_at: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notification_id: string
+          read_at?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notification_id?: string
+          read_at?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_reads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hsse_notifications: {
+        Row: {
+          body_ar: string | null
+          body_en: string
+          category: Database["public"]["Enums"]["hsse_notification_category"]
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          notification_type: Database["public"]["Enums"]["hsse_notification_type"]
+          priority: Database["public"]["Enums"]["hsse_notification_priority"]
+          published_at: string | null
+          send_push_notification: boolean
+          target_audience: Database["public"]["Enums"]["hsse_notification_target"]
+          target_branch_ids: string[] | null
+          target_role_ids: string[] | null
+          target_site_ids: string[] | null
+          tenant_id: string
+          title_ar: string | null
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          body_ar?: string | null
+          body_en: string
+          category?: Database["public"]["Enums"]["hsse_notification_category"]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
+          priority?: Database["public"]["Enums"]["hsse_notification_priority"]
+          published_at?: string | null
+          send_push_notification?: boolean
+          target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
+          target_branch_ids?: string[] | null
+          target_role_ids?: string[] | null
+          target_site_ids?: string[] | null
+          tenant_id: string
+          title_ar?: string | null
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          body_ar?: string | null
+          body_en?: string
+          category?: Database["public"]["Enums"]["hsse_notification_category"]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
+          priority?: Database["public"]["Enums"]["hsse_notification_priority"]
+          published_at?: string | null
+          send_push_notification?: boolean
+          target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
+          target_branch_ids?: string[] | null
+          target_role_ids?: string[] | null
+          target_site_ids?: string[] | null
+          tenant_id?: string
+          title_ar?: string | null
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_notifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_asset_links: {
         Row: {
           asset_id: string
@@ -10257,8 +10451,25 @@ export type Database = {
         Args: { p_month?: string; p_tenant_id: string }
         Returns: Json
       }
+      get_notification_acknowledgment_stats: {
+        Args: { p_notification_id: string }
+        Returns: Json
+      }
       get_overdue_inspections_count: { Args: never; Returns: number }
       get_overdue_schedules_count: { Args: never; Returns: number }
+      get_pending_mandatory_notifications: {
+        Args: never
+        Returns: {
+          body_ar: string
+          body_en: string
+          category: Database["public"]["Enums"]["hsse_notification_category"]
+          id: string
+          priority: Database["public"]["Enums"]["hsse_notification_priority"]
+          published_at: string
+          title_ar: string
+          title_en: string
+        }[]
+      }
       get_people_metrics: {
         Args: {
           p_branch_id?: string
@@ -10497,6 +10708,20 @@ export type Database = {
         | "missing"
         | "pending_inspection"
       contractor_type: "long_term" | "short_term"
+      hsse_notification_category:
+        | "weather_risk"
+        | "regulation"
+        | "safety_alert"
+        | "policy_update"
+        | "training"
+        | "general"
+      hsse_notification_priority: "critical" | "high" | "medium" | "low"
+      hsse_notification_target:
+        | "all_users"
+        | "specific_roles"
+        | "specific_branches"
+        | "specific_sites"
+      hsse_notification_type: "mandatory" | "informational"
       incident_status:
         | "submitted"
         | "pending_review"
@@ -10760,6 +10985,22 @@ export const Constants = {
         "pending_inspection",
       ],
       contractor_type: ["long_term", "short_term"],
+      hsse_notification_category: [
+        "weather_risk",
+        "regulation",
+        "safety_alert",
+        "policy_update",
+        "training",
+        "general",
+      ],
+      hsse_notification_priority: ["critical", "high", "medium", "low"],
+      hsse_notification_target: [
+        "all_users",
+        "specific_roles",
+        "specific_branches",
+        "specific_sites",
+      ],
+      hsse_notification_type: ["mandatory", "informational"],
       incident_status: [
         "submitted",
         "pending_review",

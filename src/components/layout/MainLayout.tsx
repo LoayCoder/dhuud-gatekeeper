@@ -8,6 +8,9 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
 import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
 import { InstallPromptDialog } from "@/components/pwa/InstallPromptDialog";
+import { HSSENotificationCenter } from "@/components/notifications/HSSENotificationCenter";
+import { MandatoryNotificationDialog } from "@/components/notifications/MandatoryNotificationDialog";
+import { HSSEAlertBanner } from "@/components/dashboard/HSSEAlertBanner";
 
 export default function MainLayout() {
   const {
@@ -26,6 +29,7 @@ export default function MainLayout() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <OfflineStatusBadge />
+              <HSSENotificationCenter />
               <LanguageSelector />
             </div>
           </header>
@@ -33,6 +37,7 @@ export default function MainLayout() {
           {/* Main Page Content */}
           <main className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-hidden">
             <TrialBanner />
+            <HSSEAlertBanner />
             <Outlet />
           </main>
         </SidebarInset>
@@ -43,5 +48,8 @@ export default function MainLayout() {
       
       {/* PWA Install Prompt - Auto-shows after login */}
       <InstallPromptDialog triggerOnLogin={true} />
+      
+      {/* Mandatory HSSE Notifications - Blocks UI until acknowledged */}
+      <MandatoryNotificationDialog />
     </SidebarProvider>;
 }
