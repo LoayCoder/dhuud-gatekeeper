@@ -6,9 +6,6 @@ import {
   FileWarning, 
   ClipboardCheck, 
   Plus, 
-  Clock, 
-  CheckCircle2, 
-  AlertTriangle,
   Flame,
   Construction,
   Radiation,
@@ -17,9 +14,16 @@ import {
   Shield
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { usePTWProjects } from "@/hooks/ptw";
 import { usePTWPermits } from "@/hooks/ptw";
+import { usePTWDashboardStats } from "@/hooks/ptw/use-ptw-dashboard-stats";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PermitStatusChart,
+  PermitTypeChart,
+  PermitTrendChart,
+  ExpiringPermitsWidget,
+  PTWStatsRow,
+} from "@/components/ptw/dashboard";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -33,17 +37,17 @@ const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }
 
 export default function PTWDashboard() {
   const { t } = useTranslation();
-  const { data: projects, isLoading: projectsLoading } = usePTWProjects();
   const { data: permits, isLoading: permitsLoading } = usePTWPermits();
-
-  const stats = {
-    activeProjects: projects?.filter(p => p.status === "active").length || 0,
-    pendingMobilization: projects?.filter(p => p.status === "pending_clearance").length || 0,
-    activePermits: permits?.filter(p => ["active", "issued"].includes(p.status)).length || 0,
-    pendingPermits: permits?.filter(p => ["requested", "endorsed"].includes(p.status)).length || 0,
-  };
+  const { stats, isLoading: statsLoading } = usePTWDashboardStats();
 
   const recentPermits = permits?.slice(0, 5) || [];
+  const isLoading = permitsLoading || statsLoading;
+
+  // Extract chart data from stats
+  const statusData = stats?.statusBreakdown || [];
+  const typeData = stats?.typeDistribution || [];
+  const trendData = stats?.weeklyTrend || [];
+  const expiringPermits = stats?.expiringPermits || [];
 
   return (
     <div className="space-y-6">
@@ -73,71 +77,30 @@ export default function PTWDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("ptw.stats.activeProjects", "Active Projects")}
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            {projectsLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.activeProjects}</div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Enhanced Stats Row */}
+      <PTWStatsRow
+        activePermits={stats?.activePermits || 0}
+        pendingPermits={stats?.pendingPermits || 0}
+        expiringToday={stats?.expiringToday || 0}
+        suspendedPermits={stats?.suspendedPermits || 0}
+        extendedPermits={stats?.extendedPermits || 0}
+        closedPermits={stats?.closedPermits || 0}
+        isLoading={isLoading}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("ptw.stats.pendingMobilization", "Pending Mobilization")}
-            </CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            {projectsLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.pendingMobilization}</div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Expiring Permits Alert */}
+      <ExpiringPermitsWidget
+        expiringToday={stats?.expiringToday || 0}
+        expiringThisWeek={stats?.expiringThisWeek || 0}
+        permits={expiringPermits}
+        isLoading={isLoading}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("ptw.stats.activePermits", "Active Permits")}
-            </CardTitle>
-            <FileWarning className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            {permitsLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.activePermits}</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("ptw.stats.pendingApproval", "Pending Approval")}
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            {permitsLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.pendingPermits}</div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Charts Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <PermitStatusChart data={statusData} isLoading={isLoading} />
+        <PermitTypeChart data={typeData} isLoading={isLoading} />
+        <PermitTrendChart data={trendData} isLoading={isLoading} />
       </div>
 
       {/* Quick Actions & Recent Permits */}
@@ -212,9 +175,9 @@ export default function PTWDashboard() {
                       </div>
                       <Badge 
                         variant={
-                          permit.status === "active" ? "default" :
+                          permit.status === "active" || permit.status === "activated" ? "default" :
                           permit.status === "closed" ? "secondary" :
-                          permit.status === "cancelled" ? "destructive" :
+                          permit.status === "cancelled" || permit.status === "suspended" ? "destructive" :
                           "outline"
                         }
                       >

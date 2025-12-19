@@ -197,7 +197,13 @@ export function useUpdatePermitStatus() {
 
       const updateData: Record<string, unknown> = { status };
 
-      if (status === "activated") {
+      if (status === "endorsed") {
+        updateData.endorsed_at = new Date().toISOString();
+        updateData.endorser_id = user.id;
+      } else if (status === "issued") {
+        updateData.issued_at = new Date().toISOString();
+        updateData.issuer_id = user.id;
+      } else if (status === "activated") {
         updateData.activated_at = new Date().toISOString();
         updateData.actual_start_time = new Date().toISOString();
       } else if (status === "suspended") {
@@ -207,6 +213,8 @@ export function useUpdatePermitStatus() {
         updateData.closed_by = user.id;
         updateData.closure_notes = notes;
         updateData.actual_end_time = new Date().toISOString();
+      } else if (status === "rejected") {
+        updateData.closure_notes = notes;
       }
 
       const { data, error } = await supabase
@@ -217,11 +225,29 @@ export function useUpdatePermitStatus() {
         .single();
 
       if (error) throw error;
-      return data;
+      return { ...data, rejectionReason: notes };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["ptw-permits"] });
       queryClient.invalidateQueries({ queryKey: ["ptw-permit", data.id] });
+      
+      // Send email notification for key status changes
+      const notifiableStatuses = ["issued", "rejected", "activated", "suspended", "closed"];
+      if (notifiableStatuses.includes(data.status)) {
+        try {
+          await supabase.functions.invoke("send-ptw-email", {
+            body: {
+              permit_id: data.id,
+              notification_type: data.status,
+              rejection_reason: data.status === "rejected" ? data.rejectionReason : undefined,
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send PTW email notification:", emailError);
+          // Don't show error to user - email is a fallback notification
+        }
+      }
+      
       toast.success(`Permit ${data.status}`);
     },
     onError: (error: Error) => {

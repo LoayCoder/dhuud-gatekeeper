@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.test-email]
 verify_jwt = false
+
+[functions.send-ptw-email]
+verify_jwt = false
