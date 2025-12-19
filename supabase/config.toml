@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.send-ptw-email]
 verify_jwt = false
+
+[functions.notify-password-reset]
+verify_jwt = false
