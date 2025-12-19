@@ -2,6 +2,7 @@ import { User } from "@supabase/supabase-js";
 
 export interface ProfileData {
   id: string;
+  email: string | null;
   full_name: string | null;
   avatar_url: string | null;
   phone_number: string | null;
