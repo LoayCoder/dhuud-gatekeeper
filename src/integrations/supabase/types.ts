@@ -10282,15 +10282,22 @@ export type Database = {
           assigned_division_id: string
           assigned_section_id: string
           branch_name: string
+          contract_end: string
+          contract_start: string
+          contractor_company_name: string
           department_name: string
           division_name: string
           email: string
           employee_id: string
           full_name: string
+          has_full_branch_access: boolean
           has_login: boolean
           id: string
           is_active: boolean
           job_title: string
+          membership_end: string
+          membership_id: string
+          membership_start: string
           phone_number: string
           role_assignments: Json
           section_name: string
