@@ -6,10 +6,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { useTrustedDevice } from '@/hooks/use-trusted-device';
+import { getDeviceFingerprint } from '@/hooks/use-device-fingerprint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield } from 'lucide-react';
+import { Shield, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
@@ -114,6 +115,47 @@ export default function Login() {
     }
   };
 
+  // Detect suspicious login and log to security system
+  const detectSuspiciousLogin = async (userId: string | undefined, success: boolean, failureReason?: string) => {
+    try {
+      const deviceInfo = getDeviceFingerprint();
+      
+      const response = await supabase.functions.invoke('detect-suspicious-login', {
+        body: {
+          user_id: userId,
+          email,
+          success,
+          device_fingerprint: deviceInfo.fingerprint,
+          user_agent: deviceInfo.userAgent,
+          platform: deviceInfo.platform,
+          browser: deviceInfo.browser,
+          failure_reason: failureReason,
+        },
+      });
+
+      if (response.data?.is_suspicious && success) {
+        // Show warning toast for suspicious successful login
+        toast({
+          title: t('security.suspiciousLoginDetected', 'Suspicious Login Detected'),
+          description: t('security.suspiciousLoginDescription', 'This login was flagged as unusual. If this wasn\'t you, please change your password immediately.'),
+          variant: 'destructive',
+          duration: 10000,
+        });
+      } else if (response.data?.is_new_device && success) {
+        // Informational toast for new device
+        toast({
+          title: t('security.newDeviceDetected', 'New Device Detected'),
+          description: t('security.newDeviceDescription', 'You\'re logging in from a new device.'),
+        });
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Failed to detect suspicious login:', error);
+      return null;
+    }
+  };
+
   const handleMFASuccess = async () => {
     setShowMFADialog(false);
     
@@ -174,6 +216,10 @@ export default function Login() {
             await refreshTenantData();
             startSessionTracking();
             await logUserActivity({ eventType: 'login' });
+            
+            // Detect suspicious login (non-blocking)
+            detectSuspiciousLogin(user.id, true);
+            
             clearInvitationData();
             toast({
               title: t('auth.welcomeBack'),
@@ -202,6 +248,11 @@ export default function Login() {
       await refreshTenantData();
       startSessionTracking();
       await logUserActivity({ eventType: 'login' });
+      
+      // Detect suspicious login (non-blocking)
+      const { data: { user: loggedInUser } } = await supabase.auth.getUser();
+      detectSuspiciousLogin(loggedInUser?.id, true);
+      
       clearInvitationData();
 
       toast({
@@ -212,6 +263,13 @@ export default function Login() {
       // Check for breached password after successful login (non-blocking)
       checkPasswordBreach(password);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('auth.failedToLogin');
+      
+      // Log failed login attempt (non-blocking)
+      if (!(err instanceof z.ZodError)) {
+        detectSuspiciousLogin(undefined, false, errorMessage);
+      }
+      
       if (err instanceof z.ZodError) {
         toast({
           title: t('auth.validationError'),
@@ -221,7 +279,7 @@ export default function Login() {
       } else {
         toast({
           title: t('auth.error'),
-          description: err instanceof Error ? err.message : t('auth.failedToLogin'),
+          description: errorMessage,
           variant: 'destructive',
         });
       }

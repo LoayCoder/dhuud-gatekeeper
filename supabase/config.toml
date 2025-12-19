@@ -119,3 +119,6 @@ verify_jwt = false
 
 [functions.notify-password-reset]
 verify_jwt = false
+
+[functions.detect-suspicious-login]
+verify_jwt = false
