@@ -147,6 +147,7 @@ export default function Signup() {
         const profileData = {
           id: authData.user.id,
           tenant_id: inviteData.tenant_id,
+          email: invitationEmail,
           has_login: true,
           is_active: true,
           full_name: metadata.full_name || null,
