@@ -32,7 +32,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users, LogIn, UserX, AlertCircle } from 'lucide-react';
+import { Loader2, Users, LogIn, UserX, AlertCircle, AlertTriangle } from 'lucide-react';
 import { UserType, isContractorType, userTypeHasLogin, getUserTypeLabel } from '@/lib/license-utils';
 import { cn } from '@/lib/utils';
 import { useLicensedUserQuota } from '@/hooks/use-licensed-user-quota';
@@ -86,7 +86,7 @@ interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user?: any;
-  onSave: (data: UserFormValues, selectedRoleIds: string[]) => Promise<void>;
+  onSave: (data: UserFormValues, selectedRoleIds: string[], emailChanged: boolean, originalEmail: string | null) => Promise<void>;
 }
 
 export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDialogProps) {
@@ -98,6 +98,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [showTeamAssignment, setShowTeamAssignment] = useState(false);
   const [currentManagerId, setCurrentManagerId] = useState<string | null>(null);
+  const [originalEmail, setOriginalEmail] = useState<string | null>(null);
   const direction = i18n.dir();
   const [hierarchy, setHierarchy] = useState<{
     branches: any[];
@@ -191,6 +192,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
           assigned_section_id: user.assigned_section_id || null,
         });
 
+        // Store original email for change detection
+        setOriginalEmail(user.email || null);
+
         // Load user's roles
         const userRoles = await fetchUserRoles(user.id);
         setSelectedRoleIds(userRoles.map(r => r.role_id));
@@ -204,6 +208,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
         setCurrentManagerId(teamAssignment?.manager_id || null);
       } else {
         form.reset();
+        setOriginalEmail(null);
         // Set default normal_user role for new users
         const normalUserRole = roles.find(r => r.code === 'normal_user');
         setSelectedRoleIds(normalUserRole ? [normalUserRole.id] : []);
@@ -259,6 +264,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
     }
   }, [selectedDepartmentId, hierarchy.sections, form]);
 
+  // Track if email has changed (for editing existing users)
+  const currentEmail = form.watch('email');
+  const emailHasChanged = user && originalEmail && currentEmail !== originalEmail;
+
   const onSubmit = async (data: UserFormValues) => {
     // Check quota for new users with login
     if (!user && data.has_login && !checkCanAddUser()) {
@@ -267,8 +276,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
 
     setIsLoading(true);
     try {
-      // Pass selectedRoleIds to parent for role assignment
-      await onSave(data, selectedRoleIds);
+      // Pass selectedRoleIds and email change info to parent for proper handling
+      const emailChanged = !!(user && originalEmail && data.email !== originalEmail);
+      await onSave(data, selectedRoleIds, emailChanged, originalEmail);
       onOpenChange(false);
     } finally {
       setIsLoading(false);
@@ -320,10 +330,27 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('auth.email')}</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      {t('auth.email')}
+                      {emailHasChanged && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                          <AlertTriangle className="h-3 w-3" />
+                          {t('userManagement.emailChangeWarning', 'Login credentials will change')}
+                        </span>
+                      )}
+                    </FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input 
+                        type="email" 
+                        {...field} 
+                        className={cn(emailHasChanged && "border-amber-500 focus:ring-amber-500")}
+                      />
                     </FormControl>
+                    {emailHasChanged && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        {t('userManagement.emailChangeNote', 'Changing email will update login credentials. Old email ({{oldEmail}}) will no longer work.', { oldEmail: originalEmail })}
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
