@@ -118,7 +118,8 @@ export function useModuleAccess() {
     const endDate = new Date(subscription.trialEndDate);
     const now = new Date();
     const diffTime = endDate.getTime() - now.getTime();
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
   };
 
   const isSubscriptionActive = (): boolean => {
