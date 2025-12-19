@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, Search, Download, X, Upload } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,6 +85,9 @@ export default function UserManagement() {
   
   // Import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  
+  // Email sync state
+  const [syncingUserId, setSyncingUserId] = useState<string | null>(null);
 
   // Filters
   const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
@@ -381,6 +384,44 @@ export default function UserManagement() {
       refetchQuota();
     } else {
       toast({ title: t('common.error'), variant: 'destructive' });
+    }
+  };
+
+  // Sync user login email with profile email
+  const handleSyncUserEmail = async (userId: string, userName: string) => {
+    setSyncingUserId(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-user-email', {
+        body: { user_id: userId }
+      });
+
+      if (error) {
+        console.error('Sync error:', error);
+        throw new Error(error.message || t('userManagement.syncFailed', 'Failed to sync email'));
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast({
+        title: t('userManagement.emailSynced', 'Email Synced'),
+        description: t('userManagement.emailSyncedDesc', 'Login credentials updated from {{oldEmail}} to {{newEmail}}', {
+          oldEmail: data.old_email,
+          newEmail: data.new_email
+        }),
+      });
+
+      refetchUsers();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('userManagement.syncFailed', 'Failed to sync email');
+      toast({
+        title: t('common.error'),
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncingUserId(null);
     }
   };
 
@@ -797,6 +838,22 @@ export default function UserManagement() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
+                          {user.has_login && user.email && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleSyncUserEmail(user.id, user.full_name || '')}
+                              disabled={syncingUserId === user.id}
+                              aria-label={t('userManagement.syncEmail', 'Sync Login Email')}
+                              title={t('userManagement.syncEmailTooltip', 'Sync login email with profile email')}
+                            >
+                              {syncingUserId === user.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
                           <ManagerTeamViewer 
                             managerId={user.id} 
                             managerName={user.full_name || undefined} 
