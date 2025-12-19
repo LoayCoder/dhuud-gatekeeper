@@ -57,6 +57,7 @@ export interface CreateNotificationData {
   target_site_ids?: string[];
   expires_at?: string;
   send_push_notification?: boolean;
+  send_email_notification?: boolean;
   publish_immediately?: boolean;
 }
 
@@ -108,6 +109,7 @@ export function useHSSENotificationsAdmin() {
           target_site_ids: data.target_site_ids || [],
           expires_at: data.expires_at || null,
           send_push_notification: data.send_push_notification ?? true,
+          send_email_notification: data.send_email_notification ?? false,
           published_at: data.publish_immediately ? new Date().toISOString() : null,
         })
         .select()

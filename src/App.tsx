@@ -137,6 +137,7 @@ const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-
 const ManhoursManagement = lazy(() => import(/* webpackChunkName: "admin-manhours" */ "./pages/admin/ManhoursManagement"));
 const KPITargetsManagement = lazy(() => import(/* webpackChunkName: "admin-kpi-targets" */ "./pages/admin/KPITargetsManagement"));
 const PlatformSettings = lazy(() => import(/* webpackChunkName: "admin-platform-settings" */ "./pages/admin/PlatformSettings"));
+const HSSENotificationAnalytics = lazy(() => import(/* webpackChunkName: "admin-hsse-notification-analytics" */ "./pages/admin/HSSENotificationAnalytics"));
 
 const queryClient = new QueryClient();
 
@@ -455,6 +456,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <KPITargetsManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/hsse-notification-analytics"
+                        element={
+                          <AdminRoute>
+                            <HSSENotificationAnalytics />
                           </AdminRoute>
                         }
                       />
