@@ -604,23 +604,15 @@ export function AppSidebar() {
         },
         {
           title: t('navigation.hsseNotifications', 'HSSE Notifications'),
+          url: "/admin/hsse-notifications",
           icon: ShieldAlert,
           menuCode: 'admin_hsse_notifications',
-          isActive: location.pathname.startsWith("/admin/hsse-notification"),
-          subItems: [
-            {
-              title: t('navigation.notificationManagement', 'Manage Notifications'),
-              url: "/admin/hsse-notifications",
-              icon: ShieldAlert,
-              menuCode: 'admin_hsse_notifications_manage',
-            },
-            {
-              title: t('navigation.notificationAnalytics', 'Notification Analytics'),
-              url: "/admin/hsse-notification-analytics",
-              icon: BarChart3,
-              menuCode: 'admin_hsse_notification_analytics',
-            },
-          ],
+        },
+        {
+          title: t('navigation.notificationAnalytics', 'Notification Analytics'),
+          url: "/admin/hsse-notification-analytics",
+          icon: BarChart3,
+          menuCode: 'admin_hsse_notification_analytics',
         },
       ],
     },
