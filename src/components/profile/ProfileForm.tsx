@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, User, Mail, Phone, UserCheck, Upload, Briefcase } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, User, Mail, Phone, UserCheck, Upload, Briefcase, AlertTriangle, LogOut } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { AvatarCropDialog } from "@/components/profile/AvatarCropDialog";
 import { ProfileData, AuthUser, ProfileFormData } from "./types";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 interface ProfileFormProps {
   user: AuthUser;
   profile: ProfileData | null;
@@ -22,15 +24,21 @@ export function ProfileForm({
   profile,
   onUpdate
 }: ProfileFormProps) {
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const {
-    uploadAvatar,
-    uploading
-  } = useAvatarUpload();
+  const { uploadAvatar, uploading } = useAvatarUpload();
+
+  // Check for email mismatch between session and profile
+  const sessionEmail = user?.email || "";
+  const profileEmail = profile?.email || "";
+  const hasEmailMismatch = profileEmail && sessionEmail && profileEmail.toLowerCase() !== sessionEmail.toLowerCase();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   // Form states
   const [fullName, setFullName] = useState(profile?.full_name || "");
@@ -159,6 +167,30 @@ export function ProfileForm({
     }
   };
   return <div className="space-y-6">
+      {/* Email Mismatch Warning Banner */}
+      {hasEmailMismatch && (
+        <Alert variant="destructive" className="border-warning bg-warning/10">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <span>
+              {t('profile.emailMismatchWarning', { 
+                newEmail: profileEmail,
+                defaultValue: `Your login email has been changed to ${profileEmail}. Please log out and log back in with your new email.`
+              })}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleLogout}
+              className="shrink-0"
+            >
+              <LogOut className="me-2 h-4 w-4" />
+              {t('common.logout', { defaultValue: 'Log Out' })}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Avatar Upload */}
       <div className="gap-6 pb-6 flex-row flex items-center justify-center">
         <Avatar className="h-24 w-24 flex-shrink-0">
@@ -193,7 +225,12 @@ export function ProfileForm({
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
             <Mail className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="email" value={user?.email || ""} disabled className="[padding-inline-start:2.25rem] px-[35px] bg-muted/50" />
+            <Input 
+              id="email" 
+              value={profileEmail || sessionEmail} 
+              disabled 
+              className={`[padding-inline-start:2.25rem] px-[35px] bg-muted/50 ${hasEmailMismatch ? 'border-warning' : ''}`} 
+            />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
             {t('profile.emailManagedByOrg')}

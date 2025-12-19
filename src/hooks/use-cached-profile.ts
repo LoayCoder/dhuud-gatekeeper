@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface CachedProfile {
   id: string;
+  email: string | null;
   full_name: string | null;
   phone_number: string | null;
   avatar_url: string | null;
@@ -39,7 +40,7 @@ export function useCachedProfile() {
       const { data, error } = await supabase
         .from('profiles')
         .select(`
-          id, full_name, phone_number, avatar_url, preferred_language,
+          id, email, full_name, phone_number, avatar_url, preferred_language,
           emergency_contact_name, emergency_contact_phone,
           assigned_branch_id, assigned_site_id,
           assigned_division_id, assigned_department_id, assigned_section_id,
