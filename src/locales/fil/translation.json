@@ -3674,6 +3674,11 @@
     "commissioningDate": "Petsa ng Commissioning",
     "warrantyExpiry": "Expiry ng Warranty",
     "nextInspection": "Susunod na Inspeksyon",
+    "exportToExcel": "I-export sa Excel",
+    "exportSuccess": "Matagumpay na na-export ang mga asset",
+    "noAssetsToExport": "Walang mga asset na i-export",
+    "branch": "Sangay",
+    "site": "Site",
     "transfer": {
       "title": "I-transfer ang Asset",
       "requestTransfer": "Humiling ng Transfer",

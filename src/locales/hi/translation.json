@@ -3674,6 +3674,11 @@
     "commissioningDate": "कमीशनिंग तिथि",
     "warrantyExpiry": "वारंटी समाप्ति",
     "nextInspection": "अगला निरीक्षण",
+    "exportToExcel": "Excel में निर्यात करें",
+    "exportSuccess": "संपत्तियां सफलतापूर्वक निर्यात हुईं",
+    "noAssetsToExport": "निर्यात करने के लिए कोई संपत्ति नहीं",
+    "branch": "शाखा",
+    "site": "साइट",
     "transfer": {
       "title": "संपत्ति स्थानांतरित करें",
       "requestTransfer": "स्थानांतरण का अनुरोध",

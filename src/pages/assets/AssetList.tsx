@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload } from 'lucide-react';
+import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +13,12 @@ import { ModuleGate } from '@/components/ModuleGate';
 import { AssetImportDialog } from '@/components/assets';
 import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
+import { useAuth } from '@/contexts/AuthContext';
 import { format, isPast, isFuture, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-
+import { exportToExcel, type ExportColumn } from '@/lib/export-utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-500/10 text-green-700 dark:text-green-400',
   inactive: 'bg-muted text-muted-foreground',
@@ -111,11 +114,13 @@ function AssetListContent() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const direction = i18n.dir();
+  const { profile } = useAuth();
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<AssetFilters>({});
   const [searchInput, setSearchInput] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { hasModuleAccess } = useUserRoles();
   const canManage = hasModuleAccess('asset_management');
@@ -148,6 +153,100 @@ function AssetListContent() {
     setFilters(prev => ({ ...prev, [key]: value || undefined }));
   };
 
+  const handleExportToExcel = async () => {
+    if (!profile?.tenant_id) {
+      toast.error(t('common.error'));
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      // Fetch all assets with branch and site info
+      const allAssets: Array<{
+        asset_code: string;
+        name: string;
+        branch_name: string;
+        site_name: string;
+      }> = [];
+      
+      const pageSize = 1000;
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        let query = supabase
+          .from('hsse_assets')
+          .select(`
+            asset_code,
+            name,
+            branch:branches(name),
+            site:sites(name)
+          `)
+          .eq('tenant_id', profile.tenant_id)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        // Apply filters if present
+        if (filters.search) {
+          query = query.or(`name.ilike.%${filters.search}%,asset_code.ilike.%${filters.search}%`);
+        }
+        if (filters.categoryId) {
+          query = query.eq('category_id', filters.categoryId);
+        }
+        if (filters.status) {
+          query = query.eq('status', filters.status);
+        }
+
+        const { data: assets, error } = await query;
+
+        if (error) throw error;
+
+        if (assets && assets.length > 0) {
+          // Flatten the data for export
+          const flattenedAssets = assets.map((asset: {
+            asset_code: string | null;
+            name: string | null;
+            branch: { name: string } | null;
+            site: { name: string } | null;
+          }) => ({
+            asset_code: asset.asset_code || '',
+            name: asset.name || '',
+            branch_name: asset.branch?.name || '',
+            site_name: asset.site?.name || '',
+          }));
+          allAssets.push(...flattenedAssets);
+        }
+
+        hasMore = assets?.length === pageSize;
+        from += pageSize;
+      }
+
+      if (allAssets.length === 0) {
+        toast.error(t('assets.noAssetsToExport'));
+        return;
+      }
+
+      // Define export columns
+      const exportColumns: ExportColumn[] = [
+        { key: 'asset_code', label: t('assets.assetCode') },
+        { key: 'name', label: t('assets.name') },
+        { key: 'branch_name', label: t('assets.branch') },
+        { key: 'site_name', label: t('assets.site') },
+      ];
+
+      // Export to Excel
+      exportToExcel(allAssets, `assets-${format(new Date(), 'yyyy-MM-dd')}.xlsx`, exportColumns);
+      toast.success(t('assets.exportSuccess'));
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(t('common.error'));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -158,6 +257,15 @@ function AssetListContent() {
         </div>
         {canManage && (
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleExportToExcel} 
+              disabled={isExporting}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? t('common.loading') : t('assets.exportToExcel')}
+            </Button>
             <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2">
               <Upload className="h-4 w-4" />
               {t('assets.import.title')}
