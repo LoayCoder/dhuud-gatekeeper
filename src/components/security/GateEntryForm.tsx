@@ -15,6 +15,14 @@ import { useSites } from '@/hooks/use-sites';
 import { Car, User, Phone, Building2, MessageSquare, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
+const VISIT_DURATION_OPTIONS = [
+  { value: 1, labelKey: 'security.gate.duration1h', label: '1 hour' },
+  { value: 2, labelKey: 'security.gate.duration2h', label: '2 hours' },
+  { value: 4, labelKey: 'security.gate.duration4h', label: '4 hours' },
+  { value: 8, labelKey: 'security.gate.durationFullDay', label: 'Full day' },
+  { value: 24, labelKey: 'security.gate.duration24h', label: '24 hours' },
+];
+
 const formSchema = z.object({
   person_name: z.string().min(2, 'Name is required'),
   entry_type: z.enum(['visitor', 'contractor', 'delivery', 'vip', 'employee']),
@@ -25,6 +33,7 @@ const formSchema = z.object({
   destination_name: z.string().optional(),
   site_id: z.string().optional(),
   passenger_count: z.number().min(1).default(1),
+  visit_duration_hours: z.number().min(1).max(24).default(1),
   notes: z.string().optional(),
   send_whatsapp: z.boolean().default(false),
 });
@@ -58,6 +67,7 @@ export function GateEntryForm() {
       destination_name: '',
       site_id: '',
       passenger_count: 1,
+      visit_duration_hours: 1,
       notes: '',
       send_whatsapp: false,
     },
@@ -82,6 +92,7 @@ export function GateEntryForm() {
         destination_name: values.destination_name || null,
         site_id: values.site_id || null,
         passenger_count: values.passenger_count,
+        visit_duration_hours: values.visit_duration_hours,
         notes: values.notes || null,
       });
 
@@ -91,6 +102,9 @@ export function GateEntryForm() {
           visitorName: values.person_name,
           phoneNumber: values.mobile_number,
           siteName: sites?.find(s => s.id === values.site_id)?.name,
+          destinationName: values.destination_name,
+          visitDurationHours: values.visit_duration_hours,
+          notes: values.notes,
         });
       }
 
@@ -269,6 +283,35 @@ export function GateEntryForm() {
                     <FormControl>
                       <Input placeholder={t('security.gate.enterNationality', 'Enter nationality')} {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Visit Duration */}
+              <FormField
+                control={form.control}
+                name="visit_duration_hours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('security.gate.visitDuration', 'Visit Duration')}</FormLabel>
+                    <Select 
+                      onValueChange={(val) => field.onChange(parseInt(val))} 
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {VISIT_DURATION_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value.toString()}>
+                            {t(option.labelKey, option.label)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
