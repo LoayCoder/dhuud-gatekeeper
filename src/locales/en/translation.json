@@ -1195,7 +1195,8 @@
     "contractors": "Contractors",
     "hsseNotifications": "HSSE Notifications",
     "notificationManagement": "Manage Notifications",
-    "notificationAnalytics": "Notification Analytics"
+    "notificationAnalytics": "Notification Analytics",
+    "notificationDeliveryLog": "Notification Delivery Log"
   },
   "actions": {
     "sessionActions": "Session Actions",
