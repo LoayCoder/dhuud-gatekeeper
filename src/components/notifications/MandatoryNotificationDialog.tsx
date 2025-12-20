@@ -103,10 +103,10 @@ export function MandatoryNotificationDialog() {
           {/* Priority and Category badges */}
           <div className="flex flex-wrap gap-2">
             <Badge className={cn(PRIORITY_COLORS[currentNotification.priority])}>
-              {t(`hsseNotifications.priority.${currentNotification.priority}`)}
+              {t(`hsseNotifications.priorities.${currentNotification.priority}`)}
             </Badge>
             <Badge variant="outline">
-              {t(`hsseNotifications.category.${currentNotification.category}`)}
+              {t(`hsseNotifications.categories.${currentNotification.category}`)}
             </Badge>
           </div>
 
