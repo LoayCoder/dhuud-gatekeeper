@@ -6081,6 +6081,102 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          deleted_at: string | null
+          delivered_at: string | null
+          error_code: string | null
+          error_message: string | null
+          failed_at: string | null
+          from_address: string | null
+          id: string
+          is_final: boolean | null
+          metadata: Json | null
+          provider: string
+          provider_message_id: string | null
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_name: string | null
+          tenant_id: string
+          to_address: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          from_address?: string | null
+          id?: string
+          is_final?: boolean | null
+          metadata?: Json | null
+          provider: string
+          provider_message_id?: string | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+          tenant_id: string
+          to_address: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          from_address?: string | null
+          id?: string
+          is_final?: boolean | null
+          metadata?: Json | null
+          provider?: string
+          provider_message_id?: string | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+          tenant_id?: string
+          to_address?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patrol_checkpoint_logs: {
         Row: {
           checkpoint_id: string
@@ -10003,6 +10099,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_request_logs: {
+        Row: {
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          processing_result: string | null
+          provider: string
+          request_body: Json | null
+          request_headers: Json | null
+          response_status: number | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          processing_result?: string | null
+          provider: string
+          request_body?: Json | null
+          request_headers?: Json | null
+          response_status?: number | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          processing_result?: string | null
+          provider?: string
+          request_body?: Json | null
+          request_headers?: Json | null
+          response_status?: number | null
+        }
+        Relationships: []
       }
       witness_attachments: {
         Row: {
