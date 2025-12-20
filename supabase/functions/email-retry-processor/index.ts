@@ -39,7 +39,7 @@ serve(async (req: Request) => {
           await supabase.from('email_delivery_logs').update({ status: 'sent', provider_message_id: result.messageId, delivered_at: new Date().toISOString(), next_retry_at: null }).eq('id', emailLog.id);
           successCount++;
         } else {
-          throw new Error(result.error || 'AWS SES send failed');
+          throw new Error(result.error || 'Email send failed');
         }
       } catch (sendError: unknown) {
         const newRetryCount = emailLog.retry_count + 1;

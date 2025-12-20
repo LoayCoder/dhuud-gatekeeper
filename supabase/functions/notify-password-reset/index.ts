@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { sendEmail } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,7 +50,6 @@ function maskEmail(email: string): string {
 }
 
 function getClientIp(req: Request): string {
-  // Check various headers for client IP
   const forwardedFor = req.headers.get('x-forwarded-for');
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim();
@@ -64,25 +64,14 @@ function getClientIp(req: Request): string {
   return 'Unknown';
 }
 
-async function sendAdminAlert(
-  adminEmail: string,
+function buildAdminAlertHtml(
   maskedEmail: string,
   ipAddress: string,
   userAgent: string,
   platform: string,
   timestamp: string,
   language: string
-): Promise<boolean> {
-  const AWS_SES_REGION = Deno.env.get('AWS_SES_REGION') || 'us-east-1';
-  const AWS_ACCESS_KEY_ID = Deno.env.get('AWS_ACCESS_KEY_ID');
-  const AWS_SECRET_ACCESS_KEY = Deno.env.get('AWS_SECRET_ACCESS_KEY');
-  const AWS_SES_FROM_EMAIL = Deno.env.get('AWS_SES_FROM_EMAIL');
-
-  if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !AWS_SES_FROM_EMAIL) {
-    console.error('AWS SES credentials not configured');
-    return false;
-  }
-
+): { subject: string; html: string } {
   const isRtl = language === 'ar';
   const dir = isRtl ? 'rtl' : 'ltr';
   const fontFamily = isRtl 
@@ -93,7 +82,7 @@ async function sendAdminAlert(
     ? '🔐 تنبيه أمني: طلب إعادة تعيين كلمة المرور'
     : '🔐 Security Alert: Password Reset Requested';
 
-  const htmlBody = `
+  const html = `
 <!DOCTYPE html>
 <html dir="${dir}" lang="${language}">
 <head>
@@ -193,102 +182,7 @@ async function sendAdminAlert(
 </html>
   `;
 
-  // AWS SES API call
-  const endpoint = `https://email.${AWS_SES_REGION}.amazonaws.com/`;
-  const params = new URLSearchParams({
-    'Action': 'SendEmail',
-    'Source': `Dhuud Security <${AWS_SES_FROM_EMAIL}>`,
-    'Destination.ToAddresses.member.1': adminEmail,
-    'Message.Subject.Data': subject,
-    'Message.Subject.Charset': 'UTF-8',
-    'Message.Body.Html.Data': htmlBody,
-    'Message.Body.Html.Charset': 'UTF-8',
-    'Version': '2010-12-01',
-  });
-
-  // Sign request with AWS Signature V4
-  const date = new Date();
-  const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const dateStamp = amzDate.slice(0, 8);
-  
-  const canonicalRequest = [
-    'POST',
-    '/',
-    '',
-    `content-type:application/x-www-form-urlencoded`,
-    `host:email.${AWS_SES_REGION}.amazonaws.com`,
-    `x-amz-date:${amzDate}`,
-    '',
-    'content-type;host;x-amz-date',
-    await sha256(params.toString()),
-  ].join('\n');
-
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    amzDate,
-    `${dateStamp}/${AWS_SES_REGION}/ses/aws4_request`,
-    await sha256(canonicalRequest),
-  ].join('\n');
-
-  const signingKey = await getSignatureKey(AWS_SECRET_ACCESS_KEY, dateStamp, AWS_SES_REGION, 'ses');
-  const signature = await hmacHex(signingKey, stringToSign);
-
-  const authHeader = `AWS4-HMAC-SHA256 Credential=${AWS_ACCESS_KEY_ID}/${dateStamp}/${AWS_SES_REGION}/ses/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=${signature}`;
-
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Amz-Date': amzDate,
-        'Authorization': authHeader,
-      },
-      body: params.toString(),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AWS SES error:', errorText);
-      return false;
-    }
-
-    console.log('Admin security alert sent successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to send admin alert:', error);
-    return false;
-  }
-}
-
-// AWS Signature V4 helper functions
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function hmac(key: Uint8Array | ArrayBuffer, message: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  const keyData = key instanceof Uint8Array ? new Uint8Array(key) : new Uint8Array(key);
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  return await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message));
-}
-
-async function hmacHex(key: Uint8Array | ArrayBuffer, message: string): Promise<string> {
-  const result = await hmac(key, message);
-  return Array.from(new Uint8Array(result)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function getSignatureKey(key: string, dateStamp: string, region: string, service: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  const keyBytes = encoder.encode('AWS4' + key);
-  const kDate = await hmac(keyBytes, dateStamp);
-  const kRegion = await hmac(new Uint8Array(kDate), region);
-  const kService = await hmac(new Uint8Array(kRegion), service);
-  return await hmac(new Uint8Array(kService), 'aws4_request');
+  return { subject, html };
 }
 
 serve(async (req) => {
@@ -370,8 +264,7 @@ serve(async (req) => {
     // Send admin alert email
     const adminEmail = Deno.env.get('ADMIN_SECURITY_EMAIL');
     if (adminEmail) {
-      await sendAdminAlert(
-        adminEmail,
+      const { subject, html } = buildAdminAlertHtml(
         maskedEmail,
         clientIp,
         userAgent || 'Unknown',
@@ -379,6 +272,19 @@ serve(async (req) => {
         timestamp,
         language || 'en'
       );
+
+      const result = await sendEmail({
+        to: adminEmail,
+        subject,
+        html,
+        module: 'security_alert',
+      });
+
+      if (result.success) {
+        console.log('Admin security alert sent successfully');
+      } else {
+        console.error('Failed to send admin alert:', result.error);
+      }
     } else {
       console.warn('ADMIN_SECURITY_EMAIL not configured, skipping admin alert');
     }
