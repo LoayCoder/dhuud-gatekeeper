@@ -203,13 +203,13 @@ export default function HSSENotificationAnalytics() {
   })) || [];
 
   const responseTimeData = responseTime?.map(item => ({
-    priority: t(`hsseNotifications.priority.${item.priority}`),
+    priority: t(`hsseNotifications.priorities.${item.priority}`),
     avgHours: item.avg_hours || 0,
     fill: PRIORITY_COLORS[item.priority as keyof typeof PRIORITY_COLORS] || '#6b7280',
   })) || [];
 
   const categoryData = categoryDist?.map((item, index) => ({
-    name: t(`hsseNotifications.category.${item.category}`),
+    name: t(`hsseNotifications.categories.${item.category}`),
     value: item.count,
     fill: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
   })) || [];
@@ -268,7 +268,7 @@ export default function HSSENotificationAnalytics() {
           <MetricCard
             title={t('hsseNotifications.analytics.overdue')}
             value={metrics?.overdue_count ?? 0}
-            subtitle={`${metrics?.critical_pending ?? 0} ${t('hsseNotifications.priority.critical')}`}
+            subtitle={`${metrics?.critical_pending ?? 0} ${t('hsseNotifications.priorities.critical')}`}
             icon={AlertTriangle}
             variant={(metrics?.overdue_count ?? 0) > 0 ? 'danger' : 'default'}
             isLoading={metricsLoading}

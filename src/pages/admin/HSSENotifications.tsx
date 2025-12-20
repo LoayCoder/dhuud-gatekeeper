@@ -157,7 +157,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
                       <SelectItem key={cat.value} value={cat.value}>
                         <div className="flex items-center gap-2">
                           <Icon className={cn("h-4 w-4", cat.color)} />
-                          {t(`hsseNotifications.category.${cat.value}`)}
+                          {t(`hsseNotifications.categories.${cat.value}`)}
                         </div>
                       </SelectItem>
                     );
@@ -179,7 +179,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
                   {PRIORITY_OPTIONS.map(pri => (
                     <SelectItem key={pri.value} value={pri.value}>
                       <Badge className={cn(pri.color, "text-xs")}>
-                        {t(`hsseNotifications.priority.${pri.value}`)}
+                        {t(`hsseNotifications.priorities.${pri.value}`)}
                       </Badge>
                     </SelectItem>
                   ))}
@@ -237,7 +237,7 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
                     <SelectItem key={target.value} value={target.value}>
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4" />
-                        {t(`hsseNotifications.target.${target.value}`)}
+                        {t(`hsseNotifications.targets.${target.value}`)}
                       </div>
                     </SelectItem>
                   );
@@ -380,14 +380,14 @@ function NotificationsTable() {
                     {i18n.language === 'ar' && notification.title_ar ? notification.title_ar : notification.title_en}
                   </span>
                   <Badge className={cn(priorityConfig?.color, "text-xs w-fit")}>
-                    {t(`hsseNotifications.priority.${notification.priority}`)}
+                    {t(`hsseNotifications.priorities.${notification.priority}`)}
                   </Badge>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <CategoryIcon className={cn("h-4 w-4", categoryColor)} />
-                  <span className="text-sm">{t(`hsseNotifications.category.${notification.category}`)}</span>
+                  <span className="text-sm">{t(`hsseNotifications.categories.${notification.category}`)}</span>
                 </div>
               </TableCell>
               <TableCell>
