@@ -1354,7 +1354,8 @@
     "contractors": "المقاولين",
     "hsseNotifications": "إشعارات الصحة والسلامة",
     "notificationManagement": "إدارة الإشعارات",
-    "notificationAnalytics": "تحليلات الإشعارات"
+    "notificationAnalytics": "تحليلات الإشعارات",
+    "notificationDeliveryLog": "سجل تسليم الإشعارات"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

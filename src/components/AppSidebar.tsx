@@ -614,6 +614,12 @@ export function AppSidebar() {
           icon: BarChart3,
           menuCode: 'admin_hsse_notification_analytics',
         },
+        {
+          title: t('navigation.notificationDeliveryLog', 'Notification Delivery Log'),
+          url: "/admin/notification-logs",
+          icon: Radio,
+          menuCode: 'admin_notification_logs',
+        },
       ],
     },
     {
