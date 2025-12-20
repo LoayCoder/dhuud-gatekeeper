@@ -194,6 +194,15 @@ const App = () => (
                 <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
+                    {/* Legal Pages - Public */}
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/cookies" element={<CookiePolicy />} />
+                    <Route path="/acceptable-use" element={<AcceptableUsePolicy />} />
+                    <Route path="/refund-policy" element={<RefundPolicy />} />
+                    <Route path="/dpa" element={<DataProcessingAgreement />} />
+                    <Route path="/sla" element={<ServiceLevelAgreement />} />
+
                     {/* Public Routes */}
                     <Route path="/invite" element={<InviteGatekeeper />} />
                     <Route path="/login" element={<Login />} />
