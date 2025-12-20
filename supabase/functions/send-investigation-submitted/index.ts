@@ -1,22 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SESClient, SendEmailCommand } from "https://esm.sh/@aws-sdk/client-ses@3.529.1";
-import { getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { getAppUrl, emailButton, sendEmail } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const sesClient = new SESClient({
-  region: Deno.env.get("AWS_SES_REGION") || "us-east-1",
-  credentials: {
-    accessKeyId: Deno.env.get("AWS_ACCESS_KEY_ID") || "",
-    secretAccessKey: Deno.env.get("AWS_SECRET_ACCESS_KEY") || "",
-  },
-});
-
-const fromEmail = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -167,28 +156,19 @@ serve(async (req) => {
       `;
 
       try {
-        const command = new SendEmailCommand({
-          Source: fromEmail,
-          Destination: {
-            ToAddresses: [email],
-          },
-          Message: {
-            Subject: {
-              Data: `[Action Required] Investigation Submitted - ${incident.reference_id}`,
-              Charset: 'UTF-8',
-            },
-            Body: {
-              Html: {
-                Data: htmlBody,
-                Charset: 'UTF-8',
-              },
-            },
-          },
+        const result = await sendEmail({
+          to: email,
+          subject: `[Action Required] Investigation Submitted - ${incident.reference_id}`,
+          html: htmlBody,
+          module: 'investigation',
         });
 
-        await sesClient.send(command);
-        sentCount++;
-        console.log(`Email sent to ${email}`);
+        if (result.success) {
+          sentCount++;
+          console.log(`Email sent to ${email}`);
+        } else {
+          throw new Error(result.error || 'Failed to send email');
+        }
       } catch (emailError) {
         console.error(`Failed to send email to ${email}:`, emailError);
         errors.push(`${email}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`);

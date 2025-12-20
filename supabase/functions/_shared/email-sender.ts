@@ -1,7 +1,8 @@
-// Shared AWS SES Email Sender with Module-Based Sender Names
+// Shared Resend Email Sender with Module-Based Sender Names
 // This utility provides centralized email sending for all edge functions
 // Supports localized emails with RTL for Arabic/Urdu
 
+import { Resend } from "https://esm.sh/resend@4.0.0";
 import { 
   isRTL, 
   type SupportedLanguage, 
@@ -10,8 +11,9 @@ import {
   replaceVariables 
 } from "./email-translations.ts";
 
-// AWS SES Configuration
-const AWS_ACCESS_KEY_ID = Deno.env.get("AWS_ACCESS_KEY_ID");
+// Resend Configuration
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
 
 /**
  * Get the application base URL from environment
@@ -25,7 +27,6 @@ export function getAppUrl(): string {
  */
 export function emailButton(text: string, url: string, color = "#1e40af", isRtl = false): string {
   const arrow = isRtl ? '←' : '→';
-  const textAlign = isRtl ? 'right' : 'left';
   return `
     <div style="text-align: center; margin: 24px 0;">
       <a href="${url}" style="display: inline-block; background: ${color}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; direction: ${isRtl ? 'rtl' : 'ltr'};">
@@ -120,9 +121,6 @@ export function getPriorityLabel(priority: string, lang: string): string {
   const key = priorityMap[priority?.toLowerCase()] || 'medium';
   return common[key] as string;
 }
-const AWS_SECRET_ACCESS_KEY = Deno.env.get("AWS_SECRET_ACCESS_KEY");
-const AWS_SES_REGION = Deno.env.get("AWS_SES_REGION") || "us-east-1";
-const AWS_SES_FROM_EMAIL = Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
 
 // Module-based sender display names
 export const EMAIL_SENDERS = {
@@ -182,54 +180,6 @@ export interface EmailResult {
   error?: string;
 }
 
-// AWS Signature V4 Helper Functions
-async function sha256(message: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hmac(key: Uint8Array, message: string): Promise<Uint8Array> {
-  const keyBuffer = new ArrayBuffer(key.length);
-  const keyView = new Uint8Array(keyBuffer);
-  keyView.set(key);
-  
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyBuffer,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    cryptoKey,
-    new TextEncoder().encode(message)
-  );
-  return new Uint8Array(signature);
-}
-
-async function hmacHex(key: Uint8Array, message: string): Promise<string> {
-  const sig = await hmac(key, message);
-  return Array.from(sig)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function getSignatureKey(
-  key: string,
-  dateStamp: string,
-  regionName: string,
-  serviceName: string
-): Promise<Uint8Array> {
-  const kDate = await hmac(new TextEncoder().encode("AWS4" + key), dateStamp);
-  const kRegion = await hmac(kDate, regionName);
-  const kService = await hmac(kRegion, serviceName);
-  return await hmac(kService, "aws4_request");
-}
-
 /**
  * Get the sender display name for a given module
  */
@@ -243,14 +193,14 @@ export function getSenderName(module: EmailModule, tenantName?: string): string 
 }
 
 /**
- * Send email via AWS SES with module-based sender name
+ * Send email via Resend with module-based sender name
  */
 export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
   const { to, subject, html, module, tenantName } = options;
   
-  if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-    console.error("AWS credentials not configured");
-    return { success: false, error: "AWS credentials not configured" };
+  if (!RESEND_API_KEY) {
+    console.error("RESEND_API_KEY not configured");
+    return { success: false, error: "RESEND_API_KEY not configured" };
   }
 
   const recipients = Array.isArray(to) ? to : [to];
@@ -261,87 +211,24 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
   }
 
   const senderName = getSenderName(module, tenantName);
-  const fromAddress = `${senderName} <${AWS_SES_FROM_EMAIL}>`;
-
-  const host = `email.${AWS_SES_REGION}.amazonaws.com`;
-  const endpoint = `https://${host}/`;
-  const date = new Date();
-  const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-
-  const params = new URLSearchParams({
-    Action: "SendEmail",
-    Version: "2010-12-01",
-    Source: fromAddress,
-    "Message.Subject.Data": subject,
-    "Message.Subject.Charset": "UTF-8",
-    "Message.Body.Html.Data": html,
-    "Message.Body.Html.Charset": "UTF-8",
-  });
-
-  // Add recipients
-  validRecipients.forEach((email, index) => {
-    params.append(`Destination.ToAddresses.member.${index + 1}`, email);
-  });
-
-  const body = params.toString();
-  const hashedPayload = await sha256(body);
-  const canonicalRequest = [
-    "POST",
-    "/",
-    "",
-    `host:${host}`,
-    `x-amz-date:${amzDate}`,
-    "",
-    "host;x-amz-date",
-    hashedPayload,
-  ].join("\n");
-
-  const hashedCanonicalRequest = await sha256(canonicalRequest);
-  const credentialScope = `${dateStamp}/${AWS_SES_REGION}/ses/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    hashedCanonicalRequest,
-  ].join("\n");
-
-  const signingKey = await getSignatureKey(
-    AWS_SECRET_ACCESS_KEY,
-    dateStamp,
-    AWS_SES_REGION,
-    "ses"
-  );
-  const signature = await hmacHex(signingKey, stringToSign);
-
-  const authorizationHeader = [
-    `AWS4-HMAC-SHA256 Credential=${AWS_ACCESS_KEY_ID}/${credentialScope}`,
-    `SignedHeaders=host;x-amz-date`,
-    `Signature=${signature}`,
-  ].join(", ");
+  const fromAddress = `${senderName} <${FROM_EMAIL}>`;
 
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Host: host,
-        "X-Amz-Date": amzDate,
-        Authorization: authorizationHeader,
-      },
-      body,
+    const resend = new Resend(RESEND_API_KEY);
+    
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
+      to: validRecipients,
+      subject: subject,
+      html: html,
     });
 
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      console.error("SES Error Response:", responseText);
-      return { success: false, error: responseText };
+    if (error) {
+      console.error("Resend error:", error);
+      return { success: false, error: error.message };
     }
 
-    const messageIdMatch = responseText.match(/<MessageId>(.+?)<\/MessageId>/);
-    const messageId = messageIdMatch ? messageIdMatch[1] : undefined;
-
+    const messageId = data?.id;
     console.log(
       `Email sent via ${senderName} to ${validRecipients.join(", ")}, MessageId: ${messageId}`
     );
@@ -349,7 +236,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
     return { success: true, messageId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("AWS SES request failed:", errorMessage);
+    console.error("Resend request failed:", errorMessage);
     return { success: false, error: errorMessage };
   }
 }
