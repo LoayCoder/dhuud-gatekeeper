@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWhatsAppTemplate, TEMPLATE_SIDS } from "../_shared/twilio-whatsapp.ts";
+import { logNotificationSent } from "../_shared/notification-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -115,6 +116,26 @@ serve(async (req) => {
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+    
+    // Log to notification_logs for delivery tracking
+    if (twilioResult.messageSid) {
+      await logNotificationSent({
+        tenant_id,
+        channel: 'whatsapp',
+        provider: 'twilio',
+        provider_message_id: twilioResult.messageSid,
+        to_address: recipientPhone,
+        template_name: templateSid,
+        status: 'pending',
+        related_entity_type: entry_id ? 'gate_entry' : undefined,
+        related_entity_id: entry_id || undefined,
+        metadata: {
+          notification_type,
+          visitor_name,
+          destination_name,
+        }
+      });
     }
     
     const response = {

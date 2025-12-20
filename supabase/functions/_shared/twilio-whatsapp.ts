@@ -82,6 +82,14 @@ export async function sendWhatsAppTemplate(
     formData.append('From', formattedFrom);
     formData.append('ContentSid', templateSid);
     formData.append('ContentVariables', JSON.stringify(variables));
+    
+    // Add StatusCallback for delivery status updates
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    if (supabaseUrl) {
+      const statusCallbackUrl = `${supabaseUrl}/functions/v1/webhook-notification-status`;
+      formData.append('StatusCallback', statusCallbackUrl);
+      console.log(`[Twilio] StatusCallback configured: ${statusCallbackUrl}`);
+    }
 
     const response = await fetch(url, {
       method: 'POST',
