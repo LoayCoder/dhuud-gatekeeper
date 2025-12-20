@@ -33,6 +33,15 @@ import InviteGatekeeper from "./pages/InviteGatekeeper";
 import NotFound from "./pages/NotFound";
 import Install from "./pages/Install";
 
+// Legal pages - lazy loaded
+const TermsOfService = lazy(() => import(/* webpackChunkName: "legal-terms" */ "./pages/legal/TermsOfService"));
+const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "legal-privacy" */ "./pages/legal/PrivacyPolicy"));
+const CookiePolicy = lazy(() => import(/* webpackChunkName: "legal-cookies" */ "./pages/legal/CookiePolicy"));
+const AcceptableUsePolicy = lazy(() => import(/* webpackChunkName: "legal-aup" */ "./pages/legal/AcceptableUsePolicy"));
+const RefundPolicy = lazy(() => import(/* webpackChunkName: "legal-refund" */ "./pages/legal/RefundPolicy"));
+const DataProcessingAgreement = lazy(() => import(/* webpackChunkName: "legal-dpa" */ "./pages/legal/DataProcessingAgreement"));
+const ServiceLevelAgreement = lazy(() => import(/* webpackChunkName: "legal-sla" */ "./pages/legal/ServiceLevelAgreement"));
+
 // Lazy loaded pages - loaded on demand with named chunks
 const Signup = lazy(() => import(/* webpackChunkName: "auth-signup" */ "./pages/Signup"));
 const ForgotPassword = lazy(() => import(/* webpackChunkName: "auth-forgot" */ "./pages/ForgotPassword"));
