@@ -108,15 +108,31 @@ serve(async (req) => {
           .eq('id', entry_id);
       }
     } else {
-      // Visitor welcome message with 7 variables
+      // Visitor welcome message with 8 variables (including QR verification link)
+      
+      // Get qr_code_token for the entry
+      let qrCodeToken = '';
+      if (entry_id) {
+        const { data: entryData } = await supabase
+          .from('gate_entry_logs')
+          .select('qr_code_token')
+          .eq('id', entry_id)
+          .single();
+        qrCodeToken = entryData?.qr_code_token || '';
+      }
+      
+      // Generate verification URL
+      const appUrl = Deno.env.get('APP_URL') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://app.example.com';
+      const verificationUrl = qrCodeToken ? `${appUrl}/visitor-pass/${qrCodeToken}` : '';
+      
       console.log(`[WhatsApp] Sending enhanced welcome to ${mobile_number}`);
-      console.log(`[WhatsApp] Variables: visitor=${visitor_name}, company=${companyName}, destination=${destination_name}, duration=${durationText}, hsse=${hsseInstructions?.substring(0, 50)}..., emergency=${emergencyContact}, notes=${securityNotes?.substring(0, 30)}...`);
+      console.log(`[WhatsApp] Variables: visitor=${visitor_name}, company=${companyName}, destination=${destination_name}, duration=${durationText}, hsse=${hsseInstructions?.substring(0, 50)}..., emergency=${emergencyContact}, notes=${securityNotes?.substring(0, 30)}..., url=${verificationUrl}`);
       
       recipientPhone = mobile_number;
       templateSid = TEMPLATE_SIDS.VISITOR_WELCOME_V2;
       
       // Template variables: {{1}}=Visitor Name, {{2}}=Company, {{3}}=Destination, 
-      // {{4}}=Duration, {{5}}=HSSE, {{6}}=Emergency, {{7}}=Notes
+      // {{4}}=Duration, {{5}}=HSSE, {{6}}=Emergency, {{7}}=Notes, {{8}}=Verification URL
       variables = {
         "1": visitor_name || 'Guest',
         "2": companyName,
@@ -125,6 +141,7 @@ serve(async (req) => {
         "5": hsseInstructions,
         "6": emergencyContact,
         "7": securityNotes,
+        "8": verificationUrl || 'N/A',
       };
       
       // Update entry log with visit duration if entry_id provided

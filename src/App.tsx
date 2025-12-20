@@ -79,6 +79,7 @@ const VisitorDashboard = lazy(() => import(/* webpackChunkName: "visitors-dashbo
 const VisitorPreRegistration = lazy(() => import(/* webpackChunkName: "visitors-register" */ "./pages/visitors/VisitorPreRegistration"));
 const VisitorCheckpoint = lazy(() => import(/* webpackChunkName: "visitors-checkpoint" */ "./pages/visitors/VisitorCheckpoint"));
 const VisitorList = lazy(() => import(/* webpackChunkName: "visitors-list" */ "./pages/visitors/VisitorList"));
+const VisitorPass = lazy(() => import(/* webpackChunkName: "visitors-pass" */ "./pages/VisitorPass"));
 const BlacklistManagement = lazy(() => import(/* webpackChunkName: "visitors-blacklist" */ "./pages/visitors/BlacklistManagement"));
 
 // Security patrol pages - lazy loaded
@@ -213,6 +214,7 @@ const App = () => (
                     <Route path="/register" element={<Navigate to="/invite" replace />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<MFASetup />} />
+                    <Route path="/visitor-pass/:token" element={<VisitorPass />} />
 
                     {/* Home Screen - Simple landing without sidebar */}
                     <Route
