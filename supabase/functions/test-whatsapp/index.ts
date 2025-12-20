@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logNotificationSent } from "../_shared/notification-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { phone_number, message } = await req.json();
+    const { phone_number, message, tenant_id } = await req.json();
 
     if (!phone_number) {
       throw new Error('Phone number is required');
@@ -66,6 +67,34 @@ serve(async (req) => {
 
     console.log('WhatsApp message sent successfully:', result.sid);
 
+    // Log the notification to the notification_logs table
+    if (tenant_id) {
+      const logResult = await logNotificationSent({
+        tenant_id: tenant_id,
+        channel: 'whatsapp',
+        provider: 'twilio',
+        provider_message_id: result.sid,
+        to_address: toWhatsApp,
+        from_address: fromWhatsApp,
+        template_name: 'test_message',
+        subject: 'Test WhatsApp Message',
+        status: result.status === 'queued' || result.status === 'sent' ? 'sent' : 'pending',
+        related_entity_type: 'test',
+        metadata: {
+          test_type: 'manual_test',
+          message_preview: testMessage.substring(0, 100),
+        },
+      });
+
+      if (logResult.success) {
+        console.log('Notification logged successfully:', logResult.logId);
+      } else {
+        console.warn('Failed to log notification:', logResult.error);
+      }
+    } else {
+      console.log('No tenant_id provided, skipping notification logging');
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -73,6 +102,7 @@ serve(async (req) => {
         status: result.status,
         to: toWhatsApp,
         from: fromWhatsApp,
+        logged: !!tenant_id,
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
