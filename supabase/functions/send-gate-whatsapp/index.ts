@@ -17,14 +17,16 @@ interface WhatsAppRequest {
   // Notification type
   notification_type?: 'visitor_welcome' | 'host_notification';
   
-  // For visitor welcome
+  // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;
   destination_name?: string;
+  visit_duration_hours?: number;
+  notes?: string;
+  entry_id?: string;
   
   // For host notification
   host_mobile?: string;
   host_name?: string;
-  entry_id?: string;
 }
 
 serve(async (req) => {
@@ -40,18 +42,20 @@ serve(async (req) => {
       notification_type = 'visitor_welcome',
       visitor_name,
       destination_name,
-      host_mobile,
+      visit_duration_hours = 1,
+      notes,
       entry_id,
+      host_mobile,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Get tenant info for company name
+    // Get tenant info with HSSE settings and emergency contact
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('name')
+      .select('name, visitor_hsse_instructions_ar, visitor_hsse_instructions_en, emergency_contact_number, emergency_contact_name')
       .eq('id', tenant_id)
       .single();
     
@@ -60,6 +64,22 @@ serve(async (req) => {
       hour: '2-digit', 
       minute: '2-digit' 
     });
+    
+    // Format visit duration
+    const durationText = visit_duration_hours >= 8 
+      ? 'Full day' 
+      : `${visit_duration_hours} hour${visit_duration_hours > 1 ? 's' : ''}`;
+    
+    // Get HSSE instructions (Arabic by default, fallback to English)
+    const hsseInstructions = tenant?.visitor_hsse_instructions_ar 
+      || tenant?.visitor_hsse_instructions_en 
+      || 'اتبع تعليمات السلامة | Follow safety guidelines';
+    
+    // Get emergency contact
+    const emergencyContact = tenant?.emergency_contact_number || '911';
+    
+    // Security notes (from guard input)
+    const securityNotes = notes || 'لا توجد ملاحظات | None';
     
     let recipientPhone: string;
     let templateSid: string;
@@ -70,7 +90,6 @@ serve(async (req) => {
       console.log(`[WhatsApp] Sending host notification to ${host_mobile}`);
       
       recipientPhone = host_mobile;
-      // TODO: Add HOST_NOTIFICATION template SID when created
       templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
       variables = {
         "1": visitor_name || 'A visitor',
@@ -89,17 +108,35 @@ serve(async (req) => {
           .eq('id', entry_id);
       }
     } else {
-      // Visitor welcome message
-      console.log(`[WhatsApp] Sending welcome to ${mobile_number}`);
+      // Visitor welcome message with 7 variables
+      console.log(`[WhatsApp] Sending enhanced welcome to ${mobile_number}`);
+      console.log(`[WhatsApp] Variables: visitor=${visitor_name}, company=${companyName}, destination=${destination_name}, duration=${durationText}, hsse=${hsseInstructions?.substring(0, 50)}..., emergency=${emergencyContact}, notes=${securityNotes?.substring(0, 30)}...`);
       
       recipientPhone = mobile_number;
-      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
-      // Template variables: {{1}}=company, {{2}}=destination, {{3}}=time
+      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME_V2;
+      
+      // Template variables: {{1}}=Visitor Name, {{2}}=Company, {{3}}=Destination, 
+      // {{4}}=Duration, {{5}}=HSSE, {{6}}=Emergency, {{7}}=Notes
       variables = {
-        "1": companyName,
-        "2": destination_name || 'reception',
-        "3": currentTime,
+        "1": visitor_name || 'Guest',
+        "2": companyName,
+        "3": destination_name || 'Reception',
+        "4": durationText,
+        "5": hsseInstructions,
+        "6": emergencyContact,
+        "7": securityNotes,
       };
+      
+      // Update entry log with visit duration if entry_id provided
+      if (entry_id) {
+        await supabase
+          .from('gate_entry_logs')
+          .update({
+            visit_duration_hours: visit_duration_hours,
+            notification_status: 'sent',
+          })
+          .eq('id', entry_id);
+      }
     }
     
     // Send via Twilio WhatsApp Content Template API
@@ -134,6 +171,9 @@ serve(async (req) => {
           notification_type,
           visitor_name,
           destination_name,
+          visit_duration_hours,
+          has_hsse_instructions: !!tenant?.visitor_hsse_instructions_ar || !!tenant?.visitor_hsse_instructions_en,
+          has_emergency_contact: !!tenant?.emergency_contact_number,
         }
       });
     }
@@ -144,6 +184,7 @@ serve(async (req) => {
       recipient: recipientPhone,
       notification_type,
       template_sid: templateSid,
+      variables_sent: Object.keys(variables).length,
       sent_at: new Date().toISOString()
     };
     

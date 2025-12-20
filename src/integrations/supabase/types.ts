@@ -2718,8 +2718,10 @@ export type Database = {
           person_name: string
           preferred_language: string | null
           purpose: string | null
+          qr_code_token: string | null
           site_id: string | null
           tenant_id: string
+          visit_duration_hours: number | null
           visitor_id: string | null
           whatsapp_sent_at: string | null
         }
@@ -2748,8 +2750,10 @@ export type Database = {
           person_name: string
           preferred_language?: string | null
           purpose?: string | null
+          qr_code_token?: string | null
           site_id?: string | null
           tenant_id: string
+          visit_duration_hours?: number | null
           visitor_id?: string | null
           whatsapp_sent_at?: string | null
         }
@@ -2778,8 +2782,10 @@ export type Database = {
           person_name?: string
           preferred_language?: string | null
           purpose?: string | null
+          qr_code_token?: string | null
           site_id?: string | null
           tenant_id?: string
+          visit_duration_hours?: number | null
           visitor_id?: string | null
           whatsapp_sent_at?: string | null
         }
@@ -9666,6 +9672,8 @@ export type Database = {
           country: string | null
           cr_number: string | null
           created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_number: string | null
           employee_count: number | null
           favicon_url: string | null
           id: string
@@ -9691,6 +9699,8 @@ export type Database = {
           trial_start_date: string | null
           updated_at: string | null
           vat_number: string | null
+          visitor_hsse_instructions_ar: string | null
+          visitor_hsse_instructions_en: string | null
         }
         Insert: {
           app_icon_dark_url?: string | null
@@ -9708,6 +9718,8 @@ export type Database = {
           country?: string | null
           cr_number?: string | null
           created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
           employee_count?: number | null
           favicon_url?: string | null
           id?: string
@@ -9733,6 +9745,8 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string | null
           vat_number?: string | null
+          visitor_hsse_instructions_ar?: string | null
+          visitor_hsse_instructions_en?: string | null
         }
         Update: {
           app_icon_dark_url?: string | null
@@ -9750,6 +9764,8 @@ export type Database = {
           country?: string | null
           cr_number?: string | null
           created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
           employee_count?: number | null
           favicon_url?: string | null
           id?: string
@@ -9775,6 +9791,8 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string | null
           vat_number?: string | null
+          visitor_hsse_instructions_ar?: string | null
+          visitor_hsse_instructions_en?: string | null
         }
         Relationships: [
           {

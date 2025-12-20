@@ -93,10 +93,11 @@ export function useCreateGateEntry() {
     mutationFn: async (entry: Omit<GateEntryInsert, 'tenant_id' | 'guard_id'> & { 
       host_mobile?: string; 
       notify_host?: boolean;
+      visit_duration_hours?: number;
     }) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { host_mobile, notify_host, ...entryData } = entry;
+      const { host_mobile, notify_host, visit_duration_hours, ...entryData } = entry;
 
       const { data, error } = await supabase
         .from('gate_entry_logs')
@@ -106,7 +107,8 @@ export function useCreateGateEntry() {
           guard_id: user?.id,
           host_mobile,
           notify_host: notify_host ?? true,
-        })
+          visit_duration_hours: visit_duration_hours ?? 1,
+        } as GateEntryInsert)
         .select()
         .single();
 
@@ -159,6 +161,8 @@ export function useRecordExit() {
 }
 
 export function useSendWhatsAppNotification() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -169,10 +173,24 @@ export function useSendWhatsAppNotification() {
       phoneNumber: string;
       hostName?: string;
       siteName?: string;
+      destinationName?: string;
+      visitDurationHours?: number;
+      notes?: string;
       language?: string;
     }) => {
+      if (!tenantId) throw new Error('No tenant ID');
+
       const { data, error } = await supabase.functions.invoke('send-gate-whatsapp', {
-        body: params,
+        body: {
+          entry_id: params.entryId,
+          mobile_number: params.phoneNumber,
+          visitor_name: params.visitorName,
+          destination_name: params.destinationName || params.siteName,
+          visit_duration_hours: params.visitDurationHours || 1,
+          notes: params.notes,
+          tenant_id: tenantId,
+          language: params.language || 'ar',
+        },
       });
 
       if (error) throw error;
