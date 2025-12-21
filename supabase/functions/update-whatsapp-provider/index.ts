@@ -17,15 +17,14 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get action from request
-    const { action, provider, tenant_id } = await req.json();
+    const { action, provider } = await req.json();
 
     if (action === 'get') {
       // Fetch current provider setting
       const { data, error } = await supabase
         .from('platform_settings')
         .select('value')
-        .eq('key', 'whatsapp_provider')
-        .eq('tenant_id', tenant_id)
+        .eq('setting_key', 'whatsapp_provider')
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -73,34 +72,42 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (!tenant_id) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'tenant_id is required',
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Upsert the provider setting
-      const { error } = await supabase
+      // Check if setting exists
+      const { data: existing } = await supabase
         .from('platform_settings')
-        .upsert({
-          key: 'whatsapp_provider',
-          value: { active: provider },
-          tenant_id,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'key,tenant_id',
-        });
+        .select('id')
+        .eq('setting_key', 'whatsapp_provider')
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        // Update existing
+        const result = await supabase
+          .from('platform_settings')
+          .update({
+            value: { active: provider },
+            updated_at: new Date().toISOString(),
+          })
+          .eq('setting_key', 'whatsapp_provider');
+        error = result.error;
+      } else {
+        // Insert new
+        const result = await supabase
+          .from('platform_settings')
+          .insert({
+            setting_key: 'whatsapp_provider',
+            value: { active: provider },
+            description: 'Active WhatsApp provider (wasender or twilio)',
+          });
+        error = result.error;
+      }
 
       if (error) {
         console.error('[update-whatsapp-provider] Error upserting:', error);
         throw error;
       }
 
-      console.log(`[update-whatsapp-provider] Set active provider to: ${provider} for tenant: ${tenant_id}`);
+      console.log(`[update-whatsapp-provider] Set active provider to: ${provider}`);
 
       return new Response(JSON.stringify({
         success: true,
