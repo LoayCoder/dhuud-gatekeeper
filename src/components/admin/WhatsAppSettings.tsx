@@ -43,11 +43,9 @@ export function WhatsAppSettings() {
 
   // Fetch current provider status
   const fetchProviderStatus = async () => {
-    if (!currentTenantId) return;
-    
     try {
       const { data, error } = await supabase.functions.invoke('update-whatsapp-provider', {
-        body: { action: 'get', tenant_id: currentTenantId },
+        body: { action: 'get' },
       });
 
       if (error) throw error;
@@ -68,14 +66,9 @@ export function WhatsAppSettings() {
 
   useEffect(() => {
     fetchProviderStatus();
-  }, [currentTenantId]);
+  }, []);
 
   const handleSwitchProvider = async (newProvider: 'wasender' | 'twilio') => {
-    if (!currentTenantId) {
-      toast.error(isRTL ? "لم يتم تحديد المستأجر" : "Tenant not identified");
-      return;
-    }
-
     // Check if provider is configured
     if (newProvider === 'wasender' && !providerStatus?.wasenderConfigured) {
       toast.error(isRTL ? "WaSender غير مُعد. أضف WASENDER_API_KEY أولاً" : "WaSender not configured. Add WASENDER_API_KEY first");
@@ -89,7 +82,7 @@ export function WhatsAppSettings() {
     setSwitching(true);
     try {
       const { data, error } = await supabase.functions.invoke('update-whatsapp-provider', {
-        body: { action: 'set', provider: newProvider, tenant_id: currentTenantId },
+        body: { action: 'set', provider: newProvider },
       });
 
       if (error) throw error;
