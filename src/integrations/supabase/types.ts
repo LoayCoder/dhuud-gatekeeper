@@ -6186,6 +6186,62 @@ export type Database = {
           },
         ]
       }
+      notification_templates: {
+        Row: {
+          category: string | null
+          content_pattern: string
+          created_at: string | null
+          default_gateway: string
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          language: string | null
+          meta_template_name: string | null
+          slug: string
+          tenant_id: string
+          updated_at: string | null
+          variable_keys: string[]
+        }
+        Insert: {
+          category?: string | null
+          content_pattern: string
+          created_at?: string | null
+          default_gateway?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          meta_template_name?: string | null
+          slug: string
+          tenant_id: string
+          updated_at?: string | null
+          variable_keys?: string[]
+        }
+        Update: {
+          category?: string | null
+          content_pattern?: string
+          created_at?: string | null
+          default_gateway?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          meta_template_name?: string | null
+          slug?: string
+          tenant_id?: string
+          updated_at?: string | null
+          variable_keys?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patrol_checkpoint_logs: {
         Row: {
           checkpoint_id: string
