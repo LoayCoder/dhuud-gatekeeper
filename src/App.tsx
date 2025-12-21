@@ -151,6 +151,7 @@ const HSSENotificationAnalytics = lazy(() => import(/* webpackChunkName: "admin-
 const HSSENotifications = lazy(() => import(/* webpackChunkName: "admin-hsse-notifications" */ "./pages/admin/HSSENotifications"));
 const NotificationDeliveryLog = lazy(() => import(/* webpackChunkName: "admin-notification-delivery" */ "./pages/admin/NotificationDeliveryLog"));
 const WhatsAppTemplates = lazy(() => import(/* webpackChunkName: "admin-whatsapp-templates" */ "./pages/admin/WhatsAppTemplates"));
+const WhatsAppSettingsPage = lazy(() => import(/* webpackChunkName: "admin-whatsapp-settings" */ "./pages/admin/WhatsAppSettingsPage"));
 
 const queryClient = new QueryClient();
 
@@ -511,6 +512,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <WhatsAppTemplates />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/whatsapp-settings"
+                        element={
+                          <AdminRoute>
+                            <WhatsAppSettingsPage />
                           </AdminRoute>
                         }
                       />
