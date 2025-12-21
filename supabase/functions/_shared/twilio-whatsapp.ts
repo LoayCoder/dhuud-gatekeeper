@@ -15,9 +15,8 @@ export interface TemplateMessage {
 
 // Content Template SIDs (not sensitive - just identifiers)
 export const TEMPLATE_SIDS = {
-  VISITOR_WELCOME: 'HX811880b27dfbe00031c4a058807de3fc',
-  // New 7-variable template (update this SID when approved in Twilio)
-  VISITOR_WELCOME_V2: 'HX811880b27dfbe00031c4a058807de3fc', // TODO: Update with new template SID
+  VISITOR_WELCOME: 'HXa2e43ec00be04d394cc81bf8c34d37b0',
+  VISITOR_WELCOME_V2: 'HXa2e43ec00be04d394cc81bf8c34d37b0',
   // Add more template SIDs as they are created:
   // HOST_NOTIFICATION: 'HX...',
   // CONTRACTOR_ALERT: 'HX...',
