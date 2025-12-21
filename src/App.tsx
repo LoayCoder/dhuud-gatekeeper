@@ -506,6 +506,14 @@ const App = () => (
                           </AdminRoute>
                         }
                       />
+                      <Route
+                        path="/admin/whatsapp-templates"
+                        element={
+                          <AdminRoute>
+                            <WhatsAppTemplates />
+                          </AdminRoute>
+                        }
+                      />
 
                       {/* User Routes */}
                       <Route path="/support" element={<Support />} />
