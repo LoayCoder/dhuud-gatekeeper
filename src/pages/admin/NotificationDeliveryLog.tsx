@@ -193,11 +193,11 @@ export default function NotificationDeliveryLog() {
               </CardTitle>
               <CardDescription className="text-xs">
                 {isRTL 
-                  ? 'استخدم هذا الرابط في إعدادات WAHA أو Twilio أو Resend لتلقي تحديثات حالة التسليم' 
-                  : 'Use this URL in WAHA, Twilio, or Resend settings to receive delivery status updates'}
+                  ? 'استخدم هذا الرابط في إعدادات مزود الواتساب لتلقي تحديثات حالة التسليم' 
+                  : 'Use this URL in your WhatsApp provider settings to receive delivery status updates'}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-muted px-3 py-2 rounded-md text-xs font-mono overflow-x-auto">
                   {WEBHOOK_URL}
@@ -214,6 +214,35 @@ export default function NotificationDeliveryLog() {
                     <Copy className="h-4 w-4" />
                   )}
                 </Button>
+              </div>
+              
+              {/* Provider-specific instructions */}
+              <div className="rounded-md border p-3 bg-muted/50">
+                <h4 className="text-sm font-medium mb-2">
+                  {isRTL ? 'تعليمات إعداد مزود الخدمة:' : 'Provider Setup Instructions:'}
+                </h4>
+                <ul className="text-xs text-muted-foreground space-y-1.5">
+                  <li>
+                    <strong>WaSender:</strong> {isRTL 
+                      ? 'انتقل إلى إعدادات Webhook في لوحة WaSender والصق الرابط أعلاه' 
+                      : 'Go to Webhook settings in WaSender dashboard and paste the URL above'}
+                  </li>
+                  <li>
+                    <strong>WAHA:</strong> {isRTL 
+                      ? 'أضف الرابط في إعدادات webhook_url في تكوين WAHA' 
+                      : 'Add the URL to webhook_url in WAHA configuration'}
+                  </li>
+                  <li>
+                    <strong>Twilio:</strong> {isRTL 
+                      ? 'أضف الرابط كـ Status Callback URL في إعدادات WhatsApp' 
+                      : 'Add the URL as Status Callback URL in WhatsApp settings'}
+                  </li>
+                  <li>
+                    <strong>Resend:</strong> {isRTL 
+                      ? 'أضف الرابط كـ Webhook URL في إعدادات البريد الإلكتروني' 
+                      : 'Add the URL as Webhook URL in email settings'}
+                  </li>
+                </ul>
               </div>
             </CardContent>
           </Card>
