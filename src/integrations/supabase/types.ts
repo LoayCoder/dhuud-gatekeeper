@@ -6113,6 +6113,7 @@ export type Database = {
           to_address: string
           updated_at: string
           user_id: string | null
+          webhook_events: Json | null
         }
         Insert: {
           channel: string
@@ -6139,6 +6140,7 @@ export type Database = {
           to_address: string
           updated_at?: string
           user_id?: string | null
+          webhook_events?: Json | null
         }
         Update: {
           channel?: string
@@ -6165,6 +6167,7 @@ export type Database = {
           to_address?: string
           updated_at?: string
           user_id?: string | null
+          webhook_events?: Json | null
         }
         Relationships: [
           {
@@ -10486,6 +10489,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      append_notification_webhook_event: {
+        Args: { p_event: Json; p_provider_message_id: string }
+        Returns: string
+      }
       calculate_next_inspection_due: {
         Args: {
           p_day_of_month?: number
