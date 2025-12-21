@@ -119,6 +119,7 @@ export function WhatsAppSettings() {
         body: {
           phone_number: phoneNumber.trim(),
           message: testMessage.trim(),
+          tenant_id: currentTenantId,
         },
       });
 
