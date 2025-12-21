@@ -1,6 +1,6 @@
 /**
  * WaSender API WhatsApp utility for sending messages
- * API Documentation: https://wasenderapi.com/
+ * API Documentation: https://wasenderapi.com/api-docs/messages/send-text-message
  */
 
 export interface WaSenderResponse {
@@ -10,18 +10,24 @@ export interface WaSenderResponse {
 }
 
 /**
- * Format phone number to WaSender format (just digits with country code)
+ * Format phone number to WaSender format (just digits with country code, no + sign)
  */
 function formatPhoneNumber(phone: string): string {
   // Remove any whatsapp: prefix
   let cleaned = phone.replace(/^whatsapp:/, '');
   
-  // Remove spaces, dashes, parentheses, plus sign
-  cleaned = cleaned.replace(/[\s\-\(\)\+]/g, '');
+  // Remove spaces, dashes, parentheses
+  cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
   
-  // Handle 00 international prefix
+  // Keep the + for WaSender API - they accept +1234567890 format
+  // But also handle 00 international prefix
   if (cleaned.startsWith('00')) {
-    cleaned = cleaned.substring(2);
+    cleaned = '+' + cleaned.substring(2);
+  }
+  
+  // If no + prefix, add it
+  if (!cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned;
   }
   
   return cleaned;
@@ -29,6 +35,7 @@ function formatPhoneNumber(phone: string): string {
 
 /**
  * Send a text message via WaSender API
+ * Endpoint: POST https://www.wasenderapi.com/api/send-message
  */
 export async function sendWaSenderTextMessage(
   to: string,
@@ -49,7 +56,7 @@ export async function sendWaSenderTextMessage(
   console.log(`[WaSender] Sending text message to ${formattedPhone}`);
 
   try {
-    const response = await fetch('https://api.wasenderapi.com/api/v1/message/text', {
+    const response = await fetch('https://www.wasenderapi.com/api/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -71,11 +78,11 @@ export async function sendWaSenderTextMessage(
       };
     }
 
-    console.log(`[WaSender] Message sent successfully. ID: ${responseData.messageId || responseData.id}`);
+    console.log(`[WaSender] Message sent successfully:`, responseData);
     
     return {
       success: true,
-      messageId: responseData.messageId || responseData.id || 'sent'
+      messageId: responseData.messageId || responseData.id || responseData.message_id || 'sent'
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -88,7 +95,8 @@ export async function sendWaSenderTextMessage(
 }
 
 /**
- * Send a media message (image/video) via WaSender API
+ * Send a media message (image/video/document) via WaSender API
+ * Endpoint: POST https://www.wasenderapi.com/api/send-media
  */
 export async function sendWaSenderMediaMessage(
   to: string,
@@ -111,13 +119,7 @@ export async function sendWaSenderMediaMessage(
   console.log(`[WaSender] Sending ${mediaType} to ${formattedPhone}`);
 
   try {
-    const endpoint = mediaType === 'video' 
-      ? 'https://api.wasenderapi.com/api/v1/message/video'
-      : mediaType === 'document'
-      ? 'https://api.wasenderapi.com/api/v1/message/document'
-      : 'https://api.wasenderapi.com/api/v1/message/image';
-
-    const response = await fetch(endpoint, {
+    const response = await fetch('https://www.wasenderapi.com/api/send-media', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -126,7 +128,8 @@ export async function sendWaSenderMediaMessage(
       body: JSON.stringify({
         to: formattedPhone,
         url: mediaUrl,
-        caption: caption || ''
+        caption: caption || '',
+        type: mediaType
       }),
     });
 
@@ -140,11 +143,11 @@ export async function sendWaSenderMediaMessage(
       };
     }
 
-    console.log(`[WaSender] Media sent successfully. ID: ${responseData.messageId || responseData.id}`);
+    console.log(`[WaSender] Media sent successfully:`, responseData);
     
     return {
       success: true,
-      messageId: responseData.messageId || responseData.id || 'sent'
+      messageId: responseData.messageId || responseData.id || responseData.message_id || 'sent'
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
