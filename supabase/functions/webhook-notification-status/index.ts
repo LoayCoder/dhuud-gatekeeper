@@ -40,6 +40,16 @@ const WAHA_STATUS_MAP: Record<string, NotificationStatus> = {
   'error': 'failed',
 };
 
+// WaSender webhook status mapping
+const WASENDER_STATUS_MAP: Record<string, NotificationStatus> = {
+  'sent': 'sent',
+  'delivered': 'delivered',
+  'read': 'read',
+  'failed': 'failed',
+  'pending': 'pending',
+  'queued': 'pending',
+};
+
 interface TwilioWebhookPayload {
   MessageSid: string;
   MessageStatus: string;
@@ -85,7 +95,28 @@ interface WahaWebhookPayload {
   environment?: Record<string, unknown>;
 }
 
-type WebhookProvider = 'twilio' | 'resend' | 'waha' | 'unknown';
+// WaSender webhook payload structure
+interface WaSenderWebhookPayload {
+  messageId?: string;
+  message_id?: string;
+  id?: string;
+  status?: string;
+  event?: string;
+  to?: string;
+  phone?: string;
+  recipient?: string;
+  error?: string;
+  errorMessage?: string;
+  error_message?: string;
+  timestamp?: string | number;
+  data?: {
+    messageId?: string;
+    status?: string;
+    error?: string;
+  };
+}
+
+type WebhookProvider = 'twilio' | 'resend' | 'waha' | 'wasender' | 'unknown';
 
 /**
  * Detect the webhook provider from the request
@@ -96,7 +127,7 @@ function detectProvider(contentType: string, body: string): WebhookProvider {
     return 'twilio';
   }
   
-  // Both Resend and WAHA send JSON
+  // JSON-based providers: Resend, WAHA, and WaSender
   if (contentType.includes('application/json')) {
     try {
       const parsed = JSON.parse(body);
@@ -109,6 +140,21 @@ function detectProvider(contentType: string, body: string): WebhookProvider {
       // WAHA has an "event" field and "session" field
       if (parsed.event && parsed.session) {
         return 'waha';
+      }
+      
+      // WaSender detection - various possible structures
+      // WaSender typically sends: messageId/message_id, status, and optionally phone/to/recipient
+      if (
+        (parsed.messageId || parsed.message_id || parsed.id) && 
+        (parsed.status || parsed.event) &&
+        !parsed.session // Exclude WAHA which also has event
+      ) {
+        return 'wasender';
+      }
+      
+      // Also check for nested data structure from WaSender
+      if (parsed.data && (parsed.data.messageId || parsed.data.status)) {
+        return 'wasender';
       }
     } catch {
       // Not valid JSON
@@ -362,6 +408,82 @@ async function processWahaCallback(payload: WahaWebhookPayload): Promise<{ succe
   }
 }
 
+/**
+ * Process WaSender webhook callback
+ */
+async function processWaSenderCallback(payload: WaSenderWebhookPayload): Promise<{ success: boolean; message: string }> {
+  // Extract message ID from various possible fields
+  const messageId = payload.messageId || 
+                    payload.message_id || 
+                    payload.id || 
+                    payload.data?.messageId;
+
+  // Extract status from various possible fields
+  const status = payload.status || 
+                 payload.event || 
+                 payload.data?.status;
+
+  // Extract error message if present
+  const errorMessage = payload.error || 
+                       payload.errorMessage || 
+                       payload.error_message || 
+                       payload.data?.error;
+
+  console.log(`[Webhook] Processing WaSender callback: messageId=${messageId}, status=${status}`);
+
+  if (!messageId) {
+    console.warn('[Webhook] WaSender payload missing message ID');
+    return { success: false, message: 'Missing message ID in WaSender payload' };
+  }
+
+  if (!status) {
+    console.warn('[Webhook] WaSender payload missing status');
+    return { success: false, message: 'Missing status in WaSender payload' };
+  }
+
+  // Map WaSender status to unified status
+  const normalizedStatus = status.toLowerCase();
+  const dhuudStatus = WASENDER_STATUS_MAP[normalizedStatus];
+
+  if (!dhuudStatus) {
+    console.warn(`[Webhook] Unknown WaSender status: ${status}`);
+    // Still log the event even if we don't recognize the status
+    await appendWebhookEvent(messageId, {
+      provider: 'wasender',
+      event_type: status,
+      status: 'unknown',
+      raw_payload: payload,
+    });
+    return { success: true, message: `Unknown status logged: ${status}` };
+  }
+
+  console.log(`[Webhook] WaSender status mapped: ${status} -> ${dhuudStatus}`);
+
+  // Append event to webhook history
+  await appendWebhookEvent(messageId, {
+    provider: 'wasender',
+    event_type: status,
+    status: dhuudStatus,
+    error: errorMessage,
+    raw_payload: payload,
+  });
+
+  // Update notification status
+  const result = await updateNotificationStatus(
+    messageId,
+    dhuudStatus,
+    undefined,
+    errorMessage
+  );
+
+  return {
+    success: result.success,
+    message: result.success 
+      ? `Updated status to ${dhuudStatus}` 
+      : result.error || 'Update failed'
+  };
+}
+
 serve(async (req) => {
   // Only accept POST requests
   if (req.method === 'OPTIONS') {
@@ -423,6 +545,10 @@ serve(async (req) => {
       const wahaPayload: WahaWebhookPayload = JSON.parse(body);
       parsedBody = wahaPayload;
       result = await processWahaCallback(wahaPayload);
+    } else if (provider === 'wasender') {
+      const wasenderPayload: WaSenderWebhookPayload = JSON.parse(body);
+      parsedBody = wasenderPayload;
+      result = await processWaSenderCallback(wasenderPayload);
     } else {
       result = { success: false, message: 'Unknown provider' };
     }
