@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { 
   updateNotificationStatus, 
   logWebhookRequest,
@@ -30,6 +31,15 @@ const RESEND_STATUS_MAP: Record<string, NotificationStatus> = {
   'email.delivery_delayed': 'pending',
 };
 
+// WAHA (WhatsApp HTTP API) status mapping
+const WAHA_STATUS_MAP: Record<string, NotificationStatus> = {
+  'sent': 'sent',
+  'delivered': 'delivered',
+  'read': 'read',
+  'failed': 'failed',
+  'error': 'failed',
+};
+
 interface TwilioWebhookPayload {
   MessageSid: string;
   MessageStatus: string;
@@ -50,21 +60,55 @@ interface ResendWebhookPayload {
   };
 }
 
+interface WahaWebhookPayload {
+  event: string;
+  session: string;
+  payload?: {
+    id?: string;
+    from?: string;
+    to?: string;
+    timestamp?: number;
+    ack?: number; // 0=pending, 1=sent, 2=delivered, 3=read
+    ackName?: string;
+    body?: string;
+    hasMedia?: boolean;
+    mediaUrl?: string;
+    error?: string;
+    _data?: {
+      id?: {
+        id?: string;
+        _serialized?: string;
+      };
+    };
+  };
+  engine?: string;
+  environment?: Record<string, unknown>;
+}
+
+type WebhookProvider = 'twilio' | 'resend' | 'waha' | 'unknown';
+
 /**
  * Detect the webhook provider from the request
  */
-function detectProvider(contentType: string, body: string): 'twilio' | 'resend' | 'unknown' {
+function detectProvider(contentType: string, body: string): WebhookProvider {
   // Twilio sends form-urlencoded data
   if (contentType.includes('application/x-www-form-urlencoded')) {
     return 'twilio';
   }
   
-  // Resend sends JSON with a "type" field
+  // Both Resend and WAHA send JSON
   if (contentType.includes('application/json')) {
     try {
       const parsed = JSON.parse(body);
+      
+      // Resend has a "type" field starting with "email."
       if (parsed.type && parsed.type.startsWith('email.')) {
         return 'resend';
+      }
+      
+      // WAHA has an "event" field and "session" field
+      if (parsed.event && parsed.session) {
+        return 'waha';
       }
     } catch {
       // Not valid JSON
@@ -90,6 +134,34 @@ function parseTwilioPayload(body: string): TwilioWebhookPayload {
 }
 
 /**
+ * Append event to notification_logs webhook_events array
+ */
+async function appendWebhookEvent(
+  providerMessageId: string,
+  event: Record<string, unknown>
+): Promise<void> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  try {
+    const eventWithTimestamp = {
+      ...event,
+      received_at: new Date().toISOString(),
+    };
+
+    await supabase.rpc('append_notification_webhook_event', {
+      p_provider_message_id: providerMessageId,
+      p_event: eventWithTimestamp,
+    });
+
+    console.log(`[Webhook] Appended event for message: ${providerMessageId}`);
+  } catch (error) {
+    console.error(`[Webhook] Failed to append event:`, error);
+  }
+}
+
+/**
  * Process Twilio WhatsApp/SMS status callback
  */
 async function processTwilioCallback(payload: TwilioWebhookPayload): Promise<{ success: boolean; message: string }> {
@@ -106,6 +178,16 @@ async function processTwilioCallback(payload: TwilioWebhookPayload): Promise<{ s
   }
 
   console.log(`[Webhook] Processing Twilio callback: ${MessageSid} -> ${dhuudStatus}`);
+
+  // Append event to history
+  await appendWebhookEvent(MessageSid, {
+    provider: 'twilio',
+    event_type: MessageStatus,
+    status: dhuudStatus,
+    error_code: ErrorCode,
+    error_message: ErrorMessage,
+    raw_payload: payload,
+  });
 
   const result = await updateNotificationStatus(
     MessageSid,
@@ -140,6 +222,14 @@ async function processResendCallback(payload: ResendWebhookPayload): Promise<{ s
 
   console.log(`[Webhook] Processing Resend callback: ${data.email_id} -> ${dhuudStatus}`);
 
+  // Append event to history
+  await appendWebhookEvent(data.email_id, {
+    provider: 'resend',
+    event_type: type,
+    status: dhuudStatus,
+    raw_payload: payload,
+  });
+
   const result = await updateNotificationStatus(
     data.email_id,
     dhuudStatus
@@ -151,6 +241,125 @@ async function processResendCallback(payload: ResendWebhookPayload): Promise<{ s
       ? `Updated status to ${dhuudStatus}` 
       : result.error || 'Update failed'
   };
+}
+
+/**
+ * Process WAHA (WhatsApp HTTP API) webhook
+ */
+async function processWahaCallback(payload: WahaWebhookPayload): Promise<{ success: boolean; message: string }> {
+  const { event, session, payload: messagePayload } = payload;
+
+  if (!event) {
+    return { success: false, message: 'Missing event type' };
+  }
+
+  console.log(`[Webhook] Processing WAHA event: ${event} (session: ${session})`);
+
+  // Get message ID from various possible locations
+  const messageId = messagePayload?.id || 
+                    messagePayload?._data?.id?.id || 
+                    messagePayload?._data?.id?._serialized;
+
+  // Handle different WAHA events
+  switch (event) {
+    case 'message.ack': {
+      // ACK events indicate delivery status
+      const ack = messagePayload?.ack;
+      const ackName = messagePayload?.ackName;
+      
+      let dhuudStatus: NotificationStatus | null = null;
+      
+      if (ack === 1 || ackName === 'sent') {
+        dhuudStatus = 'sent';
+      } else if (ack === 2 || ackName === 'delivered') {
+        dhuudStatus = 'delivered';
+      } else if (ack === 3 || ackName === 'read') {
+        dhuudStatus = 'read';
+      } else if (ack === -1 || ackName === 'error') {
+        dhuudStatus = 'failed';
+      }
+
+      if (dhuudStatus && messageId) {
+        // Append event to history
+        await appendWebhookEvent(messageId, {
+          provider: 'waha',
+          event_type: event,
+          ack,
+          ack_name: ackName,
+          status: dhuudStatus,
+          raw_payload: payload,
+        });
+
+        const result = await updateNotificationStatus(messageId, dhuudStatus);
+        return {
+          success: result.success,
+          message: result.success 
+            ? `Updated status to ${dhuudStatus}` 
+            : result.error || 'Update failed'
+        };
+      }
+
+      return { success: true, message: `ACK event processed (ack: ${ack})` };
+    }
+
+    case 'message': 
+    case 'message.any': {
+      // Log incoming messages but don't update status
+      if (messageId) {
+        await appendWebhookEvent(messageId, {
+          provider: 'waha',
+          event_type: event,
+          from: messagePayload?.from,
+          to: messagePayload?.to,
+          body: messagePayload?.body?.substring(0, 100), // Truncate for privacy
+          raw_payload: payload,
+        });
+      }
+      return { success: true, message: 'Message event logged' };
+    }
+
+    case 'session.status': {
+      // Log session status changes
+      console.log(`[Webhook] WAHA session status: ${JSON.stringify(payload)}`);
+      return { success: true, message: 'Session status logged' };
+    }
+
+    case 'message.waiting': {
+      // Message queued
+      if (messageId) {
+        await appendWebhookEvent(messageId, {
+          provider: 'waha',
+          event_type: event,
+          status: 'pending',
+          raw_payload: payload,
+        });
+        await updateNotificationStatus(messageId, 'pending');
+      }
+      return { success: true, message: 'Message waiting event logged' };
+    }
+
+    case 'message.failed': {
+      // Message failed
+      const errorMessage = messagePayload?.error || 'Unknown error';
+      if (messageId) {
+        await appendWebhookEvent(messageId, {
+          provider: 'waha',
+          event_type: event,
+          status: 'failed',
+          error: errorMessage,
+          raw_payload: payload,
+        });
+        await updateNotificationStatus(messageId, 'failed', undefined, errorMessage);
+      }
+      return { success: true, message: 'Message failed event processed' };
+    }
+
+    default: {
+      // Log unknown events for debugging
+      console.log(`[Webhook] Unknown WAHA event type: ${event}`);
+      return { success: true, message: `Unknown event type logged: ${event}` };
+    }
+  }
 }
 
 serve(async (req) => {
@@ -206,10 +415,16 @@ serve(async (req) => {
       const twilioPayload = parseTwilioPayload(body);
       parsedBody = twilioPayload;
       result = await processTwilioCallback(twilioPayload);
-    } else {
+    } else if (provider === 'resend') {
       const resendPayload: ResendWebhookPayload = JSON.parse(body);
       parsedBody = resendPayload;
       result = await processResendCallback(resendPayload);
+    } else if (provider === 'waha') {
+      const wahaPayload: WahaWebhookPayload = JSON.parse(body);
+      parsedBody = wahaPayload;
+      result = await processWahaCallback(wahaPayload);
+    } else {
+      result = { success: false, message: 'Unknown provider' };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
