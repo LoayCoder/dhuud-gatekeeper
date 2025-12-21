@@ -150,6 +150,7 @@ const PlatformSettings = lazy(() => import(/* webpackChunkName: "admin-platform-
 const HSSENotificationAnalytics = lazy(() => import(/* webpackChunkName: "admin-hsse-notification-analytics" */ "./pages/admin/HSSENotificationAnalytics"));
 const HSSENotifications = lazy(() => import(/* webpackChunkName: "admin-hsse-notifications" */ "./pages/admin/HSSENotifications"));
 const NotificationDeliveryLog = lazy(() => import(/* webpackChunkName: "admin-notification-delivery" */ "./pages/admin/NotificationDeliveryLog"));
+const WhatsAppTemplates = lazy(() => import(/* webpackChunkName: "admin-whatsapp-templates" */ "./pages/admin/WhatsAppTemplates"));
 
 const queryClient = new QueryClient();
 
