@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +10,19 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Send, CheckCircle2, XCircle, Loader2, MessageSquare, Settings2 } from "lucide-react";
+import { Send, CheckCircle2, XCircle, Loader2, MessageSquare, Settings2, Power, PowerOff } from "lucide-react";
+
+interface ProviderStatus {
+  activeProvider: 'wasender' | 'twilio';
+  wasenderConfigured: boolean;
+  twilioConfigured: boolean;
+}
 
 export function WhatsAppSettings() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  const { profile } = useAuth();
+  const currentTenantId = profile?.tenant_id;
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [testMessage, setTestMessage] = useState(
@@ -22,12 +31,86 @@ export function WhatsAppSettings() {
       : "Hello! This is a test message from the HSSE system."
   );
   const [sending, setSending] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
   const [lastResult, setLastResult] = useState<{
     success: boolean;
     provider: string;
     messageId?: string;
     error?: string;
   } | null>(null);
+
+  // Fetch current provider status
+  const fetchProviderStatus = async () => {
+    if (!currentTenantId) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('update-whatsapp-provider', {
+        body: { action: 'get', tenant_id: currentTenantId },
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        setProviderStatus({
+          activeProvider: data.activeProvider,
+          wasenderConfigured: data.wasenderConfigured,
+          twilioConfigured: data.twilioConfigured,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch provider status:', err);
+    } finally {
+      setLoadingStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProviderStatus();
+  }, [currentTenantId]);
+
+  const handleSwitchProvider = async (newProvider: 'wasender' | 'twilio') => {
+    if (!currentTenantId) {
+      toast.error(isRTL ? "لم يتم تحديد المستأجر" : "Tenant not identified");
+      return;
+    }
+
+    // Check if provider is configured
+    if (newProvider === 'wasender' && !providerStatus?.wasenderConfigured) {
+      toast.error(isRTL ? "WaSender غير مُعد. أضف WASENDER_API_KEY أولاً" : "WaSender not configured. Add WASENDER_API_KEY first");
+      return;
+    }
+    if (newProvider === 'twilio' && !providerStatus?.twilioConfigured) {
+      toast.error(isRTL ? "Twilio غير مُعد. أضف مفاتيح Twilio أولاً" : "Twilio not configured. Add Twilio keys first");
+      return;
+    }
+
+    setSwitching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('update-whatsapp-provider', {
+        body: { action: 'set', provider: newProvider, tenant_id: currentTenantId },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setProviderStatus(prev => prev ? { ...prev, activeProvider: newProvider } : null);
+        toast.success(
+          isRTL 
+            ? `تم التبديل إلى ${newProvider} بنجاح` 
+            : `Switched to ${newProvider} successfully`
+        );
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      toast.error(errorMessage);
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const handleSendTest = async () => {
     if (!phoneNumber.trim()) {
@@ -82,44 +165,106 @@ export function WhatsAppSettings() {
     }
   };
 
+  const ProviderCard = ({ 
+    provider, 
+    isActive, 
+    isConfigured, 
+    onActivate 
+  }: { 
+    provider: 'wasender' | 'twilio';
+    isActive: boolean;
+    isConfigured: boolean;
+    onActivate: () => void;
+  }) => {
+    const providerName = provider === 'wasender' ? 'WaSender' : 'Twilio';
+    
+    return (
+      <div className={`relative p-4 rounded-lg border-2 transition-all ${
+        isActive 
+          ? 'border-green-500 bg-green-500/10' 
+          : isConfigured 
+            ? 'border-border bg-muted/30 hover:border-primary/50' 
+            : 'border-dashed border-muted-foreground/30 bg-muted/10 opacity-60'
+      }`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {isActive ? (
+              <Power className="h-5 w-5 text-green-500" />
+            ) : (
+              <PowerOff className="h-5 w-5 text-muted-foreground" />
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{providerName}</span>
+                {isActive && (
+                  <Badge variant="default" className="bg-green-500 text-white text-xs">
+                    {isRTL ? "نشط" : "Active"}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isConfigured 
+                  ? (isRTL ? "✓ مُعد" : "✓ Configured") 
+                  : (isRTL ? "✗ غير مُعد" : "✗ Not configured")}
+              </p>
+            </div>
+          </div>
+          
+          {!isActive && (
+            <Button
+              size="sm"
+              variant={isConfigured ? "outline" : "ghost"}
+              disabled={!isConfigured || switching}
+              onClick={onActivate}
+            >
+              {switching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                isRTL ? "تفعيل" : "Activate"
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Provider Info Card */}
+      {/* Provider Toggle Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
-            {isRTL ? "إعدادات مزود الواتساب" : "WhatsApp Provider Settings"}
+            {isRTL ? "مزود الواتساب النشط" : "Active WhatsApp Provider"}
           </CardTitle>
           <CardDescription>
             {isRTL 
-              ? "يتم اكتشاف المزود النشط تلقائياً بناءً على المفاتيح المُعدة" 
-              : "Active provider is auto-detected based on configured API keys"}
+              ? "اختر المزود الذي تريد استخدامه لإرسال رسائل الواتساب" 
+              : "Choose which provider to use for sending WhatsApp messages"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                <Badge variant="outline" className="font-mono">WaSender</Badge>
-                <span className="text-sm text-muted-foreground">
-                  {isRTL ? "يتطلب" : "Requires"}: <code className="text-xs">WASENDER_API_KEY</code>
-                </span>
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                <Badge variant="outline" className="font-mono">Twilio</Badge>
-                <span className="text-sm text-muted-foreground">
-                  {isRTL ? "يتطلب" : "Requires"}: <code className="text-xs">TWILIO_*</code>
-                </span>
-              </div>
+          {loadingStatus ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-            
-            <p className="text-sm text-muted-foreground">
-              {isRTL 
-                ? "إذا تم إعداد WASENDER_API_KEY، سيتم استخدام WaSender. خلاف ذلك، سيتم استخدام Twilio." 
-                : "If WASENDER_API_KEY is configured, WaSender will be used. Otherwise, Twilio is used."}
-            </p>
-          </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ProviderCard
+                provider="wasender"
+                isActive={providerStatus?.activeProvider === 'wasender'}
+                isConfigured={providerStatus?.wasenderConfigured ?? false}
+                onActivate={() => handleSwitchProvider('wasender')}
+              />
+              <ProviderCard
+                provider="twilio"
+                isActive={providerStatus?.activeProvider === 'twilio'}
+                isConfigured={providerStatus?.twilioConfigured ?? false}
+                onActivate={() => handleSwitchProvider('twilio')}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -247,7 +392,7 @@ export function WhatsAppSettings() {
             <ol className="list-decimal list-inside space-y-1 ps-2">
               <li>{isRTL ? "احصل على مفتاح API من حساب WaSender" : "Get API key from your WaSender account"}</li>
               <li>{isRTL ? "أضف WASENDER_API_KEY في الإعدادات السرية" : "Add WASENDER_API_KEY in secrets settings"}</li>
-              <li>{isRTL ? "سيتم استخدام WaSender تلقائياً" : "WaSender will be used automatically"}</li>
+              <li>{isRTL ? "انقر على 'تفعيل' أعلاه لتفعيل WaSender" : "Click 'Activate' above to enable WaSender"}</li>
             </ol>
           </div>
           <div>
@@ -258,7 +403,7 @@ export function WhatsAppSettings() {
                 <code className="text-xs bg-muted px-1 rounded ms-1">TWILIO_AUTH_TOKEN</code>,
                 <code className="text-xs bg-muted px-1 rounded ms-1">TWILIO_WHATSAPP_NUMBER</code>
               </li>
-              <li>{isRTL ? "اختيارياً، أضف" : "Optionally, add"} <code className="text-xs bg-muted px-1 rounded">WHATSAPP_PROVIDER=twilio</code> {isRTL ? "لإجبار استخدام Twilio" : "to force Twilio"}</li>
+              <li>{isRTL ? "انقر على 'تفعيل' أعلاه لتفعيل Twilio" : "Click 'Activate' above to enable Twilio"}</li>
             </ol>
           </div>
         </CardContent>
