@@ -24,6 +24,7 @@ import {
   ClipboardCheck,
   Users,
   Settings,
+  Settings2,
   Building2,
   LogOut,
   ChevronRight,
@@ -61,6 +62,8 @@ import {
   Download,
   Share,
   CheckCircle2,
+  MessageSquare,
+  FileText,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -615,10 +618,31 @@ export function AppSidebar() {
           menuCode: 'admin_hsse_notification_analytics',
         },
         {
-          title: t('navigation.notificationDeliveryLog', 'Notification Delivery Log'),
-          url: "/admin/notification-logs",
-          icon: Radio,
-          menuCode: 'admin_notification_logs',
+          title: t('navigation.whatsapp', 'WhatsApp'),
+          icon: MessageSquare,
+          menuCode: 'admin_whatsapp',
+          isActive: location.pathname.startsWith("/admin/whatsapp") || 
+                    location.pathname === "/admin/notification-logs",
+          subItems: [
+            {
+              title: t('navigation.whatsappProviders', 'Provider Settings'),
+              url: "/admin/whatsapp-settings",
+              icon: Settings2,
+              menuCode: 'admin_whatsapp_settings',
+            },
+            {
+              title: t('navigation.whatsappTemplates', 'Message Templates'),
+              url: "/admin/whatsapp-templates",
+              icon: FileText,
+              menuCode: 'admin_whatsapp_templates',
+            },
+            {
+              title: t('navigation.deliveryLog', 'Delivery Log'),
+              url: "/admin/notification-logs",
+              icon: Radio,
+              menuCode: 'admin_notification_logs',
+            },
+          ],
         },
       ],
     },

@@ -1355,7 +1355,12 @@
     "hsseNotifications": "إشعارات الصحة والسلامة",
     "notificationManagement": "إدارة الإشعارات",
     "notificationAnalytics": "تحليلات الإشعارات",
-    "notificationDeliveryLog": "سجل تسليم الإشعارات"
+    "notificationDeliveryLog": "سجل تسليم الإشعارات",
+    "whatsapp": "واتساب",
+    "whatsappSettings": "إعدادات واتساب",
+    "whatsappProviders": "إعدادات المزود",
+    "whatsappTemplates": "قوالب الرسائل",
+    "deliveryLog": "سجل التسليم"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

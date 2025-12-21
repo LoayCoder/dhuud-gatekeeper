@@ -1196,7 +1196,12 @@
     "hsseNotifications": "HSSE Notifications",
     "notificationManagement": "Manage Notifications",
     "notificationAnalytics": "Notification Analytics",
-    "notificationDeliveryLog": "Notification Delivery Log"
+    "notificationDeliveryLog": "Notification Delivery Log",
+    "whatsapp": "WhatsApp",
+    "whatsappSettings": "WhatsApp Settings",
+    "whatsappProviders": "Provider Settings",
+    "whatsappTemplates": "Message Templates",
+    "deliveryLog": "Delivery Log"
   },
   "actions": {
     "sessionActions": "Session Actions",
