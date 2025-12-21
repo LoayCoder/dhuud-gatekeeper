@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
+import { sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -138,8 +138,11 @@ Deno.serve(async (req) => {
 
     const whatsappMessage = getLocalizedMessage(preferredLang, worker.full_name, project.project_name, videoLinks);
 
-    // Send via Twilio WhatsApp API
-    const twilioResult = await sendWhatsAppMessage(worker.mobile_number, whatsappMessage);
+    // Send via active WhatsApp provider
+    const activeProvider = getActiveProvider();
+    console.log(`[Induction] Using provider: ${activeProvider}`);
+    
+    const result = await sendWhatsAppText(worker.mobile_number, whatsappMessage);
 
     // Log the induction send
     await supabase.from('contractor_module_audit_logs').insert({
@@ -152,19 +155,21 @@ Deno.serve(async (req) => {
         videos_sent: inductionRecords.length,
         preferred_language: preferredLang,
         mobile_number: worker.mobile_number,
-        twilio_success: twilioResult.success,
-        twilio_message_sid: twilioResult.messageSid,
-        twilio_error: twilioResult.error,
+        provider: result.provider,
+        provider_success: result.success,
+        provider_message_id: result.messageId,
+        provider_error: result.error,
       },
     });
 
-    console.log(`[Induction] Videos sent to ${worker.full_name} (${worker.mobile_number}) for project ${project.project_name} - Twilio success: ${twilioResult.success}`);
+    console.log(`[Induction] Videos sent to ${worker.full_name} (${worker.mobile_number}) for project ${project.project_name} - ${result.provider} success: ${result.success}`);
 
-    if (!twilioResult.success) {
+    if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: twilioResult.error,
+          error: result.error,
+          provider: result.provider,
           message: `Failed to send WhatsApp message to ${worker.mobile_number}`,
           worker_name: worker.full_name,
           project_name: project.project_name,
@@ -178,7 +183,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message_sid: twilioResult.messageSid,
+        message_id: result.messageId,
+        provider: result.provider,
         message: `Induction videos sent to ${worker.mobile_number}`,
         worker_name: worker.full_name,
         project_name: project.project_name,

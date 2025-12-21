@@ -6,7 +6,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export type NotificationChannel = 'whatsapp' | 'email' | 'sms';
-export type NotificationProvider = 'twilio' | 'resend' | 'twilio_sms';
+export type NotificationProvider = 'twilio' | 'resend' | 'twilio_sms' | 'wasender';
 export type NotificationStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed' | 'bounced' | 'complained';
 
 export interface NotificationLogEntry {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendWhatsAppTemplate, TEMPLATE_SIDS } from "../_shared/twilio-whatsapp.ts";
+import { sendWhatsAppTemplateMessage, sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
+import { TEMPLATE_SIDS } from "../_shared/twilio-whatsapp.ts";
 import { logNotificationSent } from "../_shared/notification-logger.ts";
 
 const corsHeaders = {
@@ -156,31 +157,40 @@ serve(async (req) => {
       }
     }
     
-    // Send via Twilio WhatsApp Content Template API
-    const twilioResult = await sendWhatsAppTemplate(recipientPhone, templateSid, variables);
+    // Generate fallback message for WaSender (which doesn't support Twilio templates)
+    const fallbackMessage = notification_type === 'host_notification'
+      ? `📢 Visitor Alert\n\n${variables["1"]} has arrived at ${variables["2"]} at ${variables["3"]}.`
+      : `🏢 Welcome to ${variables["2"]}!\n\n👤 ${variables["1"]}\n📍 Destination: ${variables["3"]}\n⏱️ Duration: ${variables["4"]}\n\n⚠️ Safety: ${variables["5"]}\n📞 Emergency: ${variables["6"]}\n📝 Notes: ${variables["7"]}\n\n🔗 Pass: ${variables["8"]}`;
     
-    if (!twilioResult.success) {
-      console.error(`[WhatsApp] Failed to send message: ${twilioResult.error}`);
+    // Send via active WhatsApp provider
+    const activeProvider = getActiveProvider();
+    console.log(`[WhatsApp] Using provider: ${activeProvider}`);
+    
+    const result = await sendWhatsAppTemplateMessage(recipientPhone, templateSid, variables, fallbackMessage);
+    
+    if (!result.success) {
+      console.error(`[WhatsApp] Failed to send message: ${result.error}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: twilioResult.error,
+          error: result.error,
           recipient: recipientPhone,
-          notification_type 
+          notification_type,
+          provider: result.provider
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     // Log to notification_logs for delivery tracking
-    if (twilioResult.messageSid) {
+    if (result.messageId) {
       await logNotificationSent({
         tenant_id,
         channel: 'whatsapp',
-        provider: 'twilio',
-        provider_message_id: twilioResult.messageSid,
+        provider: result.provider,
+        provider_message_id: result.messageId,
         to_address: recipientPhone,
-        template_name: templateSid,
+        template_name: result.provider === 'twilio' ? templateSid : 'text_message',
         status: 'pending',
         related_entity_type: entry_id ? 'gate_entry' : undefined,
         related_entity_id: entry_id || undefined,
@@ -191,16 +201,18 @@ serve(async (req) => {
           visit_duration_hours,
           has_hsse_instructions: !!tenant?.visitor_hsse_instructions_ar || !!tenant?.visitor_hsse_instructions_en,
           has_emergency_contact: !!tenant?.emergency_contact_number,
+          provider: result.provider,
         }
       });
     }
     
     const response = {
       success: true,
-      message_sid: twilioResult.messageSid,
+      message_id: result.messageId,
+      provider: result.provider,
       recipient: recipientPhone,
       notification_type,
-      template_sid: templateSid,
+      template_sid: result.provider === 'twilio' ? templateSid : null,
       variables_sent: Object.keys(variables).length,
       sent_at: new Date().toISOString()
     };

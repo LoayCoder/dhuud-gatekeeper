@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { logNotificationSent } from "../_shared/notification-logger.ts";
+import { sendWhatsAppText, getActiveProvider, isProviderConfigured } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,70 +20,44 @@ serve(async (req) => {
       throw new Error('Phone number is required');
     }
 
-    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-    const fromNumber = Deno.env.get('TWILIO_WHATSAPP_NUMBER');
-
-    if (!accountSid || !authToken || !fromNumber) {
-      throw new Error('Twilio credentials not configured');
+    // Check provider configuration
+    const providerStatus = isProviderConfigured();
+    if (!providerStatus.configured) {
+      throw new Error(`${providerStatus.provider} credentials not configured. Missing: ${providerStatus.missing.join(', ')}`);
     }
 
+    const activeProvider = getActiveProvider();
+    console.log(`[Test WhatsApp] Using provider: ${activeProvider}`);
     console.log('Sending test WhatsApp message to:', phone_number);
-    console.log('Using Twilio Account SID:', accountSid.substring(0, 10) + '...');
-    console.log('From WhatsApp Number:', fromNumber);
 
-    // Format phone number for WhatsApp
-    let formattedPhone = phone_number.replace(/\s+/g, '').replace(/-/g, '');
-    if (!formattedPhone.startsWith('+')) {
-      formattedPhone = '+' + formattedPhone;
-    }
-    
-    const toWhatsApp = `whatsapp:${formattedPhone}`;
-    const fromWhatsApp = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
+    const testMessage = message || `🧪 Test Message from HSSA Platform\n\nThis is a test WhatsApp message sent at ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })} (Riyadh Time).\n\nProvider: ${activeProvider.toUpperCase()}\n\nIf you received this message, your WhatsApp API is working correctly! ✅`;
 
-    const testMessage = message || `🧪 Test Message from HSSA Platform\n\nThis is a test WhatsApp message sent at ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })} (Riyadh Time).\n\nIf you received this message, your WhatsApp API is working correctly! ✅`;
+    // Send via the active provider
+    const result = await sendWhatsAppText(phone_number, testMessage);
 
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    
-    const formData = new URLSearchParams();
-    formData.append('To', toWhatsApp);
-    formData.append('From', fromWhatsApp);
-    formData.append('Body', testMessage);
-
-    const response = await fetch(twilioUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error('Twilio API error:', result);
-      throw new Error(result.message || 'Failed to send WhatsApp message');
+    if (!result.success) {
+      console.error(`${activeProvider} API error:`, result.error);
+      throw new Error(result.error || 'Failed to send WhatsApp message');
     }
 
-    console.log('WhatsApp message sent successfully:', result.sid);
+    console.log('WhatsApp message sent successfully:', result.messageId);
 
     // Log the notification to the notification_logs table
     if (tenant_id) {
       const logResult = await logNotificationSent({
         tenant_id: tenant_id,
         channel: 'whatsapp',
-        provider: 'twilio',
-        provider_message_id: result.sid,
-        to_address: toWhatsApp,
-        from_address: fromWhatsApp,
+        provider: activeProvider,
+        provider_message_id: result.messageId || 'sent',
+        to_address: phone_number,
         template_name: 'test_message',
         subject: 'Test WhatsApp Message',
-        status: result.status === 'queued' || result.status === 'sent' ? 'sent' : 'pending',
+        status: 'sent',
         related_entity_type: 'test',
         metadata: {
           test_type: 'manual_test',
           message_preview: testMessage.substring(0, 100),
+          provider: activeProvider,
         },
       });
 
@@ -98,10 +73,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message_sid: result.sid,
-        status: result.status,
-        to: toWhatsApp,
-        from: fromWhatsApp,
+        message_id: result.messageId,
+        provider: activeProvider,
+        to: phone_number,
         logged: !!tenant_id,
       }),
       { 
@@ -117,6 +91,7 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         error: errorMessage,
+        provider: getActiveProvider(),
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

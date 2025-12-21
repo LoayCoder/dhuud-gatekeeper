@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { sendWhatsAppMessage } from "../_shared/twilio-whatsapp.ts";
+import { sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -103,18 +103,22 @@ serve(async (req) => {
     
     const fullMessage = messages.join('\n\n');
     
-    // Send via Twilio WhatsApp API
-    const twilioResult = await sendWhatsAppMessage(mobile_number, fullMessage);
+    // Send via active WhatsApp provider
+    const activeProvider = getActiveProvider();
+    console.log(`[ContractorAlert] Using provider: ${activeProvider}`);
     
-    if (!twilioResult.success) {
-      console.error(`[ContractorAlert] Failed to send message: ${twilioResult.error}`);
+    const result = await sendWhatsAppText(mobile_number, fullMessage);
+    
+    if (!result.success) {
+      console.error(`[ContractorAlert] Failed to send message: ${result.error}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: twilioResult.error,
+          error: result.error,
           recipient: mobile_number,
           language_used: language,
-          error_codes: errors
+          error_codes: errors,
+          provider: result.provider
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -122,7 +126,8 @@ serve(async (req) => {
     
     const response = {
       success: true,
-      message_sid: twilioResult.messageSid,
+      message_id: result.messageId,
+      provider: result.provider,
       recipient: mobile_number,
       language_used: language,
       error_codes: errors,
