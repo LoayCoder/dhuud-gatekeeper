@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
-import { Clock, Plus, Pencil, Trash2, Building2, MapPin, Users, Briefcase, Calendar, FileText, Upload, Download, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
+import { Clock, Plus, Pencil, Trash2, Building2, MapPin, Users, Briefcase, Calendar, FileText, Upload, Download, TrendingUp, Loader2, AlertCircle, Calculator, Hash } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -26,6 +27,11 @@ interface ManhourFormData {
   period_type: 'daily' | 'weekly' | 'monthly';
   employee_hours: number;
   contractor_hours: number;
+  employee_count: number;
+  contractor_count: number;
+  hours_per_day: number;
+  working_days: number;
+  calculation_mode: 'manual' | 'auto';
   branch_id: string;
   site_id: string;
   department_id: string;
@@ -37,6 +43,10 @@ interface ImportRow {
   period_type: string;
   employee_hours: number;
   contractor_hours: number;
+  employee_count?: number;
+  contractor_count?: number;
+  hours_per_day?: number;
+  working_days?: number;
   branch_name?: string;
   site_name?: string;
   notes?: string;
@@ -44,11 +54,25 @@ interface ImportRow {
   errors: string[];
 }
 
+const getDefaultWorkingDays = (periodType: 'daily' | 'weekly' | 'monthly') => {
+  switch (periodType) {
+    case 'daily': return 1;
+    case 'weekly': return 5;
+    case 'monthly': return 22;
+    default: return 22;
+  }
+};
+
 const defaultFormData: ManhourFormData = {
   period_date: format(new Date(), 'yyyy-MM-dd'),
   period_type: 'monthly',
   employee_hours: 0,
   contractor_hours: 0,
+  employee_count: 0,
+  contractor_count: 0,
+  hours_per_day: 8,
+  working_days: 22,
+  calculation_mode: 'manual',
   branch_id: '',
   site_id: '',
   department_id: '',
@@ -88,6 +112,11 @@ export default function ManhoursManagement() {
         period_type: record.period_type as 'daily' | 'weekly' | 'monthly',
         employee_hours: Number(record.employee_hours),
         contractor_hours: Number(record.contractor_hours),
+        employee_count: Number(record.employee_count) || 0,
+        contractor_count: Number(record.contractor_count) || 0,
+        hours_per_day: Number(record.hours_per_day) || 8,
+        working_days: Number(record.working_days) || getDefaultWorkingDays(record.period_type as 'daily' | 'weekly' | 'monthly'),
+        calculation_mode: (record.calculation_mode as 'manual' | 'auto') || 'manual',
         branch_id: record.branch_id || '',
         site_id: record.site_id || '',
         department_id: record.department_id || '',
@@ -100,6 +129,54 @@ export default function ManhoursManagement() {
     setIsDialogOpen(true);
   };
 
+  // Auto-calculate hours when in auto mode
+  const calculateHours = (count: number, hoursPerDay: number, workingDays: number) => {
+    return count * hoursPerDay * workingDays;
+  };
+
+  // Handle period type change - update working days automatically
+  const handlePeriodTypeChange = (value: 'daily' | 'weekly' | 'monthly') => {
+    const newWorkingDays = getDefaultWorkingDays(value);
+    const newFormData = { ...formData, period_type: value, working_days: newWorkingDays };
+    
+    if (formData.calculation_mode === 'auto') {
+      newFormData.employee_hours = calculateHours(formData.employee_count, formData.hours_per_day, newWorkingDays);
+      newFormData.contractor_hours = calculateHours(formData.contractor_count, formData.hours_per_day, newWorkingDays);
+    }
+    
+    setFormData(newFormData);
+  };
+
+  // Handle calculation mode toggle
+  const handleCalculationModeChange = (isAuto: boolean) => {
+    const mode = isAuto ? 'auto' : 'manual';
+    const newFormData = { ...formData, calculation_mode: mode as 'manual' | 'auto' };
+    
+    if (isAuto) {
+      newFormData.employee_hours = calculateHours(formData.employee_count, formData.hours_per_day, formData.working_days);
+      newFormData.contractor_hours = calculateHours(formData.contractor_count, formData.hours_per_day, formData.working_days);
+    }
+    
+    setFormData(newFormData);
+  };
+
+  // Handle manpower count changes
+  const handleManpowerChange = (field: 'employee_count' | 'contractor_count' | 'hours_per_day' | 'working_days', value: number) => {
+    const newFormData = { ...formData, [field]: value };
+    
+    if (formData.calculation_mode === 'auto') {
+      const employeeCount = field === 'employee_count' ? value : formData.employee_count;
+      const contractorCount = field === 'contractor_count' ? value : formData.contractor_count;
+      const hoursPerDay = field === 'hours_per_day' ? value : formData.hours_per_day;
+      const workingDays = field === 'working_days' ? value : formData.working_days;
+      
+      newFormData.employee_hours = calculateHours(employeeCount, hoursPerDay, workingDays);
+      newFormData.contractor_hours = calculateHours(contractorCount, hoursPerDay, workingDays);
+    }
+    
+    setFormData(newFormData);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -108,6 +185,11 @@ export default function ManhoursManagement() {
       period_type: formData.period_type,
       employee_hours: formData.employee_hours,
       contractor_hours: formData.contractor_hours,
+      employee_count: formData.employee_count,
+      contractor_count: formData.contractor_count,
+      hours_per_day: formData.hours_per_day,
+      working_days: formData.working_days,
+      calculation_mode: formData.calculation_mode,
       branch_id: formData.branch_id || null,
       site_id: formData.site_id || null,
       department_id: formData.department_id || null,
@@ -516,9 +598,7 @@ export default function ManhoursManagement() {
                 <Label htmlFor="period_type">{t('admin.manhours.periodType', 'Period Type')}</Label>
                 <Select
                   value={formData.period_type}
-                  onValueChange={(value: 'daily' | 'weekly' | 'monthly') => 
-                    setFormData({ ...formData, period_type: value })
-                  }
+                  onValueChange={handlePeriodTypeChange}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -532,33 +612,149 @@ export default function ManhoursManagement() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="employee_hours">{t('admin.manhours.employeeHours', 'Employee Hours')}</Label>
-                <Input
-                  id="employee_hours"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.employee_hours}
-                  onChange={(e) => setFormData({ ...formData, employee_hours: Number(e.target.value) })}
-                  required
-                />
+            {/* Calculation Mode Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-primary" />
+                <Label htmlFor="calculation_mode" className="cursor-pointer">
+                  {t('admin.manhours.autoCalculate', 'Auto-calculate from manpower')}
+                </Label>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="contractor_hours">{t('admin.manhours.contractorHours', 'Contractor Hours')}</Label>
-                <Input
-                  id="contractor_hours"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.contractor_hours}
-                  onChange={(e) => setFormData({ ...formData, contractor_hours: Number(e.target.value) })}
-                  required
-                />
-              </div>
+              <Switch
+                id="calculation_mode"
+                checked={formData.calculation_mode === 'auto'}
+                onCheckedChange={handleCalculationModeChange}
+              />
             </div>
+
+            {/* Manpower Count Fields - Show when auto mode */}
+            {formData.calculation_mode === 'auto' && (
+              <div className="space-y-4 p-4 rounded-lg border bg-primary/5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="employee_count" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      {t('admin.manhours.employeeCount', 'Employee Count')}
+                    </Label>
+                    <Input
+                      id="employee_count"
+                      type="number"
+                      min="0"
+                      value={formData.employee_count}
+                      onChange={(e) => handleManpowerChange('employee_count', Number(e.target.value))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contractor_count" className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      {t('admin.manhours.contractorCount', 'Contractor Count')}
+                    </Label>
+                    <Input
+                      id="contractor_count"
+                      type="number"
+                      min="0"
+                      value={formData.contractor_count}
+                      onChange={(e) => handleManpowerChange('contractor_count', Number(e.target.value))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hours_per_day" className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {t('admin.manhours.hoursPerDay', 'Hours per Day')}
+                    </Label>
+                    <Input
+                      id="hours_per_day"
+                      type="number"
+                      min="0"
+                      max="24"
+                      step="0.5"
+                      value={formData.hours_per_day}
+                      onChange={(e) => handleManpowerChange('hours_per_day', Number(e.target.value))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="working_days" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {t('admin.manhours.workingDays', 'Working Days')}
+                    </Label>
+                    <Input
+                      id="working_days"
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={formData.working_days}
+                      onChange={(e) => handleManpowerChange('working_days', Number(e.target.value))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Calculated Hours Display */}
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                  <div className="text-center p-3 rounded-lg bg-primary/10">
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {t('admin.manhours.calculatedEmployeeHours', 'Calculated Employee Hours')}
+                    </div>
+                    <div className="text-xl font-bold text-primary">
+                      {formatNumber(formData.employee_hours)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formData.employee_count} × {formData.hours_per_day} × {formData.working_days}
+                    </div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-orange-500/10">
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {t('admin.manhours.calculatedContractorHours', 'Calculated Contractor Hours')}
+                    </div>
+                    <div className="text-xl font-bold text-orange-500">
+                      {formatNumber(formData.contractor_hours)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formData.contractor_count} × {formData.hours_per_day} × {formData.working_days}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Manual Hours Entry - Show when manual mode */}
+            {formData.calculation_mode === 'manual' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="employee_hours">{t('admin.manhours.employeeHours', 'Employee Hours')}</Label>
+                  <Input
+                    id="employee_hours"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.employee_hours}
+                    onChange={(e) => setFormData({ ...formData, employee_hours: Number(e.target.value) })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contractor_hours">{t('admin.manhours.contractorHours', 'Contractor Hours')}</Label>
+                  <Input
+                    id="contractor_hours"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.contractor_hours}
+                    onChange={(e) => setFormData({ ...formData, contractor_hours: Number(e.target.value) })}
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="branch_id">{t('admin.manhours.branch', 'Branch')}</Label>

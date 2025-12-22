@@ -9,6 +9,11 @@ interface ManhourRecord {
   period_type: 'daily' | 'weekly' | 'monthly';
   employee_hours: number;
   contractor_hours: number;
+  employee_count: number;
+  contractor_count: number;
+  hours_per_day: number;
+  working_days: number;
+  calculation_mode: 'manual' | 'auto';
   branch_id: string | null;
   site_id: string | null;
   department_id: string | null;
@@ -26,6 +31,11 @@ interface CreateManhourInput {
   period_type: 'daily' | 'weekly' | 'monthly';
   employee_hours: number;
   contractor_hours: number;
+  employee_count?: number;
+  contractor_count?: number;
+  hours_per_day?: number;
+  working_days?: number;
+  calculation_mode?: 'manual' | 'auto';
   branch_id?: string | null;
   site_id?: string | null;
   department_id?: string | null;
@@ -45,6 +55,11 @@ export function useManhours(startDate?: string, endDate?: string) {
           period_type,
           employee_hours,
           contractor_hours,
+          employee_count,
+          contractor_count,
+          hours_per_day,
+          working_days,
+          calculation_mode,
           branch_id,
           site_id,
           department_id,

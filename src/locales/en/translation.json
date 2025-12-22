@@ -5097,7 +5097,18 @@
       "negativeHours": "Hours cannot be negative",
       "duplicateWarning": "Duplicate record for this period and location",
       "trend": "Trend",
-      "trendDescription": "Historical manhours trend over time"
+      "trendDescription": "Historical manhours trend over time",
+      "autoCalculate": "Auto-calculate from manpower",
+      "employeeCount": "Employee Count",
+      "contractorCount": "Contractor Count",
+      "hoursPerDay": "Hours per Day",
+      "workingDays": "Working Days",
+      "calculatedEmployeeHours": "Calculated Employee Hours",
+      "calculatedContractorHours": "Calculated Contractor Hours",
+      "manpowerLabel": "Manpower",
+      "calculationMode": "Calculation Mode",
+      "manualEntry": "Manual Entry",
+      "autoEntry": "Auto Calculate"
     }
   },
   "visitors": {

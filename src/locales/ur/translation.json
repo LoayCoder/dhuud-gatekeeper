@@ -4799,7 +4799,18 @@
       "negativeHours": "گھنٹے منفی نہیں ہو سکتے",
       "duplicateWarning": "اس مدت اور مقام کے لیے ڈپلیکیٹ ریکارڈ",
       "trend": "رجحان",
-      "trendDescription": "تاریخی مین آورز کا رجحان"
+      "trendDescription": "تاریخی مین آورز کا رجحان",
+      "autoCalculate": "افرادی قوت سے خودکار حساب",
+      "employeeCount": "ملازمین کی تعداد",
+      "contractorCount": "ٹھیکیداروں کی تعداد",
+      "hoursPerDay": "روزانہ گھنٹے",
+      "workingDays": "کام کے دن",
+      "calculatedEmployeeHours": "حساب شدہ ملازم گھنٹے",
+      "calculatedContractorHours": "حساب شدہ ٹھیکیدار گھنٹے",
+      "manpowerLabel": "افرادی قوت",
+      "calculationMode": "حساب کا طریقہ",
+      "manualEntry": "دستی اندراج",
+      "autoEntry": "خودکار حساب"
     }
   },
   "visitors": {

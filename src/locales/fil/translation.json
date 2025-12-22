@@ -4778,7 +4778,18 @@
       "negativeHours": "Hindi maaaring negatibo ang oras",
       "duplicateWarning": "Duplicate na rekord para sa panahon at lokasyon na ito",
       "trend": "Trend",
-      "trendDescription": "Makasaysayang trend ng manhours"
+      "trendDescription": "Makasaysayang trend ng manhours",
+      "autoCalculate": "Auto-kalkulahin mula sa manpower",
+      "employeeCount": "Bilang ng Empleyado",
+      "contractorCount": "Bilang ng Contractor",
+      "hoursPerDay": "Oras bawat Araw",
+      "workingDays": "Araw ng Trabaho",
+      "calculatedEmployeeHours": "Nakalkula na Oras ng Empleyado",
+      "calculatedContractorHours": "Nakalkula na Oras ng Contractor",
+      "manpowerLabel": "Manpower",
+      "calculationMode": "Uri ng Kalkulasyon",
+      "manualEntry": "Manual na Pagpasok",
+      "autoEntry": "Auto Kalkulahin"
     }
   },
   "visitors": {

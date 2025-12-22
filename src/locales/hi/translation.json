@@ -4784,7 +4784,18 @@
       "negativeHours": "घंटे नकारात्मक नहीं हो सकते",
       "duplicateWarning": "इस अवधि और स्थान के लिए डुप्लीकेट रिकॉर्ड",
       "trend": "प्रवृत्ति",
-      "trendDescription": "ऐतिहासिक मैनआवर्स प्रवृत्ति"
+      "trendDescription": "ऐतिहासिक मैनआवर्स प्रवृत्ति",
+      "autoCalculate": "जनशक्ति से स्वचालित गणना",
+      "employeeCount": "कर्मचारियों की संख्या",
+      "contractorCount": "ठेकेदारों की संख्या",
+      "hoursPerDay": "प्रति दिन घंटे",
+      "workingDays": "कार्य दिवस",
+      "calculatedEmployeeHours": "गणना किए गए कर्मचारी घंटे",
+      "calculatedContractorHours": "गणना किए गए ठेकेदार घंटे",
+      "manpowerLabel": "जनशक्ति",
+      "calculationMode": "गणना मोड",
+      "manualEntry": "मैन्युअल प्रविष्टि",
+      "autoEntry": "स्वचालित गणना"
     }
   },
   "visitors": {
