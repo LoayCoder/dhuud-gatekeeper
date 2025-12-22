@@ -5912,5 +5912,27 @@
     "high": "High",
     "critical": "Critical",
     "unassigned": "N/A"
+  },
+  "settings": {
+    "eventCategories": {
+      "title": "Event Category Management",
+      "description": "Enable or disable HSSE event categories and subtypes for your organization",
+      "pageTitle": "Event Categories",
+      "pageDescription": "Manage which event categories and subtypes are available when reporting incidents",
+      "activeCategories": "{{count}}/{{total}} categories active",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "searchPlaceholder": "Search categories or subtypes...",
+      "customized": "Customized",
+      "categoryEnabled": "Category enabled",
+      "categoryDisabled": "Category disabled",
+      "subtypeEnabled": "Subtype enabled",
+      "subtypeDisabled": "Subtype disabled",
+      "noMatchingCategories": "No matching categories found",
+      "noCategories": "No categories available",
+      "noMatchingSubtypes": "No matching subtypes found",
+      "noSubtypes": "No subtypes available",
+      "infoNote": "Disabled categories and subtypes will not appear in incident reporting forms. Changes apply immediately to all users in your organization."
+    }
   }
 }
