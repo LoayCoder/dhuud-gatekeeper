@@ -2715,7 +2715,20 @@
     "noSearchResults": "No sites match your search.",
     "branch": "Branch",
     "division": "Division",
-    "site": "Site"
+    "site": "Site",
+    "siteLocation": "Site Location & Boundary",
+    "setMarker": "Set Marker",
+    "drawBoundary": "Draw Boundary",
+    "polygonPoints": "{{count}} points",
+    "needMorePoints": "Need {{count}} more point(s)",
+    "departmentAssigned": "Department assigned to site",
+    "departmentRemoved": "Department removed from site",
+    "primaryDepartmentSet": "Primary department set",
+    "assignedDepartments": "Assigned Departments",
+    "assignDepartment": "Assign Department",
+    "noDepartmentsAssigned": "No departments assigned to this site",
+    "setPrimary": "Set as Primary",
+    "primary": "Primary"
   },
   "userManagement": {
     "title": "User Management",

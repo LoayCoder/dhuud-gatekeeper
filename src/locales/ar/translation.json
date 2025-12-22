@@ -2453,7 +2453,20 @@
     "noSearchResults": "لا توجد مواقع تطابق بحثك.",
     "branch": "الفرع",
     "division": "القسم الوظيفي",
-    "site": "الموقع"
+    "site": "الموقع",
+    "siteLocation": "موقع وحدود الموقع",
+    "setMarker": "تحديد العلامة",
+    "drawBoundary": "رسم الحدود",
+    "polygonPoints": "{{count}} نقاط",
+    "needMorePoints": "بحاجة إلى {{count}} نقطة إضافية",
+    "departmentAssigned": "تم تعيين الإدارة للموقع",
+    "departmentRemoved": "تمت إزالة الإدارة من الموقع",
+    "primaryDepartmentSet": "تم تعيين الإدارة الرئيسية",
+    "assignedDepartments": "الإدارات المعينة",
+    "assignDepartment": "تعيين إدارة",
+    "noDepartmentsAssigned": "لا توجد إدارات معينة لهذا الموقع",
+    "setPrimary": "تعيين كرئيسي",
+    "primary": "رئيسي"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
