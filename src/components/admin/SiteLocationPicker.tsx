@@ -218,22 +218,20 @@ export function SiteLocationPicker({
             )}
             
             {/* Show polygon points being drawn */}
-            {mode === 'polygon' && polygonPositions.length > 0 && polygonPositions.length < 3 && (
-              <>
-                {polygonPoints.map((point, idx) => (
-                  <Marker 
-                    key={idx} 
-                    position={[point.lat, point.lng]}
-                    icon={L.divIcon({
-                      className: 'custom-div-icon',
-                      html: `<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
-                      iconSize: [12, 12],
-                      iconAnchor: [6, 6],
-                    })}
-                  />
-                ))}
-              </>
-            )}
+            {mode === 'polygon' && polygonPositions.length > 0 && polygonPositions.length < 3 && 
+              polygonPoints.map((point, idx) => (
+                <Marker 
+                  key={idx} 
+                  position={[point.lat, point.lng]}
+                  icon={L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6],
+                  })}
+                />
+              ))
+            }
           </MapContainer>
         </div>
         
