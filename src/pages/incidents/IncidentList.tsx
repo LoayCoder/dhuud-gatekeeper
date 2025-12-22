@@ -39,15 +39,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-const getSeverityBadgeVariant = (severity: string | null) => {
-  switch (severity) {
-    case 'critical': return 'destructive';
-    case 'high': return 'destructive';
-    case 'medium': return 'secondary';
-    default: return 'outline';
-  }
-};
+import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 
 const getStatusBadgeVariant = (status: string | null) => {
   switch (status) {
@@ -209,9 +201,9 @@ export default function IncidentList() {
                     {incident.title}
                   </CardTitle>
                   <div className="flex items-center gap-1">
-                    {incident.severity && (
-                      <Badge variant={getSeverityBadgeVariant(incident.severity)}>
-                        {t(`incidents.severityLevels.${incident.severity}`)}
+                    {incident.severity_v2 && (
+                      <Badge variant={getSeverityBadgeVariant(incident.severity_v2)}>
+                        {t(`severity.${incident.severity_v2}.label`)}
                       </Badge>
                     )}
                     {hasHSSEAccess && (

@@ -31,15 +31,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
-
-const getSeverityBadgeVariant = (severity: string | null) => {
-  switch (severity) {
-    case 'critical': return 'destructive';
-    case 'high': return 'destructive';
-    case 'medium': return 'secondary';
-    default: return 'outline';
-  }
-};
+import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -196,9 +188,9 @@ export default function IncidentDetail() {
 
       {/* Status and Type Badges - Read-only display (status changes via workflow only) */}
       <div className="flex flex-wrap gap-2 items-center">
-        {incident.severity && (
-          <Badge variant={getSeverityBadgeVariant(incident.severity)} className="text-sm">
-            {t(`incidents.severityLevels.${incident.severity}`)}
+        {incident.severity_v2 && (
+          <Badge variant={getSeverityBadgeVariant(incident.severity_v2)} className="text-sm">
+            {t(`severity.${incident.severity_v2}.label`)}
           </Badge>
         )}
         {incident.status && (

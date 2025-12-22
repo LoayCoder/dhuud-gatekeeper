@@ -163,7 +163,7 @@ export function useIncidents() {
 
       const { data, error } = await supabase
         .from('incidents')
-        .select('id, reference_id, title, event_type, severity, status, occurred_at, created_at')
+        .select('id, reference_id, title, event_type, severity, severity_v2, status, occurred_at, created_at')
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
@@ -188,6 +188,9 @@ export interface IncidentWithDetails {
   occurred_at: string | null;
   location: string | null;
   severity: 'low' | 'medium' | 'high' | 'critical' | null;
+  severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  original_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  severity_override_reason: string | null;
   status: 'submitted' | 'pending_review' | 'investigation_pending' | 'investigation_in_progress' | 'closed' | null;
   immediate_actions: string | null;
   has_injury: boolean | null;
@@ -242,7 +245,8 @@ export function useIncident(id: string | undefined) {
         .from('incidents')
         .select(`
           id, reference_id, title, description, event_type, subtype, 
-          occurred_at, location, severity, status, immediate_actions,
+          occurred_at, location, severity, severity_v2, original_severity_v2, severity_override_reason, 
+          status, immediate_actions,
           has_injury, injury_details, has_damage, damage_details,
           latitude, longitude, media_attachments, ai_analysis_result,
           created_at, updated_at, tenant_id, reporter_id,
@@ -266,6 +270,9 @@ export function useIncident(id: string | undefined) {
       const extended = data as unknown as Record<string, unknown>;
       return {
         ...data,
+        severity_v2: extended.severity_v2 ?? null,
+        original_severity_v2: extended.original_severity_v2 ?? null,
+        severity_override_reason: extended.severity_override_reason ?? null,
         approved_by: extended.approved_by ?? null,
         approved_at: extended.approved_at ?? null,
         approval_notes: extended.approval_notes ?? null,

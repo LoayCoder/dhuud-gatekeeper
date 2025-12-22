@@ -5,6 +5,7 @@ import { Lock, AlertTriangle, Calendar, MapPin, FileText, Shield, Zap } from "lu
 import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
+import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
 
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
@@ -14,16 +15,6 @@ interface IncidentInfoCardProps {
 export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-
-  const getSeverityVariant = (severity: string | null) => {
-    switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'outline';
-    }
-  };
 
   const InfoItem = ({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) => (
     <div className="space-y-1">
@@ -59,8 +50,8 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               <Badge variant="outline" className="font-mono">
                 {incident.reference_id}
               </Badge>
-              <Badge variant={getSeverityVariant(incident.severity)}>
-                {incident.severity ? t(`incidents.severity.${incident.severity}`) : t('common.unknown')}
+              <Badge variant={getSeverityBadgeVariant(incident.severity_v2)}>
+                {incident.severity_v2 ? t(`severity.${incident.severity_v2}.label`) : t('common.unknown')}
               </Badge>
               <Badge variant="secondary">
                 {t(`incidents.status.${incident.status}`)}
