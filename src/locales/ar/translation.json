@@ -13,6 +13,7 @@
     "avgClosureDays": "متوسط أيام الإغلاق",
     "yoyChange": "التغيير السنوي",
     "eventsByType": "الأحداث حسب النوع",
+    "incidentTypeBreakdown": "توزيع أنواع الحوادث",
     "eventsBySeverity": "الأحداث حسب الخطورة",
     "eventsByStatus": "الأحداث حسب الحالة",
     "monthlyTrend": "الاتجاه الشهري للأحداث",

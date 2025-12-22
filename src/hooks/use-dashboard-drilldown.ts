@@ -4,6 +4,7 @@ import { useDrilldownContextOptional } from "@/contexts/DrilldownContext";
 
 export type DrillDownFilter = {
   eventType?: string;
+  incidentType?: string;
   severity?: string;
   status?: string;
   branchId?: string;
@@ -36,6 +37,7 @@ export function useDashboardDrilldown() {
     // Fallback to navigation
     const params = new URLSearchParams();
     if (filters.eventType) params.set('eventType', filters.eventType);
+    if (filters.incidentType) params.set('incidentType', filters.incidentType);
     if (filters.severity) params.set('severity', filters.severity);
     if (filters.status) params.set('status', filters.status);
     if (filters.branchId) params.set('branchId', filters.branchId);

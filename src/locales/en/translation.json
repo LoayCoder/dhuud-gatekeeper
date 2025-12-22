@@ -13,6 +13,7 @@
     "avgClosureDays": "Avg. Closure Days",
     "yoyChange": "YoY Change",
     "eventsByType": "Events by Type",
+    "incidentTypeBreakdown": "Incident Type Breakdown",
     "eventsBySeverity": "Events by Severity",
     "eventsByStatus": "Events by Status",
     "monthlyTrend": "Monthly Event Trend",
