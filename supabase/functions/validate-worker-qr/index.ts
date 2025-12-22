@@ -1,9 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPrelight, verifyAuth, unauthorizedResponse } from '../_shared/cors.ts';
 
 interface ValidationRequest {
   qr_token: string;
@@ -29,6 +25,10 @@ interface ValidationResult {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,6 +37,13 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify authentication
+    const authResult = await verifyAuth(req, supabase);
+    if (!authResult?.user) {
+      console.error('[ValidateWorkerQR] Auth failed:', authResult?.error);
+      return unauthorizedResponse(authResult?.error || 'Unauthorized', origin);
+    }
 
     const { qr_token, site_id, zone_id, tenant_id }: ValidationRequest = await req.json();
 
@@ -188,11 +195,12 @@ Deno.serve(async (req) => {
       };
     }
 
-    // Log validation attempt
+    // Log validation attempt with authenticated user
     await supabase.from('contractor_module_audit_logs').insert({
       tenant_id,
       entity_type: 'worker_qr_code',
       entity_id: qrCode.id,
+      actor_id: authResult.user.id,
       action: result.is_valid ? 'qr_validated_success' : 'qr_validated_failed',
       new_value: {
         worker_id: qrCode.worker_id,
@@ -212,9 +220,10 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error validating worker QR:', error);
+    const origin = req.headers.get('Origin');
     return new Response(
       JSON.stringify({ is_valid: false, errors: ['Internal server error'] }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
     );
   }
 });

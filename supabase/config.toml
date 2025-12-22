@@ -152,3 +152,6 @@ verify_jwt = false
 
 [functions.send-incident-notification]
 verify_jwt = false
+
+[functions.send-whatsapp-template]
+verify_jwt = true

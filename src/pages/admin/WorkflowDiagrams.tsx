@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import DOMPurify from 'dompurify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -291,7 +292,7 @@ export default function WorkflowDiagrams() {
                 <div
                   className="bg-white rounded shadow-sm mx-auto"
                   style={{ minWidth: 'fit-content' }}
-                  dangerouslySetInnerHTML={{ __html: svgPreview }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(svgPreview, { USE_PROFILES: { svg: true, svgFilters: true } }) }}
                 />
               </div>
             ) : (

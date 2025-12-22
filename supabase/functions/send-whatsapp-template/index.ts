@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWaSenderTextMessage } from "../_shared/wasender-whatsapp.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, verifyAuth, unauthorizedResponse } from '../_shared/cors.ts';
 
 interface SendTemplateRequest {
   phone: string;
@@ -33,6 +29,10 @@ function replaceVariables(
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -41,6 +41,13 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify authentication
+    const authResult = await verifyAuth(req, supabase);
+    if (!authResult?.user) {
+      console.error('[SendTemplate] Auth failed:', authResult?.error);
+      return unauthorizedResponse(authResult?.error || 'Unauthorized', origin);
+    }
 
     const body: SendTemplateRequest = await req.json();
     const { phone, templateSlug, dataObject, gateway, tenant_id } = body;
@@ -77,7 +84,7 @@ serve(async (req) => {
     // Determine which gateway to use
     const selectedGateway = gateway || template.default_gateway;
     
-    console.log(`[SendTemplate] Using gateway: ${selectedGateway}, template: ${templateSlug}`);
+    console.log(`[SendTemplate] Using gateway: ${selectedGateway}, template: ${templateSlug}, user: ${authResult.user.id}`);
 
     let result;
     let renderedMessage: string;
@@ -136,9 +143,10 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[SendTemplate] Error:', errorMessage);
+    const origin = req.headers.get('Origin');
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
     );
   }
 });
