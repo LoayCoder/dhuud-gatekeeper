@@ -4830,7 +4830,17 @@
       "manpowerLabel": "القوى العاملة",
       "calculationMode": "طريقة الحساب",
       "manualEntry": "إدخال يدوي",
-      "autoEntry": "حساب تلقائي"
+      "autoEntry": "حساب تلقائي",
+      "schedulePreset": "جدول العمل المحدد مسبقاً",
+      "formulaBreakdown": "تفصيل المعادلة",
+      "presets": {
+        "standard_5day": "5 أيام قياسي",
+        "standard_6day": "6 أيام قياسي",
+        "shift_12h": "وردية 12 ساعة",
+        "shift_10h": "10 ساعات (4 أيام)",
+        "part_time": "دوام جزئي",
+        "custom": "مخصص"
+      }
     }
   },
   "visitors": {

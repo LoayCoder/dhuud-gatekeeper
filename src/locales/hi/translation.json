@@ -4795,7 +4795,17 @@
       "manpowerLabel": "जनशक्ति",
       "calculationMode": "गणना मोड",
       "manualEntry": "मैन्युअल प्रविष्टि",
-      "autoEntry": "स्वचालित गणना"
+      "autoEntry": "स्वचालित गणना",
+      "schedulePreset": "कार्य शेड्यूल प्रीसेट",
+      "formulaBreakdown": "फॉर्मूला विवरण",
+      "presets": {
+        "standard_5day": "मानक 5-दिन",
+        "standard_6day": "मानक 6-दिन",
+        "shift_12h": "12-घंटे की शिफ्ट",
+        "shift_10h": "10-घंटे (4-दिन)",
+        "part_time": "पार्ट-टाइम",
+        "custom": "कस्टम"
+      }
     }
   },
   "visitors": {

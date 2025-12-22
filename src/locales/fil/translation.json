@@ -4789,7 +4789,17 @@
       "manpowerLabel": "Manpower",
       "calculationMode": "Uri ng Kalkulasyon",
       "manualEntry": "Manual na Pagpasok",
-      "autoEntry": "Auto Kalkulahin"
+      "autoEntry": "Auto Kalkulahin",
+      "schedulePreset": "Preset ng Iskedyul ng Trabaho",
+      "formulaBreakdown": "Detalye ng Formula",
+      "presets": {
+        "standard_5day": "Standard 5-Araw",
+        "standard_6day": "Standard 6-Araw",
+        "shift_12h": "12-Oras na Shift",
+        "shift_10h": "10-Oras (4-Araw)",
+        "part_time": "Part-Time",
+        "custom": "Custom"
+      }
     }
   },
   "visitors": {

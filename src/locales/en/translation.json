@@ -5108,7 +5108,17 @@
       "manpowerLabel": "Manpower",
       "calculationMode": "Calculation Mode",
       "manualEntry": "Manual Entry",
-      "autoEntry": "Auto Calculate"
+      "autoEntry": "Auto Calculate",
+      "schedulePreset": "Work Schedule Preset",
+      "formulaBreakdown": "Formula Breakdown",
+      "presets": {
+        "standard_5day": "Standard 5-Day",
+        "standard_6day": "Standard 6-Day",
+        "shift_12h": "12-Hour Shift",
+        "shift_10h": "10-Hour (4-Day)",
+        "part_time": "Part-Time",
+        "custom": "Custom"
+      }
     }
   },
   "visitors": {
