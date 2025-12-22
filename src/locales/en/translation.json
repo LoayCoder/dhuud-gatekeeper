@@ -1313,7 +1313,8 @@
     "whatsappSettings": "WhatsApp Settings",
     "whatsappProviders": "Provider Settings",
     "whatsappTemplates": "Message Templates",
-    "deliveryLog": "Delivery Log"
+    "deliveryLog": "Delivery Log",
+    "eventCategories": "Event Categories"
   },
   "actions": {
     "sessionActions": "Session Actions",

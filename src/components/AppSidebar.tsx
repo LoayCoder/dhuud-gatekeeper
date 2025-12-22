@@ -677,6 +677,12 @@ export function AppSidebar() {
           icon: Receipt,
           menuCode: 'settings_billing',
         },
+        {
+          title: t('navigation.eventCategories'),
+          url: "/settings/event-categories",
+          icon: List,
+          menuCode: 'settings_event_categories',
+        },
       ],
     },
   ];
