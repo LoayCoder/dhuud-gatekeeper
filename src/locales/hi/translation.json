@@ -173,7 +173,8 @@
       "descriptionMinLength": "विवरण कम से कम 20 अक्षर का होना चाहिए",
       "eventTypeRequired": "घटना प्रकार आवश्यक है",
       "subtypeRequired": "उप-प्रकार आवश्यक है",
-      "dateTimeRequired": "तारीख/समय आवश्यक है"
+      "dateTimeRequired": "तारीख/समय आवश्यक है",
+      "incidentTypeRequired": "घटना प्रकार आवश्यक है"
     },
     "reportIncident": "घटना की रिपोर्ट करें",
     "reportDescription": "नई सुरक्षा घटना रिपोर्ट जमा करें",
@@ -182,6 +183,8 @@
     "titlePlaceholder": "क्या हुआ इसका संक्षिप्त विवरण",
     "eventType": "घटना का प्रकार",
     "selectEventType": "घटना का प्रकार चुनें...",
+    "selectIncidentType": "घटना प्रकार चुनें...",
+    "selectSubtype": "उप-प्रकार चुनें...",
     "eventTypes": {
       "injury": "चोट/बीमारी",
       "near_miss": "निकट दुर्घटना",
@@ -192,6 +195,114 @@
       "observation": "अवलोकन",
       "incident": "घटना",
       "other": "अन्य"
+    },
+    "incidentTypes": {
+      "safety": "सुरक्षा (व्यावसायिक चोट)",
+      "health": "स्वास्थ्य (बीमारी / एक्सपोज़र)",
+      "process_safety": "प्रक्रिया सुरक्षा (LOPC / आग)",
+      "environment": "पर्यावरण (रिसाव / उत्सर्जन)",
+      "security": "सुरक्षा (लोग / संपत्ति)",
+      "property_asset": "संपत्ति और एसेट क्षति",
+      "road_traffic": "सड़क यातायात / वाहन",
+      "quality_service": "गुणवत्ता / सेवा प्रभाव",
+      "community_third_party": "समुदाय / तृतीय-पक्ष प्रभाव",
+      "compliance_regulatory": "अनुपालन / नियामक उल्लंघन",
+      "emergency_crisis": "आपातकाल / संकट सक्रियण"
+    },
+    "subtypes": {
+      "safety": {
+        "slip_trip_fall": "फिसलना / ठोकर / गिरना (समान स्तर)",
+        "fall_from_height": "ऊंचाई से गिरना",
+        "struck_by": "टकराना / मारा जाना",
+        "caught_in": "फंसना / बीच में फंसना",
+        "manual_handling": "मैनुअल हैंडलिंग / अधिक परिश्रम",
+        "cut_laceration": "कट / घाव",
+        "eye_injury": "आंख की चोट",
+        "burn_non_chemical": "जलना (गैर-रासायनिक)",
+        "electrical_shock": "बिजली का झटका",
+        "dropped_object": "गिरी हुई वस्तु से चोट",
+        "confined_space_injury": "सीमित स्थान में चोट",
+        "tool_equipment_injury": "उपकरण संबंधी चोट"
+      },
+      "health": {
+        "heat_stress": "गर्मी तनाव / निर्जलीकरण",
+        "chemical_exposure": "रासायनिक एक्सपोज़र (साँस/त्वचा/आंख)",
+        "noise_exposure": "शोर एक्सपोज़र / श्रवण प्रभाव",
+        "respiratory_irritation": "श्वसन जलन (धूल/धुआं)",
+        "fatigue_fitness": "थकान / फिटनेस-फॉर-ड्यूटी",
+        "occupational_disease": "व्यावसायिक रोग (पुष्टि)",
+        "foodborne_illness": "खाद्य जनित बीमारी / स्वच्छता"
+      },
+      "process_safety": {
+        "lopc": "प्राथमिक रोकथाम का नुकसान (LOPC)",
+        "process_fire": "प्रक्रिया आग",
+        "process_explosion": "प्रक्रिया विस्फोट",
+        "overpressure_relief": "अधिक दबाव / राहत घटना",
+        "dangerous_substance_release": "खतरनाक पदार्थ रिलीज़",
+        "process_upset": "प्रक्रिया गड़बड़ी / रनअवे",
+        "critical_barrier_failure": "महत्वपूर्ण बैरियर विफलता (SIS/PSV/ESD)"
+      },
+      "environment": {
+        "oil_chemical_spill_land": "तेल/रासायनिक रिसाव (भूमि)",
+        "spill_stormwater_sewer": "तूफानी पानी/सीवर में रिसाव",
+        "air_emission": "वायु उत्सर्जन / गंध / धूल",
+        "waste_mismanagement": "कचरा दुर्प्रबंधन / अवैध निपटान",
+        "soil_contamination": "मिट्टी प्रदूषण",
+        "wildlife_impact": "वन्यजीव प्रभाव",
+        "non_compliant_discharge": "गैर-अनुपालन निर्वहन"
+      },
+      "security": {
+        "unauthorized_access": "अनधिकृत पहुंच / उल्लंघन",
+        "theft_loss": "चोरी / संपत्ति हानि",
+        "vandalism": "बर्बरता",
+        "assault_threat": "हमला / धमकी / उत्पीड़न",
+        "crowd_control": "भीड़ नियंत्रण घटना",
+        "suspicious_package": "संदिग्ध पैकेज / बम धमकी",
+        "perimeter_breach": "परिधि उल्लंघन",
+        "information_security": "सूचना सुरक्षा घटना"
+      },
+      "property_asset": {
+        "equipment_damage": "उपकरण क्षति (गैर-प्रक्रिया)",
+        "building_infrastructure": "भवन/बुनियादी ढांचा क्षति",
+        "utility_outage": "उपयोगिता आउटेज (पावर/पानी/IT)",
+        "non_process_fire": "गैर-प्रक्रिया आग",
+        "flooding_weather": "बाढ़/मौसम क्षति"
+      },
+      "road_traffic": {
+        "vehicle_collision": "वाहन टक्कर (ऑन-साइट/ऑफ-साइट)",
+        "pedestrian_struck": "पैदल यात्री टक्कर/निकट टक्कर",
+        "reversing_incident": "रिवर्सिंग घटना",
+        "forklift_buggy_cart": "फोर्कलिफ्ट/बग्गी/कार्ट घटना",
+        "speeding_unsafe_driving": "तेज़ गति/असुरक्षित ड्राइविंग",
+        "vehicle_fire": "वाहन आग",
+        "load_shift_securing": "लोड शिफ्ट/सुरक्षित विफलता"
+      },
+      "quality_service": {
+        "service_interruption": "सेवा बाधा",
+        "product_nonconformance": "उत्पाद/सेवा गैर-अनुरूपता",
+        "critical_equipment_failure": "महत्वपूर्ण उपकरण गुणवत्ता विफलता"
+      },
+      "community_third_party": {
+        "visitor_injury": "आगंतुक चोट",
+        "third_party_property_damage": "तृतीय-पक्ष संपत्ति क्षति",
+        "public_complaint": "जनता की शिकायत/उपद्रव",
+        "offsite_traffic_impact": "ऑफसाइट यातायात प्रभाव"
+      },
+      "compliance_regulatory": {
+        "ptw_violation": "PTW उल्लंघन",
+        "fire_system_breach": "अग्नि प्रणाली अनुपालन उल्लंघन",
+        "contractor_compliance_breach": "ठेकेदार अनुपालन उल्लंघन",
+        "environmental_permit_breach": "पर्यावरण परमिट उल्लंघन",
+        "security_sop_breach": "सुरक्षा SOP उल्लंघन",
+        "legal_reporting_breach": "कानूनी/रिपोर्टिंग उल्लंघन"
+      },
+      "emergency_crisis": {
+        "erp_medical": "ERP सक्रिय (चिकित्सा)",
+        "erp_fire": "ERP सक्रिय (आग)",
+        "erp_security": "ERP सक्रिय (सुरक्षा)",
+        "erp_environmental": "ERP सक्रिय (पर्यावरण)",
+        "erp_weather_other": "ERP सक्रिय (मौसम/अन्य)"
+      }
     },
     "actions": "कार्रवाइयाँ",
     "edit": "घटना संपादित करें",

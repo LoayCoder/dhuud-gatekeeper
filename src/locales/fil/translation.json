@@ -344,7 +344,112 @@
       "medicalTreatment": "Medical Treatment",
       "medical_treatment": "Medical Treatment",
       "fire": "Sunog",
-      "security": "Seguridad"
+      "security": "Seguridad",
+      "safety": "Kaligtasan (Pinsala sa Trabaho)",
+      "health": "Kalusugan (Sakit / Exposure)",
+      "process_safety": "Kaligtasan ng Proseso (LOPC / Sunog)",
+      "environment": "Kapaligiran (Tagas / Emisyon)",
+      "property_asset": "Pinsala sa Ari-arian at Asset",
+      "road_traffic": "Trapiko / Sasakyan at Mobile Equipment",
+      "quality_service": "Kalidad / Service Impact",
+      "community_third_party": "Komunidad / Third-Party Impact",
+      "compliance_regulatory": "Paglabag sa Compliance / Regulasyon",
+      "emergency_crisis": "Emergency / Crisis Activation"
+    },
+    "subtypes": {
+      "safety": {
+        "slip_trip_fall": "Pagkadulas / Pagkatisod / Pagkahulog (same level)",
+        "fall_from_height": "Pagkahulog mula sa Taas",
+        "struck_by": "Tinamaan / Nabangga",
+        "caught_in": "Napit / Nakuha sa Pagitan",
+        "manual_handling": "Manual Handling / Sobrang Pagod",
+        "cut_laceration": "Hiwa / Sugat",
+        "eye_injury": "Pinsala sa Mata",
+        "burn_non_chemical": "Paso (hindi chemical)",
+        "electrical_shock": "Electric Shock",
+        "dropped_object": "Nahulog na Bagay na Pinsala",
+        "confined_space_injury": "Pinsala sa Confined Space",
+        "tool_equipment_injury": "Pinsala mula sa Tool/Equipment"
+      },
+      "health": {
+        "heat_stress": "Heat Stress / Dehydration",
+        "chemical_exposure": "Chemical Exposure (paglanghap/balat/mata)",
+        "noise_exposure": "Noise Exposure / Hearing Impact",
+        "respiratory_irritation": "Respiratory Irritation (alikabok/usok)",
+        "fatigue_fitness": "Fatigue / Fitness-for-Duty Medical Case",
+        "occupational_disease": "Occupational Disease (confirmed)",
+        "foodborne_illness": "Foodborne Illness / Hygiene"
+      },
+      "process_safety": {
+        "lopc": "Loss of Primary Containment (LOPC)",
+        "process_fire": "Process Fire",
+        "process_explosion": "Process Explosion",
+        "overpressure_relief": "Overpressure / Relief Event",
+        "dangerous_substance_release": "Dangerous Substance Release",
+        "process_upset": "Process Upset / Runaway",
+        "critical_barrier_failure": "Critical Barrier Failure (SIS/PSV/ESD)"
+      },
+      "environment": {
+        "oil_chemical_spill_land": "Oil/Chemical Spill (lupa)",
+        "spill_stormwater_sewer": "Spill sa Stormwater/Sewer",
+        "air_emission": "Air Emission / Amoy / Alikabok",
+        "waste_mismanagement": "Waste Mismanagement / Illegal Disposal",
+        "soil_contamination": "Soil Contamination",
+        "wildlife_impact": "Wildlife Impact",
+        "non_compliant_discharge": "Non-Compliant Discharge"
+      },
+      "security": {
+        "unauthorized_access": "Unauthorized Access / Breach",
+        "theft_loss": "Theft / Pagkawala ng Asset",
+        "vandalism": "Vandalism",
+        "assault_threat": "Assault / Threat / Harassment",
+        "crowd_control": "Crowd Control Incident",
+        "suspicious_package": "Suspicious Package / Bomb Threat",
+        "perimeter_breach": "Perimeter Breach",
+        "information_security": "Information Security Incident"
+      },
+      "property_asset": {
+        "equipment_damage": "Equipment Damage (non-process)",
+        "building_infrastructure": "Building/Infrastructure Damage",
+        "utility_outage": "Utility Outage (power/water/IT)",
+        "non_process_fire": "Non-Process Fire",
+        "flooding_weather": "Flooding/Weather Damage"
+      },
+      "road_traffic": {
+        "vehicle_collision": "Vehicle Collision (on-site/off-site)",
+        "pedestrian_struck": "Pedestrian Struck/Near Collision",
+        "reversing_incident": "Reversing Incident",
+        "forklift_buggy_cart": "Forklift/Buggy/Cart Incident",
+        "speeding_unsafe_driving": "Speeding/Unsafe Driving",
+        "vehicle_fire": "Vehicle Fire",
+        "load_shift_securing": "Load Shift/Securing Failure"
+      },
+      "quality_service": {
+        "service_interruption": "Service Interruption",
+        "product_nonconformance": "Product/Service Nonconformance",
+        "critical_equipment_failure": "Critical Equipment Quality Failure"
+      },
+      "community_third_party": {
+        "visitor_injury": "Visitor Injury",
+        "third_party_property_damage": "Third-Party Property Damage",
+        "public_complaint": "Public Complaint/Nuisance",
+        "offsite_traffic_impact": "Offsite Traffic Impact"
+      },
+      "compliance_regulatory": {
+        "ptw_violation": "PTW Violation",
+        "fire_system_breach": "Fire System Compliance Breach",
+        "contractor_compliance_breach": "Contractor Compliance Breach",
+        "environmental_permit_breach": "Environmental Permit Breach",
+        "security_sop_breach": "Security SOP Breach",
+        "legal_reporting_breach": "Legal/Reporting Breach"
+      },
+      "emergency_crisis": {
+        "erp_medical": "ERP Activated (Medical)",
+        "erp_fire": "ERP Activated (Fire)",
+        "erp_security": "ERP Activated (Security)",
+        "erp_environmental": "ERP Activated (Environmental)",
+        "erp_weather_other": "ERP Activated (Weather/Other)"
+      }
     },
     "status": {
       "submitted": "Naisumite",
