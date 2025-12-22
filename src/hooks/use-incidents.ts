@@ -138,10 +138,10 @@ export function useCreateIncident() {
         description: t('incidents.successMessage', { referenceId: incident.reference_id }),
       });
       
-      // Trigger automatic WhatsApp notification (fire and forget)
-      supabase.functions.invoke('send-incident-notification', {
+      // Trigger matrix-based notification dispatcher (fire and forget)
+      supabase.functions.invoke('dispatch-incident-notification', {
         body: { incident_id: incident.id, event_type: 'incident_created' }
-      }).catch(err => console.warn('Failed to send incident notification:', err));
+      }).catch(err => console.warn('Failed to dispatch incident notification:', err));
     },
     onError: (error) => {
       toast({

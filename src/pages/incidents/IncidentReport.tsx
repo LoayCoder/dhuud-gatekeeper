@@ -54,6 +54,7 @@ import {
   type SeverityLevelV2 
 } from '@/lib/hsse-severity-levels';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { NotificationPreview } from '@/components/incidents/NotificationPreview';
 
 // Schema moved inside component to access t() for translations
 const createIncidentFormSchema = (t: (key: string) => string) => z.object({
@@ -1547,6 +1548,17 @@ export default function IncidentReport() {
                     )}
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Notification Preview - Show for incidents with severity */}
+              {!isObservation && form.watch('severity') && (
+                <NotificationPreview
+                  severityLevel={form.watch('severity')}
+                  hasInjury={hasInjury}
+                  erpActivated={form.watch('erp_activated') || false}
+                  siteId={form.watch('site_id')}
+                  className="mt-4"
+                />
               )}
             </div>
           )}
