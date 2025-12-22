@@ -31,7 +31,7 @@ export default function MFASetup() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   
   const navigate = useNavigate();
-  const { tenantName, logoUrl } = useTheme();
+  const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors } = useMFA();
 
   useEffect(() => {
@@ -137,8 +137,8 @@ export default function MFASetup() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Header */}
           <div className="text-center">
-            {logoUrl ? (
-              <img src={logoUrl} alt={tenantName} className="mx-auto mb-4 h-16" />
+            {activeLogoUrl ? (
+              <img src={activeLogoUrl} alt={tenantName} className="mx-auto mb-4 h-16 object-contain" />
             ) : (
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <Shield className="h-8 w-8 text-primary" />
@@ -197,13 +197,15 @@ export default function MFASetup() {
                 <CardContent className="space-y-4">
                   <div className="flex flex-col items-center gap-2">
                     <div className="relative p-4 bg-white rounded-lg">
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
-                        <img
-                          src="/lovable-uploads/dhuud-logo.png"
-                          alt="DHUUD"
-                          className="h-10 w-10 object-contain"
-                        />
-                      </div>
+                      {(activeAppIconUrl || activeLogoUrl) && (
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
+                          <img
+                            src={activeAppIconUrl || activeLogoUrl}
+                            alt={tenantName}
+                            className="h-10 w-10 object-contain"
+                          />
+                        </div>
+                      )}
                       <img
                         src={enrollData.qrCode}
                         alt="QR Code"
@@ -211,7 +213,7 @@ export default function MFASetup() {
                       />
                     </div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      DHUUD HSSE Platform
+                      {tenantName}
                     </p>
                   </div>
                   

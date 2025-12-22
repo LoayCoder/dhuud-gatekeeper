@@ -30,7 +30,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
   const { t } = useTranslation();
   const { enroll, verify, challenge } = useMFA();
   const { generateCodes } = useMFABackupCodes();
-  const { tenantName } = useTheme();
+  const { tenantName, activeAppIconUrl, activeLogoUrl } = useTheme();
   const [step, setStep] = useState<Step>("intro");
   const [loading, setLoading] = useState(false);
   const [enrollData, setEnrollData] = useState<{
@@ -172,16 +172,18 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              {/* QR Code with Dhuud Logo */}
+              {/* QR Code with Tenant Logo */}
               <div className="flex flex-col items-center gap-2">
                 <div className="rounded-lg border bg-white p-4 relative">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
-                    <img
-                      src="/lovable-uploads/dhuud-logo.png"
-                      alt="DHUUD"
-                      className="h-10 w-10 object-contain"
-                    />
-                  </div>
+                  {(activeAppIconUrl || activeLogoUrl) && (
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-sm z-10">
+                      <img
+                        src={activeAppIconUrl || activeLogoUrl}
+                        alt={tenantName}
+                        className="h-10 w-10 object-contain"
+                      />
+                    </div>
+                  )}
                   <img
                     src={enrollData.qrCode}
                     alt="QR Code for 2FA setup"
@@ -189,7 +191,7 @@ export function MFAEnrollDialog({ open, onOpenChange, onSuccess }: MFAEnrollDial
                   />
                 </div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  DHUUD HSSE Platform
+                  {tenantName}
                 </p>
               </div>
 
