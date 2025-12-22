@@ -5866,5 +5866,51 @@
     "mainMessage": "Main Message",
     "subtitle": "Subtitle",
     "saved": "Settings saved successfully"
+  },
+  "severity": {
+    "title": "Severity Rating (HSSE)",
+    "ratingLabel": "Severity Level",
+    "ratingDescription": "Choose the highest credible impact across People / Environment / Asset / Business / Reputation-Security",
+    "erpActivated": "ERP Activated",
+    "erpActivatedDescription": "Was the Emergency Response Plan activated for this event?",
+    "level1": {
+      "label": "Level 1 - Low",
+      "description": "Minor impact, controlled quickly",
+      "examples": "First aid only, very small spill contained, minor damage, no business disruption"
+    },
+    "level2": {
+      "label": "Level 2 - Moderate",
+      "description": "Medical treatment possible or minor restricted work",
+      "examples": "Contained spill requiring cleanup team, moderate damage, short disruption"
+    },
+    "level3": {
+      "label": "Level 3 - Serious",
+      "description": "Medical Treatment Case or Restricted Work",
+      "examples": "Moderate spill/emission, significant property damage, noticeable operational disruption"
+    },
+    "level4": {
+      "label": "Level 4 - Major",
+      "description": "Lost Time Injury (LTI/LWDC) or major fire/LOPC",
+      "examples": "Major environmental impact, major asset loss, shutdown, regulator notification likely"
+    },
+    "level5": {
+      "label": "Level 5 - Catastrophic",
+      "description": "Fatality / permanent disability",
+      "examples": "Major offsite impact, extreme security event, crisis management activation"
+    },
+    "validation": {
+      "erpMinimum": "ERP activated events cannot be less than Level 4 without documented override reason",
+      "fatalityRequired": "Fatality/permanent impairment must be Level 5",
+      "ltiMinimum": "LTI/LWDC events must be at least Level 4"
+    },
+    "overrideRequired": "To proceed with a lower severity, you must provide an override reason below.",
+    "overrideReasonLabel": "Override Reason",
+    "overrideReasonPlaceholder": "Document why this event is below the standard minimum severity...",
+    "overrideAuditWarning": "This override will be logged for audit purposes",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical",
+    "unassigned": "N/A"
   }
 }

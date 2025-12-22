@@ -44,6 +44,13 @@ import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-types';
+import { 
+  HSSE_SEVERITY_LEVELS, 
+  calculateMinimumSeverity, 
+  isSeverityBelowMinimum,
+  type SeverityLevelV2 
+} from '@/lib/hsse-severity-levels';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Schema moved inside component to access t() for translations
 const createIncidentFormSchema = (t: (key: string) => string) => z.object({
@@ -59,8 +66,11 @@ const createIncidentFormSchema = (t: (key: string) => string) => z.object({
   location: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  severity: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5']).optional(),
   risk_rating: z.enum(['low', 'medium', 'high']).optional(), // For observations only
+  erp_activated: z.boolean().optional(),
+  severity_override_reason: z.string().optional(),
+  injury_classification: z.string().optional(),
   immediate_actions: z.string().optional(),
   has_injury: z.boolean().default(false),
   injury_count: z.number().optional(),
@@ -82,12 +92,7 @@ const OBSERVATION_TYPES = [
   { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition' },
 ];
 
-const SEVERITY_LEVELS = [
-  { value: 'low', labelKey: 'incidents.severityLevels.low', color: 'bg-green-500' },
-  { value: 'medium', labelKey: 'incidents.severityLevels.medium', color: 'bg-yellow-500' },
-  { value: 'high', labelKey: 'incidents.severityLevels.high', color: 'bg-orange-500' },
-  { value: 'critical', labelKey: 'incidents.severityLevels.critical', color: 'bg-red-500' },
-];
+// Removed - now using HSSE_SEVERITY_LEVELS from src/lib/hsse-severity-levels.ts
 
 const RISK_RATING_LEVELS = [
   { value: 'low', labelKey: 'incidents.riskRating.low', color: 'bg-green-500' },
@@ -432,7 +437,15 @@ export default function IncidentReport() {
 
   const handleApplySuggestions = () => {
     if (!aiSuggestion) return;
-    form.setValue('severity', aiSuggestion.suggestedSeverity);
+    // Map old severity to new 5-level system
+    const severityMap: Record<string, SeverityLevelV2> = {
+      'low': 'level_1',
+      'medium': 'level_2', 
+      'high': 'level_3',
+      'critical': 'level_4',
+    };
+    const mappedSeverity = severityMap[aiSuggestion.suggestedSeverity] || 'level_2';
+    form.setValue('severity', mappedSeverity);
     form.setValue('description', aiSuggestion.refinedDescription);
     if (aiSuggestion.suggestedEventType) {
       form.setValue('event_type', aiSuggestion.suggestedEventType);
@@ -1256,36 +1269,116 @@ export default function IncidentReport() {
                 /* Incident: Severity & Actions */
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t('incidents.severity')}</CardTitle>
+                    <CardTitle>{t('severity.title')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* ERP Activation Toggle */}
                     <FormField
                       control={form.control}
-                      name="severity"
+                      name="erp_activated"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('incidents.severity')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('common.select')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {SEVERITY_LEVELS.map((level) => (
-                                <SelectItem key={level.value} value={level.value}>
-                                  <div className="flex items-center gap-2">
-                                    <div className={`h-2 w-2 rounded-full ${level.color}`} />
-                                    {t(level.labelKey)}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">{t('severity.erpActivated')}</FormLabel>
+                            <FormDescription>{t('severity.erpActivatedDescription')}</FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value || false}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
+
+                    {/* Severity Selection with Validation */}
+                    <FormField
+                      control={form.control}
+                      name="severity"
+                      render={({ field }) => {
+                        const minSeverity = calculateMinimumSeverity(
+                          form.watch('injury_classification'),
+                          form.watch('erp_activated'),
+                          eventType
+                        );
+                        const showWarning = field.value && isSeverityBelowMinimum(field.value as SeverityLevelV2, minSeverity.minLevel);
+                        
+                        return (
+                          <FormItem>
+                            <FormLabel>{t('severity.ratingLabel')}</FormLabel>
+                            <FormDescription className="text-xs mb-2">
+                              {t('severity.ratingDescription')}
+                            </FormDescription>
+                            <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('common.select')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {HSSE_SEVERITY_LEVELS.map((level) => (
+                                  <SelectItem key={level.value} value={level.value}>
+                                    <div className="flex items-center gap-2">
+                                      <div className={`h-3 w-3 rounded-full ${level.bgColor}`} />
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{t(level.labelKey)}</span>
+                                        <span className="text-xs text-muted-foreground">{t(level.descriptionKey)}</span>
+                                      </div>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            
+                            {/* Validation Warning */}
+                            {showWarning && (
+                              <Alert variant="destructive" className="mt-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertDescription>
+                                  <div className="space-y-2">
+                                    <p>{t(`severity.${minSeverity.reason}`)}</p>
+                                    <p className="text-xs">{t('severity.overrideRequired')}</p>
+                                  </div>
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    {/* Override Reason (shown when below minimum) */}
+                    {form.watch('severity') && isSeverityBelowMinimum(
+                      form.watch('severity') as SeverityLevelV2,
+                      calculateMinimumSeverity(
+                        form.watch('injury_classification'),
+                        form.watch('erp_activated'),
+                        eventType
+                      ).minLevel
+                    ) && (
+                      <FormField
+                        control={form.control}
+                        name="severity_override_reason"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-destructive">{t('severity.overrideReasonLabel')} *</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder={t('severity.overrideReasonPlaceholder')}
+                                className="min-h-[80px] border-destructive"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-destructive text-xs">
+                              {t('severity.overrideAuditWarning')}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={form.control}

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import type { Database } from '@/integrations/supabase/types';
+import type { SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 
 type Incident = Database['public']['Tables']['incidents']['Row'];
 type IncidentInsert = Database['public']['Tables']['incidents']['Insert'];
@@ -21,7 +22,11 @@ export interface IncidentFormData {
   occurred_at: string;
   location?: string;
   department?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  // New 5-level severity system
+  severity?: SeverityLevelV2;
+  severity_override_reason?: string;
+  erp_activated?: boolean;
+  injury_classification?: string;
   risk_rating?: 'low' | 'medium' | 'high'; // For observations only
   immediate_actions?: string;
   closed_on_spot_data?: ClosedOnSpotPayload; // For observations closed on the spot
@@ -63,7 +68,7 @@ export function useCreateIncident() {
       // Determine if this is an observation (simplified workflow)
       const isObservation = data.event_type === 'observation';
       
-      const insertData: IncidentInsert & { risk_rating?: string } = {
+      const insertData: IncidentInsert & { risk_rating?: string; severity_v2?: string; severity_override_reason?: string; erp_activated?: boolean } = {
         tenant_id: profile.tenant_id,
         reporter_id: user.id,
         title: data.title,
@@ -73,8 +78,8 @@ export function useCreateIncident() {
         occurred_at: data.occurred_at,
         location: data.location || null,
         department: data.department || null,
-        // Observations use risk_rating, incidents use severity
-        severity: isObservation ? null : (data.severity || null),
+        // Keep old severity null for now, use severity_v2 for new system
+        severity: null,
         immediate_actions: data.immediate_actions || null,
         // Observations don't have injury/damage details
         has_injury: isObservation ? false : data.has_injury,
@@ -91,6 +96,17 @@ export function useCreateIncident() {
         // Major event linkage
         special_event_id: data.special_event_id || null,
       };
+      
+      // Add new severity_v2 for incidents (cast to bypass type check until types regenerate)
+      if (!isObservation && data.severity) {
+        (insertData as Record<string, unknown>).severity_v2 = data.severity;
+        if (data.severity_override_reason) {
+          (insertData as Record<string, unknown>).severity_override_reason = data.severity_override_reason;
+        }
+        if (data.erp_activated !== undefined) {
+          (insertData as Record<string, unknown>).erp_activated = data.erp_activated;
+        }
+      }
       
       // Add risk_rating for observations (cast to any to bypass type check for new column)
       if (isObservation && data.risk_rating) {
