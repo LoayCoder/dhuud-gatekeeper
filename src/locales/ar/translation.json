@@ -5624,5 +5624,27 @@
     "high": "عالي",
     "critical": "حرج",
     "unassigned": "غير محدد"
+  },
+  "settings": {
+    "eventCategories": {
+      "title": "إدارة فئات الأحداث",
+      "description": "تفعيل أو تعطيل فئات وأنواع أحداث السلامة والصحة والأمن والبيئة لمؤسستك",
+      "pageTitle": "فئات الأحداث",
+      "pageDescription": "إدارة فئات وأنواع الأحداث المتاحة عند الإبلاغ عن الحوادث",
+      "activeCategories": "{{count}}/{{total}} فئات نشطة",
+      "expandAll": "توسيع الكل",
+      "collapseAll": "طي الكل",
+      "searchPlaceholder": "البحث في الفئات أو الأنواع الفرعية...",
+      "customized": "مخصص",
+      "categoryEnabled": "تم تفعيل الفئة",
+      "categoryDisabled": "تم تعطيل الفئة",
+      "subtypeEnabled": "تم تفعيل النوع الفرعي",
+      "subtypeDisabled": "تم تعطيل النوع الفرعي",
+      "noMatchingCategories": "لم يتم العثور على فئات مطابقة",
+      "noCategories": "لا توجد فئات متاحة",
+      "noMatchingSubtypes": "لم يتم العثور على أنواع فرعية مطابقة",
+      "noSubtypes": "لا توجد أنواع فرعية متاحة",
+      "infoNote": "الفئات والأنواع الفرعية المعطلة لن تظهر في نماذج الإبلاغ عن الحوادث. التغييرات تطبق فوراً على جميع المستخدمين في مؤسستك."
+    }
   }
 }
