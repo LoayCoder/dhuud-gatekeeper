@@ -10019,6 +10019,68 @@ export type Database = {
           },
         ]
       }
+      site_departments: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          department_id: string
+          id: string
+          is_primary: boolean | null
+          site_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          department_id: string
+          id?: string
+          is_primary?: boolean | null
+          site_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          department_id?: string
+          id?: string
+          is_primary?: boolean | null
+          site_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_departments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_stakeholders: {
         Row: {
           created_at: string | null
@@ -10083,6 +10145,7 @@ export type Database = {
       sites: {
         Row: {
           address: string | null
+          boundary_polygon: Json | null
           branch_id: string | null
           created_at: string | null
           deleted_at: string | null
@@ -10095,6 +10158,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          boundary_polygon?: Json | null
           branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -10107,6 +10171,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          boundary_polygon?: Json | null
           branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -11937,6 +12002,16 @@ export type Database = {
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
+      find_site_by_location: {
+        Args: { p_lat: number; p_lng: number; p_tenant_id: string }
+        Returns: {
+          distance_meters: number
+          primary_department_id: string
+          primary_department_name: string
+          site_id: string
+          site_name: string
+        }[]
+      }
       generate_mfa_backup_codes: {
         Args: { p_code_hashes: string[]; p_user_id: string }
         Returns: undefined
@@ -12344,6 +12419,10 @@ export type Database = {
         Returns: boolean
       }
       has_security_access: { Args: { _user_id: string }; Returns: boolean }
+      haversine_distance: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_contractor_rep_for_company: {
         Args: { p_company_id: string }
@@ -12360,6 +12439,10 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
+      point_in_polygon: {
+        Args: { p_lat: number; p_lng: number; p_polygon: Json }
+        Returns: boolean
+      }
       populate_default_menu_access: {
         Args: { p_tenant_id: string }
         Returns: undefined
