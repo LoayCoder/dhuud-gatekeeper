@@ -5870,11 +5870,15 @@ export type Database = {
       manhours: {
         Row: {
           branch_id: string | null
+          calculation_mode: string | null
+          contractor_count: number | null
           contractor_hours: number
           created_at: string | null
           deleted_at: string | null
           department_id: string | null
+          employee_count: number | null
           employee_hours: number
+          hours_per_day: number | null
           id: string
           notes: string | null
           period_date: string
@@ -5883,14 +5887,19 @@ export type Database = {
           site_id: string | null
           tenant_id: string
           updated_at: string | null
+          working_days: number | null
         }
         Insert: {
           branch_id?: string | null
+          calculation_mode?: string | null
+          contractor_count?: number | null
           contractor_hours?: number
           created_at?: string | null
           deleted_at?: string | null
           department_id?: string | null
+          employee_count?: number | null
           employee_hours?: number
+          hours_per_day?: number | null
           id?: string
           notes?: string | null
           period_date: string
@@ -5899,14 +5908,19 @@ export type Database = {
           site_id?: string | null
           tenant_id: string
           updated_at?: string | null
+          working_days?: number | null
         }
         Update: {
           branch_id?: string | null
+          calculation_mode?: string | null
+          contractor_count?: number | null
           contractor_hours?: number
           created_at?: string | null
           deleted_at?: string | null
           department_id?: string | null
+          employee_count?: number | null
           employee_hours?: number
+          hours_per_day?: number | null
           id?: string
           notes?: string | null
           period_date?: string
@@ -5915,6 +5929,7 @@ export type Database = {
           site_id?: string | null
           tenant_id?: string
           updated_at?: string | null
+          working_days?: number | null
         }
         Relationships: [
           {

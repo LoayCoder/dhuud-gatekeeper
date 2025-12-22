@@ -4819,7 +4819,18 @@
       "negativeHours": "لا يمكن أن تكون الساعات سالبة",
       "duplicateWarning": "سجل مكرر لهذه الفترة والموقع",
       "trend": "الاتجاه",
-      "trendDescription": "اتجاه ساعات العمل التاريخي"
+      "trendDescription": "اتجاه ساعات العمل التاريخي",
+      "autoCalculate": "حساب تلقائي من القوى العاملة",
+      "employeeCount": "عدد الموظفين",
+      "contractorCount": "عدد المقاولين",
+      "hoursPerDay": "ساعات العمل اليومية",
+      "workingDays": "أيام العمل",
+      "calculatedEmployeeHours": "ساعات الموظفين المحسوبة",
+      "calculatedContractorHours": "ساعات المقاولين المحسوبة",
+      "manpowerLabel": "القوى العاملة",
+      "calculationMode": "طريقة الحساب",
+      "manualEntry": "إدخال يدوي",
+      "autoEntry": "حساب تلقائي"
     }
   },
   "visitors": {
