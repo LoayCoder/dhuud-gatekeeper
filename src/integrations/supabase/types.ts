@@ -11400,17 +11400,22 @@ export type Database = {
         }
         Returns: string
       }
-      calculate_next_schedule_time: {
-        Args: {
-          p_last_sent_at?: string
-          p_schedule_day_of_month: number
-          p_schedule_days_of_week: number[]
-          p_schedule_time: string
-          p_schedule_timezone: string
-          p_schedule_type: string
-        }
-        Returns: string
-      }
+      calculate_next_schedule_time:
+        | {
+            Args: { p_current_next_at: string; p_frequency: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_last_sent_at?: string
+              p_schedule_day_of_month: number
+              p_schedule_days_of_week: number[]
+              p_schedule_time: string
+              p_schedule_timezone: string
+              p_schedule_type: string
+            }
+            Returns: string
+          }
       calculate_profile_billing: {
         Args: { p_billing_month: string; p_tenant_id: string }
         Returns: Json
@@ -11418,6 +11423,10 @@ export type Database = {
       calculate_required_safety_officers: {
         Args: { p_worker_count: number }
         Returns: number
+      }
+      calculate_scheduled_notification_next: {
+        Args: { p_current_next: string; p_frequency: string }
+        Returns: string
       }
       calculate_subscription_price:
         | {
