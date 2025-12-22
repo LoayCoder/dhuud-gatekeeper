@@ -161,7 +161,7 @@ export function LaggingIndicatorsCard({ data, isLoading }: LaggingIndicatorsCard
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-foreground">
-              {(data.total_manhours / 1000).toFixed(1)}K
+              {((data.total_manhours ?? 0) / 1000).toFixed(1)}K
             </p>
             <p className="text-xs text-muted-foreground">
               {t('kpiDashboard.manhours', 'Man-Hours')}
