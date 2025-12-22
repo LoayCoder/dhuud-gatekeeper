@@ -2730,7 +2730,11 @@
     "assignDepartment": "Assign Department",
     "noDepartmentsAssigned": "No departments assigned to this site",
     "setPrimary": "Set as Primary",
-    "primary": "Primary"
+    "primary": "Primary",
+    "confirmBoundary": "Confirm Boundary",
+    "boundarySet": "Boundary Set",
+    "boundaryConfirmed": "Boundary confirmed",
+    "boundaryConfirmedDescription": "Click 'Save' to keep the boundary changes"
   },
   "userManagement": {
     "title": "User Management",

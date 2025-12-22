@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Trash2, RotateCcw, Save, Pencil } from 'lucide-react';
+import { MapPin, Trash2, RotateCcw, Check, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -54,6 +55,7 @@ export function SiteLocationPicker({
   const [markerPosition, setMarkerPosition] = useState<Coordinate | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
+  const [boundaryConfirmed, setBoundaryConfirmed] = useState(false);
 
   // Default center (Saudi Arabia)
   const defaultCenter: L.LatLngExpression = [24.7136, 46.6753];
@@ -186,18 +188,31 @@ export function SiteLocationPicker({
 
   const handleUndoPolygonPoint = () => {
     setPolygonPoints(prev => prev.slice(0, -1));
+    setBoundaryConfirmed(false);
   };
 
   const handleClearPolygon = () => {
     setPolygonPoints([]);
+    setBoundaryConfirmed(false);
     onPolygonChange(null);
   };
 
-  const handleSavePolygon = () => {
+  const handleConfirmBoundary = () => {
     if (polygonPoints.length >= 3) {
       onPolygonChange(polygonPoints);
+      setBoundaryConfirmed(true);
+      toast.success(t('orgStructure.boundaryConfirmed'), {
+        description: t('orgStructure.boundaryConfirmedDescription'),
+      });
     }
   };
+
+  // Reset confirmation when polygon points change after confirmation
+  useEffect(() => {
+    if (boundaryConfirmed && polygonPoints.length < 3) {
+      setBoundaryConfirmed(false);
+    }
+  }, [polygonPoints, boundaryConfirmed]);
 
   return (
     <Card>
@@ -278,11 +293,15 @@ export function SiteLocationPicker({
               <Button
                 type="button"
                 size="sm"
-                onClick={handleSavePolygon}
+                variant={boundaryConfirmed ? 'secondary' : 'default'}
+                onClick={handleConfirmBoundary}
                 disabled={polygonPoints.length < 3}
+                className={cn(
+                  boundaryConfirmed && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700'
+                )}
               >
-                <Save className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
-                {t('common.save')}
+                <Check className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
+                {boundaryConfirmed ? t('orgStructure.boundarySet') : t('orgStructure.confirmBoundary')}
               </Button>
             </div>
           </div>
