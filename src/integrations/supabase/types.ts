@@ -1414,49 +1414,67 @@ export type Database = {
       }
       auto_notification_logs: {
         Row: {
+          attempt_count: number | null
           channel: string
           created_at: string
           error_message: string | null
           event_id: string
           event_type: string
           id: string
+          matrix_rule_id: string | null
           message_content: string | null
           provider_message_id: string | null
           recipient_id: string | null
           recipient_phone: string | null
+          retry_at: string | null
           sent_at: string | null
+          severity_level: string | null
+          stakeholder_role: string | null
           status: string
           tenant_id: string
+          was_erp_override: boolean | null
         }
         Insert: {
+          attempt_count?: number | null
           channel: string
           created_at?: string
           error_message?: string | null
           event_id: string
           event_type: string
           id?: string
+          matrix_rule_id?: string | null
           message_content?: string | null
           provider_message_id?: string | null
           recipient_id?: string | null
           recipient_phone?: string | null
+          retry_at?: string | null
           sent_at?: string | null
+          severity_level?: string | null
+          stakeholder_role?: string | null
           status?: string
           tenant_id: string
+          was_erp_override?: boolean | null
         }
         Update: {
+          attempt_count?: number | null
           channel?: string
           created_at?: string
           error_message?: string | null
           event_id?: string
           event_type?: string
           id?: string
+          matrix_rule_id?: string | null
           message_content?: string | null
           provider_message_id?: string | null
           recipient_id?: string | null
           recipient_phone?: string | null
+          retry_at?: string | null
           sent_at?: string | null
+          severity_level?: string | null
+          stakeholder_role?: string | null
           status?: string
           tenant_id?: string
+          was_erp_override?: boolean | null
         }
         Relationships: [
           {
@@ -2504,6 +2522,96 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      duty_roster: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          duty_date: string
+          duty_type: string
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          shift_end: string
+          shift_start: string
+          site_id: string | null
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          duty_date: string
+          duty_type: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          shift_end: string
+          shift_start: string
+          site_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          duty_date?: string
+          duty_type?: string
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          shift_end?: string
+          shift_start?: string
+          site_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duty_roster_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duty_roster_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duty_roster_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duty_roster_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duty_roster_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4172,6 +4280,53 @@ export type Database = {
           },
           {
             foreignKeyName: "incident_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_notification_matrix: {
+        Row: {
+          channels: string[]
+          condition_type: string | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          severity_level: string
+          stakeholder_role: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channels?: string[]
+          condition_type?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          severity_level: string
+          stakeholder_role: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channels?: string[]
+          condition_type?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          severity_level?: string
+          stakeholder_role?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_notification_matrix_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -9854,6 +10009,67 @@ export type Database = {
           },
         ]
       }
+      site_stakeholders: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          site_id: string
+          stakeholder_type: string
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          site_id: string
+          stakeholder_type: string
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          site_id?: string
+          stakeholder_type?: string
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_stakeholders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_stakeholders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_stakeholders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           address: string | null
@@ -11929,6 +12145,21 @@ export type Database = {
       get_notification_acknowledgment_stats: {
         Args: { p_notification_id: string }
         Returns: Json
+      }
+      get_on_duty_personnel: {
+        Args: {
+          p_at_time?: string
+          p_duty_type: string
+          p_site_id: string
+          p_tenant_id: string
+        }
+        Returns: {
+          duty_type: string
+          email: string
+          full_name: string
+          phone_number: string
+          user_id: string
+        }[]
       }
       get_overdue_inspections_count: { Args: never; Returns: number }
       get_overdue_schedules_count: { Args: never; Returns: number }
