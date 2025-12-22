@@ -2,7 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EventCategoryManagement from '@/components/admin/EventCategoryManagement';
+import NotificationMatrixManagement from '@/components/admin/NotificationMatrixManagement';
 
 export default function EventCategorySettings() {
   const { t, i18n } = useTranslation();
@@ -27,7 +29,24 @@ export default function EventCategorySettings() {
         </p>
       </div>
 
-      <EventCategoryManagement />
+      <Tabs defaultValue="categories" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="categories">
+            {t('settings.notificationMatrix.tabs.categories')}
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            {t('settings.notificationMatrix.tabs.notifications')}
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="categories">
+          <EventCategoryManagement />
+        </TabsContent>
+        
+        <TabsContent value="notifications">
+          <NotificationMatrixManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
