@@ -173,7 +173,8 @@
       "descriptionMinLength": "تفصیل کم از کم 20 حروف ہونی چاہیے",
       "eventTypeRequired": "واقعہ کی قسم ضروری ہے",
       "subtypeRequired": "ذیلی قسم ضروری ہے",
-      "dateTimeRequired": "تاریخ/وقت ضروری ہے"
+      "dateTimeRequired": "تاریخ/وقت ضروری ہے",
+      "incidentTypeRequired": "حادثہ کی قسم ضروری ہے"
     },
     "reportIncident": "واقعہ رپورٹ کریں",
     "reportDescription": "نیا حفاظتی واقعہ رپورٹ جمع کریں",
@@ -182,6 +183,8 @@
     "titlePlaceholder": "کیا ہوا اس کی مختصر تفصیل",
     "eventType": "واقعہ کی قسم",
     "selectEventType": "واقعہ کی قسم منتخب کریں...",
+    "selectIncidentType": "حادثہ کی قسم منتخب کریں...",
+    "selectSubtype": "ذیلی قسم منتخب کریں...",
     "eventTypes": {
       "injury": "چوٹ/بیماری",
       "near_miss": "قریب حادثہ",
@@ -192,6 +195,114 @@
       "observation": "مشاہدہ",
       "incident": "واقعہ",
       "other": "دیگر"
+    },
+    "incidentTypes": {
+      "safety": "حفاظت (پیشہ ورانہ چوٹ)",
+      "health": "صحت (بیماری / ایکسپوژر)",
+      "process_safety": "پراسیس سیفٹی (LOPC / آگ)",
+      "environment": "ماحولیات (رساؤ / اخراج)",
+      "security": "سیکیورٹی (لوگ / اثاثے)",
+      "property_asset": "جائیداد اور اثاثوں کا نقصان",
+      "road_traffic": "روڈ ٹریفک / گاڑی",
+      "quality_service": "معیار / سروس اثر",
+      "community_third_party": "کمیونٹی / تھرڈ پارٹی اثر",
+      "compliance_regulatory": "تعمیل / ریگولیٹری خلاف ورزی",
+      "emergency_crisis": "ایمرجنسی / کرائسز ایکٹیویشن"
+    },
+    "subtypes": {
+      "safety": {
+        "slip_trip_fall": "پھسلنا / ٹھوکر / گرنا (ایک سطح)",
+        "fall_from_height": "اونچائی سے گرنا",
+        "struck_by": "ٹکرانا / مارا جانا",
+        "caught_in": "پھنسنا / درمیان میں پھنسنا",
+        "manual_handling": "دستی ہینڈلنگ / زیادہ محنت",
+        "cut_laceration": "کاٹ / زخم",
+        "eye_injury": "آنکھ کی چوٹ",
+        "burn_non_chemical": "جلنا (غیر کیمیائی)",
+        "electrical_shock": "بجلی کا جھٹکا",
+        "dropped_object": "گری ہوئی چیز سے چوٹ",
+        "confined_space_injury": "محدود جگہ میں چوٹ",
+        "tool_equipment_injury": "آلات سے متعلق چوٹ"
+      },
+      "health": {
+        "heat_stress": "گرمی کا تناؤ / پانی کی کمی",
+        "chemical_exposure": "کیمیائی ایکسپوژر (سانس/جلد/آنکھ)",
+        "noise_exposure": "شور کا ایکسپوژر / سماعت پر اثر",
+        "respiratory_irritation": "سانس کی جلن (دھول/دھواں)",
+        "fatigue_fitness": "تھکاوٹ / فٹنس فار ڈیوٹی",
+        "occupational_disease": "پیشہ ورانہ بیماری (تصدیق شدہ)",
+        "foodborne_illness": "کھانے سے پیدا ہونے والی بیماری / صفائی"
+      },
+      "process_safety": {
+        "lopc": "پرائمری کنٹینمنٹ کا نقصان (LOPC)",
+        "process_fire": "پراسیس آگ",
+        "process_explosion": "پراسیس دھماکہ",
+        "overpressure_relief": "زیادہ دباؤ / ریلیف واقعہ",
+        "dangerous_substance_release": "خطرناک مادے کا اخراج",
+        "process_upset": "پراسیس کی خرابی / رن اوے",
+        "critical_barrier_failure": "اہم رکاوٹ کی ناکامی (SIS/PSV/ESD)"
+      },
+      "environment": {
+        "oil_chemical_spill_land": "تیل/کیمیائی رساؤ (زمین)",
+        "spill_stormwater_sewer": "طوفانی پانی/سیور میں رساؤ",
+        "air_emission": "ہوا کا اخراج / بو / دھول",
+        "waste_mismanagement": "فضلہ کا غلط انتظام / غیر قانونی ڈسپوزل",
+        "soil_contamination": "مٹی کی آلودگی",
+        "wildlife_impact": "جنگلی حیات پر اثر",
+        "non_compliant_discharge": "غیر مطابق ڈسچارج"
+      },
+      "security": {
+        "unauthorized_access": "غیر مجاز رسائی / خلاف ورزی",
+        "theft_loss": "چوری / اثاثے کا نقصان",
+        "vandalism": "توڑ پھوڑ",
+        "assault_threat": "حملہ / دھمکی / ہراساں کرنا",
+        "crowd_control": "ہجوم کنٹرول واقعہ",
+        "suspicious_package": "مشکوک پیکیج / بم کی دھمکی",
+        "perimeter_breach": "حدود کی خلاف ورزی",
+        "information_security": "معلومات کی سیکیورٹی واقعہ"
+      },
+      "property_asset": {
+        "equipment_damage": "آلات کا نقصان (غیر پراسیس)",
+        "building_infrastructure": "عمارت/انفراسٹرکچر کا نقصان",
+        "utility_outage": "یوٹیلٹی بند (پاور/پانی/IT)",
+        "non_process_fire": "غیر پراسیس آگ",
+        "flooding_weather": "سیلاب/موسم کا نقصان"
+      },
+      "road_traffic": {
+        "vehicle_collision": "گاڑی کی ٹکر (آن سائٹ/آف سائٹ)",
+        "pedestrian_struck": "پیدل چلنے والے کو ٹکر/قریبی ٹکر",
+        "reversing_incident": "پیچھے جانے کا واقعہ",
+        "forklift_buggy_cart": "فورک لفٹ/بگی/کارٹ واقعہ",
+        "speeding_unsafe_driving": "تیز رفتاری/غیر محفوظ ڈرائیونگ",
+        "vehicle_fire": "گاڑی میں آگ",
+        "load_shift_securing": "لوڈ شفٹ/محفوظ کرنے میں ناکامی"
+      },
+      "quality_service": {
+        "service_interruption": "سروس میں رکاوٹ",
+        "product_nonconformance": "پروڈکٹ/سروس کی عدم مطابقت",
+        "critical_equipment_failure": "اہم آلات کی معیاری ناکامی"
+      },
+      "community_third_party": {
+        "visitor_injury": "زائرین کی چوٹ",
+        "third_party_property_damage": "تھرڈ پارٹی جائیداد کا نقصان",
+        "public_complaint": "عوامی شکایت/پریشانی",
+        "offsite_traffic_impact": "آف سائٹ ٹریفک اثر"
+      },
+      "compliance_regulatory": {
+        "ptw_violation": "PTW کی خلاف ورزی",
+        "fire_system_breach": "فائر سسٹم تعمیل کی خلاف ورزی",
+        "contractor_compliance_breach": "ٹھیکیدار تعمیل کی خلاف ورزی",
+        "environmental_permit_breach": "ماحولیاتی پرمٹ کی خلاف ورزی",
+        "security_sop_breach": "سیکیورٹی SOP کی خلاف ورزی",
+        "legal_reporting_breach": "قانونی/رپورٹنگ کی خلاف ورزی"
+      },
+      "emergency_crisis": {
+        "erp_medical": "ERP فعال (طبی)",
+        "erp_fire": "ERP فعال (آگ)",
+        "erp_security": "ERP فعال (سیکیورٹی)",
+        "erp_environmental": "ERP فعال (ماحولیاتی)",
+        "erp_weather_other": "ERP فعال (موسم/دیگر)"
+      }
     },
     "actions": "اقدامات",
     "edit": "واقعہ میں ترمیم",

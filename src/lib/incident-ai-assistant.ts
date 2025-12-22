@@ -1,11 +1,12 @@
 /**
  * AI Assistant for Incident Severity Analysis
- * Uses mock implementation - in production would connect to LLM API
+ * Uses Lovable AI via edge function - with fallback to keyword matching
  */
 
 export interface AISuggestion {
   suggestedSeverity: 'low' | 'medium' | 'high' | 'critical';
   suggestedEventType?: 'observation' | 'incident';
+  suggestedIncidentType?: string;
   suggestedSubtype?: string;
   refinedDescription: string;
   keyRisks: string[];
@@ -20,16 +21,19 @@ export interface AIRewriteResult {
 const SEVERITY_KEYWORDS = {
   critical: [
     'fatality', 'death', 'explosion', 'collapse', 'chemical spill', 
-    'fire', 'major leak', 'toxic', 'evacuation required', 'multiple casualties'
+    'fire', 'major leak', 'toxic', 'evacuation required', 'multiple casualties',
+    'lopc', 'loss of primary containment', 'erp activated'
   ],
   high: [
     'hospitalization', 'fracture', 'burn', 'serious injury', 'evacuation',
     'amputation', 'unconscious', 'electrical shock', 'fall from height',
-    'confined space', 'equipment failure'
+    'confined space', 'equipment failure', 'vehicle collision', 'chemical exposure',
+    'process fire', 'overpressure', 'barrier failure'
   ],
   medium: [
     'minor injury', 'property damage', 'near miss', 'equipment malfunction',
-    'first aid', 'sprain', 'cut', 'bruise', 'slip', 'trip'
+    'first aid', 'sprain', 'cut', 'bruise', 'slip', 'trip', 'heat stress',
+    'noise exposure', 'vehicle incident', 'spill', 'leak'
   ],
   low: [
     'observation', 'unsafe condition', 'housekeeping', 'minor',
@@ -37,19 +41,25 @@ const SEVERITY_KEYWORDS = {
   ],
 };
 
+// Keywords for incident type detection
+const INCIDENT_TYPE_KEYWORDS: Record<string, string[]> = {
+  safety: ['injury', 'hurt', 'fall', 'slip', 'trip', 'struck', 'caught', 'burn', 'cut', 'laceration', 'eye', 'shock', 'dropped object', 'tool', 'equipment'],
+  health: ['heat stress', 'dehydration', 'chemical exposure', 'inhalation', 'noise', 'hearing', 'respiratory', 'dust', 'fumes', 'fatigue', 'illness', 'disease', 'food'],
+  process_safety: ['lopc', 'containment', 'process fire', 'explosion', 'overpressure', 'relief', 'toxic release', 'flammable', 'runaway', 'barrier', 'sis', 'psv', 'esd'],
+  environment: ['spill', 'leak', 'contamination', 'emission', 'odor', 'waste', 'disposal', 'soil', 'wildlife', 'discharge', 'stormwater', 'sewer'],
+  security: ['unauthorized', 'access', 'theft', 'stolen', 'vandalism', 'assault', 'threat', 'harassment', 'crowd', 'suspicious', 'bomb', 'perimeter', 'breach', 'intrusion'],
+  property_asset: ['equipment damage', 'building damage', 'infrastructure', 'utility outage', 'power outage', 'flooding', 'weather damage', 'non-process fire'],
+  road_traffic: ['vehicle', 'collision', 'crash', 'pedestrian', 'reversing', 'forklift', 'buggy', 'cart', 'speeding', 'unsafe driving', 'load shift'],
+  quality_service: ['service interruption', 'nonconformance', 'quality failure', 'product defect'],
+  community_third_party: ['visitor', 'third party', 'public complaint', 'nuisance', 'offsite traffic'],
+  compliance_regulatory: ['ptw', 'permit', 'violation', 'breach', 'compliance', 'sop', 'legal', 'regulatory'],
+  emergency_crisis: ['erp', 'emergency response', 'evacuation', 'crisis', 'major incident']
+};
+
 const EVENT_TYPE_KEYWORDS = {
   observation: {
     unsafe_act: ['unsafe behavior', 'not wearing', 'ignoring', 'bypassing', 'shortcut', 'horseplay', 'distracted'],
     unsafe_condition: ['hazard', 'unsafe condition', 'broken', 'damaged', 'missing guard', 'exposed wires', 'slippery', 'obstruction'],
-  },
-  incident: {
-    near_miss: ['near miss', 'close call', 'almost', 'narrowly avoided', 'lucky'],
-    property_damage: ['damage', 'broken', 'destroyed', 'crashed', 'collision'],
-    environmental: ['spill', 'leak', 'contamination', 'pollution', 'emission'],
-    first_aid: ['first aid', 'minor injury', 'bandage', 'ice pack', 'small cut'],
-    medical_treatment: ['hospital', 'medical treatment', 'doctor', 'stitches', 'x-ray'],
-    fire: ['fire', 'smoke', 'burning', 'flames', 'extinguisher'],
-    security: ['theft', 'intrusion', 'unauthorized', 'breach', 'trespassing'],
   },
 };
 
@@ -62,6 +72,8 @@ const RISK_CATEGORIES = [
   'Emergency response preparedness',
   'Supervision oversight',
   'Work environment conditions',
+  'Process safety management',
+  'Contractor management',
 ];
 
 export async function analyzeIncidentDescription(description: string): Promise<AISuggestion> {
@@ -123,6 +135,7 @@ export async function analyzeIncidentDescription(description: string): Promise<A
   return {
     suggestedSeverity: severity,
     suggestedEventType: eventTypeResult.eventType,
+    suggestedIncidentType: eventTypeResult.incidentType,
     suggestedSubtype: eventTypeResult.subtype,
     refinedDescription,
     keyRisks,
@@ -130,7 +143,11 @@ export async function analyzeIncidentDescription(description: string): Promise<A
   };
 }
 
-function detectEventTypeFromText(text: string): { eventType?: 'observation' | 'incident'; subtype?: string } {
+function detectEventTypeFromText(text: string): { 
+  eventType?: 'observation' | 'incident'; 
+  incidentType?: string;
+  subtype?: string;
+} {
   // Check observation keywords first
   for (const [subtype, keywords] of Object.entries(EVENT_TYPE_KEYWORDS.observation)) {
     for (const keyword of keywords) {
@@ -140,11 +157,15 @@ function detectEventTypeFromText(text: string): { eventType?: 'observation' | 'i
     }
   }
   
-  // Check incident keywords
-  for (const [subtype, keywords] of Object.entries(EVENT_TYPE_KEYWORDS.incident)) {
+  // Check incident type keywords
+  for (const [incidentType, keywords] of Object.entries(INCIDENT_TYPE_KEYWORDS)) {
     for (const keyword of keywords) {
       if (text.includes(keyword)) {
-        return { eventType: 'incident', subtype };
+        return { 
+          eventType: 'incident', 
+          incidentType,
+          subtype: undefined // Will be determined by AI or user selection
+        };
       }
     }
   }
@@ -154,6 +175,7 @@ function detectEventTypeFromText(text: string): { eventType?: 'observation' | 'i
 
 export interface AIAnalysisResult {
   eventType: 'observation' | 'incident' | null;
+  incidentType: string | null;
   subtype: string | null;
   severity: 'low' | 'medium' | 'high' | 'critical' | null;
   keyRisks: string[];
@@ -195,6 +217,7 @@ export async function analyzeIncidentWithAI(description: string): Promise<AIAnal
     
     return {
       eventType: data.eventType || null,
+      incidentType: data.incidentType || null,
       subtype: data.subtype || null,
       severity: data.severity || null,
       keyRisks: data.keyRisks || [],
@@ -245,6 +268,7 @@ function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
   
   return {
     eventType: typeResult.eventType || null,
+    incidentType: typeResult.incidentType || null,
     subtype: typeResult.subtype || null,
     severity,
     keyRisks: shuffledRisks.slice(0, numRisks),
@@ -254,6 +278,7 @@ function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
 
 export async function detectEventType(description: string): Promise<{ 
   eventType: 'observation' | 'incident' | null; 
+  incidentType: string | null;
   subtype: string | null;
   confidence: number;
   reasoning?: string;
@@ -262,25 +287,10 @@ export async function detectEventType(description: string): Promise<{
   const result = await analyzeIncidentWithAI(description);
   return {
     eventType: result.eventType,
+    incidentType: result.incidentType,
     subtype: result.subtype,
     confidence: result.confidence,
     reasoning: result.reasoning,
-  };
-}
-
-// Fallback function using keyword matching (for offline/error scenarios)
-function fallbackDetectEventType(description: string): {
-  eventType: 'observation' | 'incident' | null;
-  subtype: string | null;
-  confidence: number;
-} {
-  const lowerDesc = description.toLowerCase();
-  const result = detectEventTypeFromText(lowerDesc);
-  
-  return {
-    eventType: result.eventType || null,
-    subtype: result.subtype || null,
-    confidence: result.eventType ? 0.6 : 0.3, // Lower confidence for fallback
   };
 }
 
