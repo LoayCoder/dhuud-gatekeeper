@@ -43,12 +43,14 @@ import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
+import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-types';
 
 // Schema moved inside component to access t() for translations
 const createIncidentFormSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(5, t('incidents.validation.titleMinLength')).max(120),
   description: z.string().min(20, t('incidents.validation.descriptionMinLength')).max(5000),
   event_type: z.enum(['observation', 'incident'], { required_error: t('incidents.validation.eventTypeRequired') }),
+  incident_type: z.string().optional(), // HSSE Event Type (top-level category for incidents)
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
   occurred_at: z.string().min(1, t('incidents.validation.dateTimeRequired')),
   site_id: z.string().optional(),
@@ -78,16 +80,6 @@ const EVENT_CATEGORIES = [
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct' },
   { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition' },
-];
-
-const INCIDENT_TYPES = [
-  { value: 'near_miss', labelKey: 'incidents.incidentTypes.nearMiss' },
-  { value: 'property_damage', labelKey: 'incidents.incidentTypes.propertyDamage' },
-  { value: 'environmental', labelKey: 'incidents.incidentTypes.environmental' },
-  { value: 'first_aid', labelKey: 'incidents.incidentTypes.firstAid' },
-  { value: 'medical_treatment', labelKey: 'incidents.incidentTypes.medicalTreatment' },
-  { value: 'fire', labelKey: 'incidents.incidentTypes.fire' },
-  { value: 'security', labelKey: 'incidents.incidentTypes.security' },
 ];
 
 const SEVERITY_LEVELS = [
@@ -162,6 +154,7 @@ export default function IncidentReport() {
       title: '',
       description: '',
       event_type: undefined,
+      incident_type: '',
       subtype: '',
       occurred_at: new Date().toISOString().slice(0, 16),
       site_id: '',
@@ -187,12 +180,15 @@ export default function IncidentReport() {
   const description = form.watch('description');
   const title = form.watch('title');
   const eventType = form.watch('event_type');
+  const incidentType = form.watch('incident_type');
   
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
 
-  // Get subtype options based on event type
-  const subtypeOptions = eventType === 'observation' ? OBSERVATION_TYPES : INCIDENT_TYPES;
+  // Get subtype options based on event type and incident type
+  const subtypeOptions = eventType === 'observation' 
+    ? OBSERVATION_TYPES 
+    : (incidentType ? getSubtypesForEventType(incidentType) : []);
 
   // Auto-detect branch and site from user profile
   useEffect(() => {
@@ -870,14 +866,48 @@ export default function IncidentReport() {
                     </div>
                   )}
 
-                  {/* Event Type and Subtype */}
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Event Category (Observation/Incident) */}
+                  <FormField
+                    control={form.control}
+                    name="event_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('incidents.eventType')}</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue('incident_type', '');
+                            form.setValue('subtype', '');
+                          }} 
+                          value={field.value} 
+                          dir={direction}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('incidents.selectEventType')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {EVENT_CATEGORIES.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {t(type.labelKey)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* For Incidents: HSSE Event Type (Top-Level Category) */}
+                  {eventType === 'incident' && (
                     <FormField
                       control={form.control}
-                      name="event_type"
+                      name="incident_type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('incidents.eventType')}</FormLabel>
+                          <FormLabel>{t('incidents.hsseEventType')}</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -888,45 +918,11 @@ export default function IncidentReport() {
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('incidents.selectEventType')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {EVENT_CATEGORIES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {t(type.labelKey)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="subtype"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            {eventType === 'observation' 
-                              ? t('incidents.observationType') 
-                              : t('incidents.incidentType')}
-                          </FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            value={field.value} 
-                            dir={direction}
-                            disabled={!eventType}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
                                 <SelectValue placeholder={t('common.select')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {subtypeOptions.map((type) => (
+                              {HSSE_EVENT_TYPES.map((type) => (
                                 <SelectItem key={type.value} value={type.value}>
                                   {t(type.labelKey)}
                                 </SelectItem>
@@ -937,7 +933,47 @@ export default function IncidentReport() {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  )}
+
+                  {/* Subtype - Conditional based on event_type and incident_type */}
+                  <FormField
+                    control={form.control}
+                    name="subtype"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {eventType === 'observation' 
+                            ? t('incidents.observationType') 
+                            : t('incidents.incidentSubtype')}
+                        </FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value} 
+                          dir={direction}
+                          disabled={!eventType || (eventType === 'incident' && !incidentType)}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('common.select')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {subtypeOptions.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {t(type.labelKey)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {eventType === 'incident' && !incidentType && (
+                          <FormDescription className="text-muted-foreground">
+                            {t('incidents.selectHsseEventTypeFirst')}
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {/* Date/Time */}
                   <FormField

@@ -343,6 +343,117 @@
       "fire": "Fire",
       "security": "Security Incident"
     },
+    "hsseEventType": "Event Category",
+    "incidentSubtype": "Incident Subtype",
+    "selectHsseEventTypeFirst": "Please select an event category first",
+    "hsseEventTypes": {
+      "safety": "Safety (Occupational Injury / Harm)",
+      "health": "Health (Illness / Exposure)",
+      "processSafety": "Process Safety (LOPC / Fire / Explosion)",
+      "environment": "Environment (Spill / Emission / Waste)",
+      "security": "Security (People / Assets / Access)",
+      "propertyAssetDamage": "Property & Asset Damage (Non-process)",
+      "roadTrafficVehicle": "Road Traffic / Vehicle & Mobile Equipment",
+      "qualityService": "Quality / Service Impact",
+      "communityThirdParty": "Community / Third-Party Impact",
+      "complianceRegulatory": "Compliance / Regulatory Breach",
+      "emergencyCrisis": "Emergency / Crisis Activation (ERP)"
+    },
+    "hsseSubtypes": {
+      "safety": {
+        "slipTripFallSameLevel": "Slip / Trip / Fall (same level)",
+        "fallFromHeight": "Fall from height",
+        "struckByHitBy": "Struck-by / Hit-by",
+        "caughtInCaughtBetween": "Caught-in / Caught-between",
+        "manualHandlingOverexertion": "Manual handling / overexertion",
+        "cutLaceration": "Cut / laceration",
+        "eyeInjury": "Eye injury",
+        "burnNonChemical": "Burn (non-chemical)",
+        "electricalShock": "Electrical shock (occupational)",
+        "droppedObjectInjury": "Dropped object injury",
+        "confinedSpaceInjury": "Confined space injury",
+        "toolEquipmentInjury": "Tool / equipment-related injury"
+      },
+      "health": {
+        "heatStressDehydration": "Heat stress / dehydration",
+        "chemicalExposure": "Chemical exposure (inhalation / skin / eye)",
+        "noiseExposure": "Noise exposure / hearing impact",
+        "respiratoryIrritation": "Respiratory irritation (dust/fumes)",
+        "fatigueFitnessForDuty": "Fatigue / fitness-for-duty medical case",
+        "occupationalDisease": "Occupational disease (confirmed)",
+        "foodborneIllness": "Foodborne illness / hygiene"
+      },
+      "processSafety": {
+        "lopc": "Loss of Primary Containment (LOPC)",
+        "processFire": "Process fire",
+        "processExplosion": "Process explosion",
+        "overpressureReliefEvent": "Overpressure / relief event",
+        "dangerousSubstanceRelease": "Dangerous substance release (toxic/flammable)",
+        "processUpsetRunaway": "Process upset / runaway / abnormal operation",
+        "criticalBarrierFailure": "Critical barrier failure (SIS / PSV / ESD)"
+      },
+      "environment": {
+        "oilChemicalSpillLand": "Oil/chemical spill (land)",
+        "spillToWater": "Spill to stormwater / sewer",
+        "airEmission": "Air emission / odor / dust release",
+        "wasteMismanagement": "Waste mismanagement / illegal disposal",
+        "soilContamination": "Soil contamination",
+        "wildlifeImpact": "Wildlife impact",
+        "nonCompliantDischarge": "Non-compliant discharge"
+      },
+      "security": {
+        "unauthorizedAccess": "Unauthorized access / breach",
+        "theftLoss": "Theft / loss of asset",
+        "vandalism": "Vandalism",
+        "assaultThreat": "Assault / threat / harassment",
+        "crowdControlIncident": "Crowd control incident",
+        "suspiciousPackage": "Suspicious package / bomb threat",
+        "perimeterBreach": "Perimeter breach",
+        "informationSecurity": "Information security incident"
+      },
+      "propertyAssetDamage": {
+        "equipmentDamage": "Equipment damage (non-process)",
+        "buildingInfrastructureDamage": "Building / infrastructure damage",
+        "utilityOutage": "Utility outage (power/water/IT)",
+        "nonProcessFire": "Non-process fire",
+        "floodingWeatherDamage": "Flooding / weather damage"
+      },
+      "roadTrafficVehicle": {
+        "vehicleCollision": "Vehicle collision (on-site/off-site work related)",
+        "pedestrianStruck": "Pedestrian struck / near collision",
+        "reversingIncident": "Reversing incident",
+        "forkliftBuggyIncident": "Forklift / buggy / cart incident",
+        "speedingUnsafeDriving": "Speeding / unsafe driving",
+        "vehicleFire": "Vehicle fire",
+        "loadShiftSecuringFailure": "Load shift / securing failure"
+      },
+      "qualityService": {
+        "serviceInterruption": "Service interruption",
+        "productNonconformance": "Product/service nonconformance",
+        "criticalEquipmentFailure": "Critical equipment quality failure"
+      },
+      "communityThirdParty": {
+        "visitorInjury": "Visitor injury",
+        "thirdPartyPropertyDamage": "Third-party property damage",
+        "publicComplaint": "Public complaint / nuisance (dust/noise/odor)",
+        "offsiteTrafficImpact": "Offsite traffic impact due to operations"
+      },
+      "complianceRegulatory": {
+        "ptwViolation": "PTW violation",
+        "fireSystemBreach": "Fire system compliance breach",
+        "contractorComplianceBreach": "Contractor compliance breach",
+        "environmentalPermitBreach": "Environmental permit breach",
+        "securitySopBreach": "Security SOP breach",
+        "legalReportingBreach": "Legal/reporting breach"
+      },
+      "emergencyCrisis": {
+        "erpMedical": "ERP activated (Medical)",
+        "erpFire": "ERP activated (Fire)",
+        "erpSecurity": "ERP activated (Security)",
+        "erpEnvironmental": "ERP activated (Environmental)",
+        "erpWeatherOther": "ERP activated (Weather/Other)"
+      }
+    },
     "quickCapture": {
       "title": "Quick Capture",
       "aiComingSoon": "AI Powered - Coming Soon",
