@@ -64,6 +64,7 @@ import {
   CheckCircle2,
   MessageSquare,
   FileText,
+  Bell,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -629,6 +630,12 @@ export function AppSidebar() {
               url: "/admin/whatsapp-settings",
               icon: Settings2,
               menuCode: 'admin_whatsapp_settings',
+            },
+            {
+              title: t('navigation.notificationRules', 'Notification Rules'),
+              url: "/admin/notification-rules",
+              icon: Bell,
+              menuCode: 'admin_notification_rules',
             },
             {
               title: t('navigation.whatsappTemplates', 'Message Templates'),
