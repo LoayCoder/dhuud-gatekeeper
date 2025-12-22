@@ -149,3 +149,6 @@ verify_jwt = false
 
 [functions.update-whatsapp-provider]
 verify_jwt = false
+
+[functions.send-incident-notification]
+verify_jwt = false
