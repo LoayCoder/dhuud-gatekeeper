@@ -4142,6 +4142,7 @@ export type Database = {
           id: string
           immediate_actions: string | null
           immediate_actions_data: Json | null
+          incident_type: string | null
           injury_classification: string | null
           injury_details: Json | null
           is_recordable: boolean | null
@@ -4220,6 +4221,7 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
+          incident_type?: string | null
           injury_classification?: string | null
           injury_details?: Json | null
           is_recordable?: boolean | null
@@ -4298,6 +4300,7 @@ export type Database = {
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
+          incident_type?: string | null
           injury_classification?: string | null
           injury_details?: Json | null
           is_recordable?: boolean | null
