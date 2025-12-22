@@ -4810,7 +4810,17 @@
       "manpowerLabel": "افرادی قوت",
       "calculationMode": "حساب کا طریقہ",
       "manualEntry": "دستی اندراج",
-      "autoEntry": "خودکار حساب"
+      "autoEntry": "خودکار حساب",
+      "schedulePreset": "کام کے شیڈول کا پریسیٹ",
+      "formulaBreakdown": "فارمولا کی تفصیل",
+      "presets": {
+        "standard_5day": "معیاری 5 دن",
+        "standard_6day": "معیاری 6 دن",
+        "shift_12h": "12 گھنٹے کی شفٹ",
+        "shift_10h": "10 گھنٹے (4 دن)",
+        "part_time": "پارٹ ٹائم",
+        "custom": "حسب ضرورت"
+      }
     }
   },
   "visitors": {

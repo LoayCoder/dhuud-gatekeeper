@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
-import { Clock, Plus, Pencil, Trash2, Building2, MapPin, Users, Briefcase, Calendar, FileText, Upload, Download, TrendingUp, Loader2, AlertCircle, Calculator, Hash } from 'lucide-react';
+import { Clock, Plus, Pencil, Trash2, Building2, MapPin, Users, Briefcase, Calendar, FileText, Upload, Download, TrendingUp, Loader2, AlertCircle, Calculator, Hash, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useManhours, useCreateManhour, useUpdateManhour, useDeleteManhour, useManhoursSummary } from '@/hooks/use-manhours';
 import { useBranches } from '@/hooks/use-branches';
@@ -62,6 +63,24 @@ const getDefaultWorkingDays = (periodType: 'daily' | 'weekly' | 'monthly') => {
     default: return 22;
   }
 };
+
+// Work schedule presets
+interface WorkSchedulePreset {
+  id: string;
+  label: string;
+  hoursPerDay: number;
+  workingDays: number;
+  description: string;
+}
+
+const workSchedulePresets: WorkSchedulePreset[] = [
+  { id: 'standard_5day', label: 'Standard 5-Day Week', hoursPerDay: 8, workingDays: 22, description: '8h × 22 days' },
+  { id: 'standard_6day', label: 'Standard 6-Day Week', hoursPerDay: 8, workingDays: 26, description: '8h × 26 days' },
+  { id: 'shift_12h', label: '12-Hour Shift', hoursPerDay: 12, workingDays: 15, description: '12h × 15 days' },
+  { id: 'shift_10h', label: '10-Hour Shift (4-Day)', hoursPerDay: 10, workingDays: 18, description: '10h × 18 days' },
+  { id: 'part_time', label: 'Part-Time', hoursPerDay: 4, workingDays: 22, description: '4h × 22 days' },
+  { id: 'custom', label: 'Custom', hoursPerDay: 8, workingDays: 22, description: 'Custom schedule' },
+];
 
 const defaultFormData: ManhourFormData = {
   period_date: format(new Date(), 'yyyy-MM-dd'),
@@ -662,6 +681,41 @@ export default function ManhoursManagement() {
                   </div>
                 </div>
 
+                {/* Schedule Preset Selector */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {t('admin.manhours.schedulePreset', 'Work Schedule Preset')}
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {workSchedulePresets.map((preset) => (
+                      <Button
+                        key={preset.id}
+                        type="button"
+                        variant={
+                          formData.hours_per_day === preset.hoursPerDay && 
+                          formData.working_days === preset.workingDays && 
+                          preset.id !== 'custom' 
+                            ? 'default' 
+                            : 'outline'
+                        }
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          if (preset.id !== 'custom') {
+                            handleManpowerChange('hours_per_day', preset.hoursPerDay);
+                            setTimeout(() => {
+                              handleManpowerChange('working_days', preset.workingDays);
+                            }, 0);
+                          }
+                        }}
+                      >
+                        {t(`admin.manhours.presets.${preset.id}`, preset.label)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="hours_per_day" className="flex items-center gap-2">
@@ -697,30 +751,99 @@ export default function ManhoursManagement() {
                   </div>
                 </div>
 
-                {/* Calculated Hours Display */}
+                {/* Calculated Hours Display with Tooltip */}
                 <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                  <div className="text-center p-3 rounded-lg bg-primary/10">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {t('admin.manhours.calculatedEmployeeHours', 'Calculated Employee Hours')}
-                    </div>
-                    <div className="text-xl font-bold text-primary">
-                      {formatNumber(formData.employee_hours)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formData.employee_count} × {formData.hours_per_day} × {formData.working_days}
-                    </div>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-orange-500/10">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {t('admin.manhours.calculatedContractorHours', 'Calculated Contractor Hours')}
-                    </div>
-                    <div className="text-xl font-bold text-orange-500">
-                      {formatNumber(formData.contractor_hours)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formData.contractor_count} × {formData.hours_per_day} × {formData.working_days}
-                    </div>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center p-3 rounded-lg bg-primary/10 cursor-help transition-all hover:bg-primary/15">
+                          <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                            {t('admin.manhours.calculatedEmployeeHours', 'Calculated Employee Hours')}
+                            <Info className="h-3 w-3" />
+                          </div>
+                          <div className="text-xl font-bold text-primary">
+                            {formatNumber(formData.employee_hours)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formData.employee_count} × {formData.hours_per_day} × {formData.working_days}
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <div className="space-y-2 p-1">
+                          <div className="font-semibold">{t('admin.manhours.formulaBreakdown', 'Formula Breakdown')}</div>
+                          <div className="text-xs space-y-1">
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.employeeCount', 'Employee Count')}:</span>
+                              <span className="font-mono">{formData.employee_count}</span>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.hoursPerDay', 'Hours per Day')}:</span>
+                              <span className="font-mono">{formData.hours_per_day}</span>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.workingDays', 'Working Days')}:</span>
+                              <span className="font-mono">{formData.working_days}</span>
+                            </div>
+                            <hr className="my-1" />
+                            <div className="flex justify-between gap-4 font-semibold">
+                              <span>{t('admin.manhours.totalHours', 'Total Hours')}:</span>
+                              <span className="font-mono text-primary">{formatNumber(formData.employee_hours)}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                            {formData.employee_count} × {formData.hours_per_day} × {formData.working_days} = {formatNumber(formData.employee_hours)}
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center p-3 rounded-lg bg-orange-500/10 cursor-help transition-all hover:bg-orange-500/15">
+                          <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                            {t('admin.manhours.calculatedContractorHours', 'Calculated Contractor Hours')}
+                            <Info className="h-3 w-3" />
+                          </div>
+                          <div className="text-xl font-bold text-orange-500">
+                            {formatNumber(formData.contractor_hours)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formData.contractor_count} × {formData.hours_per_day} × {formData.working_days}
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <div className="space-y-2 p-1">
+                          <div className="font-semibold">{t('admin.manhours.formulaBreakdown', 'Formula Breakdown')}</div>
+                          <div className="text-xs space-y-1">
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.contractorCount', 'Contractor Count')}:</span>
+                              <span className="font-mono">{formData.contractor_count}</span>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.hoursPerDay', 'Hours per Day')}:</span>
+                              <span className="font-mono">{formData.hours_per_day}</span>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <span>{t('admin.manhours.workingDays', 'Working Days')}:</span>
+                              <span className="font-mono">{formData.working_days}</span>
+                            </div>
+                            <hr className="my-1" />
+                            <div className="flex justify-between gap-4 font-semibold">
+                              <span>{t('admin.manhours.totalHours', 'Total Hours')}:</span>
+                              <span className="font-mono text-orange-500">{formatNumber(formData.contractor_hours)}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                            {formData.contractor_count} × {formData.hours_per_day} × {formData.working_days} = {formatNumber(formData.contractor_hours)}
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             )}
