@@ -81,21 +81,32 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
   const { profile } = useAuth();
   const { data: templates = [] } = useInspectionTemplates();
   
-  // Fetch profiles for inspector selection
+  // Fetch profiles for inspector selection (tenant-scoped)
   const { data: profiles = [] } = useQuery({
     queryKey: ['schedule-profiles', profile?.tenant_id],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name').eq('is_active', true).is('deleted_at', null);
+      if (!profile?.tenant_id) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('is_active', true)
+        .is('deleted_at', null);
       return data || [];
     },
     enabled: !!profile?.tenant_id,
   });
   
-  // Fetch sites and buildings
+  // Fetch sites and buildings (tenant-scoped)
   const { data: sites = [] } = useQuery({
     queryKey: ['schedule-sites', profile?.tenant_id],
     queryFn: async () => {
-      const { data } = await supabase.from('sites').select('id, name').is('deleted_at', null);
+      if (!profile?.tenant_id) return [];
+      const { data } = await supabase
+        .from('sites')
+        .select('id, name')
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
       return data || [];
     },
     enabled: !!profile?.tenant_id,
@@ -104,7 +115,12 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
   const { data: buildings = [] } = useQuery({
     queryKey: ['schedule-buildings', profile?.tenant_id],
     queryFn: async () => {
-      const { data } = await supabase.from('buildings').select('id, name, site_id').is('deleted_at', null);
+      if (!profile?.tenant_id) return [];
+      const { data } = await supabase
+        .from('buildings')
+        .select('id, name, site_id')
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
       return data || [];
     },
     enabled: !!profile?.tenant_id,

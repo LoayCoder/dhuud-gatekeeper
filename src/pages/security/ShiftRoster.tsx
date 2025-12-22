@@ -32,13 +32,30 @@ export default function ShiftRoster() {
   const createAssignment = useCreateRosterAssignment();
   const deleteAssignment = useDeleteRosterAssignment();
 
-  const { data: guards } = useQuery({
-    queryKey: ['security-guards'],
+  // Get tenant_id from current user's profile
+  const { data: currentProfile } = useQuery({
+    queryKey: ['current-user-profile'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('id, full_name').is('deleted_at', null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      return data;
+    },
+  });
+
+  const { data: guards } = useQuery({
+    queryKey: ['security-guards', currentProfile?.tenant_id],
+    queryFn: async () => {
+      if (!currentProfile?.tenant_id) return [];
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('tenant_id', currentProfile.tenant_id)
+        .is('deleted_at', null);
       if (error) throw error;
       return data;
     },
+    enabled: !!currentProfile?.tenant_id,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

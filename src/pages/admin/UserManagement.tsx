@@ -145,18 +145,19 @@ export default function UserManagement() {
     setSelectedUsers(new Set());
   }, [users]);
 
-  // Fetch branches and divisions for filters (one-time)
+  // Fetch branches and divisions for filters (one-time, tenant-scoped)
   useEffect(() => {
     const fetchFilterOptions = async () => {
+      if (!profile?.tenant_id) return;
       const [b, d] = await Promise.all([
-        supabase.from('branches').select('id, name').order('name').limit(100),
-        supabase.from('divisions').select('id, name').order('name').limit(100),
+        supabase.from('branches').select('id, name').eq('tenant_id', profile.tenant_id).order('name').limit(100),
+        supabase.from('divisions').select('id, name').eq('tenant_id', profile.tenant_id).order('name').limit(100),
       ]);
       if (b.data) setBranches(b.data);
       if (d.data) setDivisions(d.data);
     };
     fetchFilterOptions();
-  }, []);
+  }, [profile?.tenant_id]);
 
   const handleAddUser = () => { setEditingUser(null); setIsFormDialogOpen(true); };
   const handleEditUser = (user: UserWithRoles) => { setEditingUser(user); setIsFormDialogOpen(true); };
