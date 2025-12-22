@@ -26,8 +26,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search, Trophy } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search, Trophy, Settings } from "lucide-react";
 import { MajorEventsTab } from "@/components/admin/MajorEventsTab";
+import { SiteDetailDialog } from "@/components/admin/SiteDetailDialog";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -41,6 +42,10 @@ interface Branch {
 interface Division { id: string; name: string; }
 interface Department { id: string; name: string; division_id: string; divisions?: { name: string } | null; }
 interface Section { id: string; name: string; department_id: string; departments?: { name: string } | null; }
+interface Coordinate {
+  lat: number;
+  lng: number;
+}
 interface Site { 
   id: string; 
   name: string; 
@@ -48,6 +53,7 @@ interface Site {
   longitude: number | null;
   branch_id: string | null; 
   is_active: boolean | null;
+  boundary_polygon?: Coordinate[] | null;
   branches?: { name: string } | null; 
 }
 
@@ -82,8 +88,8 @@ export default function OrgStructure() {
   const [newSiteLongitude, setNewSiteLongitude] = useState("");
   const [gettingSiteLocation, setGettingSiteLocation] = useState(false);
   const [siteSearchQuery, setSiteSearchQuery] = useState("");
-
-  // Edit State
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [siteDialogOpen, setSiteDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingLatitude, setEditingLatitude] = useState("");
@@ -124,7 +130,7 @@ export default function OrgStructure() {
           .is('deleted_at', null)
           .order('name'),
         supabase.from('sites')
-          .select('id, name, latitude, longitude, branch_id, is_active, branches(name)')
+          .select('id, name, latitude, longitude, branch_id, is_active, boundary_polygon, branches(name)')
           .eq('tenant_id', tenantId)
           .is('deleted_at', null)
           .order('name'),
@@ -134,7 +140,7 @@ export default function OrgStructure() {
       if (d.data) setDivisions(d.data);
       if (dep.data) setDepartments(dep.data as Department[]);
       if (sec.data) setSections(sec.data as Section[]);
-      if (sit.data) setSites(sit.data as Site[]);
+      if (sit.data) setSites(sit.data as unknown as Site[]);
     } catch (error) {
       console.error("Error fetching org structure:", error);
     } finally {
@@ -615,8 +621,11 @@ export default function OrgStructure() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, item.latitude, item.longitude)}>
-                <Pencil className="h-4 w-4 text-muted-foreground" />
+              <Button variant="ghost" size="sm" onClick={() => {
+                setSelectedSite(item);
+                setSiteDialogOpen(true);
+              }}>
+                <Settings className="h-4 w-4 text-muted-foreground" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleDelete('sites', item.id)}>
                 <Trash2 className="h-4 w-4 text-destructive" />
@@ -1127,6 +1136,14 @@ export default function OrgStructure() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Site Detail Dialog */}
+      <SiteDetailDialog
+        open={siteDialogOpen}
+        onOpenChange={setSiteDialogOpen}
+        site={selectedSite}
+        onSave={fetchData}
+      />
     </div>
   );
 }
