@@ -2468,7 +2468,11 @@
     "assignDepartment": "تعيين إدارة",
     "noDepartmentsAssigned": "لا توجد إدارات معينة لهذا الموقع",
     "setPrimary": "تعيين كرئيسي",
-    "primary": "رئيسي"
+    "primary": "رئيسي",
+    "confirmBoundary": "تأكيد الحدود",
+    "boundarySet": "تم تعيين الحدود",
+    "boundaryConfirmed": "تم تأكيد الحدود",
+    "boundaryConfirmedDescription": "انقر على 'حفظ' للاحتفاظ بتغييرات الحدود"
   },
   "userManagement": {
     "title": "إدارة المستخدمين",
