@@ -5501,5 +5501,45 @@
     "mainMessage": "Pangunahing Mensahe",
     "subtitle": "Subtitle",
     "saved": "Matagumpay na na-save ang mga setting"
+  },
+  "severity": {
+    "level_1": {
+      "label": "Antas 1 - Mababa",
+      "description": "Maliit na epekto, mabilis na nakontrol",
+      "examples": "First aid lamang, napakaliit na tagas na naimbak, maliit na pinsala, walang pagkaantala ng negosyo"
+    },
+    "level_2": {
+      "label": "Antas 2 - Katamtaman",
+      "description": "Posibleng medical treatment o maliit na restricted work",
+      "examples": "Naimbak na tagas na nangangailangan ng cleanup team, katamtamang pinsala, maikling pagkaantala"
+    },
+    "level_3": {
+      "label": "Antas 3 - Malubha",
+      "description": "Medical Treatment Case o Restricted Work (o malinaw na potensyal nito)",
+      "examples": "Katamtamang tagas/emisyon, makabuluhang pinsala sa ari-arian, kapansin-pansing operational disruption"
+    },
+    "level_4": {
+      "label": "Antas 4 - Mayor",
+      "description": "Lost Time Injury (LTI/LWDC) o mayor na sunog/LOPC",
+      "examples": "Mayor na epekto sa kapaligiran, malaking pagkawala ng asset, shutdown, posibleng regulator notification"
+    },
+    "level_5": {
+      "label": "Antas 5 - Sakuna",
+      "description": "Kamatayan / permanenteng kapansanan",
+      "examples": "Mayor na epekto sa labas ng site, matinding security event, crisis management activation"
+    },
+    "erpActivated": "Na-activate ang ERP",
+    "erpActivatedHint": "I-toggle kung ang emergency response plan ay na-activate",
+    "overrideReason": "Dahilan ng Override",
+    "overridePlaceholder": "Idokumento kung bakit ang event na ito ay na-rate sa ibaba ng standard minimum...",
+    "overrideAuditNote": "Ito ay ilo-log para sa audit purposes",
+    "validation": {
+      "belowMinimum": "Ibaba ng Minimum na Kinakailangan",
+      "minimumRequired": "Minimum na kinakailangan: {{level}}",
+      "erpMinimum": "Hindi maaaring mas mababa sa Antas 4 ang mga ERP activated event nang walang documented override reason",
+      "fatalityRequired": "Ang kamatayan/permanenteng kapansanan ay dapat Antas 5",
+      "ltiMinimum": "Ang mga LTI/LWDC event ay dapat hindi bababa sa Antas 4",
+      "overrideRequired": "Kinakailangan ang override reason para sa severity na mas mababa sa minimum"
+    }
   }
 }
