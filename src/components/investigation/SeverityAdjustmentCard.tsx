@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle, Lock } from "lucide-react";
+import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle, Lock, Info } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,14 @@ import { useInvestigationEditAccess } from "@/hooks/use-investigation-edit-acces
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import type { Investigation } from "@/hooks/use-investigation";
 import type { Database } from "@/integrations/supabase/types";
+import { 
+  HSSE_SEVERITY_LEVELS, 
+  type SeverityLevelV2, 
+  calculateMinimumSeverity, 
+  isSeverityBelowMinimum,
+  getSeverityConfig,
+  mapOldSeverityToNew 
+} from "@/lib/hsse-severity-levels";
 
 type SeverityLevel = Database['public']['Enums']['severity_level'];
 
@@ -55,34 +63,52 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   
-  const [newSeverity, setNewSeverity] = useState<SeverityLevel | ''>('');
+  const [newSeverity, setNewSeverity] = useState<SeverityLevelV2 | ''>('');
   const [justification, setJustification] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
   
   const { isLocked, isAssignedInvestigator, isOversightRole } = useInvestigationEditAccess(investigation, incident);
-
-  const severityOptions: SeverityLevel[] = ['low', 'medium', 'high', 'critical'];
-
-  const getSeverityVariant = (severity: string | null) => {
-    switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'outline';
-    }
-  };
 
   // Type assertion for the extended incident properties
   const incidentExtended = incident as IncidentWithDetails & {
     original_severity?: SeverityLevel | null;
+    severity_v2?: SeverityLevelV2 | null;
+    original_severity_v2?: SeverityLevelV2 | null;
     severity_pending_approval?: boolean;
     severity_change_justification?: string | null;
     severity_approved_by?: string | null;
     severity_approved_at?: string | null;
+    injury_classification?: string | null;
+    erp_activated?: boolean | null;
+    event_type?: string | null;
+  };
+
+  // Calculate minimum severity based on incident data
+  const { minLevel: minimumSeverity, reason: minSeverityReason } = useMemo(() => {
+    return calculateMinimumSeverity(
+      incidentExtended.injury_classification,
+      incidentExtended.erp_activated,
+      incidentExtended.event_type
+    );
+  }, [incidentExtended.injury_classification, incidentExtended.erp_activated, incidentExtended.event_type]);
+
+  // Check if selected severity is below minimum
+  const isBelowMinimum = useMemo(() => {
+    if (!newSeverity) return false;
+    return isSeverityBelowMinimum(newSeverity, minimumSeverity);
+  }, [newSeverity, minimumSeverity]);
+
+  // Get current severity (prefer v2, fallback to mapped old value)
+  const currentSeverityV2 = incidentExtended.severity_v2 || mapOldSeverityToNew(incident.severity);
+  const originalSeverityV2 = incidentExtended.original_severity_v2 || mapOldSeverityToNew(incidentExtended.original_severity || null);
+
+  const getSeverityVariant = (severity: string | null) => {
+    if (!severity) return 'outline';
+    const config = getSeverityConfig(severity as SeverityLevelV2);
+    return config?.badgeVariant || 'outline';
   };
 
   const hasPendingChange = incidentExtended.severity_pending_approval;
-  const originalSeverity = incidentExtended.original_severity;
 
   // Mutation to propose severity change
   const proposeMutation = useMutation({
@@ -90,19 +116,27 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
       if (!newSeverity) throw new Error('No severity selected');
       if (!justification.trim()) throw new Error('Justification required');
+      if (isBelowMinimum && !overrideReason.trim()) throw new Error('Override reason required');
 
       // Store original severity before change
-      const originalSev = incident.severity;
+      const originalSev = currentSeverityV2;
+
+      const updateData: Record<string, unknown> = {
+        original_severity_v2: originalSev,
+        severity_v2: newSeverity,
+        severity_change_justification: justification,
+        severity_pending_approval: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Include override reason if below minimum
+      if (isBelowMinimum) {
+        updateData.severity_override_reason = overrideReason;
+      }
 
       const { error } = await supabase
         .from('incidents')
-        .update({
-          original_severity: originalSev,
-          severity: newSeverity,
-          severity_change_justification: justification,
-          severity_pending_approval: true,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', incident.id);
 
       if (error) throw error;
@@ -113,8 +147,13 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         tenant_id: profile.tenant_id,
         actor_id: user.id,
         action: 'severity_change_proposed',
-        old_value: { severity: originalSev },
-        new_value: { severity: newSeverity, justification },
+        old_value: { severity_v2: originalSev },
+        new_value: { 
+          severity_v2: newSeverity, 
+          justification,
+          override_reason: isBelowMinimum ? overrideReason : null,
+          minimum_required: minimumSeverity 
+        },
       });
 
       // Send email notification
@@ -135,6 +174,7 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
       toast.success(t('investigation.severityChangeProposed', 'Severity change proposed. Awaiting HSSE Manager approval.'));
       setNewSeverity('');
       setJustification('');
+      setOverrideReason('');
       onRefresh();
     },
     onError: (error) => {
@@ -166,8 +206,8 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         actor_id: user.id,
         action: 'severity_change_approved',
         new_value: { 
-          approved_severity: incident.severity,
-          original_severity: originalSeverity 
+          approved_severity: currentSeverityV2,
+          original_severity: originalSeverityV2 
         },
       });
 
@@ -177,8 +217,8 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         incident_id: incident.id,
         incident_title: incident.title,
         incident_reference: incident.reference_id || 'N/A',
-        current_severity: incident.severity || 'unknown',
-        original_severity: originalSeverity || undefined,
+        current_severity: currentSeverityV2 || 'unknown',
+        original_severity: originalSeverityV2 || undefined,
         actor_name: profile.full_name || 'Unknown User',
         tenant_id: profile.tenant_id,
       });
@@ -198,15 +238,16 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
 
-      const proposedSev = incident.severity;
+      const proposedSev = currentSeverityV2;
 
       // Revert to original severity
       const { error } = await supabase
         .from('incidents')
         .update({
-          severity: originalSeverity || incident.severity,
+          severity_v2: originalSeverityV2 || currentSeverityV2,
           severity_pending_approval: false,
           severity_change_justification: null,
+          severity_override_reason: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', incident.id);
@@ -220,7 +261,7 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         actor_id: user.id,
         action: 'severity_change_rejected',
         old_value: { proposed_severity: proposedSev },
-        new_value: { reverted_to: originalSeverity },
+        new_value: { reverted_to: originalSeverityV2 },
       });
 
       // Send email notification
@@ -229,9 +270,9 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         incident_id: incident.id,
         incident_title: incident.title,
         incident_reference: incident.reference_id || 'N/A',
-        current_severity: originalSeverity || 'unknown',
+        current_severity: originalSeverityV2 || 'unknown',
         proposed_severity: proposedSev || undefined,
-        original_severity: originalSeverity || undefined,
+        original_severity: originalSeverityV2 || undefined,
         actor_name: profile.full_name || 'Unknown User',
         tenant_id: profile.tenant_id,
       });
@@ -269,17 +310,17 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
             <p className="text-xs text-muted-foreground mb-1">
               {t('investigation.overview.currentSeverity', 'Current Severity')}
             </p>
-            <Badge variant={getSeverityVariant(incident.severity)} className="text-sm">
-              {incident.severity ? t(`incidents.severityLevels.${incident.severity}`) : t('common.notSet')}
+            <Badge variant={getSeverityVariant(currentSeverityV2)} className="text-sm">
+              {currentSeverityV2 ? t(`severity.${currentSeverityV2}.label`) : t('common.notSet')}
             </Badge>
           </div>
-          {originalSeverity && originalSeverity !== incident.severity && (
+          {originalSeverityV2 && originalSeverityV2 !== currentSeverityV2 && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">
                 {t('investigation.overview.originalSeverity', 'Original')}
               </p>
               <Badge variant="outline" className="text-sm">
-                {t(`incidents.severityLevels.${originalSeverity}`)}
+                {t(`severity.${originalSeverityV2}.label`)}
               </Badge>
             </div>
           )}
@@ -336,25 +377,54 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('investigation.overview.proposedSeverity', 'Proposed Severity')}</Label>
-              <Select value={newSeverity} onValueChange={(v) => setNewSeverity(v as SeverityLevel)}>
+              <Select value={newSeverity} onValueChange={(v) => setNewSeverity(v as SeverityLevelV2)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t('investigation.overview.selectSeverity', 'Select new severity...')} />
                 </SelectTrigger>
                 <SelectContent dir={direction}>
-                  {severityOptions.map((sev) => (
-                    <SelectItem 
-                      key={sev} 
-                      value={sev}
-                      disabled={sev === incident.severity}
-                    >
-                      <Badge variant={getSeverityVariant(sev)} className="me-2">
-                        {t(`incidents.severityLevels.${sev}`)}
-                      </Badge>
-                    </SelectItem>
-                  ))}
+                  {HSSE_SEVERITY_LEVELS.map((level) => {
+                    const config = getSeverityConfig(level.value);
+                    return (
+                      <SelectItem 
+                        key={level.value} 
+                        value={level.value}
+                        disabled={level.value === currentSeverityV2}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: config?.color }}
+                          />
+                          <span>{t(level.labelKey)}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Validation Warning */}
+            {isBelowMinimum && (
+              <div className="bg-warning/10 border border-warning/30 rounded-md p-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-warning">
+                      {t('severity.validation.belowMinimum', 'Below Minimum Required')}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {minSeverityReason && t(minSeverityReason)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('severity.validation.minimumRequired', 'Minimum required: {{level}}', { 
+                        level: t(`severity.${minimumSeverity}.label`) 
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>{t('investigation.overview.justification', 'Justification')} *</Label>
@@ -369,9 +439,29 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
               </p>
             </div>
 
+            {/* Override Reason (required when below minimum) */}
+            {isBelowMinimum && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  <Info className="h-3.5 w-3.5" />
+                  {t('severity.overrideReason', 'Override Reason')} *
+                </Label>
+                <Textarea 
+                  value={overrideReason}
+                  onChange={(e) => setOverrideReason(e.target.value)}
+                  placeholder={t('severity.overridePlaceholder', 'Document why this event is rated below the standard minimum...')}
+                  rows={2}
+                  className="border-warning/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('severity.overrideAuditNote', 'This will be logged for audit purposes')}
+                </p>
+              </div>
+            )}
+
             <Button 
               onClick={() => proposeMutation.mutate()}
-              disabled={!newSeverity || !justification.trim() || proposeMutation.isPending}
+              disabled={!newSeverity || !justification.trim() || (isBelowMinimum && !overrideReason.trim()) || proposeMutation.isPending}
               className="w-full"
             >
               {proposeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
