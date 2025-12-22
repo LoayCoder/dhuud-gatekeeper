@@ -252,6 +252,112 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_delegations: {
+        Row: {
+          approval_types: string[]
+          created_at: string
+          created_by: string | null
+          delegate_id: string
+          delegator_id: string
+          end_date: string
+          id: string
+          is_active: boolean
+          reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          start_date: string
+          tenant_id: string
+        }
+        Insert: {
+          approval_types?: string[]
+          created_at?: string
+          created_by?: string | null
+          delegate_id: string
+          delegator_id: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          start_date: string
+          tenant_id: string
+        }
+        Update: {
+          approval_types?: string[]
+          created_at?: string
+          created_by?: string | null
+          delegate_id?: string
+          delegator_id?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          start_date?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_delegations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_escalation_config: {
+        Row: {
+          approval_type: string
+          created_at: string
+          escalate_after_hours: number
+          escalate_to_role: string | null
+          escalate_to_user_id: string | null
+          escalation_level: number
+          id: string
+          is_active: boolean
+          send_reminder_hours: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          approval_type: string
+          created_at?: string
+          escalate_after_hours?: number
+          escalate_to_role?: string | null
+          escalate_to_user_id?: string | null
+          escalation_level?: number
+          id?: string
+          is_active?: boolean
+          send_reminder_hours?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: string
+          created_at?: string
+          escalate_after_hours?: number
+          escalate_to_role?: string | null
+          escalate_to_user_id?: string | null
+          escalation_level?: number
+          id?: string
+          is_active?: boolean
+          send_reminder_hours?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_escalation_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       area_inspection_findings: {
         Row: {
           classification: string
@@ -2469,6 +2575,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "email_delivery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notification_preferences: {
+        Row: {
+          approvals_decision: boolean
+          approvals_requested: boolean
+          contractor_alerts: boolean
+          created_at: string
+          daily_digest: boolean
+          gate_pass_approval: boolean
+          id: string
+          incidents_assigned: boolean
+          incidents_new: boolean
+          incidents_status_change: boolean
+          sla_overdue: boolean
+          sla_warnings: boolean
+          system_announcements: boolean
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          visitor_checkin: boolean
+          weekly_summary: boolean
+        }
+        Insert: {
+          approvals_decision?: boolean
+          approvals_requested?: boolean
+          contractor_alerts?: boolean
+          created_at?: string
+          daily_digest?: boolean
+          gate_pass_approval?: boolean
+          id?: string
+          incidents_assigned?: boolean
+          incidents_new?: boolean
+          incidents_status_change?: boolean
+          sla_overdue?: boolean
+          sla_warnings?: boolean
+          system_announcements?: boolean
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          visitor_checkin?: boolean
+          weekly_summary?: boolean
+        }
+        Update: {
+          approvals_decision?: boolean
+          approvals_requested?: boolean
+          contractor_alerts?: boolean
+          created_at?: string
+          daily_digest?: boolean
+          gate_pass_approval?: boolean
+          id?: string
+          incidents_assigned?: boolean
+          incidents_new?: boolean
+          incidents_status_change?: boolean
+          sla_overdue?: boolean
+          sla_warnings?: boolean
+          system_announcements?: boolean
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          visitor_checkin?: boolean
+          weekly_summary?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notification_preferences_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -6379,6 +6556,65 @@ export type Database = {
           },
         ]
       }
+      offline_scan_queue: {
+        Row: {
+          created_at: string
+          device_id: string
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          scan_data: Json
+          scan_type: string
+          scanned_at: string
+          scanned_by: string
+          sync_error: string | null
+          sync_status: string
+          synced_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          scan_data: Json
+          scan_type: string
+          scanned_at: string
+          scanned_by: string
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          scan_data?: Json
+          scan_type?: string
+          scanned_at?: string
+          scanned_by?: string
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_scan_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patrol_checkpoint_logs: {
         Row: {
           checkpoint_id: string
@@ -6488,12 +6724,14 @@ export type Database = {
           min_time_at_checkpoint_seconds: number | null
           name: string
           name_ar: string | null
+          nfc_enabled: boolean | null
           nfc_tag_id: string | null
           notes_required: boolean | null
           photo_required: boolean | null
           qr_code_data: string | null
           radius_meters: number | null
           route_id: string
+          scan_tolerance_meters: number | null
           sequence_order: number
           tenant_id: string
           updated_at: string | null
@@ -6511,12 +6749,14 @@ export type Database = {
           min_time_at_checkpoint_seconds?: number | null
           name: string
           name_ar?: string | null
+          nfc_enabled?: boolean | null
           nfc_tag_id?: string | null
           notes_required?: boolean | null
           photo_required?: boolean | null
           qr_code_data?: string | null
           radius_meters?: number | null
           route_id: string
+          scan_tolerance_meters?: number | null
           sequence_order: number
           tenant_id: string
           updated_at?: string | null
@@ -6534,12 +6774,14 @@ export type Database = {
           min_time_at_checkpoint_seconds?: number | null
           name?: string
           name_ar?: string | null
+          nfc_enabled?: boolean | null
           nfc_tag_id?: string | null
           notes_required?: boolean | null
           photo_required?: boolean | null
           qr_code_data?: string | null
           radius_meters?: number | null
           route_id?: string
+          scan_tolerance_meters?: number | null
           sequence_order?: number
           tenant_id?: string
           updated_at?: string | null
@@ -6561,6 +6803,83 @@ export type Database = {
           },
           {
             foreignKeyName: "patrol_checkpoints_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_approvals: {
+        Row: {
+          approval_type: string
+          assigned_to: string | null
+          created_at: string
+          current_escalation_level: number
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          due_at: string | null
+          escalated_to: string | null
+          escalation_reason: string | null
+          id: string
+          priority: string | null
+          reference_id: string
+          reference_number: string | null
+          reminder_sent_at: string | null
+          requested_by: string | null
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approval_type: string
+          assigned_to?: string | null
+          created_at?: string
+          current_escalation_level?: number
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          due_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          priority?: string | null
+          reference_id: string
+          reference_number?: string | null
+          reminder_sent_at?: string | null
+          requested_by?: string | null
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: string
+          assigned_to?: string | null
+          created_at?: string
+          current_escalation_level?: number
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          due_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          priority?: string | null
+          reference_id?: string
+          reference_number?: string | null
+          reminder_sent_at?: string | null
+          requested_by?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_approvals_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -8569,6 +8888,53 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_error_logs: {
+        Row: {
+          context_data: Json | null
+          created_at: string
+          device_info: Json | null
+          error_code: string
+          error_message: string | null
+          id: string
+          scan_type: string
+          stack_trace: string | null
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          context_data?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          error_code: string
+          error_message?: string | null
+          id?: string
+          scan_type: string
+          stack_trace?: string | null
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          context_data?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          error_code?: string
+          error_message?: string | null
+          id?: string
+          scan_type?: string
+          stack_trace?: string | null
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_error_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sections: {
         Row: {
           created_at: string | null
@@ -8611,33 +8977,157 @@ export type Database = {
           },
         ]
       }
+      security_audit_logs: {
+        Row: {
+          action: string
+          action_category: string
+          actor_id: string | null
+          actor_name: string | null
+          actor_role: string | null
+          building_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_identifier: string | null
+          entity_type: string | null
+          gate_name: string | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          result: string
+          result_reason: string | null
+          site_id: string | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          action_category: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          building_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_identifier?: string | null
+          entity_type?: string | null
+          gate_name?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          result: string
+          result_reason?: string | null
+          site_id?: string | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          action_category?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          building_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_identifier?: string | null
+          entity_type?: string | null
+          gate_name?: string | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          result?: string
+          result_reason?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_audit_logs_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_audit_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_blacklist: {
         Row: {
+          expiry_date: string | null
           full_name: string | null
           id: string
+          incident_reference: string | null
           listed_at: string | null
           listed_by: string | null
           national_id: string | null
+          notes: string | null
+          photo_evidence_paths: string[] | null
           reason: string | null
+          severity: string | null
+          supporting_documents: Json | null
           tenant_id: string
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          expiry_date?: string | null
           full_name?: string | null
           id?: string
+          incident_reference?: string | null
           listed_at?: string | null
           listed_by?: string | null
           national_id?: string | null
+          notes?: string | null
+          photo_evidence_paths?: string[] | null
           reason?: string | null
+          severity?: string | null
+          supporting_documents?: Json | null
           tenant_id: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          expiry_date?: string | null
           full_name?: string | null
           id?: string
+          incident_reference?: string | null
           listed_at?: string | null
           listed_by?: string | null
           national_id?: string | null
+          notes?: string | null
+          photo_evidence_paths?: string[] | null
           reason?: string | null
+          severity?: string | null
+          supporting_documents?: Json | null
           tenant_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -8848,6 +9338,131 @@ export type Database = {
           },
           {
             foreignKeyName: "security_patrols_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_report_configs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filters: Json | null
+          id: string
+          include_charts: boolean | null
+          is_active: boolean
+          last_generated_at: string | null
+          recipient_roles: string[] | null
+          recipients: string[] | null
+          report_name: string
+          report_name_ar: string | null
+          report_type: string
+          schedule_cron: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          id?: string
+          include_charts?: boolean | null
+          is_active?: boolean
+          last_generated_at?: string | null
+          recipient_roles?: string[] | null
+          recipients?: string[] | null
+          report_name: string
+          report_name_ar?: string | null
+          report_type: string
+          schedule_cron?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          id?: string
+          include_charts?: boolean | null
+          is_active?: boolean
+          last_generated_at?: string | null
+          recipient_roles?: string[] | null
+          recipients?: string[] | null
+          report_name?: string
+          report_name_ar?: string | null
+          report_type?: string
+          schedule_cron?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_report_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_reports: {
+        Row: {
+          config_id: string | null
+          emailed_at: string | null
+          emailed_to: string[] | null
+          file_path: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          period_end: string
+          period_start: string
+          report_title: string
+          report_type: string
+          summary_data: Json
+          tenant_id: string
+        }
+        Insert: {
+          config_id?: string | null
+          emailed_at?: string | null
+          emailed_to?: string[] | null
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          report_title: string
+          report_type: string
+          summary_data?: Json
+          tenant_id: string
+        }
+        Update: {
+          config_id?: string | null
+          emailed_at?: string | null
+          emailed_to?: string[] | null
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          report_title?: string
+          report_type?: string
+          summary_data?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_reports_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "security_report_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_reports_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -10076,6 +10691,92 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      unified_notification_log: {
+        Row: {
+          body: string | null
+          created_at: string
+          data: Json | null
+          email_delivery_status: string | null
+          email_error: string | null
+          email_sent: boolean | null
+          email_sent_at: string | null
+          id: string
+          notification_subtype: string | null
+          notification_type: string
+          push_delivery_status: string | null
+          push_error: string | null
+          push_sent: boolean | null
+          push_sent_at: string | null
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+          title: string
+          user_id: string | null
+          whatsapp_delivery_status: string | null
+          whatsapp_error: string | null
+          whatsapp_sent: boolean | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          email_delivery_status?: string | null
+          email_error?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          notification_subtype?: string | null
+          notification_type: string
+          push_delivery_status?: string | null
+          push_error?: string | null
+          push_sent?: boolean | null
+          push_sent_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+          title: string
+          user_id?: string | null
+          whatsapp_delivery_status?: string | null
+          whatsapp_error?: string | null
+          whatsapp_sent?: boolean | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          email_delivery_status?: string | null
+          email_error?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          notification_subtype?: string | null
+          notification_type?: string
+          push_delivery_status?: string | null
+          push_error?: string | null
+          push_sent?: boolean | null
+          push_sent_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+          title?: string
+          user_id?: string | null
+          whatsapp_delivery_status?: string | null
+          whatsapp_error?: string | null
+          whatsapp_sent?: boolean | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_notification_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activity_logs: {
         Row: {
