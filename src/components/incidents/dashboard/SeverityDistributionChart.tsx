@@ -8,18 +8,13 @@ interface Props {
   data: SeverityDistribution;
 }
 
-// New 5-level severity colors
+// 5-level severity colors
 const SEVERITY_COLORS: Record<string, string> = {
   level_1: 'hsl(142 71% 45%)',  // Green - Low
   level_2: 'hsl(48 96% 53%)',   // Yellow - Moderate
   level_3: 'hsl(25 95% 53%)',   // Orange - Serious
   level_4: 'hsl(0 84% 60%)',    // Red - Major
   level_5: 'hsl(0 84% 40%)',    // Dark Red - Catastrophic
-  // Legacy colors for backward compatibility
-  critical: 'hsl(0 84% 60%)',
-  high: 'hsl(25 95% 53%)',
-  medium: 'hsl(48 96% 53%)',
-  low: 'hsl(142 71% 45%)',
   unassigned: 'hsl(217 19% 55%)',
 };
 
@@ -28,19 +23,13 @@ export function SeverityDistributionChart({ data }: Props) {
   const { drillDown } = useDashboardDrilldown();
   const isRTL = i18n.dir() === 'rtl';
 
-  // Support both old and new severity formats
+  // 5-level severity system only
   const chartData = [
-    // New 5-level system
-    { name: t('severity.level5.label'), value: (data as any).level_5 || 0, key: 'level_5' },
-    { name: t('severity.level4.label'), value: (data as any).level_4 || 0, key: 'level_4' },
-    { name: t('severity.level3.label'), value: (data as any).level_3 || 0, key: 'level_3' },
-    { name: t('severity.level2.label'), value: (data as any).level_2 || 0, key: 'level_2' },
-    { name: t('severity.level1.label'), value: (data as any).level_1 || 0, key: 'level_1' },
-    // Legacy fallback
-    { name: t('severity.critical'), value: data.critical || 0, key: 'critical' },
-    { name: t('severity.high'), value: data.high || 0, key: 'high' },
-    { name: t('severity.medium'), value: data.medium || 0, key: 'medium' },
-    { name: t('severity.low'), value: data.low || 0, key: 'low' },
+    { name: t('severity.level5.label'), value: data.level_5 || 0, key: 'level_5' },
+    { name: t('severity.level4.label'), value: data.level_4 || 0, key: 'level_4' },
+    { name: t('severity.level3.label'), value: data.level_3 || 0, key: 'level_3' },
+    { name: t('severity.level2.label'), value: data.level_2 || 0, key: 'level_2' },
+    { name: t('severity.level1.label'), value: data.level_1 || 0, key: 'level_1' },
     { name: t('severity.unassigned', 'N/A'), value: data.unassigned || 0, key: 'unassigned' },
   ].filter(item => item.value > 0);
 

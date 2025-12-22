@@ -44,8 +44,8 @@ export interface PendingSeverityApproval {
   id: string;
   reference_id: string | null;
   title: string;
-  severity: string | null;
-  original_severity: string | null;
+  severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  original_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
   severity_change_justification: string | null;
   severity_pending_approval: boolean;
   created_at: string | null;
@@ -133,7 +133,7 @@ export function usePendingSeverityApprovals() {
       const { data, error } = await supabase
         .from('incidents')
         .select(`
-          id, reference_id, title, severity, original_severity,
+          id, reference_id, title, severity_v2, original_severity_v2,
           severity_change_justification, severity_pending_approval, created_at,
           reporter:profiles!incidents_reporter_id_fkey(id, full_name)
         `)
@@ -335,15 +335,15 @@ export function useApproveSeverityChange() {
           severity_approved_at: new Date().toISOString(),
         };
       } else {
-        // Reject: revert to original severity
+        // Reject: revert to original severity_v2
         const { data: incident } = await supabase
           .from('incidents')
-          .select('original_severity')
+          .select('original_severity_v2')
           .eq('id', incidentId)
           .single();
 
         updateData = {
-          severity: incident?.original_severity,
+          severity_v2: incident?.original_severity_v2,
           severity_pending_approval: false,
           severity_change_justification: null,
         };

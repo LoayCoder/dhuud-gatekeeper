@@ -14,7 +14,7 @@ interface RealtimeState {
 interface NewIncidentPayload {
   id: string;
   title: string;
-  severity: string;
+  severity_v2: string;
   event_type: string;
 }
 
@@ -65,8 +65,8 @@ export function useDashboardRealtime(onNewEvent?: () => void) {
             lastEventTime: new Date(),
           }));
 
-          // Show toast for critical/high severity
-          if (newIncident.severity === 'critical' || newIncident.severity === 'high') {
+          // Show toast for critical/major severity (level_4, level_5)
+          if (newIncident.severity_v2 === 'level_4' || newIncident.severity_v2 === 'level_5') {
             showCriticalToast(newIncident);
           }
 

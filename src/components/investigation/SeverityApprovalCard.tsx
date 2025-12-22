@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useApproveSeverityChange, type PendingSeverityApproval } from '@/hooks/use-pending-approvals';
+import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 
 interface SeverityApprovalCardProps {
   incident: PendingSeverityApproval;
@@ -20,19 +21,6 @@ export function SeverityApprovalCard({ incident }: SeverityApprovalCardProps) {
 
   const handleReject = () => {
     approveSeverity.mutate({ incidentId: incident.id, approved: false });
-  };
-
-  const getSeverityVariant = (severity: string | null): 'destructive' | 'secondary' | 'outline' => {
-    switch (severity) {
-      case 'critical':
-        return 'destructive';
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
   };
 
   return (
@@ -54,15 +42,15 @@ export function SeverityApprovalCard({ incident }: SeverityApprovalCardProps) {
         <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{t('investigation.from', 'From')}:</span>
-            <Badge variant={getSeverityVariant(incident.original_severity)}>
-              {t(`incidents.severityLevels.${incident.original_severity}`, incident.original_severity || 'N/A')}
+            <Badge variant={getSeverityBadgeVariant(incident.original_severity_v2)}>
+              {incident.original_severity_v2 ? t(`severity.${incident.original_severity_v2}.label`) : 'N/A'}
             </Badge>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{t('investigation.to', 'To')}:</span>
-            <Badge variant={getSeverityVariant(incident.severity)}>
-              {t(`incidents.severityLevels.${incident.severity}`, incident.severity || 'N/A')}
+            <Badge variant={getSeverityBadgeVariant(incident.severity_v2)}>
+              {incident.severity_v2 ? t(`severity.${incident.severity_v2}.label`) : 'N/A'}
             </Badge>
           </div>
         </div>
