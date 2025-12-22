@@ -44,6 +44,8 @@ import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 import { HSSE_EVENT_TYPES, getSubtypesForEventType } from '@/lib/hsse-event-types';
+import { useActiveEventCategories } from '@/hooks/use-active-event-categories';
+import { useActiveEventSubtypes } from '@/hooks/use-active-event-subtypes';
 import { 
   HSSE_SEVERITY_LEVELS, 
   calculateMinimumSeverity, 
@@ -153,6 +155,9 @@ export default function IncidentReport() {
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
   const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
+  
+  // Dynamic event categories from database
+  const { data: dynamicCategories = [] } = useActiveEventCategories();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(incidentFormSchema),

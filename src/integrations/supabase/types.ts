@@ -3662,6 +3662,80 @@ export type Database = {
           },
         ]
       }
+      hsse_event_categories: {
+        Row: {
+          code: string
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          name_key: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name_key: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name_key?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hsse_event_subtypes: {
+        Row: {
+          category_id: string
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name_key: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_key: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_key?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_event_subtypes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_event_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hsse_notification_acknowledgments: {
         Row: {
           acknowledged_at: string
@@ -10320,6 +10394,90 @@ export type Database = {
           },
         ]
       }
+      tenant_event_category_overrides: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_event_category_overrides_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_event_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_event_category_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_event_subtype_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          subtype_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subtype_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subtype_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_event_subtype_overrides_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_event_subtypes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_event_subtype_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_modules: {
         Row: {
           created_at: string
@@ -11566,6 +11724,25 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_active_event_categories: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          code: string
+          icon: string
+          id: string
+          name_key: string
+          sort_order: number
+        }[]
+      }
+      get_active_event_subtypes: {
+        Args: { p_category_code: string; p_tenant_id: string }
+        Returns: {
+          code: string
+          id: string
+          name_key: string
+          sort_order: number
+        }[]
+      }
       get_agent_workload: {
         Args: never
         Returns: {
@@ -11865,6 +12042,7 @@ export type Database = {
           role_name: string
         }[]
       }
+      get_user_tenant_id: { Args: never; Returns: string }
       get_users_with_roles_paginated: {
         Args: {
           p_branch_id?: string
@@ -11963,6 +12141,22 @@ export type Database = {
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      toggle_event_category: {
+        Args: {
+          p_category_id: string
+          p_is_active: boolean
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
+      toggle_event_subtype: {
+        Args: {
+          p_is_active: boolean
+          p_subtype_id: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
@@ -12017,6 +12211,18 @@ export type Database = {
         | "missing"
         | "pending_inspection"
       contractor_type: "long_term" | "short_term"
+      hsse_category_code:
+        | "safety"
+        | "health"
+        | "process_safety"
+        | "environment"
+        | "security"
+        | "property_asset_damage"
+        | "road_traffic_vehicle"
+        | "quality_service"
+        | "community_third_party"
+        | "compliance_regulatory"
+        | "emergency_crisis"
       hsse_notification_category:
         | "weather_risk"
         | "regulation"
@@ -12300,6 +12506,19 @@ export const Constants = {
         "pending_inspection",
       ],
       contractor_type: ["long_term", "short_term"],
+      hsse_category_code: [
+        "safety",
+        "health",
+        "process_safety",
+        "environment",
+        "security",
+        "property_asset_damage",
+        "road_traffic_vehicle",
+        "quality_service",
+        "community_third_party",
+        "compliance_regulatory",
+        "emergency_crisis",
+      ],
       hsse_notification_category: [
         "weather_risk",
         "regulation",
