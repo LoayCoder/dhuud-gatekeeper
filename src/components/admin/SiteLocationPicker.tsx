@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -34,7 +34,7 @@ interface SiteLocationPickerProps {
 type DrawMode = 'marker' | 'polygon';
 
 // Inner component that uses map hooks - must be inside MapContainer
-function MapEvents({ 
+function MapEventsHandler({ 
   mode, 
   onMarkerClick, 
   onPolygonClick,
@@ -55,6 +55,14 @@ function MapEvents({
       map.setView(center, map.getZoom());
     }
   }, [center, map]);
+
+  // Fix map size when component mounts (important for dialogs)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [map]);
 
   // Handle map clicks
   useMapEvents({
@@ -82,14 +90,12 @@ export function SiteLocationPicker({
 }: SiteLocationPickerProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
-  const mapRef = useRef<L.Map | null>(null);
   
   const [mode, setMode] = useState<DrawMode>('marker');
   const [polygonPoints, setPolygonPoints] = useState<Coordinate[]>(boundaryPolygon ?? []);
   const [markerPosition, setMarkerPosition] = useState<Coordinate | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
-  const [mapReady, setMapReady] = useState(false);
 
   // Default center (Saudi Arabia)
   const defaultCenter: [number, number] = [24.7136, 46.6753];
@@ -135,15 +141,6 @@ export function SiteLocationPicker({
 
   const polygonPositions: [number, number][] = polygonPoints.map(p => [p.lat, p.lng]);
 
-  // Fix map size when it becomes visible (important for dialogs)
-  useEffect(() => {
-    if (mapReady && mapRef.current) {
-      setTimeout(() => {
-        mapRef.current?.invalidateSize();
-      }, 100);
-    }
-  }, [mapReady]);
-
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -185,15 +182,13 @@ export function SiteLocationPicker({
             zoom={13}
             style={{ height: '100%', width: '100%' }}
             className="z-0"
-            ref={mapRef}
-            whenReady={() => setMapReady(true)}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             
-            <MapEvents 
+            <MapEventsHandler 
               mode={mode}
               onMarkerClick={handleMarkerClick}
               onPolygonClick={handlePolygonClick}
