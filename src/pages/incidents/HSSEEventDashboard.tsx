@@ -36,6 +36,7 @@ import { useIncidentProgression } from "@/hooks/use-incident-progression";
 import { useDashboardPrefetch } from "@/hooks/use-dashboard-prefetch";
 import { useBranches } from "@/hooks/use-branches";
 import { useSites } from "@/hooks/use-sites";
+import { useIncidentTypeDistribution } from "@/hooks/use-incident-type-distribution";
 import {
   useLaggingIndicators,
   useLeadingIndicators,
@@ -88,6 +89,7 @@ import {
   KPIDashboardExport,
   KPITrendCard,
   KPIHistoricalTrendChart,
+  IncidentTypeBreakdownChart,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -215,6 +217,7 @@ export default function HSSEEventDashboard() {
   const { data: rcaData, isLoading: rcaLoading, dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching } = useRCAAnalytics(startDate, endDate);
   const { data: heatmapData, isLoading: heatmapLoading } = useLocationHeatmap(startDate, endDate);
   const { data: progressionData, isLoading: progressionLoading, dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching } = useIncidentProgression(startDate, endDate);
+  const { data: incidentTypeData, isLoading: incidentTypeLoading } = useIncidentTypeDistribution(startDate, endDate);
 
   // KPI data
   const { data: laggingData, isLoading: laggingLoading, refetch: refetchLagging } = useLaggingIndicators(kpiStartDate, kpiEndDate, branchId || undefined, siteId || undefined);
@@ -556,7 +559,7 @@ export default function HSSEEventDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Charts Row 1 */}
+      {/* Charts Row 1 - Event Type Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {dashboardLoading ? (
           <>
@@ -570,6 +573,9 @@ export default function HSSEEventDashboard() {
           </>
         ) : null}
       </div>
+
+      {/* Incident Type Breakdown Chart */}
+      <IncidentTypeBreakdownChart data={incidentTypeData || []} isLoading={incidentTypeLoading} />
 
       {/* Monthly Trend with Filters */}
       <div className="grid grid-cols-1 gap-4">

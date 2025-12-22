@@ -13,6 +13,7 @@
     "avgClosureDays": "औसत बंद होने के दिन",
     "yoyChange": "वार्षिक परिवर्तन",
     "eventsByType": "प्रकार के अनुसार घटनाएं",
+    "incidentTypeBreakdown": "घटना प्रकार विश्लेषण",
     "eventsBySeverity": "गंभीरता के अनुसार घटनाएं",
     "eventsByStatus": "स्थिति के अनुसार घटनाएं",
     "monthlyTrend": "मासिक घटना प्रवृत्ति",
