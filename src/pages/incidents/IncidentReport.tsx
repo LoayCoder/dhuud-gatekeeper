@@ -196,10 +196,18 @@ export default function IncidentReport() {
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
 
+  // Dynamic subtypes from database
+  const { data: dynamicSubtypes = [] } = useActiveEventSubtypes(
+    eventType === 'incident' ? incidentType : undefined
+  );
+
   // Get subtype options based on event type and incident type
+  // Use dynamic subtypes if available, fallback to static for observations
   const subtypeOptions = eventType === 'observation' 
     ? OBSERVATION_TYPES 
-    : (incidentType ? getSubtypesForEventType(incidentType) : []);
+    : (dynamicSubtypes.length > 0 
+        ? dynamicSubtypes.map(s => ({ value: s.code, labelKey: s.name_key }))
+        : (incidentType ? getSubtypesForEventType(incidentType) : []));
 
   // Auto-detect branch and site from user profile
   useEffect(() => {
@@ -934,11 +942,19 @@ export default function IncidentReport() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {HSSE_EVENT_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {t(type.labelKey)}
-                                </SelectItem>
-                              ))}
+                              {/* Use dynamic categories if available, fallback to static */}
+                              {(dynamicCategories.length > 0 
+                                ? dynamicCategories.map((cat) => (
+                                    <SelectItem key={cat.code} value={cat.code}>
+                                      {t(cat.name_key)}
+                                    </SelectItem>
+                                  ))
+                                : HSSE_EVENT_TYPES.map((type) => (
+                                    <SelectItem key={type.value} value={type.value}>
+                                      {t(type.labelKey)}
+                                    </SelectItem>
+                                  ))
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
