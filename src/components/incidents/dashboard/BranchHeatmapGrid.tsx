@@ -99,16 +99,19 @@ export function BranchHeatmapGrid({ data, onBranchClick }: Props) {
                   <div className="space-y-1">
                     <div className="font-semibold">{branch.branch_name}</div>
                     <div className="flex gap-2">
-                      <span className="text-destructive">●</span> {t('dashboard.critical', 'Critical')}: {branch.critical_count}
+                      <span className="text-destructive">●</span> {t('severity.level_5.label', 'Catastrophic')}: {branch.level_5_count}
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-warning">●</span> {t('dashboard.high', 'High')}: {branch.high_count}
+                      <span className="text-warning">●</span> {t('severity.level_4.label', 'Major')}: {branch.level_4_count}
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-chart-4">●</span> {t('dashboard.medium', 'Medium')}: {branch.medium_count}
+                      <span className="text-orange-500">●</span> {t('severity.level_3.label', 'Serious')}: {branch.level_3_count}
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-chart-2">●</span> {t('dashboard.low', 'Low')}: {branch.low_count}
+                      <span className="text-chart-4">●</span> {t('severity.level_2.label', 'Moderate')}: {branch.level_2_count}
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-chart-2">●</span> {t('severity.level_1.label', 'Low')}: {branch.level_1_count}
                     </div>
                     <p className="text-muted-foreground mt-1">{t('hsseDashboard.clickToFilter', 'Click to view')}</p>
                   </div>

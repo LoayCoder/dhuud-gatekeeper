@@ -1,15 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 
 export interface BranchHeatmapData {
   branch_id: string;
   branch_name: string;
   total_events: number;
-  critical_count: number;
-  high_count: number;
-  medium_count: number;
-  low_count: number;
+  level_5_count: number; // Catastrophic
+  level_4_count: number; // Major
+  level_3_count: number; // Serious
+  level_2_count: number; // Moderate
+  level_1_count: number; // Low
   density_score: number; // 0-100 normalized
 }
 
@@ -40,6 +42,15 @@ export interface LocationHeatmapData {
   maxTemporalCount: number;
 }
 
+// Severity weighting for 5-level system
+const SEVERITY_WEIGHTS: Record<SeverityLevelV2, number> = {
+  'level_5': 5,
+  'level_4': 4,
+  'level_3': 3,
+  'level_2': 2,
+  'level_1': 1,
+};
+
 export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
   const { profile } = useAuth();
 
@@ -53,7 +64,7 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
           id,
           branch_id,
           site_id,
-          severity,
+          severity_v2,
           event_type,
           occurred_at,
           branches!inner(id, name),
@@ -81,7 +92,7 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
         const branchName = inc.branches?.name || 'Unknown';
         const siteId = inc.site_id;
         const siteName = inc.sites?.name;
-        const severity = inc.severity || 'low';
+        const severityV2 = (inc.severity_v2 || 'level_1') as SeverityLevelV2;
         const eventType = inc.event_type;
         const occurredAt = inc.occurred_at ? new Date(inc.occurred_at) : null;
 
@@ -91,17 +102,19 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
             branch_id: branchId,
             branch_name: branchName,
             total_events: 0,
-            critical_count: 0,
-            high_count: 0,
-            medium_count: 0,
-            low_count: 0,
+            level_5_count: 0,
+            level_4_count: 0,
+            level_3_count: 0,
+            level_2_count: 0,
+            level_1_count: 0,
             density_score: 0,
           };
           existing.total_events++;
-          if (severity === 'critical') existing.critical_count++;
-          else if (severity === 'high') existing.high_count++;
-          else if (severity === 'medium') existing.medium_count++;
-          else existing.low_count++;
+          if (severityV2 === 'level_5') existing.level_5_count++;
+          else if (severityV2 === 'level_4') existing.level_4_count++;
+          else if (severityV2 === 'level_3') existing.level_3_count++;
+          else if (severityV2 === 'level_2') existing.level_2_count++;
+          else existing.level_1_count++;
           branchMap.set(branchId, existing);
         }
 
@@ -118,8 +131,8 @@ export function useLocationHeatmap(startDate?: Date, endDate?: Date) {
             observations: 0,
           };
           existing.total_events++;
-          // Weighted severity score
-          const severityWeight = severity === 'critical' ? 4 : severity === 'high' ? 3 : severity === 'medium' ? 2 : 1;
+          // Weighted severity score using 5-level system
+          const severityWeight = SEVERITY_WEIGHTS[severityV2] || 1;
           existing.severity_score += severityWeight;
           if (eventType === 'observation') existing.observations++;
           else existing.incidents++;
