@@ -7056,6 +7056,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_deleted: boolean | null
+          is_super_admin: boolean | null
           job_title: string | null
           membership_end: string | null
           membership_id: string | null
@@ -7095,6 +7096,7 @@ export type Database = {
           id: string
           is_active?: boolean | null
           is_deleted?: boolean | null
+          is_super_admin?: boolean | null
           job_title?: string | null
           membership_end?: string | null
           membership_id?: string | null
@@ -7134,6 +7136,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_deleted?: boolean | null
+          is_super_admin?: boolean | null
           job_title?: string | null
           membership_end?: string | null
           membership_id?: string | null
@@ -11871,6 +11874,7 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
       populate_default_menu_access: {
