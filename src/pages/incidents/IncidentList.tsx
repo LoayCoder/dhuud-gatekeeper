@@ -264,8 +264,14 @@ export default function IncidentList() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>{t(`incidents.eventTypes.${incident.event_type}`)}</span>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <span>{String(t(`incidents.eventCategories.${incident.event_type}`))}</span>
+                  {incident.event_type === 'incident' && (incident as any).incident_type && (
+                    <>
+                      <span>•</span>
+                      <span className="text-foreground">{String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}</span>
+                    </>
+                  )}
                   {incident.status && (
                     <>
                       <span>•</span>

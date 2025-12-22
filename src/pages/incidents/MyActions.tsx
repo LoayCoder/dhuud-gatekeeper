@@ -605,7 +605,12 @@ export default function MyActions() {
                                 )}
                                 {incident.event_type && (
                                   <Badge variant="outline">
-                                    {t(`investigation.eventTypes.${incident.event_type}`, incident.event_type)}
+                                    {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+                                  </Badge>
+                                )}
+                                {(incident as any).incident_type && (
+                                  <Badge variant="outline">
+                                    {String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
                                   </Badge>
                                 )}
                               </div>

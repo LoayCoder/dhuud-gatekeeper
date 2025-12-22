@@ -81,13 +81,22 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <InfoItem 
               icon={AlertTriangle}
-              label={t('incidents.eventType', 'Event Type')} 
-              value={t(`incidents.eventTypes.${incident.event_type}`, incident.event_type)}
+              label={t('incidents.eventType', 'Event Category')} 
+              value={String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
             />
+            {incident.event_type === 'incident' && (incident as any).incident_type && (
+              <InfoItem 
+                label={t('incidents.incidentType', 'Incident Type')} 
+                value={String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+              />
+            )}
             {incident.subtype && (
               <InfoItem 
                 label={t('incidents.subtype', 'Subtype')} 
-                value={incident.subtype}
+                value={incident.event_type === 'observation' 
+                  ? String(t(`incidents.observationTypes.${incident.subtype}`, incident.subtype))
+                  : String(t(`incidents.subtypes.${(incident as any).incident_type}.${incident.subtype}`, incident.subtype))
+                }
               />
             )}
             <InfoItem 
