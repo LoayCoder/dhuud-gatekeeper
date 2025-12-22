@@ -4125,6 +4125,7 @@ export type Database = {
           dept_rep_approved_by: string | null
           dept_rep_notes: string | null
           description: string
+          erp_activated: boolean | null
           escalated_to_hsse_manager_at: string | null
           event_type: string
           expert_recommendation: string | null
@@ -4159,6 +4160,9 @@ export type Database = {
           original_severity:
             | Database["public"]["Enums"]["severity_level"]
             | null
+          original_severity_v2:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           reference_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
@@ -4174,8 +4178,13 @@ export type Database = {
           severity: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at: string | null
           severity_approved_by: string | null
+          severity_auto_calculated:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification: string | null
+          severity_override_reason: string | null
           severity_pending_approval: boolean | null
+          severity_v2: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id: string | null
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
@@ -4204,6 +4213,7 @@ export type Database = {
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
           description: string
+          erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
           event_type: string
           expert_recommendation?: string | null
@@ -4238,6 +4248,9 @@ export type Database = {
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
+          original_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           reference_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -4253,8 +4266,13 @@ export type Database = {
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null
+          severity_auto_calculated?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification?: string | null
+          severity_override_reason?: string | null
           severity_pending_approval?: boolean | null
+          severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -4283,6 +4301,7 @@ export type Database = {
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
           description?: string
+          erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
           event_type?: string
           expert_recommendation?: string | null
@@ -4317,6 +4336,9 @@ export type Database = {
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
+          original_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           reference_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -4332,8 +4354,13 @@ export type Database = {
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null
+          severity_auto_calculated?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           severity_change_justification?: string | null
+          severity_override_reason?: string | null
           severity_pending_approval?: boolean | null
+          severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -12053,6 +12080,12 @@ export type Database = {
         | "audit"
         | "food_safety"
       severity_level: "low" | "medium" | "high" | "critical"
+      severity_level_v2:
+        | "level_1"
+        | "level_2"
+        | "level_3"
+        | "level_4"
+        | "level_5"
       subscription_event_type:
         | "plan_changed"
         | "trial_started"
@@ -12337,6 +12370,13 @@ export const Constants = {
         "food_safety",
       ],
       severity_level: ["low", "medium", "high", "critical"],
+      severity_level_v2: [
+        "level_1",
+        "level_2",
+        "level_3",
+        "level_4",
+        "level_5",
+      ],
       subscription_event_type: [
         "plan_changed",
         "trial_started",

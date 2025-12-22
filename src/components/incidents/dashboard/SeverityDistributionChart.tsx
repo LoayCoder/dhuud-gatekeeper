@@ -8,7 +8,14 @@ interface Props {
   data: SeverityDistribution;
 }
 
+// New 5-level severity colors
 const SEVERITY_COLORS: Record<string, string> = {
+  level_1: 'hsl(142 71% 45%)',  // Green - Low
+  level_2: 'hsl(48 96% 53%)',   // Yellow - Moderate
+  level_3: 'hsl(25 95% 53%)',   // Orange - Serious
+  level_4: 'hsl(0 84% 60%)',    // Red - Major
+  level_5: 'hsl(0 84% 40%)',    // Dark Red - Catastrophic
+  // Legacy colors for backward compatibility
   critical: 'hsl(0 84% 60%)',
   high: 'hsl(25 95% 53%)',
   medium: 'hsl(48 96% 53%)',
@@ -21,11 +28,19 @@ export function SeverityDistributionChart({ data }: Props) {
   const { drillDown } = useDashboardDrilldown();
   const isRTL = i18n.dir() === 'rtl';
 
+  // Support both old and new severity formats
   const chartData = [
-    { name: t('severity.critical'), value: data.critical, key: 'critical' },
-    { name: t('severity.high'), value: data.high, key: 'high' },
-    { name: t('severity.medium'), value: data.medium, key: 'medium' },
-    { name: t('severity.low'), value: data.low, key: 'low' },
+    // New 5-level system
+    { name: t('severity.level5.label'), value: (data as any).level_5 || 0, key: 'level_5' },
+    { name: t('severity.level4.label'), value: (data as any).level_4 || 0, key: 'level_4' },
+    { name: t('severity.level3.label'), value: (data as any).level_3 || 0, key: 'level_3' },
+    { name: t('severity.level2.label'), value: (data as any).level_2 || 0, key: 'level_2' },
+    { name: t('severity.level1.label'), value: (data as any).level_1 || 0, key: 'level_1' },
+    // Legacy fallback
+    { name: t('severity.critical'), value: data.critical || 0, key: 'critical' },
+    { name: t('severity.high'), value: data.high || 0, key: 'high' },
+    { name: t('severity.medium'), value: data.medium || 0, key: 'medium' },
+    { name: t('severity.low'), value: data.low || 0, key: 'low' },
     { name: t('severity.unassigned', 'N/A'), value: data.unassigned || 0, key: 'unassigned' },
   ].filter(item => item.value > 0);
 
@@ -59,7 +74,7 @@ export function SeverityDistributionChart({ data }: Props) {
             <BarChart 
               data={chartData} 
               layout="vertical"
-              margin={{ left: isRTL ? 10 : 80, right: isRTL ? 80 : 10 }}
+              margin={{ left: isRTL ? 10 : 100, right: isRTL ? 100 : 10 }}
               onClick={(state) => {
                 if (state?.activePayload?.[0]?.payload) {
                   handleClick(state.activePayload[0].payload);
@@ -71,8 +86,8 @@ export function SeverityDistributionChart({ data }: Props) {
               <YAxis 
                 type="category" 
                 dataKey="name" 
-                width={70}
-                tick={{ fontSize: 12 }}
+                width={90}
+                tick={{ fontSize: 11 }}
                 orientation={isRTL ? 'right' : 'left'}
               />
               <Tooltip 
@@ -90,7 +105,7 @@ export function SeverityDistributionChart({ data }: Props) {
                 {chartData.map((entry) => (
                   <Cell 
                     key={entry.key} 
-                    fill={SEVERITY_COLORS[entry.key as keyof typeof SEVERITY_COLORS]}
+                    fill={SEVERITY_COLORS[entry.key] || SEVERITY_COLORS.unassigned}
                     className="hover:opacity-80 transition-opacity duration-200"
                   />
                 ))}
