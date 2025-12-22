@@ -59,7 +59,9 @@ export default function TenantManagement() {
         .select(`
           id, name, slug, status, industry, country, city,
           plan_id, max_users_override, trial_start_date, trial_end_date,
-          created_at, updated_at
+          created_at, updated_at,
+          employee_count, contact_person, contact_email, contact_phone,
+          notes, cr_number, vat_number, preferred_currency
         `, { count: 'exact' })
         .order('name');
 
