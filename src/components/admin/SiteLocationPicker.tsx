@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapContainer, TileLayer, Marker, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
@@ -33,55 +32,6 @@ interface SiteLocationPickerProps {
 
 type DrawMode = 'marker' | 'polygon';
 
-// Inner component that uses map hooks - must be inside MapContainer
-// Returns null explicitly to avoid React context consumer issues
-function MapController({ 
-  mode, 
-  onMarkerClick, 
-  onPolygonClick,
-  readOnly,
-  initialCenter 
-}: { 
-  mode: DrawMode;
-  onMarkerClick: (lat: number, lng: number) => void;
-  onPolygonClick: (lat: number, lng: number) => void;
-  readOnly?: boolean;
-  initialCenter: [number, number];
-}) {
-  const map = useMap();
-  
-  // Fix map size when component mounts (important for dialogs)
-  useEffect(() => {
-    // Multiple attempts to ensure map renders correctly in dialog
-    const timers = [
-      setTimeout(() => map.invalidateSize(), 100),
-      setTimeout(() => map.invalidateSize(), 300),
-      setTimeout(() => map.invalidateSize(), 500),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, [map]);
-
-  // Handle map clicks - use separate effect to avoid hook issues
-  useEffect(() => {
-    const handleClick = (e: L.LeafletMouseEvent) => {
-      if (readOnly) return;
-      
-      if (mode === 'marker') {
-        onMarkerClick(e.latlng.lat, e.latlng.lng);
-      } else {
-        onPolygonClick(e.latlng.lat, e.latlng.lng);
-      }
-    };
-
-    map.on('click', handleClick);
-    return () => {
-      map.off('click', handleClick);
-    };
-  }, [map, mode, onMarkerClick, onPolygonClick, readOnly]);
-  
-  return null;
-}
-
 export function SiteLocationPicker({
   latitude,
   longitude,
@@ -93,6 +43,12 @@ export function SiteLocationPicker({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
   
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const polygonRef = useRef<L.Polygon | null>(null);
+  const tempMarkersRef = useRef<L.LayerGroup | null>(null);
+  
   const [mode, setMode] = useState<DrawMode>('marker');
   const [polygonPoints, setPolygonPoints] = useState<Coordinate[]>(boundaryPolygon ?? []);
   const [markerPosition, setMarkerPosition] = useState<Coordinate | null>(
@@ -100,11 +56,122 @@ export function SiteLocationPicker({
   );
 
   // Default center (Saudi Arabia)
-  const defaultCenter: [number, number] = [24.7136, 46.6753];
-  const center: [number, number] = markerPosition 
-    ? [markerPosition.lat, markerPosition.lng] 
-    : defaultCenter;
+  const defaultCenter: L.LatLngExpression = [24.7136, 46.6753];
 
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || mapInstance.current) return;
+
+    const center: L.LatLngExpression = markerPosition 
+      ? [markerPosition.lat, markerPosition.lng] 
+      : defaultCenter;
+
+    mapInstance.current = L.map(mapContainer.current, {
+      center,
+      zoom: 13,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(mapInstance.current);
+
+    tempMarkersRef.current = L.layerGroup().addTo(mapInstance.current);
+
+    return () => {
+      mapInstance.current?.remove();
+      mapInstance.current = null;
+    };
+  }, []);
+
+  // Handle map resize when container becomes visible (important for dialogs)
+  useEffect(() => {
+    if (!mapInstance.current) return;
+    
+    const timers = [
+      setTimeout(() => mapInstance.current?.invalidateSize(), 100),
+      setTimeout(() => mapInstance.current?.invalidateSize(), 300),
+      setTimeout(() => mapInstance.current?.invalidateSize(), 500),
+    ];
+    
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  // Handle map clicks
+  useEffect(() => {
+    if (!mapInstance.current || readOnly) return;
+
+    const handleClick = (e: L.LeafletMouseEvent) => {
+      if (mode === 'marker') {
+        const newPos = { lat: e.latlng.lat, lng: e.latlng.lng };
+        setMarkerPosition(newPos);
+        onLocationChange(e.latlng.lat, e.latlng.lng);
+      } else {
+        setPolygonPoints(prev => [...prev, { lat: e.latlng.lat, lng: e.latlng.lng }]);
+      }
+    };
+
+    mapInstance.current.on('click', handleClick);
+    return () => {
+      mapInstance.current?.off('click', handleClick);
+    };
+  }, [mode, readOnly, onLocationChange]);
+
+  // Update marker when position changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    if (markerRef.current) {
+      mapInstance.current.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
+
+    if (markerPosition) {
+      markerRef.current = L.marker([markerPosition.lat, markerPosition.lng])
+        .addTo(mapInstance.current);
+    }
+  }, [markerPosition]);
+
+  // Update polygon when points change
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Clear existing polygon
+    if (polygonRef.current) {
+      mapInstance.current.removeLayer(polygonRef.current);
+      polygonRef.current = null;
+    }
+
+    // Clear temp markers
+    tempMarkersRef.current?.clearLayers();
+
+    // Draw polygon if we have 3+ points
+    if (polygonPoints.length >= 3) {
+      polygonRef.current = L.polygon(
+        polygonPoints.map(p => [p.lat, p.lng] as L.LatLngTuple),
+        {
+          color: '#3b82f6',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.2,
+          weight: 2,
+        }
+      ).addTo(mapInstance.current);
+    } else if (polygonPoints.length > 0 && mode === 'polygon') {
+      // Show temp markers for points being drawn
+      polygonPoints.forEach(point => {
+        L.circleMarker([point.lat, point.lng], {
+          radius: 6,
+          color: '#3b82f6',
+          fillColor: '#3b82f6',
+          fillOpacity: 1,
+          weight: 2,
+        }).addTo(tempMarkersRef.current!);
+      });
+    }
+  }, [polygonPoints, mode]);
+
+  // Sync external props
   useEffect(() => {
     if (latitude && longitude) {
       setMarkerPosition({ lat: latitude, lng: longitude });
@@ -116,15 +183,6 @@ export function SiteLocationPicker({
       setPolygonPoints(boundaryPolygon);
     }
   }, [boundaryPolygon]);
-
-  const handleMarkerClick = useCallback((lat: number, lng: number) => {
-    setMarkerPosition({ lat, lng });
-    onLocationChange(lat, lng);
-  }, [onLocationChange]);
-
-  const handlePolygonClick = useCallback((lat: number, lng: number) => {
-    setPolygonPoints(prev => [...prev, { lat, lng }]);
-  }, []);
 
   const handleUndoPolygonPoint = () => {
     setPolygonPoints(prev => prev.slice(0, -1));
@@ -140,8 +198,6 @@ export function SiteLocationPicker({
       onPolygonChange(polygonPoints);
     }
   };
-
-  const polygonPositions: [number, number][] = polygonPoints.map(p => [p.lat, p.lng]);
 
   return (
     <Card>
@@ -178,59 +234,11 @@ export function SiteLocationPicker({
       </CardHeader>
       
       <CardContent className="space-y-3">
-        <div className="relative h-[400px] rounded-lg overflow-hidden border">
-          <MapContainer
-            center={center}
-            zoom={13}
-            style={{ height: '100%', width: '100%' }}
-            className="z-0"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            <MapController 
-              mode={mode}
-              onMarkerClick={handleMarkerClick}
-              onPolygonClick={handlePolygonClick}
-              readOnly={readOnly}
-              initialCenter={center}
-            />
-            
-            {markerPosition && (
-              <Marker position={[markerPosition.lat, markerPosition.lng]} />
-            )}
-            
-            {polygonPositions.length >= 3 && (
-              <Polygon 
-                positions={polygonPositions}
-                pathOptions={{ 
-                  color: '#3b82f6',
-                  fillColor: '#3b82f6',
-                  fillOpacity: 0.2,
-                  weight: 2,
-                }}
-              />
-            )}
-            
-            {/* Show polygon points being drawn */}
-            {mode === 'polygon' && polygonPositions.length > 0 && polygonPositions.length < 3 && 
-              polygonPoints.map((point, idx) => (
-                <Marker 
-                  key={idx} 
-                  position={[point.lat, point.lng]}
-                  icon={L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6],
-                  })}
-                />
-              ))
-            }
-          </MapContainer>
-        </div>
+        <div 
+          ref={mapContainer}
+          className="relative h-[400px] rounded-lg overflow-hidden border"
+          style={{ zIndex: 0 }}
+        />
         
         {/* Polygon controls */}
         {mode === 'polygon' && !readOnly && (
