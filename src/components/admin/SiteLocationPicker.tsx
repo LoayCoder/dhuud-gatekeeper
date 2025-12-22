@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -33,27 +33,30 @@ interface SiteLocationPickerProps {
 
 type DrawMode = 'marker' | 'polygon';
 
-function MapController({ center }: { center: [number, number] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [center, map]);
-  
-  return null;
-}
-
-function MapClickHandler({ 
+// Inner component that uses map hooks - must be inside MapContainer
+function MapEvents({ 
   mode, 
   onMarkerClick, 
   onPolygonClick,
-  readOnly 
+  readOnly,
+  center 
 }: { 
   mode: DrawMode;
   onMarkerClick: (lat: number, lng: number) => void;
   onPolygonClick: (lat: number, lng: number) => void;
   readOnly?: boolean;
+  center: [number, number];
 }) {
+  const map = useMap();
+  
+  // Update map view when center changes
+  useEffect(() => {
+    if (center) {
+      map.setView(center, map.getZoom());
+    }
+  }, [center, map]);
+
+  // Handle map clicks
   useMapEvents({
     click: (e) => {
       if (readOnly) return;
@@ -79,12 +82,14 @@ export function SiteLocationPicker({
 }: SiteLocationPickerProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
+  const mapRef = useRef<L.Map | null>(null);
   
   const [mode, setMode] = useState<DrawMode>('marker');
   const [polygonPoints, setPolygonPoints] = useState<Coordinate[]>(boundaryPolygon ?? []);
   const [markerPosition, setMarkerPosition] = useState<Coordinate | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
+  const [mapReady, setMapReady] = useState(false);
 
   // Default center (Saudi Arabia)
   const defaultCenter: [number, number] = [24.7136, 46.6753];
@@ -130,13 +135,22 @@ export function SiteLocationPicker({
 
   const polygonPositions: [number, number][] = polygonPoints.map(p => [p.lat, p.lng]);
 
+  // Fix map size when it becomes visible (important for dialogs)
+  useEffect(() => {
+    if (mapReady && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 100);
+    }
+  }, [mapReady]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-base flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            {t('admin.orgStructure.siteLocation')}
+            {t('orgStructure.siteLocation')}
           </CardTitle>
           
           {!readOnly && (
@@ -148,7 +162,7 @@ export function SiteLocationPicker({
                 onClick={() => setMode('marker')}
               >
                 <MapPin className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
-                {t('admin.orgStructure.setMarker')}
+                {t('orgStructure.setMarker')}
               </Button>
               <Button
                 type="button"
@@ -157,7 +171,7 @@ export function SiteLocationPicker({
                 onClick={() => setMode('polygon')}
               >
                 <Pencil className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
-                {t('admin.orgStructure.drawBoundary')}
+                {t('orgStructure.drawBoundary')}
               </Button>
             </div>
           )}
@@ -171,19 +185,20 @@ export function SiteLocationPicker({
             zoom={13}
             style={{ height: '100%', width: '100%' }}
             className="z-0"
+            ref={mapRef}
+            whenReady={() => setMapReady(true)}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             
-            <MapController center={center} />
-            
-            <MapClickHandler 
+            <MapEvents 
               mode={mode}
               onMarkerClick={handleMarkerClick}
               onPolygonClick={handlePolygonClick}
               readOnly={readOnly}
+              center={center}
             />
             
             {markerPosition && (
@@ -194,8 +209,8 @@ export function SiteLocationPicker({
               <Polygon 
                 positions={polygonPositions}
                 pathOptions={{ 
-                  color: 'hsl(var(--primary))',
-                  fillColor: 'hsl(var(--primary))',
+                  color: '#3b82f6',
+                  fillColor: '#3b82f6',
                   fillOpacity: 0.2,
                   weight: 2,
                 }}
@@ -211,7 +226,7 @@ export function SiteLocationPicker({
                     position={[point.lat, point.lng]}
                     icon={L.divIcon({
                       className: 'custom-div-icon',
-                      html: `<div style="background-color: hsl(var(--primary)); width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                      html: `<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
                       iconSize: [12, 12],
                       iconAnchor: [6, 6],
                     })}
@@ -227,11 +242,11 @@ export function SiteLocationPicker({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <Badge variant="outline">
-                {t('admin.orgStructure.polygonPoints', { count: polygonPoints.length })}
+                {t('orgStructure.polygonPoints', { count: polygonPoints.length })}
               </Badge>
               {polygonPoints.length < 3 && (
                 <span className="text-sm text-muted-foreground">
-                  {t('admin.orgStructure.needMorePoints', { count: 3 - polygonPoints.length })}
+                  {t('orgStructure.needMorePoints', { count: 3 - polygonPoints.length })}
                 </span>
               )}
             </div>
@@ -273,7 +288,7 @@ export function SiteLocationPicker({
         {/* Current coordinates display */}
         {markerPosition && (
           <div className="text-sm text-muted-foreground">
-            {t('admin.orgStructure.coordinates')}: {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
+            {t('orgStructure.coordinates')}: {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
           </div>
         )}
       </CardContent>

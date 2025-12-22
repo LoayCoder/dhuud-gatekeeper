@@ -62,6 +62,7 @@ export function SiteDetailDialog({
   const [boundaryPolygon, setBoundaryPolygon] = useState<Coordinate[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
+  const [showMap, setShowMap] = useState(false);
 
   const { data: allDepartments, isLoading: loadingDepartments } = useTenantDepartments();
   const {
@@ -71,6 +72,16 @@ export function SiteDetailDialog({
     removeDepartment,
     setPrimaryDepartment,
   } = useSiteDepartments(site?.id);
+
+  // Delay map rendering until dialog is fully open
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => setShowMap(true), 150);
+      return () => clearTimeout(timer);
+    } else {
+      setShowMap(false);
+    }
+  }, [open]);
 
   // Reset form when site changes
   useEffect(() => {
@@ -161,14 +172,21 @@ export function SiteDetailDialog({
             />
           </div>
 
-          {/* Map with Location Picker */}
-          <SiteLocationPicker
-            latitude={latitude}
-            longitude={longitude}
-            boundaryPolygon={boundaryPolygon}
-            onLocationChange={handleLocationChange}
-            onPolygonChange={handlePolygonChange}
-          />
+          {/* Map with Location Picker - delayed render to avoid portal issues */}
+          {showMap && (
+            <SiteLocationPicker
+              latitude={latitude}
+              longitude={longitude}
+              boundaryPolygon={boundaryPolygon}
+              onLocationChange={handleLocationChange}
+              onPolygonChange={handlePolygonChange}
+            />
+          )}
+          {!showMap && (
+            <div className="h-[400px] rounded-lg border bg-muted/30 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
 
           {/* Department Assignment */}
           <Card>
