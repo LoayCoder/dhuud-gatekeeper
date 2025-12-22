@@ -205,12 +205,20 @@ export default function IncidentDetail() {
           <IncidentStatusBadge status={incident.status} />
         )}
         <Badge variant="secondary" className="text-sm">
-          {t(`incidents.eventTypes.${incident.event_type}`)}
+          {String(t(`incidents.eventCategories.${incident.event_type}`))}
         </Badge>
+        {incident.event_type === 'incident' && (incident as any).incident_type && (
+          <Badge variant="outline" className="text-sm">
+            {String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+          </Badge>
+        )}
         {incident.subtype && (
           <Badge variant="outline" className="text-sm">
             <Tag className="h-3 w-3 me-1" />
-            {t(`incidents.incidentTypes.${incident.subtype}`) || incident.subtype}
+            {incident.event_type === 'observation' 
+              ? String(t(`incidents.observationTypes.${incident.subtype}`, incident.subtype))
+              : String(t(`incidents.subtypes.${(incident as any).incident_type}.${incident.subtype}`, incident.subtype))
+            }
           </Badge>
         )}
       </div>
