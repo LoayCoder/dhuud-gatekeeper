@@ -11871,6 +11871,7 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: boolean
       }
+      is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
       populate_default_menu_access: {
         Args: { p_tenant_id: string }

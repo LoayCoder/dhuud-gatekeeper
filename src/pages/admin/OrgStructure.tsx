@@ -91,16 +91,43 @@ export default function OrgStructure() {
   
   const [saving, setSaving] = useState(false);
 
-  // Fetch all hierarchy data
+  // Fetch all hierarchy data with explicit tenant_id filtering (defense-in-depth)
   const fetchData = async () => {
+    if (!profile?.tenant_id) {
+      setLoading(false);
+      return;
+    }
+    
+    const tenantId = profile.tenant_id;
     setLoading(true);
+    
     try {
       const [b, d, dep, sec, sit] = await Promise.all([
-        supabase.from('branches').select('id, name, location, latitude, longitude').is('deleted_at', null).order('name'),
-        supabase.from('divisions').select('id, name').is('deleted_at', null).order('name'),
-        supabase.from('departments').select('id, name, division_id, divisions(name)').is('deleted_at', null).order('name'),
-        supabase.from('sections').select('id, name, department_id, departments(name)').is('deleted_at', null).order('name'),
-        supabase.from('sites').select('id, name, latitude, longitude, branch_id, is_active, branches(name)').is('deleted_at', null).order('name'),
+        supabase.from('branches')
+          .select('id, name, location, latitude, longitude')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
+        supabase.from('divisions')
+          .select('id, name')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
+        supabase.from('departments')
+          .select('id, name, division_id, divisions(name)')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
+        supabase.from('sections')
+          .select('id, name, department_id, departments(name)')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
+        supabase.from('sites')
+          .select('id, name, latitude, longitude, branch_id, is_active, branches(name)')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
       ]);
 
       if (b.data) setBranches(b.data);
@@ -117,7 +144,7 @@ export default function OrgStructure() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [profile?.tenant_id]);
 
   // Get current location using browser geolocation
   const getCurrentLocation = () => {
