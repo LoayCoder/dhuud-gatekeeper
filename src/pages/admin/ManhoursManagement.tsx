@@ -563,14 +563,14 @@ export default function ManhoursManagement() {
             <div className="space-y-2">
               <Label htmlFor="branch_id">{t('admin.manhours.branch', 'Branch')}</Label>
               <Select
-                value={formData.branch_id}
-                onValueChange={(value) => setFormData({ ...formData, branch_id: value })}
+                value={formData.branch_id || '__none__'}
+                onValueChange={(value) => setFormData({ ...formData, branch_id: value === '__none__' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('admin.manhours.selectBranch', 'Select branch (optional)')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('admin.manhours.allBranches', 'All Branches')}</SelectItem>
+                  <SelectItem value="__none__">{t('admin.manhours.allBranches', 'All Branches')}</SelectItem>
                   {branches?.map((branch) => (
                     <SelectItem key={branch.id} value={branch.id}>
                       {branch.name}
@@ -583,14 +583,14 @@ export default function ManhoursManagement() {
             <div className="space-y-2">
               <Label htmlFor="site_id">{t('admin.manhours.site', 'Site')}</Label>
               <Select
-                value={formData.site_id}
-                onValueChange={(value) => setFormData({ ...formData, site_id: value })}
+                value={formData.site_id || '__none__'}
+                onValueChange={(value) => setFormData({ ...formData, site_id: value === '__none__' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('admin.manhours.selectSite', 'Select site (optional)')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('admin.manhours.allSites', 'All Sites')}</SelectItem>
+                  <SelectItem value="__none__">{t('admin.manhours.allSites', 'All Sites')}</SelectItem>
                   {sites?.map((site) => (
                     <SelectItem key={site.id} value={site.id}>
                       {site.name}
