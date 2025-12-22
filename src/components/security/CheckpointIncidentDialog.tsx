@@ -23,6 +23,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { HSSE_SEVERITY_LEVELS, type SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 
 interface CheckpointIncidentDialogProps {
   open: boolean;
@@ -50,14 +51,14 @@ export function CheckpointIncidentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [severity, setSeverity] = useState("low");
+  const [severity, setSeverity] = useState<SeverityLevelV2>("level_1");
 
   const handleSubmit = async () => {
     if (!profile?.tenant_id || !user?.id || !title.trim()) return;
 
     setIsSubmitting(true);
     try {
-      // Create incident linked to patrol checkpoint
+      // Create incident linked to patrol checkpoint using severity_v2
       const { data, error } = await supabase
         .from('incidents')
         .insert({
@@ -66,7 +67,7 @@ export function CheckpointIncidentDialog({
           title: title.trim(),
           description: description.trim() || title.trim(),
           event_type: 'security',
-          severity: severity as any,
+          severity_v2: severity,
           occurred_at: new Date().toISOString(),
           latitude: gpsLat,
           longitude: gpsLng,
@@ -84,7 +85,7 @@ export function CheckpointIncidentDialog({
       // Reset form
       setTitle("");
       setDescription("");
-      setSeverity("low");
+      setSeverity("level_1");
     } catch (error) {
       console.error('Failed to create incident:', error);
       toast.error(t('security.patrols.execution.incidentFailed', 'Failed to report incident'));
@@ -123,15 +124,21 @@ export function CheckpointIncidentDialog({
             <Label htmlFor="incident-severity">
               {t('incidents.form.severity', 'Severity')}
             </Label>
-            <Select value={severity} onValueChange={setSeverity}>
+            <Select value={severity} onValueChange={(value) => setSeverity(value as SeverityLevelV2)}>
               <SelectTrigger id="incident-severity">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">{t('incidents.severity.low', 'Low')}</SelectItem>
-                <SelectItem value="medium">{t('incidents.severity.medium', 'Medium')}</SelectItem>
-                <SelectItem value="high">{t('incidents.severity.high', 'High')}</SelectItem>
-                <SelectItem value="critical">{t('incidents.severity.critical', 'Critical')}</SelectItem>
+                {HSSE_SEVERITY_LEVELS.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    <span className="flex items-center gap-2">
+                      <span 
+                        className={`w-3 h-3 rounded-full ${level.bgColor}`}
+                      />
+                      {t(level.labelKey)}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

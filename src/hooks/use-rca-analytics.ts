@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { SeverityLevelV2 } from "@/lib/hsse-severity-levels";
 
 interface RootCauseItem {
   id: string;
@@ -29,7 +30,7 @@ export interface MajorEventItem {
   id: string;
   reference_id: string;
   title: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  severity: SeverityLevelV2;
   occurred_at: string;
   status: string;
   event_type: string;
@@ -107,14 +108,14 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      // Fetch major events (critical/high severity)
+      // Fetch major events (level_4 and level_5 severity - Major/Catastrophic)
       let eventsQuery = supabase
         .from('incidents')
         .select(`
           id,
           reference_id,
           title,
-          severity,
+          severity_v2,
           occurred_at,
           status,
           event_type,
@@ -122,7 +123,7 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
           branches:branch_id(name)
         `)
         .is('deleted_at', null)
-        .in('severity', ['critical', 'high'])
+        .in('severity_v2', ['level_5', 'level_4'])
         .order('occurred_at', { ascending: false })
         .limit(20);
 
@@ -211,12 +212,12 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Format major events
+      // Format major events with 5-level severity
       const formattedMajorEvents: MajorEventItem[] = (majorEvents || []).map(event => ({
         id: event.id,
         reference_id: event.reference_id || 'N/A',
         title: event.title,
-        severity: event.severity as 'critical' | 'high' | 'medium' | 'low',
+        severity: (event.severity_v2 || 'level_3') as SeverityLevelV2,
         occurred_at: event.occurred_at || '',
         status: event.status || 'submitted',
         event_type: event.event_type,

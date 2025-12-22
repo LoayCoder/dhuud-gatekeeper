@@ -48,6 +48,7 @@ import {
   HSSE_SEVERITY_LEVELS, 
   calculateMinimumSeverity, 
   isSeverityBelowMinimum,
+  getSeverityBadgeVariant,
   type SeverityLevelV2 
 } from '@/lib/hsse-severity-levels';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -630,14 +631,7 @@ export default function IncidentReport() {
     await handleObservationSubmit(values);
   };
 
-  const getSeverityBadgeVariant = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'secondary';
-      default: return 'outline';
-    }
-  };
+  // Removed local getSeverityBadgeVariant - now using imported version from @/lib/hsse-severity-levels
 
   // Step Indicator Component
   const StepIndicator = () => (
