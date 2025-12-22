@@ -4299,6 +4299,7 @@ export type Database = {
           stakeholder_role: string
           tenant_id: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           channels?: string[]
@@ -4311,6 +4312,7 @@ export type Database = {
           stakeholder_role: string
           tenant_id?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           channels?: string[]
@@ -4323,6 +4325,7 @@ export type Database = {
           stakeholder_role?: string
           tenant_id?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -4330,6 +4333,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_notification_matrix_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -12360,6 +12370,10 @@ export type Database = {
       }
       reopen_closed_incident: {
         Args: { p_incident_id: string; p_reason: string }
+        Returns: undefined
+      }
+      reset_notification_matrix_to_defaults: {
+        Args: { p_tenant_id: string }
         Returns: undefined
       }
       soft_delete_closed_incident: {

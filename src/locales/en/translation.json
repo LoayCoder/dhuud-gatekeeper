@@ -5934,6 +5934,65 @@
       "noMatchingSubtypes": "No matching subtypes found",
       "noSubtypes": "No subtypes available",
       "infoNote": "Disabled categories and subtypes will not appear in incident reporting forms. Changes apply immediately to all users in your organization."
+    },
+    "notificationMatrix": {
+      "title": "Incident Notification Matrix",
+      "description": "Configure who receives notifications based on incident severity",
+      "tabs": {
+        "categories": "Event Categories",
+        "notifications": "Notification Matrix"
+      },
+      "stakeholder": "Stakeholder",
+      "condition": "Condition",
+      "addRule": "Add Rule",
+      "addRuleDesc": "Add a new notification rule for a role or specific user",
+      "resetDefaults": "Reset to Defaults",
+      "resetSuccess": "Matrix Reset",
+      "resetSuccessDesc": "Notification matrix has been reset to default values",
+      "confirmReset": "Reset to Defaults?",
+      "confirmResetDesc": "This will remove all custom notification rules and restore the default matrix. This action cannot be undone.",
+      "confirmDelete": "Delete Rule?",
+      "confirmDeleteDesc": "This will permanently remove this notification rule.",
+      "ruleAdded": "Rule Added",
+      "ruleAddedDesc": "Notification rule has been added successfully",
+      "ruleUpdated": "Rule Updated",
+      "ruleDeleted": "Rule Deleted",
+      "noRules": "No notification rules configured",
+      "userSpecific": "User",
+      "assignToUser": "Assign to specific user",
+      "selectUser": "Select User",
+      "selectUserPlaceholder": "Choose a user...",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Choose a stakeholder role...",
+      "severityLevel": "Severity Level",
+      "channelsLabel": "Notification Channels",
+      "conditionLabel": "Condition (Optional)",
+      "noCondition": "No condition (always notify)",
+      "channels": {
+        "push": "App Push",
+        "email": "Email",
+        "whatsapp": "WhatsApp"
+      },
+      "severity": {
+        "level_1": "Level 1 (Low)",
+        "level_2": "Level 2 (Medium)",
+        "level_3": "Level 3 (Serious)",
+        "level_4": "Level 4 (Major)",
+        "level_5": "Level 5 (Catastrophic)"
+      },
+      "conditions": {
+        "injury": "Only if injury reported"
+      },
+      "roles": {
+        "area_owner": "Area Owner",
+        "hsse_manager": "HSSE Manager",
+        "hsse_expert": "HSSE Expert",
+        "bc_team": "BC Team",
+        "first_aider": "First Aider",
+        "clinic_team": "Clinic Team",
+        "site_manager": "Site Manager",
+        "security_manager": "Security Manager"
+      }
     }
   }
 }
