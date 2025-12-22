@@ -11614,6 +11614,16 @@ export type Database = {
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
+      get_invitation_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          email: string
+          expires_at: string
+          id: string
+          metadata: Json
+          tenant_id: string
+        }[]
+      }
       get_kpi_historical_trend: {
         Args: {
           p_branch_id?: string
@@ -11908,6 +11918,15 @@ export type Database = {
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      validate_invitation_code: {
+        Args: { p_code: string }
+        Returns: {
+          expires_at: string
+          is_valid: boolean
+          tenant_id: string
+          tenant_name: string
+        }[]
+      }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
         Returns: Json
