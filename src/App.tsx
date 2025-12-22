@@ -153,7 +153,7 @@ const NotificationDeliveryLog = lazy(() => import(/* webpackChunkName: "admin-no
 const WhatsAppTemplates = lazy(() => import(/* webpackChunkName: "admin-whatsapp-templates" */ "./pages/admin/WhatsAppTemplates"));
 const WhatsAppSettingsPage = lazy(() => import(/* webpackChunkName: "admin-whatsapp-settings" */ "./pages/admin/WhatsAppSettingsPage"));
 const NotificationRulesPage = lazy(() => import(/* webpackChunkName: "admin-notification-rules" */ "./pages/admin/NotificationRulesPage"));
-const EventCategorySettings = lazy(() => import(/* webpackChunkName: "settings-event-categories" */ "./pages/settings/EventCategorySettings"));
+const EventCategorySettings = lazy(() => import(/* webpackChunkName: "admin-event-categories" */ "./pages/admin/EventCategorySettings"));
 
 const queryClient = new QueryClient();
 
@@ -538,7 +538,7 @@ const App = () => (
                       <Route path="/support" element={<Support />} />
                       <Route path="/settings/subscription" element={<SubscriptionManagement />} />
                       <Route path="/settings/usage-billing" element={<UsageBilling />} />
-                      <Route path="/settings/event-categories" element={<AdminRoute><EventCategorySettings /></AdminRoute>} />
+                      <Route path="/admin/event-categories" element={<AdminRoute><EventCategorySettings /></AdminRoute>} />
                     </Route>
 
                     {/* Catch-all */}

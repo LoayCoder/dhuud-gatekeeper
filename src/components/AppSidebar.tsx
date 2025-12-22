@@ -651,6 +651,12 @@ export function AppSidebar() {
             },
           ],
         },
+        {
+          title: t('navigation.eventCategories'),
+          url: "/admin/event-categories",
+          icon: List,
+          menuCode: 'settings_event_categories',
+        },
       ],
     },
     {
@@ -676,12 +682,6 @@ export function AppSidebar() {
           url: "/settings/usage-billing",
           icon: Receipt,
           menuCode: 'settings_billing',
-        },
-        {
-          title: t('navigation.eventCategories'),
-          url: "/settings/event-categories",
-          icon: List,
-          menuCode: 'settings_event_categories',
         },
       ],
     },
