@@ -40,6 +40,7 @@ import {
 } from '@/lib/incident-ai-assistant';
 import { useIncidentAI } from '@/hooks/use-incident-ai';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
+import { GPSLocationConfirmCard } from '@/components/incidents/GPSLocationConfirmCard';
 import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
@@ -138,6 +139,8 @@ export default function IncidentReport() {
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
   const [gpsDetectedBranch, setGpsDetectedBranch] = useState(false);
   const [noSiteNearby, setNoSiteNearby] = useState(false);
+  const [gpsLocationConfirmed, setGpsLocationConfirmed] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | undefined>(undefined);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -332,11 +335,14 @@ export default function IncidentReport() {
     setNoSiteNearby(false);
     setGpsDetectedSite(null);
     setGpsDetectedBranch(false);
+    setGpsLocationConfirmed(false);
+    setGpsAccuracy(undefined);
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
         setCoordinates({ lat: latitude, lng: longitude });
+        setGpsAccuracy(accuracy);
         form.setValue('latitude', latitude);
         form.setValue('longitude', longitude);
         form.setValue('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
@@ -367,6 +373,20 @@ export default function IncidentReport() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const handleGpsConfirm = () => {
+    setGpsLocationConfirmed(true);
+    toast.success(t('incidents.gpsConfirmation.locationConfirmed'));
+  };
+
+  const handleGpsChangeLocation = () => {
+    setGpsDetectedSite(null);
+    setGpsLocationConfirmed(false);
+    setNoSiteNearby(false);
+    form.setValue('site_id', '');
+    form.setValue('branch_id', '');
+    setGpsDetectedBranch(false);
   };
 
   const handleAnalyzeDescription = async () => {
@@ -1026,6 +1046,19 @@ export default function IncidentReport() {
           {/* STEP 2: LOCATION */}
           {currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in duration-300">
+              {/* GPS Location Confirmation Card */}
+              {coordinates && (gpsDetectedSite || noSiteNearby) && (
+                <GPSLocationConfirmCard
+                  userCoordinates={coordinates}
+                  gpsAccuracy={gpsAccuracy}
+                  nearestSiteResult={gpsDetectedSite}
+                  noSiteNearby={noSiteNearby}
+                  onConfirm={handleGpsConfirm}
+                  onChangeLocation={handleGpsChangeLocation}
+                  isConfirmed={gpsLocationConfirmed}
+                />
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1063,6 +1096,7 @@ export default function IncidentReport() {
                             field.onChange(value);
                             setAutoDetectedSite(false);
                             setGpsDetectedSite(null);
+                            setGpsLocationConfirmed(false);
                           }} 
                           value={field.value} 
                           dir={direction}
@@ -1083,39 +1117,11 @@ export default function IncidentReport() {
                           </SelectContent>
                         </Select>
                         
-                        {gpsDetectedSite && field.value && (
-                          <div className="space-y-1">
-                            <FormDescription className="flex items-center gap-1 text-green-600">
-                              <CheckCircle2 className="h-3 w-3" />
-                              {t('incidents.gpsDetectedSite')} — {t('incidents.withinMeters', { distance: gpsDetectedSite.distanceMeters })}
-                            </FormDescription>
-                            {coordinates && (
-                              <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
-                                <MapPin className="h-3 w-3" />
-                                {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                              </FormDescription>
-                            )}
-                          </div>
-                        )}
-                        
                         {autoDetectedSite && !gpsDetectedSite && field.value && (
                           <FormDescription className="flex items-center gap-1 text-blue-600">
                             <Info className="h-3 w-3" />
                             {t('incidents.autoDetectedFromProfile')}
                           </FormDescription>
-                        )}
-                        
-                        {noSiteNearby && coordinates && (
-                          <div className="space-y-1">
-                            <FormDescription className="flex items-center gap-1 text-amber-600">
-                              <AlertTriangle className="h-3 w-3" />
-                              {t('incidents.noSiteNearby')}
-                            </FormDescription>
-                            <FormDescription className="flex items-center gap-1 text-muted-foreground font-mono text-xs">
-                              <MapPin className="h-3 w-3" />
-                              {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
-                            </FormDescription>
-                          </div>
                         )}
                         
                         <FormMessage />

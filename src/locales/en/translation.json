@@ -564,7 +564,21 @@
     "downloadFile": "Download file",
     "metadata": "Record Information",
     "createdAt": "Created At",
-    "updatedAt": "Last Updated"
+    "updatedAt": "Last Updated",
+    "gpsConfirmation": {
+      "title": "Confirm Your Location",
+      "detectedSite": "Detected Site",
+      "departments": "Departments",
+      "primaryDepartment": "Primary",
+      "distance": "Distance",
+      "accuracy": "GPS Accuracy",
+      "confirmLocation": "Confirm Location",
+      "changeLocation": "Change Location",
+      "confirmed": "Confirmed",
+      "locationConfirmed": "Location confirmed - site and branch have been set",
+      "outsideBoundary": "You appear to be outside the site boundary",
+      "noDepartments": "No departments assigned to this site"
+    }
   },
   "investigation": {
     "title": "Investigation Workspace",

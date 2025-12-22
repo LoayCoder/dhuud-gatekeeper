@@ -1,4 +1,6 @@
-import type { Site } from '@/hooks/use-org-hierarchy';
+import type { Site, Coordinate } from '@/hooks/use-org-hierarchy';
+
+export type { Coordinate };
 
 /**
  * Calculate distance between two GPS coordinates using the Haversine formula
@@ -29,6 +31,34 @@ export function calculateDistance(
 export interface NearestSiteResult {
   site: Site;
   distanceMeters: number;
+  isInsideBoundary: boolean;
+}
+
+/**
+ * Check if a point is inside a polygon using ray casting algorithm
+ */
+export function isPointInsidePolygon(
+  lat: number,
+  lng: number,
+  polygon: Coordinate[]
+): boolean {
+  if (!polygon || polygon.length < 3) return false;
+  
+  let inside = false;
+  const n = polygon.length;
+  
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = polygon[i].lng;
+    const yi = polygon[i].lat;
+    const xj = polygon[j].lng;
+    const yj = polygon[j].lat;
+    
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  
+  return inside;
 }
 
 /**
@@ -68,9 +98,15 @@ export function findNearestSite(
   }
 
   if (nearestSite) {
+    // Check if point is inside the site's boundary polygon
+    const isInsideBoundary = nearestSite.boundary_polygon
+      ? isPointInsidePolygon(userLat, userLng, nearestSite.boundary_polygon)
+      : false;
+      
     return {
       site: nearestSite,
       distanceMeters: Math.round(minDistance),
+      isInsideBoundary,
     };
   }
 

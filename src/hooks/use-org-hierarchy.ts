@@ -2,6 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export interface Coordinate {
+  lat: number;
+  lng: number;
+}
+
 export interface Site {
   id: string;
   name: string;
@@ -10,6 +15,7 @@ export interface Site {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  boundary_polygon?: Coordinate[] | null;
 }
 
 export interface Branch {
@@ -44,6 +50,7 @@ export function useTenantSites() {
           address,
           latitude,
           longitude,
+          boundary_polygon,
           branches!sites_branch_id_fkey (name)
         `)
         .eq('tenant_id', profile.tenant_id)
@@ -53,15 +60,27 @@ export function useTenantSites() {
 
       if (error) throw error;
 
-      return data.map((site) => ({
-        id: site.id,
-        name: site.name,
-        branch_id: site.branch_id,
-        branch_name: site.branches?.name ?? null,
-        address: site.address,
-        latitude: site.latitude,
-        longitude: site.longitude,
-      })) as Site[];
+      return data.map((site) => {
+        // Parse boundary_polygon from JSON if it exists
+        let boundaryPolygon: Coordinate[] | null = null;
+        if (site.boundary_polygon && Array.isArray(site.boundary_polygon)) {
+          boundaryPolygon = (site.boundary_polygon as unknown as Array<{ lat: number; lng: number }>).map(p => ({
+            lat: p.lat,
+            lng: p.lng,
+          }));
+        }
+        
+        return {
+          id: site.id,
+          name: site.name,
+          branch_id: site.branch_id,
+          branch_name: site.branches?.name ?? null,
+          address: site.address,
+          latitude: site.latitude,
+          longitude: site.longitude,
+          boundary_polygon: boundaryPolygon,
+        };
+      }) as Site[];
     },
     enabled: !!profile?.tenant_id,
   });
