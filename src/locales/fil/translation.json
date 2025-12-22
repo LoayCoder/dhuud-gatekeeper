@@ -1025,7 +1025,9 @@
     "calendar": "Kalendaryo",
     "selectAll": "Piliin Lahat",
     "clearAll": "I-clear Lahat",
-    "reset": "I-reset"
+    "reset": "I-reset",
+    "undo": "I-undo",
+    "clear": "I-clear"
   },
   "auth": {
     "signIn": "Mag-sign In",

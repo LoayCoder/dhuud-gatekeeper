@@ -1140,7 +1140,9 @@
     "calendar": "Calendar",
     "selectAll": "Select All",
     "clearAll": "Clear All",
-    "reset": "Reset"
+    "reset": "Reset",
+    "undo": "Undo",
+    "clear": "Clear"
   },
   "auth": {
     "signIn": "Sign In",
