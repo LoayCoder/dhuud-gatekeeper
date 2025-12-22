@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
@@ -34,39 +34,36 @@ interface SiteLocationPickerProps {
 type DrawMode = 'marker' | 'polygon';
 
 // Inner component that uses map hooks - must be inside MapContainer
-function MapEventsHandler({ 
+// Returns null explicitly to avoid React context consumer issues
+function MapController({ 
   mode, 
   onMarkerClick, 
   onPolygonClick,
   readOnly,
-  center 
+  initialCenter 
 }: { 
   mode: DrawMode;
   onMarkerClick: (lat: number, lng: number) => void;
   onPolygonClick: (lat: number, lng: number) => void;
   readOnly?: boolean;
-  center: [number, number];
+  initialCenter: [number, number];
 }) {
   const map = useMap();
   
-  // Update map view when center changes
-  useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom());
-    }
-  }, [center, map]);
-
   // Fix map size when component mounts (important for dialogs)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
-    return () => clearTimeout(timer);
+    // Multiple attempts to ensure map renders correctly in dialog
+    const timers = [
+      setTimeout(() => map.invalidateSize(), 100),
+      setTimeout(() => map.invalidateSize(), 300),
+      setTimeout(() => map.invalidateSize(), 500),
+    ];
+    return () => timers.forEach(clearTimeout);
   }, [map]);
 
-  // Handle map clicks
-  useMapEvents({
-    click: (e) => {
+  // Handle map clicks - use separate effect to avoid hook issues
+  useEffect(() => {
+    const handleClick = (e: L.LeafletMouseEvent) => {
       if (readOnly) return;
       
       if (mode === 'marker') {
@@ -74,8 +71,13 @@ function MapEventsHandler({
       } else {
         onPolygonClick(e.latlng.lat, e.latlng.lng);
       }
-    },
-  });
+    };
+
+    map.on('click', handleClick);
+    return () => {
+      map.off('click', handleClick);
+    };
+  }, [map, mode, onMarkerClick, onPolygonClick, readOnly]);
   
   return null;
 }
@@ -188,12 +190,12 @@ export function SiteLocationPicker({
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             
-            <MapEventsHandler 
+            <MapController 
               mode={mode}
               onMarkerClick={handleMarkerClick}
               onPolygonClick={handlePolygonClick}
               readOnly={readOnly}
-              center={center}
+              initialCenter={center}
             />
             
             {markerPosition && (

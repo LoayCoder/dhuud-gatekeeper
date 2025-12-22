@@ -63,6 +63,7 @@ export function SiteDetailDialog({
   const [saving, setSaving] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [showMap, setShowMap] = useState(false);
+  const [mapKey, setMapKey] = useState(0); // Force fresh map mount
 
   const { data: allDepartments, isLoading: loadingDepartments } = useTenantDepartments();
   const {
@@ -73,10 +74,11 @@ export function SiteDetailDialog({
     setPrimaryDepartment,
   } = useSiteDepartments(site?.id);
 
-  // Delay map rendering until dialog is fully open
+  // Delay map rendering until dialog is fully open, and generate new key for fresh mount
   useEffect(() => {
     if (open) {
-      const timer = setTimeout(() => setShowMap(true), 150);
+      setMapKey(prev => prev + 1); // New key forces fresh MapContainer
+      const timer = setTimeout(() => setShowMap(true), 200);
       return () => clearTimeout(timer);
     } else {
       setShowMap(false);
@@ -172,9 +174,10 @@ export function SiteDetailDialog({
             />
           </div>
 
-          {/* Map with Location Picker - delayed render to avoid portal issues */}
+          {/* Map with Location Picker - delayed render with unique key to avoid portal issues */}
           {showMap && (
             <SiteLocationPicker
+              key={`map-${mapKey}`}
               latitude={latitude}
               longitude={longitude}
               boundaryPolygon={boundaryPolygon}
