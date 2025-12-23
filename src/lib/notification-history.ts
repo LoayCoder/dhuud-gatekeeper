@@ -169,7 +169,7 @@ export async function sendPushNotification(
     // Show browser notification
     const notification = new Notification(title, {
       body,
-      icon: '/pwa-192x192.png',
+      icon: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       tag: `${type}-${Date.now()}`,
       requireInteraction: type === 'error' || type === 'urgent',
     });

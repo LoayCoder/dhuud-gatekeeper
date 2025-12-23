@@ -451,8 +451,8 @@ serve(async (req) => {
     const notificationPayload = JSON.stringify({
       title: payload.title,
       body: payload.body,
-      icon: payload.icon || '/pwa-192x192.png',
-      badge: payload.badge || '/pwa-192x192.png',
+      icon: payload.icon || 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
+      badge: payload.badge || 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       tag: payload.tag,
       data: payload.data,
       actions: payload.actions,
