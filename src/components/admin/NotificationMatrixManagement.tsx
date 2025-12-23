@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, RotateCcw, Trash2, User, Users } from 'lucide-react';
+import { Plus, RotateCcw, Trash2, User, Users, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -55,6 +55,26 @@ import {
   type StakeholderRole,
 } from '@/hooks/use-notification-matrix';
 
+interface RuleFormState {
+  stakeholder_role: StakeholderRole | '';
+  severity_from: typeof SEVERITY_LEVELS[number];
+  severity_to: typeof SEVERITY_LEVELS[number];
+  channels: string[];
+  condition_type: string | null;
+  user_id: string | null;
+  isUserSpecific: boolean;
+}
+
+const getInitialFormState = (): RuleFormState => ({
+  stakeholder_role: '',
+  severity_from: 'level_1',
+  severity_to: 'level_5',
+  channels: [],
+  condition_type: null,
+  user_id: null,
+  isUserSpecific: false,
+});
+
 export default function NotificationMatrixManagement() {
   const { t } = useTranslation();
   
@@ -66,18 +86,13 @@ export default function NotificationMatrixManagement() {
   const resetMutation = useResetMatrixToDefaults();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
+  const [editingGroupKey, setEditingGroupKey] = useState<string | null>(null);
   
-  // New rule form state
-  const [newRule, setNewRule] = useState({
-    stakeholder_role: '' as StakeholderRole | '',
-    severity_level: 'level_1' as typeof SEVERITY_LEVELS[number],
-    channels: [] as string[],
-    condition_type: null as string | null,
-    user_id: null as string | null,
-    isUserSpecific: false,
-  });
+  // Form state for add/edit
+  const [formState, setFormState] = useState<RuleFormState>(getInitialFormState());
 
   // Group rules by stakeholder role or user for display
   const groupedRules = useMemo(() => {
@@ -107,34 +122,136 @@ export default function NotificationMatrixManagement() {
     });
   };
 
-  const handleAddRule = () => {
-    if (!newRule.stakeholder_role && !newRule.user_id) return;
-    
-    createMutation.mutate({
-      stakeholder_role: newRule.stakeholder_role || 'area_owner',
-      severity_level: newRule.severity_level,
-      channels: newRule.channels,
-      condition_type: newRule.condition_type,
-      user_id: newRule.isUserSpecific ? newRule.user_id : null,
-    }, {
-      onSuccess: () => {
-        setShowAddDialog(false);
-        setNewRule({
-          stakeholder_role: '',
-          severity_level: 'level_1',
-          channels: [],
-          condition_type: null,
-          user_id: null,
-          isUserSpecific: false,
-        });
-      },
-    });
+  const getSeverityIndex = (level: string): number => {
+    return SEVERITY_LEVELS.indexOf(level as typeof SEVERITY_LEVELS[number]);
   };
 
-  const handleDeleteRule = (id: string) => {
-    deleteMutation.mutate(id, {
-      onSuccess: () => setRuleToDelete(null),
+  const handleAddRules = () => {
+    if (!formState.stakeholder_role && !formState.user_id) return;
+    
+    const fromIndex = getSeverityIndex(formState.severity_from);
+    const toIndex = getSeverityIndex(formState.severity_to);
+    const startIndex = Math.min(fromIndex, toIndex);
+    const endIndex = Math.max(fromIndex, toIndex);
+    
+    // Create rules for each severity level in the range
+    const createPromises: Promise<void>[] = [];
+    
+    for (let i = startIndex; i <= endIndex; i++) {
+      const severityLevel = SEVERITY_LEVELS[i];
+      createPromises.push(
+        new Promise<void>((resolve, reject) => {
+          createMutation.mutate({
+            stakeholder_role: formState.stakeholder_role || 'area_owner',
+            severity_level: severityLevel,
+            channels: formState.channels,
+            condition_type: formState.condition_type,
+            user_id: formState.isUserSpecific ? formState.user_id : null,
+          }, {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error),
+          });
+        })
+      );
+    }
+    
+    // Close dialog and reset form after creating rules
+    setShowAddDialog(false);
+    setFormState(getInitialFormState());
+  };
+
+  const handleEditGroup = (groupKey: string) => {
+    const groupRules = groupedRules[groupKey];
+    if (!groupRules || groupRules.length === 0) return;
+    
+    const firstRule = groupRules[0];
+    const isUserSpecific = groupKey.startsWith('user_');
+    
+    // Find the severity range from existing rules
+    const severityLevels = groupRules.map(r => r.severity_level).sort();
+    const minSeverity = severityLevels[0] || 'level_1';
+    const maxSeverity = severityLevels[severityLevels.length - 1] || 'level_5';
+    
+    // Get channels from first rule (assuming all rules in group have same channels)
+    const channels = firstRule.channels || [];
+    
+    setFormState({
+      stakeholder_role: isUserSpecific ? '' : firstRule.stakeholder_role as StakeholderRole,
+      severity_from: minSeverity as typeof SEVERITY_LEVELS[number],
+      severity_to: maxSeverity as typeof SEVERITY_LEVELS[number],
+      channels: [...channels],
+      condition_type: firstRule.condition_type,
+      user_id: isUserSpecific ? firstRule.user_id : null,
+      isUserSpecific,
     });
+    
+    setEditingGroupKey(groupKey);
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingGroupKey) return;
+    
+    const groupRules = groupedRules[editingGroupKey];
+    if (!groupRules) return;
+    
+    // Delete existing rules in the group
+    for (const rule of groupRules) {
+      await new Promise<void>((resolve) => {
+        deleteMutation.mutate(rule.id, { onSuccess: () => resolve(), onError: () => resolve() });
+      });
+    }
+    
+    // Create new rules with updated settings
+    const fromIndex = getSeverityIndex(formState.severity_from);
+    const toIndex = getSeverityIndex(formState.severity_to);
+    const startIndex = Math.min(fromIndex, toIndex);
+    const endIndex = Math.max(fromIndex, toIndex);
+    
+    for (let i = startIndex; i <= endIndex; i++) {
+      const severityLevel = SEVERITY_LEVELS[i];
+      await new Promise<void>((resolve) => {
+        createMutation.mutate({
+          stakeholder_role: formState.stakeholder_role || 'area_owner',
+          severity_level: severityLevel,
+          channels: formState.channels,
+          condition_type: formState.condition_type,
+          user_id: formState.isUserSpecific ? formState.user_id : null,
+        }, {
+          onSuccess: () => resolve(),
+          onError: () => resolve(),
+        });
+      });
+    }
+    
+    setShowEditDialog(false);
+    setEditingGroupKey(null);
+    setFormState(getInitialFormState());
+  };
+
+  const handleDeleteGroup = (groupKey: string) => {
+    const groupRules = groupedRules[groupKey];
+    if (!groupRules || groupRules.length === 0) return;
+    setRuleToDelete(groupRules[0].id);
+  };
+
+  const handleDeleteAllGroupRules = async () => {
+    if (!ruleToDelete) return;
+    
+    // Find which group this rule belongs to
+    for (const [key, groupRules] of Object.entries(groupedRules)) {
+      if (groupRules.some(r => r.id === ruleToDelete)) {
+        // Delete all rules in the group
+        for (const rule of groupRules) {
+          await new Promise<void>((resolve) => {
+            deleteMutation.mutate(rule.id, { onSuccess: () => resolve(), onError: () => resolve() });
+          });
+        }
+        break;
+      }
+    }
+    
+    setRuleToDelete(null);
   };
 
   const getRoleLabel = (role: string) => {
@@ -142,7 +259,6 @@ export default function NotificationMatrixManagement() {
   };
 
   const getSeverityLabel = (level: string) => {
-    // Handle both 'level_1' and '1' formats for display
     const levelNum = level.replace('level_', '');
     return t(`settings.notificationMatrix.severity.level_${levelNum}`);
   };
@@ -171,6 +287,182 @@ export default function NotificationMatrixManagement() {
     );
   }
 
+  const renderFormFields = () => (
+    <div className="space-y-4 py-4">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="isUserSpecific"
+          checked={formState.isUserSpecific}
+          onCheckedChange={(checked) => setFormState(prev => ({
+            ...prev,
+            isUserSpecific: !!checked,
+            user_id: null,
+            stakeholder_role: '',
+          }))}
+        />
+        <label htmlFor="isUserSpecific" className="text-sm">
+          {t('settings.notificationMatrix.assignToUser')}
+        </label>
+      </div>
+
+      {formState.isUserSpecific ? (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            {t('settings.notificationMatrix.selectUser')}
+          </label>
+          <Select
+            value={formState.user_id || ''}
+            onValueChange={(value) => setFormState(prev => ({ ...prev, user_id: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('settings.notificationMatrix.selectUserPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {users?.map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.full_name} {user.job_title && `(${user.job_title})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            {t('settings.notificationMatrix.selectRole')}
+          </label>
+          <Select
+            value={formState.stakeholder_role}
+            onValueChange={(value) => setFormState(prev => ({ 
+              ...prev, 
+              stakeholder_role: value as StakeholderRole 
+            }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('settings.notificationMatrix.selectRolePlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {STAKEHOLDER_ROLES.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {getRoleLabel(role)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Severity Range Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          {t('settings.notificationMatrix.severityRange', 'Severity Range')}
+        </label>
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground mb-1 block">
+              {t('common.from', 'From')}
+            </label>
+            <Select
+              value={formState.severity_from}
+              onValueChange={(value) => setFormState(prev => ({ 
+                ...prev, 
+                severity_from: value as typeof SEVERITY_LEVELS[number]
+              }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SEVERITY_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {getSeverityLabel(level)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground mb-1 block">
+              {t('common.to', 'To')}
+            </label>
+            <Select
+              value={formState.severity_to}
+              onValueChange={(value) => setFormState(prev => ({ 
+                ...prev, 
+                severity_to: value as typeof SEVERITY_LEVELS[number]
+              }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SEVERITY_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {getSeverityLabel(level)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          {t('settings.notificationMatrix.channelsLabel')}
+        </label>
+        <div className="flex gap-4 flex-wrap">
+          {CHANNELS.map((channel) => (
+            <div key={channel} className="flex items-center gap-2">
+              <Checkbox
+                id={`channel_${channel}`}
+                checked={formState.channels.includes(channel)}
+                onCheckedChange={(checked) => setFormState(prev => ({
+                  ...prev,
+                  channels: checked 
+                    ? [...prev.channels, channel]
+                    : prev.channels.filter(c => c !== channel)
+                }))}
+              />
+              <label htmlFor={`channel_${channel}`} className="text-sm">
+                {channel === 'push' && '📱'}
+                {channel === 'email' && '✉️'}
+                {channel === 'whatsapp' && '💬'}
+                {' '}
+                {t(`settings.notificationMatrix.channels.${channel}`)}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          {t('settings.notificationMatrix.conditionLabel')}
+        </label>
+        <Select
+          value={formState.condition_type || 'none'}
+          onValueChange={(value) => setFormState(prev => ({ 
+            ...prev, 
+            condition_type: value === 'none' ? null : value 
+          }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">
+              {t('settings.notificationMatrix.noCondition')}
+            </SelectItem>
+            <SelectItem value="injury">
+              {t('settings.notificationMatrix.conditions.injury')}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Card>
@@ -194,7 +486,10 @@ export default function NotificationMatrixManagement() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => setShowAddDialog(true)}
+                onClick={() => {
+                  setFormState(getInitialFormState());
+                  setShowAddDialog(true);
+                }}
               >
                 <Plus className="h-4 w-4 me-2" />
                 {t('settings.notificationMatrix.addRule')}
@@ -218,7 +513,7 @@ export default function NotificationMatrixManagement() {
                   <TableHead className="w-[100px]">
                     {t('settings.notificationMatrix.condition')}
                   </TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -291,15 +586,24 @@ export default function NotificationMatrixManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {isUserSpecific && (
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setRuleToDelete(firstRule.id)}
+                            onClick={() => handleEditGroup(key)}
+                            title={t('common.edit')}
+                          >
+                            <Pencil className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteGroup(key)}
+                            title={t('common.delete')}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
-                        )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -333,157 +637,47 @@ export default function NotificationMatrixManagement() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="isUserSpecific"
-                checked={newRule.isUserSpecific}
-                onCheckedChange={(checked) => setNewRule(prev => ({
-                  ...prev,
-                  isUserSpecific: !!checked,
-                  user_id: null,
-                }))}
-              />
-              <label htmlFor="isUserSpecific" className="text-sm">
-                {t('settings.notificationMatrix.assignToUser')}
-              </label>
-            </div>
-
-            {newRule.isUserSpecific ? (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t('settings.notificationMatrix.selectUser')}
-                </label>
-                <Select
-                  value={newRule.user_id || ''}
-                  onValueChange={(value) => setNewRule(prev => ({ ...prev, user_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('settings.notificationMatrix.selectUserPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users?.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.full_name} {user.job_title && `(${user.job_title})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t('settings.notificationMatrix.selectRole')}
-                </label>
-                <Select
-                  value={newRule.stakeholder_role}
-                  onValueChange={(value) => setNewRule(prev => ({ 
-                    ...prev, 
-                    stakeholder_role: value as StakeholderRole 
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('settings.notificationMatrix.selectRolePlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STAKEHOLDER_ROLES.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {getRoleLabel(role)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t('settings.notificationMatrix.severityLevel')}
-              </label>
-              <Select
-                value={newRule.severity_level}
-                onValueChange={(value) => setNewRule(prev => ({ 
-                  ...prev, 
-                  severity_level: value as typeof SEVERITY_LEVELS[number]
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SEVERITY_LEVELS.map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {getSeverityLabel(level)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t('settings.notificationMatrix.channelsLabel')}
-              </label>
-              <div className="flex gap-4 flex-wrap">
-                {CHANNELS.map((channel) => (
-                  <div key={channel} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`channel_${channel}`}
-                      checked={newRule.channels.includes(channel)}
-                      onCheckedChange={(checked) => setNewRule(prev => ({
-                        ...prev,
-                        channels: checked 
-                          ? [...prev.channels, channel]
-                          : prev.channels.filter(c => c !== channel)
-                      }))}
-                    />
-                    <label htmlFor={`channel_${channel}`} className="text-sm">
-                      {channel === 'push' && '📱'}
-                      {channel === 'email' && '✉️'}
-                      {channel === 'whatsapp' && '💬'}
-                      {' '}
-                      {t(`settings.notificationMatrix.channels.${channel}`)}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t('settings.notificationMatrix.conditionLabel')}
-              </label>
-              <Select
-                value={newRule.condition_type || 'none'}
-                onValueChange={(value) => setNewRule(prev => ({ 
-                  ...prev, 
-                  condition_type: value === 'none' ? null : value 
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">
-                    {t('settings.notificationMatrix.noCondition')}
-                  </SelectItem>
-                  <SelectItem value="injury">
-                    {t('settings.notificationMatrix.conditions.injury')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {renderFormFields()}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               {t('common.cancel')}
             </Button>
             <Button 
-              onClick={handleAddRule} 
-              disabled={createMutation.isPending || (!newRule.stakeholder_role && !newRule.user_id)}
+              onClick={handleAddRules} 
+              disabled={createMutation.isPending || (!formState.stakeholder_role && !formState.user_id)}
             >
               {t('common.add')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Rule Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('settings.notificationMatrix.editRule', 'Edit Rule')}</DialogTitle>
+            <DialogDescription>
+              {t('settings.notificationMatrix.editRuleDesc', 'Update the notification settings for this role or user.')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {renderFormFields()}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowEditDialog(false);
+              setEditingGroupKey(null);
+              setFormState(getInitialFormState());
+            }}>
+              {t('common.cancel')}
+            </Button>
+            <Button 
+              onClick={handleSaveEdit} 
+              disabled={createMutation.isPending || deleteMutation.isPending || (!formState.stakeholder_role && !formState.user_id)}
+            >
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -524,7 +718,7 @@ export default function NotificationMatrixManagement() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => ruleToDelete && handleDeleteRule(ruleToDelete)}
+              onClick={handleDeleteAllGroupRules}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t('common.delete')}
