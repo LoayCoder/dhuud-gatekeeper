@@ -9089,6 +9089,7 @@ export type Database = {
           is_active: boolean | null
           p256dh_key: string
           tenant_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -9102,6 +9103,7 @@ export type Database = {
           is_active?: boolean | null
           p256dh_key: string
           tenant_id: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -9115,6 +9117,7 @@ export type Database = {
           is_active?: boolean | null
           p256dh_key?: string
           tenant_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
