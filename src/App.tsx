@@ -220,7 +220,7 @@ const App = () => (
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/register" element={<Navigate to="/invite" replace />} />
                     <Route path="/install" element={<Install />} />
-                    <Route path="/mfa-setup" element={<MFASetup />} />
+                    <Route path="/mfa-setup" element={<Suspense fallback={<PageLoader />}><MFASetup /></Suspense>} />
                     <Route path="/visitor-pass/:token" element={<VisitorPass />} />
 
                     {/* Home Screen - Simple landing without sidebar */}
