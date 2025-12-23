@@ -129,6 +129,8 @@ export function NotificationPreferences() {
 
     setIsSendingTest(true);
     try {
+      console.log('[TestPush] Sending test notification to user:', user.id);
+      
       const response = await supabase.functions.invoke('send-push-notification', {
         body: {
           user_ids: [user.id],
@@ -141,17 +143,38 @@ export function NotificationPreferences() {
         }
       });
 
-      if (response.error) throw response.error;
+      console.log('[TestPush] Response:', response);
 
-      toast({
-        title: t('notifications.testSent', 'Test notification sent!'),
-        description: t('notifications.testSentDescription', 'You should receive a push notification shortly.'),
-      });
+      if (response.error) {
+        console.error('[TestPush] Error from edge function:', response.error);
+        throw response.error;
+      }
+
+      const result = response.data;
+      console.log('[TestPush] Result:', result);
+
+      if (result?.sent > 0) {
+        toast({
+          title: t('notifications.testSent', 'Test notification sent!'),
+          description: t('notifications.testSentDescription', 'You should receive a push notification shortly.'),
+        });
+      } else if (result?.message?.includes('No active subscriptions')) {
+        toast({
+          title: t('notifications.noSubscription', 'No active subscription'),
+          description: t('notifications.resubscribe', 'Please toggle push notifications off and on again to re-subscribe.'),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t('notifications.testSent', 'Request sent'),
+          description: result?.message || 'Check if you receive the notification.',
+        });
+      }
     } catch (error) {
-      console.error('Test push notification error:', error);
+      console.error('[TestPush] Error:', error);
       toast({
         title: t('notifications.testError', 'Failed to send test notification'),
-        description: error instanceof Error ? error.message : 'Unknown error',
+        description: error instanceof Error ? error.message : 'Unknown error - check console',
         variant: "destructive",
       });
     } finally {
@@ -261,6 +284,11 @@ export function NotificationPreferences() {
                   ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
                   : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device')}
               </p>
+              {pushError && (
+                <p className="text-sm text-destructive mt-1">
+                  {pushError}
+                </p>
+              )}
             </div>
           </div>
           {(isToggling || isPushLoading) ? (

@@ -1,5 +1,6 @@
 export function registerServiceWorker() {
-  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  // Register service worker in both dev and prod for push notifications
+  if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
