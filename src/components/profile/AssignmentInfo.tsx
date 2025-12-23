@@ -8,13 +8,14 @@ interface AssignmentInfoProps {
 }
 
 export function AssignmentInfo({ profile }: AssignmentInfoProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
 
   return (
-    <Card>
+    <Card dir={direction}>
       <CardHeader>
-        <CardTitle className="text-lg">{t('assignment.title')}</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg text-start">{t('assignment.title')}</CardTitle>
+        <CardDescription className="text-start">
           {t('assignment.description')}
         </CardDescription>
       </CardHeader>

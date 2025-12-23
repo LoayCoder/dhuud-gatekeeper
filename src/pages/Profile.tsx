@@ -44,29 +44,29 @@ export default function Profile() {
   }
 
   return (
-    <RTLWrapper className="container max-w-5xl py-8 space-y-8">
+    <RTLWrapper className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('profile.title')}</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('profile.title')}</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
           {t('profile.description')}
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+      <div className="flex flex-col-reverse gap-6 lg:grid lg:grid-cols-[1fr_300px] lg:gap-8">
         {/* Left Column - Main Content */}
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>{t('profile.personalInfo')}</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-start">{t('profile.personalInfo')}</CardTitle>
+              <CardDescription className="text-start">
                 {t('profile.updatePersonalInfo')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="profile" className="w-full">
-                <TabsList className="flex flex-wrap h-auto gap-1 w-full mb-6">
-                  <TabsTrigger value="profile" className="rtl:order-last">{t('profile.profileTab')}</TabsTrigger>
-                  <TabsTrigger value="security" className="rtl:order-first">{t('profile.securityTab')}</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="profile">{t('profile.profileTab')}</TabsTrigger>
+                  <TabsTrigger value="security">{t('profile.securityTab')}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="profile">
@@ -87,8 +87,8 @@ export default function Profile() {
           </Card>
         </div>
 
-        {/* Right Column - Sidebar Info */}
-        <div className="space-y-6">
+        {/* Right Column - Sidebar Info (shows first on mobile due to flex-col-reverse) */}
+        <div className="space-y-4 sm:space-y-6">
           <TenantInfo memberSince={profile?.created_at || null} />
           <AssignmentInfo profile={profile} />
           <RoleInfo roles={userRoles} />
