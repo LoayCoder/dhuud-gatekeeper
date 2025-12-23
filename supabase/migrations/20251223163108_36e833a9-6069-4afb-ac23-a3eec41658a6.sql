@@ -1,0 +1,36 @@
+-- Fix the log_notification_matrix_changes function by removing incorrect ::text cast
+-- entity_id is uuid type, and NEW.id/OLD.id are also uuid, so no cast needed
+
+CREATE OR REPLACE FUNCTION log_notification_matrix_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO security_audit_logs (
+    tenant_id, 
+    actor_id, 
+    action, 
+    action_category,
+    entity_type,
+    entity_id,
+    table_name,
+    old_value, 
+    new_value,
+    created_at
+  ) VALUES (
+    COALESCE(NEW.tenant_id, OLD.tenant_id),
+    auth.uid(),
+    TG_OP,
+    'data_change',
+    'notification_matrix',
+    COALESCE(NEW.id, OLD.id),
+    'incident_notification_matrix',
+    CASE WHEN TG_OP = 'DELETE' OR TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END,
+    CASE WHEN TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN to_jsonb(NEW) ELSE NULL END,
+    now()
+  );
+  
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
