@@ -14,25 +14,25 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "/pwa-192x192.png",
+      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa-512x512.png",
+      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa-maskable-192x192.png",
+      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/pwa-maskable-512x512.png",
+      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -47,14 +47,14 @@
       "short_name": "Home",
       "description": "Open main dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png", "sizes": "192x192" }]
     },
     {
       "name": "Report Incident",
       "short_name": "Report",
       "description": "Report a new incident",
       "url": "/report-incident",
-      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png", "sizes": "192x192" }]
     }
   ],
   "handle_links": "preferred",

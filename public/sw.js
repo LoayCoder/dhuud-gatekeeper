@@ -86,7 +86,7 @@ async function showSyncNotification(result) {
   const body = failed > 0
     ? `${success} change(s) synced, ${failed} failed`
     : `${success} change(s) synced successfully`;
-  const icon = '/pwa-192x192.png';
+  const icon = 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png';
   const tag = 'sync-notification';
   const notificationType = failed > 0 ? 'error' : 'sync';
 
@@ -95,7 +95,7 @@ async function showSyncNotification(result) {
       body,
       icon,
       tag,
-      badge: '/pwa-192x192.png',
+      badge: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       vibrate: [100, 50, 100],
       data: { success, failed },
       actions: failed > 0 ? [
@@ -167,9 +167,9 @@ async function showUrgentSLANotification(data) {
   try {
     await self.registration.showNotification(notificationTitle, {
       body: notificationBody,
-      icon: '/pwa-192x192.png',
+      icon: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       tag: `sla-escalation-${Date.now()}`,
-      badge: '/pwa-192x192.png',
+      badge: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       vibrate: [200, 100, 200, 100, 200],
       requireInteraction: true,
       data: { type: 'sla_escalation', level },
@@ -237,8 +237,8 @@ self.addEventListener('push', (event) => {
   const {
     title = 'DHUUD Platform',
     body = 'You have a new notification',
-    icon = '/pwa-192x192.png',
-    badge = '/pwa-192x192.png',
+    icon = 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
+    badge = 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
     tag,
     data = {},
     actions = [],
@@ -341,9 +341,9 @@ async function showUpdateNotification() {
   try {
     await self.registration.showNotification(title, {
       body,
-      icon: '/pwa-192x192.png',
+      icon: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       tag: 'update-notification',
-      badge: '/pwa-192x192.png',
+      badge: 'https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png',
       vibrate: [100, 50, 100],
       data: { type: 'update' },
       actions: [
