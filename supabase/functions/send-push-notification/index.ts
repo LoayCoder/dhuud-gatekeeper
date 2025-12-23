@@ -62,8 +62,45 @@ function base64UrlDecode(str: string): Uint8Array {
     const rawData = atob(base64);
     return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
   } catch (error) {
-    console.error('base64UrlDecode error for string length:', str.length, 'cleaned:', cleanStr.length);
+    console.error('base64UrlDecode error for input length:', str.length, 'cleaned length:', cleanStr.length, 'first 20 chars:', cleanStr.substring(0, 20));
     throw error;
+  }
+}
+
+// Safely decode base64url, handling both standard and URL-safe variants
+function safeBase64UrlDecode(str: string): Uint8Array {
+  // Clean the string - remove any whitespace, newlines, or invalid chars
+  let cleanStr = str.replace(/[\s\r\n]/g, '');
+  
+  // Handle potential hex encoding (fallback)
+  if (/^[0-9a-fA-F]+$/.test(cleanStr) && cleanStr.length === 64) {
+    console.log('Detected hex-encoded key, converting...');
+    const bytes = new Uint8Array(32);
+    for (let i = 0; i < 32; i++) {
+      bytes[i] = parseInt(cleanStr.substring(i * 2, i * 2 + 2), 16);
+    }
+    return bytes;
+  }
+  
+  // Standard base64url decode with proper padding
+  const padding = '='.repeat((4 - (cleanStr.length % 4)) % 4);
+  const base64 = (cleanStr + padding).replace(/-/g, '+').replace(/_/g, '/');
+  
+  try {
+    const rawData = atob(base64);
+    return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+  } catch (error) {
+    console.error('safeBase64UrlDecode failed, trying alternative decode...');
+    // Try without the last character (sometimes there's a trailing issue)
+    try {
+      const trimmed = cleanStr.slice(0, -1);
+      const trimPadding = '='.repeat((4 - (trimmed.length % 4)) % 4);
+      const trimBase64 = (trimmed + trimPadding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(trimBase64);
+      return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+    } catch {
+      throw error;
+    }
   }
 }
 
@@ -85,8 +122,9 @@ async function createVapidJwt(
   const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
   const unsignedToken = `${headerB64}.${payloadB64}`;
 
-  // Import the private key
-  const privateKeyBytes = base64UrlDecode(privateKeyBase64);
+  // Import the private key using safe decoder
+  console.log('VAPID private key input length:', privateKeyBase64.length);
+  const privateKeyBytes = safeBase64UrlDecode(privateKeyBase64);
   
   console.log('Private key bytes length:', privateKeyBytes.length);
   
