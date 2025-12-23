@@ -134,6 +134,7 @@ serve(async (req) => {
 
     const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
 Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety).
+Also extract injury and damage details from the description.
 
 EVENT CATEGORIES:
 - "observation": Unsafe acts or conditions observed but no actual harm occurred
@@ -152,7 +153,17 @@ INCIDENT TYPES (for incidents only):
 - compliance_regulatory: Regulatory/compliance breaches (PTW, permits, SOPs)
 - emergency_crisis: Emergency response activations (ERP triggered)
 
-Be precise and consistent in your classifications.`;
+INJURY EXTRACTION:
+- Detect if any injuries are mentioned (worker hurt, hospitalized, first aid, etc.)
+- Count the number of injured persons if mentioned
+- Summarize the injury details in a concise description
+
+DAMAGE EXTRACTION:
+- Detect if property/equipment/environmental damage is mentioned
+- Summarize the damage details
+- Extract estimated cost if mentioned (in numbers only)
+
+Be precise and consistent in your classifications. Match the language of the input for descriptions (Arabic or English).`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -175,7 +186,9 @@ Determine:
 2. If incident: the incident type category
 3. Specific subtype within that category
 4. Severity level
-5. Key risks identified`
+5. Key risks identified
+6. Any injuries mentioned (count, description)
+7. Any damage mentioned (description, estimated cost)`
           }
         ],
         tools: [
@@ -183,7 +196,7 @@ Determine:
             type: "function",
             function: {
               name: "classify_incident",
-              description: "Classify an HSSE event with type, severity, and risk assessment",
+              description: "Classify an HSSE event with type, severity, risk assessment, and extract injury/damage details",
               parameters: {
                 type: "object",
                 properties: {
@@ -219,9 +232,33 @@ Determine:
                   reasoning: {
                     type: "string",
                     description: "Brief explanation of the classification decision"
+                  },
+                  hasInjury: {
+                    type: "boolean",
+                    description: "Whether any injury to persons is mentioned in the description"
+                  },
+                  injuryCount: {
+                    type: "number",
+                    description: "Number of injured persons mentioned (if applicable)"
+                  },
+                  injuryDescription: {
+                    type: "string",
+                    description: "Summary of injury details in the same language as the input"
+                  },
+                  hasDamage: {
+                    type: "boolean",
+                    description: "Whether any property/equipment/environmental damage is mentioned"
+                  },
+                  damageDescription: {
+                    type: "string",
+                    description: "Summary of damage details in the same language as the input"
+                  },
+                  estimatedCost: {
+                    type: "number",
+                    description: "Estimated damage cost if mentioned (numeric value only, no currency)"
                   }
                 },
-                required: ["eventType", "subtype", "severity", "keyRisks", "confidence"],
+                required: ["eventType", "subtype", "severity", "keyRisks", "confidence", "hasInjury", "hasDamage"],
                 additionalProperties: false
               }
             }
@@ -269,7 +306,13 @@ Determine:
         severity: result.severity,
         keyRisks: result.keyRisks || [],
         confidence: result.confidence || 0.8,
-        reasoning: result.reasoning
+        reasoning: result.reasoning,
+        hasInjury: result.hasInjury || false,
+        injuryCount: result.injuryCount || null,
+        injuryDescription: result.injuryDescription || null,
+        hasDamage: result.hasDamage || false,
+        damageDescription: result.damageDescription || null,
+        estimatedCost: result.estimatedCost || null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
