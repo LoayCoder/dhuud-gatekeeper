@@ -12413,6 +12413,24 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: string
       }
+      get_incident_notification_recipients: {
+        Args: {
+          p_erp_activated?: boolean
+          p_has_injury?: boolean
+          p_incident_id: string
+          p_severity_level: string
+          p_tenant_id: string
+        }
+        Returns: {
+          channels: string[]
+          email: string
+          full_name: string
+          phone_number: string
+          stakeholder_role: string
+          user_id: string
+          was_condition_match: boolean
+        }[]
+      }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
       get_inspection_session_stats: { Args: never; Returns: Json }
       get_invitation_by_code: {
