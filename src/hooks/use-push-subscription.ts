@@ -5,12 +5,83 @@ import { supabase } from '@/integrations/supabase/client';
 // VAPID public key from environment
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
-// Debug log for VAPID key availability
-if (!VAPID_PUBLIC_KEY) {
-  console.warn('[Push] VAPID public key not configured - push notifications will not work');
-} else {
-  console.log('[Push] VAPID public key available');
+/**
+ * Validate VAPID public key format
+ * - Must be non-empty
+ * - Must contain only valid URL-safe Base64 characters
+ * - Must have minimum length (VAPID public keys are ~87 chars)
+ */
+function isValidVapidPublicKey(key: string | undefined): key is string {
+  if (!key || typeof key !== 'string') {
+    return false;
+  }
+  
+  // Check for unresolved env variable patterns
+  if (key.includes('${') || key === 'undefined' || key === 'null') {
+    return false;
+  }
+  
+  // VAPID public keys are typically 87 characters in URL-safe Base64
+  if (key.length < 80 || key.length > 100) {
+    return false;
+  }
+  
+  // Check for valid URL-safe Base64 characters only
+  const validBase64UrlRegex = /^[A-Za-z0-9_-]+$/;
+  return validBase64UrlRegex.test(key);
 }
+
+/**
+ * Convert a URL-safe base64 string to Uint8Array for VAPID key
+ * Returns null if decoding fails or key is invalid
+ */
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer | null {
+  try {
+    // Add padding if necessary
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    // Convert URL-safe Base64 to standard Base64
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Decode Base64 to binary string
+    const rawData = window.atob(base64);
+    
+    // VAPID public key must be exactly 65 bytes (P-256 uncompressed point)
+    if (rawData.length !== 65) {
+      console.error('[Push] Invalid VAPID key length:', rawData.length, '(expected 65 bytes)');
+      return null;
+    }
+    
+    // Convert binary string to Uint8Array
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    
+    return outputArray.buffer;
+  } catch (error) {
+    console.error('[Push] Failed to decode VAPID key:', error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+// Comprehensive VAPID key validation at startup
+(() => {
+  if (!VAPID_PUBLIC_KEY) {
+    console.error('[Push] ❌ VAPID public key not configured - push notifications disabled');
+    return;
+  }
+  if (!isValidVapidPublicKey(VAPID_PUBLIC_KEY)) {
+    console.error('[Push] ❌ VAPID key format invalid. Key preview:', VAPID_PUBLIC_KEY?.substring(0, 20) + '...');
+    return;
+  }
+  // Quick decode test to catch issues early
+  const testDecode = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+  if (!testDecode) {
+    console.error('[Push] ❌ VAPID key failed decode test');
+    return;
+  }
+  console.log('[Push] ✅ VAPID public key validated successfully');
+})();
 
 interface PushSubscriptionState {
   isSubscribed: boolean;
@@ -18,20 +89,6 @@ interface PushSubscriptionState {
   isLoading: boolean;
   error: string | null;
   subscription: PushSubscription | null;
-}
-
-/**
- * Convert a base64 string to Uint8Array for VAPID key
- */
-function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray.buffer;
 }
 
 /**
@@ -154,17 +211,29 @@ export function usePushSubscription() {
   const subscribe = useCallback(async (): Promise<boolean> => {
     console.log('[Push] Starting subscription process...');
     console.log('[Push] isSupported:', isSupported);
-    console.log('[Push] VAPID_PUBLIC_KEY available:', !!VAPID_PUBLIC_KEY);
     
-    if (!isSupported || !VAPID_PUBLIC_KEY) {
-      const errorMsg = !isSupported 
-        ? 'Push notifications are not supported in this browser'
-        : 'VAPID key not configured - contact administrator';
+    // Validate browser support
+    if (!isSupported) {
+      const errorMsg = 'Push notifications are not supported in this browser';
       console.error('[Push]', errorMsg);
-      setState((prev) => ({
-        ...prev,
-        error: errorMsg,
-      }));
+      setState((prev) => ({ ...prev, error: errorMsg }));
+      return false;
+    }
+
+    // Validate VAPID key format before attempting to use it
+    if (!isValidVapidPublicKey(VAPID_PUBLIC_KEY)) {
+      const errorMsg = 'Push notifications unavailable - invalid configuration';
+      console.error('[Push]', errorMsg, 'Key:', VAPID_PUBLIC_KEY ? VAPID_PUBLIC_KEY.substring(0, 20) + '...' : 'undefined');
+      setState((prev) => ({ ...prev, error: errorMsg }));
+      return false;
+    }
+
+    // Pre-decode VAPID key to catch errors early
+    const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    if (!applicationServerKey) {
+      const errorMsg = 'Push notifications unavailable - failed to process VAPID key';
+      console.error('[Push]', errorMsg);
+      setState((prev) => ({ ...prev, error: errorMsg }));
       return false;
     }
 
@@ -201,7 +270,7 @@ export function usePushSubscription() {
       console.log('[Push] Subscribing to push manager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey,
       });
       console.log('[Push] Push subscription created:', subscription.endpoint);
 
