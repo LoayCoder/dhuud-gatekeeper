@@ -132,9 +132,19 @@ serve(async (req) => {
 
     console.log("Analyzing incident description:", description.substring(0, 100));
 
+    // Detect input language for response
+    const isArabicInput = /[\u0600-\u06FF]/.test(description);
+    const responseLanguage = isArabicInput ? 'Arabic' : 'English';
+
     const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
 Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety).
 Also extract injury and damage details from the description.
+
+CRITICAL LANGUAGE RULES:
+- You MUST respond ONLY in English or Arabic
+- The input appears to be in ${responseLanguage} - respond in ${responseLanguage}
+- NEVER respond in any other language (no Telugu, Hindi, Urdu, Tamil, or any other script)
+- All text fields (injuryDescription, damageDescription, reasoning) MUST be in ${responseLanguage}
 
 EVENT CATEGORIES:
 - "observation": Unsafe acts or conditions observed but no actual harm occurred
@@ -156,14 +166,14 @@ INCIDENT TYPES (for incidents only):
 INJURY EXTRACTION:
 - Detect if any injuries are mentioned (worker hurt, hospitalized, first aid, etc.)
 - Count the number of injured persons if mentioned
-- Summarize the injury details in a concise description
+- Summarize the injury details in ${responseLanguage} ONLY
 
 DAMAGE EXTRACTION:
 - Detect if property/equipment/environmental damage is mentioned
-- Summarize the damage details
+- Summarize the damage details in ${responseLanguage} ONLY
 - Extract estimated cost if mentioned (in numbers only)
 
-Be precise and consistent in your classifications. Match the language of the input for descriptions (Arabic or English).`;
+Be precise and consistent in your classifications.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -243,7 +253,7 @@ Determine:
                   },
                   injuryDescription: {
                     type: "string",
-                    description: "Summary of injury details in the same language as the input"
+                    description: "Summary of injury details. MUST be in English or Arabic ONLY - never use Telugu, Hindi, or other languages."
                   },
                   hasDamage: {
                     type: "boolean",
@@ -251,7 +261,7 @@ Determine:
                   },
                   damageDescription: {
                     type: "string",
-                    description: "Summary of damage details in the same language as the input"
+                    description: "Summary of damage details. MUST be in English or Arabic ONLY - never use Telugu, Hindi, or other languages."
                   },
                   estimatedCost: {
                     type: "number",
