@@ -9760,6 +9760,81 @@ export type Database = {
           },
         ]
       }
+      security_scan_results: {
+        Row: {
+          affected_resource: string | null
+          category: string
+          description: string | null
+          detected_at: string
+          id: string
+          last_seen_at: string
+          metadata: Json | null
+          recommendation: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          scan_run_id: string | null
+          scan_type: string
+          severity: string
+          status: string
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          affected_resource?: string | null
+          category: string
+          description?: string | null
+          detected_at?: string
+          id?: string
+          last_seen_at?: string
+          metadata?: Json | null
+          recommendation?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scan_run_id?: string | null
+          scan_type: string
+          severity: string
+          status?: string
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          affected_resource?: string | null
+          category?: string
+          description?: string | null
+          detected_at?: string
+          id?: string
+          last_seen_at?: string
+          metadata?: Json | null
+          recommendation?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scan_run_id?: string | null
+          scan_type?: string
+          severity?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_scan_results_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_scan_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_shifts: {
         Row: {
           break_duration_minutes: number | null
@@ -10986,11 +11061,14 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_number: string | null
           employee_count: number | null
+          enforce_ip_country_check: boolean | null
           favicon_url: string | null
           id: string
           industry: string | null
+          last_security_scan_at: string | null
           logo_dark_url: string | null
           logo_light_url: string | null
+          max_concurrent_sessions: number | null
           max_users_override: number | null
           mfa_trust_duration_days: number | null
           name: string
@@ -10999,6 +11077,7 @@ export type Database = {
           preferred_currency: string
           secondary_color: string | null
           secondary_color_dark: string | null
+          security_scan_enabled: boolean | null
           session_timeout_minutes: number | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
@@ -11033,11 +11112,14 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_number?: string | null
           employee_count?: number | null
+          enforce_ip_country_check?: boolean | null
           favicon_url?: string | null
           id?: string
           industry?: string | null
+          last_security_scan_at?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
+          max_concurrent_sessions?: number | null
           max_users_override?: number | null
           mfa_trust_duration_days?: number | null
           name: string
@@ -11046,6 +11128,7 @@ export type Database = {
           preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
+          security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
@@ -11080,11 +11163,14 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_number?: string | null
           employee_count?: number | null
+          enforce_ip_country_check?: boolean | null
           favicon_url?: string | null
           id?: string
           industry?: string | null
+          last_security_scan_at?: string | null
           logo_dark_url?: string | null
           logo_light_url?: string | null
+          max_concurrent_sessions?: number | null
           max_users_override?: number | null
           mfa_trust_duration_days?: number | null
           name?: string
@@ -11093,6 +11179,7 @@ export type Database = {
           preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
+          security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
@@ -11382,6 +11469,85 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          expires_at: string | null
+          id: string
+          invalidated_at: string | null
+          invalidated_by: string | null
+          invalidation_reason: string | null
+          ip_address: string | null
+          ip_city: string | null
+          ip_country: string | null
+          is_active: boolean
+          last_activity_at: string
+          session_token: string
+          tenant_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at?: string | null
+          id?: string
+          invalidated_at?: string | null
+          invalidated_by?: string | null
+          invalidation_reason?: string | null
+          ip_address?: string | null
+          ip_city?: string | null
+          ip_country?: string | null
+          is_active?: boolean
+          last_activity_at?: string
+          session_token: string
+          tenant_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at?: string | null
+          id?: string
+          invalidated_at?: string | null
+          invalidated_by?: string | null
+          invalidation_reason?: string | null
+          ip_address?: string | null
+          ip_city?: string | null
+          ip_country?: string | null
+          is_active?: boolean
+          last_activity_at?: string
+          session_token?: string
+          tenant_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_invalidated_by_fkey"
+            columns: ["invalidated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       visit_requests: {
         Row: {
@@ -12286,6 +12452,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_security_dashboard_stats: { Args: never; Returns: Json }
       get_team_hierarchy: {
         Args: { p_manager_id: string }
         Returns: {
@@ -12350,6 +12517,10 @@ export type Database = {
           schedule_type: string
           template_id: string
         }[]
+      }
+      get_user_active_session_count: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { _user_id: string }
@@ -12429,6 +12600,14 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      invalidate_other_user_sessions: {
+        Args: {
+          p_current_session_token: string
+          p_reason?: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_contractor_rep_for_company: {
         Args: { p_company_id: string }
@@ -12499,6 +12678,14 @@ export type Database = {
           tenant_id: string
           tenant_name: string
         }[]
+      }
+      validate_user_session: {
+        Args: {
+          p_current_country?: string
+          p_current_ip: string
+          p_session_token: string
+        }
+        Returns: Json
       }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
