@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, BellOff, AlertCircle, RefreshCw } from "lucide-react";
+import { Bell, BellOff, AlertCircle, RefreshCw, Smartphone, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,8 @@ export function NotificationPreferences() {
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
   const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
-  const { isSubscribed } = usePushSubscription();
+  const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError } = usePushSubscription();
+  const [isToggling, setIsToggling] = useState(false);
   
   const [syncNotifications, setSyncNotifications] = useState(() => {
     return localStorage.getItem('sync-notifications-enabled') !== 'false';
@@ -83,6 +84,33 @@ export function NotificationPreferences() {
       title: t('notifications.revokeInfo'),
       description: t('notifications.revokeInstructions'),
     });
+  };
+
+  const handlePushToggle = async (checked: boolean) => {
+    setIsToggling(true);
+    try {
+      if (checked) {
+        await subscribe();
+        toast({
+          title: t('notifications.pushSubscribed', 'Push notifications enabled'),
+          description: t('notifications.pushSubscribedDescription', 'You will now receive push notifications on this device.'),
+        });
+      } else {
+        await unsubscribe();
+        toast({
+          title: t('notifications.pushUnsubscribed', 'Push notifications disabled'),
+          description: t('notifications.pushUnsubscribedDescription', 'You will no longer receive push notifications on this device.'),
+        });
+      }
+    } catch (error) {
+      toast({
+        title: t('notifications.pushError', 'Push notification error'),
+        description: error instanceof Error ? error.message : t('notifications.pushErrorDescription', 'Failed to update push notification settings.'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   if (!isSupported) {
@@ -173,6 +201,34 @@ export function NotificationPreferences() {
             onCheckedChange={setPeriodicSyncEnabled}
           />
         </div>
+
+        {/* Push Notification Subscription Toggle */}
+        {isGranted && (
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div className="flex items-center gap-3">
+              <Smartphone className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label htmlFor="push-subscription" className="font-medium">
+                  {t('notifications.pushSubscription', 'Push Notifications')}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {isSubscribed 
+                    ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
+                    : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device')}
+                </p>
+              </div>
+            </div>
+            {(isToggling || isPushLoading) ? (
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                id="push-subscription"
+                checked={isSubscribed}
+                onCheckedChange={handlePushToggle}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {isDenied && (
