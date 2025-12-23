@@ -274,35 +274,33 @@ export function NotificationPreferences() {
           )}
         </div>
 
-        {/* Test Push Notification Button */}
-        {isSubscribed && (
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-3">
-              <Send className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label className="font-medium">
-                  {t('notifications.testPush', 'Test Push Notification')}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {t('notifications.testPushDescription', 'Send a test notification to verify push is working')}
-                </p>
-              </div>
+        {/* Test Push Notification Button - Always visible */}
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="flex items-center gap-3">
+            <Send className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <Label className="font-medium">
+                {t('notifications.testPush', 'Test Push Notification')}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {t('notifications.testPushDescription', 'Send a test notification to verify push is working')}
+              </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTestPushNotification}
-              disabled={isSendingTest}
-            >
-              {isSendingTest ? (
-                <Loader2 className="h-4 w-4 animate-spin me-2" />
-              ) : (
-                <Send className="h-4 w-4 me-2" />
-              )}
-              {t('notifications.sendTest', 'Send Test')}
-            </Button>
           </div>
-        )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTestPushNotification}
+            disabled={isSendingTest || !isSubscribed}
+          >
+            {isSendingTest ? (
+              <Loader2 className="h-4 w-4 animate-spin me-2" />
+            ) : (
+              <Send className="h-4 w-4 me-2" />
+            )}
+            {t('notifications.sendTest', 'Send Test')}
+          </Button>
+        </div>
       </div>
 
       {isDenied && (
