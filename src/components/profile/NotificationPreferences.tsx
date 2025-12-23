@@ -203,32 +203,30 @@ export function NotificationPreferences() {
         </div>
 
         {/* Push Notification Subscription Toggle */}
-        {isGranted && (
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-3">
-              <Smartphone className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label htmlFor="push-subscription" className="font-medium">
-                  {t('notifications.pushSubscription', 'Push Notifications')}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {isSubscribed 
-                    ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
-                    : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device')}
-                </p>
-              </div>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="flex items-center gap-3">
+            <Smartphone className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <Label htmlFor="push-subscription" className="font-medium">
+                {t('notifications.pushSubscription', 'Push Notifications')}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {isSubscribed 
+                  ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
+                  : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device')}
+              </p>
             </div>
-            {(isToggling || isPushLoading) ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            ) : (
-              <Switch
-                id="push-subscription"
-                checked={isSubscribed}
-                onCheckedChange={handlePushToggle}
-              />
-            )}
           </div>
-        )}
+          {(isToggling || isPushLoading) ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : (
+            <Switch
+              id="push-subscription"
+              checked={isSubscribed}
+              onCheckedChange={handlePushToggle}
+            />
+          )}
+        </div>
       </div>
 
       {isDenied && (
