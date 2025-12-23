@@ -9287,6 +9287,7 @@ export type Database = {
           result: string
           result_reason: string | null
           site_id: string | null
+          table_name: string | null
           tenant_id: string
           user_agent: string | null
         }
@@ -9312,6 +9313,7 @@ export type Database = {
           result: string
           result_reason?: string | null
           site_id?: string | null
+          table_name?: string | null
           tenant_id: string
           user_agent?: string | null
         }
@@ -9337,6 +9339,7 @@ export type Database = {
           result?: string
           result_reason?: string | null
           site_id?: string | null
+          table_name?: string | null
           tenant_id?: string
           user_agent?: string | null
         }
@@ -10996,6 +10999,7 @@ export type Database = {
           preferred_currency: string
           secondary_color: string | null
           secondary_color_dark: string | null
+          session_timeout_minutes: number | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
           slug: string
@@ -11042,6 +11046,7 @@ export type Database = {
           preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
+          session_timeout_minutes?: number | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug: string
@@ -11088,6 +11093,7 @@ export type Database = {
           preferred_currency?: string
           secondary_color?: string | null
           secondary_color_dark?: string | null
+          session_timeout_minutes?: number | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug?: string
