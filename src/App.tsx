@@ -9,6 +9,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
 import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
+import { SessionManagementProvider } from "./components/SessionManagementProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { HSSERoute } from "./components/HSSERoute";
@@ -135,6 +136,7 @@ const ModuleManagement = lazy(() => import(/* webpackChunkName: "admin-modules" 
 const PlanManagement = lazy(() => import(/* webpackChunkName: "admin-plans" */ "./pages/admin/PlanManagement"));
 const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" */ "./pages/admin/UsageAnalytics"));
 const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
+const AdminSecurityDashboard = lazy(() => import(/* webpackChunkName: "admin-security-dashboard" */ "./pages/admin/SecurityDashboard"));
 const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
 const ActionSLASettings = lazy(() => import(/* webpackChunkName: "admin-action-sla" */ "./pages/admin/ActionSLASettings"));
 const SLADashboard = lazy(() => import(/* webpackChunkName: "admin-sla-dashboard" */ "./pages/admin/SLADashboard"));
@@ -196,8 +198,9 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
                 <SessionTimeoutProvider>
-                  <SessionTimeoutWarning />
-                <InstallAppBanner />
+                  <SessionManagementProvider>
+                    <SessionTimeoutWarning />
+                    <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Legal Pages - Public */}
@@ -533,6 +536,14 @@ const App = () => (
                           </AdminRoute>
                         }
                       />
+                      <Route
+                        path="/admin/security-dashboard"
+                        element={
+                          <AdminRoute>
+                            <AdminSecurityDashboard />
+                          </AdminRoute>
+                        }
+                      />
 
                       {/* User Routes */}
                       <Route path="/support" element={<Support />} />
@@ -545,7 +556,8 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-              </SessionTimeoutProvider>
+                  </SessionManagementProvider>
+                </SessionTimeoutProvider>
             </AuthProvider>
           </BrowserRouter>
           </TooltipProvider>
