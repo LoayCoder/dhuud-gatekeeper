@@ -6,9 +6,15 @@ interface RTLWrapperProps {
   className?: string;
 }
 
+// RTL languages list
+const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
+
 export function RTLWrapper({ children, className }: RTLWrapperProps) {
   const { i18n } = useTranslation();
-  const direction = i18n.dir();
+  
+  // Determine direction based on current language
+  const currentLang = i18n.language || 'ar';
+  const direction = RTL_LANGUAGES.includes(currentLang.split('-')[0]) ? 'rtl' : 'ltr';
 
   return (
     <div
