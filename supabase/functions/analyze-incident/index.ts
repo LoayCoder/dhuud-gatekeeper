@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-edge-secret',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 // In-memory rate limiting
@@ -31,17 +31,6 @@ function getClientIP(req: Request): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
          req.headers.get('x-real-ip') || 
          'unknown';
-}
-
-function validateSecretToken(req: Request): boolean {
-  const secret = Deno.env.get('EDGE_FUNCTION_SECRET');
-  if (!secret) {
-    console.warn('EDGE_FUNCTION_SECRET not configured - allowing request');
-    return true; // Allow if secret not yet configured
-  }
-  
-  const providedSecret = req.headers.get('x-edge-secret');
-  return providedSecret === secret;
 }
 
 // New HSSE Event Type hierarchy
@@ -109,15 +98,6 @@ serve(async (req) => {
   }
 
   try {
-    // Secret token validation
-    if (!validateSecretToken(req)) {
-      console.warn('Invalid or missing edge function secret');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Rate limiting check
     const clientIP = getClientIP(req);
     if (isRateLimited(clientIP)) {
