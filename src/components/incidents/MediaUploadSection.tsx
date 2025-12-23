@@ -149,70 +149,89 @@ export default function MediaUploadSection({
   return (
     <div className="space-y-4">
       {/* Photos Section */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">{t('incidents.quickCapture.photos')}</span>
           <span className="text-xs text-muted-foreground">
-            {t('incidents.quickCapture.photosCount', { count: photos.length })}
+            {photos.length}/{MAX_PHOTOS}
           </span>
         </div>
         
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-          {/* Uploaded Photos */}
-          {photoUrls.map((url, index) => (
-            <div
-              key={index}
-              className="relative aspect-square rounded-lg overflow-hidden border bg-muted"
+        {photos.length === 0 ? (
+          /* No photos - show full-width buttons */
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => photoCameraRef.current?.click()}
             >
-              <img
-                src={url}
-                alt={`${t('incidents.quickCapture.photo')} ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 end-1 h-6 w-6"
-                onClick={() => removePhoto(index)}
+              <Camera className="h-5 w-5" />
+              <span>{t('incidents.quickCapture.takePhoto')}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => photoInputRef.current?.click()}
+            >
+              <Plus className="h-5 w-5" />
+              <span>{t('incidents.quickCapture.fromGallery')}</span>
+            </Button>
+          </div>
+        ) : (
+          /* Has photos - show grid with add button */
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {photoUrls.map((url, index) => (
+              <div
+                key={index}
+                className="relative aspect-square rounded-lg overflow-hidden border bg-muted"
               >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
+                <img
+                  src={url}
+                  alt={`${t('incidents.quickCapture.photo')} ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-1 end-1 h-7 w-7"
+                  onClick={() => removePhoto(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
 
-          {/* Add Photo Buttons */}
-          {canAddMorePhotos && (
-            <div className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 p-2">
-              <button
-                type="button"
-                onClick={() => photoCameraRef.current?.click()}
-                className={cn(
-                  "flex-1 w-full rounded-md flex flex-col items-center justify-center gap-1",
-                  "text-muted-foreground hover:text-foreground hover:bg-muted",
-                  "transition-colors cursor-pointer"
-                )}
-              >
-                <Camera className="h-5 w-5" />
-                <span className="text-[10px]">{t('incidents.quickCapture.takePhoto')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => photoInputRef.current?.click()}
-                className={cn(
-                  "flex-1 w-full rounded-md flex flex-col items-center justify-center gap-1",
-                  "text-muted-foreground hover:text-foreground hover:bg-muted",
-                  "transition-colors cursor-pointer"
-                )}
-              >
-                <Plus className="h-5 w-5" />
-                <span className="text-[10px]">{t('incidents.quickCapture.fromGallery')}</span>
-              </button>
-            </div>
-          )}
-        </div>
+            {canAddMorePhotos && (
+              <div className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto py-2 flex-col gap-1"
+                  onClick={() => photoCameraRef.current?.click()}
+                >
+                  <Camera className="h-5 w-5" />
+                  <span className="text-xs">{t('incidents.quickCapture.takePhoto')}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto py-2 flex-col gap-1"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <Plus className="h-5 w-5" />
+                  <span className="text-xs">{t('incidents.quickCapture.fromGallery')}</span>
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Camera capture input */}
+        {/* Hidden inputs */}
         <input
           ref={photoCameraRef}
           type="file"
@@ -221,8 +240,6 @@ export default function MediaUploadSection({
           onChange={handlePhotoSelect}
           className="hidden"
         />
-
-        {/* Gallery input */}
         <input
           ref={photoInputRef}
           type="file"
@@ -234,7 +251,7 @@ export default function MediaUploadSection({
       </div>
 
       {/* Video Section */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">{t('incidents.quickCapture.video')}</span>
           <span className="text-xs text-muted-foreground">
@@ -253,43 +270,36 @@ export default function MediaUploadSection({
               type="button"
               variant="destructive"
               size="icon"
-              className="absolute top-2 end-2 h-7 w-7"
+              className="absolute top-2 end-2 h-8 w-8"
               onClick={removeVideo}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         ) : (
-          <div className="w-full h-24 rounded-lg border-2 border-dashed flex items-center justify-center gap-4">
-            <button
+          <div className="flex gap-2">
+            <Button
               type="button"
+              variant="outline"
+              className="flex-1 h-12 gap-2"
               onClick={() => videoCameraRef.current?.click()}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 p-3 rounded-md",
-                "text-muted-foreground hover:text-foreground hover:bg-muted",
-                "transition-colors cursor-pointer"
-              )}
             >
-              <Camera className="h-6 w-6" />
-              <span className="text-xs">{t('incidents.quickCapture.recordVideo')}</span>
-            </button>
-            <div className="h-12 w-px bg-border" />
-            <button
+              <Camera className="h-5 w-5" />
+              <span>{t('incidents.quickCapture.recordVideo')}</span>
+            </Button>
+            <Button
               type="button"
+              variant="outline"
+              className="flex-1 h-12 gap-2"
               onClick={() => videoInputRef.current?.click()}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 p-3 rounded-md",
-                "text-muted-foreground hover:text-foreground hover:bg-muted",
-                "transition-colors cursor-pointer"
-              )}
             >
-              <Video className="h-6 w-6" />
-              <span className="text-xs">{t('incidents.quickCapture.fromGallery')}</span>
-            </button>
+              <Video className="h-5 w-5" />
+              <span>{t('incidents.quickCapture.fromGallery')}</span>
+            </Button>
           </div>
         )}
 
-        {/* Camera capture input */}
+        {/* Hidden inputs */}
         <input
           ref={videoCameraRef}
           type="file"
@@ -298,8 +308,6 @@ export default function MediaUploadSection({
           onChange={handleVideoSelect}
           className="hidden"
         />
-
-        {/* Gallery input */}
         <input
           ref={videoInputRef}
           type="file"
