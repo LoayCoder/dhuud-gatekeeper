@@ -131,6 +131,10 @@ export default function IncidentReport() {
   const [isRewritingTitle, setIsRewritingTitle] = useState(false);
   const [isRewritingDesc, setIsRewritingDesc] = useState(false);
   
+  // AI Analysis state - prevents Select handlers from clearing AI-set values
+  const [isApplyingAISuggestions, setIsApplyingAISuggestions] = useState(false);
+  const [pendingAISubtype, setPendingAISubtype] = useState<string | null>(null);
+  
   // Real AI hook for translate & rewrite
   const incidentAI = useIncidentAI();
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
@@ -393,6 +397,8 @@ export default function IncidentReport() {
     if (description.length < 20) return;
     
     setIsAnalyzing(true);
+    setIsApplyingAISuggestions(true); // Prevent Select handlers from clearing values
+    
     try {
       const result = await analyzeIncidentWithAI(description);
       
@@ -404,7 +410,7 @@ export default function IncidentReport() {
         'critical': 'level_4',
       };
       
-      // Auto-populate event type
+      // Auto-populate event type first
       if (result.eventType) {
         form.setValue('event_type', result.eventType);
         
@@ -413,9 +419,15 @@ export default function IncidentReport() {
           form.setValue('incident_type', result.incidentType);
         }
         
-        // Auto-populate subtype
+        // Store subtype for deferred application (wait for dynamicSubtypes to load)
         if (result.subtype) {
-          form.setValue('subtype', result.subtype);
+          if (result.eventType === 'observation') {
+            // For observations, subtypes are static, set immediately
+            form.setValue('subtype', result.subtype);
+          } else {
+            // For incidents, defer until dynamicSubtypes loads
+            setPendingAISubtype(result.subtype);
+          }
         }
       }
       
@@ -476,10 +488,24 @@ export default function IncidentReport() {
     } catch (error) {
       console.error('AI analysis error:', error);
       toast.error(t('incidents.ai.detectionError'));
+      setIsApplyingAISuggestions(false);
     } finally {
       setIsAnalyzing(false);
+      // Reset flag after a short delay to allow React to process the form updates
+      setTimeout(() => setIsApplyingAISuggestions(false), 100);
     }
   };
+
+  // Apply pending AI subtype once dynamicSubtypes are loaded
+  useEffect(() => {
+    if (pendingAISubtype && dynamicSubtypes.length > 0) {
+      const subtypeExists = dynamicSubtypes.some(s => s.code === pendingAISubtype);
+      if (subtypeExists) {
+        form.setValue('subtype', pendingAISubtype);
+      }
+      setPendingAISubtype(null);
+    }
+  }, [dynamicSubtypes, pendingAISubtype, form]);
 
   const handleRewriteTitle = async () => {
     if (title.length < 5) return;
@@ -956,8 +982,11 @@ export default function IncidentReport() {
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
-                            form.setValue('incident_type', '');
-                            form.setValue('subtype', '');
+                            // Only clear dependent fields if user is manually changing (not AI)
+                            if (!isApplyingAISuggestions) {
+                              form.setValue('incident_type', '');
+                              form.setValue('subtype', '');
+                            }
                           }} 
                           value={field.value} 
                           dir={direction}
@@ -991,7 +1020,10 @@ export default function IncidentReport() {
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
-                              form.setValue('subtype', '');
+                              // Only clear subtype if user is manually changing (not AI)
+                              if (!isApplyingAISuggestions) {
+                                form.setValue('subtype', '');
+                              }
                             }} 
                             value={field.value} 
                             dir={direction}
