@@ -5,7 +5,7 @@
   "description": "Zero Trust Multi-Tenant HSSE Platform for Health, Safety, Security & Environment management",
   "start_url": "/?source=pwa",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#0f172a",
   "theme_color": "#1e3a5f",
   "orientation": "any",
@@ -63,5 +63,14 @@
   },
   "edge_side_panel": {
     "preferred_width": 400
-  }
+  },
+  "file_handlers": [
+    {
+      "action": "/import",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      }
+    }
+  ]
 }

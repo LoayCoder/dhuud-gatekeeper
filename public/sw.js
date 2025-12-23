@@ -1,6 +1,12 @@
-const CACHE_NAME = 'dhuud-cache-v3';
-const API_CACHE_NAME = 'dhuud-api-cache-v1';
-const STATIC_CACHE_NAME = 'dhuud-static-cache-v1';
+// ============================================
+// DHUUD HSSE Platform - Service Worker
+// Version: 2024.12.23.001
+// ============================================
+
+const SW_VERSION = '2024.12.23.001';
+const CACHE_NAME = `dhuud-cache-v4-${SW_VERSION}`;
+const API_CACHE_NAME = `dhuud-api-cache-v2-${SW_VERSION}`;
+const STATIC_CACHE_NAME = `dhuud-static-cache-v2-${SW_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 const SYNC_TAG = 'offline-mutations-sync';
 const PERIODIC_SYNC_TAG = 'server-updates-sync';
@@ -31,6 +37,7 @@ const GATE_API_PATTERNS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
+  console.log(`[SW] Installing version ${SW_VERSION}`);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
@@ -39,19 +46,37 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and broadcast version
 self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME];
+  console.log(`[SW] Activating version ${SW_VERSION}`);
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    (async () => {
+      // Clean up old caches
+      const cacheNames = await caches.keys();
+      await Promise.all(
         cacheNames
-          .filter((name) => !currentCaches.includes(name))
-          .map((name) => caches.delete(name))
+          .filter((name) => 
+            (name.startsWith('dhuud-') && !name.includes(SW_VERSION))
+          )
+          .map((name) => {
+            console.log(`[SW] Deleting old cache: ${name}`);
+            return caches.delete(name);
+          })
       );
-    })
+      
+      // Broadcast version to all clients
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SW_VERSION',
+          version: SW_VERSION,
+          timestamp: Date.now()
+        });
+      });
+      
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
 });
 
 // NOTE: Main message handler is defined after showUrgentSLANotification function (line ~187)
