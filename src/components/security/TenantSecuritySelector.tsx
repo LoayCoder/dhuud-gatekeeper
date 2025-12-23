@@ -55,7 +55,6 @@ export function TenantSecuritySelector({ selectedTenantId, onTenantChange }: Ten
           const { data: tenantsData } = await supabase
             .from("tenants")
             .select("id, name, subscription_status, glass_break_active")
-            .is("deleted_at", null)
             .order("name");
 
           setTenants(tenantsData || []);
