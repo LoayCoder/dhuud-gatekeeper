@@ -3436,6 +3436,53 @@ export type Database = {
           },
         ]
       }
+      glass_break_events: {
+        Row: {
+          activated_by: string
+          created_at: string | null
+          deactivated_at: string | null
+          deactivated_by: string | null
+          deleted_at: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          reason: string
+          tenant_id: string
+        }
+        Insert: {
+          activated_by: string
+          created_at?: string | null
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deleted_at?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          reason: string
+          tenant_id: string
+        }
+        Update: {
+          activated_by?: string
+          created_at?: string | null
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          deleted_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          reason?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glass_break_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guard_tracking_history: {
         Row: {
           accuracy: number | null
@@ -10617,6 +10664,50 @@ export type Database = {
         }
         Relationships: []
       }
+      system_emergency_actions: {
+        Row: {
+          action_type: string
+          affected_users_count: number | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          metadata: Json | null
+          performed_by: string
+          reason: string
+          tenant_id: string
+        }
+        Insert: {
+          action_type: string
+          affected_users_count?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by: string
+          reason: string
+          tenant_id: string
+        }
+        Update: {
+          action_type?: string
+          affected_users_count?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by?: string
+          reason?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_emergency_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_billing_records: {
         Row: {
           billable_profiles: number | null
@@ -11063,6 +11154,8 @@ export type Database = {
           employee_count: number | null
           enforce_ip_country_check: boolean | null
           favicon_url: string | null
+          glass_break_active: boolean | null
+          glass_break_expires_at: string | null
           id: string
           industry: string | null
           last_security_scan_at: string | null
@@ -11086,6 +11179,9 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: string | null
+          system_shutdown_at: string | null
+          system_shutdown_by: string | null
+          system_shutdown_reason: string | null
           trial_end_date: string | null
           trial_start_date: string | null
           updated_at: string | null
@@ -11114,6 +11210,8 @@ export type Database = {
           employee_count?: number | null
           enforce_ip_country_check?: boolean | null
           favicon_url?: string | null
+          glass_break_active?: boolean | null
+          glass_break_expires_at?: string | null
           id?: string
           industry?: string | null
           last_security_scan_at?: string | null
@@ -11137,6 +11235,9 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
+          system_shutdown_at?: string | null
+          system_shutdown_by?: string | null
+          system_shutdown_reason?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string | null
@@ -11165,6 +11266,8 @@ export type Database = {
           employee_count?: number | null
           enforce_ip_country_check?: boolean | null
           favicon_url?: string | null
+          glass_break_active?: boolean | null
+          glass_break_expires_at?: string | null
           id?: string
           industry?: string | null
           last_security_scan_at?: string | null
@@ -11188,6 +11291,9 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
+          system_shutdown_at?: string | null
+          system_shutdown_by?: string | null
+          system_shutdown_reason?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string | null
