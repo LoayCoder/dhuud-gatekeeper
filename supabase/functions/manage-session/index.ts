@@ -47,10 +47,15 @@ async function getIPGeolocation(ip: string): Promise<GeoIPResponse> {
   }
 }
 
-// Generate session token from access token
-function generateSessionToken(accessToken: string): string {
-  // Use a simple hash for the session token (first 32 chars of the JWT)
-  return `sess_${accessToken.slice(-40)}`;
+// Generate unique session token
+function generateSessionToken(): string {
+  // Generate a random session token with timestamp for uniqueness
+  const randomPart = crypto.getRandomValues(new Uint8Array(24));
+  const base64 = btoa(String.fromCharCode(...randomPart))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+  return `sess_${Date.now()}_${base64}`;
 }
 
 // Get client IP from request
@@ -132,7 +137,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'register': {
-        const newSessionToken = generateSessionToken(token);
+        const newSessionToken = generateSessionToken();
         
         // Check current active sessions
         const { data: activeSessions } = await supabaseAdmin
