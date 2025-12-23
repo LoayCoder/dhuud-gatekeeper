@@ -72,7 +72,7 @@ export default function NotificationMatrixManagement() {
   // New rule form state
   const [newRule, setNewRule] = useState({
     stakeholder_role: '' as StakeholderRole | '',
-    severity_level: '1' as typeof SEVERITY_LEVELS[number],
+    severity_level: 'level_1' as typeof SEVERITY_LEVELS[number],
     channels: [] as string[],
     condition_type: null as string | null,
     user_id: null as string | null,
@@ -121,7 +121,7 @@ export default function NotificationMatrixManagement() {
         setShowAddDialog(false);
         setNewRule({
           stakeholder_role: '',
-          severity_level: '1',
+          severity_level: 'level_1',
           channels: [],
           condition_type: null,
           user_id: null,
@@ -142,7 +142,9 @@ export default function NotificationMatrixManagement() {
   };
 
   const getSeverityLabel = (level: string) => {
-    return t(`settings.notificationMatrix.severity.level_${level}`);
+    // Handle both 'level_1' and '1' formats for display
+    const levelNum = level.replace('level_', '');
+    return t(`settings.notificationMatrix.severity.level_${levelNum}`);
   };
 
   const getUserName = (userId: string | null) => {
