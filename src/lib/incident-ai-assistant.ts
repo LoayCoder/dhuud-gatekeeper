@@ -183,37 +183,20 @@ export interface AIAnalysisResult {
   reasoning?: string;
 }
 
-// Get the edge function secret from environment
-const EDGE_SECRET = import.meta.env.VITE_EDGE_FUNCTION_SECRET;
+import { supabase } from '@/integrations/supabase/client';
 
 export async function analyzeIncidentWithAI(description: string): Promise<AIAnalysisResult> {
   try {
-    // Call the combined AI analysis edge function
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    };
-    
-    // Add secret token if configured
-    if (EDGE_SECRET) {
-      headers['x-edge-secret'] = EDGE_SECRET;
-    }
-    
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-incident`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ description }),
+    // Call the AI analysis edge function using supabase client
+    const { data, error } = await supabase.functions.invoke('analyze-incident', {
+      body: { description },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Incident analysis failed:', response.status, errorData);
-      
+    if (error) {
+      console.error('Incident analysis failed:', error);
       // Fall back to local analysis on error
       return fallbackAnalyzeIncident(description);
     }
-
-    const data = await response.json();
     
     return {
       eventType: data.eventType || null,
