@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, BellOff, AlertCircle, RefreshCw, Smartphone, Loader2 } from "lucide-react";
+import { Bell, BellOff, AlertCircle, RefreshCw, Smartphone, Loader2, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { NotificationSoundSettings } from "./NotificationSoundSettings";
 import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
 import { PushNotificationTypePreferences } from "./PushNotificationTypePreferences";
 import { usePushSubscription } from "@/hooks/use-push-subscription";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const RTL_LANGUAGES = ['ar', 'ur'];
 
@@ -22,7 +24,9 @@ export function NotificationPreferences() {
   const direction = isRTL ? 'rtl' : 'ltr';
   const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
   const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError } = usePushSubscription();
+  const { user } = useAuth();
   const [isToggling, setIsToggling] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
   
   const [syncNotifications, setSyncNotifications] = useState(() => {
     return localStorage.getItem('sync-notifications-enabled') !== 'false';
@@ -110,6 +114,48 @@ export function NotificationPreferences() {
       });
     } finally {
       setIsToggling(false);
+    }
+  };
+
+  const handleTestPushNotification = async () => {
+    if (!user?.id) {
+      toast({
+        title: t('notifications.testError', 'Test failed'),
+        description: t('notifications.noUser', 'User not authenticated'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const response = await supabase.functions.invoke('send-push-notification', {
+        body: {
+          user_ids: [user.id],
+          payload: {
+            title: 'Test Push Notification ✅',
+            body: 'If you see this, push notifications are working correctly!',
+            tag: 'test-notification',
+            data: { type: 'test' }
+          }
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      toast({
+        title: t('notifications.testSent', 'Test notification sent!'),
+        description: t('notifications.testSentDescription', 'You should receive a push notification shortly.'),
+      });
+    } catch (error) {
+      console.error('Test push notification error:', error);
+      toast({
+        title: t('notifications.testError', 'Failed to send test notification'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTest(false);
     }
   };
 
@@ -227,6 +273,36 @@ export function NotificationPreferences() {
             />
           )}
         </div>
+
+        {/* Test Push Notification Button */}
+        {isSubscribed && (
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div className="flex items-center gap-3">
+              <Send className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label className="font-medium">
+                  {t('notifications.testPush', 'Test Push Notification')}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.testPushDescription', 'Send a test notification to verify push is working')}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestPushNotification}
+              disabled={isSendingTest}
+            >
+              {isSendingTest ? (
+                <Loader2 className="h-4 w-4 animate-spin me-2" />
+              ) : (
+                <Send className="h-4 w-4 me-2" />
+              )}
+              {t('notifications.sendTest', 'Send Test')}
+            </Button>
+          </div>
+        )}
       </div>
 
       {isDenied && (
