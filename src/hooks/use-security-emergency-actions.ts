@@ -155,24 +155,34 @@ export function useSecurityEmergencyActions() {
       if (!user) throw new Error("Not authenticated");
 
       // Count sessions to terminate
-      const { count } = await supabase
+      const countResult = await (supabase
         .from("user_sessions")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
+      
+      const sessionCount = countResult.count || 0;
 
       // Terminate all sessions
-      const { error: sessionsError } = await supabase
+      await (supabase
         .from("user_sessions")
         .update({
           is_valid: false,
-          invalidated_reason: "system_shutdown",
+          invalidation_reason: "system_shutdown",
           invalidated_at: new Date().toISOString(),
-        })
+        }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
 
-      if (sessionsError) throw sessionsError;
+      // Update tenant
+      await supabase
+        .from("tenants")
+        .update({
+          system_shutdown_at: new Date().toISOString(),
+          system_shutdown_by: user.id,
+          system_shutdown_reason: reason,
+        })
+        .eq("id", tenantId);
 
       // Update tenant
       const { error: tenantError } = await supabase
@@ -194,12 +204,12 @@ export function useSecurityEmergencyActions() {
           action_type: "system_shutdown",
           performed_by: user.id,
           reason,
-          affected_users_count: count || 0,
+          affected_users_count: sessionCount,
         });
 
       if (logError) throw logError;
 
-      return { success: true, terminatedCount: count || 0 };
+      return { success: true, terminatedCount: sessionCount };
     },
     onSuccess: (data) => {
       toast({

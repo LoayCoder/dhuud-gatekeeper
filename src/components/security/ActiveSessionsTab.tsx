@@ -62,41 +62,60 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   // Fetch active sessions
   const { data: sessions, isLoading, refetch } = useQuery({
     queryKey: ["active-sessions", tenantId],
-    queryFn: async () => {
-      let query = supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("is_valid", true)
-        .gt("expires_at", new Date().toISOString())
-        .order("last_activity_at", { ascending: false });
-
+    queryFn: async (): Promise<Session[]> => {
+      // Use separate queries to avoid deep type instantiation
+      let sessionsData: any[] = [];
+      
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        const result = await (supabase
+          .from("user_sessions")
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
+          .eq("is_valid", true)
+          .eq("tenant_id", tenantId)
+          .gt("expires_at", new Date().toISOString())
+          .order("last_activity_at", { ascending: false });
+        if (result.error) throw result.error;
+        sessionsData = result.data || [];
+      } else {
+        const result = await (supabase
+          .from("user_sessions")
+          .select("id, user_id, session_token, ip_address, ip_country, ip_city, user_agent, created_at, last_activity_at, expires_at, is_valid") as any)
+          .eq("is_valid", true)
+          .gt("expires_at", new Date().toISOString())
+          .order("last_activity_at", { ascending: false });
+        if (result.error) throw result.error;
+        sessionsData = result.data || [];
       }
-
-      const { data: sessionsData, error } = await query;
-      if (error) throw error;
+      
+      if (sessionsData.length === 0) return [];
 
       // Enrich with user names
-      if (sessionsData && sessionsData.length > 0) {
-        const userIds = [...new Set(sessionsData.map(s => s.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", userIds);
+      const userIds = [...new Set(sessionsData.map((s: any) => s.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
 
-        const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
+      const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, email: p.email }]) || []);
 
-        return sessionsData.map(s => ({
-          ...s,
-          user_name: profileMap.get(s.user_id)?.name || null,
-          user_email: profileMap.get(s.user_id)?.email || null,
-        })) as unknown as Session[];
-      }
-
-      return (sessionsData || []) as unknown as Session[];
+      return sessionsData.map((s: any) => ({
+        id: s.id,
+        user_id: s.user_id,
+        session_token: s.session_token,
+        ip_address: s.ip_address,
+        ip_country: s.ip_country,
+        ip_city: s.ip_city,
+        user_agent: s.user_agent,
+        device_fingerprint: null,
+        is_valid: s.is_valid,
+        created_at: s.created_at,
+        last_activity_at: s.last_activity_at,
+        expires_at: s.expires_at,
+        user_name: profileMap.get(s.user_id)?.name || undefined,
+        user_email: profileMap.get(s.user_id)?.email || undefined,
+      }));
     },
-    refetchInterval: 30000, // Refresh every 30s
+    refetchInterval: 30000,
   });
 
   // Terminate single session mutation
@@ -133,21 +152,26 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
   // Terminate all sessions mutation
   const terminateAllMutation = useMutation({
     mutationFn: async () => {
-      let query = supabase
-        .from("user_sessions")
-        .update({ 
-          is_valid: false, 
-          invalidated_reason: "admin_terminated_all",
-          invalidated_at: new Date().toISOString()
-        })
-        .eq("is_valid", true);
-
       if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
+        await (supabase
+          .from("user_sessions")
+          .update({ 
+            is_valid: false, 
+            invalidation_reason: "admin_terminated_all",
+            invalidated_at: new Date().toISOString()
+          }) as any)
+          .eq("is_valid", true)
+          .eq("tenant_id", tenantId);
+      } else {
+        await (supabase
+          .from("user_sessions")
+          .update({ 
+            is_valid: false, 
+            invalidation_reason: "admin_terminated_all",
+            invalidated_at: new Date().toISOString()
+          }) as any)
+          .eq("is_valid", true);
       }
-
-      const { error } = await query;
-      if (error) throw error;
 
       // Log the action
       if (tenantId) {
@@ -185,8 +209,8 @@ export function ActiveSessionsTab({ tenantId }: ActiveSessionsTabProps) {
       session.user_name?.toLowerCase().includes(query) ||
       session.user_email?.toLowerCase().includes(query) ||
       session.ip_address?.toLowerCase().includes(query) ||
-      session.city?.toLowerCase().includes(query) ||
-      session.country_code?.toLowerCase().includes(query)
+      session.ip_city?.toLowerCase().includes(query) ||
+      session.ip_country?.toLowerCase().includes(query)
     );
   });
 
