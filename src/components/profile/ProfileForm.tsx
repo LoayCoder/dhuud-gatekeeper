@@ -192,14 +192,14 @@ export function ProfileForm({
       )}
 
       {/* Avatar Upload */}
-      <div className="gap-6 pb-6 flex-row flex items-center justify-center">
-        <Avatar className="h-24 w-24 flex-shrink-0">
+      <div className="gap-4 sm:gap-6 pb-6 flex flex-col sm:flex-row items-center justify-center">
+        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0">
           <AvatarImage src={avatarUrl || undefined} alt={fullName} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
             {fullName ? fullName.substring(0, 2).toUpperCase() : <User className="h-8 w-8" />}
           </AvatarFallback>
         </Avatar>
-        <div className="space-y-1 px-0 mx-0">
+        <div className="space-y-1 text-center sm:text-start">
           <h3 className="font-medium">{t('profile.profilePicture')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('profile.avatarHint')}
@@ -224,12 +224,12 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="email">{t('profile.emailAddress')}</Label>
           <div className="relative">
-            <Mail className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="email" 
               value={profileEmail || sessionEmail} 
               disabled 
-              className={`[padding-inline-start:2.25rem] px-[35px] bg-muted/50 ${hasEmailMismatch ? 'border-warning' : ''}`} 
+              className={`ps-9 bg-muted/50 ${hasEmailMismatch ? 'border-warning' : ''}`} 
             />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
@@ -240,8 +240,8 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="fullName">{t('profile.fullName')}</Label>
           <div className="relative">
-            <User className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder={t('profile.enterFullName')} maxLength={100} className="[padding-inline-start:2.25rem] px-[35px]" />
+            <User className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder={t('profile.enterFullName')} maxLength={100} className="ps-9" />
           </div>
         </div>
 
@@ -249,12 +249,12 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="jobTitle">{t('profile.jobTitle')}</Label>
           <div className="relative">
-            <Briefcase className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Briefcase className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="jobTitle" 
               value={profile?.job_title || ""} 
               disabled 
-              className="[padding-inline-start:2.25rem] px-[35px] bg-muted/50" 
+              className="ps-9 bg-muted/50" 
             />
           </div>
           <p className="text-[0.8rem] text-muted-foreground">
@@ -270,8 +270,8 @@ export function ProfileForm({
         <div className="grid gap-2">
           <Label htmlFor="phoneNumber">{t('profile.phoneNumber')}</Label>
           <div className="relative">
-            <Phone className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} className="[padding-inline-start:2.25rem] px-[35px]" />
+            <Phone className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} className="ps-9" />
           </div>
         </div>
 
@@ -287,15 +287,15 @@ export function ProfileForm({
             <div className="grid gap-2">
               <Label htmlFor="emergencyName" className="text-xs text-muted-foreground">{t('profile.emergencyContactName')}</Label>
               <div className="relative">
-                <UserCheck className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="emergencyName" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} placeholder={t('profile.emergencyContactName')} maxLength={100} className="[padding-inline-start:2.25rem] px-[35px]" />
+                <UserCheck className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="emergencyName" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} placeholder={t('profile.emergencyContactName')} maxLength={100} className="ps-9" />
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="emergencyPhone" className="text-xs text-muted-foreground">{t('profile.emergencyContactPhone')}</Label>
               <div className="relative">
-                <Phone className="absolute left-3 rtl:left-auto rtl:right-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="emergencyPhone" type="tel" value={emergencyContactPhone} onChange={e => setEmergencyContactPhone(e.target.value)} dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} className="[padding-inline-start:2.25rem] px-[35px]" />
+                <Phone className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="emergencyPhone" type="tel" value={emergencyContactPhone} onChange={e => setEmergencyContactPhone(e.target.value)} dir="ltr" placeholder="+966 5XX XXX XXXX" maxLength={20} className="ps-9" />
               </div>
             </div>
           </div>

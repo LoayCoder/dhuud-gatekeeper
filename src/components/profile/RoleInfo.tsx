@@ -9,7 +9,8 @@ interface RoleInfoProps {
 }
 
 export function RoleInfo({ roles }: RoleInfoProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
 
   // Group roles by category
   const rolesByCategory = roles.reduce((acc, userRole) => {
@@ -24,10 +25,10 @@ export function RoleInfo({ roles }: RoleInfoProps) {
   const categoryOrder: RoleCategory[] = ['general', 'hsse', 'environmental', 'ptw', 'security', 'audit', 'food_safety'];
 
   return (
-    <Card>
+    <Card dir={direction}>
       <CardHeader>
-        <CardTitle className="text-lg">{t('role.title')}</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg text-start">{t('role.title')}</CardTitle>
+        <CardDescription className="text-start">
           {t('role.roleDescription')}
         </CardDescription>
       </CardHeader>
