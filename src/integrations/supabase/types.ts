@@ -12426,6 +12426,7 @@ export type Database = {
           email: string
           full_name: string
           phone_number: string
+          preferred_language: string
           stakeholder_role: string
           user_id: string
           was_condition_match: boolean
