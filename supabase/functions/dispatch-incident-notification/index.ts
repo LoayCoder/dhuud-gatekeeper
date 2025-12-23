@@ -3,12 +3,21 @@
  * 
  * Routes notifications based on 5-level severity matrix to specific stakeholders
  * using Push, Email, and WhatsApp channels with role-based routing.
+ * 
+ * LOCALIZATION: All notifications sent in recipient's preferred_language
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendWhatsAppText } from '../_shared/whatsapp-provider.ts';
-import { sendEmail } from '../_shared/email-sender.ts';
+import { sendEmail, wrapEmailHtml } from '../_shared/email-sender.ts';
 import { logNotificationSent } from '../_shared/notification-logger.ts';
+import { 
+  SupportedLanguage, 
+  isRTL, 
+  getTranslations, 
+  replaceVariables,
+  INCIDENT_TRANSLATIONS 
+} from '../_shared/email-translations.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,6 +55,7 @@ interface NotificationRecipient {
   full_name: string | null;
   phone_number: string | null;
   email: string | null;
+  preferred_language: string | null;
   was_condition_match: boolean;
 }
 
@@ -66,14 +76,149 @@ const SEVERITY_LEVEL_MAP: Record<string, number> = {
   'level_5': 5,
 };
 
-// Severity level labels for messages
-const SEVERITY_LABELS: Record<string, { en: string; ar: string; emoji: string }> = {
-  'level_1': { en: 'Low', ar: 'منخفض', emoji: '🟢' },
-  'level_2': { en: 'Medium', ar: 'متوسط', emoji: '🟡' },
-  'level_3': { en: 'Serious', ar: 'خطير', emoji: '🟠' },
-  'level_4': { en: 'Major', ar: 'كبير', emoji: '🔴' },
-  'level_5': { en: 'Catastrophic', ar: 'كارثي', emoji: '⛔' },
+// Severity level labels for messages (localized)
+const SEVERITY_LABELS: Record<string, Record<SupportedLanguage, string>> = {
+  'level_1': { en: 'Low', ar: 'منخفض', ur: 'کم', hi: 'निम्न', fil: 'Mababa' },
+  'level_2': { en: 'Medium', ar: 'متوسط', ur: 'درمیانہ', hi: 'मध्यम', fil: 'Katamtaman' },
+  'level_3': { en: 'Serious', ar: 'خطير', ur: 'سنگین', hi: 'गंभीर', fil: 'Seryoso' },
+  'level_4': { en: 'Major', ar: 'كبير', ur: 'بڑا', hi: 'बड़ा', fil: 'Malaki' },
+  'level_5': { en: 'Catastrophic', ar: 'كارثي', ur: 'تباہ کن', hi: 'विनाशकारी', fil: 'Sakuna' },
 };
+
+const SEVERITY_EMOJI: Record<string, string> = {
+  'level_1': '🟢',
+  'level_2': '🟡',
+  'level_3': '🟠',
+  'level_4': '🔴',
+  'level_5': '⛔',
+};
+
+/**
+ * Generate localized WhatsApp message
+ */
+function generateWhatsAppMessage(
+  lang: SupportedLanguage,
+  incident: IncidentDetails,
+  severityLevel: string,
+  locationText: string,
+  reporterName: string,
+  hasInjury: boolean,
+  isErpOverride: boolean
+): string {
+  const t = getTranslations(INCIDENT_TRANSLATIONS, lang);
+  const severityLabel = SEVERITY_LABELS[severityLevel]?.[lang] || SEVERITY_LABELS['level_2'][lang];
+  const severityEmoji = SEVERITY_EMOJI[severityLevel] || '🟡';
+  
+  const eventTypeLabel = incident.event_type === 'observation' 
+    ? t.whatsapp.observation 
+    : t.whatsapp.incident;
+  
+  const erpPreamble = isErpOverride ? t.whatsapp.erpAlert + '\n\n' : '';
+  const injuryLine = hasInjury ? t.whatsapp.injuriesReported + '\n' : '';
+  const descriptionLine = incident.description 
+    ? `\n📝 ${incident.description.substring(0, 200)}${incident.description.length > 200 ? '...' : ''}`
+    : '';
+
+  return `${erpPreamble}📢 ${t.whatsapp.newEvent.replace('{type}', eventTypeLabel)}: ${incident.title}
+
+🆔 ${t.whatsapp.reference}: ${incident.reference_id || '-'}
+📍 ${t.whatsapp.location}: ${locationText}
+⚠️ ${t.whatsapp.severity}: ${severityEmoji} ${severityLabel}
+👤 ${t.whatsapp.reportedBy}: ${reporterName}
+${injuryLine}${descriptionLine}`;
+}
+
+/**
+ * Generate localized email HTML content
+ */
+function generateEmailContent(
+  lang: SupportedLanguage,
+  incident: IncidentDetails,
+  severityLevel: string,
+  locationText: string,
+  reporterName: string,
+  hasInjury: boolean,
+  isErpOverride: boolean,
+  tenantName: string
+): { subject: string; html: string } {
+  const t = getTranslations(INCIDENT_TRANSLATIONS, lang);
+  const severityLabel = SEVERITY_LABELS[severityLevel]?.[lang] || SEVERITY_LABELS['level_2'][lang];
+  const severityEmoji = SEVERITY_EMOJI[severityLevel] || '🟡';
+  const severityLevelNum = SEVERITY_LEVEL_MAP[severityLevel] || 2;
+  const rtl = isRTL(lang);
+  
+  const eventTypeLabel = incident.event_type === 'observation' 
+    ? t.email.observation 
+    : t.email.incident;
+
+  // Subject line
+  const subject = isErpOverride 
+    ? `🚨 ${t.email.emergency}: ${incident.reference_id} - ${incident.title}`
+    : `${severityEmoji} ${eventTypeLabel}: ${incident.reference_id} - ${incident.title}`;
+
+  // Severity color
+  const severityColor = severityLevelNum >= 4 ? '#dc2626' : severityLevelNum >= 3 ? '#f97316' : '#eab308';
+
+  // Build HTML content
+  const erpBanner = isErpOverride 
+    ? `<div style="background: #dc2626; color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🚨 ${t.email.erpActivated} 🚨</div>` 
+    : '';
+
+  const injuryRow = hasInjury 
+    ? `<tr><td style="padding: 8px 0; color: #64748b;">${t.email.injuries}:</td><td style="padding: 8px 0; color: #dc2626; font-weight: bold;">${t.email.yes}</td></tr>` 
+    : '';
+
+  const descriptionBlock = incident.description 
+    ? `<div style="margin-top: 16px; padding: 12px; background: white; border-radius: 8px;"><p style="margin: 0; color: #475569;">${incident.description}</p></div>` 
+    : '';
+
+  const emailBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; direction: ${rtl ? 'rtl' : 'ltr'};">
+      ${erpBanner}
+      <div style="padding: 20px; background: #f8fafc;">
+        <h2 style="color: #1e293b; margin-bottom: 16px;">${eventTypeLabel}: ${incident.title}</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; color: #64748b;">${t.email.reference}:</td><td style="padding: 8px 0; font-weight: bold;">${incident.reference_id || '-'}</td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">${t.email.severity}:</td><td style="padding: 8px 0;"><span style="background: ${severityColor}; color: white; padding: 4px 8px; border-radius: 4px;">${severityLabel}</span></td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">${t.email.location}:</td><td style="padding: 8px 0;">${locationText}</td></tr>
+          <tr><td style="padding: 8px 0; color: #64748b;">${t.email.reportedBy}:</td><td style="padding: 8px 0;">${reporterName}</td></tr>
+          ${injuryRow}
+        </table>
+        ${descriptionBlock}
+      </div>
+    </div>
+  `;
+
+  const html = wrapEmailHtml(emailBody, lang, tenantName);
+
+  return { subject, html };
+}
+
+/**
+ * Generate localized push notification payload
+ */
+function generatePushPayload(
+  lang: SupportedLanguage,
+  incident: IncidentDetails,
+  severityLevel: string,
+  isErpOverride: boolean
+): { title: string; body: string } {
+  const t = getTranslations(INCIDENT_TRANSLATIONS, lang);
+  const severityLabel = SEVERITY_LABELS[severityLevel]?.[lang] || SEVERITY_LABELS['level_2'][lang];
+  const severityEmoji = SEVERITY_EMOJI[severityLevel] || '🟡';
+  
+  const eventTypeLabel = incident.event_type === 'observation' 
+    ? t.push.observation 
+    : t.push.incident;
+
+  const title = isErpOverride 
+    ? `🚨 ${t.push.erpAlert}`
+    : `${severityEmoji} ${t.push.newEvent.replace('{type}', eventTypeLabel)}`;
+
+  const body = `${incident.reference_id}: ${incident.title}\n${t.push.severity}: ${severityLabel}`;
+
+  return { title, body };
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -125,7 +270,6 @@ Deno.serve(async (req) => {
     const isErpOverride = incident.erp_activated === true;
     
     if (isErpOverride) {
-      // ERP activated forces minimum level_4
       const currentLevel = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
       if (currentLevel < 4) {
         effectiveSeverity = 'level_4';
@@ -137,7 +281,16 @@ Deno.serve(async (req) => {
     const hasInjury = incident.has_injury === true || 
       ['first_aid', 'medical_treatment', 'lost_time', 'fatality'].includes(incident.injury_classification || '');
 
-    // 4. Fetch reporter info
+    // 4. Fetch tenant info
+    let tenantName = '';
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', incident.tenant_id)
+      .single();
+    if (tenant?.name) tenantName = tenant.name;
+
+    // 5. Fetch reporter info
     let reporterName = '-';
     if (incident.reporter_id) {
       const { data: reporter } = await supabase
@@ -148,7 +301,7 @@ Deno.serve(async (req) => {
       if (reporter?.full_name) reporterName = reporter.full_name;
     }
 
-    // 5. Fetch site name
+    // 6. Fetch site name
     let siteName = '';
     if (incident.site_id) {
       const { data: site } = await supabase
@@ -158,8 +311,9 @@ Deno.serve(async (req) => {
         .single();
       if (site?.name) siteName = site.name;
     }
+    const locationText = incident.location || siteName || '-';
 
-    // 6. Get notification recipients using the database function
+    // 7. Get notification recipients using the database function (now includes preferred_language)
     const { data: recipients, error: recipientsError } = await supabase
       .rpc('get_incident_notification_recipients', {
         p_tenant_id: incident.tenant_id,
@@ -180,12 +334,11 @@ Deno.serve(async (req) => {
     const recipientList = (recipients || []) as NotificationRecipient[];
     console.log(`[Dispatch] Found ${recipientList.length} recipients to notify`);
 
-    // 7. Apply WhatsApp gating: Only level 3+ except First Aiders with injury
+    // 8. Apply WhatsApp gating: Only level 3+ except First Aiders with injury
     const processedRecipients = recipientList.map(r => {
       const severityLevel = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
       let filteredChannels = [...r.channels];
       
-      // WhatsApp gating: Block WhatsApp for levels 1-2 except First Aiders with injury
       if (severityLevel < 3) {
         if (r.stakeholder_role !== 'first_aider' || !hasInjury) {
           filteredChannels = filteredChannels.filter(c => c !== 'whatsapp');
@@ -197,65 +350,17 @@ Deno.serve(async (req) => {
 
     console.log(`[Dispatch] After WhatsApp gating: ${processedRecipients.length} recipients with active channels`);
 
-    // 8. Prepare messages
-    const severityInfo = SEVERITY_LABELS[effectiveSeverity] || SEVERITY_LABELS['level_2'];
-    const locationText = incident.location || siteName || '-';
-    const eventTypeLabel = incident.event_type === 'observation' ? 'ملاحظة' : 'حادثة';
-    const eventTypeLabelEn = incident.event_type === 'observation' ? 'Observation' : 'Incident';
-
-    // ERP Critical Alert preamble
-    const erpPreambleAr = isErpOverride ? '🚨 تنبيه طوارئ - تم تفعيل خطة الاستجابة للطوارئ 🚨\n\n' : '';
-    const erpPreambleEn = isErpOverride ? '🚨 EMERGENCY ALERT - ERP ACTIVATED 🚨\n\n' : '';
-
-    const messageAr = `${erpPreambleAr}📢 ${eventTypeLabel} جديدة: ${incident.title}
-
-🆔 المرجع: ${incident.reference_id || '-'}
-📍 الموقع: ${locationText}
-⚠️ المستوى: ${severityInfo.emoji} ${severityInfo.ar}
-👤 المُبلّغ: ${reporterName}
-${hasInjury ? '🏥 يوجد إصابات' : ''}
-
-${incident.description ? `📝 ${incident.description.substring(0, 200)}${incident.description.length > 200 ? '...' : ''}` : ''}`;
-
-    const messageEn = `${erpPreambleEn}📢 New ${eventTypeLabelEn}: ${incident.title}
-
-🆔 Reference: ${incident.reference_id || '-'}
-📍 Location: ${locationText}
-⚠️ Severity: ${severityInfo.emoji} ${severityInfo.en}
-👤 Reported by: ${reporterName}
-${hasInjury ? '🏥 Injuries Reported' : ''}
-
-${incident.description ? `📝 ${incident.description.substring(0, 200)}${incident.description.length > 200 ? '...' : ''}` : ''}`;
-
-    // HTML email content
-    // Calculate severity level number for email styling
-    const severityLevelNum = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
-
-    const emailSubject = isErpOverride 
-      ? `🚨 EMERGENCY: ${incident.reference_id} - ${incident.title}`
-      : `${severityInfo.emoji} ${eventTypeLabelEn}: ${incident.reference_id} - ${incident.title}`;
-
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        ${isErpOverride ? '<div style="background: #dc2626; color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🚨 EMERGENCY RESPONSE PLAN ACTIVATED 🚨</div>' : ''}
-        <div style="padding: 20px; background: #f8fafc;">
-          <h2 style="color: #1e293b; margin-bottom: 16px;">${eventTypeLabelEn}: ${incident.title}</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px 0; color: #64748b;">Reference:</td><td style="padding: 8px 0; font-weight: bold;">${incident.reference_id || '-'}</td></tr>
-            <tr><td style="padding: 8px 0; color: #64748b;">Severity:</td><td style="padding: 8px 0;"><span style="background: ${severityLevelNum >= 4 ? '#dc2626' : severityLevelNum >= 3 ? '#f97316' : '#eab308'}; color: white; padding: 4px 8px; border-radius: 4px;">${severityInfo.en}</span></td></tr>
-            <tr><td style="padding: 8px 0; color: #64748b;">Location:</td><td style="padding: 8px 0;">${locationText}</td></tr>
-            <tr><td style="padding: 8px 0; color: #64748b;">Reported by:</td><td style="padding: 8px 0;">${reporterName}</td></tr>
-            ${hasInjury ? '<tr><td style="padding: 8px 0; color: #64748b;">Injuries:</td><td style="padding: 8px 0; color: #dc2626; font-weight: bold;">Yes</td></tr>' : ''}
-          </table>
-          ${incident.description ? `<div style="margin-top: 16px; padding: 12px; background: white; border-radius: 8px;"><p style="margin: 0; color: #475569;">${incident.description}</p></div>` : ''}
-        </div>
-      </div>
-    `;
-
-    // 9. Send notifications
+    // 9. Send notifications (per-recipient language)
     const results: NotificationResult[] = [];
 
     for (const recipient of processedRecipients) {
+      // Determine recipient's language (default to English if not set)
+      const recipientLang = (recipient.preferred_language || 'en') as SupportedLanguage;
+      const validLangs: SupportedLanguage[] = ['en', 'ar', 'ur', 'hi', 'fil'];
+      const lang: SupportedLanguage = validLangs.includes(recipientLang) ? recipientLang : 'en';
+
+      console.log(`[Dispatch] Sending to ${recipient.full_name} in language: ${lang}`);
+
       for (const channel of recipient.channels) {
         try {
           let status: 'sent' | 'failed' | 'skipped' = 'skipped';
@@ -267,9 +372,10 @@ ${incident.description ? `📝 ${incident.description.substring(0, 200)}${incide
               status = 'skipped';
               errorMsg = 'No phone number';
             } else {
-              // Determine language based on user preference (could be enhanced)
-              const isArabic = true; // Default to Arabic for this region
-              const message = isArabic ? messageAr : messageEn;
+              const message = generateWhatsAppMessage(
+                lang, incident, effectiveSeverity, locationText, 
+                reporterName, hasInjury, isErpOverride
+              );
               
               const result = await sendWhatsAppText(recipient.phone_number, message);
               status = result.success ? 'sent' : 'failed';
@@ -281,20 +387,55 @@ ${incident.description ? `📝 ${incident.description.substring(0, 200)}${incide
               status = 'skipped';
               errorMsg = 'No email address';
             } else {
+              const { subject, html } = generateEmailContent(
+                lang, incident, effectiveSeverity, locationText,
+                reporterName, hasInjury, isErpOverride, tenantName
+              );
+              
               const result = await sendEmail({
                 to: [recipient.email],
-                subject: emailSubject,
-                html: emailHtml,
+                subject,
+                html,
                 module: 'incident_workflow',
+                tenantName,
               });
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
             }
           } else if (channel === 'push') {
-            // Push notifications - log as pending (would integrate with FCM/APNs)
-            console.log(`[Dispatch] Push notification queued for ${recipient.full_name}`);
-            status = 'sent'; // Mark as sent (push is async)
+            // Send localized push notification
+            const pushPayload = generatePushPayload(lang, incident, effectiveSeverity, isErpOverride);
+            
+            try {
+              const pushResponse = await supabase.functions.invoke('send-push-notification', {
+                body: {
+                  user_ids: [recipient.user_id],
+                  payload: {
+                    title: pushPayload.title,
+                    body: pushPayload.body,
+                    data: {
+                      type: 'incident',
+                      incident_id: incident.id,
+                      reference_id: incident.reference_id,
+                    },
+                    tag: `incident-${incident.id}`,
+                  },
+                  notification_type: 'incidents_new',
+                },
+              });
+              
+              if (pushResponse.error) {
+                status = 'failed';
+                errorMsg = pushResponse.error.message;
+              } else {
+                status = 'sent';
+              }
+            } catch (pushError) {
+              console.error(`[Dispatch] Push error:`, pushError);
+              status = 'failed';
+              errorMsg = pushError instanceof Error ? pushError.message : 'Push failed';
+            }
           }
 
           // Log to audit table
@@ -322,7 +463,7 @@ ${incident.description ? `📝 ${incident.description.substring(0, 200)}${incide
             error: errorMsg,
           });
 
-          console.log(`[Dispatch] ${channel} → ${recipient.full_name} (${recipient.stakeholder_role}): ${status}`);
+          console.log(`[Dispatch] ${channel} → ${recipient.full_name} (${recipient.stakeholder_role}, ${lang}): ${status}`);
 
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : 'Unknown error';

@@ -33,6 +33,8 @@ interface RequestBody {
   tenant_id?: string;
   payload: PushPayload;
   notification_type?: NotificationType;
+  // Language is now handled per-recipient from DB, but can be passed for single-user calls
+  language?: string;
 }
 
 serve(async (req) => {
