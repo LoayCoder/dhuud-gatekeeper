@@ -94,17 +94,22 @@ export function NotificationPreferences() {
     setIsToggling(true);
     try {
       if (checked) {
-        await subscribe();
-        toast({
-          title: t('notifications.pushSubscribed', 'Push notifications enabled'),
-          description: t('notifications.pushSubscribedDescription', 'You will now receive push notifications on this device.'),
-        });
+        const success = await subscribe();
+        if (success) {
+          toast({
+            title: t('notifications.pushSubscribed', 'Push notifications enabled'),
+            description: t('notifications.pushSubscribedDescription', 'You will now receive push notifications on this device.'),
+          });
+        }
+        // If not successful, the error is already set in the hook state and displayed in UI
       } else {
-        await unsubscribe();
-        toast({
-          title: t('notifications.pushUnsubscribed', 'Push notifications disabled'),
-          description: t('notifications.pushUnsubscribedDescription', 'You will no longer receive push notifications on this device.'),
-        });
+        const success = await unsubscribe();
+        if (success) {
+          toast({
+            title: t('notifications.pushUnsubscribed', 'Push notifications disabled'),
+            description: t('notifications.pushUnsubscribedDescription', 'You will no longer receive push notifications on this device.'),
+          });
+        }
       }
     } catch (error) {
       toast({
