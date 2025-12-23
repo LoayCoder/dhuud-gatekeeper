@@ -5,6 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 // VAPID public key from environment
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
+// Debug log for VAPID key availability
+if (!VAPID_PUBLIC_KEY) {
+  console.warn('[Push] VAPID public key not configured - push notifications will not work');
+} else {
+  console.log('[Push] VAPID public key available');
+}
+
 interface PushSubscriptionState {
   isSubscribed: boolean;
   isSupported: boolean;
@@ -122,15 +129,24 @@ export function usePushSubscription() {
   }, [isSupported]);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
+    console.log('[Push] Starting subscription process...');
+    console.log('[Push] isSupported:', isSupported);
+    console.log('[Push] VAPID_PUBLIC_KEY available:', !!VAPID_PUBLIC_KEY);
+    
     if (!isSupported || !VAPID_PUBLIC_KEY) {
+      const errorMsg = !isSupported 
+        ? 'Push notifications are not supported in this browser'
+        : 'VAPID key not configured - contact administrator';
+      console.error('[Push]', errorMsg);
       setState((prev) => ({
         ...prev,
-        error: 'Push notifications are not supported or VAPID key not configured',
+        error: errorMsg,
       }));
       return false;
     }
 
     if (!user?.id || !profile?.tenant_id) {
+      console.error('[Push] User not authenticated or missing tenant_id');
       setState((prev) => ({
         ...prev,
         error: 'User must be logged in to subscribe',
@@ -138,10 +154,14 @@ export function usePushSubscription() {
       return false;
     }
 
+    console.log('[Push] User ID:', user.id, 'Tenant ID:', profile.tenant_id);
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
+      console.log('[Push] Requesting notification permission...');
       const permission = await Notification.requestPermission();
+      console.log('[Push] Permission result:', permission);
+      
       if (permission !== 'granted') {
         setState((prev) => ({
           ...prev,
@@ -151,16 +171,21 @@ export function usePushSubscription() {
         return false;
       }
 
+      console.log('[Push] Waiting for service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('[Push] Service worker ready:', registration.scope);
 
+      console.log('[Push] Subscribing to push manager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
+      console.log('[Push] Push subscription created:', subscription.endpoint);
 
       const subscriptionJSON = subscription.toJSON();
 
       // Save to Supabase database for server-side push
+      console.log('[Push] Saving subscription to database...');
       const saved = await saveSubscriptionToDatabase(
         user.id,
         profile.tenant_id,
@@ -168,7 +193,9 @@ export function usePushSubscription() {
       );
 
       if (!saved) {
-        console.warn('Subscription created but failed to save to database');
+        console.warn('[Push] Subscription created but failed to save to database');
+      } else {
+        console.log('[Push] Subscription saved to database successfully');
       }
 
       // Also keep in localStorage as backup
@@ -187,7 +214,7 @@ export function usePushSubscription() {
 
       return true;
     } catch (error) {
-      console.error('Error subscribing to push:', error);
+      console.error('[Push] Error subscribing to push:', error);
       setState((prev) => ({
         ...prev,
         isLoading: false,
