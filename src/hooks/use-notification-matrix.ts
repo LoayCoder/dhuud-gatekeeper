@@ -41,6 +41,23 @@ export function useNotificationMatrix() {
   });
 }
 
+// Helper to get the current user's tenant_id
+async function getCurrentTenantId(): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) throw new Error('Not authenticated');
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('tenant_id')
+    .eq('id', user.id)
+    .single();
+
+  if (error) throw error;
+  if (!profile?.tenant_id) throw new Error('No tenant found');
+
+  return profile.tenant_id;
+}
+
 export function useCreateMatrixRule() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -48,29 +65,69 @@ export function useCreateMatrixRule() {
 
   return useMutation({
     mutationFn: async (rule: Omit<NotificationMatrixInsert, 'tenant_id'>) => {
-      // Get current user's tenant_id
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) throw new Error('Not authenticated');
+      const tenantId = await getCurrentTenantId();
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('No tenant found');
-
-      const { data, error } = await supabase
-        .from('incident_notification_matrix')
-        .insert({
-          ...rule,
-          tenant_id: profile.tenant_id,
-        })
-        .select()
-        .single();
+      // Use RPC upsert function to avoid duplicate key errors
+      const { data, error } = await supabase.rpc('upsert_notification_matrix_rule', {
+        p_tenant_id: tenantId,
+        p_stakeholder_role: rule.stakeholder_role,
+        p_severity_level: rule.severity_level,
+        p_channels: rule.channels || [],
+        p_condition_type: rule.condition_type || null,
+        p_user_id: rule.user_id || null,
+      });
 
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-matrix'] });
+      toast({
+        title: t('settings.notificationMatrix.ruleAdded'),
+        description: t('settings.notificationMatrix.ruleAddedDesc'),
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+// New batch create hook for creating multiple rules efficiently
+export function useBatchCreateMatrixRules() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async (rules: Array<Omit<NotificationMatrixInsert, 'tenant_id'>>) => {
+      const tenantId = await getCurrentTenantId();
+
+      // Process all rules using upsert RPC
+      const results = await Promise.all(
+        rules.map(rule =>
+          supabase.rpc('upsert_notification_matrix_rule', {
+            p_tenant_id: tenantId,
+            p_stakeholder_role: rule.stakeholder_role,
+            p_severity_level: rule.severity_level,
+            p_channels: rule.channels || [],
+            p_condition_type: rule.condition_type || null,
+            p_user_id: rule.user_id || null,
+          })
+        )
+      );
+
+      // Check for any errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error(errors[0].error?.message || 'Failed to create some rules');
+      }
+
+      return results.map(r => r.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-matrix'] });
@@ -160,19 +217,10 @@ export function useResetMatrixToDefaults() {
 
   return useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) throw new Error('Not authenticated');
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.tenant_id) throw new Error('No tenant found');
+      const tenantId = await getCurrentTenantId();
 
       const { error } = await supabase.rpc('reset_notification_matrix_to_defaults', {
-        p_tenant_id: profile.tenant_id,
+        p_tenant_id: tenantId,
       });
 
       if (error) throw error;
