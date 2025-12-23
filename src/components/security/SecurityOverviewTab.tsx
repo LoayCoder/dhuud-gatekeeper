@@ -46,17 +46,23 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
       const mfaAdoption = totalUsers ? Math.round((mfaEnabledCount / totalUsers) * 100) : 0;
 
       // Get active sessions count
-      let sessionsQuery = supabase
-        .from("user_sessions")
-        .select("id", { count: "exact" })
-        .eq("is_valid", true)
-        .gt("expires_at", new Date().toISOString());
-
+      let activeSessions = 0;
       if (tenantId) {
-        sessionsQuery = sessionsQuery.eq("tenant_id", tenantId);
+        const result = await (supabase
+          .from("user_sessions")
+          .select("id", { count: "exact", head: true }) as any)
+          .eq("is_valid", true)
+          .eq("tenant_id", tenantId)
+          .gt("expires_at", new Date().toISOString());
+        activeSessions = result.count || 0;
+      } else {
+        const result = await (supabase
+          .from("user_sessions")
+          .select("id", { count: "exact", head: true }) as any)
+          .eq("is_valid", true)
+          .gt("expires_at", new Date().toISOString());
+        activeSessions = result.count || 0;
       }
-
-      const { count: activeSessions } = await sessionsQuery;
 
       // Get suspicious login count (last 24h)
       let suspiciousQuery = supabase

@@ -52,11 +52,12 @@ export function SecuritySettingsActionsTab({ tenantId }: SecuritySettingsActions
       if (error) throw error;
 
       // Get active sessions count
-      const { count: sessionCount } = await supabase
+      const sessionResult = await (supabase
         .from("user_sessions")
-        .select("id", { count: "exact" })
+        .select("id", { count: "exact", head: true }) as any)
         .eq("tenant_id", tenantId)
         .eq("is_valid", true);
+      const sessionCount = sessionResult.count || 0;
 
       // Get recent emergency actions
       const { data: recentActions } = await supabase

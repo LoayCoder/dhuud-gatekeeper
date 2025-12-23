@@ -7,11 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock, MapPin, Smartphone, Globe, Wifi } from "lucide-react";
+import { Loader2, Shield, Search, Eye, AlertTriangle, Lock, UserPlus, UserMinus, UserCheck, UserX, Pencil, Users, KeyRound, LogIn, LogOut, ShieldCheck, ShieldOff, ShieldAlert, Clock, MapPin, Smartphone, Globe, Wifi, LayoutDashboard, Monitor, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { useCursorPagination, CursorPosition, buildCursorCondition } from "@/hooks/use-cursor-pagination";
 import { CursorPagination } from "@/components/ui/cursor-pagination";
 import { toast } from "@/hooks/use-toast";
+import { TenantSecuritySelector } from "@/components/security/TenantSecuritySelector";
+import { SecurityOverviewTab } from "@/components/security/SecurityOverviewTab";
+import { ActiveSessionsTab } from "@/components/security/ActiveSessionsTab";
+import { SecuritySettingsActionsTab } from "@/components/security/SecuritySettingsActionsTab";
 
 interface ActivityLog {
   id: string;
@@ -133,6 +137,7 @@ export default function SecurityAuditLog() {
   const [loginHistory, setLoginHistory] = useState<LoginHistoryRecord[]>([]);
   const [loginHistoryLoading, setLoginHistoryLoading] = useState(true);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
+  const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
 
   const PAGE_SIZE = 50;
 
@@ -451,15 +456,37 @@ export default function SecurityAuditLog() {
         )}
       </div>
 
-      <Tabs defaultValue="suspicious-activity" className="space-y-6" dir={direction}>
-        <div className="flex justify-start">
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-3xl">
+      {/* Tenant Selector */}
+      <div className="flex items-center justify-between">
+        <TenantSecuritySelector 
+          selectedTenantId={selectedTenantId} 
+          onTenantChange={setSelectedTenantId} 
+        />
+        {realtimeEnabled && (
+          <Badge variant="outline" className="gap-1">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            {t("securityAudit.realtime", "Real-time updates enabled")}
+          </Badge>
+        )}
+      </div>
+
+      <Tabs defaultValue="overview" className="space-y-6" dir={direction}>
+        <div className="flex justify-start overflow-x-auto">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-5xl">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              {t("securityAudit.overview", "Overview")}
+            </TabsTrigger>
             <TabsTrigger value="suspicious-activity" className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               {t("securityAudit.suspiciousActivity", "Suspicious Activity")}
               {suspiciousStats.suspicious > 0 && (
                 <Badge variant="destructive" className="ms-1">{suspiciousStats.suspicious}</Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="active-sessions" className="flex items-center gap-2">
+              <Monitor className="h-4 w-4" />
+              {t("securityAudit.activeSessions", "Active Sessions")}
             </TabsTrigger>
             <TabsTrigger value="security-events" className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" />
@@ -473,8 +500,22 @@ export default function SecurityAuditLog() {
               <Lock className="h-4 w-4" />
               {t("securityAudit.sensitiveAccess", "Data Access")}
             </TabsTrigger>
+            <TabsTrigger value="settings-actions" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              {t("securityAudit.settingsActions", "Settings & Actions")}
+            </TabsTrigger>
           </TabsList>
         </div>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <SecurityOverviewTab tenantId={selectedTenantId} />
+        </TabsContent>
+
+        {/* Active Sessions Tab */}
+        <TabsContent value="active-sessions">
+          <ActiveSessionsTab tenantId={selectedTenantId} />
+        </TabsContent>
 
         {/* Suspicious Activity Tab (NEW) */}
         <TabsContent value="suspicious-activity">
@@ -1170,6 +1211,11 @@ export default function SecurityAuditLog() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Settings & Actions Tab */}
+        <TabsContent value="settings-actions">
+          <SecuritySettingsActionsTab tenantId={selectedTenantId} />
         </TabsContent>
       </Tabs>
     </div>
