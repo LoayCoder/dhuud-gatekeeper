@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Camera, Video, X, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,6 +50,41 @@ export default function MediaUploadSection({
   const videoCameraRef = useRef<HTMLInputElement>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  // Sync photoUrls with photos prop (handles remount case)
+  useEffect(() => {
+    // Generate preview URLs from parent's File objects
+    if (photos.length > 0 && photoUrls.length !== photos.length) {
+      const newUrls = photos.map(photo => URL.createObjectURL(photo));
+      setPhotoUrls(newUrls);
+    } else if (photos.length === 0 && photoUrls.length > 0) {
+      // Clear URLs if photos were cleared externally
+      photoUrls.forEach(url => URL.revokeObjectURL(url));
+      setPhotoUrls([]);
+    }
+  }, [photos.length]);
+
+  // Sync videoUrl with video prop (handles remount case)
+  useEffect(() => {
+    // Generate preview URL from parent's File object
+    if (video && !videoUrl) {
+      setVideoUrl(URL.createObjectURL(video));
+    } else if (!video && videoUrl) {
+      // Clear URL if video was cleared externally
+      URL.revokeObjectURL(videoUrl);
+      setVideoUrl(null);
+    }
+  }, [video]);
+
+  // Cleanup URLs on unmount
+  useEffect(() => {
+    return () => {
+      photoUrls.forEach(url => URL.revokeObjectURL(url));
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, []);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
