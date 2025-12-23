@@ -29,20 +29,12 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["security-overview-stats", tenantId],
     queryFn: async () => {
-      // Get user count
-      let usersQuery = supabase
-        .from("profiles")
-        .select("id", { count: "exact" })
-        .eq("is_active", true);
+      // Get MFA stats using database function (includes user count and MFA count)
+      const { data: mfaStats } = await supabase
+        .rpc("get_mfa_stats", { p_tenant_id: tenantId || undefined });
 
-      if (tenantId) {
-        usersQuery = usersQuery.eq("tenant_id", tenantId);
-      }
-
-      const { count: totalUsers } = await usersQuery;
-
-      // MFA stats are approximated since mfa_enabled doesn't exist
-      const mfaEnabledCount = 0; // TODO: Add mfa_enabled column if needed
+      const totalUsers = mfaStats?.[0]?.total_users || 0;
+      const mfaEnabledCount = mfaStats?.[0]?.mfa_enabled_count || 0;
       const mfaAdoption = totalUsers ? Math.round((mfaEnabledCount / totalUsers) * 100) : 0;
 
       // Get active sessions count
@@ -107,7 +99,7 @@ export function SecurityOverviewTab({ tenantId }: SecurityOverviewTabProps) {
       const { count: emergencyActions } = await emergencyQuery;
 
       return {
-        totalUsers: totalUsers || 0,
+        totalUsers,
         mfaEnabledCount,
         mfaAdoption,
         activeSessions: activeSessions || 0,

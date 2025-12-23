@@ -12501,6 +12501,13 @@ export type Database = {
           total_hours: number
         }[]
       }
+      get_mfa_stats: {
+        Args: { p_tenant_id?: string }
+        Returns: {
+          mfa_enabled_count: number
+          total_users: number
+        }[]
+      }
       get_monthly_hsse_summary: {
         Args: { p_month?: string; p_tenant_id: string }
         Returns: Json
