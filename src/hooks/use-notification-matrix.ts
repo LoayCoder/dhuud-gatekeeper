@@ -11,17 +11,17 @@ export type NotificationMatrixUpdate = Database['public']['Tables']['incident_no
 export const STAKEHOLDER_ROLES = [
   'area_owner',
   'hsse_manager',
+  'dept_representative',
   'hsse_expert',
   'bc_team',
   'first_aider',
   'clinic_team',
-  'site_manager',
-  'security_manager',
+  'security',
 ] as const;
 
 export type StakeholderRole = typeof STAKEHOLDER_ROLES[number];
 
-export const SEVERITY_LEVELS = ['1', '2', '3', '4', '5'] as const;
+export const SEVERITY_LEVELS = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const;
 export const CHANNELS = ['push', 'email', 'whatsapp'] as const;
 
 export function useNotificationMatrix() {
