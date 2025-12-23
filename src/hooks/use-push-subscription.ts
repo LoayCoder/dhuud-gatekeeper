@@ -95,6 +95,17 @@ export function usePushSubscription() {
     subscription: null,
   });
 
+  // Enhanced mobile detection
+  const isMobile = typeof window !== 'undefined' && (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    ('ontouchstart' in window)
+  );
+
+  const isStandalone = typeof window !== 'undefined' && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+
   const isSupported =
     typeof window !== 'undefined' &&
     'serviceWorker' in navigator &&
@@ -108,7 +119,13 @@ export function usePushSubscription() {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      // Wait for service worker with timeout for mobile
+      const swPromise = navigator.serviceWorker.ready;
+      const timeoutPromise = new Promise<ServiceWorkerRegistration>((_, reject) => 
+        setTimeout(() => reject(new Error('Service worker timeout')), isMobile ? 10000 : 5000)
+      );
+      
+      const registration = await Promise.race([swPromise, timeoutPromise]);
       const subscription = await registration.pushManager.getSubscription();
 
       setState({
@@ -118,15 +135,21 @@ export function usePushSubscription() {
         error: null,
         subscription,
       });
+      
+      // Log mobile PWA status for debugging
+      if (isMobile) {
+        console.log('[Push] Mobile PWA status:', { isStandalone, hasSubscription: !!subscription });
+      }
     } catch (error) {
       console.error('Error checking push subscription:', error);
       setState((prev) => ({
         ...prev,
         isLoading: false,
+        isSupported: true, // Still mark as supported, just failed to check
         error: 'Failed to check subscription status',
       }));
     }
-  }, [isSupported]);
+  }, [isSupported, isMobile, isStandalone]);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
     console.log('[Push] Starting subscription process...');
@@ -267,6 +290,14 @@ export function usePushSubscription() {
     subscribe,
     unsubscribe,
     refresh: checkSubscription,
+    isMobile: typeof window !== 'undefined' && (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      ('ontouchstart' in window)
+    ),
+    isStandalone: typeof window !== 'undefined' && (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+    ),
   };
 }
 

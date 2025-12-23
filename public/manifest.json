@@ -1,39 +1,67 @@
 {
-  "name": "DHUUD",
+  "id": "/",
+  "name": "DHUUD HSSE Platform",
   "short_name": "DHUUD",
   "description": "Zero Trust Multi-Tenant HSSE Platform for Health, Safety, Security & Environment management",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0f172a",
   "theme_color": "#1e3a5f",
   "orientation": "any",
   "scope": "/",
+  "lang": "ar",
+  "dir": "rtl",
   "icons": [
     {
-      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+      "src": "/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+      "src": "/pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+      "src": "/pwa-maskable-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png",
+      "src": "/pwa-maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "categories": ["business", "productivity", "utilities"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Open main dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Report Incident",
+      "short_name": "Report",
+      "description": "Report a new incident",
+      "url": "/report-incident",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
