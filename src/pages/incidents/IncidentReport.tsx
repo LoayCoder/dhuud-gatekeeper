@@ -396,11 +396,54 @@ export default function IncidentReport() {
     try {
       const result = await analyzeIncidentWithAI(description);
       
-      // Auto-populate event type and subtype
+      // Map AI severity to form severity levels
+      const severityMap: Record<string, SeverityLevelV2> = {
+        'low': 'level_1',
+        'medium': 'level_2', 
+        'high': 'level_3',
+        'critical': 'level_4',
+      };
+      
+      // Auto-populate event type
       if (result.eventType) {
         form.setValue('event_type', result.eventType);
+        
+        // Auto-populate incident type (event category) for incidents
+        if (result.eventType === 'incident' && result.incidentType) {
+          form.setValue('incident_type', result.incidentType);
+        }
+        
+        // Auto-populate subtype
         if (result.subtype) {
           form.setValue('subtype', result.subtype);
+        }
+      }
+      
+      // Auto-populate severity for incidents
+      if (result.eventType === 'incident' && result.severity) {
+        const mappedSeverity = severityMap[result.severity] || 'level_2';
+        form.setValue('severity', mappedSeverity);
+      }
+      
+      // Auto-populate injury details
+      if (result.hasInjury) {
+        form.setValue('has_injury', true);
+        if (result.injuryCount) {
+          form.setValue('injury_count', result.injuryCount);
+        }
+        if (result.injuryDescription) {
+          form.setValue('injury_description', result.injuryDescription);
+        }
+      }
+      
+      // Auto-populate damage details
+      if (result.hasDamage) {
+        form.setValue('has_damage', true);
+        if (result.damageDescription) {
+          form.setValue('damage_description', result.damageDescription);
+        }
+        if (result.estimatedCost) {
+          form.setValue('damage_cost', result.estimatedCost);
         }
       }
       
@@ -408,6 +451,7 @@ export default function IncidentReport() {
       const suggestion: AISuggestion = {
         suggestedSeverity: result.severity || 'low',
         suggestedEventType: result.eventType || undefined,
+        suggestedIncidentType: result.incidentType || undefined,
         suggestedSubtype: result.subtype || undefined,
         refinedDescription: description,
         keyRisks: result.keyRisks,
@@ -415,28 +459,23 @@ export default function IncidentReport() {
       };
       setAiSuggestion(suggestion);
       
-      // Show combined toast feedback
-      const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-      const eventTypeLabel = result.eventType 
-        ? t(`incidents.eventCategories.${result.eventType}`)
-        : t('common.unknown');
-      const subtypeLabel = result.subtype 
-        ? t(`incidents.${result.eventType === 'observation' ? 'observationTypes' : 'incidentTypes'}.${toCamelCase(result.subtype)}`, result.subtype)
-        : '';
-      const severityLabel = result.severity 
-        ? t(`incidents.severityLevels.${result.severity}`)
-        : '';
+      // Build populated fields list for toast
+      const populatedFields: string[] = [];
+      if (result.eventType) populatedFields.push(t('incidents.eventType'));
+      if (result.incidentType) populatedFields.push(t('incidents.incidentType'));
+      if (result.subtype) populatedFields.push(t('incidents.subtype'));
+      if (result.severity) populatedFields.push(t('incidents.severity'));
+      if (result.hasInjury) populatedFields.push(t('incidents.injuryDetails'));
+      if (result.hasDamage) populatedFields.push(t('incidents.damageDetails'));
       
-      import('sonner').then(({ toast }) => {
-        toast.success(t('incidents.ai.analysisComplete'), {
-          description: `${eventTypeLabel}${subtypeLabel ? ` - ${subtypeLabel}` : ''} | ${t('incidents.severity')}: ${severityLabel}`
-        });
+      toast.success(t('incidents.ai.analysisComplete'), {
+        description: populatedFields.length > 0 
+          ? `${t('incidents.ai.fieldsPopulated')}: ${populatedFields.join(', ')}`
+          : undefined
       });
     } catch (error) {
       console.error('AI analysis error:', error);
-      import('sonner').then(({ toast }) => {
-        toast.error(t('incidents.ai.detectionError'));
-      });
+      toast.error(t('incidents.ai.detectionError'));
     } finally {
       setIsAnalyzing(false);
     }

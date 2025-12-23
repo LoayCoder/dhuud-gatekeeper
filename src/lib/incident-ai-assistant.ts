@@ -181,6 +181,14 @@ export interface AIAnalysisResult {
   keyRisks: string[];
   confidence: number;
   reasoning?: string;
+  // Injury details
+  hasInjury: boolean;
+  injuryCount?: number;
+  injuryDescription?: string;
+  // Damage details
+  hasDamage: boolean;
+  damageDescription?: string;
+  estimatedCost?: number;
 }
 
 import { supabase } from '@/integrations/supabase/client';
@@ -206,6 +214,12 @@ export async function analyzeIncidentWithAI(description: string): Promise<AIAnal
       keyRisks: data.keyRisks || [],
       confidence: data.confidence || 0.8,
       reasoning: data.reasoning,
+      hasInjury: data.hasInjury || false,
+      injuryCount: data.injuryCount || undefined,
+      injuryDescription: data.injuryDescription || undefined,
+      hasDamage: data.hasDamage || false,
+      damageDescription: data.damageDescription || undefined,
+      estimatedCost: data.estimatedCost || undefined,
     };
   } catch (error) {
     console.error('Error calling analyze-incident:', error);
@@ -249,6 +263,10 @@ function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
   const numRisks = 2 + Math.floor(Math.random() * 2);
   const shuffledRisks = [...RISK_CATEGORIES].sort(() => Math.random() - 0.5);
   
+  // Basic injury/damage detection from keywords (reuse lowerDesc from line 233)
+  const hasInjury = ['injury', 'hurt', 'injured', 'hospitalized', 'first aid', 'إصابة', 'مصاب'].some(k => lowerDesc.includes(k));
+  const hasDamage = ['damage', 'broken', 'destroyed', 'leak', 'spill', 'ضرر', 'تلف', 'كسر'].some(k => lowerDesc.includes(k));
+  
   return {
     eventType: typeResult.eventType || null,
     incidentType: typeResult.incidentType || null,
@@ -256,6 +274,12 @@ function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
     severity,
     keyRisks: shuffledRisks.slice(0, numRisks),
     confidence: typeResult.eventType ? 0.6 : 0.4,
+    hasInjury,
+    injuryCount: undefined,
+    injuryDescription: undefined,
+    hasDamage,
+    damageDescription: undefined,
+    estimatedCost: undefined,
   };
 }
 
