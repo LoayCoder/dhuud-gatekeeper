@@ -49,9 +49,13 @@ export function useCreateMatrixRule() {
   return useMutation({
     mutationFn: async (rule: Omit<NotificationMatrixInsert, 'tenant_id'>) => {
       // Get current user's tenant_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
+        .eq('id', user.id)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
@@ -156,9 +160,13 @@ export function useResetMatrixToDefaults() {
 
   return useMutation({
     mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error('Not authenticated');
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
+        .eq('id', user.id)
         .single();
 
       if (!profile?.tenant_id) throw new Error('No tenant found');
