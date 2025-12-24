@@ -5907,6 +5907,31 @@
     "ratingDescription": "Choose the highest credible impact across People / Environment / Asset / Business / Reputation-Security",
     "erpActivated": "ERP Activated",
     "erpActivatedDescription": "Was the Emergency Response Plan activated for this event?",
+    "level_1": {
+      "label": "Level 1 - Low",
+      "description": "Minor impact, controlled quickly",
+      "examples": "First aid only, very small spill contained, minor damage, no business disruption"
+    },
+    "level_2": {
+      "label": "Level 2 - Moderate",
+      "description": "Medical treatment possible or minor restricted work",
+      "examples": "Contained spill requiring cleanup team, moderate damage, short disruption"
+    },
+    "level_3": {
+      "label": "Level 3 - Serious",
+      "description": "Medical Treatment Case or Restricted Work",
+      "examples": "Moderate spill/emission, significant property damage, noticeable operational disruption"
+    },
+    "level_4": {
+      "label": "Level 4 - Major",
+      "description": "Lost Time Injury (LTI/LWDC) or major fire/LOPC",
+      "examples": "Major environmental impact, major asset loss, shutdown, regulator notification likely"
+    },
+    "level_5": {
+      "label": "Level 5 - Catastrophic",
+      "description": "Fatality / permanent disability",
+      "examples": "Major offsite impact, extreme security event, crisis management activation"
+    },
     "level1": {
       "label": "Level 1 - Low",
       "description": "Minor impact, controlled quickly",
