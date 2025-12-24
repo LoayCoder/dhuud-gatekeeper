@@ -170,65 +170,71 @@ export function HSSEExpertScreeningCard({ incident, onComplete }: HSSEExpertScre
           )}
           
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-              onClick={() => setShowReturnDialog(true)}
-              disabled={expertScreening.isPending}
-            >
-              <RotateCcw className="h-4 w-4" />
-              {t('workflow.expertScreening.returnToReporter', 'Return for Correction')}
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 text-destructive border-destructive/50 hover:bg-destructive/10"
-              onClick={() => setShowRejectDialog(true)}
-              disabled={expertScreening.isPending}
-            >
-              <XCircle className="h-4 w-4" />
-              {t('workflow.expertScreening.reject', 'Reject Report')}
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-              onClick={() => setShowNoInvestigationDialog(true)}
-              disabled={expertScreening.isPending}
-            >
-              <FileX className="h-4 w-4" />
-              {t('workflow.expertScreening.noInvestigation', 'No Investigation Required')}
-            </Button>
-            
-            {/* Show different button based on event type */}
-            {isObservation ? (
+          <div className="flex flex-col gap-3 pt-2">
+            {/* Top row - Return & Reject */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                onClick={handleAssignActions}
+                variant="outline"
+                className="flex items-center justify-center gap-2"
+                onClick={() => setShowReturnDialog(true)}
                 disabled={expertScreening.isPending}
               >
-                {expertScreening.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ClipboardList className="h-4 w-4" />
-                )}
-                {t('workflow.expertScreening.assignActions', 'Send for Action Assignment')}
+                <RotateCcw className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('workflow.expertScreening.returnToReporter', 'Return for Correction')}</span>
               </Button>
-            ) : (
+              
               <Button
-                className="flex items-center gap-2"
-                onClick={handleRecommendInvestigation}
+                variant="outline"
+                className="flex items-center justify-center gap-2 text-destructive border-destructive/50 hover:bg-destructive/10"
+                onClick={() => setShowRejectDialog(true)}
                 disabled={expertScreening.isPending}
               >
-                {expertScreening.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="h-4 w-4" />
-                )}
-                {t('workflow.expertScreening.recommendInvestigation', 'Recommend Investigation')}
+                <XCircle className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('workflow.expertScreening.reject', 'Reject Report')}</span>
               </Button>
-            )}
+            </div>
+            
+            {/* Bottom row - No Investigation & Main Action */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="flex items-center justify-center gap-2"
+                onClick={() => setShowNoInvestigationDialog(true)}
+                disabled={expertScreening.isPending}
+              >
+                <FileX className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('workflow.expertScreening.noInvestigation', 'No Investigation Required')}</span>
+              </Button>
+              
+              {/* Show different button based on event type */}
+              {isObservation ? (
+                <Button
+                  className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
+                  onClick={handleAssignActions}
+                  disabled={expertScreening.isPending}
+                >
+                  {expertScreening.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  ) : (
+                    <ClipboardList className="h-4 w-4 shrink-0" />
+                  )}
+                  <span className="truncate">{t('workflow.expertScreening.assignActions', 'Send for Action Assignment')}</span>
+                </Button>
+              ) : (
+                <Button
+                  className="flex items-center justify-center gap-2"
+                  onClick={handleRecommendInvestigation}
+                  disabled={expertScreening.isPending}
+                >
+                  {expertScreening.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  ) : (
+                    <ArrowRight className="h-4 w-4 shrink-0" />
+                  )}
+                  <span className="truncate">{t('workflow.expertScreening.recommendInvestigation', 'Recommend Investigation')}</span>
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
