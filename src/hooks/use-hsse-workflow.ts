@@ -645,9 +645,59 @@ export function useDeptRepApproval() {
         dept_rep_notes: notes,
       };
       
+      // Get tenant_id first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user?.id)
+        .single();
+      
       if (decision === 'approve') {
         // Approve and close the observation
         newStatus = 'closed';
+        
+        // Release all corrective actions linked to this incident
+        const { data: releasedActions, error: releaseError } = await supabase
+          .from('corrective_actions')
+          .update({ 
+            released_at: new Date().toISOString() 
+          })
+          .eq('incident_id', incidentId)
+          .is('deleted_at', null)
+          .is('released_at', null)
+          .select('id, title, assigned_to, priority, due_date');
+        
+        if (releaseError) {
+          console.error('Failed to release actions:', releaseError);
+        } else if (releasedActions && releasedActions.length > 0) {
+          console.log(`Released ${releasedActions.length} corrective actions for incident ${incidentId}`);
+          
+          // Log action release audit entry
+          await supabase.from('incident_audit_logs').insert({
+            incident_id: incidentId,
+            tenant_id: profile?.tenant_id,
+            actor_id: user?.id,
+            action: 'actions_released',
+            details: { 
+              released_count: releasedActions.length,
+              action_ids: releasedActions.map(a => a.id),
+              released_by_dept_rep: true 
+            },
+          });
+          
+          // Send notifications to action assignees
+          try {
+            await supabase.functions.invoke('send-action-notifications', {
+              body: { 
+                incidentId, 
+                action: 'actions_released',
+                actions: releasedActions,
+              },
+            });
+          } catch (e) {
+            console.error('Failed to send action notifications:', e);
+          }
+        }
       } else {
         // Escalate to full investigation workflow
         newStatus = 'pending_manager_approval';
@@ -663,12 +713,6 @@ export function useDeptRepApproval() {
       if (error) throw error;
       
       // Log audit entry
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user?.id)
-        .single();
-      
       await supabase.from('incident_audit_logs').insert({
         incident_id: incidentId,
         tenant_id: profile?.tenant_id,
@@ -691,11 +735,13 @@ export function useDeptRepApproval() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
+      queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
       
       toast({
         title: variables.decision === 'approve' ? "Observation Closed" : "Escalated to Investigation",
         description: variables.decision === 'approve'
-          ? "Observation has been approved and closed"
+          ? "Observation has been approved and actions released to assignees"
           : "Observation has been escalated for full investigation",
       });
     },
