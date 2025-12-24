@@ -64,30 +64,23 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer | null {
   }
 }
 
-// Comprehensive VAPID key validation at startup
-(() => {
+// Log VAPID key info when module loads (for debugging)
+if (typeof window !== 'undefined') {
   console.log('[Push] 🔑 VAPID Key Check:');
-  console.log('[Push]   - Full key:', VAPID_PUBLIC_KEY);
+  console.log('[Push]   - Key loaded:', VAPID_PUBLIC_KEY ? 'Yes' : 'No');
   console.log('[Push]   - Key length:', VAPID_PUBLIC_KEY?.length || 0);
   
-  if (!VAPID_PUBLIC_KEY) {
-    console.error('[Push] ❌ VAPID public key not configured - push notifications disabled');
-    return;
+  if (VAPID_PUBLIC_KEY) {
+    const isValid = isValidVapidPublicKey(VAPID_PUBLIC_KEY);
+    console.log('[Push]   - Format valid:', isValid);
+    if (isValid) {
+      const testDecode = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      console.log('[Push]   - Decode test:', testDecode ? 'Passed' : 'Failed');
+      console.log('[Push]   - Expected key: BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
+      console.log('[Push]   - Match:', VAPID_PUBLIC_KEY === 'BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
+    }
   }
-  if (!isValidVapidPublicKey(VAPID_PUBLIC_KEY)) {
-    console.error('[Push] ❌ VAPID key format invalid. Key preview:', VAPID_PUBLIC_KEY?.substring(0, 20) + '...');
-    return;
-  }
-  // Quick decode test to catch issues early
-  const testDecode = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-  if (!testDecode) {
-    console.error('[Push] ❌ VAPID key failed decode test');
-    return;
-  }
-  console.log('[Push] ✅ VAPID public key validated successfully');
-  console.log('[Push]   - Expected: BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
-  console.log('[Push]   - Match:', VAPID_PUBLIC_KEY === 'BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
-})();
+}
 
 interface PushSubscriptionState {
   isSubscribed: boolean;
