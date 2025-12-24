@@ -351,8 +351,10 @@
       "security": "Security Incident"
     },
     "hsseEventType": "Event Category",
+    "incidentCategory": "Incident Category",
+    "incidentSubCategory": "Incident Sub Category",
     "incidentSubtype": "Incident Subtype",
-    "selectHsseEventTypeFirst": "Please select an event category first",
+    "selectHsseEventTypeFirst": "Please select an incident category first",
     "hsseEventTypes": {
       "safety": "Safety (Occupational Injury / Harm)",
       "health": "Health (Illness / Exposure)",

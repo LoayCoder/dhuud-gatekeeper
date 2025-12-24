@@ -1016,7 +1016,7 @@ export default function IncidentReport() {
                       name="incident_type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('incidents.hsseEventType')}</FormLabel>
+                          <FormLabel>{t('incidents.incidentCategory')}</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -1064,7 +1064,7 @@ export default function IncidentReport() {
                         <FormLabel>
                           {eventType === 'observation' 
                             ? t('incidents.observationType') 
-                            : t('incidents.incidentSubtype')}
+                            : t('incidents.incidentSubCategory')}
                         </FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
