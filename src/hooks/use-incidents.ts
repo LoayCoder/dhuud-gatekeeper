@@ -46,6 +46,12 @@ export interface IncidentFormData {
   department_id?: string;
   latitude?: number;
   longitude?: number;
+  // Location address fields (from reverse geocoding)
+  location_country?: string;
+  location_city?: string;
+  location_district?: string;
+  location_street?: string;
+  location_formatted?: string;
   // Major event linkage
   special_event_id?: string;
 }
@@ -96,6 +102,13 @@ export function useCreateIncident() {
         // Major event linkage
         special_event_id: data.special_event_id || null,
       };
+
+      // Add location address fields (cast to bypass type check until types regenerate)
+      if (data.location_country) (insertData as Record<string, unknown>).location_country = data.location_country;
+      if (data.location_city) (insertData as Record<string, unknown>).location_city = data.location_city;
+      if (data.location_district) (insertData as Record<string, unknown>).location_district = data.location_district;
+      if (data.location_street) (insertData as Record<string, unknown>).location_street = data.location_street;
+      if (data.location_formatted) (insertData as Record<string, unknown>).location_formatted = data.location_formatted;
       
       // Add new severity_v2 for incidents (cast to bypass type check until types regenerate)
       if (!isObservation && data.severity) {
@@ -199,6 +212,12 @@ export interface IncidentWithDetails {
   damage_details: Record<string, unknown> | null;
   latitude: number | null;
   longitude: number | null;
+  // Location address fields (from reverse geocoding)
+  location_country: string | null;
+  location_city: string | null;
+  location_district: string | null;
+  location_street: string | null;
+  location_formatted: string | null;
   media_attachments: unknown[] | null;
   ai_analysis_result: Record<string, unknown> | null;
   created_at: string | null;
@@ -248,7 +267,9 @@ export function useIncident(id: string | undefined) {
           occurred_at, location, severity, severity_v2, original_severity_v2, severity_override_reason, 
           status, immediate_actions,
           has_injury, injury_details, has_damage, damage_details,
-          latitude, longitude, media_attachments, ai_analysis_result,
+          latitude, longitude, 
+          location_country, location_city, location_district, location_street, location_formatted,
+          media_attachments, ai_analysis_result,
           created_at, updated_at, tenant_id, reporter_id,
           branch_id, site_id, department_id, special_event_id,
           closure_requested_by, closure_requested_at, closure_request_notes,
@@ -286,6 +307,12 @@ export function useIncident(id: string | undefined) {
         closure_requested_at: extended.closure_requested_at ?? null,
         closure_request_notes: extended.closure_request_notes ?? null,
         closure_requester: (data as Record<string, unknown>).closure_requester ?? null,
+        // Location address fields
+        location_country: extended.location_country ?? null,
+        location_city: extended.location_city ?? null,
+        location_district: extended.location_district ?? null,
+        location_street: extended.location_street ?? null,
+        location_formatted: extended.location_formatted ?? null,
       } as IncidentWithDetails;
     },
     enabled: !!id && !!profile?.tenant_id,

@@ -125,7 +125,45 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               label={t('incidents.location', 'Location')} 
               value={incident.site?.name || incident.branch?.name || incident.location}
             />
+            {/* Address Details from GPS */}
+            {(incident.location_city || incident.location_district) && (
+              <InfoItem 
+                icon={MapPin}
+                label={t('incidents.addressDetails.formattedAddress', 'Address')} 
+                value={
+                  <div className="space-y-0.5 text-sm">
+                    {incident.location_city && (
+                      <span className="block">{incident.location_city}</span>
+                    )}
+                    {incident.location_district && (
+                      <span className="block text-muted-foreground">{incident.location_district}</span>
+                    )}
+                    {incident.location_street && (
+                      <span className="block text-muted-foreground">{incident.location_street}</span>
+                    )}
+                  </div>
+                }
+              />
+            )}
           </div>
+
+          {/* GPS Coordinates */}
+          {incident.latitude && incident.longitude && (
+            <div className="bg-muted/30 rounded-md p-3 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <MapPin className="h-3.5 w-3.5" />
+                <span>{t('incidents.addressDetails.coordinates', 'GPS Coordinates')}</span>
+              </div>
+              <div className="font-mono text-xs">
+                {incident.latitude.toFixed(6)}, {incident.longitude.toFixed(6)}
+              </div>
+              {incident.location_formatted && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {incident.location_formatted}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Injury & Damage */}
           {(incident.has_injury || incident.has_damage) && (

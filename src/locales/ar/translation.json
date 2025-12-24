@@ -350,6 +350,16 @@
       "outsideBoundary": "يبدو أنك خارج حدود الموقع",
       "noDepartments": "لا توجد أقسام معينة لهذا الموقع"
     },
+    "addressDetails": {
+      "country": "الدولة",
+      "city": "المدينة",
+      "district": "الحي",
+      "street": "الشارع",
+      "coordinates": "إحداثيات GPS",
+      "formattedAddress": "العنوان",
+      "fetchingAddress": "جاري جلب العنوان...",
+      "noAddressAvailable": "تفاصيل العنوان غير متوفرة"
+    },
     "referenceNumber": "الرقم المرجعي",
     "referenceWillBeAssigned": "سيتم تعيين المرجع بعد الإرسال",
     "preview": "معاينة",

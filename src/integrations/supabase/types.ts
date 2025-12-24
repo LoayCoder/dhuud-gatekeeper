@@ -4435,6 +4435,11 @@ export type Database = {
           is_recordable: boolean | null
           latitude: number | null
           location: string | null
+          location_city: string | null
+          location_country: string | null
+          location_district: string | null
+          location_formatted: string | null
+          location_street: string | null
           longitude: number | null
           lost_workdays: number | null
           manager_decision: string | null
@@ -4523,6 +4528,11 @@ export type Database = {
           is_recordable?: boolean | null
           latitude?: number | null
           location?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_district?: string | null
+          location_formatted?: string | null
+          location_street?: string | null
           longitude?: number | null
           lost_workdays?: number | null
           manager_decision?: string | null
@@ -4611,6 +4621,11 @@ export type Database = {
           is_recordable?: boolean | null
           latitude?: number | null
           location?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_district?: string | null
+          location_formatted?: string | null
+          location_street?: string | null
           longitude?: number | null
           lost_workdays?: number | null
           manager_decision?: string | null
