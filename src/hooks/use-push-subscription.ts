@@ -66,6 +66,10 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer | null {
 
 // Comprehensive VAPID key validation at startup
 (() => {
+  console.log('[Push] 🔑 VAPID Key Check:');
+  console.log('[Push]   - Full key:', VAPID_PUBLIC_KEY);
+  console.log('[Push]   - Key length:', VAPID_PUBLIC_KEY?.length || 0);
+  
   if (!VAPID_PUBLIC_KEY) {
     console.error('[Push] ❌ VAPID public key not configured - push notifications disabled');
     return;
@@ -81,6 +85,8 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer | null {
     return;
   }
   console.log('[Push] ✅ VAPID public key validated successfully');
+  console.log('[Push]   - Expected: BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
+  console.log('[Push]   - Match:', VAPID_PUBLIC_KEY === 'BGNgPMHETSMk09BaEp4zcplZAuBi3WM_TQIN_uleDqOyxMo_BZsQjLSd0kbeITiNC4SclPMqLEn_jBzoju3eI_Y');
 })();
 
 interface PushSubscriptionState {
