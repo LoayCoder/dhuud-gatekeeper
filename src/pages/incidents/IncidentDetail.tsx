@@ -32,6 +32,7 @@ import { useState } from 'react';
 import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
+import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -207,10 +208,12 @@ export default function IncidentDetail() {
         {incident.subtype && (
           <Badge variant="outline" className="text-sm">
             <Tag className="h-3 w-3 me-1" />
-            {incident.event_type === 'observation' 
-              ? String(t(`incidents.observationTypes.${incident.subtype}`, incident.subtype))
-              : String(t(`incidents.subtypes.${(incident as any).incident_type}.${incident.subtype}`, incident.subtype))
-            }
+            {getSubtypeTranslation(
+              t,
+              incident.event_type,
+              incident.subtype,
+              (incident as any).incident_type
+            )}
           </Badge>
         )}
       </div>

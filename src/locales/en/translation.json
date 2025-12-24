@@ -327,7 +327,13 @@
     },
     "observationTypes": {
       "unsafeAct": "Unsafe Act",
-      "unsafeCondition": "Unsafe Condition"
+      "unsafeCondition": "Unsafe Condition",
+      "unsafe_act": "Unsafe Act",
+      "unsafe_condition": "Unsafe Condition",
+      "safe_act": "Safe Act",
+      "safe_condition": "Safe Condition",
+      "safeAct": "Safe Act",
+      "safeCondition": "Safe Condition"
     },
     "incidentTypes": {
       "nearMiss": "Near Miss",

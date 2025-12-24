@@ -387,7 +387,13 @@
     },
     "observationTypes": {
       "unsafeAct": "تصرف غير آمن",
-      "unsafeCondition": "حالة غير آمنة"
+      "unsafeCondition": "حالة غير آمنة",
+      "unsafe_act": "تصرف غير آمن",
+      "unsafe_condition": "حالة غير آمنة",
+      "safe_act": "تصرف آمن",
+      "safe_condition": "حالة آمنة",
+      "safeAct": "تصرف آمن",
+      "safeCondition": "حالة آمنة"
     },
     "incidentTypes": {
       "nearMiss": "حادث وشيك",
