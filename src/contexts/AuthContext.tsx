@@ -4,6 +4,11 @@ import { User, Session } from '@supabase/supabase-js';
 import i18n from '@/i18n';
 import { useProfileEmailWatcher } from '@/hooks/use-profile-email-watcher';
 
+// Prevent HMR from creating multiple contexts
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}
+
 interface Profile {
   full_name: string | null;
   avatar_url: string | null;
@@ -27,7 +32,8 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context outside of component to ensure singleton across HMR
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
