@@ -69,22 +69,44 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             </p>
           </div>
 
+          {/* Category Badges Row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+              {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+            </Badge>
+            {incident.event_type === 'incident' && (incident as any).incident_type && (
+              <Badge variant="outline" className="bg-secondary/50">
+                {String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+              </Badge>
+            )}
+            {incident.subtype && (
+              <Badge variant="secondary">
+                {getSubtypeTranslation(
+                  t,
+                  incident.event_type,
+                  incident.subtype,
+                  (incident as any).incident_type
+                )}
+              </Badge>
+            )}
+          </div>
+
           {/* Key Details Grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <InfoItem 
               icon={AlertTriangle}
-              label={t('incidents.eventType', 'Event Category')} 
+              label={t('incidents.eventType', 'Event Type')} 
               value={String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
             />
             {incident.event_type === 'incident' && (incident as any).incident_type && (
               <InfoItem 
-                label={t('incidents.incidentType', 'Incident Type')} 
-                value={String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+                label={t('incidents.incidentCategory', 'Incident Category')} 
+                value={String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
               />
             )}
             {incident.subtype && (
               <InfoItem 
-                label={t('incidents.subtype', 'Subtype')} 
+                label={t('incidents.incidentSubCategory', 'Incident Sub Category')} 
                 value={getSubtypeTranslation(
                   t,
                   incident.event_type,

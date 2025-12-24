@@ -411,8 +411,10 @@
       "security": "أمني"
     },
     "hsseEventType": "فئة الحدث",
+    "incidentCategory": "فئة الحادث",
+    "incidentSubCategory": "الفئة الفرعية للحادث",
     "incidentSubtype": "النوع الفرعي للحادث",
-    "selectHsseEventTypeFirst": "يرجى اختيار فئة الحدث أولاً",
+    "selectHsseEventTypeFirst": "يرجى اختيار فئة الحادث أولاً",
     "hsseEventTypes": {
       "safety": "السلامة (الإصابات المهنية)",
       "health": "الصحة (الأمراض / التعرض)",
