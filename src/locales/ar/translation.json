@@ -410,6 +410,117 @@
       "fire": "حريق",
       "security": "أمني"
     },
+    "hsseEventType": "فئة الحدث",
+    "incidentSubtype": "النوع الفرعي للحادث",
+    "selectHsseEventTypeFirst": "يرجى اختيار فئة الحدث أولاً",
+    "hsseEventTypes": {
+      "safety": "السلامة (الإصابات المهنية)",
+      "health": "الصحة (الأمراض / التعرض)",
+      "processSafety": "سلامة العمليات (LOPC / حريق / انفجار)",
+      "environment": "البيئة (تسرب / انبعاث / نفايات)",
+      "security": "الأمن (الأشخاص / الأصول / الوصول)",
+      "propertyAssetDamage": "تلف الممتلكات والأصول",
+      "roadTrafficVehicle": "حوادث المركبات / المرور",
+      "qualityService": "الجودة / تأثير الخدمة",
+      "communityThirdParty": "المجتمع / تأثير الطرف الثالث",
+      "complianceRegulatory": "الامتثال / المخالفات التنظيمية",
+      "emergencyCrisis": "الطوارئ / تفعيل الأزمات (ERP)"
+    },
+    "hsseSubtypes": {
+      "safety": {
+        "slipTripFallSameLevel": "انزلاق / تعثر / سقوط (نفس المستوى)",
+        "fallFromHeight": "سقوط من ارتفاع",
+        "struckByHitBy": "اصطدام / ضرب بواسطة جسم",
+        "caughtInCaughtBetween": "انحشار / محاصرة",
+        "manualHandlingOverexertion": "مناولة يدوية / إجهاد",
+        "cutLaceration": "جرح / تمزق",
+        "eyeInjury": "إصابة العين",
+        "burnNonChemical": "حرق (غير كيميائي)",
+        "electricalShock": "صدمة كهربائية",
+        "droppedObjectInjury": "إصابة بجسم ساقط",
+        "confinedSpaceInjury": "إصابة في مكان مغلق",
+        "toolEquipmentInjury": "إصابة بأداة / معدة"
+      },
+      "health": {
+        "heatStressDehydration": "إجهاد حراري / جفاف",
+        "chemicalExposure": "تعرض كيميائي (استنشاق / جلد / عين)",
+        "noiseExposure": "التعرض للضوضاء / تأثير السمع",
+        "respiratoryIrritation": "تهيج تنفسي (غبار / أبخرة)",
+        "fatigueFitnessForDuty": "إرهاق / حالة اللياقة للعمل",
+        "occupationalDisease": "مرض مهني (مؤكد)",
+        "foodborneIllness": "مرض منقول بالغذاء / النظافة"
+      },
+      "processSafety": {
+        "lopc": "فقدان الاحتواء الأولي (LOPC)",
+        "processFire": "حريق العمليات",
+        "processExplosion": "انفجار العمليات",
+        "overpressureReliefEvent": "حدث الضغط الزائد / التنفيس",
+        "dangerousSubstanceRelease": "إطلاق مادة خطرة (سامة / قابلة للاشتعال)",
+        "processUpsetRunaway": "اضطراب العملية / انفلات / تشغيل غير طبيعي",
+        "criticalBarrierFailure": "فشل الحاجز الحرج (SIS / PSV / ESD)"
+      },
+      "environment": {
+        "oilChemicalSpillLand": "تسرب نفط / كيميائي (أرض)",
+        "spillToWater": "تسرب إلى مياه الأمطار / الصرف",
+        "airEmission": "انبعاث هوائي / رائحة / غبار",
+        "wasteMismanagement": "سوء إدارة النفايات / التخلص غير القانوني",
+        "soilContamination": "تلوث التربة",
+        "wildlifeImpact": "تأثير على الحياة البرية",
+        "nonCompliantDischarge": "تصريف غير متوافق"
+      },
+      "security": {
+        "unauthorizedAccess": "دخول غير مصرح / اختراق",
+        "theftLoss": "سرقة / فقدان أصول",
+        "vandalism": "تخريب",
+        "assaultThreat": "اعتداء / تهديد / مضايقة",
+        "crowdControlIncident": "حادث السيطرة على الحشود",
+        "suspiciousPackage": "طرد مشبوه / تهديد بقنبلة",
+        "perimeterBreach": "اختراق المحيط",
+        "informationSecurity": "حادث أمن المعلومات"
+      },
+      "propertyAssetDamage": {
+        "equipmentDamage": "تلف المعدات (غير العمليات)",
+        "buildingInfrastructureDamage": "تلف المباني / البنية التحتية",
+        "utilityOutage": "انقطاع المرافق (كهرباء / مياه / IT)",
+        "nonProcessFire": "حريق غير العمليات",
+        "floodingWeatherDamage": "فيضان / أضرار الطقس"
+      },
+      "roadTrafficVehicle": {
+        "vehicleCollision": "تصادم مركبات (داخل / خارج الموقع)",
+        "pedestrianStruck": "صدم مشاة / اقتراب خطير",
+        "reversingIncident": "حادث الرجوع للخلف",
+        "forkliftBuggyIncident": "حادث رافعة شوكية / عربة",
+        "speedingUnsafeDriving": "السرعة / القيادة غير الآمنة",
+        "vehicleFire": "حريق مركبة",
+        "loadShiftSecuringFailure": "انزياح الحمولة / فشل التثبيت"
+      },
+      "qualityService": {
+        "serviceInterruption": "انقطاع الخدمة",
+        "productNonconformance": "عدم مطابقة المنتج / الخدمة",
+        "criticalEquipmentFailure": "فشل جودة المعدات الحرجة"
+      },
+      "communityThirdParty": {
+        "visitorInjury": "إصابة زائر",
+        "thirdPartyPropertyDamage": "تلف ممتلكات طرف ثالث",
+        "publicComplaint": "شكوى عامة / إزعاج (غبار / ضوضاء / رائحة)",
+        "offsiteTrafficImpact": "تأثير مروري خارج الموقع"
+      },
+      "complianceRegulatory": {
+        "ptwViolation": "مخالفة تصريح العمل",
+        "fireSystemBreach": "مخالفة نظام الحريق",
+        "contractorComplianceBreach": "مخالفة امتثال المقاول",
+        "environmentalPermitBreach": "مخالفة التصريح البيئي",
+        "securitySopBreach": "مخالفة إجراءات الأمن",
+        "legalReportingBreach": "مخالفة قانونية / إبلاغ"
+      },
+      "emergencyCrisis": {
+        "erpMedical": "تفعيل ERP (طبي)",
+        "erpFire": "تفعيل ERP (حريق)",
+        "erpSecurity": "تفعيل ERP (أمني)",
+        "erpEnvironmental": "تفعيل ERP (بيئي)",
+        "erpWeatherOther": "تفعيل ERP (طقس / أخرى)"
+      }
+    },
     "quickCapture": {
       "title": "التقاط سريع",
       "aiComingSoon": "مدعوم بالذكاء الاصطناعي - قريباً",

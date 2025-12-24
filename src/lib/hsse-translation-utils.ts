@@ -5,6 +5,7 @@
  */
 
 import type { TFunction } from 'i18next';
+import { HSSE_SUBTYPES } from './hsse-event-types';
 
 /**
  * Converts snake_case string to camelCase
@@ -15,8 +16,21 @@ export function snakeToCamel(str: string): string {
 }
 
 /**
+ * Finds the HSSE event type for a given subtype value
+ * Example: "fall_from_height" → "safety"
+ */
+export function getHsseEventTypeForSubtype(subtype: string): string | null {
+  for (const [eventType, subtypes] of Object.entries(HSSE_SUBTYPES)) {
+    if (subtypes.some(s => s.value === subtype)) {
+      return eventType;
+    }
+  }
+  return null;
+}
+
+/**
  * Gets the translated label for an observation type or incident subtype
- * Tries camelCase first, then snake_case as fallback
+ * Derives HSSE event type from the subtype when not provided
  */
 export function getSubtypeTranslation(
   t: TFunction,
@@ -43,16 +57,20 @@ export function getSubtypeTranslation(
     
     return subtype; // Fallback to raw value
   } else {
-    // For incidents, use the HSSE subtypes structure
-    const camelIncidentType = incidentType ? snakeToCamel(incidentType) : '';
+    // For incidents, derive HSSE event type from the subtype value
+    const hsseEventType = getHsseEventTypeForSubtype(subtype);
+    const camelHsseEventType = hsseEventType ? snakeToCamel(hsseEventType) : '';
     
-    // Try multiple key paths
+    // Try multiple key paths in order of preference
     const paths = [
-      `incidents.hsseSubtypes.${camelIncidentType}.${camelSubtype}`,
-      `incidents.hsseSubtypes.${incidentType}.${subtype}`,
-      `incidents.subtypes.${incidentType}.${subtype}`,
-      `incidents.subtypes.${camelIncidentType}.${camelSubtype}`,
-    ];
+      // Primary: use derived HSSE event type with camelCase subtype
+      camelHsseEventType ? `incidents.hsseSubtypes.${camelHsseEventType}.${camelSubtype}` : '',
+      // Fallback: snake_case event type with snake_case subtype  
+      hsseEventType ? `incidents.hsseSubtypes.${hsseEventType}.${subtype}` : '',
+      // Legacy: use provided incidentType if available
+      incidentType ? `incidents.subtypes.${snakeToCamel(incidentType)}.${camelSubtype}` : '',
+      incidentType ? `incidents.subtypes.${incidentType}.${subtype}` : '',
+    ].filter(Boolean);
     
     for (const path of paths) {
       const translation = t(path, { defaultValue: '' });
