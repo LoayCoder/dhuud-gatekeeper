@@ -45,8 +45,9 @@ const actionSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   action_type: z.enum(['corrective', 'preventive', 'improvement']),
   category: z.enum(['engineering', 'administrative', 'ppe', 'training', 'procedure_update']),
-  linked_cause_type: z.enum(['root_cause', 'contributing_factor'], { required_error: 'Link to cause is required' }),
-  linked_root_cause_id: z.string().min(1, 'Select a specific cause'),
+  // Made optional - validation happens in onSubmit when causes exist
+  linked_cause_type: z.enum(['root_cause', 'contributing_factor']).optional().nullable(),
+  linked_root_cause_id: z.string().optional().nullable(),
 }).refine((data) => {
   if (data.start_date && data.due_date) {
     return new Date(data.start_date) <= new Date(data.due_date);
@@ -220,6 +221,13 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
 
   const onSubmit = async (data: ActionFormValues) => {
     if (!data.title) return;
+    
+    // Validate cause linking when causes exist
+    const hasCauses = rootCauses.length > 0 || contributingFactors.length > 0;
+    if (hasCauses && (!data.linked_cause_type || !data.linked_root_cause_id)) {
+      toast.error(t('investigation.actions.selectCauseRequired', 'Please link this action to a root cause or contributing factor'));
+      return;
+    }
     
     if (editingAction) {
       // Update existing action
