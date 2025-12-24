@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Check, RefreshCw, AlertTriangle, Building2, Star } from 'lucide-react';
+import { MapPin, Check, RefreshCw, AlertTriangle, Building2, Star, ExternalLink, Map, Navigation, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { NearestSiteResult, Coordinate } from '@/lib/geo-utils';
 import { useSiteDepartments } from '@/hooks/use-site-departments';
@@ -293,64 +293,118 @@ export function GPSLocationConfirmCard({
               </p>
             )}
 
-            {/* Address Details */}
-            {(locationAddress || isFetchingAddress) && (
-              <div className="space-y-1 border-t pt-3 mt-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {t('incidents.addressDetails.formattedAddress', 'Address')}
+            {/* Address Details with Google Maps Link */}
+            <div className="space-y-2 border-t pt-3 mt-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {t('incidents.addressDetails.formattedAddress', 'Address')}
+              </p>
+              {isFetchingAddress ? (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
                 </p>
-                {isFetchingAddress ? (
-                  <p className="text-sm text-muted-foreground animate-pulse">
-                    {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
-                  </p>
-                ) : locationAddress ? (
-                  <div className="text-sm space-y-0.5">
-                    {locationAddress.city && (
-                      <p className="font-medium">{locationAddress.city}</p>
-                    )}
-                    {locationAddress.district && (
-                      <p className="text-muted-foreground">{locationAddress.district}</p>
-                    )}
-                    {locationAddress.street && (
-                      <p className="text-muted-foreground">{locationAddress.street}</p>
-                    )}
-                    {locationAddress.country && (
-                      <p className="text-muted-foreground text-xs">{locationAddress.country}</p>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            )}
+              ) : locationAddress ? (
+                <div className="text-sm space-y-1">
+                  {locationAddress.city && (
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span>{locationAddress.city}</span>
+                    </div>
+                  )}
+                  {locationAddress.district && (
+                    <div className="flex items-center gap-2">
+                      <Map className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">{locationAddress.district}</span>
+                    </div>
+                  )}
+                  {locationAddress.street && (
+                    <div className="flex items-center gap-2">
+                      <Navigation className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">{locationAddress.street}</span>
+                    </div>
+                  )}
+                  {locationAddress.country && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground text-xs">{locationAddress.country}</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+              
+              {/* Google Maps Link */}
+              <a
+                href={`https://www.google.com/maps?q=${userCoordinates.lat},${userCoordinates.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline transition-colors mt-1"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                <span>{t('incidents.viewOnGoogleMaps', 'View on Google Maps')}</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         ) : noSiteNearby ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-sm">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{t('incidents.noSiteNearby')}</span>
             </div>
-            <p className="text-xs text-muted-foreground font-mono">
-              {userCoordinates.lat.toFixed(6)}, {userCoordinates.lng.toFixed(6)}
-            </p>
 
             {/* Address Details for no site nearby */}
-            {(locationAddress || isFetchingAddress) && (
-              <div className="space-y-1 border-t pt-2">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t('incidents.addressDetails.formattedAddress', 'Address')}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {t('incidents.addressDetails.formattedAddress', 'Address')}
+              </p>
+              {isFetchingAddress ? (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
                 </p>
-                {isFetchingAddress ? (
-                  <p className="text-sm text-muted-foreground animate-pulse">
-                    {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
-                  </p>
-                ) : locationAddress ? (
-                  <div className="text-sm space-y-0.5">
-                    {locationAddress.city && <p>{locationAddress.city}</p>}
-                    {locationAddress.district && <p className="text-muted-foreground">{locationAddress.district}</p>}
-                    {locationAddress.street && <p className="text-muted-foreground">{locationAddress.street}</p>}
-                  </div>
-                ) : null}
-              </div>
-            )}
+              ) : locationAddress ? (
+                <div className="text-sm space-y-1">
+                  {locationAddress.city && (
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span>{locationAddress.city}</span>
+                    </div>
+                  )}
+                  {locationAddress.district && (
+                    <div className="flex items-center gap-2">
+                      <Map className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">{locationAddress.district}</span>
+                    </div>
+                  )}
+                  {locationAddress.street && (
+                    <div className="flex items-center gap-2">
+                      <Navigation className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">{locationAddress.street}</span>
+                    </div>
+                  )}
+                  {locationAddress.country && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground text-xs">{locationAddress.country}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t('incidents.addressDetails.noAddressAvailable', 'Address not available')}
+                </p>
+              )}
+              
+              {/* Google Maps Link */}
+              <a
+                href={`https://www.google.com/maps?q=${userCoordinates.lat},${userCoordinates.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline transition-colors mt-1"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                <span>{t('incidents.viewOnGoogleMaps', 'View on Google Maps')}</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         ) : null}
 
