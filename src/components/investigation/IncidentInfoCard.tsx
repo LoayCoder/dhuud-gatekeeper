@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
 import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
+import { getSubtypeTranslation } from "@/lib/hsse-translation-utils";
 
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
@@ -84,10 +85,12 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             {incident.subtype && (
               <InfoItem 
                 label={t('incidents.subtype', 'Subtype')} 
-                value={incident.event_type === 'observation' 
-                  ? String(t(`incidents.observationTypes.${incident.subtype}`, incident.subtype))
-                  : String(t(`incidents.subtypes.${(incident as any).incident_type}.${incident.subtype}`, incident.subtype))
-                }
+                value={getSubtypeTranslation(
+                  t,
+                  incident.event_type,
+                  incident.subtype,
+                  (incident as any).incident_type
+                )}
               />
             )}
             <InfoItem 
