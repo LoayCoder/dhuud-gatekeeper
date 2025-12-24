@@ -18,6 +18,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
+interface LocationAddress {
+  country: string | null;
+  city: string | null;
+  district: string | null;
+  street: string | null;
+  formatted_address: string | null;
+}
+
 interface GPSLocationConfirmCardProps {
   userCoordinates: { lat: number; lng: number };
   gpsAccuracy?: number;
@@ -26,6 +34,8 @@ interface GPSLocationConfirmCardProps {
   onConfirm: () => void;
   onChangeLocation: () => void;
   isConfirmed: boolean;
+  locationAddress?: LocationAddress | null;
+  isFetchingAddress?: boolean;
 }
 
 export function GPSLocationConfirmCard({
@@ -36,6 +46,8 @@ export function GPSLocationConfirmCard({
   onConfirm,
   onChangeLocation,
   isConfirmed,
+  locationAddress,
+  isFetchingAddress,
 }: GPSLocationConfirmCardProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -280,6 +292,35 @@ export function GPSLocationConfirmCard({
                 {t('incidents.gpsConfirmation.accuracy')}: ±{Math.round(gpsAccuracy)}m
               </p>
             )}
+
+            {/* Address Details */}
+            {(locationAddress || isFetchingAddress) && (
+              <div className="space-y-1 border-t pt-3 mt-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {t('incidents.addressDetails.formattedAddress', 'Address')}
+                </p>
+                {isFetchingAddress ? (
+                  <p className="text-sm text-muted-foreground animate-pulse">
+                    {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
+                  </p>
+                ) : locationAddress ? (
+                  <div className="text-sm space-y-0.5">
+                    {locationAddress.city && (
+                      <p className="font-medium">{locationAddress.city}</p>
+                    )}
+                    {locationAddress.district && (
+                      <p className="text-muted-foreground">{locationAddress.district}</p>
+                    )}
+                    {locationAddress.street && (
+                      <p className="text-muted-foreground">{locationAddress.street}</p>
+                    )}
+                    {locationAddress.country && (
+                      <p className="text-muted-foreground text-xs">{locationAddress.country}</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         ) : noSiteNearby ? (
           <div className="space-y-2">
@@ -290,6 +331,26 @@ export function GPSLocationConfirmCard({
             <p className="text-xs text-muted-foreground font-mono">
               {userCoordinates.lat.toFixed(6)}, {userCoordinates.lng.toFixed(6)}
             </p>
+
+            {/* Address Details for no site nearby */}
+            {(locationAddress || isFetchingAddress) && (
+              <div className="space-y-1 border-t pt-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t('incidents.addressDetails.formattedAddress', 'Address')}
+                </p>
+                {isFetchingAddress ? (
+                  <p className="text-sm text-muted-foreground animate-pulse">
+                    {t('incidents.addressDetails.fetchingAddress', 'Fetching address...')}
+                  </p>
+                ) : locationAddress ? (
+                  <div className="text-sm space-y-0.5">
+                    {locationAddress.city && <p>{locationAddress.city}</p>}
+                    {locationAddress.district && <p className="text-muted-foreground">{locationAddress.district}</p>}
+                    {locationAddress.street && <p className="text-muted-foreground">{locationAddress.street}</p>}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         ) : null}
 

@@ -39,6 +39,7 @@ import {
   type AIAnalysisResult
 } from '@/lib/incident-ai-assistant';
 import { useIncidentAI } from '@/hooks/use-incident-ai';
+import { useReverseGeocode, type LocationAddress } from '@/hooks/use-reverse-geocode';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { GPSLocationConfirmCard } from '@/components/incidents/GPSLocationConfirmCard';
 import { ActiveEventBanner } from '@/components/incidents/ActiveEventBanner';
@@ -145,6 +146,7 @@ export default function IncidentReport() {
   const [noSiteNearby, setNoSiteNearby] = useState(false);
   const [gpsLocationConfirmed, setGpsLocationConfirmed] = useState(false);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | undefined>(undefined);
+  const [locationAddress, setLocationAddress] = useState<LocationAddress | null>(null);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -160,6 +162,7 @@ export default function IncidentReport() {
   
   const createIncident = useCreateIncident();
   const linkAsset = useLinkAssetToIncident();
+  const { fetchAddress: fetchLocationAddress, isLoading: isFetchingAddress } = useReverseGeocode();
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
   const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
@@ -341,9 +344,10 @@ export default function IncidentReport() {
     setGpsDetectedBranch(false);
     setGpsLocationConfirmed(false);
     setGpsAccuracy(undefined);
+    setLocationAddress(null);
     
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude, accuracy } = position.coords;
         setCoordinates({ lat: latitude, lng: longitude });
         setGpsAccuracy(accuracy);
@@ -371,6 +375,13 @@ export default function IncidentReport() {
         }
         
         setIsGettingLocation(false);
+        
+        // Fetch address details via reverse geocoding (non-blocking)
+        fetchLocationAddress(latitude, longitude).then((address) => {
+          if (address) {
+            setLocationAddress(address);
+          }
+        });
       },
       () => {
         setIsGettingLocation(false);
@@ -617,6 +628,12 @@ export default function IncidentReport() {
       department_id: values.department_id || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
+      // Location address from reverse geocoding
+      location_country: locationAddress?.country || undefined,
+      location_city: locationAddress?.city || undefined,
+      location_district: locationAddress?.district || undefined,
+      location_street: locationAddress?.street || undefined,
+      location_formatted: locationAddress?.formatted_address || undefined,
       // Include active major event if detected
       special_event_id: activeEventId || undefined,
     };
@@ -1127,6 +1144,8 @@ export default function IncidentReport() {
                   onConfirm={handleGpsConfirm}
                   onChangeLocation={handleGpsChangeLocation}
                   isConfirmed={gpsLocationConfirmed}
+                  locationAddress={locationAddress}
+                  isFetchingAddress={isFetchingAddress}
                 />
               )}
 
