@@ -586,6 +586,16 @@
       "locationConfirmed": "Location confirmed - site and branch have been set",
       "outsideBoundary": "You appear to be outside the site boundary",
       "noDepartments": "No departments assigned to this site"
+    },
+    "addressDetails": {
+      "country": "Country",
+      "city": "City",
+      "district": "Neighborhood",
+      "street": "Street",
+      "coordinates": "GPS Coordinates",
+      "formattedAddress": "Address",
+      "fetchingAddress": "Fetching address...",
+      "noAddressAvailable": "Address details not available"
     }
   },
   "investigation": {

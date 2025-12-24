@@ -164,3 +164,6 @@ verify_jwt = false
 
 [functions.add-security-headers]
 verify_jwt = false
+
+[functions.reverse-geocode]
+verify_jwt = false
