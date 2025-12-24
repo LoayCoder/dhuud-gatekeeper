@@ -161,6 +161,14 @@ export const WORKFLOW_TRANSLATIONS = {
       expertNotes: "Expert Notes",
       button: "Review & Approve",
     },
+    expert_assign_actions: {
+      subject: "Observation {reference} Requires Your Review",
+      title: "Observation Awaiting Your Approval",
+      body: "Observation <strong>{reference}</strong> has been processed by the HSSE Expert and requires your review as the Department Representative.",
+      eventTitle: "Observation Title",
+      expertNotes: "Expert Notes",
+      button: "Review Observation",
+    },
     investigator_assigned: {
       subject: "You Have Been Assigned to Investigate Event {reference}",
       title: "Investigation Assignment",
@@ -189,6 +197,14 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "عنوان الحدث",
       expertNotes: "ملاحظات الخبير",
       button: "مراجعة والموافقة",
+    },
+    expert_assign_actions: {
+      subject: "الملاحظة {reference} تتطلب مراجعتك",
+      title: "ملاحظة بانتظار موافقتك",
+      body: "تمت معالجة الملاحظة <strong>{reference}</strong> من قبل خبير الصحة والسلامة وتتطلب مراجعتك كممثل القسم.",
+      eventTitle: "عنوان الملاحظة",
+      expertNotes: "ملاحظات الخبير",
+      button: "مراجعة الملاحظة",
     },
     investigator_assigned: {
       subject: "تم تعيينك للتحقيق في الحدث {reference}",
@@ -219,6 +235,14 @@ export const WORKFLOW_TRANSLATIONS = {
       expertNotes: "ماہر کے نوٹس",
       button: "جائزہ اور منظوری",
     },
+    expert_assign_actions: {
+      subject: "ملاحظہ {reference} کو آپ کے جائزے کی ضرورت ہے",
+      title: "ملاحظہ آپ کی منظوری کے انتظار میں",
+      body: "ملاحظہ <strong>{reference}</strong> کو HSSE ماہر نے پروسیس کیا ہے اور محکمہ نمائندہ کی حیثیت سے آپ کے جائزے کی ضرورت ہے۔",
+      eventTitle: "ملاحظہ کا عنوان",
+      expertNotes: "ماہر کے نوٹس",
+      button: "ملاحظہ کا جائزہ لیں",
+    },
     investigator_assigned: {
       subject: "آپ کو واقعہ {reference} کی تحقیقات کے لیے مقرر کیا گیا ہے",
       title: "تحقیقات کی تفویض",
@@ -248,6 +272,14 @@ export const WORKFLOW_TRANSLATIONS = {
       expertNotes: "विशेषज्ञ नोट्स",
       button: "समीक्षा और अनुमोदन",
     },
+    expert_assign_actions: {
+      subject: "अवलोकन {reference} को आपकी समीक्षा की आवश्यकता है",
+      title: "अवलोकन आपकी स्वीकृति की प्रतीक्षा में",
+      body: "अवलोकन <strong>{reference}</strong> को HSSE विशेषज्ञ द्वारा संसाधित किया गया है और विभाग प्रतिनिधि के रूप में आपकी समीक्षा की आवश्यकता है।",
+      eventTitle: "अवलोकन शीर्षक",
+      expertNotes: "विशेषज्ञ नोट्स",
+      button: "अवलोकन की समीक्षा करें",
+    },
     investigator_assigned: {
       subject: "आपको घटना {reference} की जांच के लिए नियुक्त किया गया है",
       title: "जांच नियुक्ति",
@@ -276,6 +308,14 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "Pamagat ng Event",
       expertNotes: "Mga Tala ng Expert",
       button: "Suriin at Aprubahan",
+    },
+    expert_assign_actions: {
+      subject: "Ang Obserbasyon {reference} ay Nangangailangan ng Iyong Pagsusuri",
+      title: "Obserbasyon na Naghihintay ng Iyong Pag-apruba",
+      body: "Ang obserbasyon <strong>{reference}</strong> ay naproseso ng HSSE Expert at nangangailangan ng iyong pagsusuri bilang Kinatawan ng Departamento.",
+      eventTitle: "Pamagat ng Obserbasyon",
+      expertNotes: "Mga Tala ng Expert",
+      button: "Suriin ang Obserbasyon",
     },
     investigator_assigned: {
       subject: "Itinalaga Ka Upang Mag-imbestiga sa Event {reference}",

@@ -433,7 +433,7 @@ export function usePendingIncidentApprovals() {
           reporter_id
         `)
         .eq('tenant_id', profile.tenant_id)
-        .in('status', ['pending_manager_approval', 'hsse_manager_escalation', 'pending_closure', 'pending_final_closure'])
+        .in('status', ['pending_manager_approval', 'hsse_manager_escalation', 'pending_closure', 'pending_final_closure', 'pending_dept_rep_approval'])
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
