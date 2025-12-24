@@ -592,11 +592,13 @@
       "city": "City",
       "district": "Neighborhood",
       "street": "Street",
-      "coordinates": "GPS Coordinates",
+      "coordinates": "GPS Location",
       "formattedAddress": "Address",
       "fetchingAddress": "Fetching address...",
       "noAddressAvailable": "Address details not available"
-    }
+    },
+    "viewOnGoogleMaps": "View on Google Maps",
+    "addressFetchFailed": "Could not fetch address details. Location coordinates will still be saved."
   },
   "investigation": {
     "title": "Investigation Workspace",

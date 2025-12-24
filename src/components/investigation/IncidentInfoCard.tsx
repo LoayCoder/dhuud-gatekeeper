@@ -7,6 +7,7 @@ import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import { IncidentAttachmentsSection } from "@/components/incidents/IncidentAttachmentsSection";
 import { getSeverityBadgeVariant } from "@/lib/hsse-severity-levels";
 import { getSubtypeTranslation } from "@/lib/hsse-translation-utils";
+import { LocationDisplay } from "@/components/shared/LocationDisplay";
 
 interface IncidentInfoCardProps {
   incident: IncidentWithDetails;
@@ -147,21 +148,25 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             )}
           </div>
 
-          {/* GPS Coordinates */}
+          {/* GPS Location with Google Maps Link */}
           {incident.latitude && incident.longitude && (
-            <div className="bg-muted/30 rounded-md p-3 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="bg-muted/30 rounded-md p-3">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <MapPin className="h-3.5 w-3.5" />
-                <span>{t('incidents.addressDetails.coordinates', 'GPS Coordinates')}</span>
+                <span className="text-sm font-medium">{t('incidents.addressDetails.coordinates', 'GPS Location')}</span>
               </div>
-              <div className="font-mono text-xs">
-                {incident.latitude.toFixed(6)}, {incident.longitude.toFixed(6)}
-              </div>
-              {incident.location_formatted && (
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {incident.location_formatted}
-                </div>
-              )}
+              <LocationDisplay
+                latitude={incident.latitude}
+                longitude={incident.longitude}
+                address={{
+                  city: incident.location_city,
+                  district: incident.location_district,
+                  street: incident.location_street,
+                  country: incident.location_country,
+                  formatted_address: incident.location_formatted,
+                }}
+                showIcon={false}
+              />
             </div>
           )}
 
