@@ -231,6 +231,38 @@ serve(async (req: Request) => {
         }
         break;
       }
+      case "expert_assign_actions": {
+        // Notify department representative that observation needs their review
+        if (incident.approval_manager_id) {
+          const { data: deptRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
+          if (deptRep?.email) {
+            recipients.push(deptRep.email);
+            recipientLang = deptRep.preferred_language || 'en';
+          }
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).expert_assign_actions;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: deptRep?.full_name || 'Department Representative' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
+              ${payload.notes ? `<p><strong>${t.expertNotes}:</strong> ${payload.notes}</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#7c3aed", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
       default:
         console.log(`Unknown action: ${action}`);
     }
