@@ -635,9 +635,25 @@
       },
       "status": {
         "pending": "लंबित",
+        "in_progress": "प्रगति में",
         "submitted": "सबमिट किया गया",
-        "approved": "स्वीकृत"
-      }
+        "completed": "पूर्ण",
+        "awaitingReview": "समीक्षा प्रतीक्षारत",
+        "approved": "स्वीकृत",
+        "returned": "सुधार के लिए वापस"
+      },
+      "reviewStatement": "गवाह बयान की समीक्षा",
+      "reviewDescription": "इस गवाह बयान की समीक्षा करें और स्वीकृत करें या सुधार के लिए वापस भेजें।",
+      "approveStatement": "बयान स्वीकृत करें",
+      "returnForCorrection": "सुधार के लिए वापस भेजें",
+      "confirmReturn": "वापसी की पुष्टि करें",
+      "returnReason": "वापसी का कारण",
+      "returnReasonPlaceholder": "बताएं कि क्या सुधारना है...",
+      "statementApproved": "बयान सफलतापूर्वक स्वीकृत",
+      "statementReturned": "बयान सुधार के लिए वापस भेजा गया",
+      "returnedCount": "{{count}} बार वापस",
+      "resubmitStatement": "बयान पुनः सबमिट करें",
+      "submittedAt": "सबमिट किया गया"
     },
     "rca": {
       "title": "मूल कारण विश्लेषण",

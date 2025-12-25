@@ -749,9 +749,25 @@
       },
       "status": {
         "pending": "Pending",
+        "in_progress": "In Progress",
         "submitted": "Submitted",
-        "approved": "Approved"
-      }
+        "completed": "Completed",
+        "awaitingReview": "Awaiting Review",
+        "approved": "Approved",
+        "returned": "Returned for Correction"
+      },
+      "reviewStatement": "Review Witness Statement",
+      "reviewDescription": "Review and approve or return this witness statement for corrections.",
+      "approveStatement": "Approve Statement",
+      "returnForCorrection": "Return for Correction",
+      "confirmReturn": "Confirm Return",
+      "returnReason": "Reason for Return",
+      "returnReasonPlaceholder": "Explain what needs to be corrected...",
+      "statementApproved": "Statement approved successfully",
+      "statementReturned": "Statement returned for correction",
+      "returnedCount": "Returned {{count}}x",
+      "resubmitStatement": "Resubmit Statement",
+      "submittedAt": "Submitted"
     },
     "rca": {
       "title": "Root Cause Analysis",

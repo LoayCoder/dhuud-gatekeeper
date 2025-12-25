@@ -364,6 +364,14 @@ export const ACTION_TRANSLATIONS = {
       importantNote: "Your input is valuable to ensure a thorough investigation.",
       button: "Provide Statement",
     },
+    witness_statement_returned: {
+      subject: "[Statement Returned] {reference} - Corrections Required",
+      heading: "Witness Statement Returned",
+      body: "Your witness statement has been reviewed and returned for correction. Please address the feedback below and resubmit.",
+      returnReason: "Reason for Return",
+      returnCount: "This statement has been returned {count} times.",
+      button: "Review & Resubmit",
+    },
   },
   ar: {
     action_assigned: {
@@ -399,6 +407,14 @@ export const ACTION_TRANSLATIONS = {
       investigatorInstructions: "تعليمات المحقق",
       importantNote: "مساهمتك قيمة لضمان تحقيق شامل.",
       button: "تقديم الشهادة",
+    },
+    witness_statement_returned: {
+      subject: "[إفادة مُرجعة] {reference} - تصحيحات مطلوبة",
+      heading: "تم إرجاع إفادة الشاهد",
+      body: "تمت مراجعة إفادتك وإرجاعها للتصحيح. يرجى معالجة الملاحظات أدناه وإعادة التقديم.",
+      returnReason: "سبب الإرجاع",
+      returnCount: "تم إرجاع هذه الإفادة {count} مرات.",
+      button: "مراجعة وإعادة التقديم",
     },
   },
   ur: {
@@ -436,6 +452,14 @@ export const ACTION_TRANSLATIONS = {
       importantNote: "آپ کی رائے ایک مکمل تحقیقات کو یقینی بنانے کے لیے قیمتی ہے۔",
       button: "بیان فراہم کریں",
     },
+    witness_statement_returned: {
+      subject: "[بیان واپس] {reference} - تصحیحات درکار",
+      heading: "گواہ کا بیان واپس کیا گیا",
+      body: "آپ کے بیان کا جائزہ لیا گیا ہے اور تصحیح کے لیے واپس کیا گیا ہے۔ براہ کرم نیچے دی گئی آراء پر عمل کریں اور دوبارہ جمع کرائیں۔",
+      returnReason: "واپسی کی وجہ",
+      returnCount: "یہ بیان {count} مرتبہ واپس کیا گیا ہے۔",
+      button: "جائزہ اور دوبارہ جمع",
+    },
   },
   hi: {
     action_assigned: {
@@ -472,6 +496,14 @@ export const ACTION_TRANSLATIONS = {
       importantNote: "एक संपूर्ण जांच सुनिश्चित करने के लिए आपकी राय मूल्यवान है।",
       button: "बयान प्रदान करें",
     },
+    witness_statement_returned: {
+      subject: "[बयान वापस] {reference} - सुधार आवश्यक",
+      heading: "गवाह बयान वापस भेजा गया",
+      body: "आपके बयान की समीक्षा की गई है और सुधार के लिए वापस भेजा गया है। कृपया नीचे दी गई प्रतिक्रिया पर ध्यान दें और पुनः सबमिट करें।",
+      returnReason: "वापसी का कारण",
+      returnCount: "यह बयान {count} बार वापस किया गया है।",
+      button: "समीक्षा और पुनः सबमिट",
+    },
   },
   fil: {
     action_assigned: {
@@ -507,6 +539,14 @@ export const ACTION_TRANSLATIONS = {
       investigatorInstructions: "Mga Tagubilin mula sa Investigator",
       importantNote: "Ang iyong input ay mahalaga upang matiyak ang masusing imbestigasyon.",
       button: "Magbigay ng Pahayag",
+    },
+    witness_statement_returned: {
+      subject: "[Ibinalik ang Pahayag] {reference} - Kailangan ng Pagwawasto",
+      heading: "Ibinalik ang Pahayag ng Saksi",
+      body: "Ang iyong pahayag ay nasuri at ibinalik para sa pagwawasto. Pakitugon ang feedback sa ibaba at muling isumite.",
+      returnReason: "Dahilan ng Pagbabalik",
+      returnCount: "Ang pahayag na ito ay ibinalik ng {count} beses.",
+      button: "Suriin at Muling Isumite",
     },
   },
 };
