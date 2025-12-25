@@ -105,7 +105,21 @@ const DEFAULT_TENANT_NAME = 'Dhuud Platform';
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme, setTheme, resolvedTheme } = useNextTheme();
+  // Safely call useNextTheme - may be undefined during SSR or initial mount
+  let theme: string | undefined;
+  let setTheme: (theme: string) => void = () => {};
+  let resolvedTheme: string | undefined;
+  
+  try {
+    const nextTheme = useNextTheme();
+    theme = nextTheme.theme;
+    setTheme = nextTheme.setTheme;
+    resolvedTheme = nextTheme.resolvedTheme;
+  } catch {
+    // next-themes context not available yet, use defaults
+    theme = 'system';
+    resolvedTheme = 'light';
+  }
   
   // Light mode colors
   const [primaryColorLight, setPrimaryColorLight] = useState(DEFAULT_PRIMARY_COLOR_LIGHT);
