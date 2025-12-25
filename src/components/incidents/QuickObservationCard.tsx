@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +76,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
+  const [gpsError, setGpsError] = useState<'none' | 'not_supported' | 'permission_denied' | 'unavailable' | 'timeout' | 'no_nearby_site'>('none');
   const [photos, setPhotos] = useState<File[]>([]);
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -132,7 +133,13 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   }, []);
   
   const handleGetLocation = () => {
-    if (!navigator.geolocation) return;
+    // Reset error state
+    setGpsError('none');
+    
+    if (!navigator.geolocation) {
+      setGpsError('not_supported');
+      return;
+    }
     
     setIsGettingLocation(true);
     
@@ -147,12 +154,29 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
         if (nearestResult) {
           form.setValue('site_id', nearestResult.site.id);
           setGpsDetectedSite(nearestResult);
+          setGpsError('none');
+        } else {
+          // GPS works but no site found nearby
+          setGpsError('no_nearby_site');
         }
         
         setIsGettingLocation(false);
       },
-      () => {
+      (error) => {
         setIsGettingLocation(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGpsError('permission_denied');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setGpsError('unavailable');
+            break;
+          case error.TIMEOUT:
+            setGpsError('timeout');
+            break;
+          default:
+            setGpsError('unavailable');
+        }
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -596,27 +620,53 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
               />
               
               {/* GPS Location */}
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <MapPin className={cn(
-                  "h-5 w-5",
-                  gpsDetectedSite ? "text-green-500" : "text-muted-foreground"
-                )} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    {gpsDetectedSite 
-                      ? gpsDetectedSite.site.name 
-                      : isGettingLocation 
-                        ? t('quickObservation.detectingLocation')
-                        : t('quickObservation.locationNotDetected')
-                    }
-                  </p>
-                  {gpsDetectedSite && (
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      {t('incidents.withinMeters', { distance: Math.round(gpsDetectedSite.distanceMeters) })}
-                    </Badge>
+              <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                <div className="flex items-center gap-3">
+                  <MapPin className={cn(
+                    "h-5 w-5 shrink-0",
+                    gpsDetectedSite ? "text-green-500" : gpsError !== 'none' ? "text-amber-500" : "text-muted-foreground"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    {isGettingLocation ? (
+                      <p className="text-sm font-medium">{t('quickObservation.detectingLocation')}</p>
+                    ) : gpsDetectedSite ? (
+                      <>
+                        <p className="text-sm font-medium truncate">{gpsDetectedSite.site.name}</p>
+                        <Badge variant="secondary" className="mt-1 text-xs">
+                          {t('incidents.withinMeters', { distance: Math.round(gpsDetectedSite.distanceMeters) })}
+                        </Badge>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium">
+                          {gpsError === 'permission_denied' && t('incidents.gpsPermissionDenied')}
+                          {gpsError === 'not_supported' && t('incidents.gpsNotSupported')}
+                          {gpsError === 'unavailable' && t('incidents.gpsUnavailable')}
+                          {gpsError === 'timeout' && t('incidents.gpsTimeout')}
+                          {gpsError === 'no_nearby_site' && t('quickObservation.noSiteNearby')}
+                          {gpsError === 'none' && t('quickObservation.locationNotDetected')}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {t('quickObservation.canSubmitWithoutLocation')}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {isGettingLocation ? (
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  ) : !gpsDetectedSite && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleGetLocation}
+                      className="shrink-0 gap-1.5"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">{t('common.retry')}</span>
+                    </Button>
                   )}
                 </div>
-                {isGettingLocation && <Loader2 className="h-4 w-4 animate-spin" />}
               </div>
               
               {/* Closed on Spot Toggle */}

@@ -5681,7 +5681,10 @@
     "observationSubmitted": "مشاہدہ کامیابی سے جمع ہو گیا",
     "aiAnalyze": "اے آئی تجزیہ",
     "analyzing": "تجزیہ ہو رہا ہے...",
-    "analysisComplete": "اے آئی نے قسم اور خطرے کی سطح تجویز کی"
+    "analysisComplete": "اے آئی نے قسم اور خطرے کی سطح تجویز کی",
+    "noSiteNearby": "قریب کوئی رجسٹرڈ جگہ نہیں",
+    "canSubmitWithoutLocation": "آپ مقام کے بغیر بھی جمع کر سکتے ہیں",
+    "locationOptional": "مقام اختیاری ہے"
   },
   "positiveObservation": {
     "recognitionType": "آپ کس کی تعریف کرنا چاہتے ہیں؟",
