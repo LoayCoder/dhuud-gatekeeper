@@ -15,13 +15,13 @@ export function useIncidentTypeDistribution(startDate?: Date, endDate?: Date) {
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
+      // Fetch both incident_type (new) and subtype (legacy) to support all incidents
       let query = supabase
         .from('incidents')
-        .select('incident_type')
+        .select('incident_type, subtype')
         .eq('tenant_id', profile.tenant_id)
         .eq('event_type', 'incident')
-        .is('deleted_at', null)
-        .not('incident_type', 'is', null);
+        .is('deleted_at', null);
 
       if (startDate) {
         query = query.gte('occurred_at', startDate.toISOString());
@@ -34,10 +34,11 @@ export function useIncidentTypeDistribution(startDate?: Date, endDate?: Date) {
 
       if (error) throw error;
 
-      // Count by incident_type
+      // Count by incident_type OR subtype (for legacy incidents)
       const counts: Record<string, number> = {};
       (data || []).forEach((row) => {
-        const type = row.incident_type || 'unknown';
+        // Use incident_type if available, otherwise fall back to subtype for legacy incidents
+        const type = row.incident_type || row.subtype || 'unknown';
         counts[type] = (counts[type] || 0) + 1;
       });
 
