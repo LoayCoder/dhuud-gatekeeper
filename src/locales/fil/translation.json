@@ -469,6 +469,114 @@
         "erp_weather_other": "ERP Activated (Weather/Other)"
       }
     },
+    "hsseEventTypes": {
+      "safety": "Kaligtasan (Pinsala sa Trabaho / Pinsala)",
+      "health": "Kalusugan (Sakit / Exposure)",
+      "processSafety": "Kaligtasan ng Proseso (LOPC / Sunog / Pagsabog)",
+      "environment": "Kapaligiran (Tagas / Emisyon / Basura)",
+      "security": "Seguridad (Tao / Asset / Access)",
+      "propertyAssetDamage": "Pinsala sa Ari-arian at Asset (Hindi Proseso)",
+      "roadTrafficVehicle": "Trapiko sa Kalsada / Sasakyan at Mobile Equipment",
+      "qualityService": "Kalidad / Service Impact",
+      "communityThirdParty": "Komunidad / Third-Party Impact",
+      "complianceRegulatory": "Paglabag sa Compliance / Regulasyon",
+      "emergencyCrisis": "Emergency / Crisis Activation (ERP)"
+    },
+    "hsseSubtypes": {
+      "safety": {
+        "slipTripFallSameLevel": "Pagkadulas / Pagkatisod / Pagkahulog (parehong antas)",
+        "fallFromHeight": "Pagkahulog mula sa taas",
+        "struckByHitBy": "Tinamaan / Nabangga",
+        "caughtInCaughtBetween": "Napit / Nakuha sa pagitan",
+        "manualHandlingOverexertion": "Manual handling / sobrang pagod",
+        "cutLaceration": "Hiwa / sugat",
+        "eyeInjury": "Pinsala sa mata",
+        "burnNonChemical": "Paso (hindi chemical)",
+        "electricalShock": "Electric shock (trabaho)",
+        "droppedObjectInjury": "Pinsala mula sa nahulog na bagay",
+        "confinedSpaceInjury": "Pinsala sa confined space",
+        "toolEquipmentInjury": "Pinsala mula sa tool / equipment"
+      },
+      "health": {
+        "heatStressDehydration": "Heat stress / dehydration",
+        "chemicalExposure": "Chemical exposure (paglanghap / balat / mata)",
+        "noiseExposure": "Noise exposure / hearing impact",
+        "respiratoryIrritation": "Respiratory irritation (alikabok/usok)",
+        "fatigueFitnessForDuty": "Fatigue / fitness-for-duty medical case",
+        "occupationalDisease": "Occupational disease (confirmed)",
+        "foodborneIllness": "Foodborne illness / hygiene"
+      },
+      "processSafety": {
+        "lopc": "Loss of Primary Containment (LOPC)",
+        "processFire": "Process fire",
+        "processExplosion": "Process explosion",
+        "overpressureReliefEvent": "Overpressure / relief event",
+        "dangerousSubstanceRelease": "Dangerous substance release (toxic/flammable)",
+        "processUpsetRunaway": "Process upset / runaway / abnormal operation",
+        "criticalBarrierFailure": "Critical barrier failure (SIS / PSV / ESD)"
+      },
+      "environment": {
+        "oilChemicalSpillLand": "Oil/chemical spill (lupa)",
+        "spillToWater": "Spill sa stormwater / sewer",
+        "airEmission": "Air emission / amoy / alikabok release",
+        "wasteMismanagement": "Waste mismanagement / illegal disposal",
+        "soilContamination": "Soil contamination",
+        "wildlifeImpact": "Wildlife impact",
+        "nonCompliantDischarge": "Non-compliant discharge"
+      },
+      "security": {
+        "unauthorizedAccess": "Unauthorized access / breach",
+        "theftLoss": "Theft / pagkawala ng asset",
+        "vandalism": "Vandalism",
+        "assaultThreat": "Assault / threat / harassment",
+        "crowdControlIncident": "Crowd control incident",
+        "suspiciousPackage": "Suspicious package / bomb threat",
+        "perimeterBreach": "Perimeter breach",
+        "informationSecurity": "Information security incident"
+      },
+      "propertyAssetDamage": {
+        "equipmentDamage": "Equipment damage (non-process)",
+        "buildingInfrastructureDamage": "Building / infrastructure damage",
+        "utilityOutage": "Utility outage (power/water/IT)",
+        "nonProcessFire": "Non-process fire",
+        "floodingWeatherDamage": "Flooding / weather damage"
+      },
+      "roadTrafficVehicle": {
+        "vehicleCollision": "Vehicle collision (on-site/off-site work related)",
+        "pedestrianStruck": "Pedestrian struck / near collision",
+        "reversingIncident": "Reversing incident",
+        "forkliftBuggyIncident": "Forklift / buggy / cart incident",
+        "speedingUnsafeDriving": "Speeding / unsafe driving",
+        "vehicleFire": "Vehicle fire",
+        "loadShiftSecuringFailure": "Load shift / securing failure"
+      },
+      "qualityService": {
+        "serviceInterruption": "Service interruption",
+        "productNonconformance": "Product/service nonconformance",
+        "criticalEquipmentFailure": "Critical equipment quality failure"
+      },
+      "communityThirdParty": {
+        "visitorInjury": "Visitor injury",
+        "thirdPartyPropertyDamage": "Third-party property damage",
+        "publicComplaint": "Public complaint / nuisance (alikabok/ingay/amoy)",
+        "offsiteTrafficImpact": "Offsite traffic impact dahil sa operations"
+      },
+      "complianceRegulatory": {
+        "ptwViolation": "PTW violation",
+        "fireSystemBreach": "Fire system compliance breach",
+        "contractorComplianceBreach": "Contractor compliance breach",
+        "environmentalPermitBreach": "Environmental permit breach",
+        "securitySopBreach": "Security SOP breach",
+        "legalReportingBreach": "Legal/reporting breach"
+      },
+      "emergencyCrisis": {
+        "erpMedical": "ERP activated (Medical)",
+        "erpFire": "ERP activated (Fire)",
+        "erpSecurity": "ERP activated (Security)",
+        "erpEnvironmental": "ERP activated (Environmental)",
+        "erpWeatherOther": "ERP activated (Weather/Other)"
+      }
+    },
     "status": {
       "submitted": "Naisumite",
       "pending_review": "Naghihintay ng Pagsusuri",

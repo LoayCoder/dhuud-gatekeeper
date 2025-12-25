@@ -493,6 +493,101 @@
       "complianceRegulatory": "अनुपालन / नियामक उल्लंघन",
       "emergencyCrisis": "आपातकाल / संकट सक्रियण (ERP)"
     },
+    "hsseSubtypes": {
+      "safety": {
+        "slipTripFallSameLevel": "फिसलना / ठोकर / गिरना (समान स्तर)",
+        "fallFromHeight": "ऊंचाई से गिरना",
+        "struckByHitBy": "टकराना / मारा जाना",
+        "caughtInCaughtBetween": "फंसना / दबना",
+        "manualHandlingOverexertion": "मैनुअल हैंडलिंग / अधिक परिश्रम",
+        "cutLaceration": "कट / घाव",
+        "eyeInjury": "आंख की चोट",
+        "burnNonChemical": "जलना (गैर-रासायनिक)",
+        "electricalShock": "बिजली का झटका (व्यावसायिक)",
+        "droppedObjectInjury": "गिरी वस्तु से चोट",
+        "confinedSpaceInjury": "सीमित स्थान में चोट",
+        "toolEquipmentInjury": "उपकरण / टूल से संबंधित चोट"
+      },
+      "health": {
+        "heatStressDehydration": "गर्मी का तनाव / निर्जलीकरण",
+        "chemicalExposure": "रासायनिक संपर्क (साँस / त्वचा / आँख)",
+        "noiseExposure": "शोर संपर्क / श्रवण प्रभाव",
+        "respiratoryIrritation": "श्वसन जलन (धूल/धुआं)",
+        "fatigueFitnessForDuty": "थकान / ड्यूटी के लिए फिटनेस मेडिकल केस",
+        "occupationalDisease": "व्यावसायिक रोग (पुष्टि)",
+        "foodborneIllness": "खाद्य जनित बीमारी / स्वच्छता"
+      },
+      "processSafety": {
+        "lopc": "प्राथमिक कंटेनमेंट का नुकसान (LOPC)",
+        "processFire": "प्रक्रिया आग",
+        "processExplosion": "प्रक्रिया विस्फोट",
+        "overpressureReliefEvent": "अधिक दबाव / राहत घटना",
+        "dangerousSubstanceRelease": "खतरनाक पदार्थ रिलीज (विषाक्त/ज्वलनशील)",
+        "processUpsetRunaway": "प्रक्रिया गड़बड़ी / भागने वाला / असामान्य संचालन",
+        "criticalBarrierFailure": "महत्वपूर्ण बाधा विफलता (SIS / PSV / ESD)"
+      },
+      "environment": {
+        "oilChemicalSpillLand": "तेल/रासायनिक रिसाव (भूमि)",
+        "spillToWater": "तूफानी जल / सीवर में रिसाव",
+        "airEmission": "वायु उत्सर्जन / गंध / धूल रिलीज",
+        "wasteMismanagement": "कचरा कुप्रबंधन / अवैध निपटान",
+        "soilContamination": "मिट्टी प्रदूषण",
+        "wildlifeImpact": "वन्यजीव प्रभाव",
+        "nonCompliantDischarge": "गैर-अनुपालन निर्वहन"
+      },
+      "security": {
+        "unauthorizedAccess": "अनधिकृत पहुंच / उल्लंघन",
+        "theftLoss": "चोरी / संपत्ति का नुकसान",
+        "vandalism": "बर्बरता",
+        "assaultThreat": "हमला / धमकी / उत्पीड़न",
+        "crowdControlIncident": "भीड़ नियंत्रण घटना",
+        "suspiciousPackage": "संदिग्ध पैकेज / बम धमकी",
+        "perimeterBreach": "परिधि उल्लंघन",
+        "informationSecurity": "सूचना सुरक्षा घटना"
+      },
+      "propertyAssetDamage": {
+        "equipmentDamage": "उपकरण क्षति (गैर-प्रक्रिया)",
+        "buildingInfrastructureDamage": "भवन / बुनियादी ढांचा क्षति",
+        "utilityOutage": "उपयोगिता आउटेज (पावर/पानी/IT)",
+        "nonProcessFire": "गैर-प्रक्रिया आग",
+        "floodingWeatherDamage": "बाढ़ / मौसम क्षति"
+      },
+      "roadTrafficVehicle": {
+        "vehicleCollision": "वाहन टक्कर (साइट पर/साइट के बाहर कार्य संबंधित)",
+        "pedestrianStruck": "पैदल यात्री टक्कर / निकट टक्कर",
+        "reversingIncident": "रिवर्सिंग घटना",
+        "forkliftBuggyIncident": "फोर्कलिफ्ट / बग्गी / कार्ट घटना",
+        "speedingUnsafeDriving": "तेज गति / असुरक्षित ड्राइविंग",
+        "vehicleFire": "वाहन में आग",
+        "loadShiftSecuringFailure": "लोड शिफ्ट / सुरक्षित करने में विफलता"
+      },
+      "qualityService": {
+        "serviceInterruption": "सेवा बाधा",
+        "productNonconformance": "उत्पाद/सेवा गैर-अनुरूपता",
+        "criticalEquipmentFailure": "महत्वपूर्ण उपकरण गुणवत्ता विफलता"
+      },
+      "communityThirdParty": {
+        "visitorInjury": "आगंतुक चोट",
+        "thirdPartyPropertyDamage": "तृतीय-पक्ष संपत्ति क्षति",
+        "publicComplaint": "सार्वजनिक शिकायत / उपद्रव (धूल/शोर/गंध)",
+        "offsiteTrafficImpact": "संचालन के कारण ऑफसाइट यातायात प्रभाव"
+      },
+      "complianceRegulatory": {
+        "ptwViolation": "PTW उल्लंघन",
+        "fireSystemBreach": "अग्नि प्रणाली अनुपालन उल्लंघन",
+        "contractorComplianceBreach": "ठेकेदार अनुपालन उल्लंघन",
+        "environmentalPermitBreach": "पर्यावरण परमिट उल्लंघन",
+        "securitySopBreach": "सुरक्षा SOP उल्लंघन",
+        "legalReportingBreach": "कानूनी/रिपोर्टिंग उल्लंघन"
+      },
+      "emergencyCrisis": {
+        "erpMedical": "ERP सक्रिय (चिकित्सा)",
+        "erpFire": "ERP सक्रिय (आग)",
+        "erpSecurity": "ERP सक्रिय (सुरक्षा)",
+        "erpEnvironmental": "ERP सक्रिय (पर्यावरण)",
+        "erpWeatherOther": "ERP सक्रिय (मौसम/अन्य)"
+      }
+    },
     "status": {
       "submitted": "जमा किया गया",
       "pending_review": "समीक्षा लंबित",
