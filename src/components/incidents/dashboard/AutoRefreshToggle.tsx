@@ -18,56 +18,61 @@ interface Props {
 const INTERVALS = [
   { value: 30, label: '30s' },
   { value: 60, label: '1m' },
+  { value: 120, label: '2m' },
   { value: 300, label: '5m' },
   { value: 600, label: '10m' },
+  { value: 900, label: '15m' },
+  { value: 1800, label: '30m' },
+  { value: 3600, label: '1h' },
 ];
 
 export function AutoRefreshToggle({ onRefresh, disabled }: Props) {
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState(false);
-  const [interval, setInterval_] = useState(60); // default 1 minute
+  const [interval, setInterval_] = useState(60);
   const [countdown, setCountdown] = useState(interval);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const onRefreshRef = useRef(onRefresh);
 
-  const resetTimer = useCallback(() => {
+  // Keep onRefresh ref updated to avoid stale closures
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
+
+  // Clear existing timer
+  const clearTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
+  }, []);
+
+  // Start timer effect
+  useEffect(() => {
+    clearTimer();
     setCountdown(interval);
 
     if (enabled && !disabled) {
       timerRef.current = setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
-            onRefresh();
+            onRefreshRef.current();
             return interval;
           }
           return prev - 1;
         });
       }, 1000);
     }
-  }, [enabled, interval, onRefresh, disabled]);
 
-  useEffect(() => {
-    resetTimer();
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [resetTimer]);
+    return clearTimer;
+  }, [enabled, interval, disabled, clearTimer]);
 
   const handleToggle = (checked: boolean) => {
     setEnabled(checked);
-    if (!checked && timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
   };
 
   const handleIntervalChange = (value: number) => {
     setInterval_(value);
-    setCountdown(value);
   };
 
   const formatCountdown = (seconds: number) => {
