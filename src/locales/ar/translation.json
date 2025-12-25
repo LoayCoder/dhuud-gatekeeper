@@ -207,7 +207,8 @@
       "descriptionMinLength": "يجب أن يكون الوصف 20 حرفاً على الأقل",
       "eventTypeRequired": "نوع الحدث مطلوب",
       "subtypeRequired": "النوع الفرعي مطلوب",
-      "dateTimeRequired": "التاريخ/الوقت مطلوب"
+      "dateTimeRequired": "التاريخ/الوقت مطلوب",
+      "photoRequired": "يجب إرفاق صورة واحدة على الأقل للإرسال"
     },
     "reportIncident": "الإبلاغ عن حادث",
     "reportObservation": "الإبلاغ عن ملاحظة",

@@ -247,7 +247,8 @@
       "descriptionMinLength": "Description must be at least 20 characters",
       "eventTypeRequired": "Event type is required",
       "subtypeRequired": "Subtype is required",
-      "dateTimeRequired": "Date/time is required"
+      "dateTimeRequired": "Date/time is required",
+      "photoRequired": "At least one photo is required to submit"
     },
     "reportIncident": "Report Safety Incident",
     "reportObservation": "Report Observation",

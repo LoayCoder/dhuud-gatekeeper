@@ -175,7 +175,8 @@
       "eventTypeRequired": "घटना प्रकार आवश्यक है",
       "subtypeRequired": "उप-प्रकार आवश्यक है",
       "dateTimeRequired": "तारीख/समय आवश्यक है",
-      "incidentTypeRequired": "घटना प्रकार आवश्यक है"
+      "incidentTypeRequired": "घटना प्रकार आवश्यक है",
+      "photoRequired": "जमा करने के लिए कम से कम एक फ़ोटो आवश्यक है"
     },
     "reportIncident": "घटना की रिपोर्ट करें",
     "reportDescription": "नई सुरक्षा घटना रिपोर्ट जमा करें",

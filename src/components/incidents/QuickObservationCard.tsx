@@ -633,11 +633,19 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 </div>
               )}
               
+              {/* Photo Required Warning */}
+              {photos.length === 0 && (
+                <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  <Camera className="h-4 w-4 shrink-0" />
+                  {t('incidents.validation.photoRequired')}
+                </div>
+              )}
+              
               {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full h-12 text-base"
-                disabled={createIncident.isPending || isUploading}
+                disabled={createIncident.isPending || isUploading || photos.length === 0}
               >
                 {createIncident.isPending || isUploading ? (
                   <>

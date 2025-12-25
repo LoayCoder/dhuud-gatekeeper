@@ -175,7 +175,8 @@
       "eventTypeRequired": "واقعہ کی قسم ضروری ہے",
       "subtypeRequired": "ذیلی قسم ضروری ہے",
       "dateTimeRequired": "تاریخ/وقت ضروری ہے",
-      "incidentTypeRequired": "حادثہ کی قسم ضروری ہے"
+      "incidentTypeRequired": "حادثہ کی قسم ضروری ہے",
+      "photoRequired": "جمع کرانے کے لیے کم از کم ایک تصویر ضروری ہے"
     },
     "reportIncident": "واقعہ رپورٹ کریں",
     "reportDescription": "نیا حفاظتی واقعہ رپورٹ جمع کریں",
