@@ -6125,5 +6125,23 @@
     "submitting": "Submitting...",
     "submitObservation": "Submit Observation",
     "observationSubmitted": "Observation submitted successfully"
+  },
+  "positiveObservation": {
+    "recognitionType": "Who are you recognizing?",
+    "selectRecognitionType": "Select recognition type",
+    "individual": "Individual Employee",
+    "department": "Department / Team",
+    "contractor": "Contractor Worker",
+    "selectEmployee": "Select employee",
+    "selectDepartment": "Select department",
+    "selectContractor": "Select contractor worker",
+    "searchEmployee": "Search employees...",
+    "searchContractor": "Search contractors...",
+    "totalPositive": "Positive Observations",
+    "safeActs": "Safe Acts",
+    "safeConditions": "Safe Conditions",
+    "topRecognized": "Most Recognized",
+    "observationRatio": "Observation Ratio",
+    "positiveToNegative": "Positive : Negative"
   }
 }

@@ -5967,5 +5967,23 @@
     "submitting": "جاري الإرسال...",
     "submitObservation": "إرسال الملاحظة",
     "observationSubmitted": "تم إرسال الملاحظة بنجاح"
+  },
+  "positiveObservation": {
+    "recognitionType": "من تريد تكريمه؟",
+    "selectRecognitionType": "اختر نوع التكريم",
+    "individual": "موظف فردي",
+    "department": "قسم / فريق",
+    "contractor": "عامل مقاول",
+    "selectEmployee": "اختر الموظف",
+    "selectDepartment": "اختر القسم",
+    "selectContractor": "اختر عامل المقاول",
+    "searchEmployee": "ابحث عن موظفين...",
+    "searchContractor": "ابحث عن مقاولين...",
+    "totalPositive": "الملاحظات الإيجابية",
+    "safeActs": "التصرفات الآمنة",
+    "safeConditions": "الظروف الآمنة",
+    "topRecognized": "الأكثر تكريماً",
+    "observationRatio": "نسبة الملاحظات",
+    "positiveToNegative": "إيجابي : سلبي"
   }
 }
