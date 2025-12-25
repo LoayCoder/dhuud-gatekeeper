@@ -70,6 +70,9 @@ export function getSubtypeTranslation(
       // Legacy: use provided incidentType if available
       incidentType ? `incidents.subtypes.${snakeToCamel(incidentType)}.${camelSubtype}` : '',
       incidentType ? `incidents.subtypes.${incidentType}.${subtype}` : '',
+      // Fallback to legacy incidentTypes (near_miss, property_damage, first_aid, etc.)
+      `incidents.incidentTypes.${camelSubtype}`,
+      `incidents.incidentTypes.${subtype}`,
     ].filter(Boolean);
     
     for (const path of paths) {
