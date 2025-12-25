@@ -89,10 +89,7 @@ const createIncidentFormSchema = (t: (key: string) => string) => z.object({
 
 type FormValues = z.infer<ReturnType<typeof createIncidentFormSchema>>;
 
-const EVENT_CATEGORIES = [
-  { value: 'observation', labelKey: 'incidents.eventCategories.observation' },
-  { value: 'incident', labelKey: 'incidents.eventCategories.incident' },
-];
+// EVENT_CATEGORIES removed - wizard is now incident-only, observations use QuickObservationCard
 
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
@@ -240,6 +237,13 @@ export default function IncidentReport() {
       setAutoDetectedSite(true);
     }
   }, [profile?.assigned_site_id, form]);
+
+  // Auto-set event_type to 'incident' when entering wizard mode
+  useEffect(() => {
+    if (reportMode === 'incident') {
+      form.setValue('event_type', 'incident');
+    }
+  }, [reportMode, form]);
 
   // Handle preselected asset from URL (QR scan)
   useEffect(() => {
@@ -427,29 +431,20 @@ export default function IncidentReport() {
         'critical': 'level_4',
       };
       
-      // Auto-populate event type first
-      if (result.eventType) {
-        form.setValue('event_type', result.eventType);
+      // event_type is already set to 'incident' in wizard mode
+      // Auto-populate incident type (event category) for incidents
+      if (result.incidentType) {
+        form.setValue('incident_type', result.incidentType);
+      }
         
-        // Auto-populate incident type (event category) for incidents
-        if (result.eventType === 'incident' && result.incidentType) {
-          form.setValue('incident_type', result.incidentType);
-        }
-        
-        // Store subtype for deferred application (wait for dynamicSubtypes to load)
-        if (result.subtype) {
-          if (result.eventType === 'observation') {
-            // For observations, subtypes are static, set immediately
-            form.setValue('subtype', result.subtype);
-          } else {
-            // For incidents, defer until dynamicSubtypes loads
-            setPendingAISubtype(result.subtype);
-          }
-        }
+      // Store subtype for deferred application (wait for dynamicSubtypes to load)
+      if (result.subtype) {
+        // For incidents, defer until dynamicSubtypes loads
+        setPendingAISubtype(result.subtype);
       }
       
       // Auto-populate severity for incidents
-      if (result.eventType === 'incident' && result.severity) {
+      if (result.severity) {
         const mappedSeverity = severityMap[result.severity] || 'level_2';
         form.setValue('severity', mappedSeverity);
       }
@@ -1064,44 +1059,7 @@ export default function IncidentReport() {
                     </div>
                   )}
 
-                  {/* Event Category (Observation/Incident) */}
-                  <FormField
-                    control={form.control}
-                    name="event_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('incidents.eventType')}</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Only clear dependent fields if user is manually changing (not AI)
-                            if (!isApplyingAISuggestions) {
-                              form.setValue('incident_type', '');
-                              form.setValue('subtype', '');
-                            }
-                          }} 
-                          value={field.value} 
-                          dir={direction}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('incidents.selectEventType')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {EVENT_CATEGORIES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {t(type.labelKey)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* For Incidents: HSSE Event Type (Top-Level Category) */}
+                  {/* HSSE Event Type (Top-Level Category) - event_type is auto-set to 'incident' */}
                   {eventType === 'incident' && (
                     <FormField
                       control={form.control}
@@ -1147,22 +1105,18 @@ export default function IncidentReport() {
                     />
                   )}
 
-                  {/* Subtype - Conditional based on event_type and incident_type */}
+                  {/* Subtype - based on selected incident_type */}
                   <FormField
                     control={form.control}
                     name="subtype"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          {eventType === 'observation' 
-                            ? t('incidents.observationType') 
-                            : t('incidents.incidentSubCategory')}
-                        </FormLabel>
+                        <FormLabel>{t('incidents.incidentSubCategory')}</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value} 
                           dir={direction}
-                          disabled={!eventType || (eventType === 'incident' && !incidentType)}
+                          disabled={!incidentType}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -1177,7 +1131,7 @@ export default function IncidentReport() {
                             ))}
                           </SelectContent>
                         </Select>
-                        {eventType === 'incident' && !incidentType && (
+                        {!incidentType && (
                           <FormDescription className="text-muted-foreground">
                             {t('incidents.selectHsseEventTypeFirst')}
                           </FormDescription>
