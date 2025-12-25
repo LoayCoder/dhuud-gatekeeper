@@ -5940,5 +5940,32 @@
         "security_manager": "مدير الأمن"
       }
     }
+  },
+  "quickObservation": {
+    "title": "ملاحظة سريعة",
+    "subtitle": "الإبلاغ عن الظروف أو السلوكيات غير الآمنة بسرعة",
+    "selectEventType": "ماذا تريد الإبلاغ عنه؟",
+    "selectEventTypeDescription": "اختر نوع الحدث الذي تريد الإبلاغ عنه",
+    "observationTitle": "ملاحظة",
+    "observationDescription": "الإبلاغ عن تصرفات أو ظروف غير آمنة أو ممارسات سلامة إيجابية",
+    "incidentTitle": "حادث",
+    "incidentDescription": "الإبلاغ عن أحداث فعلية تتضمن إصابة أو ضرر أو خسارة",
+    "quickReport": "سريع وبسيط",
+    "fullForm": "نموذج مفصل",
+    "addPhoto": "إضافة صورة",
+    "tapToCapture": "اضغط",
+    "whatDidYouObserve": "ماذا لاحظت؟",
+    "descriptionPlaceholder": "صف الحالة أو السلوك غير الآمن الذي لاحظته...",
+    "observationType": "النوع",
+    "selectType": "اختر النوع",
+    "selectRisk": "مستوى الخطر",
+    "detectingLocation": "جاري تحديد الموقع...",
+    "locationNotDetected": "لم يتم تحديد الموقع",
+    "closedOnSpot": "تمت المعالجة في الموقع",
+    "closedOnSpotDescription": "لقد قمت بمعالجة هذا الخطر بالفعل",
+    "addCorrectiveActionPhoto": "إضافة صورة إثبات",
+    "submitting": "جاري الإرسال...",
+    "submitObservation": "إرسال الملاحظة",
+    "observationSubmitted": "تم إرسال الملاحظة بنجاح"
   }
 }

@@ -5632,5 +5632,32 @@
       "ltiMinimum": "LTI/LWDC واقعات کم از کم سطح 4 ہونے چاہیے",
       "overrideRequired": "کم از کم سے نیچے شدت کے لیے اوور رائیڈ وجہ ضروری ہے"
     }
+  },
+  "quickObservation": {
+    "title": "فوری مشاہدہ",
+    "subtitle": "غیر محفوظ حالات یا رویے کی فوری رپورٹ کریں",
+    "selectEventType": "آپ کیا رپورٹ کرنا چاہتے ہیں؟",
+    "selectEventTypeDescription": "واقعے کی قسم منتخب کریں جو آپ رپورٹ کرنا چاہتے ہیں",
+    "observationTitle": "مشاہدہ",
+    "observationDescription": "غیر محفوظ اعمال، حالات، یا مثبت حفاظتی طریقوں کی رپورٹ کریں",
+    "incidentTitle": "واقعہ",
+    "incidentDescription": "چوٹ، نقصان، یا نقصان پر مشتمل حقیقی واقعات کی رپورٹ کریں",
+    "quickReport": "فوری اور سادہ",
+    "fullForm": "تفصیلی فارم",
+    "addPhoto": "تصویر شامل کریں",
+    "tapToCapture": "ٹیپ",
+    "whatDidYouObserve": "آپ نے کیا دیکھا؟",
+    "descriptionPlaceholder": "غیر محفوظ حالت یا رویے کی وضاحت کریں جو آپ نے دیکھا...",
+    "observationType": "قسم",
+    "selectType": "قسم منتخب کریں",
+    "selectRisk": "خطرے کی سطح",
+    "detectingLocation": "مقام تلاش کر رہا ہے...",
+    "locationNotDetected": "مقام نہیں ملا",
+    "closedOnSpot": "موقع پر حل کیا گیا",
+    "closedOnSpotDescription": "میں نے اس خطرے کو پہلے ہی حل کر دیا ہے",
+    "addCorrectiveActionPhoto": "ثبوت کی تصویر شامل کریں",
+    "submitting": "جمع کر رہا ہے...",
+    "submitObservation": "مشاہدہ جمع کریں",
+    "observationSubmitted": "مشاہدہ کامیابی سے جمع ہو گیا"
   }
 }

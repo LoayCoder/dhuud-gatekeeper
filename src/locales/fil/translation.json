@@ -5611,5 +5611,32 @@
       "ltiMinimum": "Ang mga LTI/LWDC event ay dapat hindi bababa sa Antas 4",
       "overrideRequired": "Kinakailangan ang override reason para sa severity na mas mababa sa minimum"
     }
+  },
+  "quickObservation": {
+    "title": "Mabilis na Obserbasyon",
+    "subtitle": "Mabilis na mag-ulat ng mga hindi ligtas na kondisyon o pag-uugali",
+    "selectEventType": "Ano ang gusto mong i-ulat?",
+    "selectEventTypeDescription": "Piliin ang uri ng pangyayari na gusto mong i-ulat",
+    "observationTitle": "Obserbasyon",
+    "observationDescription": "Mag-ulat ng mga hindi ligtas na gawa, kondisyon, o positibong kaligtasan",
+    "incidentTitle": "Insidente",
+    "incidentDescription": "Mag-ulat ng aktwal na pangyayari na may pinsala, sira, o pagkawala",
+    "quickReport": "Mabilis at Simpleng",
+    "fullForm": "Detalyadong Form",
+    "addPhoto": "Magdagdag ng Larawan",
+    "tapToCapture": "I-tap",
+    "whatDidYouObserve": "Ano ang iyong napansin?",
+    "descriptionPlaceholder": "Ilarawan ang hindi ligtas na kondisyon o pag-uugali na iyong napansin...",
+    "observationType": "Uri",
+    "selectType": "Pumili ng uri",
+    "selectRisk": "Antas ng Panganib",
+    "detectingLocation": "Tinutukoy ang lokasyon...",
+    "locationNotDetected": "Hindi natukoy ang lokasyon",
+    "closedOnSpot": "Naisara sa lugar",
+    "closedOnSpotDescription": "Natugunan ko na ang panganib na ito",
+    "addCorrectiveActionPhoto": "Magdagdag ng ebidensyang larawan",
+    "submitting": "Isinusumite...",
+    "submitObservation": "Isumite ang Obserbasyon",
+    "observationSubmitted": "Matagumpay na naisumite ang obserbasyon"
   }
 }

@@ -5617,5 +5617,32 @@
       "ltiMinimum": "LTI/LWDC घटनाएं कम से कम स्तर 4 होनी चाहिए",
       "overrideRequired": "न्यूनतम से नीचे गंभीरता के लिए ओवरराइड कारण आवश्यक"
     }
+  },
+  "quickObservation": {
+    "title": "त्वरित अवलोकन",
+    "subtitle": "असुरक्षित स्थितियों या व्यवहारों की जल्दी रिपोर्ट करें",
+    "selectEventType": "आप क्या रिपोर्ट करना चाहते हैं?",
+    "selectEventTypeDescription": "जिस प्रकार की घटना की रिपोर्ट करना चाहते हैं उसे चुनें",
+    "observationTitle": "अवलोकन",
+    "observationDescription": "असुरक्षित कार्यों, स्थितियों, या सकारात्मक सुरक्षा प्रथाओं की रिपोर्ट करें",
+    "incidentTitle": "घटना",
+    "incidentDescription": "चोट, क्षति, या हानि से जुड़ी वास्तविक घटनाओं की रिपोर्ट करें",
+    "quickReport": "त्वरित और सरल",
+    "fullForm": "विस्तृत फॉर्म",
+    "addPhoto": "फोटो जोड़ें",
+    "tapToCapture": "टैप",
+    "whatDidYouObserve": "आपने क्या देखा?",
+    "descriptionPlaceholder": "आपने जो असुरक्षित स्थिति या व्यवहार देखा उसका वर्णन करें...",
+    "observationType": "प्रकार",
+    "selectType": "प्रकार चुनें",
+    "selectRisk": "जोखिम स्तर",
+    "detectingLocation": "स्थान का पता लगा रहा है...",
+    "locationNotDetected": "स्थान नहीं मिला",
+    "closedOnSpot": "मौके पर ही हल किया",
+    "closedOnSpotDescription": "मैंने पहले ही इस खतरे को संबोधित कर दिया है",
+    "addCorrectiveActionPhoto": "सबूत फोटो जोड़ें",
+    "submitting": "सबमिट हो रहा है...",
+    "submitObservation": "अवलोकन सबमिट करें",
+    "observationSubmitted": "अवलोकन सफलतापूर्वक सबमिट किया गया"
   }
 }

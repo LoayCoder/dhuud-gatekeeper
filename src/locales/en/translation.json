@@ -6098,5 +6098,32 @@
         "security_manager": "Security Manager"
       }
     }
+  },
+  "quickObservation": {
+    "title": "Quick Observation",
+    "subtitle": "Report unsafe conditions or behaviors quickly",
+    "selectEventType": "What would you like to report?",
+    "selectEventTypeDescription": "Choose the type of event you want to report",
+    "observationTitle": "Observation",
+    "observationDescription": "Report unsafe acts, conditions, or positive safety practices",
+    "incidentTitle": "Incident",
+    "incidentDescription": "Report actual events involving injury, damage, or loss",
+    "quickReport": "Quick & Simple",
+    "fullForm": "Detailed Form",
+    "addPhoto": "Add Photo",
+    "tapToCapture": "Tap",
+    "whatDidYouObserve": "What did you observe?",
+    "descriptionPlaceholder": "Describe the unsafe condition or behavior you noticed...",
+    "observationType": "Type",
+    "selectType": "Select type",
+    "selectRisk": "Risk Level",
+    "detectingLocation": "Detecting location...",
+    "locationNotDetected": "Location not detected",
+    "closedOnSpot": "Closed on the spot",
+    "closedOnSpotDescription": "I have already addressed this hazard",
+    "addCorrectiveActionPhoto": "Add evidence photo",
+    "submitting": "Submitting...",
+    "submitObservation": "Submit Observation",
+    "observationSubmitted": "Observation submitted successfully"
   }
 }

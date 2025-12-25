@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren } from 'lucide-react';
+import { QuickObservationCard } from '@/components/incidents/QuickObservationCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,6 +119,9 @@ export default function IncidentReport() {
   const [searchParams] = useSearchParams();
   const direction = i18n.dir();
   const { profile } = useAuth();
+  
+  // Event type selection mode: null = show selector, 'observation' = quick card, 'incident' = wizard
+  const [reportMode, setReportMode] = useState<'observation' | 'incident' | null>(null);
   
   // Get assetId from URL if present (from QR scan)
   const preselectedAssetId = searchParams.get('assetId');
@@ -791,11 +795,80 @@ export default function IncidentReport() {
     </div>
   );
 
+  // Event Type Selector Component
+  const EventTypeSelector = () => (
+    <div className="container max-w-2xl py-6" dir={direction}>
+      <div className="space-y-2 text-center mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">{t('quickObservation.selectEventType')}</h1>
+        <p className="text-muted-foreground">{t('quickObservation.selectEventTypeDescription')}</p>
+      </div>
+      
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Observation Card */}
+        <Card 
+          className="cursor-pointer hover:border-primary hover:shadow-lg transition-all group"
+          onClick={() => setReportMode('observation')}
+        >
+          <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
+              <Eye className="h-8 w-8 text-yellow-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">{t('quickObservation.observationTitle')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{t('quickObservation.observationDescription')}</p>
+            </div>
+            <Badge variant="secondary" className="gap-1">
+              <CheckCircle2 className="h-3 w-3" />
+              {t('quickObservation.quickReport')}
+            </Badge>
+          </CardContent>
+        </Card>
+        
+        {/* Incident Card */}
+        <Card 
+          className="cursor-pointer hover:border-primary hover:shadow-lg transition-all group"
+          onClick={() => setReportMode('incident')}
+        >
+          <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+              <Siren className="h-8 w-8 text-red-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">{t('quickObservation.incidentTitle')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{t('quickObservation.incidentDescription')}</p>
+            </div>
+            <Badge variant="secondary" className="gap-1">
+              <FileText className="h-3 w-3" />
+              {t('quickObservation.fullForm')}
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  // If no report mode selected, show the selector
+  if (reportMode === null) {
+    return <EventTypeSelector />;
+  }
+
+  // If observation mode selected, show the quick card
+  if (reportMode === 'observation') {
+    return <QuickObservationCard onCancel={() => setReportMode(null)} />;
+  }
+
+  // Otherwise show the full incident wizard
   return (
     <div className="container max-w-4xl py-6 space-y-6" dir={direction}>
       <div className="space-y-2 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setReportMode(null)}>
+            <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
+            {t('common.back')}
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {isObservation ? t('incidents.reportObservation') : t('incidents.reportIncident')}
+          {t('incidents.reportIncident')}
         </h1>
         <p className="text-muted-foreground">{t('incidents.reportDescription')}</p>
       </div>
