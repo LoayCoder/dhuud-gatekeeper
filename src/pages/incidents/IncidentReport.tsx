@@ -95,8 +95,10 @@ const EVENT_CATEGORIES = [
 ];
 
 const OBSERVATION_TYPES = [
-  { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct' },
-  { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition' },
+  { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
+  { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition', isPositive: false },
+  { value: 'safe_act', labelKey: 'incidents.observationTypes.safeAct', isPositive: true },
+  { value: 'safe_condition', labelKey: 'incidents.observationTypes.safeCondition', isPositive: true },
 ];
 
 // Removed - now using HSSE_SEVERITY_LEVELS from src/lib/hsse-severity-levels.ts

@@ -54,6 +54,10 @@ export interface IncidentFormData {
   location_formatted?: string;
   // Major event linkage
   special_event_id?: string;
+  // Recognition fields for positive observations
+  recognition_type?: 'individual' | 'department' | 'contractor';
+  recognized_user_id?: string;
+  recognized_contractor_worker_id?: string;
 }
 
 export function useCreateIncident() {
@@ -132,6 +136,17 @@ export function useCreateIncident() {
         // Set status to 'closed' if closed on spot
         if (data.closed_on_spot_data.closed_on_spot) {
           insertData.status = 'closed';
+        }
+      }
+
+      // Add recognition fields for positive observations
+      if (isObservation && data.recognition_type) {
+        (insertData as Record<string, unknown>).recognition_type = data.recognition_type;
+        if (data.recognized_user_id) {
+          (insertData as Record<string, unknown>).recognized_user_id = data.recognized_user_id;
+        }
+        if (data.recognized_contractor_worker_id) {
+          (insertData as Record<string, unknown>).recognized_contractor_worker_id = data.recognized_contractor_worker_id;
         }
       }
 

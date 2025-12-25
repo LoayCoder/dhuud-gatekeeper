@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,16 +15,27 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
-import { useTenantSites } from '@/hooks/use-org-hierarchy';
+import { useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useTenantUsers } from '@/hooks/use-department-users';
+import { useContractorWorkers } from '@/hooks/contractor-management/use-contractor-workers';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 
 const OBSERVATION_TYPES = [
-  { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct' },
-  { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition' },
+  { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
+  { value: 'unsafe_condition', labelKey: 'incidents.observationTypes.unsafeCondition', isPositive: false },
+  { value: 'safe_act', labelKey: 'incidents.observationTypes.safeAct', isPositive: true },
+  { value: 'safe_condition', labelKey: 'incidents.observationTypes.safeCondition', isPositive: true },
+];
+
+const RECOGNITION_TYPES = [
+  { value: 'individual', labelKey: 'positiveObservation.individual' },
+  { value: 'department', labelKey: 'positiveObservation.department' },
+  { value: 'contractor', labelKey: 'positiveObservation.contractor' },
 ];
 
 const RISK_LEVELS = [
@@ -41,6 +52,11 @@ const createQuickObservationSchema = (t: (key: string) => string) => z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   closed_on_spot: z.boolean().default(false),
+  // Recognition fields for positive observations
+  recognition_type: z.enum(['individual', 'department', 'contractor']).optional(),
+  recognized_user_id: z.string().optional(),
+  recognized_department_id: z.string().optional(),
+  recognized_contractor_worker_id: z.string().optional(),
 });
 
 type FormValues = z.infer<ReturnType<typeof createQuickObservationSchema>>;
@@ -66,6 +82,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   const createIncident = useCreateIncident();
   const { data: sites = [] } = useTenantSites();
+  const { data: departments = [] } = useTenantDepartments();
+  const { data: tenantUsers = [] } = useTenantUsers();
+  const { data: contractorWorkers = [] } = useContractorWorkers();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -77,11 +96,33 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       latitude: undefined,
       longitude: undefined,
       closed_on_spot: false,
+      recognition_type: undefined,
+      recognized_user_id: undefined,
+      recognized_department_id: undefined,
+      recognized_contractor_worker_id: undefined,
     },
   });
   
   const closedOnSpot = form.watch('closed_on_spot');
   const selectedRisk = form.watch('risk_rating');
+  const selectedSubtype = form.watch('subtype');
+  const recognitionType = form.watch('recognition_type');
+  
+  // Check if this is a positive observation
+  const isPositiveObservation = useMemo(() => {
+    const type = OBSERVATION_TYPES.find(t => t.value === selectedSubtype);
+    return type?.isPositive ?? false;
+  }, [selectedSubtype]);
+  
+  // Reset recognition fields when switching between positive/negative observations
+  useEffect(() => {
+    if (!isPositiveObservation) {
+      form.setValue('recognition_type', undefined);
+      form.setValue('recognized_user_id', undefined);
+      form.setValue('recognized_department_id', undefined);
+      form.setValue('recognized_contractor_worker_id', undefined);
+    }
+  }, [isPositiveObservation, form]);
   
   // Auto-detect GPS on mount
   useEffect(() => {
@@ -156,6 +197,12 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       closed_on_spot_data: closedOnSpotData,
       has_injury: false,
       has_damage: false,
+      // Recognition fields for positive observations
+      recognition_type: values.recognition_type,
+      recognized_user_id: values.recognition_type === 'individual' ? values.recognized_user_id : undefined,
+      recognized_contractor_worker_id: values.recognition_type === 'contractor' ? values.recognized_contractor_worker_id : undefined,
+      // Store department_id for department recognition
+      department_id: values.recognition_type === 'department' ? values.recognized_department_id : undefined,
     };
     
     createIncident.mutate(formData, {
@@ -331,6 +378,141 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                   </FormItem>
                 )}
               />
+              
+              {/* Recognition Section - Only for Positive Observations */}
+              {isPositiveObservation && (
+                <div className="space-y-4 p-4 bg-chart-3/10 border border-chart-3/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-chart-3" />
+                    <span className="font-medium text-chart-3">{t('positiveObservation.recognitionType')}</span>
+                  </div>
+                  
+                  {/* Recognition Type */}
+                  <FormField
+                    control={form.control}
+                    name="recognition_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="flex flex-col gap-2"
+                          >
+                            {RECOGNITION_TYPES.map((type) => (
+                              <div
+                                key={type.value}
+                                className={cn(
+                                  "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                                  field.value === type.value
+                                    ? "border-chart-3 bg-chart-3/10"
+                                    : "border-border hover:border-chart-3/50"
+                                )}
+                                onClick={() => field.onChange(type.value)}
+                              >
+                                <RadioGroupItem value={type.value} id={type.value} />
+                                <div className="flex items-center gap-2">
+                                  {type.value === 'individual' && <User className="h-4 w-4" />}
+                                  {type.value === 'department' && <Building2 className="h-4 w-4" />}
+                                  {type.value === 'contractor' && <HardHat className="h-4 w-4" />}
+                                  <label htmlFor={type.value} className="text-sm font-medium cursor-pointer">
+                                    {t(type.labelKey)}
+                                  </label>
+                                </div>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Individual Employee Selector */}
+                  {recognitionType === 'individual' && (
+                    <FormField
+                      control={form.control}
+                      name="recognized_user_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('positiveObservation.selectEmployee')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('positiveObservation.searchEmployee')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {tenantUsers.map((user) => (
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.full_name || user.employee_id || user.id}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  
+                  {/* Department Selector */}
+                  {recognitionType === 'department' && (
+                    <FormField
+                      control={form.control}
+                      name="recognized_department_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('positiveObservation.selectDepartment')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('positiveObservation.selectDepartment')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {departments.map((dept) => (
+                                <SelectItem key={dept.id} value={dept.id}>
+                                  {dept.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  
+                  {/* Contractor Worker Selector */}
+                  {recognitionType === 'contractor' && (
+                    <FormField
+                      control={form.control}
+                      name="recognized_contractor_worker_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('positiveObservation.selectContractor')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('positiveObservation.searchContractor')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {contractorWorkers.map((worker) => (
+                                <SelectItem key={worker.id} value={worker.id}>
+                                  {worker.full_name} - {worker.national_id}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
               
               {/* Risk Rating */}
               <FormField

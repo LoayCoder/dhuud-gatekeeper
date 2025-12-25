@@ -4609,6 +4609,9 @@ export type Database = {
           original_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          recognition_type: string | null
+          recognized_contractor_worker_id: string | null
+          recognized_user_id: string | null
           reference_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
@@ -4711,6 +4714,9 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          recognition_type?: string | null
+          recognized_contractor_worker_id?: string | null
+          recognized_user_id?: string | null
           reference_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -4813,6 +4819,9 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          recognition_type?: string | null
+          recognized_contractor_worker_id?: string | null
+          recognized_user_id?: string | null
           reference_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -4918,6 +4927,20 @@ export type Database = {
           {
             foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
             columns: ["hsse_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_recognized_contractor_worker_id_fkey"
+            columns: ["recognized_contractor_worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_recognized_user_id_fkey"
+            columns: ["recognized_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
