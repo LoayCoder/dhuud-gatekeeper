@@ -47,3 +47,4 @@ export { KPISparkline } from './KPISparkline';
 export { KPITrendCard } from './KPITrendCard';
 export { KPIHistoricalTrendChart } from './KPIHistoricalTrendChart';
 export { IncidentTypeBreakdownChart } from './IncidentTypeBreakdownChart';
+export { PositiveObservationCard } from './PositiveObservationCard';
