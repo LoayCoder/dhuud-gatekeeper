@@ -127,9 +127,8 @@ function generateWhatsAppMessage(
 👤 ${t.whatsapp.reportedBy}: ${reporterName}
 ${injuryLine}${descriptionLine}`;
 }
-
 /**
- * Generate localized email HTML content
+ * Generate localized email HTML content with deep-link button
  */
 function generateEmailContent(
   lang: SupportedLanguage,
@@ -172,6 +171,21 @@ function generateEmailContent(
     ? `<div style="margin-top: 16px; padding: 12px; background: white; border-radius: 8px;"><p style="margin: 0; color: #475569;">${incident.description}</p></div>` 
     : '';
 
+  // Deep-link button text (localized)
+  const viewButtonText: Record<SupportedLanguage, string> = {
+    en: 'View Incident',
+    ar: 'عرض الحادث',
+    ur: 'واقعہ دیکھیں',
+    hi: 'घटना देखें',
+    fil: 'Tingnan ang Insidente',
+  };
+  
+  // Get app URL for deep-link
+  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
+  const incidentDeepLink = `${appUrl}/incidents/investigate?id=${incident.id}`;
+  const buttonText = viewButtonText[lang] || viewButtonText.en;
+  const arrow = rtl ? '←' : '→';
+
   const emailBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; direction: ${rtl ? 'rtl' : 'ltr'};">
       ${erpBanner}
@@ -185,6 +199,13 @@ function generateEmailContent(
           ${injuryRow}
         </table>
         ${descriptionBlock}
+        
+        <!-- Deep-link CTA Button -->
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${incidentDeepLink}" style="display: inline-block; background: #1e40af; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; direction: ${rtl ? 'rtl' : 'ltr'};">
+            ${rtl ? `${arrow} ${buttonText}` : `${buttonText} ${arrow}`}
+          </a>
+        </div>
       </div>
     </div>
   `;
