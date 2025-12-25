@@ -16,9 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useRequestExtension, useActionExtensionRequest } from '@/hooks/use-action-extensions';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
 
 interface ExtensionRequestDialogProps {
   action: {
@@ -38,47 +35,27 @@ export function ExtensionRequestDialog({
 }: ExtensionRequestDialogProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const { user } = useAuth();
   const [requestedDate, setRequestedDate] = useState('');
   const [reason, setReason] = useState('');
 
   const requestExtension = useRequestExtension();
   const { data: existingRequest } = useActionExtensionRequest(action?.id || null);
 
-  // Get user's manager from manager_team table
-  const { data: managerData } = useQuery({
-    queryKey: ['user-manager', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from('manager_team')
-        .select('manager_id, manager:profiles!manager_team_manager_id_fkey(id, full_name)')
-        .eq('user_id', user.id)
-        .is('deleted_at', null)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id && open,
-  });
-
   // Set minimum date to tomorrow
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
   const minDateStr = minDate.toISOString().split('T')[0];
 
-  const isValid = requestedDate && reason.trim().length >= 10 && managerData?.manager_id;
+  const isValid = requestedDate && reason.trim().length >= 10;
 
   const handleSubmit = async () => {
-    if (!action || !isValid || !action.due_date || !managerData?.manager_id) return;
+    if (!action || !isValid || !action.due_date) return;
 
     await requestExtension.mutateAsync({
       actionId: action.id,
       currentDueDate: action.due_date,
       requestedDueDate: requestedDate,
       reason: reason.trim(),
-      managerId: managerData.manager_id,
     });
 
     handleClose();
@@ -99,8 +76,7 @@ export function ExtensionRequestDialog({
 
   if (!action) return null;
 
-  const hasPendingRequest = existingRequest && 
-    (existingRequest.status === 'pending_manager' || existingRequest.status === 'pending_hsse');
+  const hasPendingRequest = existingRequest && existingRequest.status === 'pending_hsse';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,7 +87,7 @@ export function ExtensionRequestDialog({
             {t('actions.requestExtension', 'Request Extension')}
           </DialogTitle>
           <DialogDescription>
-            {t('actions.requestExtensionDescription', 'Request additional time to complete this action. Requires approval from your manager and HSSE Manager.')}
+            {t('actions.requestExtensionDescription', 'Request additional time to complete this action. Requires approval from HSSE Expert.')}
           </DialogDescription>
         </DialogHeader>
 
@@ -140,21 +116,6 @@ export function ExtensionRequestDialog({
                 </p>
               )}
             </div>
-
-            {/* Manager Info */}
-            {managerData?.manager ? (
-              <div className="text-sm">
-                <span className="text-muted-foreground">{t('actions.approvalBy', 'Approval by')}: </span>
-                <span className="font-medium">{(managerData.manager as { full_name: string | null }).full_name}</span>
-              </div>
-            ) : (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  {t('actions.noManagerAssigned', 'You do not have a manager assigned. Please contact your administrator.')}
-                </AlertDescription>
-              </Alert>
-            )}
 
             {/* Requested Date */}
             <div className="space-y-2">

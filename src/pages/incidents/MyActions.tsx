@@ -11,7 +11,7 @@ import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';
-import { usePendingExtensionRequests, useHSSEPendingExtensionRequests } from '@/hooks/use-action-extensions';
+import { usePendingExtensionRequests } from '@/hooks/use-action-extensions';
 import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
 import { useMyInspectionActions } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
@@ -87,7 +87,6 @@ export default function MyActions() {
   const { data: pendingIncidentApprovals, isLoading: incidentApprovalsLoading } = usePendingIncidentApprovals();
   const { data: pendingClosures, isLoading: closuresLoading } = usePendingClosureRequests();
   const { data: pendingExtensions, isLoading: extensionsLoading } = usePendingExtensionRequests();
-  const { data: hssePendingExtensions, isLoading: hsseExtensionsLoading } = useHSSEPendingExtensionRequests();
   const [selectedActionForVerification, setSelectedActionForVerification] = useState<PendingActionApproval | null>(null);
   
   // Contractor approvals - must be after hasRole is declared
@@ -185,7 +184,7 @@ export default function MyActions() {
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
-  const totalExtensions = (pendingExtensions?.length || 0) + (isHSSEManager ? (hssePendingExtensions?.length || 0) : 0);
+  const totalExtensions = pendingExtensions?.length || 0;
   const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
   const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions + contractorApprovalCount;
 
@@ -801,7 +800,7 @@ export default function MyActions() {
                   </div>
                 )}
 
-                {/* Extension Requests Section (Manager Approval) */}
+                {/* Extension Requests Section (HSSE Expert Approval) */}
                 {pendingExtensions && pendingExtensions.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -814,27 +813,6 @@ export default function MyActions() {
                         <ExtensionApprovalCard 
                           key={request.id} 
                           request={request} 
-                          level="manager" 
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* HSSE Extension Requests Section (Final Approval) */}
-                {isHSSEManager && hssePendingExtensions && hssePendingExtensions.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <CalendarPlus className="h-5 w-5 text-primary" />
-                      {t('actions.hsseExtensionApprovals', 'HSSE Extension Approvals')}
-                      <Badge variant="secondary">{hssePendingExtensions.length}</Badge>
-                    </h3>
-                    <div className="space-y-4">
-                      {hssePendingExtensions.map((request) => (
-                        <ExtensionApprovalCard 
-                          key={request.id} 
-                          request={request} 
-                          level="hsse" 
                         />
                       ))}
                     </div>
@@ -966,7 +944,6 @@ export default function MyActions() {
                  (!pendingIncidentApprovals || pendingIncidentApprovals.length === 0) &&
                  (!canApproveClosures || !pendingClosures || pendingClosures.length === 0) &&
                  (!pendingExtensions || pendingExtensions.length === 0) &&
-                 (!isHSSEManager || !hssePendingExtensions || hssePendingExtensions.length === 0) &&
                  (!canApproveWorkers || !pendingWorkers || pendingWorkers.length === 0) &&
                  (!canApproveGatePasses || !pendingGatePasses || pendingGatePasses.length === 0) && (
                   <Card className="py-12">

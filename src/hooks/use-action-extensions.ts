@@ -28,7 +28,7 @@ export interface ExtensionRequest {
   action?: { id: string; reference_id: string | null; title: string; priority: string | null } | null;
 }
 
-// Request an extension for an action
+// Request an extension for an action (goes directly to HSSE Expert)
 export function useRequestExtension() {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -40,13 +40,11 @@ export function useRequestExtension() {
       currentDueDate,
       requestedDueDate,
       reason,
-      managerId,
     }: {
       actionId: string;
       currentDueDate: string;
       requestedDueDate: string;
       reason: string;
-      managerId: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) throw new Error('Not authenticated');
@@ -68,14 +66,14 @@ export function useRequestExtension() {
           current_due_date: currentDueDate,
           requested_due_date: requestedDueDate,
           extension_reason: reason,
-          manager_id: managerId,
-          status: 'pending_manager',
+          status: 'pending_hsse', // Goes directly to HSSE Expert
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['extension-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-extension-requests'] });
       queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
       toast({
         title: t('common.success'),
@@ -92,37 +90,8 @@ export function useRequestExtension() {
   });
 }
 
-// Get pending extension requests for managers
+// Get pending extension requests for HSSE Experts
 export function usePendingExtensionRequests() {
-  const { profile, user } = useAuth();
-
-  return useQuery({
-    queryKey: ['pending-extension-requests', 'manager', user?.id],
-    queryFn: async () => {
-      if (!profile?.tenant_id || !user?.id) return [];
-
-      const { data, error } = await supabase
-        .from('action_extension_requests')
-        .select(`
-          *,
-          requester:profiles!action_extension_requests_requested_by_fkey(id, full_name),
-          action:corrective_actions!action_extension_requests_action_id_fkey(id, reference_id, title, priority)
-        `)
-        .eq('tenant_id', profile.tenant_id)
-        .eq('manager_id', user.id)
-        .eq('status', 'pending_manager')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return (data || []) as ExtensionRequest[];
-    },
-    enabled: !!profile?.tenant_id && !!user?.id,
-  });
-}
-
-// Get pending extension requests for HSSE Managers
-export function useHSSEPendingExtensionRequests() {
   const { profile, user } = useAuth();
 
   return useQuery({
@@ -149,68 +118,8 @@ export function useHSSEPendingExtensionRequests() {
   });
 }
 
-// Approve or reject extension request (Manager level)
-export function useApproveExtensionManager() {
-  const { toast } = useToast();
-  const { t } = useTranslation();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      requestId,
-      approved,
-      notes,
-    }: {
-      requestId: string;
-      approved: boolean;
-      notes?: string;
-    }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) throw new Error('Not authenticated');
-
-      const updateData = approved
-        ? {
-            manager_status: 'approved',
-            manager_decision_at: new Date().toISOString(),
-            manager_notes: notes || null,
-            status: 'pending_hsse', // Forward to HSSE for final approval
-          }
-        : {
-            manager_status: 'rejected',
-            manager_decision_at: new Date().toISOString(),
-            manager_notes: notes || null,
-            status: 'rejected',
-          };
-
-      const { error } = await supabase
-        .from('action_extension_requests')
-        .update(updateData)
-        .eq('id', requestId);
-
-      if (error) throw error;
-      return { approved };
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['pending-extension-requests'] });
-      toast({
-        title: t('common.success'),
-        description: result.approved
-          ? t('actions.extensionForwarded', 'Extension forwarded to HSSE Manager')
-          : t('actions.extensionRejected', 'Extension request rejected'),
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-// Approve or reject extension request (HSSE Manager level - final)
-export function useApproveExtensionHSSE() {
+// Approve or reject extension request (HSSE Expert - single level approval)
+export function useApproveExtension() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -264,6 +173,7 @@ export function useApproveExtensionHSSE() {
       queryClient.invalidateQueries({ queryKey: ['pending-extension-requests'] });
       queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
       queryClient.invalidateQueries({ queryKey: ['corrective-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['action-extension-request'] });
       toast({
         title: t('common.success'),
         description: result.approved

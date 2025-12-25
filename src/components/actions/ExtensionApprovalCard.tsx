@@ -7,59 +7,40 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ExtensionRequest, useApproveExtensionManager, useApproveExtensionHSSE } from '@/hooks/use-action-extensions';
+import { ExtensionRequest, useApproveExtension } from '@/hooks/use-action-extensions';
 
 interface ExtensionApprovalCardProps {
   request: ExtensionRequest;
-  level: 'manager' | 'hsse';
 }
 
-export function ExtensionApprovalCard({ request, level }: ExtensionApprovalCardProps) {
+export function ExtensionApprovalCard({ request }: ExtensionApprovalCardProps) {
   const { t } = useTranslation();
   const [notes, setNotes] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
 
-  const approveManager = useApproveExtensionManager();
-  const approveHSSE = useApproveExtensionHSSE();
-
-  const isPending = level === 'manager' ? approveManager.isPending : approveHSSE.isPending;
+  const approveExtension = useApproveExtension();
+  const isPending = approveExtension.isPending;
 
   const handleApprove = async () => {
-    if (level === 'manager') {
-      await approveManager.mutateAsync({
-        requestId: request.id,
-        approved: true,
-        notes: notes.trim() || undefined,
-      });
-    } else {
-      await approveHSSE.mutateAsync({
-        requestId: request.id,
-        actionId: request.action_id,
-        newDueDate: request.requested_due_date,
-        approved: true,
-        notes: notes.trim() || undefined,
-      });
-    }
+    await approveExtension.mutateAsync({
+      requestId: request.id,
+      actionId: request.action_id,
+      newDueDate: request.requested_due_date,
+      approved: true,
+      notes: notes.trim() || undefined,
+    });
     setNotes('');
     setIsRejecting(false);
   };
 
   const handleReject = async () => {
-    if (level === 'manager') {
-      await approveManager.mutateAsync({
-        requestId: request.id,
-        approved: false,
-        notes: notes.trim() || undefined,
-      });
-    } else {
-      await approveHSSE.mutateAsync({
-        requestId: request.id,
-        actionId: request.action_id,
-        newDueDate: request.requested_due_date,
-        approved: false,
-        notes: notes.trim() || undefined,
-      });
-    }
+    await approveExtension.mutateAsync({
+      requestId: request.id,
+      actionId: request.action_id,
+      newDueDate: request.requested_due_date,
+      approved: false,
+      notes: notes.trim() || undefined,
+    });
     setNotes('');
     setIsRejecting(false);
   };
@@ -75,10 +56,7 @@ export function ExtensionApprovalCard({ request, level }: ExtensionApprovalCardP
             </CardTitle>
           </div>
           <Badge variant="secondary">
-            {level === 'manager'
-              ? t('actions.pendingManagerApproval', 'Pending Manager')
-              : t('actions.pendingHSSEApproval', 'Pending HSSE')
-            }
+            {t('actions.pendingHSSEApproval', 'Pending HSSE')}
           </Badge>
         </div>
         {request.action && (
@@ -114,13 +92,6 @@ export function ExtensionApprovalCard({ request, level }: ExtensionApprovalCardP
           <p className="text-sm font-medium mb-1">{t('actions.reason', 'Reason')}:</p>
           <p className="text-sm text-muted-foreground">{request.extension_reason}</p>
         </div>
-
-        {level === 'hsse' && request.manager_notes && (
-          <div className="p-3 bg-muted rounded-md">
-            <p className="text-sm font-medium mb-1">{t('actions.managerNotes', 'Manager Notes')}:</p>
-            <p className="text-sm text-muted-foreground">{request.manager_notes}</p>
-          </div>
-        )}
 
         <Separator />
 
@@ -180,10 +151,7 @@ export function ExtensionApprovalCard({ request, level }: ExtensionApprovalCardP
               >
                 {isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
                 <CheckCircle2 className="h-4 w-4 me-2" />
-                {level === 'manager'
-                  ? t('actions.approveAndForward', 'Approve & Forward')
-                  : t('actions.approveExtension', 'Approve Extension')
-                }
+                {t('actions.approveExtension', 'Approve Extension')}
               </Button>
             </div>
           </div>
