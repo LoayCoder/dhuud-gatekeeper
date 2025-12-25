@@ -65,8 +65,12 @@ export function getSubtypeTranslation(
     const paths = [
       // Primary: use derived HSSE event type with camelCase subtype
       camelHsseEventType ? `incidents.hsseSubtypes.${camelHsseEventType}.${camelSubtype}` : '',
+      // Also try camelCase event type with snake_case subtype (some translations use this)
+      camelHsseEventType ? `incidents.hsseSubtypes.${camelHsseEventType}.${subtype}` : '',
       // Fallback: snake_case event type with snake_case subtype  
       hsseEventType ? `incidents.hsseSubtypes.${hsseEventType}.${subtype}` : '',
+      // Try snake_case event type with camelCase subtype
+      hsseEventType ? `incidents.hsseSubtypes.${hsseEventType}.${camelSubtype}` : '',
       // Legacy: use provided incidentType if available
       incidentType ? `incidents.subtypes.${snakeToCamel(incidentType)}.${camelSubtype}` : '',
       incidentType ? `incidents.subtypes.${incidentType}.${subtype}` : '',

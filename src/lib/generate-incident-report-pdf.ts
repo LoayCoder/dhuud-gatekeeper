@@ -15,6 +15,7 @@ interface IncidentReportData {
     description: string;
     event_type: string;
     subtype?: string | null;
+    incident_type?: string | null; // HSSE category (safety, health, etc.)
     severity?: string | null;
     status?: string | null;
     occurred_at?: string | null;
@@ -292,8 +293,78 @@ function getStatusStyle(status: string | null | undefined): string {
   return 'background: #f3f4f6; color: #374151;';
 }
 
+// HSSE Event Type translations for PDF (inline since i18next not available)
+const HSSE_EVENT_TYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  safety: { en: 'Safety (Occupational Injury/Harm)', ar: 'السلامة (الإصابات المهنية)' },
+  health: { en: 'Health (Illness/Exposure)', ar: 'الصحة (المرض/التعرض)' },
+  process_safety: { en: 'Process Safety (LOPC/Fire/Explosion)', ar: 'سلامة العمليات (فقدان الاحتواء/حريق/انفجار)' },
+  environment: { en: 'Environment (Spill/Emission/Waste)', ar: 'البيئة (تسرب/انبعاث/نفايات)' },
+  security: { en: 'Security (People/Assets/Access/Threat)', ar: 'الأمن (الأفراد/الممتلكات/الوصول/التهديد)' },
+  property_asset_damage: { en: 'Property & Asset Damage', ar: 'تلف الممتلكات والأصول' },
+  road_traffic_vehicle: { en: 'Road Traffic/Vehicle & Mobile Equipment', ar: 'المرور والمركبات والمعدات المتنقلة' },
+  quality_service: { en: 'Quality/Service Impact', ar: 'تأثير الجودة/الخدمة' },
+  community_third_party: { en: 'Community/Third-Party Impact', ar: 'تأثير المجتمع/الأطراف الثالثة' },
+  compliance_regulatory: { en: 'Compliance/Regulatory Breach', ar: 'خرق الامتثال/التنظيمات' },
+  emergency_crisis: { en: 'Emergency/Crisis Activation', ar: 'تفعيل الطوارئ/الأزمات' },
+};
+
+// HSSE Subtype translations for PDF
+const HSSE_SUBTYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  // Safety subtypes
+  slip_trip_fall: { en: 'Slip, Trip, or Fall (Same Level)', ar: 'انزلاق أو تعثر أو سقوط (نفس المستوى)' },
+  fall_from_height: { en: 'Fall from Height', ar: 'السقوط من ارتفاع' },
+  struck_by: { en: 'Struck By Object', ar: 'الاصطدام بجسم' },
+  caught_in_between: { en: 'Caught In/Between', ar: 'الانحشار بين/داخل' },
+  manual_handling: { en: 'Manual Handling / Ergonomic', ar: 'المناولة اليدوية / بيئة العمل' },
+  cut_laceration: { en: 'Cut / Laceration', ar: 'جرح / قطع' },
+  eye_injury: { en: 'Eye Injury', ar: 'إصابة العين' },
+  burn_scald: { en: 'Burn / Scald', ar: 'حرق / سلق' },
+  electrical_shock: { en: 'Electrical Shock', ar: 'صدمة كهربائية' },
+  dropped_object: { en: 'Dropped Object', ar: 'سقوط أجسام' },
+  confined_space: { en: 'Confined Space Incident', ar: 'حادث أماكن محصورة' },
+  tool_equipment_injury: { en: 'Tool / Equipment Injury', ar: 'إصابة بأداة / معدات' },
+  // Health subtypes
+  occupational_illness: { en: 'Occupational Illness', ar: 'مرض مهني' },
+  chemical_exposure: { en: 'Chemical Exposure', ar: 'التعرض للمواد الكيميائية' },
+  biological_exposure: { en: 'Biological Exposure', ar: 'التعرض البيولوجي' },
+  noise_exposure: { en: 'Noise Exposure', ar: 'التعرض للضوضاء' },
+  heat_stress: { en: 'Heat Stress / Cold Stress', ar: 'الإجهاد الحراري / البارد' },
+  respiratory_exposure: { en: 'Respiratory Exposure', ar: 'التعرض التنفسي' },
+  radiation_exposure: { en: 'Radiation Exposure', ar: 'التعرض للإشعاع' },
+  ergonomic_disorder: { en: 'Ergonomic Disorder', ar: 'اضطراب بيئة العمل' },
+  fatigue_related: { en: 'Fatigue-Related', ar: 'متعلق بالإرهاق' },
+  medical_emergency: { en: 'Medical Emergency', ar: 'حالة طبية طارئة' },
+  // Legacy incident types
+  near_miss: { en: 'Near Miss', ar: 'حادث وشيك' },
+  first_aid: { en: 'First Aid', ar: 'إسعافات أولية' },
+  property_damage: { en: 'Property Damage', ar: 'تلف الممتلكات' },
+  environmental: { en: 'Environmental', ar: 'بيئي' },
+  security_breach: { en: 'Security Breach', ar: 'خرق أمني' },
+  other: { en: 'Other', ar: 'أخرى' },
+};
+
+function getHSSEEventTypeLabel(type: string | null | undefined, isRTL: boolean): string {
+  if (!type) return '-';
+  const label = HSSE_EVENT_TYPE_LABELS[type];
+  return label ? (isRTL ? label.ar : label.en) : type.replace(/_/g, ' ');
+}
+
+function getHSSESubtypeLabel(subtype: string | null | undefined, isRTL: boolean): string {
+  if (!subtype) return '-';
+  const label = HSSE_SUBTYPE_LABELS[subtype];
+  return label ? (isRTL ? label.ar : label.en) : subtype.replace(/_/g, ' ');
+}
+
 function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boolean): string {
   const textAlign = isRTL ? 'right' : 'left';
+  
+  // Determine category and subcategory display
+  const incidentCategory = incident.incident_type 
+    ? getHSSEEventTypeLabel(incident.incident_type, isRTL)
+    : incident.subtype 
+      ? getHSSESubtypeLabel(incident.subtype, isRTL) 
+      : '-';
+  const incidentSubCategory = incident.subtype ? getHSSESubtypeLabel(incident.subtype, isRTL) : '-';
   
   return `
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
@@ -309,7 +380,7 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
       </tr>
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'نوع الحدث' : 'Event Type'}</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">${incident.event_type || '-'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">${isRTL ? (incident.event_type === 'incident' ? 'حادث' : 'ملاحظة') : (incident.event_type === 'incident' ? 'Incident' : 'Observation')}</td>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الخطورة' : 'Severity'}</td>
         <td style="padding: 10px; border: 1px solid #ddd;">
           <span style="padding: 4px 10px; border-radius: 4px; font-size: 11px; ${getSeverityStyle(incident.severity)}">
@@ -317,6 +388,14 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
           </span>
         </td>
       </tr>
+      ${incident.event_type === 'incident' ? `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'فئة الحادث' : 'Incident Category'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">${incidentCategory}</td>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الفئة الفرعية للحادث' : 'Incident Sub Category'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">${incidentSubCategory}</td>
+      </tr>
+      ` : ''}
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'تاريخ الحدوث' : 'Occurred At'}</td>
         <td style="padding: 10px; border: 1px solid #ddd;">${incident.occurred_at ? format(new Date(incident.occurred_at), 'PPpp') : '-'}</td>
