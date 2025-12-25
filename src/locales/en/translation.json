@@ -255,6 +255,7 @@
     "reportDescription": "Use this form to report any safety incidents, near misses, or observations.",
     "basicInfo": "Basic Information",
     "title": "Incident Title",
+    "eventTitle": "Event Title",
     "titlePlaceholder": "Brief title describing the incident",
     "eventType": "Event Type",
     "selectEventType": "Select event type",

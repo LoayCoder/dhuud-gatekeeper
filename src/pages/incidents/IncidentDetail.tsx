@@ -141,8 +141,9 @@ export default function IncidentDetail() {
             </Link>
           </Button>
           <div>
+            <p className="text-sm text-muted-foreground mb-1">{t('incidents.eventTitle')}</p>
             <h1 className="text-2xl font-bold">{incident.title}</h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground mt-1">
               <FileText className="h-4 w-4" />
               <span>{incident.reference_id}</span>
             </div>

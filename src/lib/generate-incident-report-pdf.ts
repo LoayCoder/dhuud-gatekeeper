@@ -848,6 +848,7 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   container.innerHTML = `
     <div style="font-family: 'Rubik', Arial, sans-serif; color: #333;">
       <div style="text-align: center; margin-bottom: 20px; padding: 14px; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); border-radius: 8px; border: 1px solid #e5e7eb;">
+        <p style="margin: 0 0 4px; font-size: 12px; color: #6b7280; font-weight: 500;">${isRTL ? 'عنوان الحدث' : 'Event Title'}</p>
         <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">${incident.title}</h2>
         <p style="margin: 6px 0 0; font-size: 13px; color: #6b7280;">${incident.reference_id || ''}</p>
         <span style="display: inline-block; margin-top: 8px; padding: 4px 12px; background: ${accessLevel === 'hsse_full' ? '#dcfce7' : '#fef3c7'}; color: ${accessLevel === 'hsse_full' ? '#166534' : '#92400e'}; border-radius: 4px; font-size: 11px; font-weight: 600;">
