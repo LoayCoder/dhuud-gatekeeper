@@ -1142,7 +1142,9 @@
     "back": "Back",
     "next": "Next",
     "search": "Search",
-    "filter": "Filter"
+    "filter": "Filter",
+    "view": "View",
+    "details": "Details"
   },
   "search": {
     "placeholder": "Search by title, description, or reference...",
