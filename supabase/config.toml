@@ -167,3 +167,6 @@ verify_jwt = false
 
 [functions.reverse-geocode]
 verify_jwt = false
+
+[functions.check-confidentiality-expiry]
+verify_jwt = false
