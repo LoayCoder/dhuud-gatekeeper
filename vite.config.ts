@@ -37,10 +37,26 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-i18next',
+      'i18next',
+      '@tanstack/react-query',
+    ],
   },
   optimizeDeps: {
-    exclude: [],
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-i18next',
+      'i18next',
+      '@tanstack/react-query',
+    ],
   },
   build: {
     rollupOptions: {
