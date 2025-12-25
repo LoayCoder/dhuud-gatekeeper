@@ -173,16 +173,18 @@ export function useVerifyAction() {
 
       const updateData = input.approved 
         ? {
-            status: 'verified',
+            status: 'closed',
             verified_by: user.id,
             verified_at: new Date().toISOString(),
             verification_notes: input.verification_notes,
           }
         : {
-            status: 'rejected',
+            status: 'returned_for_correction',
             rejected_by: user.id,
             rejected_at: new Date().toISOString(),
             rejection_notes: input.verification_notes,
+            last_returned_at: new Date().toISOString(),
+            last_return_reason: input.verification_notes,
           };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
