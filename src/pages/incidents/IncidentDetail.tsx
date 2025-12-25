@@ -200,9 +200,14 @@ export default function IncidentDetail() {
         <Badge variant="secondary" className="text-sm">
           {String(t(`incidents.eventCategories.${incident.event_type}`))}
         </Badge>
-        {incident.event_type === 'incident' && (incident as any).incident_type && (
+        {incident.event_type === 'incident' && (
           <Badge variant="outline" className="text-sm">
-            {String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+            {(incident as any).incident_type 
+              ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+              : incident.subtype
+                ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                : String(t('incidents.eventCategories.incident', 'Incident'))
+            }
           </Badge>
         )}
         {incident.subtype && (
@@ -318,6 +323,42 @@ export default function IncidentDetail() {
                   {t('incidents.viewOnMap')}
                 </a>
               </Button>
+            </CardContent>
+          </Card>
+        )}
+        {/* Classification Card - Incident Category & Sub Category */}
+        {incident.event_type === 'incident' && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Tag className="h-4 w-4" />
+                {t('incidents.classification', 'Classification')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {t('incidents.incidentCategory', 'Incident Category')}
+                </p>
+                <p className="font-medium">
+                  {(incident as any).incident_type 
+                    ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                    : incident.subtype
+                      ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                      : '—'
+                  }
+                </p>
+              </div>
+              {incident.subtype && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {t('incidents.incidentSubCategory', 'Incident Sub Category')}
+                  </p>
+                  <p className="font-medium">
+                    {getSubtypeTranslation(t, incident.event_type, incident.subtype, (incident as any).incident_type)}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
