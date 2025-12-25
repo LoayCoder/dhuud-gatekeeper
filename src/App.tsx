@@ -1,3 +1,4 @@
+// App component - force rebuild
 import { Suspense, lazy, useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
