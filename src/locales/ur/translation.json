@@ -493,6 +493,101 @@
       "complianceRegulatory": "تعمیل / ریگولیٹری خلاف ورزی",
       "emergencyCrisis": "ایمرجنسی / کرائسز ایکٹیویشن (ERP)"
     },
+    "hsseSubtypes": {
+      "safety": {
+        "slipTripFallSameLevel": "پھسلنا / ٹھوکر / گرنا (اسی سطح پر)",
+        "fallFromHeight": "اونچائی سے گرنا",
+        "struckByHitBy": "ٹکرانا / لگنا",
+        "caughtInCaughtBetween": "پھنسنا / دب جانا",
+        "manualHandlingOverexertion": "دستی ہینڈلنگ / زیادہ محنت",
+        "cutLaceration": "کٹنا / زخم",
+        "eyeInjury": "آنکھ کی چوٹ",
+        "burnNonChemical": "جلنا (غیر کیمیائی)",
+        "electricalShock": "بجلی کا جھٹکا (پیشہ ورانہ)",
+        "droppedObjectInjury": "گرنے والی چیز سے چوٹ",
+        "confinedSpaceInjury": "محدود جگہ میں چوٹ",
+        "toolEquipmentInjury": "آلات / ٹول سے متعلق چوٹ"
+      },
+      "health": {
+        "heatStressDehydration": "گرمی کا تناؤ / پانی کی کمی",
+        "chemicalExposure": "کیمیائی ایکسپوژر (سانس / جلد / آنکھ)",
+        "noiseExposure": "شور کا ایکسپوژر / سماعت کا اثر",
+        "respiratoryIrritation": "سانس کی جلن (دھول/دھواں)",
+        "fatigueFitnessForDuty": "تھکاوٹ / ڈیوٹی کے لیے فٹنس میڈیکل کیس",
+        "occupationalDisease": "پیشہ ورانہ بیماری (تصدیق شدہ)",
+        "foodborneIllness": "کھانے سے پیدا ہونے والی بیماری / صفائی"
+      },
+      "processSafety": {
+        "lopc": "بنیادی کنٹینمنٹ کا نقصان (LOPC)",
+        "processFire": "پراسیس آگ",
+        "processExplosion": "پراسیس دھماکہ",
+        "overpressureReliefEvent": "زیادہ دباؤ / ریلیف واقعہ",
+        "dangerousSubstanceRelease": "خطرناک مادہ کا اخراج (زہریلا/آتش گیر)",
+        "processUpsetRunaway": "پراسیس خرابی / بے قابو / غیر معمولی آپریشن",
+        "criticalBarrierFailure": "اہم رکاوٹ کی ناکامی (SIS / PSV / ESD)"
+      },
+      "environment": {
+        "oilChemicalSpillLand": "تیل/کیمیائی رساؤ (زمین)",
+        "spillToWater": "طوفانی پانی / سیور میں رساؤ",
+        "airEmission": "ہوائی اخراج / بو / دھول کا اخراج",
+        "wasteMismanagement": "فضلے کا غلط انتظام / غیر قانونی نکاسی",
+        "soilContamination": "مٹی کی آلودگی",
+        "wildlifeImpact": "جنگلی حیات کا اثر",
+        "nonCompliantDischarge": "غیر مطابق اخراج"
+      },
+      "security": {
+        "unauthorizedAccess": "غیر مجاز رسائی / خلاف ورزی",
+        "theftLoss": "چوری / اثاثے کا نقصان",
+        "vandalism": "توڑ پھوڑ",
+        "assaultThreat": "حملہ / دھمکی / ہراسانی",
+        "crowdControlIncident": "ہجوم کنٹرول واقعہ",
+        "suspiciousPackage": "مشکوک پیکج / بم کی دھمکی",
+        "perimeterBreach": "حدود کی خلاف ورزی",
+        "informationSecurity": "معلومات کی حفاظت کا واقعہ"
+      },
+      "propertyAssetDamage": {
+        "equipmentDamage": "آلات کا نقصان (غیر پراسیس)",
+        "buildingInfrastructureDamage": "عمارت / بنیادی ڈھانچے کا نقصان",
+        "utilityOutage": "یوٹیلٹی آؤٹیج (پاور/پانی/IT)",
+        "nonProcessFire": "غیر پراسیس آگ",
+        "floodingWeatherDamage": "سیلاب / موسم کا نقصان"
+      },
+      "roadTrafficVehicle": {
+        "vehicleCollision": "گاڑی کا تصادم (سائٹ پر/سائٹ سے باہر کام سے متعلق)",
+        "pedestrianStruck": "پیدل چلنے والے کا تصادم / قریبی تصادم",
+        "reversingIncident": "ریورسنگ واقعہ",
+        "forkliftBuggyIncident": "فورک لفٹ / بگی / کارٹ واقعہ",
+        "speedingUnsafeDriving": "تیز رفتاری / غیر محفوظ ڈرائیونگ",
+        "vehicleFire": "گاڑی میں آگ",
+        "loadShiftSecuringFailure": "لوڈ شفٹ / محفوظ کرنے میں ناکامی"
+      },
+      "qualityService": {
+        "serviceInterruption": "سروس میں رکاوٹ",
+        "productNonconformance": "پروڈکٹ/سروس غیر مطابقت",
+        "criticalEquipmentFailure": "اہم آلات کی معیار میں ناکامی"
+      },
+      "communityThirdParty": {
+        "visitorInjury": "وزیٹر کی چوٹ",
+        "thirdPartyPropertyDamage": "تھرڈ پارٹی جائیداد کا نقصان",
+        "publicComplaint": "عوامی شکایت / پریشانی (دھول/شور/بو)",
+        "offsiteTrafficImpact": "آپریشنز کی وجہ سے آف سائٹ ٹریفک کا اثر"
+      },
+      "complianceRegulatory": {
+        "ptwViolation": "PTW کی خلاف ورزی",
+        "fireSystemBreach": "فائر سسٹم تعمیل کی خلاف ورزی",
+        "contractorComplianceBreach": "ٹھیکیدار تعمیل کی خلاف ورزی",
+        "environmentalPermitBreach": "ماحولیاتی اجازت کی خلاف ورزی",
+        "securitySopBreach": "سیکیورٹی SOP کی خلاف ورزی",
+        "legalReportingBreach": "قانونی/رپورٹنگ کی خلاف ورزی"
+      },
+      "emergencyCrisis": {
+        "erpMedical": "ERP فعال (طبی)",
+        "erpFire": "ERP فعال (آگ)",
+        "erpSecurity": "ERP فعال (سیکیورٹی)",
+        "erpEnvironmental": "ERP فعال (ماحولیات)",
+        "erpWeatherOther": "ERP فعال (موسم/دیگر)"
+      }
+    },
     "status": {
       "submitted": "جمع شدہ",
       "pending_review": "جائزہ کے منتظر",
