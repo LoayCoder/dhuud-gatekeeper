@@ -180,7 +180,7 @@ export default function MyActions() {
 
   const pendingActions = allActions?.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction') || [];
   const inProgressActions = allActions?.filter(a => a.status === 'in_progress') || [];
-  const completedActions = allActions?.filter(a => a.status === 'completed' || a.status === 'verified') || [];
+  const completedActions = allActions?.filter(a => a.status === 'completed' || a.status === 'verified' || a.status === 'closed') || [];
 
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
 
