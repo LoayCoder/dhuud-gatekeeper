@@ -302,134 +302,117 @@ export default function MyActions() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
-        {/* Overdue Card - Always visible, Red styling for urgency */}
+      {/* Summary Cards - Compact Design */}
+      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+        {/* Overdue Card */}
         <Card 
           className={cn(
-            "border-red-200 dark:border-red-900 cursor-pointer hover:shadow-md transition-shadow",
+            "p-3 border-red-200 dark:border-red-900 cursor-pointer hover:shadow-md transition-shadow",
             overdueActions.length > 0 && "bg-red-50/50 dark:bg-red-950/20",
             activeFilter === 'overdue' && "ring-2 ring-red-500"
           )}
           onClick={() => handleFilterClick('overdue')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              {t('investigation.overdueActions', 'Overdue')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={cn("text-2xl font-bold", overdueActions.length > 0 ? "text-red-600" : "text-muted-foreground")}>{overdueActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <span className={cn("text-xl font-bold", overdueActions.length > 0 ? "text-red-600" : "text-muted-foreground")}>{overdueActions.length}</span>
+          </div>
+          <p className="text-xs text-red-600 dark:text-red-400 mt-1 truncate">{t('investigation.overdueActions', 'Overdue')}</p>
         </Card>
 
-        {/* Soon Overdue Card - Yellow/amber for warning */}
+        {/* Due Soon Card */}
         <Card 
           className={cn(
-            "border-yellow-200 dark:border-yellow-900 cursor-pointer hover:shadow-md transition-shadow",
+            "p-3 border-yellow-200 dark:border-yellow-900 cursor-pointer hover:shadow-md transition-shadow",
             soonOverdueActions.length > 0 && "bg-yellow-50/50 dark:bg-yellow-950/20",
             activeFilter === 'soon_overdue' && "ring-2 ring-yellow-500"
           )}
           onClick={() => handleFilterClick('soon_overdue')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              {t('actions.dueSoon', 'Due Soon')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={cn("text-2xl font-bold", soonOverdueActions.length > 0 ? "text-yellow-600" : "text-muted-foreground")}>{soonOverdueActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <span className={cn("text-xl font-bold", soonOverdueActions.length > 0 ? "text-yellow-600" : "text-muted-foreground")}>{soonOverdueActions.length}</span>
+          </div>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 truncate">{t('actions.dueSoon', 'Due Soon')}</p>
         </Card>
         
+        {/* Pending Card */}
         <Card 
           className={cn(
-            "cursor-pointer hover:shadow-md transition-shadow",
+            "p-3 cursor-pointer hover:shadow-md transition-shadow",
             activeFilter === 'pending' && "ring-2 ring-amber-500"
           )}
           onClick={() => handleFilterClick('pending')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.pendingActions', 'Pending Actions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-500">{pendingActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <span className="text-xl font-bold text-amber-500">{pendingActions.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.pendingActions', 'Pending')}</p>
         </Card>
+
+        {/* In Progress Card */}
         <Card 
           className={cn(
-            "cursor-pointer hover:shadow-md transition-shadow",
+            "p-3 cursor-pointer hover:shadow-md transition-shadow",
             activeFilter === 'in_progress' && "ring-2 ring-blue-500"
           )}
           onClick={() => handleFilterClick('in_progress')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.inProgressActions', 'In Progress')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{inProgressActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <PlayCircle className="h-4 w-4 text-blue-500" />
+            <span className="text-xl font-bold text-blue-500">{inProgressActions.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.inProgressActions', 'In Progress')}</p>
         </Card>
+
+        {/* Awaiting Verification Card */}
         <Card 
           className={cn(
-            "cursor-pointer hover:shadow-md transition-shadow",
+            "p-3 cursor-pointer hover:shadow-md transition-shadow",
             activeFilter === 'awaiting_verification' && "ring-2 ring-orange-500"
           )}
           onClick={() => handleFilterClick('awaiting_verification')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.awaitingVerification', 'Awaiting Verification')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-500">{awaitingVerificationActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <FileCheck className="h-4 w-4 text-orange-500" />
+            <span className="text-xl font-bold text-orange-500">{awaitingVerificationActions.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.awaitingVerification', 'Awaiting')}</p>
         </Card>
+
+        {/* Closed Card */}
         <Card 
           className={cn(
-            "cursor-pointer hover:shadow-md transition-shadow",
-            activeFilter === 'closed' && "ring-2 ring-green-500"
+            "p-3 cursor-pointer hover:shadow-md transition-shadow",
+          activeFilter === 'closed' && "ring-2 ring-green-500"
           )}
           onClick={() => handleFilterClick('closed')}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.closedActions', 'Closed')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{closedActions.length}</div>
-          </CardContent>
+          <div className="flex items-center justify-between">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <span className="text-xl font-bold text-green-500">{closedActions.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.closedActions', 'Closed')}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.witnesses.pendingStatements', 'Pending Statements')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-500">{pendingWitness.length}</div>
-          </CardContent>
+
+        {/* Pending Statements Card */}
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <MessageSquare className="h-4 w-4 text-purple-500" />
+            <span className="text-xl font-bold text-purple-500">{pendingWitness.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.witnesses.pendingStatements', 'Statements')}</p>
         </Card>
+
+        {/* Pending Approvals Card */}
         {canAccessApprovals && (
-          <Card className={totalPendingApprovals > 0 ? 'border-amber-200 dark:border-amber-900' : ''}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('investigation.approvals.pendingApprovals', 'Pending Approvals')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${totalPendingApprovals > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>
-                {totalPendingApprovals}
-              </div>
-            </CardContent>
+          <Card className={cn("p-3", totalPendingApprovals > 0 && "border-amber-200 dark:border-amber-900")}>
+            <div className="flex items-center justify-between">
+              <ShieldCheck className="h-4 w-4 text-amber-500" />
+              <span className={cn("text-xl font-bold", totalPendingApprovals > 0 ? "text-amber-500" : "text-muted-foreground")}>{totalPendingApprovals}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.approvals.pendingApprovals', 'Approvals')}</p>
           </Card>
         )}
       </div>
