@@ -83,8 +83,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    
     // Create Supabase client with service role for admin operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
@@ -93,9 +91,10 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Verify user
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser(token);
+    // Verify user - don't pass token as parameter, it's already in the header
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
+      console.error('Auth verification failed:', authError?.message);
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid token' }),
         { status: 401, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
