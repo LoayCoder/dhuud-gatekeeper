@@ -80,6 +80,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const createIncident = useCreateIncident();
   const { data: sites = [] } = useTenantSites();
@@ -157,6 +158,40 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     );
   };
   
+  const handleAnalyzeDescription = async () => {
+    const description = form.getValues('description');
+    if (description.length < 20) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeIncidentWithAI(description);
+      
+      // Map AI result to observation subtype
+      if (result.subtype === 'unsafe_act' || result.subtype === 'unsafe_condition' || 
+          result.subtype === 'safe_act' || result.subtype === 'safe_condition') {
+        form.setValue('subtype', result.subtype);
+      } else if (result.eventType === 'observation') {
+        // Default to unsafe_condition for generic observations
+        form.setValue('subtype', 'unsafe_condition');
+      }
+      
+      // Map severity to risk rating
+      const riskMap: Record<string, 'low' | 'medium' | 'high'> = { 
+        'low': 'low', 'medium': 'medium', 'high': 'high', 'critical': 'high' 
+      };
+      if (result.severity && riskMap[result.severity]) {
+        form.setValue('risk_rating', riskMap[result.severity]);
+      }
+      
+      toast.success(t('quickObservation.analysisComplete'));
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error(t('incidents.ai.detectionError'));
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>, isClosedOnSpot: boolean = false) => {
     const files = Array.from(e.target.files || []);
     if (isClosedOnSpot) {
@@ -341,7 +376,24 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('quickObservation.whatDidYouObserve')}</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>{t('quickObservation.whatDidYouObserve')}</FormLabel>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAnalyzeDescription}
+                        disabled={isAnalyzing || field.value.length < 20}
+                        className="gap-1.5 h-7 text-xs"
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3.5 w-3.5" />
+                        )}
+                        {isAnalyzing ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
+                      </Button>
+                    </div>
                     <FormControl>
                       <Textarea
                         placeholder={t('quickObservation.descriptionPlaceholder')}

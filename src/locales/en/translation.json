@@ -6126,7 +6126,10 @@
     "addCorrectiveActionPhoto": "Add evidence photo",
     "submitting": "Submitting...",
     "submitObservation": "Submit Observation",
-    "observationSubmitted": "Observation submitted successfully"
+    "observationSubmitted": "Observation submitted successfully",
+    "aiAnalyze": "AI Analyze",
+    "analyzing": "Analyzing...",
+    "analysisComplete": "AI has suggested type and risk level"
   },
   "positiveObservation": {
     "recognitionType": "Who are you recognizing?",
