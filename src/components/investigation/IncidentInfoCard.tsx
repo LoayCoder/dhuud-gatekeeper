@@ -75,9 +75,14 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
               {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
             </Badge>
-            {incident.event_type === 'incident' && (incident as any).incident_type && (
+            {incident.event_type === 'incident' && (
               <Badge variant="outline" className="bg-secondary/50">
-                {String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+                {(incident as any).incident_type 
+                  ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                  : incident.subtype
+                    ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                    : String(t('incidents.eventCategories.incident', 'Incident'))
+                }
               </Badge>
             )}
             {incident.subtype && (
@@ -99,10 +104,16 @@ export function IncidentInfoCard({ incident, isLocked }: IncidentInfoCardProps) 
               label={t('incidents.eventType', 'Event Type')} 
               value={String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
             />
-            {incident.event_type === 'incident' && (incident as any).incident_type && (
+            {incident.event_type === 'incident' && (
               <InfoItem 
                 label={t('incidents.incidentCategory', 'Incident Category')} 
-                value={String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
+                value={
+                  (incident as any).incident_type 
+                    ? String(t(`incidents.hsseEventTypes.${(incident as any).incident_type}`, (incident as any).incident_type))
+                    : incident.subtype
+                      ? String(t(`incidents.incidentTypes.${incident.subtype}`, incident.subtype))
+                      : String(t('incidents.eventCategories.incident', 'Incident'))
+                }
               />
             )}
             {incident.subtype && (
