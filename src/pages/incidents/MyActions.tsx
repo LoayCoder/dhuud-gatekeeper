@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,13 +17,16 @@ import { useMyInspectionActions } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
 import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { formatDistanceToNow } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
 import { ActionVerificationDialog } from '@/components/investigation/ActionVerificationDialog';
 import { SeverityApprovalCard } from '@/components/investigation/SeverityApprovalCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard, ActionWorkflowTimeline } from '@/components/actions';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 const getStatusIcon = (status: string | null) => {
   switch (status) {
@@ -67,6 +70,8 @@ export default function MyActions() {
   const uploadEvidence = useUploadActionEvidence();
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   
   // Action progress dialog states
   const [actionDialogAction, setActionDialogAction] = useState<ActionForDialog | null>(null);
@@ -188,11 +193,75 @@ export default function MyActions() {
   // Include null assignment_status for unassigned statements
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress' || w.assignment_status === null) || [];
 
+  // Calculate overdue actions (past due date, not closed)
+  const today = new Date().toISOString().split('T')[0];
+  const overdueActions = allActions?.filter(a => 
+    a.due_date && 
+    a.due_date < today &&
+    a.status !== 'completed' && 
+    a.status !== 'verified' && 
+    a.status !== 'closed'
+  ) || [];
+
+  // Filter actions based on active filter
+  const getFilteredActions = () => {
+    if (!activeFilter) return allActions;
+    
+    switch (activeFilter) {
+      case 'overdue':
+        return overdueActions;
+      case 'pending':
+        return pendingActions;
+      case 'in_progress':
+        return inProgressActions;
+      case 'awaiting_verification':
+        return awaitingVerificationActions;
+      case 'closed':
+        return closedActions;
+      default:
+        return allActions;
+    }
+  };
+
+  const displayedActions = getFilteredActions();
+
   const totalExtensions = pendingExtensions?.length || 0;
   const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
   const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions + contractorApprovalCount;
 
   const isLoading = actionsLoading || inspectionActionsLoading || witnessLoading;
+
+  // Real-time subscription for corrective_actions changes
+  useEffect(() => {
+    if (!profile?.tenant_id) return;
+
+    const channel = supabase
+      .channel('my-actions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'corrective_actions',
+        },
+        (payload) => {
+          console.log('Action changed:', payload);
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['my-corrective-actions'] });
+          queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.tenant_id, queryClient]);
+
+  // Toggle filter - clicking same filter clears it
+  const handleFilterClick = (filter: string) => {
+    setActiveFilter(activeFilter === filter ? null : filter);
+  };
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
@@ -204,8 +273,35 @@ export default function MyActions() {
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${canAccessApprovals ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
-        <Card>
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+        {/* Overdue Card - Red styling for urgency */}
+        {overdueActions.length > 0 && (
+          <Card 
+            className={cn(
+              "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 cursor-pointer hover:shadow-md transition-shadow",
+              activeFilter === 'overdue' && "ring-2 ring-red-500"
+            )}
+            onClick={() => handleFilterClick('overdue')}
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                {t('investigation.overdueActions', 'Overdue')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{overdueActions.length}</div>
+            </CardContent>
+          </Card>
+        )}
+        
+        <Card 
+          className={cn(
+            "cursor-pointer hover:shadow-md transition-shadow",
+            activeFilter === 'pending' && "ring-2 ring-amber-500"
+          )}
+          onClick={() => handleFilterClick('pending')}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {t('investigation.pendingActions', 'Pending Actions')}
@@ -215,7 +311,13 @@ export default function MyActions() {
             <div className="text-2xl font-bold text-amber-500">{pendingActions.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer hover:shadow-md transition-shadow",
+            activeFilter === 'in_progress' && "ring-2 ring-blue-500"
+          )}
+          onClick={() => handleFilterClick('in_progress')}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {t('investigation.inProgressActions', 'In Progress')}
@@ -225,7 +327,13 @@ export default function MyActions() {
             <div className="text-2xl font-bold text-blue-500">{inProgressActions.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer hover:shadow-md transition-shadow",
+            activeFilter === 'awaiting_verification' && "ring-2 ring-orange-500"
+          )}
+          onClick={() => handleFilterClick('awaiting_verification')}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {t('investigation.awaitingVerification', 'Awaiting Verification')}
@@ -235,7 +343,13 @@ export default function MyActions() {
             <div className="text-2xl font-bold text-orange-500">{awaitingVerificationActions.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer hover:shadow-md transition-shadow",
+            activeFilter === 'closed' && "ring-2 ring-green-500"
+          )}
+          onClick={() => handleFilterClick('closed')}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {t('investigation.closedActions', 'Closed')}
@@ -270,6 +384,31 @@ export default function MyActions() {
           </Card>
         )}
       </div>
+
+      {/* Active Filter Indicator */}
+      {activeFilter && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <span className="text-sm text-muted-foreground">
+            {t('investigation.filteringBy', 'Filtering by')}: 
+            <span className="font-medium text-foreground ms-1">
+              {activeFilter === 'overdue' && t('investigation.overdueActions', 'Overdue')}
+              {activeFilter === 'pending' && t('investigation.pendingActions', 'Pending')}
+              {activeFilter === 'in_progress' && t('investigation.inProgressActions', 'In Progress')}
+              {activeFilter === 'awaiting_verification' && t('investigation.awaitingVerification', 'Awaiting Verification')}
+              {activeFilter === 'closed' && t('investigation.closedActions', 'Closed')}
+            </span>
+          </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setActiveFilter(null)}
+            className="h-6 px-2 gap-1"
+          >
+            <X className="h-3 w-3" />
+            {t('common.clear', 'Clear')}
+          </Button>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
         <TabsList>
@@ -309,9 +448,9 @@ export default function MyActions() {
                 </Card>
               ))}
             </div>
-          ) : allActions && allActions.length > 0 ? (
+          ) : displayedActions && displayedActions.length > 0 ? (
             <div className="space-y-4">
-              {allActions.map((action) => {
+              {displayedActions.map((action) => {
                 const isIncidentAction = action.source === 'incident';
                 const returnCount = isIncidentAction && 'return_count' in action ? (action.return_count || 0) : 0;
                 const lastReturnReason = isIncidentAction && 'last_return_reason' in action ? action.last_return_reason : null;
