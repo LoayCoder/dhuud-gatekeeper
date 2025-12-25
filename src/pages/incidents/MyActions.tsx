@@ -180,9 +180,13 @@ export default function MyActions() {
 
   const pendingActions = allActions?.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction') || [];
   const inProgressActions = allActions?.filter(a => a.status === 'in_progress') || [];
-  const completedActions = allActions?.filter(a => a.status === 'completed' || a.status === 'verified' || a.status === 'closed') || [];
+  // Actions awaiting verification (completed but not yet verified)
+  const awaitingVerificationActions = allActions?.filter(a => a.status === 'completed' || a.status === 'pending_verification') || [];
+  // Fully closed actions (verified & finalized)
+  const closedActions = allActions?.filter(a => a.status === 'closed' || a.status === 'verified') || [];
 
-  const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress') || [];
+  // Include null assignment_status for unassigned statements
+  const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress' || w.assignment_status === null) || [];
 
   const totalExtensions = pendingExtensions?.length || 0;
   const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
@@ -200,7 +204,7 @@ export default function MyActions() {
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${canAccessApprovals ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+      <div className={`grid gap-4 ${canAccessApprovals ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -224,11 +228,21 @@ export default function MyActions() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('investigation.completedActions', 'Completed')}
+              {t('investigation.awaitingVerification', 'Awaiting Verification')}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{completedActions.length}</div>
+            <div className="text-2xl font-bold text-orange-500">{awaitingVerificationActions.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {t('investigation.closedActions', 'Closed')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-500">{closedActions.length}</div>
           </CardContent>
         </Card>
         <Card>
