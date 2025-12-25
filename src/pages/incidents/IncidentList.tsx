@@ -159,16 +159,16 @@ export default function IncidentList() {
           <h1 className="text-3xl font-bold tracking-tight">{t('pages.hsseEvents.title')}</h1>
           <p className="text-muted-foreground">{t('pages.hsseEvents.description')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           {hasHSSEAccess && (
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link to="/incidents/investigate" className="gap-2">
                 <Search className="h-4 w-4" />
                 {t('navigation.investigationWorkspace')}
               </Link>
             </Button>
           )}
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link to="/incidents/report" className="gap-2">
               <Plus className="h-4 w-4" />
               {t('incidents.reportIncident')}
