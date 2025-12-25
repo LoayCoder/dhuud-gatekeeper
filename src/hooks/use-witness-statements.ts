@@ -25,6 +25,13 @@ export interface WitnessStatement {
   created_by: string | null;
   created_at: string | null;
   deleted_at: string | null;
+  // New return flow columns
+  return_reason: string | null;
+  return_count: number;
+  returned_by: string | null;
+  returned_at: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
 }
 
 export function useWitnessStatements(incidentId: string | null) {
@@ -35,7 +42,7 @@ export function useWitnessStatements(incidentId: string | null) {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at")
+        .select("id, incident_id, tenant_id, witness_name, witness_contact, relationship, statement_text, statement_type, audio_url, original_transcription, transcription_edited, transcription_approved, ai_analysis, assigned_witness_id, assignment_status, created_by, created_at, deleted_at, return_reason, return_count, returned_by, returned_at, reviewed_by, reviewed_at")
         .eq("incident_id", incidentId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -62,6 +69,12 @@ export function useWitnessStatements(incidentId: string | null) {
         created_by: row.created_by,
         created_at: row.created_at,
         deleted_at: row.deleted_at,
+        return_reason: row.return_reason,
+        return_count: row.return_count || 0,
+        returned_by: row.returned_by,
+        returned_at: row.returned_at,
+        reviewed_by: row.reviewed_by,
+        reviewed_at: row.reviewed_at,
       })) as WitnessStatement[];
     },
     enabled: !!incidentId,
@@ -192,7 +205,7 @@ export function useMyAssignedWitnessStatements() {
 
       const { data, error } = await supabase
         .from("witness_statements")
-        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, created_at")
+        .select("id, incident_id, witness_name, witness_contact, statement_text, statement_type, assignment_status, created_at, return_reason, return_count, returned_at")
         .eq("assigned_witness_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
@@ -208,9 +221,111 @@ export function useMyAssignedWitnessStatements() {
         statement_type: row.statement_type,
         assignment_status: row.assignment_status,
         created_at: row.created_at,
+        return_reason: row.return_reason,
+        return_count: row.return_count || 0,
+        returned_at: row.returned_at,
       }));
     },
     enabled: !!user?.id,
+  });
+}
+
+// Hook for reviewing (approving/returning) witness statements
+export function useReviewWitnessStatement() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      action: "approve" | "return";
+      returnReason?: string;
+    }) => {
+      const { id, action, returnReason } = input;
+
+      if (action === "approve") {
+        const { data, error } = await supabase
+          .from("witness_statements")
+          .update({
+            assignment_status: "approved",
+            reviewed_by: user?.id,
+            reviewed_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+          .select("id, incident_id, assigned_witness_id")
+          .single();
+
+        if (error) throw error;
+        return { ...data, action: "approve" };
+      } else {
+        // Return for correction - increment return_count
+        const { data: current } = await supabase
+          .from("witness_statements")
+          .select("return_count")
+          .eq("id", id)
+          .single();
+
+        const newReturnCount = (current?.return_count || 0) + 1;
+
+        const { data, error } = await supabase
+          .from("witness_statements")
+          .update({
+            assignment_status: "pending",
+            return_reason: returnReason,
+            return_count: newReturnCount,
+            returned_by: user?.id,
+            returned_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+          .select("id, incident_id, assigned_witness_id")
+          .single();
+
+        if (error) throw error;
+        return { ...data, action: "return", returnReason, returnCount: newReturnCount };
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["witness-statements", data.incident_id] });
+      queryClient.invalidateQueries({ queryKey: ["my-witness-tasks"] });
+      
+      if (data.action === "approve") {
+        toast.success("Statement approved successfully");
+      } else {
+        toast.success("Statement returned for corrections");
+      }
+    },
+    onError: (error) => {
+      console.error("Error reviewing witness statement:", error);
+      toast.error("Failed to process statement review");
+    },
+  });
+}
+
+// Hook for starting work on a witness statement (pending -> in_progress)
+export function useStartWitnessWork() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (statementId: string) => {
+      const { data, error } = await supabase
+        .from("witness_statements")
+        .update({ assignment_status: "in_progress" })
+        .eq("id", statementId)
+        .select("id, incident_id")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["witness-statements", data.incident_id] });
+      queryClient.invalidateQueries({ queryKey: ["my-witness-tasks"] });
+      toast.success("Work started on statement");
+    },
+    onError: (error) => {
+      console.error("Error starting witness work:", error);
+      toast.error("Failed to start work");
+    },
   });
 }
 

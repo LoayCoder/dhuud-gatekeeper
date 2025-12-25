@@ -5,18 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown, Printer, ChevronRight, Lock } from "lucide-react";
+import { Loader2, User, Phone, MessageSquare, Mic, Edit, Upload, FileDown, ChevronRight, Lock, CheckCircle, RotateCcw, Eye } from "lucide-react";
 import { format } from "date-fns";
-import { useWitnessStatements, WitnessStatement } from "@/hooks/use-witness-statements";
+import { useWitnessStatements, useReviewWitnessStatement, WitnessStatement } from "@/hooks/use-witness-statements";
 import { WitnessDocumentUpload } from "./WitnessDocumentUpload";
 import { WitnessDirectEntry } from "./WitnessDirectEntry";
 import { WitnessVoiceRecording } from "./WitnessVoiceRecording";
 import { WitnessTaskAssignment } from "./WitnessTaskAssignment";
 import { WitnessDetailDialog } from "./WitnessDetailDialog";
+import { WitnessReviewDialog } from "./WitnessReviewDialog";
 import { generateWitnessWordDoc, WitnessFormData } from "@/lib/generate-witness-word-doc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDocumentBranding } from "@/hooks/use-document-branding";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WitnessPanelProps {
   incidentId: string;
@@ -50,20 +54,45 @@ const getStatementTypeBadgeVariant = (type: StatementType): "secondary" | "defau
   }
 };
 
+const getStatusBadge = (status: string | null, t: (key: string, fallback: string) => string) => {
+  switch (status) {
+    case 'pending':
+      return <Badge variant="outline" className="border-amber-500 text-amber-600">{t("investigation.witnesses.status.pending", "Pending")}</Badge>;
+    case 'in_progress':
+      return <Badge variant="outline" className="border-blue-500 text-blue-600">{t("investigation.witnesses.status.in_progress", "In Progress")}</Badge>;
+    case 'completed':
+      return <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">{t("investigation.witnesses.status.completed", "Awaiting Review")}</Badge>;
+    case 'approved':
+      return <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t("investigation.witnesses.status.approved", "Approved")}</Badge>;
+    default:
+      return null;
+  }
+};
+
 export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: canEditProp }: WitnessPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const { tenantName } = useTheme();
   const { settings: documentSettings } = useDocumentBranding();
+  const { hasRole } = useUserRoles();
   const [activeTab, setActiveTab] = useState<string>("list");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedStatement, setSelectedStatement] = useState<WitnessStatement | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [statementForReview, setStatementForReview] = useState<WitnessStatement | null>(null);
 
   const { statements, isLoading, refetch } = useWitnessStatements(incidentId);
+  const reviewStatement = useReviewWitnessStatement();
+  
+  // Check if user can review statements (HSSE Expert, HSSE Manager, Environmental)
+  const canReviewStatements = hasRole('hsse_expert') || hasRole('hsse_manager') || hasRole('environmental') || hasRole('admin');
   
   // Read-only mode when incident is closed OR canEdit prop is explicitly false
   const isLocked = incidentStatus === 'closed' || canEditProp === false;
+
+  // Count statements awaiting review
+  const awaitingReviewCount = statements.filter(s => s.assignment_status === 'completed').length;
 
   const handleStatementAdded = () => {
     refetch();
@@ -103,6 +132,40 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
     setShowDetailDialog(true);
   };
 
+  const handleReviewClick = (e: React.MouseEvent, statement: WitnessStatement) => {
+    e.stopPropagation();
+    setStatementForReview(statement);
+    setShowReviewDialog(true);
+  };
+
+  const handleApproveStatement = async (statementId: string) => {
+    await reviewStatement.mutateAsync({ id: statementId, action: "approve" });
+  };
+
+  const handleReturnStatement = async (statementId: string, returnReason: string) => {
+    const statement = statements.find(s => s.id === statementId);
+    await reviewStatement.mutateAsync({ id: statementId, action: "return", returnReason });
+    
+    // Send notification email to witness
+    if (statement?.assigned_witness_id) {
+      try {
+        await supabase.functions.invoke('send-action-email', {
+          body: {
+            type: 'witness_statement_returned',
+            recipient_id: statement.assigned_witness_id,
+            incident_reference: incident?.reference_id,
+            incident_title: incident?.title,
+            return_reason: returnReason,
+            return_count: (statement.return_count || 0) + 1,
+            tenant_name: tenantName,
+          }
+        });
+      } catch (error) {
+        console.error('Failed to send return notification:', error);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -134,9 +197,16 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="text-lg font-medium">
-          {t('investigation.witnesses.title', 'Witness Statements')}
-        </h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-medium">
+            {t('investigation.witnesses.title', 'Witness Statements')}
+          </h3>
+          {awaitingReviewCount > 0 && canReviewStatements && (
+            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+              {awaitingReviewCount} {t('investigation.witnesses.awaitingReview', 'awaiting review')}
+            </Badge>
+          )}
+        </div>
         {!isLocked && (
           <div className="flex items-center gap-2">
             <Button
@@ -199,7 +269,10 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
               {statements.map((witness) => (
                 <Card 
                   key={witness.id} 
-                  className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
+                  className={cn(
+                    "cursor-pointer hover:border-primary/50 transition-colors overflow-hidden",
+                    witness.assignment_status === 'completed' && canReviewStatements && "border-orange-300 dark:border-orange-700"
+                  )}
                   onClick={() => handleStatementClick(witness)}
                 >
                   <CardHeader className="pb-2">
@@ -215,9 +288,11 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                             {t(`investigation.witnesses.type.${witness.statement_type}`, witness.statement_type)}
                           </span>
                         </Badge>
-                        {witness.assignment_status && (
-                          <Badge variant="outline">
-                            {t(`investigation.witnesses.status.${witness.assignment_status}`, witness.assignment_status)}
+                        {getStatusBadge(witness.assignment_status, t)}
+                        {witness.return_count > 0 && (
+                          <Badge variant="destructive" className="gap-1">
+                            <RotateCcw className="h-3 w-3" />
+                            {witness.return_count}x
                           </Badge>
                         )}
                         <span className="text-sm text-muted-foreground">
@@ -245,6 +320,18 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                       <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
                       <p className="text-sm whitespace-pre-wrap line-clamp-3 break-words">{witness.statement}</p>
                     </div>
+                    
+                    {/* Return reason banner */}
+                    {witness.return_reason && witness.assignment_status === 'pending' && (
+                      <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                        <div className="flex items-center gap-2 text-destructive font-medium text-sm mb-1">
+                          <RotateCcw className="h-4 w-4" />
+                          {t('investigation.witnesses.returnedForCorrection', 'Returned for Correction')}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{witness.return_reason}</p>
+                      </div>
+                    )}
+                    
                     {witness.ai_analysis && (
                       <div className="mt-3 p-3 bg-muted/50 rounded-md">
                         <p className="text-xs font-medium text-muted-foreground mb-1">
@@ -252,6 +339,33 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
                         </p>
                         {(witness.ai_analysis as Record<string, unknown>).summary && (
                           <p className="text-sm line-clamp-2">{String((witness.ai_analysis as Record<string, unknown>).summary)}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Review button for completed statements */}
+                    {witness.assignment_status === 'completed' && canReviewStatements && !isLocked && (
+                      <div className="mt-3 flex justify-end">
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => handleReviewClick(e, witness)}
+                          className="gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          {t('investigation.witnesses.reviewStatement', 'Review Statement')}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Approved indicator */}
+                    {witness.assignment_status === 'approved' && (
+                      <div className="mt-3 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
+                        <CheckCircle className="h-4 w-4" />
+                        {t('investigation.witnesses.statementApproved', 'Statement approved')}
+                        {witness.reviewed_at && (
+                          <span className="text-muted-foreground">
+                            • {format(new Date(witness.reviewed_at), 'MMM d, yyyy')}
+                          </span>
                         )}
                       </div>
                     )}
@@ -293,6 +407,15 @@ export function WitnessPanel({ incidentId, incident, incidentStatus, canEdit: ca
         onOpenChange={setShowDetailDialog}
         statement={selectedStatement}
         incident={incident}
+      />
+
+      <WitnessReviewDialog
+        open={showReviewDialog}
+        onOpenChange={setShowReviewDialog}
+        statement={statementForReview}
+        onApprove={handleApproveStatement}
+        onReturn={handleReturnStatement}
+        isProcessing={reviewStatement.isPending}
       />
     </div>
   );
