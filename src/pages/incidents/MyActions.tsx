@@ -194,14 +194,42 @@ export default function MyActions() {
   const pendingWitness = witnessStatements?.filter(w => w.assignment_status === 'pending' || w.assignment_status === 'in_progress' || w.assignment_status === null) || [];
 
   // Calculate overdue actions (past due date, not closed)
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split('T')[0];
+  
   const overdueActions = allActions?.filter(a => 
     a.due_date && 
-    a.due_date < today &&
+    a.due_date < todayStr &&
     a.status !== 'completed' && 
     a.status !== 'verified' && 
     a.status !== 'closed'
   ) || [];
+
+  // Calculate soon overdue actions (due within 7 days, not yet overdue)
+  const soonOverdueThreshold = 7;
+  const soonOverdueActions = allActions?.filter(a => {
+    if (!a.due_date || a.status === 'completed' || a.status === 'verified' || a.status === 'closed') return false;
+    const dueDate = new Date(a.due_date);
+    dueDate.setHours(0, 0, 0, 0);
+    const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysRemaining > 0 && daysRemaining <= soonOverdueThreshold;
+  }) || [];
+
+  // Helper function to calculate days info for an action
+  const getDaysInfo = (dueDate: string | null) => {
+    if (!dueDate) return null;
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return {
+      days: Math.abs(diffDays),
+      isOverdue: diffDays < 0,
+      isDueToday: diffDays === 0,
+      isDueSoon: diffDays > 0 && diffDays <= soonOverdueThreshold
+    };
+  };
 
   // Filter actions based on active filter
   const getFilteredActions = () => {
@@ -210,6 +238,8 @@ export default function MyActions() {
     switch (activeFilter) {
       case 'overdue':
         return overdueActions;
+      case 'soon_overdue':
+        return soonOverdueActions;
       case 'pending':
         return pendingActions;
       case 'in_progress':
@@ -273,27 +303,46 @@ export default function MyActions() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-        {/* Overdue Card - Red styling for urgency */}
-        {overdueActions.length > 0 && (
-          <Card 
-            className={cn(
-              "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 cursor-pointer hover:shadow-md transition-shadow",
-              activeFilter === 'overdue' && "ring-2 ring-red-500"
-            )}
-            onClick={() => handleFilterClick('overdue')}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                {t('investigation.overdueActions', 'Overdue')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{overdueActions.length}</div>
-            </CardContent>
-          </Card>
-        )}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
+        {/* Overdue Card - Always visible, Red styling for urgency */}
+        <Card 
+          className={cn(
+            "border-red-200 dark:border-red-900 cursor-pointer hover:shadow-md transition-shadow",
+            overdueActions.length > 0 && "bg-red-50/50 dark:bg-red-950/20",
+            activeFilter === 'overdue' && "ring-2 ring-red-500"
+          )}
+          onClick={() => handleFilterClick('overdue')}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {t('investigation.overdueActions', 'Overdue')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={cn("text-2xl font-bold", overdueActions.length > 0 ? "text-red-600" : "text-muted-foreground")}>{overdueActions.length}</div>
+          </CardContent>
+        </Card>
+
+        {/* Soon Overdue Card - Yellow/amber for warning */}
+        <Card 
+          className={cn(
+            "border-yellow-200 dark:border-yellow-900 cursor-pointer hover:shadow-md transition-shadow",
+            soonOverdueActions.length > 0 && "bg-yellow-50/50 dark:bg-yellow-950/20",
+            activeFilter === 'soon_overdue' && "ring-2 ring-yellow-500"
+          )}
+          onClick={() => handleFilterClick('soon_overdue')}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              {t('actions.dueSoon', 'Due Soon')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={cn("text-2xl font-bold", soonOverdueActions.length > 0 ? "text-yellow-600" : "text-muted-foreground")}>{soonOverdueActions.length}</div>
+          </CardContent>
+        </Card>
         
         <Card 
           className={cn(
@@ -392,13 +441,14 @@ export default function MyActions() {
             {t('investigation.filteringBy', 'Filtering by')}: 
             <span className="font-medium text-foreground ms-1">
               {activeFilter === 'overdue' && t('investigation.overdueActions', 'Overdue')}
+              {activeFilter === 'soon_overdue' && t('actions.dueSoon', 'Due Soon')}
               {activeFilter === 'pending' && t('investigation.pendingActions', 'Pending')}
               {activeFilter === 'in_progress' && t('investigation.inProgressActions', 'In Progress')}
               {activeFilter === 'awaiting_verification' && t('investigation.awaitingVerification', 'Awaiting Verification')}
               {activeFilter === 'closed' && t('investigation.closedActions', 'Closed')}
             </span>
           </span>
-          <Button 
+          <Button
             variant="ghost" 
             size="sm" 
             onClick={() => setActiveFilter(null)}
@@ -504,10 +554,40 @@ export default function MyActions() {
                     
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       {action.due_date && (
-                        <div>
-                          <span className="font-medium">{t('investigation.dueDate', 'Due Date')}:</span>{' '}
-                          {new Date(action.due_date).toLocaleDateString()}
-                        </div>
+                        <>
+                          <div>
+                            <span className="font-medium">{t('investigation.dueDate', 'Due Date')}:</span>{' '}
+                            {new Date(action.due_date).toLocaleDateString()}
+                          </div>
+                          {/* Days remaining/overdue indicator */}
+                          {(() => {
+                            const daysInfo = getDaysInfo(action.due_date);
+                            if (!daysInfo) return null;
+                            // Don't show for closed/verified actions
+                            if (action.status === 'closed' || action.status === 'verified') return null;
+                            
+                            return (
+                              <Badge 
+                                variant="outline"
+                                className={cn(
+                                  "font-medium",
+                                  daysInfo.isOverdue && "bg-red-100 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
+                                  daysInfo.isDueToday && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
+                                  daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800",
+                                  !daysInfo.isOverdue && !daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-green-100 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
+                                )}
+                              >
+                                {daysInfo.isDueToday ? (
+                                  <>{t('actions.dueToday', 'Due Today')}</>
+                                ) : daysInfo.isOverdue ? (
+                                  <>{t('assets.dashboard.daysOverdue', '{{count}} days overdue', { count: daysInfo.days })}</>
+                                ) : (
+                                  <>{t('actions.daysRemaining', '{{days}} days remaining', { days: daysInfo.days })}</>
+                                )}
+                              </Badge>
+                            );
+                          })()}
+                        </>
                       )}
                       {action.created_at && (
                         <div>

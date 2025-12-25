@@ -1521,7 +1521,10 @@
       "inProgress": "Isinasagawa",
       "pendingVerification": "Naghihintay ng Beripikasyon",
       "closed": "Sarado"
-    }
+    },
+    "dueSoon": "Malapit na ang Due",
+    "daysRemaining": "{{days}} araw na natitira",
+    "dueToday": "Due Ngayon"
   },
   "inspectionSessions": {
     "title": "Mga Inspection Session",

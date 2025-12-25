@@ -1527,7 +1527,10 @@
       "inProgress": "جاری",
       "pendingVerification": "تصدیق کے منتظر",
       "closed": "بند"
-    }
+    },
+    "dueSoon": "جلد واجب الادا",
+    "daysRemaining": "{{days}} دن باقی",
+    "dueToday": "آج واجب الادا"
   },
   "inspectionSessions": {
     "title": "معائنہ سیشنز",
