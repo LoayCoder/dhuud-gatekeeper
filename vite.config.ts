@@ -35,14 +35,15 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Force single React instance
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@tanstack/react-query'],
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@tanstack/react-query'],
-    esbuildOptions: {
-      target: 'esnext',
-    },
+    force: true,
   },
   build: {
     rollupOptions: {
