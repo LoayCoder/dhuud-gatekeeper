@@ -1515,7 +1515,13 @@
     "filesToUpload": "Mga File na Ia-upload",
     "statusWillChange": "Magbabago ang status sa:",
     "confirmAndSubmit": "Kumpirmahin at Isumite",
-    "proceedToConfirm": "Magpatuloy"
+    "proceedToConfirm": "Magpatuloy",
+    "timeline": {
+      "assigned": "Nakatalaga",
+      "inProgress": "Isinasagawa",
+      "pendingVerification": "Naghihintay ng Beripikasyon",
+      "closed": "Sarado"
+    }
   },
   "inspectionSessions": {
     "title": "Mga Inspection Session",

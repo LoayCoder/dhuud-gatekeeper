@@ -1460,7 +1460,13 @@
     "filesToUpload": "Files to Upload",
     "statusWillChange": "Status will change to:",
     "confirmAndSubmit": "Confirm & Submit",
-    "proceedToConfirm": "Continue"
+    "proceedToConfirm": "Continue",
+    "timeline": {
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "pendingVerification": "Pending Verification",
+      "closed": "Closed"
+    }
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",

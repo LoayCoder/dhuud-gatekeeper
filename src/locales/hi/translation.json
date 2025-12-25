@@ -1521,7 +1521,13 @@
     "filesToUpload": "अपलोड करने के लिए फ़ाइलें",
     "statusWillChange": "स्थिति बदल जाएगी:",
     "confirmAndSubmit": "पुष्टि करें और जमा करें",
-    "proceedToConfirm": "जारी रखें"
+    "proceedToConfirm": "जारी रखें",
+    "timeline": {
+      "assigned": "सौंपा गया",
+      "inProgress": "प्रगति में",
+      "pendingVerification": "सत्यापन लंबित",
+      "closed": "बंद"
+    }
   },
   "inspectionSessions": {
     "title": "निरीक्षण सत्र",

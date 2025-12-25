@@ -1521,7 +1521,13 @@
     "filesToUpload": "اپ لوڈ کرنے کے لیے فائلیں",
     "statusWillChange": "حیثیت تبدیل ہو جائے گی:",
     "confirmAndSubmit": "تصدیق کریں اور جمع کرائیں",
-    "proceedToConfirm": "جاری رکھیں"
+    "proceedToConfirm": "جاری رکھیں",
+    "timeline": {
+      "assigned": "تفویض شدہ",
+      "inProgress": "جاری",
+      "pendingVerification": "تصدیق کے منتظر",
+      "closed": "بند"
+    }
   },
   "inspectionSessions": {
     "title": "معائنہ سیشنز",
