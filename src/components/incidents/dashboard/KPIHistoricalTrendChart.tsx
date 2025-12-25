@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { format, parseISO } from "date-fns";
@@ -103,7 +103,7 @@ export function KPIHistoricalTrendChart({ data, isLoading }: KPIHistoricalTrendC
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={formattedData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <BarChart data={formattedData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis 
                 dataKey="monthLabel" 
@@ -118,50 +118,38 @@ export function KPIHistoricalTrendChart({ data, isLoading }: KPIHistoricalTrendC
               <ChartTooltip content={<ChartTooltipContent />} />
               
               {visibleMetrics.has('trir') && (
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="trir"
                   name="TRIR"
-                  stroke={chartConfig.trir.color}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
+                  fill={chartConfig.trir.color}
+                  radius={[4, 4, 0, 0]}
                 />
               )}
               {visibleMetrics.has('ltifr') && (
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="ltifr"
                   name="LTIFR"
-                  stroke={chartConfig.ltifr.color}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
+                  fill={chartConfig.ltifr.color}
+                  radius={[4, 4, 0, 0]}
                 />
               )}
               {visibleMetrics.has('dart') && (
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="dart"
                   name="DART"
-                  stroke={chartConfig.dart.color}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
+                  fill={chartConfig.dart.color}
+                  radius={[4, 4, 0, 0]}
                 />
               )}
               {visibleMetrics.has('severity_rate') && (
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="severity_rate"
                   name="Severity Rate"
-                  stroke={chartConfig.severity_rate.color}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
+                  fill={chartConfig.severity_rate.color}
+                  radius={[4, 4, 0, 0]}
                 />
               )}
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

@@ -12646,11 +12646,9 @@ export type Database = {
           p_start_date?: string
         }
         Returns: {
-          action_closure_pct: number
           dart: number
           ltifr: number
           month: string
-          near_miss_rate: number
           severity_rate: number
           total_incidents: number
           total_manhours: number
