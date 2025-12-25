@@ -629,9 +629,25 @@
       },
       "status": {
         "pending": "Nakabinbin",
+        "in_progress": "Isinasagawa",
         "submitted": "Isinumite",
-        "approved": "Naaprubahan"
-      }
+        "completed": "Nakumpleto",
+        "awaitingReview": "Naghihintay ng Pagsusuri",
+        "approved": "Naaprubahan",
+        "returned": "Ibinalik para sa Pagwawasto"
+      },
+      "reviewStatement": "Suriin ang Pahayag ng Saksi",
+      "reviewDescription": "Suriin at aprubahan o ibalik ang pahayag ng saksi para sa mga pagwawasto.",
+      "approveStatement": "Aprubahan ang Pahayag",
+      "returnForCorrection": "Ibalik para sa Pagwawasto",
+      "confirmReturn": "Kumpirmahin ang Pagbabalik",
+      "returnReason": "Dahilan ng Pagbabalik",
+      "returnReasonPlaceholder": "Ipaliwanag kung ano ang kailangang iwasto...",
+      "statementApproved": "Matagumpay na naaprubahan ang pahayag",
+      "statementReturned": "Ibinalik ang pahayag para sa pagwawasto",
+      "returnedCount": "Ibinalik {{count}}x",
+      "resubmitStatement": "Muling Isumite ang Pahayag",
+      "submittedAt": "Isinumite"
     },
     "rca": {
       "title": "Root Cause Analysis",

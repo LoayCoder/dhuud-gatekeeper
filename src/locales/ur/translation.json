@@ -635,9 +635,25 @@
       },
       "status": {
         "pending": "زیر التواء",
+        "in_progress": "جاری",
         "submitted": "جمع کرایا گیا",
-        "approved": "منظور شدہ"
-      }
+        "completed": "مکمل",
+        "awaitingReview": "جائزے کے انتظار میں",
+        "approved": "منظور شدہ",
+        "returned": "تصحیح کے لیے واپس"
+      },
+      "reviewStatement": "گواہ کے بیان کا جائزہ",
+      "reviewDescription": "اس گواہ کے بیان کا جائزہ لیں اور منظور کریں یا تصحیحات کے لیے واپس کریں۔",
+      "approveStatement": "بیان منظور کریں",
+      "returnForCorrection": "تصحیح کے لیے واپس کریں",
+      "confirmReturn": "واپسی کی تصدیق",
+      "returnReason": "واپسی کی وجہ",
+      "returnReasonPlaceholder": "وضاحت کریں کہ کیا درست کرنا ہے...",
+      "statementApproved": "بیان کامیابی سے منظور ہو گیا",
+      "statementReturned": "بیان تصحیح کے لیے واپس کیا گیا",
+      "returnedCount": "{{count}} بار واپس",
+      "resubmitStatement": "بیان دوبارہ جمع کرائیں",
+      "submittedAt": "جمع کرایا گیا"
     },
     "rca": {
       "title": "بنیادی وجہ کا تجزیہ",

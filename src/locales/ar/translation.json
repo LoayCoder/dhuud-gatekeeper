@@ -683,9 +683,25 @@
       },
       "status": {
         "pending": "معلق",
+        "in_progress": "قيد التنفيذ",
         "submitted": "مقدم",
-        "approved": "معتمد"
-      }
+        "completed": "مكتمل",
+        "awaitingReview": "في انتظار المراجعة",
+        "approved": "معتمد",
+        "returned": "مُرجع للتصحيح"
+      },
+      "reviewStatement": "مراجعة إفادة الشاهد",
+      "reviewDescription": "راجع واعتمد أو أرجع إفادة الشاهد للتصحيحات.",
+      "approveStatement": "اعتماد الإفادة",
+      "returnForCorrection": "إرجاع للتصحيح",
+      "confirmReturn": "تأكيد الإرجاع",
+      "returnReason": "سبب الإرجاع",
+      "returnReasonPlaceholder": "اشرح ما يحتاج إلى تصحيح...",
+      "statementApproved": "تم اعتماد الإفادة بنجاح",
+      "statementReturned": "تم إرجاع الإفادة للتصحيح",
+      "returnedCount": "مُرجع {{count}} مرات",
+      "resubmitStatement": "إعادة تقديم الإفادة",
+      "submittedAt": "تم التقديم"
     },
     "rca": {
       "title": "تحليل السبب الجذري",

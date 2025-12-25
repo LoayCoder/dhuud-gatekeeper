@@ -35,6 +35,7 @@ interface ActionEmailRequest {
   relationship?: string;
   assignment_instructions?: string;
   tenant_name?: string;
+  return_reason?: string;
 }
 
 function getPriorityColor(priority: string): string {
@@ -53,6 +54,7 @@ function getEmailModule(type: string): EmailModule {
     case 'action_closed':
       return 'action_sla';
     case 'witness_request_created':
+    case 'witness_statement_returned':
       return 'investigation';
     default:
       return 'action_assigned';
@@ -306,6 +308,75 @@ function buildActionClosedEmail(data: ActionEmailRequest, lang: string): { subje
   };
 }
 
+function buildWitnessStatementReturnedEmail(data: ActionEmailRequest, lang: string): { subject: string; html: string } {
+  const t = getTranslations(ACTION_TRANSLATIONS, lang).witness_statement_returned;
+  const common = getCommonTranslations(lang);
+  const rtl = isRTL(lang as SupportedLanguage);
+  const appUrl = getAppUrl();
+  
+  const subject = replaceVariables(t.subject, { reference: data.incident_reference || 'HSSE Event' });
+  const returnCountText = (data.return_count || 1) > 1 
+    ? replaceVariables(t.returnCount, { count: String(data.return_count) })
+    : '';
+    
+  const content = `
+    <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ ${t.heading}</h1>
+    </div>
+    
+    <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+      <p style="font-size: 16px;">${replaceVariables(common.greeting, { name: data.recipient_name || data.witness_name || 'Team Member' })}</p>
+      
+      <p>${t.body}</p>
+      
+      <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-${rtl ? 'right' : 'left'}: 4px solid #dc2626;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; width: 140px;">${common.relatedIncident}:</td>
+            <td style="padding: 8px 0; font-weight: bold;">${data.incident_reference || 'N/A'}</td>
+          </tr>
+          ${data.incident_title ? `
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">${common.description}:</td>
+            <td style="padding: 8px 0;">${data.incident_title}</td>
+          </tr>
+          ` : ''}
+          ${data.return_count && data.return_count > 1 ? `
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">Return Count:</td>
+            <td style="padding: 8px 0;">
+              <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 4px; font-size: 12px;">
+                ${data.return_count}x
+              </span>
+            </td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+      
+      ${data.return_reason ? `
+        <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #fecaca;">
+          <p style="color: #991b1b; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">📝 ${t.returnReason}:</p>
+          <p style="margin: 0; color: #7f1d1d; font-style: italic;">"${data.return_reason}"</p>
+        </div>
+      ` : ''}
+      
+      ${returnCountText ? `
+        <p style="color: #dc2626; font-weight: 500; margin-top: 15px;">
+          ${returnCountText}
+        </p>
+      ` : ''}
+      
+      ${emailButton(t.button, `${appUrl}/my-actions`, "#dc2626", rtl)}
+    </div>
+  `;
+
+  return {
+    subject,
+    html: wrapEmailHtml(content, lang, data.tenant_name),
+  };
+}
+
 serve(async (req: Request) => {
   console.log("Action email function called");
   
@@ -341,6 +412,9 @@ serve(async (req: Request) => {
         break;
       case 'action_closed':
         emailContent = buildActionClosedEmail(data, lang);
+        break;
+      case 'witness_statement_returned':
+        emailContent = buildWitnessStatementReturnedEmail(data, lang);
         break;
       default:
         return new Response(

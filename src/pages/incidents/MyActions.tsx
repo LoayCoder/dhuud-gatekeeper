@@ -722,8 +722,10 @@ export default function MyActions() {
             </div>
           ) : witnessStatements && witnessStatements.length > 0 ? (
             <div className="space-y-4">
-              {witnessStatements.map((statement) => (
-                <Card key={statement.id} className="hover:shadow-md transition-shadow">
+              {witnessStatements.map((statement) => {
+                const isReturned = statement.return_count && statement.return_count > 0;
+                return (
+                <Card key={statement.id} className={cn("hover:shadow-md transition-shadow", isReturned && "border-destructive/50")}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-2">
@@ -732,15 +734,35 @@ export default function MyActions() {
                           {t('investigation.witnesses.statementRequest', 'Witness Statement Request')}
                         </CardTitle>
                       </div>
-                      <Badge variant={statement.assignment_status === 'pending' ? 'destructive' : 'secondary'}>
-                        {t(`investigation.witnesses.status.${statement.assignment_status}`, statement.assignment_status || 'pending')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {isReturned && (
+                          <Badge variant="destructive" className="gap-1">
+                            <RotateCcw className="h-3 w-3" />
+                            {t('investigation.witnesses.returnedCount', 'Returned {{count}}x', { count: statement.return_count })}
+                          </Badge>
+                        )}
+                        <Badge variant={statement.assignment_status === 'pending' ? (isReturned ? 'destructive' : 'secondary') : statement.assignment_status === 'approved' ? 'default' : 'secondary'}>
+                          {statement.assignment_status === 'completed' 
+                            ? t('investigation.witnesses.status.awaitingReview', 'Awaiting Review')
+                            : t(`investigation.witnesses.status.${statement.assignment_status}`, statement.assignment_status || 'pending')}
+                        </Badge>
+                      </div>
                     </div>
                     <CardDescription>
                       {t('investigation.witnesses.assignedToProvide', 'You have been assigned to provide a witness statement for an incident.')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Return reason banner */}
+                    {isReturned && statement.return_reason && (
+                      <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                        <p className="text-sm font-medium text-destructive mb-1">
+                          {t('investigation.witnesses.returnReason', 'Reason for Return')}:
+                        </p>
+                        <p className="text-sm text-destructive/80">{statement.return_reason}</p>
+                      </div>
+                    )}
+                    
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       {statement.created_at && (
                         <div>
@@ -752,7 +774,10 @@ export default function MyActions() {
                     
                     {statement.assignment_status !== 'completed' && statement.assignment_status !== 'approved' && (
                       <Button onClick={() => setSelectedWitnessTask({ id: statement.id, incident_id: statement.incident_id })}>
-                        {t('investigation.witnesses.provideStatement', 'Provide Statement')}
+                        {isReturned 
+                          ? t('investigation.witnesses.resubmitStatement', 'Resubmit Statement')
+                          : t('investigation.witnesses.provideStatement', 'Provide Statement')
+                        }
                       </Button>
                     )}
 
@@ -764,7 +789,7 @@ export default function MyActions() {
                     )}
                   </CardContent>
                 </Card>
-              ))}
+              )})}
             </div>
           ) : (
             <Card className="py-12">
