@@ -1734,6 +1734,14 @@ export default function IncidentReport() {
             </div>
           )}
 
+          {/* Photo Required Warning */}
+          {uploadedPhotos.length === 0 && (
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              <Camera className="h-4 w-4 shrink-0" />
+              {t('incidents.validation.photoRequired')}
+            </div>
+          )}
+
           {/* Navigation Buttons */}
           <div className="flex justify-between gap-4 pt-4 border-t">
             <Button
@@ -1759,7 +1767,7 @@ export default function IncidentReport() {
               <Button
                 type="button"
                 onClick={() => setShowConfirmation(true)}
-                disabled={createIncident.isPending || isUploading}
+                disabled={createIncident.isPending || isUploading || uploadedPhotos.length === 0}
                 className="min-w-[150px]"
               >
                 {(createIncident.isPending || isUploading) ? (

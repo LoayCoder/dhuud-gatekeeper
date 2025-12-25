@@ -174,7 +174,8 @@
       "descriptionMinLength": "Ang paglalarawan ay dapat may hindi bababa sa 20 karakter",
       "eventTypeRequired": "Kinakailangan ang uri ng pangyayari",
       "subtypeRequired": "Kinakailangan ang subtype",
-      "dateTimeRequired": "Kinakailangan ang petsa/oras"
+      "dateTimeRequired": "Kinakailangan ang petsa/oras",
+      "photoRequired": "Kailangan ng kahit isang larawan para makapag-submit"
     },
     "reportIncident": "Mag-ulat ng Insidente",
     "reportDescription": "Magsumite ng bagong ulat ng insidente sa kaligtasan",
