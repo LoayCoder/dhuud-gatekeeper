@@ -1137,7 +1137,7 @@
     "tryDifferent": "Try adjusting your search or filter criteria."
   },
   "filter": {
-    "allPriorities": "All Priorities"
+    "allPriorities": "All Priorities",
     "export": "Export",
     "import": "Import",
     "close": "Close",
