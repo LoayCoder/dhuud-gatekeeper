@@ -574,14 +574,14 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('quickObservation.selectRisk')}</FormLabel>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {RISK_LEVELS.map((level) => (
                         <Button
                           key={level.value}
                           type="button"
                           variant={field.value === level.value ? 'default' : 'outline'}
                           className={cn(
-                            "flex-1 transition-all",
+                            "w-full text-xs sm:text-sm transition-all",
                             field.value === level.value && level.color
                           )}
                           onClick={() => field.onChange(level.value)}
