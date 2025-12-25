@@ -1,4 +1,4 @@
-// App component - force rebuild
+// App component - force rebuild v2
 import { Suspense, lazy, useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -26,6 +26,7 @@ import { NotificationPermissionPrompt } from "./components/NotificationPermissio
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
 import { usePrefetchOnIdle } from "./hooks/use-prefetch";
 import { SplashScreen } from "./components/SplashScreen";
+import { lazyWithRetry } from "./lib/lazy-with-retry";
 
 // Critical path pages - loaded immediately
 import Dashboard from "./pages/Dashboard";
@@ -35,128 +36,128 @@ import InviteGatekeeper from "./pages/InviteGatekeeper";
 import NotFound from "./pages/NotFound";
 import Install from "./pages/Install";
 
-// Legal pages - lazy loaded
-const TermsOfService = lazy(() => import(/* webpackChunkName: "legal-terms" */ "./pages/legal/TermsOfService"));
-const PrivacyPolicy = lazy(() => import(/* webpackChunkName: "legal-privacy" */ "./pages/legal/PrivacyPolicy"));
-const CookiePolicy = lazy(() => import(/* webpackChunkName: "legal-cookies" */ "./pages/legal/CookiePolicy"));
-const AcceptableUsePolicy = lazy(() => import(/* webpackChunkName: "legal-aup" */ "./pages/legal/AcceptableUsePolicy"));
-const RefundPolicy = lazy(() => import(/* webpackChunkName: "legal-refund" */ "./pages/legal/RefundPolicy"));
-const DataProcessingAgreement = lazy(() => import(/* webpackChunkName: "legal-dpa" */ "./pages/legal/DataProcessingAgreement"));
-const ServiceLevelAgreement = lazy(() => import(/* webpackChunkName: "legal-sla" */ "./pages/legal/ServiceLevelAgreement"));
+// Legal pages - lazy loaded with retry
+const TermsOfService = lazyWithRetry(() => import("./pages/legal/TermsOfService"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/legal/PrivacyPolicy"));
+const CookiePolicy = lazyWithRetry(() => import("./pages/legal/CookiePolicy"));
+const AcceptableUsePolicy = lazyWithRetry(() => import("./pages/legal/AcceptableUsePolicy"));
+const RefundPolicy = lazyWithRetry(() => import("./pages/legal/RefundPolicy"));
+const DataProcessingAgreement = lazyWithRetry(() => import("./pages/legal/DataProcessingAgreement"));
+const ServiceLevelAgreement = lazyWithRetry(() => import("./pages/legal/ServiceLevelAgreement"));
 
-// Lazy loaded pages - loaded on demand with named chunks
-const Signup = lazy(() => import(/* webpackChunkName: "auth-signup" */ "./pages/Signup"));
-const ForgotPassword = lazy(() => import(/* webpackChunkName: "auth-forgot" */ "./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import(/* webpackChunkName: "auth-reset" */ "./pages/ResetPassword"));
-const Profile = lazy(() => import(/* webpackChunkName: "user-profile" */ "./pages/Profile"));
-const MFASetup = lazy(() => import(/* webpackChunkName: "auth-mfa" */ "./pages/MFASetup"));
-const Support = lazy(() => import(/* webpackChunkName: "user-support" */ "./pages/Support"));
+// Lazy loaded pages - loaded on demand with retry
+const Signup = lazyWithRetry(() => import("./pages/Signup"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const MFASetup = lazyWithRetry(() => import("./pages/MFASetup"));
+const Support = lazyWithRetry(() => import("./pages/Support"));
 
-// Incident pages - lazy loaded
-const IncidentList = lazy(() => import(/* webpackChunkName: "incidents-list" */ "./pages/incidents/IncidentList"));
-const IncidentReport = lazy(() => import(/* webpackChunkName: "incidents-report" */ "./pages/incidents/IncidentReport"));
-const IncidentDetail = lazy(() => import(/* webpackChunkName: "incidents-detail" */ "./pages/incidents/IncidentDetail"));
-const InvestigationWorkspace = lazy(() => import(/* webpackChunkName: "incidents-investigate" */ "./pages/incidents/InvestigationWorkspace"));
-const MyActions = lazy(() => import(/* webpackChunkName: "incidents-my-actions" */ "./pages/incidents/MyActions"));
-const HSSEEventDashboard = lazy(() => import(/* webpackChunkName: "incidents-dashboard" */ "./pages/incidents/HSSEEventDashboard"));
+// Incident pages - lazy loaded with retry
+const IncidentList = lazyWithRetry(() => import("./pages/incidents/IncidentList"));
+const IncidentReport = lazyWithRetry(() => import("./pages/incidents/IncidentReport"));
+const IncidentDetail = lazyWithRetry(() => import("./pages/incidents/IncidentDetail"));
+const InvestigationWorkspace = lazyWithRetry(() => import("./pages/incidents/InvestigationWorkspace"));
+const MyActions = lazyWithRetry(() => import("./pages/incidents/MyActions"));
+const HSSEEventDashboard = lazyWithRetry(() => import("./pages/incidents/HSSEEventDashboard"));
 
-// Asset pages - lazy loaded
-const AssetDashboard = lazy(() => import(/* webpackChunkName: "assets-dashboard" */ "./pages/assets/AssetDashboard"));
-const AssetList = lazy(() => import(/* webpackChunkName: "assets-list" */ "./pages/assets/AssetList"));
-const AssetDetail = lazy(() => import(/* webpackChunkName: "assets-detail" */ "./pages/assets/AssetDetail"));
-const AssetRegister = lazy(() => import(/* webpackChunkName: "assets-register" */ "./pages/assets/AssetRegister"));
-const AssetScanner = lazy(() => import(/* webpackChunkName: "assets-scanner" */ "./pages/assets/AssetScanner"));
-const BulkPrintLabels = lazy(() => import(/* webpackChunkName: "assets-bulk-print" */ "./pages/assets/BulkPrintLabels"));
-const InspectionWorkspaceAsset = lazy(() => import(/* webpackChunkName: "assets-inspection" */ "./pages/assets/InspectionWorkspace"));
-const InspectionSessionsDashboard = lazy(() => import(/* webpackChunkName: "inspections-sessions" */ "./pages/inspections/InspectionSessionsDashboard"));
-const SessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-session-workspace" */ "./pages/inspections/SessionWorkspace"));
-const AreaSessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-area-workspace" */ "./pages/inspections/AreaSessionWorkspace"));
-const InspectionDashboard = lazy(() => import(/* webpackChunkName: "inspections-dashboard" */ "./pages/inspections/InspectionDashboard"));
-const InspectionSchedules = lazy(() => import(/* webpackChunkName: "inspections-schedules" */ "./pages/inspections/InspectionSchedules"));
-const MyInspectionActions = lazy(() => import(/* webpackChunkName: "inspections-my-actions" */ "./pages/inspections/MyInspectionActions"));
-const AuditSessionWorkspace = lazy(() => import(/* webpackChunkName: "inspections-audit-workspace" */ "./pages/inspections/AuditSessionWorkspace"));
+// Asset pages - lazy loaded with retry
+const AssetDashboard = lazyWithRetry(() => import("./pages/assets/AssetDashboard"));
+const AssetList = lazyWithRetry(() => import("./pages/assets/AssetList"));
+const AssetDetail = lazyWithRetry(() => import("./pages/assets/AssetDetail"));
+const AssetRegister = lazyWithRetry(() => import("./pages/assets/AssetRegister"));
+const AssetScanner = lazyWithRetry(() => import("./pages/assets/AssetScanner"));
+const BulkPrintLabels = lazyWithRetry(() => import("./pages/assets/BulkPrintLabels"));
+const InspectionWorkspaceAsset = lazyWithRetry(() => import("./pages/assets/InspectionWorkspace"));
+const InspectionSessionsDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionSessionsDashboard"));
+const SessionWorkspace = lazyWithRetry(() => import("./pages/inspections/SessionWorkspace"));
+const AreaSessionWorkspace = lazyWithRetry(() => import("./pages/inspections/AreaSessionWorkspace"));
+const InspectionDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionDashboard"));
+const InspectionSchedules = lazyWithRetry(() => import("./pages/inspections/InspectionSchedules"));
+const MyInspectionActions = lazyWithRetry(() => import("./pages/inspections/MyInspectionActions"));
+const AuditSessionWorkspace = lazyWithRetry(() => import("./pages/inspections/AuditSessionWorkspace"));
 
-// Visitor pages - lazy loaded
-const VisitorDashboard = lazy(() => import(/* webpackChunkName: "visitors-dashboard" */ "./pages/visitors/VisitorDashboard"));
-const VisitorPreRegistration = lazy(() => import(/* webpackChunkName: "visitors-register" */ "./pages/visitors/VisitorPreRegistration"));
-const VisitorCheckpoint = lazy(() => import(/* webpackChunkName: "visitors-checkpoint" */ "./pages/visitors/VisitorCheckpoint"));
-const VisitorList = lazy(() => import(/* webpackChunkName: "visitors-list" */ "./pages/visitors/VisitorList"));
-const VisitorPass = lazy(() => import(/* webpackChunkName: "visitors-pass" */ "./pages/VisitorPass"));
-const BlacklistManagement = lazy(() => import(/* webpackChunkName: "visitors-blacklist" */ "./pages/visitors/BlacklistManagement"));
+// Visitor pages - lazy loaded with retry
+const VisitorDashboard = lazyWithRetry(() => import("./pages/visitors/VisitorDashboard"));
+const VisitorPreRegistration = lazyWithRetry(() => import("./pages/visitors/VisitorPreRegistration"));
+const VisitorCheckpoint = lazyWithRetry(() => import("./pages/visitors/VisitorCheckpoint"));
+const VisitorList = lazyWithRetry(() => import("./pages/visitors/VisitorList"));
+const VisitorPass = lazyWithRetry(() => import("./pages/VisitorPass"));
+const BlacklistManagement = lazyWithRetry(() => import("./pages/visitors/BlacklistManagement"));
 
-// Security patrol pages - lazy loaded
-const PatrolDashboard = lazy(() => import(/* webpackChunkName: "security-patrol-dashboard" */ "./pages/security/PatrolDashboard"));
-const PatrolRoutes = lazy(() => import(/* webpackChunkName: "security-patrol-routes" */ "./pages/security/PatrolRoutes"));
-const ExecutePatrol = lazy(() => import(/* webpackChunkName: "security-execute-patrol" */ "./pages/security/ExecutePatrol"));
-const PatrolHistory = lazy(() => import(/* webpackChunkName: "security-patrol-history" */ "./pages/security/PatrolHistory"));
-const GateControl = lazy(() => import(/* webpackChunkName: "security-gate-control" */ "./pages/security/GateControl"));
-const Contractors = lazy(() => import(/* webpackChunkName: "security-contractors" */ "./pages/security/Contractors"));
-const ContractorCheck = lazy(() => import(/* webpackChunkName: "security-contractor-check" */ "./pages/security/ContractorCheck"));
-const SecurityZones = lazy(() => import(/* webpackChunkName: "security-zones" */ "./pages/security/SecurityZones"));
-const SecurityShifts = lazy(() => import(/* webpackChunkName: "security-shifts" */ "./pages/security/SecurityShifts"));
-const ShiftRoster = lazy(() => import(/* webpackChunkName: "security-roster" */ "./pages/security/ShiftRoster"));
-const CommandCenter = lazy(() => import(/* webpackChunkName: "security-command-center" */ "./pages/security/CommandCenter"));
-const GuardLocation = lazy(() => import(/* webpackChunkName: "security-guard-location" */ "./pages/security/GuardLocation"));
-const SecurityDashboard = lazy(() => import(/* webpackChunkName: "security-dashboard" */ "./pages/security/SecurityDashboard"));
-const ContractorAccess = lazy(() => import(/* webpackChunkName: "security-contractor-access" */ "./pages/security/ContractorAccess"));
-const GateGuardDashboard = lazy(() => import(/* webpackChunkName: "security-gate-dashboard" */ "./pages/security/GateGuardDashboard"));
+// Security patrol pages - lazy loaded with retry
+const PatrolDashboard = lazyWithRetry(() => import("./pages/security/PatrolDashboard"));
+const PatrolRoutes = lazyWithRetry(() => import("./pages/security/PatrolRoutes"));
+const ExecutePatrol = lazyWithRetry(() => import("./pages/security/ExecutePatrol"));
+const PatrolHistory = lazyWithRetry(() => import("./pages/security/PatrolHistory"));
+const GateControl = lazyWithRetry(() => import("./pages/security/GateControl"));
+const Contractors = lazyWithRetry(() => import("./pages/security/Contractors"));
+const ContractorCheck = lazyWithRetry(() => import("./pages/security/ContractorCheck"));
+const SecurityZones = lazyWithRetry(() => import("./pages/security/SecurityZones"));
+const SecurityShifts = lazyWithRetry(() => import("./pages/security/SecurityShifts"));
+const ShiftRoster = lazyWithRetry(() => import("./pages/security/ShiftRoster"));
+const CommandCenter = lazyWithRetry(() => import("./pages/security/CommandCenter"));
+const GuardLocation = lazyWithRetry(() => import("./pages/security/GuardLocation"));
+const SecurityDashboard = lazyWithRetry(() => import("./pages/security/SecurityDashboard"));
+const ContractorAccess = lazyWithRetry(() => import("./pages/security/ContractorAccess"));
+const GateGuardDashboard = lazyWithRetry(() => import("./pages/security/GateGuardDashboard"));
 
-// Contractor Management pages - lazy loaded
-const ContractorCompanies = lazy(() => import(/* webpackChunkName: "contractors-companies" */ "./pages/contractors/Companies"));
-const ContractorProjects = lazy(() => import(/* webpackChunkName: "contractors-projects" */ "./pages/contractors/Projects"));
-const ContractorWorkers = lazy(() => import(/* webpackChunkName: "contractors-workers" */ "./pages/contractors/Workers"));
-const ContractorGatePasses = lazy(() => import(/* webpackChunkName: "contractors-gate-passes" */ "./pages/contractors/GatePasses"));
-const ContractorDashboard = lazy(() => import(/* webpackChunkName: "contractors-dashboard" */ "./pages/contractors/Dashboard"));
-const InductionVideos = lazy(() => import(/* webpackChunkName: "contractors-induction" */ "./pages/contractors/InductionVideos"));
-const GatePassSettings = lazy(() => import(/* webpackChunkName: "contractors-settings" */ "./pages/contractors/GatePassSettings"));
+// Contractor Management pages - lazy loaded with retry
+const ContractorCompanies = lazyWithRetry(() => import("./pages/contractors/Companies"));
+const ContractorProjects = lazyWithRetry(() => import("./pages/contractors/Projects"));
+const ContractorWorkers = lazyWithRetry(() => import("./pages/contractors/Workers"));
+const ContractorGatePasses = lazyWithRetry(() => import("./pages/contractors/GatePasses"));
+const ContractorDashboard = lazyWithRetry(() => import("./pages/contractors/Dashboard"));
+const InductionVideos = lazyWithRetry(() => import("./pages/contractors/InductionVideos"));
+const GatePassSettings = lazyWithRetry(() => import("./pages/contractors/GatePassSettings"));
 
 // Contractor Portal pages - external contractor representatives
-const ContractorPortalDashboard = lazy(() => import(/* webpackChunkName: "contractor-portal-dashboard" */ "./pages/contractor-portal/Dashboard"));
-const ContractorPortalWorkers = lazy(() => import(/* webpackChunkName: "contractor-portal-workers" */ "./pages/contractor-portal/Workers"));
-const ContractorPortalProjects = lazy(() => import(/* webpackChunkName: "contractor-portal-projects" */ "./pages/contractor-portal/Projects"));
-const ContractorPortalGatePasses = lazy(() => import(/* webpackChunkName: "contractor-portal-gate-passes" */ "./pages/contractor-portal/GatePasses"));
+const ContractorPortalDashboard = lazyWithRetry(() => import("./pages/contractor-portal/Dashboard"));
+const ContractorPortalWorkers = lazyWithRetry(() => import("./pages/contractor-portal/Workers"));
+const ContractorPortalProjects = lazyWithRetry(() => import("./pages/contractor-portal/Projects"));
+const ContractorPortalGatePasses = lazyWithRetry(() => import("./pages/contractor-portal/GatePasses"));
 
-// PTW (Permit to Work) pages - lazy loaded
-const PTWDashboard = lazy(() => import(/* webpackChunkName: "ptw-dashboard" */ "./pages/ptw/PTWDashboard"));
-const ProjectMobilization = lazy(() => import(/* webpackChunkName: "ptw-projects" */ "./pages/ptw/ProjectMobilization"));
-const PermitConsole = lazy(() => import(/* webpackChunkName: "ptw-console" */ "./pages/ptw/PermitConsole"));
-const CreatePermit = lazy(() => import(/* webpackChunkName: "ptw-create" */ "./pages/ptw/CreatePermit"));
-const PermitView = lazy(() => import(/* webpackChunkName: "ptw-view" */ "./pages/ptw/PermitView"));
-const PTWFieldInspection = lazy(() => import(/* webpackChunkName: "ptw-inspection" */ "./pages/ptw/PTWFieldInspection"));
+// PTW (Permit to Work) pages - lazy loaded with retry
+const PTWDashboard = lazyWithRetry(() => import("./pages/ptw/PTWDashboard"));
+const ProjectMobilization = lazyWithRetry(() => import("./pages/ptw/ProjectMobilization"));
+const PermitConsole = lazyWithRetry(() => import("./pages/ptw/PermitConsole"));
+const CreatePermit = lazyWithRetry(() => import("./pages/ptw/CreatePermit"));
+const PermitView = lazyWithRetry(() => import("./pages/ptw/PermitView"));
+const PTWFieldInspection = lazyWithRetry(() => import("./pages/ptw/PTWFieldInspection"));
 
-// Admin pages - lazy loaded with named chunks for better caching
-const InspectionTemplates = lazy(() => import(/* webpackChunkName: "admin-inspection-templates" */ "./pages/admin/InspectionTemplates"));
-const AdminBranding = lazy(() => import(/* webpackChunkName: "admin-branding" */ "./pages/AdminBranding"));
-const OrgStructure = lazy(() => import(/* webpackChunkName: "admin-org" */ "./pages/admin/OrgStructure"));
-const UserManagement = lazy(() => import(/* webpackChunkName: "admin-users" */ "./pages/admin/UserManagement"));
-const TenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenants" */ "./pages/admin/TenantManagement"));
-const SupportDashboard = lazy(() => import(/* webpackChunkName: "admin-support" */ "./pages/admin/SupportDashboard"));
-const SubscriptionManagement = lazy(() => import(/* webpackChunkName: "settings-subscription" */ "./pages/admin/SubscriptionManagement"));
-const SubscriptionOverview = lazy(() => import(/* webpackChunkName: "admin-subscriptions" */ "./pages/admin/SubscriptionOverview"));
-const ModuleManagement = lazy(() => import(/* webpackChunkName: "admin-modules" */ "./pages/admin/ModuleManagement"));
-const PlanManagement = lazy(() => import(/* webpackChunkName: "admin-plans" */ "./pages/admin/PlanManagement"));
-const UsageAnalytics = lazy(() => import(/* webpackChunkName: "admin-analytics" */ "./pages/admin/UsageAnalytics"));
-const SecurityAuditLog = lazy(() => import(/* webpackChunkName: "admin-security" */ "./pages/admin/SecurityAuditLog"));
-const AdminSecurityDashboard = lazy(() => import(/* webpackChunkName: "admin-security-dashboard" */ "./pages/admin/SecurityDashboard"));
-const BillingOverview = lazy(() => import(/* webpackChunkName: "admin-billing" */ "./pages/admin/BillingOverview"));
-const ActionSLASettings = lazy(() => import(/* webpackChunkName: "admin-action-sla" */ "./pages/admin/ActionSLASettings"));
-const SLADashboard = lazy(() => import(/* webpackChunkName: "admin-sla-dashboard" */ "./pages/admin/SLADashboard"));
-const UsageBilling = lazy(() => import(/* webpackChunkName: "settings-billing" */ "./pages/settings/UsageBilling"));
-const DocumentSettings = lazy(() => import(/* webpackChunkName: "admin-documents" */ "./pages/admin/DocumentSettings"));
-const TeamPerformance = lazy(() => import(/* webpackChunkName: "admin-team-performance" */ "./pages/admin/TeamPerformance"));
-const ExecutiveReport = lazy(() => import(/* webpackChunkName: "admin-executive-report" */ "./pages/admin/ExecutiveReport"));
-const MenuAccessConfig = lazy(() => import(/* webpackChunkName: "admin-menu-access" */ "./pages/admin/MenuAccessConfig"));
-const WorkflowDiagrams = lazy(() => import(/* webpackChunkName: "admin-workflow-diagrams" */ "./pages/admin/WorkflowDiagrams"));
-const ManhoursManagement = lazy(() => import(/* webpackChunkName: "admin-manhours" */ "./pages/admin/ManhoursManagement"));
-const KPITargetsManagement = lazy(() => import(/* webpackChunkName: "admin-kpi-targets" */ "./pages/admin/KPITargetsManagement"));
-const PlatformSettings = lazy(() => import(/* webpackChunkName: "admin-platform-settings" */ "./pages/admin/PlatformSettings"));
-const HSSENotificationAnalytics = lazy(() => import(/* webpackChunkName: "admin-hsse-notification-analytics" */ "./pages/admin/HSSENotificationAnalytics"));
-const HSSENotifications = lazy(() => import(/* webpackChunkName: "admin-hsse-notifications" */ "./pages/admin/HSSENotifications"));
-const NotificationDeliveryLog = lazy(() => import(/* webpackChunkName: "admin-notification-delivery" */ "./pages/admin/NotificationDeliveryLog"));
-const WhatsAppTemplates = lazy(() => import(/* webpackChunkName: "admin-whatsapp-templates" */ "./pages/admin/WhatsAppTemplates"));
-const WhatsAppSettingsPage = lazy(() => import(/* webpackChunkName: "admin-whatsapp-settings" */ "./pages/admin/WhatsAppSettingsPage"));
-const NotificationRulesPage = lazy(() => import(/* webpackChunkName: "admin-notification-rules" */ "./pages/admin/NotificationRulesPage"));
-const EventCategorySettings = lazy(() => import(/* webpackChunkName: "admin-event-categories" */ "./pages/admin/EventCategorySettings"));
+// Admin pages - lazy loaded with retry
+const InspectionTemplates = lazyWithRetry(() => import("./pages/admin/InspectionTemplates"));
+const AdminBranding = lazyWithRetry(() => import("./pages/AdminBranding"));
+const OrgStructure = lazyWithRetry(() => import("./pages/admin/OrgStructure"));
+const UserManagement = lazyWithRetry(() => import("./pages/admin/UserManagement"));
+const TenantManagement = lazyWithRetry(() => import("./pages/admin/TenantManagement"));
+const SupportDashboard = lazyWithRetry(() => import("./pages/admin/SupportDashboard"));
+const SubscriptionManagement = lazyWithRetry(() => import("./pages/admin/SubscriptionManagement"));
+const SubscriptionOverview = lazyWithRetry(() => import("./pages/admin/SubscriptionOverview"));
+const ModuleManagement = lazyWithRetry(() => import("./pages/admin/ModuleManagement"));
+const PlanManagement = lazyWithRetry(() => import("./pages/admin/PlanManagement"));
+const UsageAnalytics = lazyWithRetry(() => import("./pages/admin/UsageAnalytics"));
+const SecurityAuditLog = lazyWithRetry(() => import("./pages/admin/SecurityAuditLog"));
+const AdminSecurityDashboard = lazyWithRetry(() => import("./pages/admin/SecurityDashboard"));
+const BillingOverview = lazyWithRetry(() => import("./pages/admin/BillingOverview"));
+const ActionSLASettings = lazyWithRetry(() => import("./pages/admin/ActionSLASettings"));
+const SLADashboard = lazyWithRetry(() => import("./pages/admin/SLADashboard"));
+const UsageBilling = lazyWithRetry(() => import("./pages/settings/UsageBilling"));
+const DocumentSettings = lazyWithRetry(() => import("./pages/admin/DocumentSettings"));
+const TeamPerformance = lazyWithRetry(() => import("./pages/admin/TeamPerformance"));
+const ExecutiveReport = lazyWithRetry(() => import("./pages/admin/ExecutiveReport"));
+const MenuAccessConfig = lazyWithRetry(() => import("./pages/admin/MenuAccessConfig"));
+const WorkflowDiagrams = lazyWithRetry(() => import("./pages/admin/WorkflowDiagrams"));
+const ManhoursManagement = lazyWithRetry(() => import("./pages/admin/ManhoursManagement"));
+const KPITargetsManagement = lazyWithRetry(() => import("./pages/admin/KPITargetsManagement"));
+const PlatformSettings = lazyWithRetry(() => import("./pages/admin/PlatformSettings"));
+const HSSENotificationAnalytics = lazyWithRetry(() => import("./pages/admin/HSSENotificationAnalytics"));
+const HSSENotifications = lazyWithRetry(() => import("./pages/admin/HSSENotifications"));
+const NotificationDeliveryLog = lazyWithRetry(() => import("./pages/admin/NotificationDeliveryLog"));
+const WhatsAppTemplates = lazyWithRetry(() => import("./pages/admin/WhatsAppTemplates"));
+const WhatsAppSettingsPage = lazyWithRetry(() => import("./pages/admin/WhatsAppSettingsPage"));
+const NotificationRulesPage = lazyWithRetry(() => import("./pages/admin/NotificationRulesPage"));
+const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 
 const queryClient = new QueryClient();
 

@@ -1,10 +1,10 @@
 // ============================================
 // DHUUD HSSE Platform - Service Worker
-// Version: 2024.12.23.001
+// Version: 2025.01.25.001
 // ============================================
 
-const SW_VERSION = '2024.12.23.001';
-const CACHE_NAME = `dhuud-cache-v4-${SW_VERSION}`;
+const SW_VERSION = '2025.01.25.001';
+const CACHE_NAME = `dhuud-cache-v5-${SW_VERSION}`;
 const API_CACHE_NAME = `dhuud-api-cache-v2-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `dhuud-static-cache-v2-${SW_VERSION}`;
 const OFFLINE_URL = '/offline.html';

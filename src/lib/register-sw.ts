@@ -1,18 +1,31 @@
 export function registerServiceWorker() {
-  // Register service worker in both dev and prod for push notifications
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('SW registered:', registration.scope);
-        
-        // Register periodic background sync if supported and enabled
-        await registerPeriodicSync(registration);
-      } catch (error) {
-        console.log('SW registration failed:', error);
-      }
-    });
+  if (!('serviceWorker' in navigator)) {
+    return;
   }
+
+  // In development, unregister service workers to avoid caching issues with HMR
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
+        registration.unregister();
+        console.log('[SW] Unregistered service worker in development mode');
+      });
+    });
+    return;
+  }
+
+  // Production only: register service worker for push notifications and offline support
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('SW registered:', registration.scope);
+      
+      // Register periodic background sync if supported and enabled
+      await registerPeriodicSync(registration);
+    } catch (error) {
+      console.log('SW registration failed:', error);
+    }
+  });
 }
 
 async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
