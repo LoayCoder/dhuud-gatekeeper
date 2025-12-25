@@ -1512,7 +1512,16 @@
       "rejected": "अस्वीकृत"
     },
     "evidence": "साक्ष्य",
-    "uploadEvidence": "फ़ाइलें छोड़ें या अपलोड करने के लिए क्लिक करें"
+    "uploadEvidence": "फ़ाइलें छोड़ें या अपलोड करने के लिए क्लिक करें",
+    "confirmSubmission": "सबमिशन की पुष्टि करें",
+    "reviewBeforeSubmit": "पुष्टि करने से पहले कृपया अपना सबमिशन देखें।",
+    "confirmStartWorkMessage": "आप इस कार्रवाई पर काम शुरू करने वाले हैं। स्थिति \"प्रगति में\" बदल जाएगी।",
+    "confirmCompleteMessage": "आप इस कार्रवाई को सत्यापन के लिए जमा करने वाले हैं। इसकी HSSE द्वारा समीक्षा की जाएगी।",
+    "actionTitle": "कार्रवाई",
+    "filesToUpload": "अपलोड करने के लिए फ़ाइलें",
+    "statusWillChange": "स्थिति बदल जाएगी:",
+    "confirmAndSubmit": "पुष्टि करें और जमा करें",
+    "proceedToConfirm": "जारी रखें"
   },
   "inspectionSessions": {
     "title": "निरीक्षण सत्र",

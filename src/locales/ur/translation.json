@@ -1512,7 +1512,16 @@
       "rejected": "مسترد"
     },
     "evidence": "ثبوت",
-    "uploadEvidence": "فائلیں ڈراپ کریں یا اپ لوڈ کرنے کے لیے کلک کریں"
+    "uploadEvidence": "فائلیں ڈراپ کریں یا اپ لوڈ کرنے کے لیے کلک کریں",
+    "confirmSubmission": "جمع کرانے کی تصدیق کریں",
+    "reviewBeforeSubmit": "تصدیق کرنے سے پہلے براہ کرم اپنی درخواست کا جائزہ لیں۔",
+    "confirmStartWorkMessage": "آپ اس عمل پر کام شروع کرنے والے ہیں۔ حیثیت \"جاری\" میں تبدیل ہو جائے گی۔",
+    "confirmCompleteMessage": "آپ اس عمل کو تصدیق کے لیے جمع کرانے والے ہیں۔ اس کا جائزہ HSSE لے گا۔",
+    "actionTitle": "عمل",
+    "filesToUpload": "اپ لوڈ کرنے کے لیے فائلیں",
+    "statusWillChange": "حیثیت تبدیل ہو جائے گی:",
+    "confirmAndSubmit": "تصدیق کریں اور جمع کرائیں",
+    "proceedToConfirm": "جاری رکھیں"
   },
   "inspectionSessions": {
     "title": "معائنہ سیشنز",
