@@ -36,7 +36,6 @@ function getStageIndex(status: string | null): number {
     case 'returned_for_correction':
       return 2;
     case 'verified':
-      return 3;
     case 'closed':
       return 4;
     default:
