@@ -1,3 +1,4 @@
+// Vite configuration - last updated to force cache rebuild
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
