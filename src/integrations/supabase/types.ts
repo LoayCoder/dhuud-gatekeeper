@@ -4208,6 +4208,81 @@ export type Database = {
           },
         ]
       }
+      incident_access_list: {
+        Row: {
+          deleted_at: string | null
+          granted_at: string | null
+          granted_by: string
+          id: string
+          incident_id: string
+          reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          deleted_at?: string | null
+          granted_at?: string | null
+          granted_by: string
+          id?: string
+          incident_id: string
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          deleted_at?: string | null
+          granted_at?: string | null
+          granted_by?: string
+          id?: string
+          incident_id?: string
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_access_list_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_access_list_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_access_list_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_access_list_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_access_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_asset_links: {
         Row: {
           asset_id: string
@@ -4334,6 +4409,77 @@ export type Database = {
           },
         ]
       }
+      incident_confidentiality_audit: {
+        Row: {
+          action: string
+          actor_id: string
+          affected_user_id: string | null
+          created_at: string | null
+          expiry_settings: Json | null
+          id: string
+          incident_id: string
+          new_level: string | null
+          old_level: string | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          affected_user_id?: string | null
+          created_at?: string | null
+          expiry_settings?: Json | null
+          id?: string
+          incident_id: string
+          new_level?: string | null
+          old_level?: string | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          affected_user_id?: string | null
+          created_at?: string | null
+          expiry_settings?: Json | null
+          id?: string
+          incident_id?: string
+          new_level?: string | null
+          old_level?: string | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_confidentiality_audit_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_confidentiality_audit_affected_user_id_fkey"
+            columns: ["affected_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_confidentiality_audit_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_confidentiality_audit_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_notification_matrix: {
         Row: {
           channels: string[]
@@ -4395,6 +4541,7 @@ export type Database = {
         Row: {
           ai_analysis_result: Json | null
           approval_manager_id: string | null
+          auto_declassify_to: string | null
           branch_id: string | null
           closure_approved_at: string | null
           closure_approved_by: string | null
@@ -4402,6 +4549,11 @@ export type Database = {
           closure_request_notes: string | null
           closure_requested_at: string | null
           closure_requested_by: string | null
+          confidentiality_expiry: string | null
+          confidentiality_expiry_reason: string | null
+          confidentiality_level: string | null
+          confidentiality_set_at: string | null
+          confidentiality_set_by: string | null
           created_at: string | null
           damage_details: Json | null
           deleted_at: string | null
@@ -4488,6 +4640,7 @@ export type Database = {
         Insert: {
           ai_analysis_result?: Json | null
           approval_manager_id?: string | null
+          auto_declassify_to?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
@@ -4495,6 +4648,11 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          confidentiality_expiry?: string | null
+          confidentiality_expiry_reason?: string | null
+          confidentiality_level?: string | null
+          confidentiality_set_at?: string | null
+          confidentiality_set_by?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -4581,6 +4739,7 @@ export type Database = {
         Update: {
           ai_analysis_result?: Json | null
           approval_manager_id?: string | null
+          auto_declassify_to?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
@@ -4588,6 +4747,11 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          confidentiality_expiry?: string | null
+          confidentiality_expiry_reason?: string | null
+          confidentiality_level?: string | null
+          confidentiality_set_at?: string | null
+          confidentiality_set_by?: string | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -4696,6 +4860,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_closure_requested_by_fkey"
             columns: ["closure_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_confidentiality_set_by_fkey"
+            columns: ["confidentiality_set_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -12257,8 +12428,13 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: Json
       }
+      can_manage_access_list: { Args: { _user_id: string }; Returns: boolean }
       can_perform_expert_screening: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      can_set_confidentiality: {
+        Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
       can_view_incident: {
@@ -12731,6 +12907,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      has_confidentiality_access: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
@@ -12758,6 +12938,10 @@ export type Database = {
         }
         Returns: number
       }
+      is_action_assignee_only: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_contractor_rep_for_company: {
         Args: { p_company_id: string }
@@ -12781,6 +12965,15 @@ export type Database = {
       populate_default_menu_access: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      process_confidentiality_expiry: {
+        Args: never
+        Returns: {
+          action_taken: string
+          incident_id: string
+          new_level: string
+          old_level: string
+        }[]
       }
       process_due_inspection_schedules: {
         Args: { p_tenant_id?: string }
