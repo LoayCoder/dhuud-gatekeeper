@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useApproveIncidentClosure, useRejectIncidentClosure, useCanCloseIncident } from '@/hooks/use-incident-closure';
+import { IncidentClosureSignatureDialog } from './IncidentClosureSignatureDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 interface IncidentClosureApprovalCardProps {
@@ -41,6 +42,7 @@ export function IncidentClosureApprovalCard({
   const { t } = useTranslation();
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
 
@@ -51,10 +53,26 @@ export function IncidentClosureApprovalCard({
   const approveClosure = useApproveIncidentClosure();
   const rejectClosure = useRejectIncidentClosure();
 
+  // Handle non-signature approval (for investigation approval)
   const handleApproveConfirm = async () => {
-    await approveClosure.mutateAsync({ incidentId, isFinalClosure, approvalNotes: approvalNotes.trim() || undefined });
+    await approveClosure.mutateAsync({ 
+      incidentId, 
+      isFinalClosure, 
+      approvalNotes: approvalNotes.trim() || undefined 
+    });
     setShowApproveDialog(false);
     setApprovalNotes('');
+  };
+
+  // Handle signature-based approval (for final closure)
+  const handleSignatureApproval = async (signatureDataUrl: string, notes?: string) => {
+    await approveClosure.mutateAsync({
+      incidentId,
+      isFinalClosure: true,
+      approvalNotes: notes,
+      signatureDataUrl,
+    });
+    setShowSignatureDialog(false);
   };
 
   const handleReject = async () => {
@@ -70,6 +88,15 @@ export function IncidentClosureApprovalCard({
   const requestedTimeAgo = requestedAt
     ? formatDistanceToNow(new Date(requestedAt), { addSuffix: true })
     : '';
+
+  // For final closure, use signature dialog; for investigation approval, use simple dialog
+  const handleApproveClick = () => {
+    if (isFinalClosure) {
+      setShowSignatureDialog(true);
+    } else {
+      setShowApproveDialog(true);
+    }
+  };
 
   return (
     <>
@@ -127,6 +154,13 @@ export function IncidentClosureApprovalCard({
             </div>
           )}
 
+          {/* Signature requirement note for final closure */}
+          {isFinalClosure && (
+            <p className="text-xs text-muted-foreground">
+              {t('investigation.signatureRequiredNote', 'A digital signature is required to finalize the closure.')}
+            </p>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2">
             <Button
@@ -140,7 +174,7 @@ export function IncidentClosureApprovalCard({
             </Button>
             <Button
               className="flex-1 bg-green-600 text-white hover:bg-green-700"
-              onClick={() => setShowApproveDialog(true)}
+              onClick={handleApproveClick}
               disabled={approveClosure.isPending || (isFinalClosure && !closureCheck?.can_close)}
             >
               <CheckCircle className="me-2 h-4 w-4" />
@@ -199,21 +233,15 @@ export function IncidentClosureApprovalCard({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Approval Confirmation Dialog */}
+      {/* Simple Approval Dialog (for investigation approval) */}
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isFinalClosure
-                ? t('investigation.confirmFinalClosureTitle', 'Confirm Final Closure')
-                : t('investigation.confirmApprovalTitle', 'Confirm Investigation Approval')
-              }
+              {t('investigation.confirmApprovalTitle', 'Confirm Investigation Approval')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {isFinalClosure
-                ? t('investigation.confirmFinalClosureDescription', 'Are you sure you want to close this incident? This action will finalize the investigation.')
-                : t('investigation.confirmApprovalDescription', 'Are you sure you want to approve this investigation? Corrective actions will be released to assignees.')
-              }
+              {t('investigation.confirmApprovalDescription', 'Are you sure you want to approve this investigation? Corrective actions will be released to assignees.')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -239,14 +267,20 @@ export function IncidentClosureApprovalCard({
               className="bg-green-600 hover:bg-green-700"
             >
               {approveClosure.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-              {isFinalClosure
-                ? t('investigation.confirmClose', 'Confirm & Close')
-                : t('investigation.confirmApprove', 'Confirm & Approve')
-              }
+              {t('investigation.confirmApprove', 'Confirm & Approve')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Signature Dialog (for final closure) */}
+      <IncidentClosureSignatureDialog
+        open={showSignatureDialog}
+        onOpenChange={setShowSignatureDialog}
+        onConfirm={handleSignatureApproval}
+        isFinalClosure={true}
+        isLoading={approveClosure.isPending}
+      />
     </>
   );
 }

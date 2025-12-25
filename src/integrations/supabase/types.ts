@@ -4549,6 +4549,9 @@ export type Database = {
           closure_request_notes: string | null
           closure_requested_at: string | null
           closure_requested_by: string | null
+          closure_signature_path: string | null
+          closure_signed_at: string | null
+          closure_signed_by: string | null
           confidentiality_expiry: string | null
           confidentiality_expiry_reason: string | null
           confidentiality_level: string | null
@@ -4648,6 +4651,9 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          closure_signature_path?: string | null
+          closure_signed_at?: string | null
+          closure_signed_by?: string | null
           confidentiality_expiry?: string | null
           confidentiality_expiry_reason?: string | null
           confidentiality_level?: string | null
@@ -4747,6 +4753,9 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          closure_signature_path?: string | null
+          closure_signed_at?: string | null
+          closure_signed_by?: string | null
           confidentiality_expiry?: string | null
           confidentiality_expiry_reason?: string | null
           confidentiality_level?: string | null
@@ -4860,6 +4869,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_closure_requested_by_fkey"
             columns: ["closure_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_closure_signed_by_fkey"
+            columns: ["closure_signed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -12959,6 +12975,10 @@ export type Database = {
       haversine_distance: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
+      }
+      incident_is_reporter_editable: {
+        Args: { _incident_id: string }
+        Returns: boolean
       }
       invalidate_other_user_sessions: {
         Args: {

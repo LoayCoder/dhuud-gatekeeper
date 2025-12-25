@@ -35,6 +35,16 @@ const GATE_API_PATTERNS = [
   '/rest/v1/geofence_alerts',
 ];
 
+// HSSE Event Offline Reporting - Essential reference data endpoints
+const HSSE_OFFLINE_API_PATTERNS = [
+  '/rest/v1/hsse_event_types',
+  '/rest/v1/sites',
+  '/rest/v1/departments',
+  '/rest/v1/buildings',
+  '/rest/v1/floors_zones',
+  '/rest/v1/asset_categories',
+];
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log(`[SW] Installing version ${SW_VERSION}`);
@@ -479,8 +489,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   // STRATEGY 1: Network First with cache fallback for API responses
-  // Enhanced caching for gate-specific endpoints with longer retention
+  // Enhanced caching for gate-specific and HSSE offline endpoints with longer retention
   const isGateEndpoint = GATE_API_PATTERNS.some(pattern => url.pathname.includes(pattern));
+  const isHSSEOfflineEndpoint = HSSE_OFFLINE_API_PATTERNS.some(pattern => url.pathname.includes(pattern));
+  const isPriorityEndpoint = isGateEndpoint || isHSSEOfflineEndpoint;
   
   if (url.pathname.startsWith('/rest/') || url.pathname.includes('/functions/')) {
     event.respondWith(
@@ -490,8 +502,8 @@ self.addEventListener('fetch', (event) => {
             const clone = response.clone();
             const cache = await caches.open(API_CACHE_NAME);
             await cache.put(request, clone);
-            // Keep more entries for gate endpoints
-            const maxEntries = isGateEndpoint ? API_CACHE_MAX_ENTRIES * 2 : API_CACHE_MAX_ENTRIES;
+            // Keep more entries for gate and HSSE offline endpoints (critical for offline reporting)
+            const maxEntries = isPriorityEndpoint ? API_CACHE_MAX_ENTRIES * 2 : API_CACHE_MAX_ENTRIES;
             trimCache(API_CACHE_NAME, maxEntries);
           }
           return response;
@@ -499,7 +511,7 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cached = await caches.match(request);
           if (cached) {
-            console.log('[SW] Serving API from cache:', url.pathname, isGateEndpoint ? '(gate)' : '');
+            console.log('[SW] Serving API from cache:', url.pathname, isPriorityEndpoint ? '(priority-offline)' : '');
             // Add offline header to indicate cached response
             const headers = new Headers(cached.headers);
             headers.set('X-Served-From', 'sw-cache');

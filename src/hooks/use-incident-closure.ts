@@ -147,13 +147,40 @@ export function useApproveIncidentClosure() {
       incidentId,
       isFinalClosure = false,
       approvalNotes,
+      signatureDataUrl,
     }: {
       incidentId: string;
       isFinalClosure?: boolean;
       approvalNotes?: string;
+      signatureDataUrl?: string;
     }) => {
       if (!profile?.tenant_id || !user?.id) {
         throw new Error('User not authenticated');
+      }
+
+      // Upload signature if provided
+      let signaturePath: string | null = null;
+      if (signatureDataUrl && isFinalClosure) {
+        try {
+          // Convert base64 to blob
+          const base64Data = signatureDataUrl.replace(/^data:image\/\w+;base64,/, '');
+          const byteArray = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          const blob = new Blob([byteArray], { type: 'image/png' });
+          
+          // Upload to storage
+          const fileName = `${incidentId}/closure-signature-${Date.now()}.png`;
+          const { error: uploadError } = await supabase.storage
+            .from('incident-evidence')
+            .upload(fileName, blob, { contentType: 'image/png' });
+          
+          if (!uploadError) {
+            signaturePath = fileName;
+          } else {
+            console.error('Signature upload failed:', uploadError);
+          }
+        } catch (sigError) {
+          console.error('Failed to process signature:', sigError);
+        }
       }
 
       // Determine target status based on closure type
@@ -162,14 +189,23 @@ export function useApproveIncidentClosure() {
       const targetStatus = isFinalClosure ? 'closed' : 'investigation_closed';
       const actionType = isFinalClosure ? 'final_closure_approved' : 'investigation_closure_approved';
 
+      const updatePayload: Record<string, unknown> = {
+        status: targetStatus as unknown as 'submitted',
+        closure_approved_by: user.id,
+        closure_approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add signature data for final closure
+      if (isFinalClosure && signaturePath) {
+        updatePayload.closure_signature_path = signaturePath;
+        updatePayload.closure_signed_by = user.id;
+        updatePayload.closure_signed_at = new Date().toISOString();
+      }
+
       const { data, error } = await supabase
         .from('incidents')
-        .update({
-          status: targetStatus as unknown as 'submitted',
-          closure_approved_by: user.id,
-          closure_approved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', incidentId)
         .select('id, reference_id, closure_requested_by')
         .single();
@@ -186,6 +222,7 @@ export function useApproveIncidentClosure() {
           approved_at: new Date().toISOString(), 
           target_status: targetStatus,
           approval_notes: approvalNotes || null,
+          has_signature: !!signaturePath,
         } as unknown as Json,
       });
 
