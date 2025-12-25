@@ -242,6 +242,7 @@
       "manager_rejected": "Tinanggihan ng Manager",
       "hsse_manager_escalation": "Itinaas sa HSSE Manager",
       "pending_dept_rep_approval": "Naghihintay ng Apruba ng Dept. Rep.",
+      "observation_actions_pending": "Mga Aksyon sa Progreso",
       "pending_closure": "Naghihintay ng Pagsasara",
       "investigation_closed": "Sarado ang Imbestigasyon",
       "pending_final_closure": "Naghihintay ng Huling Pagsasara"

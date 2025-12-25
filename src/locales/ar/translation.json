@@ -295,6 +295,7 @@
       "manager_rejected": "مرفوض من المدير",
       "hsse_manager_escalation": "تصعيد لمدير HSSE",
       "pending_dept_rep_approval": "بانتظار موافقة ممثل القسم",
+      "observation_actions_pending": "في انتظار تنفيذ الإجراءات",
       "pending_closure": "في انتظار الإغلاق",
       "investigation_closed": "التحقيق مغلق",
       "pending_final_closure": "في انتظار الإغلاق النهائي"

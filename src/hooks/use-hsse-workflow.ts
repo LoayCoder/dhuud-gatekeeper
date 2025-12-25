@@ -653,9 +653,6 @@ export function useDeptRepApproval() {
         .single();
       
       if (decision === 'approve') {
-        // Approve and close the observation
-        newStatus = 'closed';
-        
         // Release all corrective actions linked to this incident
         const { data: releasedActions, error: releaseError } = await supabase
           .from('corrective_actions')
@@ -667,9 +664,10 @@ export function useDeptRepApproval() {
           .is('released_at', null)
           .select('id, title, assigned_to, priority, due_date');
         
-        if (releaseError) {
-          console.error('Failed to release actions:', releaseError);
-        } else if (releasedActions && releasedActions.length > 0) {
+        // Determine status based on whether there are actions
+        if (releasedActions && releasedActions.length > 0) {
+          // Has actions: set to pending status, will auto-close when all verified
+          newStatus = 'observation_actions_pending';
           console.log(`Released ${releasedActions.length} corrective actions for incident ${incidentId}`);
           
           // Log action release audit entry
@@ -697,6 +695,13 @@ export function useDeptRepApproval() {
           } catch (e) {
             console.error('Failed to send action notifications:', e);
           }
+        } else if (releaseError) {
+          console.error('Failed to release actions:', releaseError);
+          // No actions found due to error, still close
+          newStatus = 'closed';
+        } else {
+          // No actions: close immediately
+          newStatus = 'closed';
         }
       } else {
         // Escalate to full investigation workflow
@@ -739,9 +744,9 @@ export function useDeptRepApproval() {
       queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
       
       toast({
-        title: variables.decision === 'approve' ? "Observation Closed" : "Escalated to Investigation",
+        title: variables.decision === 'approve' ? "Observation Approved" : "Escalated to Investigation",
         description: variables.decision === 'approve'
-          ? "Observation has been approved and actions released to assignees"
+          ? "Actions released to assignees. Observation will close when all actions are verified."
           : "Observation has been escalated for full investigation",
       });
     },

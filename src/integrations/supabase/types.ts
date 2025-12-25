@@ -12933,6 +12933,7 @@ export type Database = {
         | "manager_rejected"
         | "hsse_manager_escalation"
         | "pending_dept_rep_approval"
+        | "observation_actions_pending"
         | "pending_closure"
         | "investigation_closed"
         | "pending_final_closure"
@@ -13231,6 +13232,7 @@ export const Constants = {
         "manager_rejected",
         "hsse_manager_escalation",
         "pending_dept_rep_approval",
+        "observation_actions_pending",
         "pending_closure",
         "investigation_closed",
         "pending_final_closure",
