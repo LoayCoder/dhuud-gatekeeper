@@ -42,6 +42,13 @@ export function useSessionManagement() {
     isRegistering.current = true;
 
     try {
+      // First verify we have a valid session before attempting to register
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.log('No valid session, skipping session registration');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'register',
@@ -51,6 +58,11 @@ export function useSessionManagement() {
       });
 
       if (error) {
+        // Handle 401 errors gracefully - session may have expired during the call
+        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
+          console.log('Session expired during registration, skipping');
+          return;
+        }
         console.error('Session registration failed:', error);
         return;
       }
@@ -82,6 +94,13 @@ export function useSessionManagement() {
     }
 
     try {
+      // Check if we still have a valid auth session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        return { valid: false, reason: 'auth_session_expired' };
+      }
+
       const { data, error } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'validate',
@@ -90,6 +109,11 @@ export function useSessionManagement() {
       });
 
       if (error) {
+        // Handle 401 gracefully - auth session expired
+        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          return { valid: false, reason: 'auth_session_expired' };
+        }
         console.error('Session validation failed:', error);
         return { valid: false, reason: 'validation_error' };
       }
@@ -140,12 +164,29 @@ export function useSessionManagement() {
     if (!sessionToken) return;
 
     try {
-      const { data } = await supabase.functions.invoke('manage-session', {
+      // Check if we still have a valid auth session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.log('Auth session expired, skipping heartbeat');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('manage-session', {
         body: {
           action: 'heartbeat',
           sessionToken,
         },
       });
+
+      // Handle 401 gracefully - don't force logout on network errors
+      if (error) {
+        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
+          console.log('Auth session expired during heartbeat');
+          return;
+        }
+        console.error('Session heartbeat error:', error);
+        return;
+      }
 
       if (data && !data.success && !data.valid) {
         // Session is invalid, force logout
