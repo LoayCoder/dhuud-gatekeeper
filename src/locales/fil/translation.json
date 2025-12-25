@@ -320,7 +320,8 @@
       "analysisComplete": "Kumpleto na ang AI Pagsusuri",
       "typeDetected": "Natukoy ang uri ng pangyayari",
       "typeNotDetected": "Hindi matukoy ang uri ng pangyayari mula sa paglalarawan",
-      "detectionError": "Nabigong tukuyin ang uri ng pangyayari"
+      "detectionError": "Nabigong tukuyin ang uri ng pangyayari",
+      "fieldsPopulated": "Awtomatikong napunan ang mga field mula sa AI pagsusuri"
     },
     "site": "Site",
     "selectSite": "Pumili ng site",

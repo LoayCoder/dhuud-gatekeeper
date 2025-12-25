@@ -301,7 +301,8 @@
       "analysisComplete": "AI Analysis Complete",
       "typeDetected": "Event type detected",
       "typeNotDetected": "Could not determine event type from description",
-      "detectionError": "Failed to detect event type"
+      "detectionError": "Failed to detect event type",
+      "fieldsPopulated": "Fields auto-populated from AI analysis"
     },
     "site": "Site",
     "selectSite": "Select site",
