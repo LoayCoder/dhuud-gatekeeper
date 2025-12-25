@@ -1034,7 +1034,15 @@
     "back": "رجوع",
     "next": "التالي",
     "search": "بحث",
-    "filter": "تصفية",
+    "filter": "تصفية"
+  },
+  "search": {
+    "placeholder": "البحث بالعنوان أو الوصف أو المرجع...",
+    "noResults": "لم يتم العثور على نتائج",
+    "tryDifferent": "حاول تعديل معايير البحث أو التصفية."
+  },
+  "filter": {
+    "allPriorities": "جميع الأولويات"
     "export": "تصدير",
     "import": "استيراد",
     "close": "إغلاق",
@@ -1590,7 +1598,9 @@
     },
     "dueSoon": "قريب الاستحقاق",
     "daysRemaining": "{{days}} أيام متبقية",
-    "dueToday": "مستحق اليوم"
+    "dueToday": "مستحق اليوم",
+    "activeActions": "الإجراءات النشطة",
+    "closedActions": "الإجراءات المغلقة"
   },
   "inspectionSessions": {
     "title": "جلسات التفتيش",

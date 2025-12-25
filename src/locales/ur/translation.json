@@ -1546,7 +1546,9 @@
     },
     "dueSoon": "جلد واجب الادا",
     "daysRemaining": "{{days}} دن باقی",
-    "dueToday": "آج واجب الادا"
+    "dueToday": "آج واجب الادا",
+    "activeActions": "فعال اقدامات",
+    "closedActions": "بند شدہ اقدامات"
   },
   "inspectionSessions": {
     "title": "معائنہ سیشنز",

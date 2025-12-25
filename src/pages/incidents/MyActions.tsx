@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +74,10 @@ export default function MyActions() {
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showClosedActions, setShowClosedActions] = useState(false);
+  const [showClosedWitness, setShowClosedWitness] = useState(false);
   const queryClient = useQueryClient();
   
   // Action progress dialog states
@@ -231,29 +238,101 @@ export default function MyActions() {
     };
   };
 
-  // Filter actions based on active filter
+  // Search and filter actions
+  const filterAndSearchActions = (actions: typeof allActions) => {
+    return actions.filter(action => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = action.title?.toLowerCase().includes(query);
+        const matchesDescription = action.description?.toLowerCase().includes(query);
+        const matchesReference = action.reference_id?.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesDescription && !matchesReference) {
+          return false;
+        }
+      }
+      
+      // Priority filter
+      if (priorityFilter !== 'all' && action.priority !== priorityFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
+
+  // Get active (non-closed) actions - sorted by urgency
+  const getActiveActions = () => {
+    const filtered = filterAndSearchActions(allActions);
+    const activeOnly = filtered.filter(a => a.status !== 'closed' && a.status !== 'verified');
+    
+    // Sort by urgency: overdue first, then due soon, then by due date
+    return activeOnly.sort((a, b) => {
+      const aDaysInfo = getDaysInfo(a.due_date);
+      const bDaysInfo = getDaysInfo(b.due_date);
+      
+      // Overdue actions first
+      if (aDaysInfo?.isOverdue && !bDaysInfo?.isOverdue) return -1;
+      if (!aDaysInfo?.isOverdue && bDaysInfo?.isOverdue) return 1;
+      
+      // Then due soon
+      if (aDaysInfo?.isDueSoon && !bDaysInfo?.isDueSoon) return -1;
+      if (!aDaysInfo?.isDueSoon && bDaysInfo?.isDueSoon) return 1;
+      
+      // Then by due date
+      if (a.due_date && b.due_date) {
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      }
+      if (a.due_date && !b.due_date) return -1;
+      if (!a.due_date && b.due_date) return 1;
+      
+      return 0;
+    });
+  };
+
+  // Get closed actions
+  const getClosedActions = () => {
+    const filtered = filterAndSearchActions(allActions);
+    return filtered.filter(a => a.status === 'closed' || a.status === 'verified');
+  };
+
+  // Filter actions based on active filter (for summary card clicks)
   const getFilteredActions = () => {
-    if (!activeFilter) return allActions;
+    const searchFiltered = filterAndSearchActions(allActions);
+    if (!activeFilter) return searchFiltered;
     
     switch (activeFilter) {
       case 'overdue':
-        return overdueActions;
+        return searchFiltered.filter(a => 
+          a.due_date && 
+          a.due_date < todayStr &&
+          a.status !== 'completed' && 
+          a.status !== 'verified' && 
+          a.status !== 'closed'
+        );
       case 'soon_overdue':
-        return soonOverdueActions;
+        return searchFiltered.filter(a => {
+          if (!a.due_date || a.status === 'completed' || a.status === 'verified' || a.status === 'closed') return false;
+          const dueDate = new Date(a.due_date);
+          dueDate.setHours(0, 0, 0, 0);
+          const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return daysRemaining > 0 && daysRemaining <= soonOverdueThreshold;
+        });
       case 'pending':
-        return pendingActions;
+        return searchFiltered.filter(a => a.status === 'assigned' || a.status === 'pending' || a.status === 'returned_for_correction');
       case 'in_progress':
-        return inProgressActions;
+        return searchFiltered.filter(a => a.status === 'in_progress');
       case 'awaiting_verification':
-        return awaitingVerificationActions;
+        return searchFiltered.filter(a => a.status === 'completed' || a.status === 'pending_verification');
       case 'closed':
-        return closedActions;
+        return searchFiltered.filter(a => a.status === 'closed' || a.status === 'verified');
       default:
-        return allActions;
+        return searchFiltered;
     }
   };
 
-  const displayedActions = getFilteredActions();
+  const displayedActiveActions = activeFilter ? getFilteredActions().filter(a => a.status !== 'closed' && a.status !== 'verified') : getActiveActions();
+  const displayedClosedActions = activeFilter === 'closed' ? getFilteredActions() : getClosedActions();
 
   const totalExtensions = pendingExtensions?.length || 0;
   const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
@@ -466,7 +545,32 @@ export default function MyActions() {
           )}
         </TabsList>
 
-        <TabsContent value="actions" className="mt-4">
+        <TabsContent value="actions" className="mt-4 space-y-4">
+          {/* Search Bar and Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder={t('search.placeholder', 'Search by title, description, or reference...')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
+              />
+            </div>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={t('filter.allPriorities', 'All Priorities')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filter.allPriorities', 'All Priorities')}</SelectItem>
+                <SelectItem value="critical">{t('investigation.priority.critical', 'Critical')}</SelectItem>
+                <SelectItem value="high">{t('investigation.priority.high', 'High')}</SelectItem>
+                <SelectItem value="medium">{t('investigation.priority.medium', 'Medium')}</SelectItem>
+                <SelectItem value="low">{t('investigation.priority.low', 'Low')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
@@ -481,225 +585,295 @@ export default function MyActions() {
                 </Card>
               ))}
             </div>
-          ) : displayedActions && displayedActions.length > 0 ? (
-            <div className="space-y-4">
-              {displayedActions.map((action) => {
-                const isIncidentAction = action.source === 'incident';
-                const returnCount = isIncidentAction && 'return_count' in action ? (action.return_count || 0) : 0;
-                const lastReturnReason = isIncidentAction && 'last_return_reason' in action ? action.last_return_reason : null;
-                const rejectionNotes = isIncidentAction && 'rejection_notes' in action ? action.rejection_notes : null;
-                const rejectedByProfile = isIncidentAction && 'rejected_by_profile' in action ? action.rejected_by_profile : null;
-                const rejectedAt = isIncidentAction && 'rejected_at' in action ? action.rejected_at : null;
-                const incidentId = isIncidentAction && 'incident_id' in action ? action.incident_id : null;
-                const sessionId = !isIncidentAction && 'session_id' in action ? action.session_id : null;
-                
-                return (
-                <Card key={action.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {getStatusIcon(action.status)}
-                        {action.reference_id && (
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {action.reference_id}
-                          </Badge>
-                        )}
-                        {/* Source indicator */}
-                        <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
-                          {isIncidentAction 
-                            ? t('investigation.source.incident', 'Incident')
-                            : t('investigation.source.inspection', 'Inspection')
-                          }
-                        </Badge>
-                        <CardTitle className="text-base">{action.title}</CardTitle>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {action.priority && (
-                          <Badge variant={getPriorityBadgeVariant(action.priority)}>
-                            {t(`investigation.priority.${action.priority}`, action.priority)}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <CardDescription>
-                      {action.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Workflow Timeline - only for incident actions */}
-                    {isIncidentAction && (
-                      <ActionWorkflowTimeline 
-                        currentStatus={action.status} 
-                        returnCount={returnCount}
-                        className="py-2 mb-2"
-                      />
-                    )}
+          ) : (displayedActiveActions.length > 0 || displayedClosedActions.length > 0) ? (
+            <div className="space-y-6">
+              {/* Active Actions Section */}
+              {displayedActiveActions.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {t('actions.activeActions', 'Active Actions')} ({displayedActiveActions.length})
+                  </h3>
+                  {displayedActiveActions.map((action) => {
+                    const isIncidentAction = action.source === 'incident';
+                    const returnCount = isIncidentAction && 'return_count' in action ? (action.return_count || 0) : 0;
+                    const lastReturnReason = isIncidentAction && 'last_return_reason' in action ? action.last_return_reason : null;
+                    const rejectionNotes = isIncidentAction && 'rejection_notes' in action ? action.rejection_notes : null;
+                    const rejectedByProfile = isIncidentAction && 'rejected_by_profile' in action ? action.rejected_by_profile : null;
+                    const rejectedAt = isIncidentAction && 'rejected_at' in action ? action.rejected_at : null;
+                    const incidentId = isIncidentAction && 'incident_id' in action ? action.incident_id : null;
+                    const sessionId = !isIncidentAction && 'session_id' in action ? action.session_id : null;
                     
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      {action.due_date && (
-                        <>
-                          <div>
-                            <span className="font-medium">{t('investigation.dueDate', 'Due Date')}:</span>{' '}
-                            {new Date(action.due_date).toLocaleDateString()}
-                          </div>
-                          {/* Days remaining/overdue indicator */}
-                          {(() => {
-                            const daysInfo = getDaysInfo(action.due_date);
-                            if (!daysInfo) return null;
-                            // Don't show for closed/verified actions
-                            if (action.status === 'closed' || action.status === 'verified') return null;
-                            
-                            return (
-                              <Badge 
-                                variant="outline"
-                                className={cn(
-                                  "font-medium",
-                                  daysInfo.isOverdue && "bg-red-100 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
-                                  daysInfo.isDueToday && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-                                  daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800",
-                                  !daysInfo.isOverdue && !daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-green-100 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
-                                )}
-                              >
-                                {daysInfo.isDueToday ? (
-                                  <>{t('actions.dueToday', 'Due Today')}</>
-                                ) : daysInfo.isOverdue ? (
-                                  <>{t('assets.dashboard.daysOverdue', '{{count}} days overdue', { count: daysInfo.days })}</>
-                                ) : (
-                                  <>{t('actions.daysRemaining', '{{days}} days remaining', { days: daysInfo.days })}</>
-                                )}
+                    return (
+                    <Card key={action.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {getStatusIcon(action.status)}
+                            {action.reference_id && (
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {action.reference_id}
                               </Badge>
-                            );
-                          })()}
-                        </>
-                      )}
-                      {action.created_at && (
-                        <div>
-                          <span className="font-medium">{t('common.createdAt', 'Created')}:</span>{' '}
-                          {formatDistanceToNow(new Date(action.created_at), { addSuffix: true })}
+                            )}
+                            <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
+                              {isIncidentAction 
+                                ? t('investigation.source.incident', 'Incident')
+                                : t('investigation.source.inspection', 'Inspection')
+                              }
+                            </Badge>
+                            <CardTitle className="text-base">{action.title}</CardTitle>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {action.priority && (
+                              <Badge variant={getPriorityBadgeVariant(action.priority)}>
+                                {String(t(`investigation.priority.${action.priority}`, action.priority))}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    
-                    {/* Show rejection notes if action was returned for correction (incident only) */}
-                    {isIncidentAction && action.status === 'returned_for_correction' && (lastReturnReason || rejectionNotes) && (
-                      <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
-                        <div className="flex items-center gap-2 text-destructive font-medium text-sm">
-                          <RotateCcw className="h-4 w-4" />
-                          {t('actions.rejectionReason', 'Rejection Reason')}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {lastReturnReason || rejectionNotes}
-                        </p>
-                        {rejectedByProfile && (
-                          <p className="text-xs text-muted-foreground">
-                            {t('actions.rejectedBy', 'Rejected by')}: {rejectedByProfile.full_name}
-                            {rejectedAt && ` • ${formatDistanceToNow(new Date(rejectedAt), { addSuffix: true })}`}
-                          </p>
+                        <CardDescription>{action.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {isIncidentAction && (
+                          <ActionWorkflowTimeline 
+                            currentStatus={action.status} 
+                            returnCount={returnCount}
+                            className="py-2 mb-2"
+                          />
                         )}
-                      </div>
-                    )}
-                    
-                    {/* Controlled Action Buttons - Enforces sequential workflow */}
-                    <div className="flex flex-wrap items-center gap-3">
-                      {/* Show "Returned for Correction" banner */}
-                      {action.status === 'returned_for_correction' && (
-                        <Badge variant="destructive" className="gap-1">
-                          <RotateCcw className="h-3 w-3" />
-                          {t('actions.returnedForCorrection', 'Returned for Correction')}
-                        </Badge>
-                      )}
-                      
-                      {/* Processing indicator when action is being submitted */}
-                      {submittingActionIds.has(action.id) && (
-                        <Badge variant="outline" className="animate-pulse gap-1">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          {t('common.processing', 'Processing...')}
-                        </Badge>
-                      )}
-                      
-                      {/* Show "Start Work" for assigned or returned actions */}
-                      {(action.status === 'assigned' || action.status === 'returned_for_correction') && !submittingActionIds.has(action.id) && (
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleStartWork(action)}
-                          disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
-                        >
-                          <PlayCircle className="h-4 w-4 me-2" />
-                          {action.status === 'returned_for_correction' 
-                            ? t('actions.resubmit', 'Resubmit')
-                            : t('investigation.actions.startWork', 'Start Work')
-                          }
-                        </Button>
-                      )}
-                      
-                      {/* Show "Mark Completed" for in_progress actions */}
-                      {action.status === 'in_progress' && !submittingActionIds.has(action.id) && (
-                        <>
-                          <Button 
-                            size="sm"
-                            onClick={() => handleMarkCompleted(action)}
-                            disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
-                          >
-                            <CheckCircle2 className="h-4 w-4 me-2" />
-                            {t('investigation.actions.markCompleted', 'Mark Completed')}
-                          </Button>
+                        
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          {action.due_date && (
+                            <>
+                              <div>
+                                <span className="font-medium">{t('investigation.dueDate', 'Due Date')}:</span>{' '}
+                                {new Date(action.due_date).toLocaleDateString()}
+                              </div>
+                              {(() => {
+                                const daysInfo = getDaysInfo(action.due_date);
+                                if (!daysInfo) return null;
+                                if (action.status === 'closed' || action.status === 'verified') return null;
+                                
+                                return (
+                                  <Badge 
+                                    variant="outline"
+                                    className={cn(
+                                      "font-medium",
+                                      daysInfo.isOverdue && "bg-red-100 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
+                                      daysInfo.isDueToday && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
+                                      daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800",
+                                      !daysInfo.isOverdue && !daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-green-100 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
+                                    )}
+                                  >
+                                    {daysInfo.isDueToday ? (
+                                      <>{t('actions.dueToday', 'Due Today')}</>
+                                    ) : daysInfo.isOverdue ? (
+                                      <>{t('assets.dashboard.daysOverdue', '{{count}} days overdue', { count: daysInfo.days })}</>
+                                    ) : (
+                                      <>{t('actions.daysRemaining', '{{days}} days remaining', { days: daysInfo.days })}</>
+                                    )}
+                                  </Badge>
+                                );
+                              })()}
+                            </>
+                          )}
+                          {action.created_at && (
+                            <div>
+                              <span className="font-medium">{t('common.createdAt', 'Created')}:</span>{' '}
+                              {formatDistanceToNow(new Date(action.created_at), { addSuffix: true })}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {isIncidentAction && action.status === 'returned_for_correction' && (lastReturnReason || rejectionNotes) && (
+                          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
+                            <div className="flex items-center gap-2 text-destructive font-medium text-sm">
+                              <RotateCcw className="h-4 w-4" />
+                              {t('actions.rejectionReason', 'Rejection Reason')}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {lastReturnReason || rejectionNotes}
+                            </p>
+                            {rejectedByProfile && (
+                              <p className="text-xs text-muted-foreground">
+                                {t('actions.rejectedBy', 'Rejected by')}: {rejectedByProfile.full_name}
+                                {rejectedAt && ` • ${formatDistanceToNow(new Date(rejectedAt), { addSuffix: true })}`}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-wrap items-center gap-3">
+                          {action.status === 'returned_for_correction' && (
+                            <Badge variant="destructive" className="gap-1">
+                              <RotateCcw className="h-3 w-3" />
+                              {t('actions.returnedForCorrection', 'Returned for Correction')}
+                            </Badge>
+                          )}
                           
-                          {/* Extension request button if overdue (incident actions only) */}
-                          {isIncidentAction && action.due_date && new Date(action.due_date) < new Date() && (
+                          {submittingActionIds.has(action.id) && (
+                            <Badge variant="outline" className="animate-pulse gap-1">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              {t('common.processing', 'Processing...')}
+                            </Badge>
+                          )}
+                          
+                          {(action.status === 'assigned' || action.status === 'returned_for_correction') && !submittingActionIds.has(action.id) && (
                             <Button 
                               size="sm" 
-                              variant="outline"
-                              onClick={() => handleRequestExtension(action)}
+                              onClick={() => handleStartWork(action)}
+                              disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
                             >
-                              <CalendarPlus className="h-4 w-4 me-2" />
-                              {t('actions.requestExtension', 'Request Extension')}
+                              <PlayCircle className="h-4 w-4 me-2" />
+                              {action.status === 'returned_for_correction' 
+                                ? t('actions.resubmit', 'Resubmit')
+                                : t('investigation.actions.startWork', 'Start Work')
+                              }
                             </Button>
                           )}
-                        </>
-                      )}
+                          
+                          {action.status === 'in_progress' && !submittingActionIds.has(action.id) && (
+                            <>
+                              <Button 
+                                size="sm"
+                                onClick={() => handleMarkCompleted(action)}
+                                disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
+                              >
+                                <CheckCircle2 className="h-4 w-4 me-2" />
+                                {t('investigation.actions.markCompleted', 'Mark Completed')}
+                              </Button>
+                              
+                              {isIncidentAction && action.due_date && new Date(action.due_date) < new Date() && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleRequestExtension(action)}
+                                >
+                                  <CalendarPlus className="h-4 w-4 me-2" />
+                                  {t('actions.requestExtension', 'Request Extension')}
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          
+                          {action.status === 'completed' && (
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                              <Clock className="h-3 w-3 me-1" />
+                              {t('investigation.actions.awaitingVerification', 'Awaiting Verification')}
+                            </Badge>
+                          )}
+                          
+                          {isIncidentAction && incidentId ? (
+                            <Button asChild variant="ghost" size="sm">
+                              <Link to={`/incidents/investigate?incident=${incidentId}&from=my-actions`} className="gap-2">
+                                {t('investigation.viewInvestigation', 'View Investigation')}
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                              </Link>
+                            </Button>
+                          ) : sessionId ? (
+                            <Button asChild variant="ghost" size="sm">
+                              <Link to={`/inspections/sessions/${sessionId}`} className="gap-2">
+                                {t('inspections.viewSession', 'View Session')}
+                                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                              </Link>
+                            </Button>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )})}
+                </div>
+              )}
+
+              {/* Closed Actions Section - Collapsible */}
+              {displayedClosedActions.length > 0 && (
+                <Collapsible open={showClosedActions} onOpenChange={setShowClosedActions}>
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-medium">{t('actions.closedActions', 'Closed Actions')}</span>
+                    <Badge variant="secondary" className="ms-1">{displayedClosedActions.length}</Badge>
+                    <ChevronDown className={cn("h-4 w-4 ms-auto transition-transform", showClosedActions && "rotate-180")} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4 space-y-4">
+                    {displayedClosedActions.map((action) => {
+                      const isIncidentAction = action.source === 'incident';
+                      const incidentId = isIncidentAction && 'incident_id' in action ? action.incident_id : null;
+                      const sessionId = !isIncidentAction && 'session_id' in action ? action.session_id : null;
                       
-                      {/* Show status badge for completed/verified */}
-                      {action.status === 'completed' && (
-                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                          <Clock className="h-3 w-3 me-1" />
-                          {t('investigation.actions.awaitingVerification', 'Awaiting Verification')}
-                        </Badge>
-                      )}
-                      
-                      {action.status === 'verified' && (
-                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                          <CheckCircle2 className="h-3 w-3 me-1" />
-                          {t('investigation.actionStatus.verified', 'Verified')}
-                        </Badge>
-                      )}
-                      
-                      {/* Navigate to source - Investigation Workspace for incidents, Session for inspections */}
-                      {isIncidentAction && incidentId ? (
-                        <Button asChild variant="ghost" size="sm">
-                          <Link to={`/incidents/investigate?incident=${incidentId}&from=my-actions`} className="gap-2">
-                            {t('investigation.viewInvestigation', 'View Investigation')}
-                            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                          </Link>
-                        </Button>
-                      ) : sessionId ? (
-                        <Button asChild variant="ghost" size="sm">
-                          <Link to={`/inspections/sessions/${sessionId}`} className="gap-2">
-                            {t('inspections.viewSession', 'View Session')}
-                            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                          </Link>
-                        </Button>
-                      ) : null}
-                    </div>
-                  </CardContent>
-                </Card>
-              )})}
+                      return (
+                        <Card key={action.id} className="hover:shadow-md transition-shadow opacity-75">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                {action.reference_id && (
+                                  <Badge variant="outline" className="font-mono text-xs">
+                                    {action.reference_id}
+                                  </Badge>
+                                )}
+                                <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
+                                  {isIncidentAction 
+                                    ? t('investigation.source.incident', 'Incident')
+                                    : t('investigation.source.inspection', 'Inspection')
+                                  }
+                                </Badge>
+                                <CardTitle className="text-base">{action.title}</CardTitle>
+                              </div>
+                              <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                <CheckCircle2 className="h-3 w-3 me-1" />
+                                {action.status === 'verified' ? t('investigation.actionStatus.verified', 'Verified') : t('investigation.actionStatus.closed', 'Closed')}
+                              </Badge>
+                            </div>
+                            <CardDescription>{action.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              {action.due_date && (
+                                <div>
+                                  <span className="font-medium">{t('investigation.dueDate', 'Due Date')}:</span>{' '}
+                                  {new Date(action.due_date).toLocaleDateString()}
+                                </div>
+                              )}
+                              {isIncidentAction && incidentId ? (
+                                <Button asChild variant="ghost" size="sm">
+                                  <Link to={`/incidents/investigate?incident=${incidentId}&from=my-actions`} className="gap-2">
+                                    {t('investigation.viewInvestigation', 'View Investigation')}
+                                    <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                                  </Link>
+                                </Button>
+                              ) : sessionId ? (
+                                <Button asChild variant="ghost" size="sm">
+                                  <Link to={`/inspections/sessions/${sessionId}`} className="gap-2">
+                                    {t('inspections.viewSession', 'View Session')}
+                                    <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                                  </Link>
+                                </Button>
+                              ) : null}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </div>
           ) : (
             <Card className="py-12">
               <CardContent className="flex flex-col items-center justify-center text-center">
-                <CheckCircle2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('investigation.noActionsAssigned', 'No Actions Assigned')}</h3>
-                <p className="text-muted-foreground">{t('investigation.noActionsDescription', 'You have no pending corrective actions.')}</p>
+                {searchQuery || priorityFilter !== 'all' ? (
+                  <>
+                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">{t('search.noResults', 'No Results Found')}</h3>
+                    <p className="text-muted-foreground">{t('search.tryDifferent', 'Try adjusting your search or filter criteria.')}</p>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">{t('investigation.noActionsAssigned', 'No Actions Assigned')}</h3>
+                    <p className="text-muted-foreground">{t('investigation.noActionsDescription', 'You have no pending corrective actions.')}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}

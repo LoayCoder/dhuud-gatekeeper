@@ -1540,7 +1540,9 @@
     },
     "dueSoon": "Malapit na ang Due",
     "daysRemaining": "{{days}} araw na natitira",
-    "dueToday": "Due Ngayon"
+    "dueToday": "Due Ngayon",
+    "activeActions": "Mga Aktibong Aksyon",
+    "closedActions": "Mga Saradong Aksyon"
   },
   "inspectionSessions": {
     "title": "Mga Inspection Session",
