@@ -87,7 +87,7 @@ const SUBTYPES_BY_INCIDENT_TYPE: Record<string, string[]> = {
 
 // Get all subtypes for the enum
 const ALL_SUBTYPES = [
-  'unsafe_act', 'unsafe_condition', // observation subtypes
+  'unsafe_act', 'unsafe_condition', 'safe_act', 'safe_condition', // observation subtypes
   ...Object.values(SUBTYPES_BY_INCIDENT_TYPE).flat()
 ];
 
@@ -147,8 +147,14 @@ CRITICAL LANGUAGE RULES:
 - All text fields (injuryDescription, damageDescription, reasoning) MUST be in ${responseLanguage}
 
 EVENT CATEGORIES:
-- "observation": Unsafe acts or conditions observed but no actual harm occurred
+- "observation": Unsafe acts or conditions observed but no actual harm occurred. Also includes positive safety observations (safe acts/conditions).
 - "incident": Actual events including near misses, injuries, damage, or emergencies
+
+OBSERVATION SUBTYPES (for observations only):
+- unsafe_act: Unsafe behavior observed (e.g., not wearing PPE, improper lifting)
+- unsafe_condition: Hazardous condition (e.g., wet floor, exposed wires)
+- safe_act: Positive safety behavior to recognize (e.g., following procedures, helping others)
+- safe_condition: Good condition to recognize (e.g., clean workspace, proper signage)
 
 INCIDENT TYPES (for incidents only):
 - safety: Occupational injuries/harm (slips, falls, struck-by, caught-in, burns, electrical, etc.)

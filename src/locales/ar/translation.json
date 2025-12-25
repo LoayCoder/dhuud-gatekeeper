@@ -375,7 +375,8 @@
       "analysisComplete": "اكتمل تحليل الذكاء الاصطناعي",
       "typeDetected": "تم اكتشاف نوع الحدث",
       "typeNotDetected": "تعذر تحديد نوع الحدث من الوصف",
-      "detectionError": "فشل في اكتشاف نوع الحدث"
+      "detectionError": "فشل في اكتشاف نوع الحدث",
+      "fieldsPopulated": "تم ملء الحقول تلقائياً من تحليل الذكاء الاصطناعي"
     },
     "site": "الموقع",
     "selectSite": "اختر الموقع",

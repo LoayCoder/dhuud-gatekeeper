@@ -431,7 +431,8 @@
       "analysisComplete": "AI विश्लेषण पूर्ण",
       "typeDetected": "घटना का प्रकार पहचाना गया",
       "typeNotDetected": "विवरण से घटना का प्रकार निर्धारित नहीं हो सका",
-      "detectionError": "घटना का प्रकार पहचानने में विफल"
+      "detectionError": "घटना का प्रकार पहचानने में विफल",
+      "fieldsPopulated": "AI विश्लेषण से फ़ील्ड स्वचालित रूप से भरे गए"
     },
     "site": "साइट",
     "selectSite": "साइट चुनें",
@@ -473,6 +474,24 @@
       "medical_treatment": "चिकित्सा उपचार",
       "fire": "आग",
       "security": "सुरक्षा"
+    },
+    "hsseEventType": "घटना श्रेणी",
+    "incidentCategory": "घटना श्रेणी",
+    "incidentSubCategory": "घटना उप श्रेणी",
+    "incidentSubtype": "घटना उप प्रकार",
+    "selectHsseEventTypeFirst": "कृपया पहले घटना श्रेणी चुनें",
+    "hsseEventTypes": {
+      "safety": "सुरक्षा (व्यावसायिक चोट / हानि)",
+      "health": "स्वास्थ्य (बीमारी / एक्सपोज़र)",
+      "processSafety": "प्रक्रिया सुरक्षा (LOPC / आग / विस्फोट)",
+      "environment": "पर्यावरण (रिसाव / उत्सर्जन / कचरा)",
+      "security": "सुरक्षा (लोग / संपत्ति / पहुंच)",
+      "propertyAssetDamage": "संपत्ति और एसेट क्षति (गैर-प्रक्रिया)",
+      "roadTrafficVehicle": "सड़क यातायात / वाहन और मोबाइल उपकरण",
+      "qualityService": "गुणवत्ता / सेवा प्रभाव",
+      "communityThirdParty": "समुदाय / तृतीय-पक्ष प्रभाव",
+      "complianceRegulatory": "अनुपालन / नियामक उल्लंघन",
+      "emergencyCrisis": "आपातकाल / संकट सक्रियण (ERP)"
     },
     "status": {
       "submitted": "जमा किया गया",

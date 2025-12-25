@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat } from 'lucide-react';
+import { Camera, MapPin, Loader2, CheckCircle2, AlertTriangle, Send, X, Trophy, User, Building2, HardHat, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import { useContractorWorkers } from '@/hooks/contractor-management/use-contract
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
+import { analyzeIncidentWithAI } from '@/lib/incident-ai-assistant';
 
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },

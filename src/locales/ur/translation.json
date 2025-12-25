@@ -431,7 +431,8 @@
       "analysisComplete": "AI تجزیہ مکمل ہو گیا",
       "typeDetected": "واقعہ کی قسم کا پتہ چل گیا",
       "typeNotDetected": "وضاحت سے واقعہ کی قسم کا تعین نہیں ہو سکا",
-      "detectionError": "واقعہ کی قسم کا پتہ لگانے میں ناکامی"
+      "detectionError": "واقعہ کی قسم کا پتہ لگانے میں ناکامی",
+      "fieldsPopulated": "AI تجزیہ سے فیلڈز خود بخود بھر گئیں"
     },
     "site": "سائٹ",
     "selectSite": "سائٹ منتخب کریں",
@@ -473,6 +474,24 @@
       "medical_treatment": "طبی علاج",
       "fire": "آگ",
       "security": "سیکیورٹی"
+    },
+    "hsseEventType": "واقعہ کی قسم",
+    "incidentCategory": "حادثہ کی قسم",
+    "incidentSubCategory": "حادثہ کی ذیلی قسم",
+    "incidentSubtype": "حادثہ کی ذیلی قسم",
+    "selectHsseEventTypeFirst": "براہ کرم پہلے حادثہ کی قسم منتخب کریں",
+    "hsseEventTypes": {
+      "safety": "حفاظت (پیشہ ورانہ چوٹ)",
+      "health": "صحت (بیماری / ایکسپوژر)",
+      "processSafety": "پراسیس سیفٹی (LOPC / آگ / دھماکہ)",
+      "environment": "ماحولیات (رساؤ / اخراج / فضلہ)",
+      "security": "سیکیورٹی (لوگ / اثاثے / رسائی)",
+      "propertyAssetDamage": "جائیداد اور اثاثوں کا نقصان (غیر پراسیس)",
+      "roadTrafficVehicle": "روڈ ٹریفک / گاڑی اور موبائل آلات",
+      "qualityService": "معیار / سروس اثر",
+      "communityThirdParty": "کمیونٹی / تھرڈ پارٹی اثر",
+      "complianceRegulatory": "تعمیل / ریگولیٹری خلاف ورزی",
+      "emergencyCrisis": "ایمرجنسی / کرائسز ایکٹیویشن (ERP)"
     },
     "status": {
       "submitted": "جمع شدہ",
