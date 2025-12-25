@@ -5666,7 +5666,10 @@
     "observationSubmitted": "अवलोकन सफलतापूर्वक सबमिट किया गया",
     "aiAnalyze": "एआई विश्लेषण",
     "analyzing": "विश्लेषण हो रहा है...",
-    "analysisComplete": "एआई ने प्रकार और जोखिम स्तर सुझाया"
+    "analysisComplete": "एआई ने प्रकार और जोखिम स्तर सुझाया",
+    "noSiteNearby": "पास में कोई पंजीकृत साइट नहीं",
+    "canSubmitWithoutLocation": "आप स्थान के बिना भी सबमिट कर सकते हैं",
+    "locationOptional": "स्थान वैकल्पिक है"
   },
   "positiveObservation": {
     "recognitionType": "आप किसे पहचान देना चाहते हैं?",

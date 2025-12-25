@@ -5642,7 +5642,10 @@
     "observationSubmitted": "Matagumpay na naisumite ang obserbasyon",
     "aiAnalyze": "Suriin ng AI",
     "analyzing": "Sinusuri...",
-    "analysisComplete": "Nagsuhestiyon ang AI ng uri at antas ng panganib"
+    "analysisComplete": "Nagsuhestiyon ang AI ng uri at antas ng panganib",
+    "noSiteNearby": "Walang nakarehistrong site sa malapit",
+    "canSubmitWithoutLocation": "Maaari ka pa ring magsumite nang walang lokasyon",
+    "locationOptional": "Opsyonal lang ang lokasyon"
   },
   "positiveObservation": {
     "recognitionType": "Sino ang iyong kinikilala?",

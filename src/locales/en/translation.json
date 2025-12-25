@@ -6129,7 +6129,10 @@
     "observationSubmitted": "Observation submitted successfully",
     "aiAnalyze": "AI Analyze",
     "analyzing": "Analyzing...",
-    "analysisComplete": "AI has suggested type and risk level"
+    "analysisComplete": "AI has suggested type and risk level",
+    "noSiteNearby": "No registered site nearby",
+    "canSubmitWithoutLocation": "You can still submit without location",
+    "locationOptional": "Location is optional"
   },
   "positiveObservation": {
     "recognitionType": "Who are you recognizing?",
