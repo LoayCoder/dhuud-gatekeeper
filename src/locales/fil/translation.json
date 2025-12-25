@@ -5639,7 +5639,10 @@
     "addCorrectiveActionPhoto": "Magdagdag ng ebidensyang larawan",
     "submitting": "Isinusumite...",
     "submitObservation": "Isumite ang Obserbasyon",
-    "observationSubmitted": "Matagumpay na naisumite ang obserbasyon"
+    "observationSubmitted": "Matagumpay na naisumite ang obserbasyon",
+    "aiAnalyze": "Suriin ng AI",
+    "analyzing": "Sinusuri...",
+    "analysisComplete": "Nagsuhestiyon ang AI ng uri at antas ng panganib"
   },
   "positiveObservation": {
     "recognitionType": "Sino ang iyong kinikilala?",

@@ -5968,7 +5968,10 @@
     "addCorrectiveActionPhoto": "إضافة صورة إثبات",
     "submitting": "جاري الإرسال...",
     "submitObservation": "إرسال الملاحظة",
-    "observationSubmitted": "تم إرسال الملاحظة بنجاح"
+    "observationSubmitted": "تم إرسال الملاحظة بنجاح",
+    "aiAnalyze": "تحليل ذكي",
+    "analyzing": "جاري التحليل...",
+    "analysisComplete": "اقترح الذكاء الاصطناعي النوع ومستوى الخطر"
   },
   "positiveObservation": {
     "recognitionType": "من تريد تكريمه؟",

@@ -5678,7 +5678,10 @@
     "addCorrectiveActionPhoto": "ثبوت کی تصویر شامل کریں",
     "submitting": "جمع کر رہا ہے...",
     "submitObservation": "مشاہدہ جمع کریں",
-    "observationSubmitted": "مشاہدہ کامیابی سے جمع ہو گیا"
+    "observationSubmitted": "مشاہدہ کامیابی سے جمع ہو گیا",
+    "aiAnalyze": "اے آئی تجزیہ",
+    "analyzing": "تجزیہ ہو رہا ہے...",
+    "analysisComplete": "اے آئی نے قسم اور خطرے کی سطح تجویز کی"
   },
   "positiveObservation": {
     "recognitionType": "آپ کس کی تعریف کرنا چاہتے ہیں؟",

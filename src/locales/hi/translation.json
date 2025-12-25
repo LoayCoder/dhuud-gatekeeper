@@ -5663,7 +5663,10 @@
     "addCorrectiveActionPhoto": "सबूत फोटो जोड़ें",
     "submitting": "सबमिट हो रहा है...",
     "submitObservation": "अवलोकन सबमिट करें",
-    "observationSubmitted": "अवलोकन सफलतापूर्वक सबमिट किया गया"
+    "observationSubmitted": "अवलोकन सफलतापूर्वक सबमिट किया गया",
+    "aiAnalyze": "एआई विश्लेषण",
+    "analyzing": "विश्लेषण हो रहा है...",
+    "analysisComplete": "एआई ने प्रकार और जोखिम स्तर सुझाया"
   },
   "positiveObservation": {
     "recognitionType": "आप किसे पहचान देना चाहते हैं?",
