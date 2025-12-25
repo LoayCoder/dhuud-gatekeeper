@@ -1571,7 +1571,10 @@
       "inProgress": "قيد التنفيذ",
       "pendingVerification": "في انتظار التحقق",
       "closed": "مغلق"
-    }
+    },
+    "dueSoon": "قريب الاستحقاق",
+    "daysRemaining": "{{days}} أيام متبقية",
+    "dueToday": "مستحق اليوم"
   },
   "inspectionSessions": {
     "title": "جلسات التفتيش",

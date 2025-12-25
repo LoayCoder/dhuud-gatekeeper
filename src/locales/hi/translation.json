@@ -1527,7 +1527,10 @@
       "inProgress": "प्रगति में",
       "pendingVerification": "सत्यापन लंबित",
       "closed": "बंद"
-    }
+    },
+    "dueSoon": "जल्द देय",
+    "daysRemaining": "{{days}} दिन शेष",
+    "dueToday": "आज देय"
   },
   "inspectionSessions": {
     "title": "निरीक्षण सत्र",
