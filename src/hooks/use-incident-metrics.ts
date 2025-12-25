@@ -55,8 +55,10 @@ export function useIncidentMetricsBySeverity(
       };
 
       (data ?? []).forEach((incident) => {
-        // Count by injury classification
-        switch (incident.injury_classification) {
+        // Try injury_classification first, then fall back to subtype for legacy data
+        const classification = incident.injury_classification || incident.subtype;
+
+        switch (classification) {
           case 'fatality':
             metrics.fatality++;
             break;
@@ -74,19 +76,26 @@ export function useIncidentMetricsBySeverity(
           case 'first_aid':
             metrics.first_aid++;
             break;
+          case 'near_miss':
+            metrics.near_miss++;
+            break;
+          case 'environmental':
+            metrics.environmental++;
+            break;
+          case 'vehicle':
+          case 'equipment':
+            metrics.vehicle_equipment++;
+            break;
+          case 'security':
+            metrics.security++;
+            break;
         }
 
-        // Count by event type
-        if (incident.event_type === 'observation' && incident.subtype === 'near_miss') {
-          metrics.near_miss++;
-        }
-        if (incident.subtype === 'environmental' || incident.event_type === 'environmental') {
+        // Also check event_type for special types (in case subtype doesn't match)
+        if (incident.event_type === 'environmental' && classification !== 'environmental') {
           metrics.environmental++;
         }
-        if (incident.subtype === 'vehicle' || incident.subtype === 'equipment') {
-          metrics.vehicle_equipment++;
-        }
-        if (incident.subtype === 'security' || incident.event_type === 'security') {
+        if (incident.event_type === 'security' && classification !== 'security') {
           metrics.security++;
         }
       });
