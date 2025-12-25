@@ -5644,5 +5644,23 @@
     "submitting": "सबमिट हो रहा है...",
     "submitObservation": "अवलोकन सबमिट करें",
     "observationSubmitted": "अवलोकन सफलतापूर्वक सबमिट किया गया"
+  },
+  "positiveObservation": {
+    "recognitionType": "आप किसे पहचान देना चाहते हैं?",
+    "selectRecognitionType": "पहचान का प्रकार चुनें",
+    "individual": "व्यक्तिगत कर्मचारी",
+    "department": "विभाग / टीम",
+    "contractor": "ठेकेदार कर्मचारी",
+    "selectEmployee": "कर्मचारी चुनें",
+    "selectDepartment": "विभाग चुनें",
+    "selectContractor": "ठेकेदार कर्मचारी चुनें",
+    "searchEmployee": "कर्मचारियों की खोज करें...",
+    "searchContractor": "ठेकेदारों की खोज करें...",
+    "totalPositive": "सकारात्मक अवलोकन",
+    "safeActs": "सुरक्षित कार्य",
+    "safeConditions": "सुरक्षित स्थितियाँ",
+    "topRecognized": "सर्वाधिक मान्यता प्राप्त",
+    "observationRatio": "अवलोकन अनुपात",
+    "positiveToNegative": "सकारात्मक : नकारात्मक"
   }
 }

@@ -5659,5 +5659,23 @@
     "submitting": "جمع کر رہا ہے...",
     "submitObservation": "مشاہدہ جمع کریں",
     "observationSubmitted": "مشاہدہ کامیابی سے جمع ہو گیا"
+  },
+  "positiveObservation": {
+    "recognitionType": "آپ کس کی تعریف کرنا چاہتے ہیں؟",
+    "selectRecognitionType": "تعریف کی قسم منتخب کریں",
+    "individual": "انفرادی ملازم",
+    "department": "شعبہ / ٹیم",
+    "contractor": "ٹھیکیدار کارکن",
+    "selectEmployee": "ملازم منتخب کریں",
+    "selectDepartment": "شعبہ منتخب کریں",
+    "selectContractor": "ٹھیکیدار کارکن منتخب کریں",
+    "searchEmployee": "ملازمین تلاش کریں...",
+    "searchContractor": "ٹھیکیدار تلاش کریں...",
+    "totalPositive": "مثبت مشاہدات",
+    "safeActs": "محفوظ اعمال",
+    "safeConditions": "محفوظ حالات",
+    "topRecognized": "سب سے زیادہ تعریف یافتہ",
+    "observationRatio": "مشاہدات کا تناسب",
+    "positiveToNegative": "مثبت : منفی"
   }
 }

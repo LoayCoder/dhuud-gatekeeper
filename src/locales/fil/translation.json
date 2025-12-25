@@ -5638,5 +5638,23 @@
     "submitting": "Isinusumite...",
     "submitObservation": "Isumite ang Obserbasyon",
     "observationSubmitted": "Matagumpay na naisumite ang obserbasyon"
+  },
+  "positiveObservation": {
+    "recognitionType": "Sino ang iyong kinikilala?",
+    "selectRecognitionType": "Pumili ng uri ng pagkilala",
+    "individual": "Indibidwal na Empleyado",
+    "department": "Departamento / Pangkat",
+    "contractor": "Manggagawa ng Kontratista",
+    "selectEmployee": "Pumili ng empleyado",
+    "selectDepartment": "Pumili ng departamento",
+    "selectContractor": "Pumili ng manggagawa ng kontratista",
+    "searchEmployee": "Maghanap ng mga empleyado...",
+    "searchContractor": "Maghanap ng mga kontratista...",
+    "totalPositive": "Positibong Obserbasyon",
+    "safeActs": "Ligtas na Gawa",
+    "safeConditions": "Ligtas na Kondisyon",
+    "topRecognized": "Pinaka Kinikilala",
+    "observationRatio": "Ratio ng Obserbasyon",
+    "positiveToNegative": "Positibo : Negatibo"
   }
 }

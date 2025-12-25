@@ -90,6 +90,7 @@ import {
   KPITrendCard,
   KPIHistoricalTrendChart,
   IncidentTypeBreakdownChart,
+  PositiveObservationCard,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -601,16 +602,26 @@ export default function HSSEEventDashboard() {
         ) : null}
       </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Charts Row 2 - Status & Positive Observations */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {dashboardLoading ? (
           <>
+            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
             <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
             <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
           </>
         ) : dashboardData ? (
           <>
             <StatusDistributionChart data={dashboardData.by_status} />
+            <PositiveObservationCard 
+              data={dashboardData.by_subtype ? {
+                safe_act_count: (dashboardData.by_subtype as Record<string, number>)?.safe_act ?? 0,
+                safe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.safe_condition ?? 0,
+                unsafe_act_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_act ?? 0,
+                unsafe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_condition ?? 0,
+              } : null}
+              isLoading={dashboardLoading}
+            />
             <ActionsStatusWidget data={dashboardData.actions} />
           </>
         ) : null}
