@@ -215,6 +215,7 @@
     "reportDescription": "تقديم بلاغ حادث سلامة جديد",
     "basicInfo": "المعلومات الأساسية",
     "title": "عنوان الحادث",
+    "eventTitle": "عنوان الحدث",
     "titlePlaceholder": "وصف موجز لما حدث",
     "eventType": "نوع الحدث",
     "selectEventType": "اختر نوع الحدث...",

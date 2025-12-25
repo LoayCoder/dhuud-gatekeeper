@@ -182,6 +182,7 @@
     "reportDescription": "نیا حفاظتی واقعہ رپورٹ جمع کریں",
     "basicInfo": "بنیادی معلومات",
     "title": "واقعہ کا عنوان",
+    "eventTitle": "واقعہ کا عنوان",
     "titlePlaceholder": "کیا ہوا اس کی مختصر تفصیل",
     "eventType": "واقعہ کی قسم",
     "selectEventType": "واقعہ کی قسم منتخب کریں...",

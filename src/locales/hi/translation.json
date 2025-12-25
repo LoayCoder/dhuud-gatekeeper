@@ -182,6 +182,7 @@
     "reportDescription": "नई सुरक्षा घटना रिपोर्ट जमा करें",
     "basicInfo": "मूल जानकारी",
     "title": "घटना का शीर्षक",
+    "eventTitle": "घटना का शीर्षक",
     "titlePlaceholder": "क्या हुआ इसका संक्षिप्त विवरण",
     "eventType": "घटना का प्रकार",
     "selectEventType": "घटना का प्रकार चुनें...",
