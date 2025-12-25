@@ -21,6 +21,7 @@ import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } fr
 import { useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useTenantUsers } from '@/hooks/use-department-users';
 import { useContractorWorkers } from '@/hooks/contractor-management/use-contractor-workers';
+import { useActiveEvent } from '@/hooks/use-special-events';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
@@ -88,6 +89,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const { data: departments = [] } = useTenantDepartments();
   const { data: tenantUsers = [] } = useTenantUsers();
   const { data: contractorWorkers = [] } = useContractorWorkers();
+  const { data: activeEvent } = useActiveEvent();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -263,6 +265,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       recognized_contractor_worker_id: values.recognition_type === 'contractor' ? values.recognized_contractor_worker_id : undefined,
       // Store department_id for department recognition
       department_id: values.recognition_type === 'department' ? values.recognized_department_id : undefined,
+      // Link to active special event
+      special_event_id: activeEvent?.id || undefined,
     };
     
     createIncident.mutate(formData, {
@@ -354,6 +358,28 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
             {t('quickObservation.subtitle')}
           </p>
         </CardHeader>
+        
+        {/* Event Mode Active Banner */}
+        {activeEvent && (
+          <div className="mx-4 mb-4 rounded-lg border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 p-3">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 rounded-full bg-blue-500 p-1.5">
+                <Trophy className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                  {t('specialEvents.eventBannerTitle')}
+                </p>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-300 truncate">
+                  {activeEvent.name}
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {t('specialEvents.eventBannerNote')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <CardContent>
           <Form {...form}>
