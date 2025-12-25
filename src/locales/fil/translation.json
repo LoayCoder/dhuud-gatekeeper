@@ -1506,7 +1506,16 @@
       "rejected": "Tinanggihan"
     },
     "evidence": "Ebidensya",
-    "uploadEvidence": "I-drop ang mga file o mag-click para mag-upload"
+    "uploadEvidence": "I-drop ang mga file o mag-click para mag-upload",
+    "confirmSubmission": "Kumpirmahin ang Pagsumite",
+    "reviewBeforeSubmit": "Mangyaring suriin ang iyong pagsumite bago kumpirmahin.",
+    "confirmStartWorkMessage": "Magsisimula ka nang magtrabaho sa aksyon na ito. Magbabago ang status sa \"In Progress\".",
+    "confirmCompleteMessage": "Magsusumite ka ng aksyon na ito para sa beripikasyon. Susuriin ito ng HSSE.",
+    "actionTitle": "Aksyon",
+    "filesToUpload": "Mga File na Ia-upload",
+    "statusWillChange": "Magbabago ang status sa:",
+    "confirmAndSubmit": "Kumpirmahin at Isumite",
+    "proceedToConfirm": "Magpatuloy"
   },
   "inspectionSessions": {
     "title": "Mga Inspection Session",

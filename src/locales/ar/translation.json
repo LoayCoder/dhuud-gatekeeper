@@ -1556,7 +1556,16 @@
       "rejected": "مرفوض"
     },
     "evidence": "الأدلة",
-    "uploadEvidence": "اسحب الملفات أو انقر للرفع"
+    "uploadEvidence": "اسحب الملفات أو انقر للرفع",
+    "confirmSubmission": "تأكيد الإرسال",
+    "reviewBeforeSubmit": "يرجى مراجعة طلبك قبل التأكيد.",
+    "confirmStartWorkMessage": "أنت على وشك بدء العمل على هذا الإجراء. ستتغير الحالة إلى \"قيد التنفيذ\".",
+    "confirmCompleteMessage": "أنت على وشك تقديم هذا الإجراء للتحقق. سيتم مراجعته من قبل فريق الصحة والسلامة.",
+    "actionTitle": "الإجراء",
+    "filesToUpload": "الملفات المراد رفعها",
+    "statusWillChange": "ستتغير الحالة إلى:",
+    "confirmAndSubmit": "تأكيد وإرسال",
+    "proceedToConfirm": "متابعة"
   },
   "inspectionSessions": {
     "title": "جلسات التفتيش",
