@@ -12083,6 +12083,12 @@ export type Database = {
           incident_id: string | null
           original_transcription: string | null
           relationship: string | null
+          return_count: number | null
+          return_reason: string | null
+          returned_at: string | null
+          returned_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           statement_date: string | null
           statement_text: string
           statement_type: string
@@ -12106,6 +12112,12 @@ export type Database = {
           incident_id?: string | null
           original_transcription?: string | null
           relationship?: string | null
+          return_count?: number | null
+          return_reason?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           statement_date?: string | null
           statement_text: string
           statement_type?: string
@@ -12129,6 +12141,12 @@ export type Database = {
           incident_id?: string | null
           original_transcription?: string | null
           relationship?: string | null
+          return_count?: number | null
+          return_reason?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           statement_date?: string | null
           statement_text?: string
           statement_type?: string
@@ -12159,6 +12177,20 @@ export type Database = {
             columns: ["incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_returned_by_fkey"
+            columns: ["returned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

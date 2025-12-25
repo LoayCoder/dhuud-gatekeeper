@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
-import { useMyAssignedWitnessStatements } from '@/hooks/use-witness-statements';
+import { useMyAssignedWitnessStatements, useStartWitnessWork, useUpdateWitnessStatement } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';

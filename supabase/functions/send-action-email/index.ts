@@ -16,7 +16,7 @@ const corsHeaders = {
 };
 
 interface ActionEmailRequest {
-  type: 'action_assigned' | 'witness_request_created' | 'action_returned' | 'action_closed';
+  type: 'action_assigned' | 'witness_request_created' | 'action_returned' | 'action_closed' | 'witness_statement_returned';
   recipient_email: string;
   recipient_name: string;
   recipient_id?: string; // User ID to fetch language preference
