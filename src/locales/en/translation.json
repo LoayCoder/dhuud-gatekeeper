@@ -1129,7 +1129,15 @@
     "back": "Back",
     "next": "Next",
     "search": "Search",
-    "filter": "Filter",
+    "filter": "Filter"
+  },
+  "search": {
+    "placeholder": "Search by title, description, or reference...",
+    "noResults": "No Results Found",
+    "tryDifferent": "Try adjusting your search or filter criteria."
+  },
+  "filter": {
+    "allPriorities": "All Priorities"
     "export": "Export",
     "import": "Import",
     "close": "Close",
@@ -1485,7 +1493,9 @@
     },
     "dueSoon": "Due Soon",
     "daysRemaining": "{{days}} days remaining",
-    "dueToday": "Due Today"
+    "dueToday": "Due Today",
+    "activeActions": "Active Actions",
+    "closedActions": "Closed Actions"
   },
   "inspectionSessions": {
     "title": "Inspection Sessions",

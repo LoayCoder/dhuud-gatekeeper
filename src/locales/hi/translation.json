@@ -1546,7 +1546,9 @@
     },
     "dueSoon": "जल्द देय",
     "daysRemaining": "{{days}} दिन शेष",
-    "dueToday": "आज देय"
+    "dueToday": "आज देय",
+    "activeActions": "सक्रिय कार्रवाइयाँ",
+    "closedActions": "बंद कार्रवाइयाँ"
   },
   "inspectionSessions": {
     "title": "निरीक्षण सत्र",
