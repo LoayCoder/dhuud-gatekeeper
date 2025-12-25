@@ -544,6 +544,7 @@
       "manager_rejected": "Rejected by Manager",
       "hsse_manager_escalation": "Escalated to HSSE Manager",
       "pending_dept_rep_approval": "Pending Dept. Rep. Approval",
+      "observation_actions_pending": "Actions In Progress",
       "pending_closure": "Pending Closure",
       "investigation_closed": "Investigation Closed",
       "pending_final_closure": "Pending Final Closure"

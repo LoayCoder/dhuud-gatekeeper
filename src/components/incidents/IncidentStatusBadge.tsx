@@ -69,6 +69,12 @@ const statusConfig: Record<string, {
     colorClass: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
   },
   
+  // Observation with pending actions (awaiting action verification)
+  observation_actions_pending: {
+    icon: Timer,
+    colorClass: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+  },
+  
   // Investigation stages
   investigation_pending: {
     icon: Timer,

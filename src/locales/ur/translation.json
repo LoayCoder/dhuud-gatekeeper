@@ -353,6 +353,7 @@
       "manager_rejected": "مینیجر نے مسترد کیا",
       "hsse_manager_escalation": "HSSE مینیجر کو بڑھایا گیا",
       "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کا انتظار",
+      "observation_actions_pending": "کاروائیاں جاری ہیں",
       "pending_closure": "بند ہونے کے منتظر",
       "investigation_closed": "تحقیقات بند",
       "pending_final_closure": "حتمی بندش کا انتظار"
