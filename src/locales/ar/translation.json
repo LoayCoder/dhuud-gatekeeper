@@ -1565,7 +1565,13 @@
     "filesToUpload": "الملفات المراد رفعها",
     "statusWillChange": "ستتغير الحالة إلى:",
     "confirmAndSubmit": "تأكيد وإرسال",
-    "proceedToConfirm": "متابعة"
+    "proceedToConfirm": "متابعة",
+    "timeline": {
+      "assigned": "مسند",
+      "inProgress": "قيد التنفيذ",
+      "pendingVerification": "في انتظار التحقق",
+      "closed": "مغلق"
+    }
   },
   "inspectionSessions": {
     "title": "جلسات التفتيش",
