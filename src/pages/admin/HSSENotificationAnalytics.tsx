@@ -190,9 +190,48 @@ export default function HSSENotificationAnalytics() {
   const { data: responseTime, isLoading: responseLoading } = useHSSEResponseTimeDistribution();
   const { data: categoryDist, isLoading: categoryLoading } = useHSSECategoryDistribution();
 
-  const handleExport = () => {
-    // TODO: Implement Excel export
-    console.log('Export clicked');
+  const handleExport = async () => {
+    if (!metrics || !branchRates) return;
+    
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary sheet
+    const summarySheet = workbook.addWorksheet(t('hsseNotifications.analytics.summary', 'Summary'));
+    summarySheet.addRow([t('hsseNotifications.analytics.metric', 'Metric'), t('hsseNotifications.analytics.value', 'Value')]);
+    summarySheet.addRow([t('hsseNotifications.analytics.totalMandatory'), metrics.total_mandatory_notifications]);
+    summarySheet.addRow([t('hsseNotifications.analytics.overallAckRate'), `${metrics.overall_ack_rate}%`]);
+    summarySheet.addRow([t('hsseNotifications.analytics.avgResponseTime'), `${metrics.avg_response_time_hours}h`]);
+    summarySheet.addRow([t('hsseNotifications.analytics.overdue'), metrics.overdue_count]);
+    
+    // Branch compliance sheet
+    const branchSheet = workbook.addWorksheet(t('hsseNotifications.analytics.complianceByBranch'));
+    branchSheet.addRow([
+      t('hsseNotifications.analytics.branch'),
+      t('hsseNotifications.analytics.notifications'),
+      t('hsseNotifications.analytics.acknowledged'),
+      t('hsseNotifications.analytics.rate'),
+      t('hsseNotifications.analytics.avgResponse'),
+    ]);
+    branchRates.forEach(branch => {
+      branchSheet.addRow([
+        branch.branch_name,
+        branch.total_notifications,
+        `${branch.total_actual_acks}/${branch.total_expected_acks}`,
+        `${branch.acknowledgment_rate}%`,
+        branch.avg_response_hours ? `${branch.avg_response_hours}h` : '-',
+      ]);
+    });
+    
+    // Download file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hsse-notification-analytics-${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Prepare chart data

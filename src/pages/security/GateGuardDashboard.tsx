@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,14 +51,32 @@ const GateGuardDashboard = () => {
     refetchAlerts();
   };
 
-  const handleDismissAlert = (alertId: string) => {
-    // TODO: Implement alert dismissal
-    console.log('Dismiss alert:', alertId);
+  const handleDismissAlert = async (alertId: string) => {
+    try {
+      // Geofence alerts are stored in geofence_alerts table
+      if (alertId && alertId !== 'pending-passes') {
+        await supabase.from('geofence_alerts')
+          .update({ resolved_at: new Date().toISOString() })
+          .eq('id', alertId);
+      }
+      refetchAlerts();
+    } catch {
+      // Silent failure - alerts will refresh on next cycle
+    }
   };
 
-  const handleAcknowledgeAlert = (alertId: string) => {
-    // TODO: Implement alert acknowledgment
-    console.log('Acknowledge alert:', alertId);
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      // Geofence alerts are stored in geofence_alerts table
+      if (alertId && alertId !== 'pending-passes') {
+        await supabase.from('geofence_alerts')
+          .update({ acknowledged_at: new Date().toISOString() })
+          .eq('id', alertId);
+      }
+      refetchAlerts();
+    } catch {
+      // Silent failure - alerts will refresh on next cycle
+    }
   };
 
   const statCards = [
