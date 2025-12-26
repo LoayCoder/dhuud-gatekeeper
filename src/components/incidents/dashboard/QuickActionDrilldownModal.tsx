@@ -11,10 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  ClipboardCheck, 
   Search, 
   AlertTriangle, 
-  ListTodo,
   FileText,
   Calendar,
   ExternalLink
@@ -34,11 +32,6 @@ const ACTION_CONFIG: Record<QuickActionType, {
   titleKey: string;
   color: string;
 }> = {
-  pending_approvals: {
-    icon: ClipboardCheck,
-    titleKey: 'hsseDashboard.pendingApprovals',
-    color: 'text-warning',
-  },
   open_investigations: {
     icon: Search,
     titleKey: 'hsseDashboard.openInvestigations',
@@ -48,11 +41,6 @@ const ACTION_CONFIG: Record<QuickActionType, {
     icon: AlertTriangle,
     titleKey: 'hsseDashboard.overdueActions',
     color: 'text-destructive',
-  },
-  my_actions: {
-    icon: ListTodo,
-    titleKey: 'hsseDashboard.myActions',
-    color: 'text-primary',
   },
 };
 
