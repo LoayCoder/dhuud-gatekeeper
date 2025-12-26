@@ -4502,6 +4502,7 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
           user_id: string | null
+          whatsapp_template_id: string | null
         }
         Insert: {
           channels?: string[]
@@ -4515,6 +4516,7 @@ export type Database = {
           tenant_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+          whatsapp_template_id?: string | null
         }
         Update: {
           channels?: string[]
@@ -4528,6 +4530,7 @@ export type Database = {
           tenant_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+          whatsapp_template_id?: string | null
         }
         Relationships: [
           {
@@ -4542,6 +4545,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_notification_matrix_whatsapp_template_id_fkey"
+            columns: ["whatsapp_template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
             referencedColumns: ["id"]
           },
         ]

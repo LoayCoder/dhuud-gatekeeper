@@ -57,6 +57,8 @@ interface NotificationRecipient {
   email: string | null;
   preferred_language: string | null;
   was_condition_match: boolean;
+  whatsapp_template_id?: string | null;
+  matrix_rule_id?: string | null;
 }
 
 interface NotificationResult {
@@ -65,6 +67,13 @@ interface NotificationResult {
   stakeholder_role: string;
   status: 'sent' | 'failed' | 'skipped';
   error?: string;
+}
+
+interface NotificationTemplate {
+  id: string;
+  content_pattern: string;
+  variable_keys: string[];
+  language: string;
 }
 
 // Severity level to number mapping
@@ -92,6 +101,28 @@ const SEVERITY_EMOJI: Record<string, string> = {
   'level_4': '🔴',
   'level_5': '⛔',
 };
+
+/**
+ * Render template with variables
+ */
+function renderTemplate(contentPattern: string, variables: Record<string, string>): string {
+  let result = contentPattern;
+  
+  // Replace named variables like {{incident_id}}, {{location}}, etc.
+  Object.entries(variables).forEach(([key, value]) => {
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'gi');
+    result = result.replace(regex, value || '');
+  });
+  
+  // Also replace positional placeholders {{1}}, {{2}}, etc.
+  const orderedKeys = ['reference_id', 'title', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'event_type', 'description'];
+  orderedKeys.forEach((key, index) => {
+    const placeholder = `{{${index + 1}}}`;
+    result = result.split(placeholder).join(variables[key] || '');
+  });
+  
+  return result;
+}
 
 /**
  * Generate localized WhatsApp message
@@ -412,10 +443,50 @@ Deno.serve(async (req) => {
               status = 'skipped';
               errorMsg = 'No phone number';
             } else {
-              const message = generateWhatsAppMessage(
-                lang, incident, effectiveSeverity, locationText, 
-                reporterName, hasInjury, isErpOverride
-              );
+              let message: string;
+              
+              // Check if this recipient has a linked WhatsApp template
+              if (recipient.whatsapp_template_id) {
+                // Fetch the template
+                const { data: template } = await supabase
+                  .from('notification_templates')
+                  .select('content_pattern, variable_keys, language')
+                  .eq('id', recipient.whatsapp_template_id)
+                  .single();
+                
+                if (template) {
+                  // Build variables map
+                  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
+                  const variables: Record<string, string> = {
+                    incident_id: incident.id,
+                    reference_id: incident.reference_id || '-',
+                    title: incident.title,
+                    description: incident.description?.substring(0, 200) || '',
+                    location: locationText,
+                    risk_level: SEVERITY_LABELS[effectiveSeverity]?.[lang] || effectiveSeverity,
+                    reported_by: reporterName,
+                    incident_time: incident.occurred_at || new Date().toISOString(),
+                    action_link: `${appUrl}/incidents/${incident.id}`,
+                    event_type: incident.event_type === 'observation' ? 'Observation' : 'Incident',
+                    site_name: siteName || '-',
+                  };
+                  
+                  message = renderTemplate(template.content_pattern, variables);
+                  console.log(`[Dispatch] Using custom template ${recipient.whatsapp_template_id} for ${recipient.full_name}`);
+                } else {
+                  // Template not found, fall back to default
+                  message = generateWhatsAppMessage(
+                    lang, incident, effectiveSeverity, locationText, 
+                    reporterName, hasInjury, isErpOverride
+                  );
+                }
+              } else {
+                // No template linked, use default message generator
+                message = generateWhatsAppMessage(
+                  lang, incident, effectiveSeverity, locationText, 
+                  reporterName, hasInjury, isErpOverride
+                );
+              }
               
               const result = await sendWhatsAppText(recipient.phone_number, message);
               status = result.success ? 'sent' : 'failed';
