@@ -6012,5 +6012,28 @@
     "topRecognized": "الأكثر تكريماً",
     "observationRatio": "نسبة الملاحظات",
     "positiveToNegative": "إيجابي : سلبي"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "مصادقة خبير السلامة",
+      "description": "راجع تقييم المخاطر والإجراءات المقترحة",
+      "acceptRisk": "قبول المخاطر والإجراءات",
+      "rejectRisk": "رفض وإرجاع",
+      "notesPlaceholder": "ملاحظات إضافية (اختياري)...",
+      "rejectionNotesPlaceholder": "يرجى شرح سبب الرفض...",
+      "rejectionNotesRequired": "سبب الرفض مطلوب",
+      "submitDecision": "إرسال القرار",
+      "level34Info": "هذه الملاحظة ذات مستوى خطورة 3-4 وتتطلب مصادقتك.",
+      "level5Warning": "تحذير: مستوى الخطورة 5 - يتطلب موافقة مدير السلامة للإغلاق."
+    },
+    "finalClosure": {
+      "title": "الإغلاق النهائي (المستوى 5)",
+      "description": "كمدير سلامة، لديك صلاحية الإغلاق النهائي",
+      "confirmClosure": "تأكيد الإغلاق النهائي",
+      "notesPlaceholder": "ملاحظات الإغلاق...",
+      "managerOnlyWarning": "فقط مدير السلامة يمكنه إغلاق ملاحظات المستوى 5.",
+      "actionsNotComplete": "لا يمكن الإغلاق: لا تزال هناك إجراءات معلقة.",
+      "validationRequired": "لا يمكن الإغلاق: مصادقة خبير السلامة مطلوبة."
+    }
   }
 }

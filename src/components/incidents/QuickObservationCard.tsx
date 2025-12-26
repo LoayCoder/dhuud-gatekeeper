@@ -25,6 +25,7 @@ import { useActiveEvent } from '@/hooks/use-special-events';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
+import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, mapRiskRatingToSeverity, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 import { analyzeIncidentWithAI } from '@/lib/incident-ai-assistant';
 
 const OBSERVATION_TYPES = [
@@ -40,16 +41,17 @@ const RECOGNITION_TYPES = [
   { value: 'contractor', labelKey: 'positiveObservation.contractor' },
 ];
 
-const RISK_LEVELS = [
-  { value: 'low', color: 'bg-green-500 hover:bg-green-600', textColor: 'text-green-500' },
-  { value: 'medium', color: 'bg-yellow-500 hover:bg-yellow-600', textColor: 'text-yellow-500' },
-  { value: 'high', color: 'bg-red-500 hover:bg-red-600', textColor: 'text-red-500' },
-];
+// Use the 5-level severity system
+const SEVERITY_OPTIONS = HSSE_SEVERITY_LEVELS.map(level => ({
+  value: level.value,
+  color: `${level.bgColor} hover:opacity-90`,
+  textColor: level.bgColor.replace('bg-', 'text-'),
+}));
 
 const createQuickObservationSchema = (t: (key: string) => string) => z.object({
   description: z.string().min(20, t('incidents.validation.descriptionMinLength')).max(2000),
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
-  risk_rating: z.enum(['low', 'medium', 'high']),
+  severity_v2: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const),
   site_id: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
@@ -96,7 +98,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     defaultValues: {
       description: '',
       subtype: '',
-      risk_rating: 'medium',
+      severity_v2: 'level_2',
       site_id: profile?.assigned_site_id || '',
       latitude: undefined,
       longitude: undefined,
@@ -109,9 +111,12 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   });
   
   const closedOnSpot = form.watch('closed_on_spot');
-  const selectedRisk = form.watch('risk_rating');
+  const selectedSeverity = form.watch('severity_v2');
   const selectedSubtype = form.watch('subtype');
   const recognitionType = form.watch('recognition_type');
+  
+  // Check if close-on-spot is allowed for this severity level
+  const allowCloseOnSpot = canCloseOnSpot(selectedSeverity as SeverityLevelV2);
   
   // Check if this is a positive observation
   const isPositiveObservation = useMemo(() => {
@@ -201,12 +206,12 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
         form.setValue('subtype', 'unsafe_condition');
       }
       
-      // Map severity to risk rating
-      const riskMap: Record<string, 'low' | 'medium' | 'high'> = { 
-        'low': 'low', 'medium': 'medium', 'high': 'high', 'critical': 'high' 
+      // Map AI severity to 5-level system
+      const severityMap: Record<string, SeverityLevelV2> = { 
+        'low': 'level_1', 'medium': 'level_2', 'high': 'level_3', 'critical': 'level_4' 
       };
-      if (result.severity && riskMap[result.severity]) {
-        form.setValue('risk_rating', riskMap[result.severity]);
+      if (result.severity && severityMap[result.severity]) {
+        form.setValue('severity_v2', severityMap[result.severity]);
       }
       
       toast.success(t('quickObservation.analysisComplete'));
@@ -252,7 +257,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       event_type: 'observation',
       subtype: values.subtype,
       occurred_at: new Date().toISOString(),
-      risk_rating: values.risk_rating,
+      severity: values.severity_v2 as SeverityLevelV2,
+      // Map severity_v2 to risk_rating for backward compatibility
+      risk_rating: values.severity_v2 === 'level_1' ? 'low' : values.severity_v2 === 'level_2' ? 'medium' : 'high',
       site_id: values.site_id || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
@@ -617,26 +624,26 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 </div>
               )}
               
-              {/* Risk Rating */}
+              {/* Severity Level (5-Level System) */}
               <FormField
                 control={form.control}
-                name="risk_rating"
+                name="severity_v2"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('quickObservation.selectRisk')}</FormLabel>
-                    <div className="grid grid-cols-3 gap-2">
-                      {RISK_LEVELS.map((level) => (
+                    <FormLabel>{t('severity.ratingLabel')}</FormLabel>
+                    <div className="grid grid-cols-1 gap-2">
+                      {SEVERITY_OPTIONS.map((level) => (
                         <Button
                           key={level.value}
                           type="button"
                           variant={field.value === level.value ? 'default' : 'outline'}
                           className={cn(
-                            "w-full text-xs sm:text-sm transition-all",
+                            "w-full text-start justify-start text-xs sm:text-sm transition-all",
                             field.value === level.value && level.color
                           )}
                           onClick={() => field.onChange(level.value)}
                         >
-                          {t(`incidents.riskRating.${level.value}`)}
+                          {t(`severity.${level.value}.label`)}
                         </Button>
                       ))}
                     </div>
@@ -695,38 +702,40 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 </div>
               </div>
               
-              {/* Closed on Spot Toggle */}
-              <FormField
-                control={form.control}
-                name="closed_on_spot"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <FormLabel className="flex items-center gap-2">
-                        <CheckCircle2 className={cn(
-                          "h-4 w-4",
-                          field.value ? "text-green-500" : "text-muted-foreground"
-                        )} />
-                        {t('quickObservation.closedOnSpot')}
-                      </FormLabel>
-                      <p className="text-xs text-muted-foreground">
-                        {t('quickObservation.closedOnSpotDescription')}
-                      </p>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {/* Closed on Spot Toggle - Only for L1-L2 */}
+              {allowCloseOnSpot && (
+                <FormField
+                  control={form.control}
+                  name="closed_on_spot"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between p-4 border rounded-lg border-emerald-500/30 bg-emerald-500/5">
+                      <div className="space-y-0.5">
+                        <FormLabel className="flex items-center gap-2">
+                          <CheckCircle2 className={cn(
+                            "h-4 w-4",
+                            field.value ? "text-emerald-500" : "text-muted-foreground"
+                          )} />
+                          {t('quickObservation.closedOnSpot')}
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          {t('quickObservation.closedOnSpotDescription')}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
               
-              {/* Closed on Spot Photos */}
-              {closedOnSpot && (
-                <div className="space-y-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <label className="text-sm font-medium text-green-700 dark:text-green-400">
+              {/* Closed on Spot Photos - Only visible when close-on-spot is enabled AND allowed */}
+              {allowCloseOnSpot && closedOnSpot && (
+                <div className="space-y-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                  <label className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
                     {t('quickObservation.addCorrectiveActionPhoto')}
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -747,8 +756,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                       </div>
                     ))}
                     {closedOnSpotPhotos.length < 3 && (
-                      <label className="w-16 h-16 border-2 border-dashed border-green-500/30 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-500 transition-colors">
-                        <Camera className="h-5 w-5 text-green-600" />
+                      <label className="w-16 h-16 border-2 border-dashed border-emerald-500/30 rounded-lg flex items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors">
+                        <Camera className="h-5 w-5 text-emerald-600" />
                         <input
                           type="file"
                           accept="image/*"
