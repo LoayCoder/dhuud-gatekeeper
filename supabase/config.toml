@@ -173,3 +173,6 @@ verify_jwt = false
 
 [functions.seed-test-observations]
 verify_jwt = true
+
+[functions.send-email-template]
+verify_jwt = true

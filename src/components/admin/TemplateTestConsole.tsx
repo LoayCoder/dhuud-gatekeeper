@@ -82,6 +82,22 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
     }
   };
 
+  const getPreviewSubject = () => {
+    if (!selectedTemplate?.email_subject) return '';
+    try {
+      const data = JSON.parse(jsonData);
+      let result = selectedTemplate.email_subject;
+      (selectedTemplate.variable_keys || []).forEach((key, index) => {
+        const placeholder = `{{${index + 1}}}`;
+        const value = data[key] ?? `[${key}]`;
+        result = result.split(placeholder).join(value);
+      });
+      return result;
+    } catch {
+      return selectedTemplate.email_subject;
+    }
+  };
+
   const handleSend = async () => {
     if (!selectedSlug) return;
     if (testChannel === 'whatsapp' && !phoneNumber) return;
@@ -140,7 +156,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
     setJsonData(JSON.stringify(sample, null, 2));
   };
 
-  // Auto-select channel when template changes
+  // Auto-select channel and generate sample JSON when template changes
   const handleTemplateChange = (slug: string) => {
     setSelectedSlug(slug);
     const template = templates.find(t => t.slug === slug);
@@ -150,6 +166,13 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
       } else if (template.channel_type === 'whatsapp') {
         setTestChannel('whatsapp');
       }
+      // Auto-generate sample JSON for the selected template
+      const sample: Record<string, string> = {};
+      (template.variable_keys || []).forEach((key) => {
+        sample[key] = `sample_${key}`;
+      });
+      setJsonData(JSON.stringify(sample, null, 2));
+      setJsonError(null);
     }
   };
 
@@ -288,7 +311,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
                     {selectedTemplate.email_subject && (
                       <div className="bg-muted/50 px-3 py-2 border-b">
                         <p className="text-xs text-muted-foreground">Subject:</p>
-                        <p className="font-medium text-sm">{selectedTemplate.email_subject}</p>
+                        <p className="font-medium text-sm">{getPreviewSubject()}</p>
                       </div>
                     )}
                     <div className="p-3 whitespace-pre-wrap text-sm">
