@@ -90,10 +90,11 @@ serve(async (req) => {
     let renderedMessage: string;
 
     if (selectedGateway === 'official') {
-      // Meta Cloud API - not implemented yet
+      // Meta Cloud API deprecated - WaSender is the only supported gateway
+      console.warn(`[SendTemplate] Official Meta API requested but not supported. Use 'wasender' gateway.`);
       return new Response(
-        JSON.stringify({ success: false, error: 'Official Meta API not configured yet' }),
-        { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Meta Cloud API is not supported. Please use WaSender gateway.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
       // WaSender: String replacement
