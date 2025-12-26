@@ -1219,6 +1219,7 @@
     "error": "Error",
     "success": "Matagumpay",
     "saving": "Nagse-save...",
+    "deleting": "Nagtatanggal...",
     "comingSoon": "Malapit na",
     "submitting": "Nagsusumite...",
     "canceling": "Nagkakansela...",
@@ -1546,6 +1547,10 @@
     "revokeAllMessage": "Lahat ng iyong device ay mangangailangan ng 2FA verification sa susunod na login. Hindi na ito maaaring i-undo."
   },
   "hsseNotifications": {
+    "title": "Mga Notification",
+    "all": "Lahat",
+    "mandatoryTab": "Mandatory",
+    "readTab": "Nabasa",
     "pageTitle": "Pamamahala ng HSSE Notification",
     "pageDescription": "Gumawa at pamahalaan ang mga HSSE safety notification para sa iyong organisasyon",
     "viewAnalytics": "Tingnan ang Analytics",
@@ -1679,7 +1684,14 @@
     "inspectionSchedules": "Mga Iskedyul ng Inspeksyon",
     "myInspectionActions": "Mga Aksyon Ko sa Inspeksyon",
     "inspectionTemplates": "Mga Inspection Template",
-    "contractors": "Mga Contractor"
+    "contractors": "Mga Contractor",
+    "slaDashboard": "SLA Dashboard",
+    "teamPerformance": "Team Performance",
+    "executiveReport": "Executive Report",
+    "actionSlaSettings": "Action SLA Settings",
+    "manhoursManagement": "Manhours Management",
+    "notificationRules": "Notification Rules",
+    "menuAccess": "Menu Access"
   },
   "actions": {
     "sessionActions": "Mga Aksyon ng Session",

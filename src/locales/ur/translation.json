@@ -1230,6 +1230,7 @@
     "error": "خرابی",
     "success": "کامیابی",
     "saving": "محفوظ ہو رہا ہے...",
+    "deleting": "حذف ہو رہا ہے...",
     "comingSoon": "جلد آ رہا ہے",
     "submitting": "جمع ہو رہا ہے...",
     "canceling": "منسوخ ہو رہا ہے...",
@@ -1557,6 +1558,10 @@
     "revokeAllMessage": "اگلے لاگ ان پر تمام آلات کو 2FA تصدیق کی ضرورت ہوگی۔ یہ واپس نہیں ہو سکتا۔"
   },
   "hsseNotifications": {
+    "title": "اطلاعات",
+    "all": "سب",
+    "mandatoryTab": "لازمی",
+    "readTab": "پڑھا گیا",
     "pageTitle": "HSSE اطلاعات کا انتظام",
     "pageDescription": "اپنی تنظیم کے لیے HSSE حفاظتی اطلاعات بنائیں اور منظم کریں",
     "viewAnalytics": "تجزیات دیکھیں",
@@ -1690,7 +1695,14 @@
     "inspectionSchedules": "معائنہ شیڈولز",
     "myInspectionActions": "میرے معائنہ اقدامات",
     "inspectionTemplates": "معائنہ ٹیمپلیٹس",
-    "contractors": "ٹھیکیدار"
+    "contractors": "ٹھیکیدار",
+    "slaDashboard": "SLA ڈیش بورڈ",
+    "teamPerformance": "ٹیم کی کارکردگی",
+    "executiveReport": "ایگزیکٹو رپورٹ",
+    "actionSlaSettings": "ایکشن SLA سیٹنگز",
+    "manhoursManagement": "مین آورز مینجمنٹ",
+    "notificationRules": "اطلاعات کے قواعد",
+    "menuAccess": "مینو تک رسائی"
   },
   "actions": {
     "sessionActions": "سیشن اقدامات",

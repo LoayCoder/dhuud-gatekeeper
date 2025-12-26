@@ -1230,6 +1230,7 @@
     "error": "त्रुटि",
     "success": "सफलता",
     "saving": "सहेजा जा रहा है...",
+    "deleting": "हटाया जा रहा है...",
     "comingSoon": "जल्द आ रहा है",
     "submitting": "जमा हो रहा है...",
     "canceling": "रद्द हो रहा है...",
@@ -1557,6 +1558,10 @@
     "revokeAllMessage": "अगले लॉगिन पर सभी उपकरणों को 2FA सत्यापन की आवश्यकता होगी। यह पूर्ववत नहीं किया जा सकता।"
   },
   "hsseNotifications": {
+    "title": "सूचनाएं",
+    "all": "सभी",
+    "mandatoryTab": "अनिवार्य",
+    "readTab": "पढ़ा गया",
     "pageTitle": "HSSE सूचना प्रबंधन",
     "pageDescription": "अपने संगठन के लिए HSSE सुरक्षा सूचनाएं बनाएं और प्रबंधित करें",
     "viewAnalytics": "विश्लेषण देखें",
@@ -1690,7 +1695,14 @@
     "inspectionSchedules": "निरीक्षण शेड्यूल",
     "myInspectionActions": "मेरे निरीक्षण कार्य",
     "inspectionTemplates": "निरीक्षण टेम्पलेट",
-    "contractors": "ठेकेदार"
+    "contractors": "ठेकेदार",
+    "slaDashboard": "SLA डैशबोर्ड",
+    "teamPerformance": "टीम प्रदर्शन",
+    "executiveReport": "कार्यकारी रिपोर्ट",
+    "actionSlaSettings": "एक्शन SLA सेटिंग्स",
+    "manhoursManagement": "मैनहोर्स प्रबंधन",
+    "notificationRules": "सूचना नियम",
+    "menuAccess": "मेनू एक्सेस"
   },
   "actions": {
     "sessionActions": "सत्र कार्रवाइयाँ",

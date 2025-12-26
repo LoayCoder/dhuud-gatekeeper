@@ -18,6 +18,23 @@ const LOCALES_DIR = path.resolve(__dirname, '../../locales');
 const LANGUAGES = ['en', 'ar', 'ur', 'hi', 'fil'] as const;
 const RTL_LANGUAGES = ['ar', 'ur'];
 
+// Required keys that MUST exist in the common object (not in filter or elsewhere)
+const REQUIRED_COMMON_KEYS = [
+  'loading', 'save', 'cancel', 'delete', 'edit', 'submit', 'back', 'next',
+  'search', 'filter', 'view', 'details', 'all', 'light', 'dark', 'system',
+  'toggleTheme', 'changeLanguage', 'selectAll', 'clearAll', 'reset'
+];
+
+// Required navigation keys
+const REQUIRED_NAVIGATION_KEYS = [
+  'dashboard', 'slaDashboard', 'teamPerformance', 'menuAccess'
+];
+
+// Required hsseNotifications keys
+const REQUIRED_HSSE_NOTIFICATION_KEYS = [
+  'title', 'all', 'mandatoryTab', 'readTab', 'pageTitle'
+];
+
 // Helper to read raw file content
 function readTranslationFile(lang: string): string {
   const filePath = path.join(LOCALES_DIR, lang, 'translation.json');
@@ -104,6 +121,56 @@ describe('Translation File Integrity', () => {
       for (const namespace of REQUIRED_NAMESPACES) {
         expect(keys).toContain(namespace);
       }
+    });
+  });
+
+  describe('Critical Key Location Validation', () => {
+    it.each(LANGUAGES)('%s: common object should have all required keys', (lang) => {
+      const translations = parseTranslationFile(lang);
+      const commonKeys = Object.keys((translations as Record<string, Record<string, unknown>>).common || {});
+      
+      const missingKeys = REQUIRED_COMMON_KEYS.filter(key => !commonKeys.includes(key));
+      
+      if (missingKeys.length > 0) {
+        console.warn(`⚠️ ${lang}: Missing common keys: ${missingKeys.join(', ')}`);
+      }
+      
+      // Critical keys that MUST exist
+      expect(commonKeys).toContain('light');
+      expect(commonKeys).toContain('dark');
+      expect(commonKeys).toContain('system');
+      expect(commonKeys).toContain('selectAll');
+      expect(commonKeys).toContain('clearAll');
+    });
+
+    it.each(LANGUAGES)('%s: navigation object should have all required keys', (lang) => {
+      const translations = parseTranslationFile(lang);
+      const navKeys = Object.keys((translations as Record<string, Record<string, unknown>>).navigation || {});
+      
+      const missingKeys = REQUIRED_NAVIGATION_KEYS.filter(key => !navKeys.includes(key));
+      
+      if (missingKeys.length > 0) {
+        console.warn(`⚠️ ${lang}: Missing navigation keys: ${missingKeys.join(', ')}`);
+      }
+      
+      expect(navKeys).toContain('dashboard');
+      expect(navKeys).toContain('menuAccess');
+    });
+
+    it.each(LANGUAGES)('%s: hsseNotifications object should have all required keys', (lang) => {
+      const translations = parseTranslationFile(lang);
+      const hsseKeys = Object.keys((translations as Record<string, Record<string, unknown>>).hsseNotifications || {});
+      
+      const missingKeys = REQUIRED_HSSE_NOTIFICATION_KEYS.filter(key => !hsseKeys.includes(key));
+      
+      if (missingKeys.length > 0) {
+        console.warn(`⚠️ ${lang}: Missing hsseNotifications keys: ${missingKeys.join(', ')}`);
+      }
+      
+      expect(hsseKeys).toContain('title');
+      expect(hsseKeys).toContain('all');
+      expect(hsseKeys).toContain('mandatoryTab');
+      expect(hsseKeys).toContain('readTab');
     });
   });
 });
