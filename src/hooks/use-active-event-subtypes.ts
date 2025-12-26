@@ -112,3 +112,83 @@ export function useToggleEventSubtype() {
     },
   });
 }
+
+/**
+ * Hook to create a new tenant-specific event subtype
+ */
+export function useCreateEventSubtype() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { category_id: string; code: string; name_key: string; name_ar?: string; sort_order?: number }) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      
+      const { error } = await supabase
+        .from('hsse_event_subtypes')
+        .insert({
+          category_id: data.category_id,
+          code: data.code,
+          name_key: data.name_key,
+          name_ar: data.name_ar || null,
+          sort_order: data.sort_order || 100,
+          is_active: true,
+          tenant_id: tenantId,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-subtypes'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-subtypes-status'] });
+    },
+  });
+}
+
+/**
+ * Hook to update an existing event subtype
+ */
+export function useUpdateEventSubtype() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ subtypeId, data }: { subtypeId: string; data: { name_key?: string; name_ar?: string; sort_order?: number } }) => {
+      const { error } = await supabase
+        .from('hsse_event_subtypes')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', subtypeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-subtypes'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-subtypes-status'] });
+    },
+  });
+}
+
+/**
+ * Hook to delete (soft delete) an event subtype
+ */
+export function useDeleteEventSubtype() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (subtypeId: string) => {
+      const { error } = await supabase
+        .from('hsse_event_subtypes')
+        .update({ is_active: false })
+        .eq('id', subtypeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-subtypes'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-subtypes-status'] });
+    },
+  });
+}
