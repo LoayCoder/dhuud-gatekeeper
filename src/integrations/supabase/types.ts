@@ -4603,10 +4603,20 @@ export type Database = {
           media_attachments: Json | null
           no_investigation_justification: string | null
           occurred_at: string | null
+          original_potential_severity_v2:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity:
             | Database["public"]["Enums"]["severity_level"]
             | null
           original_severity_v2:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
+          potential_severity_approved_at: string | null
+          potential_severity_approved_by: string | null
+          potential_severity_justification: string | null
+          potential_severity_pending_approval: boolean | null
+          potential_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
           recognition_type: string | null
@@ -4708,10 +4718,20 @@ export type Database = {
           media_attachments?: Json | null
           no_investigation_justification?: string | null
           occurred_at?: string | null
+          original_potential_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
           original_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
+          potential_severity_approved_at?: string | null
+          potential_severity_approved_by?: string | null
+          potential_severity_justification?: string | null
+          potential_severity_pending_approval?: boolean | null
+          potential_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
           recognition_type?: string | null
@@ -4813,10 +4833,20 @@ export type Database = {
           media_attachments?: Json | null
           no_investigation_justification?: string | null
           occurred_at?: string | null
+          original_potential_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
           original_severity?:
             | Database["public"]["Enums"]["severity_level"]
             | null
           original_severity_v2?:
+            | Database["public"]["Enums"]["severity_level_v2"]
+            | null
+          potential_severity_approved_at?: string | null
+          potential_severity_approved_by?: string | null
+          potential_severity_justification?: string | null
+          potential_severity_pending_approval?: boolean | null
+          potential_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
           recognition_type?: string | null

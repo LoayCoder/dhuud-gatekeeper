@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle, Lock, Info } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertTriangle, Loader2, Clock, CheckCircle, XCircle, Lock, Info, TrendingUp } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +35,7 @@ interface SeverityAdjustmentCardProps {
 
 // Helper to send notification email
 async function sendSeverityNotification(payload: {
-  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected';
+  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected' | 'potential_severity_proposed' | 'potential_severity_approved' | 'potential_severity_rejected';
   incident_id: string;
   incident_title: string;
   incident_reference: string;
@@ -63,9 +64,14 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   
+  // Actual severity state
   const [newSeverity, setNewSeverity] = useState<SeverityLevelV2 | ''>('');
   const [justification, setJustification] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
+  
+  // Potential severity state
+  const [newPotentialSeverity, setNewPotentialSeverity] = useState<SeverityLevelV2 | ''>('');
+  const [potentialJustification, setPotentialJustification] = useState('');
   
   const { isLocked, isAssignedInvestigator, isOversightRole } = useInvestigationEditAccess(investigation, incident);
 
@@ -81,6 +87,13 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
     injury_classification?: string | null;
     erp_activated?: boolean | null;
     event_type?: string | null;
+    // Potential severity fields
+    potential_severity_v2?: SeverityLevelV2 | null;
+    original_potential_severity_v2?: SeverityLevelV2 | null;
+    potential_severity_pending_approval?: boolean;
+    potential_severity_justification?: string | null;
+    potential_severity_approved_by?: string | null;
+    potential_severity_approved_at?: string | null;
   };
 
   // Calculate minimum severity based on incident data
@@ -101,6 +114,10 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
   // Get current severity (prefer v2, fallback to mapped old value)
   const currentSeverityV2 = incidentExtended.severity_v2 || mapOldSeverityToNew(incident.severity);
   const originalSeverityV2 = incidentExtended.original_severity_v2 || mapOldSeverityToNew(incidentExtended.original_severity || null);
+  
+  // Get potential severity
+  const currentPotentialSeverityV2 = incidentExtended.potential_severity_v2;
+  const originalPotentialSeverityV2 = incidentExtended.original_potential_severity_v2;
 
   const getSeverityVariant = (severity: string | null) => {
     if (!severity) return 'outline';
@@ -109,8 +126,9 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
   };
 
   const hasPendingChange = incidentExtended.severity_pending_approval;
+  const hasPendingPotentialChange = incidentExtended.potential_severity_pending_approval;
 
-  // Mutation to propose severity change
+  // Mutation to propose actual severity change
   const proposeMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
@@ -118,7 +136,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
       if (!justification.trim()) throw new Error('Justification required');
       if (isBelowMinimum && !overrideReason.trim()) throw new Error('Override reason required');
 
-      // Store original severity before change
       const originalSev = currentSeverityV2;
 
       const updateData: Record<string, unknown> = {
@@ -129,7 +146,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         updated_at: new Date().toISOString(),
       };
 
-      // Include override reason if below minimum
       if (isBelowMinimum) {
         updateData.severity_override_reason = overrideReason;
       }
@@ -141,7 +157,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
 
       if (error) throw error;
 
-      // Log audit entry
       await supabase.from('incident_audit_logs').insert({
         incident_id: incident.id,
         tenant_id: profile.tenant_id,
@@ -156,7 +171,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         },
       });
 
-      // Send email notification
       await sendSeverityNotification({
         type: 'severity_proposed',
         incident_id: incident.id,
@@ -182,7 +196,67 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
     },
   });
 
-  // Mutation to approve severity change (HSSE Manager only)
+  // Mutation to propose potential severity change
+  const proposePotentialMutation = useMutation({
+    mutationFn: async () => {
+      if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
+      if (!newPotentialSeverity) throw new Error('No severity selected');
+      if (!potentialJustification.trim()) throw new Error('Justification required');
+
+      const originalPotentialSev = currentPotentialSeverityV2;
+
+      const updateData: Record<string, unknown> = {
+        original_potential_severity_v2: originalPotentialSev,
+        potential_severity_v2: newPotentialSeverity,
+        potential_severity_justification: potentialJustification,
+        potential_severity_pending_approval: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('incidents')
+        .update(updateData)
+        .eq('id', incident.id);
+
+      if (error) throw error;
+
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incident.id,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'potential_severity_change_proposed',
+        old_value: { potential_severity_v2: originalPotentialSev },
+        new_value: { 
+          potential_severity_v2: newPotentialSeverity, 
+          justification: potentialJustification,
+        },
+      });
+
+      await sendSeverityNotification({
+        type: 'potential_severity_proposed',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: originalPotentialSev || 'not set',
+        proposed_severity: newPotentialSeverity,
+        justification: potentialJustification,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incident.id] });
+      toast.success(t('investigation.potentialSeverityChangeProposed', 'Potential severity proposed. Awaiting HSSE Manager approval.'));
+      setNewPotentialSeverity('');
+      setPotentialJustification('');
+      onRefresh();
+    },
+    onError: (error) => {
+      toast.error(t('common.error') + ': ' + error.message);
+    },
+  });
+
+  // Mutation to approve actual severity change (HSSE Manager only)
   const approveMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
@@ -199,7 +273,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
 
       if (error) throw error;
 
-      // Log audit entry
       await supabase.from('incident_audit_logs').insert({
         incident_id: incident.id,
         tenant_id: profile.tenant_id,
@@ -211,7 +284,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         },
       });
 
-      // Send email notification
       await sendSeverityNotification({
         type: 'severity_approved',
         incident_id: incident.id,
@@ -233,14 +305,62 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
     },
   });
 
-  // Mutation to reject severity change
+  // Mutation to approve potential severity change (HSSE Manager only)
+  const approvePotentialMutation = useMutation({
+    mutationFn: async () => {
+      if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('incidents')
+        .update({
+          potential_severity_pending_approval: false,
+          potential_severity_approved_by: user.id,
+          potential_severity_approved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', incident.id);
+
+      if (error) throw error;
+
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incident.id,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'potential_severity_change_approved',
+        new_value: { 
+          approved_potential_severity: currentPotentialSeverityV2,
+          original_potential_severity: originalPotentialSeverityV2 
+        },
+      });
+
+      await sendSeverityNotification({
+        type: 'potential_severity_approved',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: currentPotentialSeverityV2 || 'unknown',
+        original_severity: originalPotentialSeverityV2 || undefined,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incident.id] });
+      toast.success(t('investigation.potentialSeverityChangeApproved', 'Potential severity change approved'));
+      onRefresh();
+    },
+    onError: (error) => {
+      toast.error(t('common.error') + ': ' + error.message);
+    },
+  });
+
+  // Mutation to reject actual severity change
   const rejectMutation = useMutation({
     mutationFn: async () => {
       if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
 
       const proposedSev = currentSeverityV2;
 
-      // Revert to original severity
       const { error } = await supabase
         .from('incidents')
         .update({
@@ -254,7 +374,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
 
       if (error) throw error;
 
-      // Log audit entry
       await supabase.from('incident_audit_logs').insert({
         incident_id: incident.id,
         tenant_id: profile.tenant_id,
@@ -264,7 +383,6 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
         new_value: { reverted_to: originalSeverityV2 },
       });
 
-      // Send email notification
       await sendSeverityNotification({
         type: 'severity_rejected',
         incident_id: incident.id,
@@ -287,46 +405,117 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
     },
   });
 
-  return (
-    <Card className={hasPendingChange ? 'border-warning' : ''}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            {t('investigation.overview.severityAdjustment', 'Severity Adjustment')}
-          </CardTitle>
-          {hasPendingChange && (
-            <Badge variant="outline" className="gap-1 border-warning text-warning">
-              <Clock className="h-3 w-3" />
-              {t('investigation.overview.pendingApproval', 'Pending Approval')}
-            </Badge>
-          )}
+  // Mutation to reject potential severity change
+  const rejectPotentialMutation = useMutation({
+    mutationFn: async () => {
+      if (!profile?.tenant_id || !user?.id) throw new Error('Not authenticated');
+
+      const proposedPotentialSev = currentPotentialSeverityV2;
+
+      const { error } = await supabase
+        .from('incidents')
+        .update({
+          potential_severity_v2: originalPotentialSeverityV2 || null,
+          potential_severity_pending_approval: false,
+          potential_severity_justification: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', incident.id);
+
+      if (error) throw error;
+
+      await supabase.from('incident_audit_logs').insert({
+        incident_id: incident.id,
+        tenant_id: profile.tenant_id,
+        actor_id: user.id,
+        action: 'potential_severity_change_rejected',
+        old_value: { proposed_potential_severity: proposedPotentialSev },
+        new_value: { reverted_to: originalPotentialSeverityV2 },
+      });
+
+      await sendSeverityNotification({
+        type: 'potential_severity_rejected',
+        incident_id: incident.id,
+        incident_title: incident.title,
+        incident_reference: incident.reference_id || 'N/A',
+        current_severity: originalPotentialSeverityV2 || 'not set',
+        proposed_severity: proposedPotentialSev || undefined,
+        original_severity: originalPotentialSeverityV2 || undefined,
+        actor_name: profile.full_name || 'Unknown User',
+        tenant_id: profile.tenant_id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incident.id] });
+      toast.success(t('investigation.potentialSeverityChangeRejected', 'Potential severity change rejected'));
+      onRefresh();
+    },
+    onError: (error) => {
+      toast.error(t('common.error') + ': ' + error.message);
+    },
+  });
+
+  const renderSeveritySection = (
+    type: 'actual' | 'potential',
+    currentValue: SeverityLevelV2 | null | undefined,
+    originalValue: SeverityLevelV2 | null | undefined,
+    hasPending: boolean | undefined,
+    pendingJustification: string | null | undefined,
+    newValue: SeverityLevelV2 | '',
+    setNewValue: (v: SeverityLevelV2 | '') => void,
+    justificationValue: string,
+    setJustificationValue: (v: string) => void,
+    proposeFn: () => void,
+    approveFn: () => void,
+    rejectFn: () => void,
+    isPending: boolean
+  ) => {
+    const isActual = type === 'actual';
+    const titleKey = isActual ? 'investigation.actualSeverity' : 'investigation.potentialSeverity';
+    const descKey = isActual ? 'investigation.actualSeverityDesc' : 'investigation.potentialSeverityDesc';
+    const titleFallback = isActual ? 'Actual Severity' : 'Potential Severity';
+    const descFallback = isActual ? 'The actual outcome of this incident' : 'What could have happened in worst-case scenario';
+
+    return (
+      <div className="space-y-4">
+        {/* Header */}
+        <div>
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            {isActual ? <AlertTriangle className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+            {t(titleKey, titleFallback)}
+          </h4>
+          <p className="text-xs text-muted-foreground mt-1">{t(descKey, descFallback)}</p>
         </div>
-      </CardHeader>
-      <CardContent dir={direction}>
-        {/* Current Severity Display */}
-        <div className="flex items-center gap-4 mb-4">
+
+        {/* Current Value Display */}
+        <div className="flex items-center gap-4">
           <div>
             <p className="text-xs text-muted-foreground mb-1">
-              {t('investigation.overview.currentSeverity', 'Current Severity')}
+              {t('investigation.overview.currentSeverity', 'Current')}
             </p>
-            <Badge variant={getSeverityVariant(currentSeverityV2)} className="text-sm">
-              {currentSeverityV2 ? t(`severity.${currentSeverityV2}.label`) : t('common.notSet')}
+            <Badge variant={getSeverityVariant(currentValue || null)} className="text-sm">
+              {currentValue ? t(`severity.${currentValue}.label`) : t('common.notSet', 'Not Set')}
             </Badge>
           </div>
-          {originalSeverityV2 && originalSeverityV2 !== currentSeverityV2 && (
+          {originalValue && originalValue !== currentValue && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">
                 {t('investigation.overview.originalSeverity', 'Original')}
               </p>
               <Badge variant="outline" className="text-sm">
-                {t(`severity.${originalSeverityV2}.label`)}
+                {t(`severity.${originalValue}.label`)}
               </Badge>
             </div>
           )}
+          {hasPending && (
+            <Badge variant="outline" className="gap-1 border-warning text-warning ms-auto">
+              <Clock className="h-3 w-3" />
+              {t('investigation.overview.pendingApproval', 'Pending Approval')}
+            </Badge>
+          )}
         </div>
 
-        {/* Locked State - After Investigation Submission */}
+        {/* Locked State */}
         {isLocked ? (
           <div className="bg-muted/50 border rounded-md p-3 flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
@@ -334,7 +523,7 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
               {t('investigation.severityLockedMessage', 'Severity changes are locked after investigation submission')}
             </span>
           </div>
-        ) : hasPendingChange ? (
+        ) : hasPending ? (
           /* Pending Approval View */
           <div className="space-y-4">
             <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
@@ -342,30 +531,29 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
                 {t('investigation.overview.justification', 'Justification')}:
               </p>
               <p className="text-sm text-muted-foreground">
-                {incidentExtended.severity_change_justification}
+                {pendingJustification}
               </p>
             </div>
 
-            {/* Approval Buttons (for HSSE Manager) - only if oversight role */}
             {isOversightRole && (
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => approveMutation.mutate()}
-                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                  onClick={approveFn}
+                  disabled={isPending}
                   className="flex-1"
                   variant="default"
                 >
-                  {approveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
                   <CheckCircle className="h-4 w-4 me-2" />
                   {t('investigation.overview.approve', 'Approve')}
                 </Button>
                 <Button 
-                  onClick={() => rejectMutation.mutate()}
-                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                  onClick={rejectFn}
+                  disabled={isPending}
                   className="flex-1"
                   variant="destructive"
                 >
-                  {rejectMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
                   <XCircle className="h-4 w-4 me-2" />
                   {t('investigation.overview.reject', 'Reject')}
                 </Button>
@@ -373,13 +561,18 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
             )}
           </div>
         ) : isAssignedInvestigator ? (
-          /* Propose Change Form - Only for assigned investigator */
+          /* Propose Change Form */
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('investigation.overview.proposedSeverity', 'Proposed Severity')}</Label>
-              <Select value={newSeverity} onValueChange={(v) => setNewSeverity(v as SeverityLevelV2)}>
+              <Label>
+                {isActual 
+                  ? t('investigation.overview.proposedSeverity', 'Proposed Severity')
+                  : t('investigation.proposedPotentialSeverity', 'Proposed Potential Severity')
+                }
+              </Label>
+              <Select value={newValue} onValueChange={(v) => setNewValue(v as SeverityLevelV2)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('investigation.overview.selectSeverity', 'Select new severity...')} />
+                  <SelectValue placeholder={t('investigation.overview.selectSeverity', 'Select severity...')} />
                 </SelectTrigger>
                 <SelectContent dir={direction}>
                   {HSSE_SEVERITY_LEVELS.map((level) => {
@@ -388,7 +581,7 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
                       <SelectItem 
                         key={level.value} 
                         value={level.value}
-                        disabled={level.value === currentSeverityV2}
+                        disabled={level.value === currentValue}
                       >
                         <div className="flex items-center gap-2">
                           <div 
@@ -404,8 +597,8 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
               </Select>
             </div>
 
-            {/* Validation Warning */}
-            {isBelowMinimum && (
+            {/* Validation Warning (only for actual severity) */}
+            {isActual && isBelowMinimum && (
               <div className="bg-warning/10 border border-warning/30 rounded-md p-3">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
@@ -427,20 +620,29 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
             )}
 
             <div className="space-y-2">
-              <Label>{t('investigation.overview.justification', 'Justification')} *</Label>
+              <Label>
+                {isActual 
+                  ? t('investigation.overview.justification', 'Justification')
+                  : t('investigation.potentialJustification', 'Potential Severity Justification')
+                } *
+              </Label>
               <Textarea 
-                value={justification}
-                onChange={(e) => setJustification(e.target.value)}
-                placeholder={t('investigation.overview.justificationPlaceholder', 'Explain why the severity should be changed...')}
+                value={justificationValue}
+                onChange={(e) => setJustificationValue(e.target.value)}
+                placeholder={
+                  isActual 
+                    ? t('investigation.overview.justificationPlaceholder', 'Explain why the severity should be changed...')
+                    : t('investigation.potentialJustificationPlaceholder', 'Explain the potential worst-case scenario...')
+                }
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                {t('investigation.overview.justificationNote', 'Severity changes require HSSE Manager approval')}
+                {t('investigation.overview.justificationNote', 'Changes require HSSE Manager approval')}
               </p>
             </div>
 
-            {/* Override Reason (required when below minimum) */}
-            {isBelowMinimum && (
+            {/* Override Reason (only for actual severity when below minimum) */}
+            {isActual && isBelowMinimum && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   <Info className="h-3.5 w-3.5" />
@@ -460,16 +662,24 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
             )}
 
             <Button 
-              onClick={() => proposeMutation.mutate()}
-              disabled={!newSeverity || !justification.trim() || (isBelowMinimum && !overrideReason.trim()) || proposeMutation.isPending}
+              onClick={proposeFn}
+              disabled={
+                !newValue || 
+                !justificationValue.trim() || 
+                (isActual && isBelowMinimum && !overrideReason.trim()) || 
+                isPending
+              }
               className="w-full"
             >
-              {proposeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-              {t('investigation.overview.proposeChange', 'Propose Severity Change')}
+              {isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              {isActual 
+                ? t('investigation.overview.proposeChange', 'Propose Severity Change')
+                : t('investigation.proposePotentialChange', 'Set Potential Severity')
+              }
             </Button>
           </div>
         ) : (
-          /* Read-only for oversight roles during active investigation */
+          /* Read-only for non-investigators */
           <div className="bg-muted/50 border rounded-md p-3 flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
@@ -477,6 +687,71 @@ export function SeverityAdjustmentCard({ incident, investigation, onRefresh }: S
             </span>
           </div>
         )}
+      </div>
+    );
+  };
+
+  return (
+    <Card className={(hasPendingChange || hasPendingPotentialChange) ? 'border-warning' : ''}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {t('investigation.severityAssessment', 'Severity Assessment')}
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent dir={direction}>
+        <Tabs defaultValue="actual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="actual" className="flex items-center gap-2">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {t('investigation.actualSeverity', 'Actual')}
+              {hasPendingChange && <Clock className="h-3 w-3 text-warning" />}
+            </TabsTrigger>
+            <TabsTrigger value="potential" className="flex items-center gap-2">
+              <TrendingUp className="h-3.5 w-3.5" />
+              {t('investigation.potentialSeverity', 'Potential')}
+              {hasPendingPotentialChange && <Clock className="h-3 w-3 text-warning" />}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="actual">
+            {renderSeveritySection(
+              'actual',
+              currentSeverityV2,
+              originalSeverityV2,
+              hasPendingChange,
+              incidentExtended.severity_change_justification,
+              newSeverity,
+              setNewSeverity,
+              justification,
+              setJustification,
+              () => proposeMutation.mutate(),
+              () => approveMutation.mutate(),
+              () => rejectMutation.mutate(),
+              proposeMutation.isPending || approveMutation.isPending || rejectMutation.isPending
+            )}
+          </TabsContent>
+          
+          <TabsContent value="potential">
+            {renderSeveritySection(
+              'potential',
+              currentPotentialSeverityV2,
+              originalPotentialSeverityV2,
+              hasPendingPotentialChange,
+              incidentExtended.potential_severity_justification,
+              newPotentialSeverity,
+              setNewPotentialSeverity,
+              potentialJustification,
+              setPotentialJustification,
+              () => proposePotentialMutation.mutate(),
+              () => approvePotentialMutation.mutate(),
+              () => rejectPotentialMutation.mutate(),
+              proposePotentialMutation.isPending || approvePotentialMutation.isPending || rejectPotentialMutation.isPending
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
