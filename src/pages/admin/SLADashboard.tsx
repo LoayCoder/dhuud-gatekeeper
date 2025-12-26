@@ -108,12 +108,23 @@ export default function SLADashboard() {
       ? filteredActions.filter(a => selectedIds.includes(a.id))
       : filteredActions;
 
-    exportToCSV(dataToExport, 'sla-actions-export', [
+    // Convert to plain objects for export
+    const exportData = dataToExport.map(action => ({
+      reference_id: action.reference_id || '',
+      title: action.title,
+      priority: action.priority || 'medium',
+      assignee_name: action.assignee_name || '',
+      due_date: action.due_date ? format(new Date(action.due_date), 'yyyy-MM-dd') : '',
+      status: action.status || 'pending',
+      escalation_level: action.escalation_level,
+    }));
+
+    exportToCSV(exportData, 'sla-actions-export', [
       { key: 'reference_id', label: t('actions.referenceId', 'Reference ID') },
       { key: 'title', label: t('actions.title', 'Title') },
       { key: 'priority', label: t('actions.priority', 'Priority') },
       { key: 'assignee_name', label: t('actions.assignee', 'Assignee') },
-      { key: 'due_date', label: t('actions.dueDate', 'Due Date'), formatter: (v) => v ? format(new Date(v), 'yyyy-MM-dd') : '' },
+      { key: 'due_date', label: t('actions.dueDate', 'Due Date') },
       { key: 'status', label: t('actions.status', 'Status') },
       { key: 'escalation_level', label: t('sla.escalationLevel', 'Escalation Level') },
     ]);
