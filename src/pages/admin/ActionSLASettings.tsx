@@ -223,7 +223,7 @@ export default function ActionSLASettings() {
           open={!!editingConfig}
           onOpenChange={(open) => !open && setEditingConfig(null)}
           onSave={handleSave}
-          isLoading={updateSLAConfig.isPending}
+          isSaving={updateSLAConfig.isPending}
         />
       </div>
     </SLAPageLayout>
