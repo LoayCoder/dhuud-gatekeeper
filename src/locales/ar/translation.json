@@ -5900,7 +5900,43 @@
       "noCategories": "لا توجد فئات متاحة",
       "noMatchingSubtypes": "لم يتم العثور على أنواع فرعية مطابقة",
       "noSubtypes": "لا توجد أنواع فرعية متاحة",
-      "infoNote": "الفئات والأنواع الفرعية المعطلة لن تظهر في نماذج الإبلاغ عن الحوادث. التغييرات تطبق فوراً على جميع المستخدمين في مؤسستك."
+      "infoNote": "الفئات والأنواع الفرعية المعطلة لن تظهر في نماذج الإبلاغ عن الحوادث. التغييرات تطبق فوراً على جميع المستخدمين في مؤسستك.",
+      "tabs": {
+        "testing": "الاختبار"
+      },
+      "testing": {
+        "title": "اختبار أحداث السلامة",
+        "description": "تحميل وثائق الاختبار والموارد لاختبار سير عمل أحداث السلامة",
+        "functionalTestDoc": "وثيقة الاختبار الوظيفي",
+        "functionalTestDocDesc": "سيناريوهات اختبار كاملة تغطي دورة حياة حوادث السلامة من الإبلاغ حتى الإغلاق."
+      },
+      "crud": {
+        "addCategory": "إضافة فئة",
+        "addCategoryDescription": "إنشاء فئة حدث مخصصة جديدة لمؤسستك",
+        "editCategory": "تعديل الفئة",
+        "editCategoryDescription": "تعديل تفاصيل الفئة",
+        "deleteConfirmTitle": "حذف الفئة؟",
+        "deleteConfirmDescription": "سيؤدي هذا إلى إلغاء تفعيل الفئة. يمكن إعادة تفعيلها لاحقاً.",
+        "categoryCreated": "تم إنشاء الفئة بنجاح",
+        "categoryUpdated": "تم تحديث الفئة بنجاح",
+        "categoryDeleted": "تم حذف الفئة بنجاح",
+        "addSubtype": "إضافة نوع فرعي",
+        "addSubtypeDescription": "إنشاء نوع فرعي جديد ضمن {{category}}",
+        "editSubtype": "تعديل النوع الفرعي",
+        "editSubtypeDescription": "تعديل تفاصيل النوع الفرعي",
+        "deleteSubtypeConfirmTitle": "حذف النوع الفرعي؟",
+        "deleteSubtypeConfirmDescription": "سيؤدي هذا إلى إلغاء تفعيل النوع الفرعي. يمكن إعادة تفعيله لاحقاً.",
+        "subtypeCreated": "تم إنشاء النوع الفرعي بنجاح",
+        "subtypeUpdated": "تم تحديث النوع الفرعي بنجاح",
+        "subtypeDeleted": "تم حذف النوع الفرعي بنجاح",
+        "code": "الرمز",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "nameKey": "مفتاح الترجمة",
+        "icon": "الأيقونة",
+        "sortOrder": "ترتيب العرض",
+        "validationError": "يرجى ملء جميع الحقول المطلوبة"
+      }
     },
     "notificationMatrix": {
       "title": "مصفوفة إشعارات الحوادث",
