@@ -287,6 +287,8 @@ export function useIncident(id: string | undefined) {
         .select(`
           id, reference_id, title, description, event_type, subtype, 
           occurred_at, location, severity, severity_v2, original_severity_v2, severity_override_reason, 
+          potential_severity_v2, original_potential_severity_v2, potential_severity_pending_approval,
+          potential_severity_justification, potential_severity_approved_by, potential_severity_approved_at,
           status, immediate_actions,
           has_injury, injury_details, has_damage, damage_details,
           latitude, longitude, 
