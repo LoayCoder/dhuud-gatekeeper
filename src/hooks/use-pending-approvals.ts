@@ -52,6 +52,18 @@ export interface PendingSeverityApproval {
   reporter?: { id: string; full_name: string | null } | null;
 }
 
+export interface PendingPotentialSeverityApproval {
+  id: string;
+  reference_id: string | null;
+  title: string;
+  potential_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  original_potential_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  potential_severity_justification: string | null;
+  potential_severity_pending_approval: boolean;
+  created_at: string | null;
+  reporter?: { id: string; full_name: string | null } | null;
+}
+
 // Fetch actions with status='completed' pending verification
 // Only HSSE Expert, HSSE Manager, Environmental Expert, Environmental Manager can verify
 export function usePendingActionApprovals() {
@@ -144,6 +156,42 @@ export function usePendingSeverityApprovals() {
 
       if (error) throw error;
       return (data || []) as PendingSeverityApproval[];
+    },
+    enabled: !!profile?.tenant_id && !!user?.id && !rolesLoading,
+  });
+}
+
+// Fetch incidents with pending potential severity changes (HSSE Manager/Admin only)
+export function usePendingPotentialSeverityApprovals() {
+  const { profile, user } = useAuth();
+  const { hasRole, isLoading: rolesLoading } = useUserRoles();
+
+  const isAdmin = hasRole('admin');
+  const isHSSEManager = hasRole('hsse_manager');
+  const canApprove = isAdmin || isHSSEManager;
+
+  return useQuery({
+    queryKey: ['pending-potential-severity-approvals', profile?.tenant_id, canApprove],
+    queryFn: async () => {
+      if (!profile?.tenant_id || !user?.id) return [];
+
+      // Only admin or HSSE manager can approve potential severity changes
+      if (!canApprove) return [];
+
+      const { data, error } = await supabase
+        .from('incidents')
+        .select(`
+          id, reference_id, title, potential_severity_v2, original_potential_severity_v2,
+          potential_severity_justification, potential_severity_pending_approval, created_at,
+          reporter:profiles!incidents_reporter_id_fkey(id, full_name)
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('potential_severity_pending_approval', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as PendingPotentialSeverityApproval[];
     },
     enabled: !!profile?.tenant_id && !!user?.id && !rolesLoading,
   });
@@ -366,6 +414,76 @@ export function useApproveSeverityChange() {
         description: result.approved
           ? t('investigation.approvals.severityApproved', 'Severity change approved')
           : t('investigation.approvals.severityRejected', 'Severity change rejected'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+// Approve or reject a potential severity change
+export function useApprovePotentialSeverityChange() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      incidentId,
+      approved,
+    }: {
+      incidentId: string;
+      approved: boolean;
+    }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      let updateData: Record<string, unknown>;
+
+      if (approved) {
+        // Approve: clear pending flag, record approver
+        updateData = {
+          potential_severity_pending_approval: false,
+          potential_severity_approved_by: user.id,
+          potential_severity_approved_at: new Date().toISOString(),
+        };
+      } else {
+        // Reject: revert to original potential_severity_v2
+        const { data: incident } = await supabase
+          .from('incidents')
+          .select('original_potential_severity_v2')
+          .eq('id', incidentId)
+          .single();
+
+        updateData = {
+          potential_severity_v2: incident?.original_potential_severity_v2,
+          potential_severity_pending_approval: false,
+          potential_severity_justification: null,
+        };
+      }
+
+      const { error } = await supabase
+        .from('incidents')
+        .update(updateData)
+        .eq('id', incidentId);
+
+      if (error) throw error;
+      return { approved };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['pending-potential-severity-approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      queryClient.invalidateQueries({ queryKey: ['incident'] });
+      toast({
+        title: t('common.success'),
+        description: result.approved
+          ? t('investigation.approvals.potentialSeverityApproved', 'Potential severity approved')
+          : t('investigation.approvals.potentialSeverityRejected', 'Potential severity rejected'),
       });
     },
     onError: (error) => {

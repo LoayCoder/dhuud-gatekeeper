@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements, useStartWitnessWork, useUpdateWitnessStatement } from '@/hooks/use-witness-statements';
-import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
+import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingPotentialSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { usePendingExtensionRequests } from '@/hooks/use-action-extensions';
@@ -24,6 +24,7 @@ import { useState, useEffect } from 'react';
 import { WitnessDirectEntry } from '@/components/investigation/WitnessDirectEntry';
 import { ActionVerificationDialog } from '@/components/investigation/ActionVerificationDialog';
 import { SeverityApprovalCard } from '@/components/investigation/SeverityApprovalCard';
+import { PotentialSeverityApprovalCard } from '@/components/investigation/PotentialSeverityApprovalCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ActionProgressDialog, ExtensionRequestDialog, ExtensionApprovalCard, ActionWorkflowTimeline } from '@/components/actions';
@@ -96,6 +97,7 @@ export default function MyActions() {
   const { hasRole } = useUserRoles();
   const { data: pendingApprovals, isLoading: approvalsLoading } = usePendingActionApprovals();
   const { data: pendingSeverity, isLoading: severityLoading } = usePendingSeverityApprovals();
+  const { data: pendingPotentialSeverity, isLoading: potentialSeverityLoading } = usePendingPotentialSeverityApprovals();
   const { data: pendingIncidentApprovals, isLoading: incidentApprovalsLoading } = usePendingIncidentApprovals();
   const { data: pendingClosures, isLoading: closuresLoading } = usePendingClosureRequests();
   const { data: pendingExtensions, isLoading: extensionsLoading } = usePendingExtensionRequests();
@@ -336,7 +338,7 @@ export default function MyActions() {
 
   const totalExtensions = pendingExtensions?.length || 0;
   const contractorApprovalCount = (canApproveWorkers ? (pendingWorkers?.length || 0) : 0) + (canApproveGatePasses ? (pendingGatePasses?.length || 0) : 0);
-  const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? (pendingSeverity?.length || 0) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions + contractorApprovalCount;
+  const totalPendingApprovals = (canVerifyActions ? (pendingApprovals?.length || 0) : 0) + (canApproveSeverity ? ((pendingSeverity?.length || 0) + (pendingPotentialSeverity?.length || 0)) : 0) + (pendingIncidentApprovals?.length || 0) + (canApproveClosures ? (pendingClosures?.length || 0) : 0) + totalExtensions + contractorApprovalCount;
 
   const isLoading = actionsLoading || inspectionActionsLoading || witnessLoading;
 
@@ -1132,6 +1134,22 @@ export default function MyActions() {
                     <div className="space-y-4">
                       {pendingSeverity.map((incident) => (
                         <SeverityApprovalCard key={incident.id} incident={incident} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Potential Severity Changes Section (Admin/HSSE Manager only) */}
+                {canApproveSeverity && pendingPotentialSeverity && pendingPotentialSeverity.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-purple-500" />
+                      {t('investigation.approvals.potentialSeverityChanges', 'Potential Severity Assessments')}
+                      <Badge variant="secondary">{pendingPotentialSeverity.length}</Badge>
+                    </h3>
+                    <div className="space-y-4">
+                      {pendingPotentialSeverity.map((incident) => (
+                        <PotentialSeverityApprovalCard key={incident.id} incident={incident} />
                       ))}
                     </div>
                   </div>
