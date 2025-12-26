@@ -74,6 +74,10 @@
     "pendingApprovals": "लंबित स्वीकृतियां",
     "myActions": "मेरी कार्रवाइयां",
     "reportNewEvent": "नई घटना की रिपोर्ट करें",
+    "quickActionModal": {
+      "noItems": "प्रदर्शित करने के लिए कोई आइटम नहीं",
+      "viewDetails": "विवरण देखें"
+    },
     "recentEvents": "हालिया घटनाएं",
     "totalActions": "सुधारात्मक कार्रवाइयां",
     "totalInvestigationsCount": "जांच",

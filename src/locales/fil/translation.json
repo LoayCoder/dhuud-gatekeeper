@@ -74,6 +74,10 @@
     "pendingApprovals": "Naghihintay na Pag-apruba",
     "myActions": "Aking mga Aksyon",
     "reportNewEvent": "Mag-ulat ng Bagong Pangyayari",
+    "quickActionModal": {
+      "noItems": "Walang mga item na ipapakita",
+      "viewDetails": "Tingnan ang Mga Detalye"
+    },
     "recentEvents": "Kamakailang Pangyayari",
     "totalActions": "Mga Corrective Action",
     "totalInvestigationsCount": "Mga Imbestigasyon",
