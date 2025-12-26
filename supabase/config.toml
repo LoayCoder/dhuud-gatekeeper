@@ -36,6 +36,9 @@ verify_jwt = true
 [functions.action-sla-escalation]
 verify_jwt = false
 
+[functions.investigation-sla-escalation]
+verify_jwt = false
+
 [functions.hsse-manager-digest]
 verify_jwt = false
 
