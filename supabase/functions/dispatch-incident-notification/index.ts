@@ -180,9 +180,9 @@ function generateEmailContent(
     fil: 'Tingnan ang Insidente',
   };
   
-  // Get app URL for deep-link
+  // Get app URL for deep-link - direct to incident detail page
   const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
-  const incidentDeepLink = `${appUrl}/incidents/investigate?id=${incident.id}`;
+  const incidentDeepLink = `${appUrl}/incidents/${incident.id}`;
   const buttonText = viewButtonText[lang] || viewButtonText.en;
   const arrow = rtl ? '←' : '→';
 
@@ -355,21 +355,31 @@ Deno.serve(async (req) => {
     const recipientList = (recipients || []) as NotificationRecipient[];
     console.log(`[Dispatch] Found ${recipientList.length} recipients to notify`);
 
-    // 8. Apply WhatsApp gating: Only level 3+ except First Aiders with injury
+    // 8. Apply channel gating based on severity level:
+    // - Level 3+ (Serious/Major/Catastrophic): WhatsApp + Email + Push (all channels)
+    // - Level 1-2 (Low/Medium): Email only (WhatsApp gate applies)
+    // - Exception: First Aiders always get WhatsApp if there's an injury
     const processedRecipients = recipientList.map(r => {
       const severityLevel = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
       let filteredChannels = [...r.channels];
       
       if (severityLevel < 3) {
-        if (r.stakeholder_role !== 'first_aider' || !hasInjury) {
+        // Low/Medium severity: Only Email, no WhatsApp/Push
+        const isFirstAiderWithInjury = r.stakeholder_role === 'first_aider' && hasInjury;
+        
+        if (!isFirstAiderWithInjury) {
+          // Remove WhatsApp for non-critical incidents
           filteredChannels = filteredChannels.filter(c => c !== 'whatsapp');
         }
+        
+        // Keep email as primary channel for low severity
+        // Push is still allowed for quick notification
       }
       
       return { ...r, channels: filteredChannels };
     }).filter(r => r.channels.length > 0);
 
-    console.log(`[Dispatch] After WhatsApp gating: ${processedRecipients.length} recipients with active channels`);
+    console.log(`[Dispatch] After severity-based channel gating: ${processedRecipients.length} recipients with active channels`);
 
     // 9. Send notifications (per-recipient language)
     const results: NotificationResult[] = [];
