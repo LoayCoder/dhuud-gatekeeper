@@ -6082,15 +6082,78 @@ export type Database = {
           },
         ]
       }
+      kpi_audit_logs: {
+        Row: {
+          action_type: string
+          changed_at: string
+          changed_by: string | null
+          deleted_at: string | null
+          id: string
+          ip_address: string | null
+          kpi_code: string
+          kpi_target_id: string | null
+          new_value: Json | null
+          notes: string | null
+          old_value: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          action_type: string
+          changed_at?: string
+          changed_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          kpi_code: string
+          kpi_target_id?: string | null
+          new_value?: Json | null
+          notes?: string | null
+          old_value?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          action_type?: string
+          changed_at?: string
+          changed_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          kpi_code?: string
+          kpi_target_id?: string | null
+          new_value?: Json | null
+          notes?: string | null
+          old_value?: Json | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_audit_logs_kpi_target_id_fkey"
+            columns: ["kpi_target_id"]
+            isOneToOne: false
+            referencedRelation: "kpi_targets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_targets: {
         Row: {
+          comparison_type: string | null
           created_at: string | null
           created_by: string | null
           critical_threshold: number | null
           deleted_at: string | null
+          description: string | null
           effective_from: string
           effective_to: string | null
           id: string
+          is_active: boolean | null
           kpi_code: string
           period_type: string | null
           target_value: number
@@ -6099,13 +6162,16 @@ export type Database = {
           warning_threshold: number | null
         }
         Insert: {
+          comparison_type?: string | null
           created_at?: string | null
           created_by?: string | null
           critical_threshold?: number | null
           deleted_at?: string | null
+          description?: string | null
           effective_from?: string
           effective_to?: string | null
           id?: string
+          is_active?: boolean | null
           kpi_code: string
           period_type?: string | null
           target_value: number
@@ -6114,13 +6180,16 @@ export type Database = {
           warning_threshold?: number | null
         }
         Update: {
+          comparison_type?: string | null
           created_at?: string | null
           created_by?: string | null
           critical_threshold?: number | null
           deleted_at?: string | null
+          description?: string | null
           effective_from?: string
           effective_to?: string | null
           id?: string
+          is_active?: boolean | null
           kpi_code?: string
           period_type?: string | null
           target_value?: number
@@ -13202,6 +13271,10 @@ export type Database = {
         Returns: undefined
       }
       reset_notification_matrix_to_defaults: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
+      seed_default_kpi_targets: {
         Args: { p_tenant_id: string }
         Returns: undefined
       }

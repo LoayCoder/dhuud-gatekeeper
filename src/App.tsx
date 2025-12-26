@@ -152,6 +152,7 @@ const MenuAccessConfig = lazyWithRetry(() => import("./pages/admin/MenuAccessCon
 const WorkflowDiagrams = lazyWithRetry(() => import("./pages/admin/WorkflowDiagrams"));
 const ManhoursManagement = lazyWithRetry(() => import("./pages/admin/ManhoursManagement"));
 const KPITargetsManagement = lazyWithRetry(() => import("./pages/admin/KPITargetsManagement"));
+const KPIAuditLogPage = lazyWithRetry(() => import("./pages/admin/KPIAuditLogPage"));
 const PlatformSettings = lazyWithRetry(() => import("./pages/admin/PlatformSettings"));
 const HSSENotificationAnalytics = lazyWithRetry(() => import("./pages/admin/HSSENotificationAnalytics"));
 const HSSENotifications = lazyWithRetry(() => import("./pages/admin/HSSENotifications"));
@@ -478,6 +479,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <KPITargetsManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/kpi-targets/audit"
+                        element={
+                          <AdminRoute>
+                            <KPIAuditLogPage />
                           </AdminRoute>
                         }
                       />
