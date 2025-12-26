@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-edge-secret',
-};
+import { getCorsHeaders, handleCorsPrelight, validateEdgeSecret, sanitizeInput, getClientIP } from "../_shared/cors.ts";
 
 // In-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -27,33 +23,18 @@ function isRateLimited(identifier: string): boolean {
   return false;
 }
 
-function getClientIP(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-         req.headers.get('x-real-ip') || 
-         'unknown';
-}
-
-function validateSecretToken(req: Request): boolean {
-  const secret = Deno.env.get('EDGE_FUNCTION_SECRET');
-  if (!secret) {
-    console.warn('EDGE_FUNCTION_SECRET not configured - allowing request');
-    return true; // Allow if secret not yet configured
-  }
-  
-  const providedSecret = req.headers.get('x-edge-secret');
-  return providedSecret === secret;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPrelight(req);
+  if (preflightResponse) return preflightResponse;
+  
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
 
   try {
     // Secret token validation
-    if (!validateSecretToken(req)) {
-      console.warn('Invalid or missing edge function secret');
+    if (!validateEdgeSecret(req)) {
+      console.warn('[detect-event-type] Invalid or missing edge function secret');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,14 +44,17 @@ serve(async (req) => {
     // Rate limiting check
     const clientIP = getClientIP(req);
     if (isRateLimited(clientIP)) {
-      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+      console.warn(`[detect-event-type] Rate limit exceeded for IP: ${clientIP}`);
       return new Response(
         JSON.stringify({ error: 'Too many requests. Please try again later.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { description } = await req.json();
+    const body = await req.json();
+    
+    // Sanitize input to prevent XSS
+    const description = sanitizeInput(body.description || '');
 
     if (!description || description.length < 10) {
       return new Response(
@@ -89,14 +73,14 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not configured');
+      console.error('[detect-event-type] LOVABLE_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Detecting event type for description:', description.substring(0, 100) + '...');
+    console.log('[detect-event-type] Detecting event type for description:', description.substring(0, 100) + '...');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -173,7 +157,7 @@ If it's reporting a hazard or unsafe behavior with no consequences yet, it's an 
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('[detect-event-type] AI Gateway error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -195,12 +179,12 @@ If it's reporting a hazard or unsafe behavior with no consequences yet, it's an 
     }
 
     const data = await response.json();
-    console.log('AI Response:', JSON.stringify(data));
+    console.log('[detect-event-type] AI Response:', JSON.stringify(data));
 
     // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall || toolCall.function.name !== 'classify_event') {
-      console.error('No valid tool call in response');
+      console.error('[detect-event-type] No valid tool call in response');
       return new Response(
         JSON.stringify({ error: 'Invalid AI response format' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -208,7 +192,7 @@ If it's reporting a hazard or unsafe behavior with no consequences yet, it's an 
     }
 
     const classification = JSON.parse(toolCall.function.arguments);
-    console.log('Classification result:', classification);
+    console.log('[detect-event-type] Classification result:', classification);
 
     // Validate the classification
     const validObservationSubtypes = ['unsafe_act', 'unsafe_condition'];
@@ -232,10 +216,11 @@ If it's reporting a hazard or unsafe behavior with no consequences yet, it's an 
     );
 
   } catch (error) {
-    console.error('Error in detect-event-type:', error);
+    console.error('[detect-event-type] Error:', error);
+    const origin = req.headers.get('Origin');
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
     );
   }
 });
