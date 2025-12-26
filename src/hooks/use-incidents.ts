@@ -248,12 +248,19 @@ export interface IncidentWithDetails {
   approved_at: string | null;
   approval_notes: string | null;
   investigation_locked: boolean | null;
-  // Severity tracking fields
+  // Severity tracking fields (Actual)
   original_severity: 'low' | 'medium' | 'high' | 'critical' | null;
   severity_change_justification: string | null;
   severity_approved_by: string | null;
   severity_approved_at: string | null;
   severity_pending_approval: boolean | null;
+  // Potential severity tracking fields
+  potential_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  original_potential_severity_v2: 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5' | null;
+  potential_severity_pending_approval: boolean | null;
+  potential_severity_justification: string | null;
+  potential_severity_approved_by: string | null;
+  potential_severity_approved_at: string | null;
   // Closure request fields
   closure_requested_by: string | null;
   closure_requested_at: string | null;
@@ -318,6 +325,14 @@ export function useIncident(id: string | undefined) {
         severity_approved_by: extended.severity_approved_by ?? null,
         severity_approved_at: extended.severity_approved_at ?? null,
         severity_pending_approval: extended.severity_pending_approval ?? false,
+        // Potential severity fields
+        potential_severity_v2: extended.potential_severity_v2 ?? null,
+        original_potential_severity_v2: extended.original_potential_severity_v2 ?? null,
+        potential_severity_pending_approval: extended.potential_severity_pending_approval ?? false,
+        potential_severity_justification: extended.potential_severity_justification ?? null,
+        potential_severity_approved_by: extended.potential_severity_approved_by ?? null,
+        potential_severity_approved_at: extended.potential_severity_approved_at ?? null,
+        // Closure fields
         closure_requested_by: extended.closure_requested_by ?? null,
         closure_requested_at: extended.closure_requested_at ?? null,
         closure_request_notes: extended.closure_request_notes ?? null,
