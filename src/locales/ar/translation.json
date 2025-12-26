@@ -1191,7 +1191,22 @@
     "clearAll": "مسح الكل",
     "reset": "إعادة تعيين",
     "undo": "تراجع",
-    "clear": "مسح"
+    "clear": "مسح",
+    "total": "الإجمالي",
+    "department": "القسم",
+    "days": "أيام",
+    "generating": "جاري الإنشاء...",
+    "warning": "تحذير",
+    "popupBlocked": "تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة.",
+    "site": "الموقع",
+    "severity": "الخطورة",
+    "priority": "الأولوية",
+    "reference": "المرجع",
+    "title": "العنوان",
+    "priorityLow": "منخفضة",
+    "priorityMedium": "متوسطة",
+    "priorityHigh": "عالية",
+    "priorityCritical": "حرجة"
   },
   "search": {
     "placeholder": "البحث بالعنوان أو الوصف أو المرجع...",
@@ -6132,7 +6147,8 @@
     "total": "الإجمالي",
     "ratio": "النسبة",
     "positiveRatio": "نسبة الإيجابية",
-    "noData": "لا تتوفر بيانات ملاحظات"
+    "noData": "لا تتوفر بيانات ملاحظات",
+    "breakdown": "تحليل نسبة الملاحظات"
   },
   "residualRisk": {
     "title": "مقاييس تقليل المخاطر",

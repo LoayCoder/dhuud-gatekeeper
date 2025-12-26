@@ -1273,7 +1273,22 @@
     "clearAll": "सभी साफ़ करें",
     "reset": "रीसेट करें",
     "undo": "पूर्ववत करें",
-    "clear": "साफ़ करें"
+    "clear": "साफ़ करें",
+    "total": "कुल",
+    "department": "विभाग",
+    "days": "दिन",
+    "generating": "बनाया जा रहा है...",
+    "warning": "चेतावनी",
+    "popupBlocked": "पॉपअप ब्लॉक है। कृपया पॉपअप की अनुमति दें।",
+    "site": "साइट",
+    "severity": "गंभीरता",
+    "priority": "प्राथमिकता",
+    "reference": "संदर्भ",
+    "title": "शीर्षक",
+    "priorityLow": "कम",
+    "priorityMedium": "मध्यम",
+    "priorityHigh": "उच्च",
+    "priorityCritical": "गंभीर"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -5825,7 +5840,8 @@
     "total": "कुल",
     "ratio": "अनुपात",
     "positiveRatio": "सकारात्मक अनुपात",
-    "noData": "अवलोकन डेटा उपलब्ध नहीं"
+    "noData": "अवलोकन डेटा उपलब्ध नहीं",
+    "breakdown": "अवलोकन अनुपात विश्लेषण"
   },
   "residualRisk": {
     "title": "जोखिम कमी मापदंड",
