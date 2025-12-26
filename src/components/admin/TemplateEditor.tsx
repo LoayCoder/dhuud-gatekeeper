@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -21,7 +21,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Plus, Eye } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { X, Plus, Eye, GripVertical } from 'lucide-react';
 import { NotificationTemplate, CreateTemplateInput } from '@/hooks/useNotificationTemplates';
 
 interface TemplateEditorProps {
@@ -31,6 +33,22 @@ interface TemplateEditorProps {
   onSave: (data: CreateTemplateInput) => void;
   isLoading?: boolean;
 }
+
+// System variables available for HSSE templates
+const SYSTEM_VARIABLES = [
+  { key: 'incident_id', label: 'Incident ID', labelAr: 'رقم الحادث', example: 'INC-2024-0042' },
+  { key: 'reference_id', label: 'Reference', labelAr: 'المرجع', example: 'INC-2024-0042' },
+  { key: 'location', label: 'Location', labelAr: 'الموقع', example: 'Site A - Building 2' },
+  { key: 'risk_level', label: 'Risk Level', labelAr: 'مستوى الخطورة', example: 'Level 3 (Serious)' },
+  { key: 'reported_by', label: 'Reported By', labelAr: 'أبلغ عنه', example: 'Ahmed Hassan' },
+  { key: 'incident_time', label: 'Time', labelAr: 'الوقت', example: '2024-12-26 14:30' },
+  { key: 'action_link', label: 'Action Link', labelAr: 'رابط الإجراء', example: 'https://app.dhuud.com/incidents/...' },
+  { key: 'event_type', label: 'Event Type', labelAr: 'نوع الحدث', example: 'Observation' },
+  { key: 'title', label: 'Title', labelAr: 'العنوان', example: 'Fire hazard near storage' },
+  { key: 'description', label: 'Description', labelAr: 'الوصف', example: 'Flammable materials found...' },
+  { key: 'site_name', label: 'Site Name', labelAr: 'اسم الموقع', example: 'Main Factory' },
+  { key: 'department', label: 'Department', labelAr: 'القسم', example: 'Operations' },
+];
 
 const CATEGORIES = [
   'general',
@@ -49,7 +67,10 @@ export function TemplateEditor({
   onSave,
   isLoading,
 }: TemplateEditorProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const [formData, setFormData] = useState<CreateTemplateInput>({
     slug: '',
     meta_template_name: '',
@@ -75,10 +96,11 @@ export function TemplateEditor({
         language: template.language || 'en',
         is_active: template.is_active,
       });
-      // Initialize preview data
+      // Initialize preview data with examples
       const preview: Record<string, string> = {};
       (template.variable_keys || []).forEach((key) => {
-        preview[key] = `[${key}]`;
+        const sysVar = SYSTEM_VARIABLES.find(v => v.key === key);
+        preview[key] = sysVar?.example || `[${key}]`;
       });
       setPreviewData(preview);
     } else {
@@ -95,6 +117,43 @@ export function TemplateEditor({
       setPreviewData({});
     }
   }, [template, open]);
+
+  // Insert variable at cursor position
+  const insertVariable = (key: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentValue = formData.content_pattern;
+    
+    // Determine the placeholder number (index + 1)
+    let placeholderNum: number;
+    const existingIndex = formData.variable_keys.indexOf(key);
+    
+    if (existingIndex >= 0) {
+      // Variable already exists, use its index
+      placeholderNum = existingIndex + 1;
+    } else {
+      // New variable, add to list
+      placeholderNum = formData.variable_keys.length + 1;
+      const newVariables = [...formData.variable_keys, key];
+      const sysVar = SYSTEM_VARIABLES.find(v => v.key === key);
+      setFormData({ ...formData, variable_keys: newVariables });
+      setPreviewData({ ...previewData, [key]: sysVar?.example || `[${key}]` });
+    }
+    
+    const placeholder = `{{${placeholderNum}}}`;
+    const newValue = currentValue.substring(0, start) + placeholder + currentValue.substring(end);
+    
+    setFormData(prev => ({ ...prev, content_pattern: newValue }));
+    
+    // Restore focus and cursor position
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+    }, 0);
+  };
 
   const addVariable = () => {
     if (newVariable && !formData.variable_keys.includes(newVariable)) {
@@ -129,9 +188,29 @@ export function TemplateEditor({
     onSave(formData);
   };
 
+  // Handle drag start for variable chips
+  const handleDragStart = (e: React.DragEvent, key: string) => {
+    e.dataTransfer.setData('text/plain', key);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  // Handle drop on textarea
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const key = e.dataTransfer.getData('text/plain');
+    if (key) {
+      insertVariable(key);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="ltr">
         <DialogHeader>
           <DialogTitle>
             {template ? 'Edit Template' : 'Create Template'}
@@ -221,57 +300,107 @@ export function TemplateEditor({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="content_pattern">
-              Message Content (use {"{"}{"{"}{"}1"}{"}"}{"}"}, {"{"}{"{"}{"}2"}{"}"}{"}"}, etc. for variables)
-            </Label>
-            <Textarea
-              id="content_pattern"
-              value={formData.content_pattern}
-              onChange={(e) =>
-                setFormData({ ...formData, content_pattern: e.target.value })
-              }
-              placeholder="Hello {{1}}, your order {{2}} is ready for pickup."
-              rows={4}
-              required
-            />
+          {/* Variable Chips + Message Editor Side by Side */}
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            {/* Variables Sidebar */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                System Variables
+              </Label>
+              <ScrollArea className="h-[200px] border rounded-md p-2">
+                <div className="flex flex-col gap-1.5">
+                  {SYSTEM_VARIABLES.map((variable) => (
+                    <button
+                      key={variable.key}
+                      type="button"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, variable.key)}
+                      onClick={() => insertVariable(variable.key)}
+                      className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-md border bg-muted/50 hover:bg-muted cursor-pointer transition-colors text-start"
+                      title={`Click to insert {{${variable.key}}}`}
+                    >
+                      <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="font-mono text-primary">
+                        {`{{${variable.key}}}`}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+              <p className="text-xs text-muted-foreground">
+                Click or drag variables into the message
+              </p>
+            </div>
+
+            {/* Message Editor */}
+            <div className="space-y-2">
+              <Label htmlFor="content_pattern">
+                Message Content
+              </Label>
+              <Textarea
+                ref={textareaRef}
+                id="content_pattern"
+                value={formData.content_pattern}
+                onChange={(e) =>
+                  setFormData({ ...formData, content_pattern: e.target.value })
+                }
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                placeholder="🚨 New {{event_type}}: {{title}}&#10;&#10;📍 Location: {{location}}&#10;⚠️ Risk: {{risk_level}}&#10;👤 Reported by: {{reported_by}}"
+                rows={6}
+                required
+                className="font-mono text-sm"
+              />
+            </div>
           </div>
 
+          {/* Active Variables */}
           <div className="space-y-2">
-            <Label>Variable Keys (in order)</Label>
+            <Label>Active Variable Mappings</Label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {formData.variable_keys.map((key, index) => (
-                <Badge key={key} variant="secondary" className="gap-1">
-                  {`{{${index + 1}}}`} = {key}
-                  <button
-                    type="button"
-                    onClick={() => removeVariable(key)}
-                    className="ms-1 hover:text-destructive"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+              {formData.variable_keys.length === 0 ? (
+                <span className="text-sm text-muted-foreground">
+                  No variables added yet. Click or drag from the sidebar.
+                </span>
+              ) : (
+                formData.variable_keys.map((key, index) => (
+                  <Badge key={key} variant="secondary" className="gap-1 font-mono">
+                    {`{{${index + 1}}}`} = {key}
+                    <button
+                      type="button"
+                      onClick={() => removeVariable(key)}
+                      className="ms-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))
+              )}
             </div>
             <div className="flex gap-2">
               <Input
                 value={newVariable}
                 onChange={(e) => setNewVariable(e.target.value.replace(/\s+/g, '_'))}
-                placeholder="variable_name"
+                placeholder="custom_variable_name"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     addVariable();
                   }
                 }}
+                className="font-mono"
               />
               <Button type="button" variant="outline" onClick={addVariable}>
                 <Plus className="h-4 w-4 me-1" />
-                Add
+                Add Custom
               </Button>
             </div>
           </div>
 
+          <Separator />
+
+          {/* Live Preview */}
           <Card className="bg-muted/50">
             <CardHeader className="py-3">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -280,24 +409,29 @@ export function TemplateEditor({
               </CardTitle>
             </CardHeader>
             <CardContent className="py-3">
-              <div className="bg-background p-3 rounded-md border whitespace-pre-wrap">
+              <div className="bg-background p-3 rounded-md border whitespace-pre-wrap font-mono text-sm">
                 {getPreviewMessage() || 'Enter message content to see preview...'}
               </div>
               {formData.variable_keys.length > 0 && (
                 <div className="mt-3 space-y-2">
                   <Label className="text-xs text-muted-foreground">Test Values:</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {formData.variable_keys.map((key) => (
-                      <Input
-                        key={key}
-                        placeholder={key}
-                        value={previewData[key] || ''}
-                        onChange={(e) =>
-                          setPreviewData({ ...previewData, [key]: e.target.value })
-                        }
-                        className="h-8 text-sm"
-                      />
-                    ))}
+                    {formData.variable_keys.map((key) => {
+                      const sysVar = SYSTEM_VARIABLES.find(v => v.key === key);
+                      return (
+                        <div key={key} className="flex items-center gap-2">
+                          <Label className="text-xs w-24 truncate font-mono">{key}:</Label>
+                          <Input
+                            placeholder={sysVar?.example || key}
+                            value={previewData[key] || ''}
+                            onChange={(e) =>
+                              setPreviewData({ ...previewData, [key]: e.target.value })
+                            }
+                            className="h-8 text-sm flex-1"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

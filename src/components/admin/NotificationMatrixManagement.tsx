@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, RotateCcw, Trash2, User, Users, Pencil } from 'lucide-react';
+import { Plus, RotateCcw, Trash2, User, Users, Pencil, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -54,6 +55,7 @@ import {
   type NotificationMatrixRule,
   type StakeholderRole,
 } from '@/hooks/use-notification-matrix';
+import { useNotificationTemplates } from '@/hooks/useNotificationTemplates';
 
 interface RuleFormState {
   stakeholder_role: StakeholderRole | '';
@@ -63,6 +65,7 @@ interface RuleFormState {
   condition_type: string | null;
   user_id: string | null;
   isUserSpecific: boolean;
+  whatsapp_template_id: string | null;
 }
 
 const getInitialFormState = (): RuleFormState => ({
@@ -73,6 +76,7 @@ const getInitialFormState = (): RuleFormState => ({
   condition_type: null,
   user_id: null,
   isUserSpecific: false,
+  whatsapp_template_id: null,
 });
 
 export default function NotificationMatrixManagement() {
@@ -80,10 +84,16 @@ export default function NotificationMatrixManagement() {
   
   const { data: rules, isLoading } = useNotificationMatrix();
   const { data: users } = useNotificationMatrixUsers();
+  const { data: templates } = useNotificationTemplates();
   const createMutation = useCreateMatrixRule();
   const updateMutation = useUpdateMatrixRule();
   const deleteMutation = useDeleteMatrixRule();
   const resetMutation = useResetMatrixToDefaults();
+  
+  // Filter WhatsApp-compatible templates
+  const whatsappTemplates = useMemo(() => {
+    return templates?.filter(t => t.is_active && t.category === 'incidents') || [];
+  }, [templates]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -147,6 +157,7 @@ export default function NotificationMatrixManagement() {
             channels: formState.channels,
             condition_type: formState.condition_type,
             user_id: formState.isUserSpecific ? formState.user_id : null,
+            whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
           }, {
             onSuccess: () => resolve(),
             onError: (error) => reject(error),
@@ -183,6 +194,7 @@ export default function NotificationMatrixManagement() {
       condition_type: firstRule.condition_type,
       user_id: isUserSpecific ? firstRule.user_id : null,
       isUserSpecific,
+      whatsapp_template_id: (firstRule as any).whatsapp_template_id || null,
     });
     
     setEditingGroupKey(groupKey);
@@ -217,6 +229,7 @@ export default function NotificationMatrixManagement() {
           channels: formState.channels,
           condition_type: formState.condition_type,
           user_id: formState.isUserSpecific ? formState.user_id : null,
+          whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
         }, {
           onSuccess: () => resolve(),
           onError: () => resolve(),
@@ -460,6 +473,40 @@ export default function NotificationMatrixManagement() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* WhatsApp Template Selector - show when WhatsApp channel is selected */}
+      {formState.channels.includes('whatsapp') && (
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            {t('settings.notificationMatrix.whatsappTemplate', 'WhatsApp Template')}
+          </Label>
+          <Select
+            value={formState.whatsapp_template_id || 'default'}
+            onValueChange={(value) => setFormState(prev => ({ 
+              ...prev, 
+              whatsapp_template_id: value === 'default' ? null : value 
+            }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('settings.notificationMatrix.selectTemplate', 'Select template...')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">
+                {t('settings.notificationMatrix.defaultTemplate', 'Default System Template')}
+              </SelectItem>
+              {whatsappTemplates.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.slug} ({template.language})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {t('settings.notificationMatrix.templateHelp', 'Select a custom template or use the default system message')}
+          </p>
+        </div>
+      )}
     </div>
   );
 

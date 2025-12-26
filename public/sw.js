@@ -43,6 +43,9 @@ const HSSE_OFFLINE_API_PATTERNS = [
   '/rest/v1/buildings',
   '/rest/v1/floors_zones',
   '/rest/v1/asset_categories',
+  // Notification matrix and templates for offline preview
+  '/rest/v1/incident_notification_matrix',
+  '/rest/v1/notification_templates',
 ];
 
 // Install event - cache static assets
