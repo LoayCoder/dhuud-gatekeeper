@@ -1297,7 +1297,22 @@
     "clearAll": "Clear All",
     "reset": "Reset",
     "undo": "Undo",
-    "clear": "Clear"
+    "clear": "Clear",
+    "total": "Total",
+    "department": "Department",
+    "days": "days",
+    "generating": "Generating...",
+    "warning": "Warning",
+    "popupBlocked": "Popup blocked. Please allow popups.",
+    "site": "Site",
+    "severity": "Severity",
+    "priority": "Priority",
+    "reference": "Reference",
+    "title": "Title",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "priorityCritical": "Critical"
   },
   "search": {
     "placeholder": "Search by title, description, or reference...",
@@ -6323,7 +6338,8 @@
     "total": "Total",
     "ratio": "Ratio",
     "positiveRatio": "Positive Ratio",
-    "noData": "No observation data available"
+    "noData": "No observation data available",
+    "breakdown": "Observation Ratio Breakdown"
   },
   "residualRisk": {
     "title": "Risk Reduction Metrics",

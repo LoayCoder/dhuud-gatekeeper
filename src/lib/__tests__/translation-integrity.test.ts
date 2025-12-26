@@ -22,7 +22,10 @@ const RTL_LANGUAGES = ['ar', 'ur'];
 const REQUIRED_COMMON_KEYS = [
   'loading', 'save', 'cancel', 'delete', 'edit', 'submit', 'back', 'next',
   'search', 'filter', 'view', 'details', 'all', 'light', 'dark', 'system',
-  'toggleTheme', 'changeLanguage', 'selectAll', 'clearAll', 'reset'
+  'toggleTheme', 'changeLanguage', 'selectAll', 'clearAll', 'reset',
+  'total', 'department', 'days', 'generating', 'warning', 'popupBlocked',
+  'site', 'severity', 'priority', 'reference', 'title',
+  'priorityLow', 'priorityMedium', 'priorityHigh', 'priorityCritical'
 ];
 
 // Required navigation keys

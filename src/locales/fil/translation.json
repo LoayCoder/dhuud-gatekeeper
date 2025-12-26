@@ -1262,7 +1262,22 @@
     "clearAll": "I-clear Lahat",
     "reset": "I-reset",
     "undo": "I-undo",
-    "clear": "I-clear"
+    "clear": "I-clear",
+    "total": "Kabuuan",
+    "department": "Departamento",
+    "days": "araw",
+    "generating": "Ginagawa...",
+    "warning": "Babala",
+    "popupBlocked": "Naka-block ang popup. Pakipayagan ang mga popup.",
+    "site": "Site",
+    "severity": "Kalubhaan",
+    "priority": "Priyoridad",
+    "reference": "Reference",
+    "title": "Pamagat",
+    "priorityLow": "Mababa",
+    "priorityMedium": "Katamtaman",
+    "priorityHigh": "Mataas",
+    "priorityCritical": "Kritikal"
   },
   "auth": {
     "signIn": "Mag-sign In",
@@ -5814,7 +5829,8 @@
     "total": "Kabuuan",
     "ratio": "Ratio",
     "positiveRatio": "Positibong Ratio",
-    "noData": "Walang available na data ng obserbasyon"
+    "noData": "Walang available na data ng obserbasyon",
+    "breakdown": "Breakdown ng Ratio ng Obserbasyon"
   },
   "residualRisk": {
     "title": "Mga Sukatan ng Pagbabawas ng Panganib",

@@ -1273,7 +1273,22 @@
     "clearAll": "سب صاف کریں",
     "reset": "ری سیٹ",
     "undo": "واپس کریں",
-    "clear": "صاف کریں"
+    "clear": "صاف کریں",
+    "total": "کل",
+    "department": "شعبہ",
+    "days": "دن",
+    "generating": "بنایا جا رہا ہے...",
+    "warning": "انتباہ",
+    "popupBlocked": "پاپ اپ بلاک ہے۔ براہ کرم پاپ اپس کی اجازت دیں۔",
+    "site": "سائٹ",
+    "severity": "شدت",
+    "priority": "ترجیح",
+    "reference": "حوالہ",
+    "title": "عنوان",
+    "priorityLow": "کم",
+    "priorityMedium": "درمیانی",
+    "priorityHigh": "زیادہ",
+    "priorityCritical": "نازک"
   },
   "auth": {
     "signIn": "سائن ان",
@@ -5840,7 +5855,8 @@
     "total": "کل",
     "ratio": "تناسب",
     "positiveRatio": "مثبت تناسب",
-    "noData": "مشاہدات کا ڈیٹا دستیاب نہیں"
+    "noData": "مشاہدات کا ڈیٹا دستیاب نہیں",
+    "breakdown": "مشاہدات کے تناسب کا تجزیہ"
   },
   "residualRisk": {
     "title": "خطرے میں کمی کے اعداد و شمار",
