@@ -6037,7 +6037,40 @@
     "medium": "Medium",
     "high": "High",
     "critical": "Critical",
-    "unassigned": "N/A"
+    "unassigned": "N/A",
+    "actualSeverity": "Actual",
+    "potentialSeverity": "Potential"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "HSSE Validation Required",
+      "description": "Review and validate the risk assessment and corrective actions",
+      "acceptRisk": "Accept Risk & Actions",
+      "rejectRisk": "Reject & Return",
+      "notesPlaceholder": "Add validation notes (optional)...",
+      "rejectionNotesPlaceholder": "Explain why this needs correction...",
+      "rejectionNotesRequired": "Notes are required when rejecting",
+      "submitDecision": "Submit Decision",
+      "level5Warning": "Level 5 (Catastrophic): After validation, HSSE Manager approval will be required for final closure.",
+      "level34Info": "After validation, observation will auto-close when all corrective actions are verified."
+    },
+    "closureGate": {
+      "lockedTitle": "Closure Locked",
+      "managerClosureTitle": "HSSE Manager Final Closure",
+      "managerClosureDescription": "Level 5 observations require HSSE Manager approval to close",
+      "level5LockedTitle": "Manager Approval Required",
+      "level5LockedDescription": "This Level 5 (Catastrophic) observation requires HSSE Manager approval to close. Please wait for manager review.",
+      "level5WarningTitle": "Final Closure Authorization",
+      "level5WarningDescription": "You are about to finalize and close a Level 5 (Catastrophic) observation. This action will be logged for audit purposes.",
+      "catastrophicLevel": "Level 5",
+      "justificationLabel": "Closure Justification",
+      "justificationPlaceholder": "Provide justification for closing this Level 5 observation...",
+      "justificationRequired": "Justification is required for Level 5 closure",
+      "finalizeAndClose": "Finalize & Close Observation"
+    },
+    "closeOnSpotAllowed": "Close on Spot allowed",
+    "hsseReviewRequired": "HSSE Review required",
+    "managerClosureRequired": "Manager Closure required"
   },
   "settings": {
     "eventCategories": {

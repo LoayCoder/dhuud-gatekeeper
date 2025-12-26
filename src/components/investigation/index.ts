@@ -35,3 +35,5 @@ export { DeptRepApprovalCard } from './DeptRepApprovalCard';
 export { SubmitInvestigationCard } from './SubmitInvestigationCard';
 export { CauseCoverageIndicator } from './CauseCoverageIndicator';
 export { PotentialSeverityApprovalCard } from './PotentialSeverityApprovalCard';
+export { HSSEValidationCard } from './HSSEValidationCard';
+export { ObservationClosureGate } from './ObservationClosureGate';

@@ -1,5 +1,5 @@
 /**
- * HSSE 5-Level Severity Rating System
+ * HSSE 5-Level Severity Rating System (Unified Risk Matrix)
  * 
  * Rule: Choose the highest credible impact across 
  * People / Environment / Asset / Business / Reputation-Security.
@@ -8,9 +8,15 @@
  * - If ERP activated → severity cannot be less than Level 4
  * - If fatality/permanent impairment → must be Level 5
  * - If LTI/LWDC → must be at least Level 4
+ * 
+ * Observation Workflow Logic:
+ * - Levels 1-2 (Low): Allow "Close on Spot" with photo/note
+ * - Levels 3-4 (Serious/Major): HSSE Review required, auto-close when actions verified
+ * - Level 5 (Catastrophic): HSSE Manager approval required for closure
  */
 
 export type SeverityLevelV2 = 'level_1' | 'level_2' | 'level_3' | 'level_4' | 'level_5';
+export type HSSEValidationStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface SeverityLevelConfig {
   value: SeverityLevelV2;
@@ -22,6 +28,11 @@ export interface SeverityLevelConfig {
   textColor: string;
   borderColor: string;
   badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline';
+  // Workflow behavior flags
+  allowCloseOnSpot: boolean;
+  requiresHSSEReview: boolean;
+  requiresManagerClosure: boolean;
+  blockedUntilVerified: boolean;
 }
 
 export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
@@ -30,55 +41,80 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level1.label',
     descriptionKey: 'severity.level1.description',
     examplesKey: 'severity.level1.examples',
-    color: 'hsl(142 71% 45%)', // Green
-    bgColor: 'bg-green-500',
-    textColor: 'text-green-700',
-    borderColor: 'border-green-500',
+    color: 'hsl(160 84% 39%)', // Emerald-500
+    bgColor: 'bg-emerald-500',
+    textColor: 'text-emerald-700',
+    borderColor: 'border-emerald-500',
     badgeVariant: 'outline',
+    // Workflow: Allow Close on Spot
+    allowCloseOnSpot: true,
+    requiresHSSEReview: false,
+    requiresManagerClosure: false,
+    blockedUntilVerified: false,
   },
   {
     value: 'level_2',
     labelKey: 'severity.level2.label',
     descriptionKey: 'severity.level2.description',
     examplesKey: 'severity.level2.examples',
-    color: 'hsl(48 96% 53%)', // Yellow
+    color: 'hsl(48 96% 53%)', // Yellow-500
     bgColor: 'bg-yellow-500',
     textColor: 'text-yellow-700',
     borderColor: 'border-yellow-500',
     badgeVariant: 'secondary',
+    // Workflow: Allow Close on Spot
+    allowCloseOnSpot: true,
+    requiresHSSEReview: false,
+    requiresManagerClosure: false,
+    blockedUntilVerified: false,
   },
   {
     value: 'level_3',
     labelKey: 'severity.level3.label',
     descriptionKey: 'severity.level3.description',
     examplesKey: 'severity.level3.examples',
-    color: 'hsl(25 95% 53%)', // Orange
+    color: 'hsl(25 95% 53%)', // Orange-500
     bgColor: 'bg-orange-500',
     textColor: 'text-orange-700',
     borderColor: 'border-orange-500',
     badgeVariant: 'secondary',
+    // Workflow: Requires HSSE Review
+    allowCloseOnSpot: false,
+    requiresHSSEReview: true,
+    requiresManagerClosure: false,
+    blockedUntilVerified: false,
   },
   {
     value: 'level_4',
     labelKey: 'severity.level4.label',
     descriptionKey: 'severity.level4.description',
     examplesKey: 'severity.level4.examples',
-    color: 'hsl(0 84% 60%)', // Red
-    bgColor: 'bg-red-500',
+    color: 'hsl(0 72% 51%)', // Red-600
+    bgColor: 'bg-red-600',
     textColor: 'text-red-700',
-    borderColor: 'border-red-500',
+    borderColor: 'border-red-600',
     badgeVariant: 'destructive',
+    // Workflow: HSSE Review + Blocked until verified
+    allowCloseOnSpot: false,
+    requiresHSSEReview: true,
+    requiresManagerClosure: false,
+    blockedUntilVerified: true,
   },
   {
     value: 'level_5',
     labelKey: 'severity.level5.label',
     descriptionKey: 'severity.level5.description',
     examplesKey: 'severity.level5.examples',
-    color: 'hsl(0 84% 40%)', // Dark Red
-    bgColor: 'bg-red-700',
+    color: 'hsl(0 62% 30%)', // Red-900
+    bgColor: 'bg-red-900',
     textColor: 'text-red-900',
-    borderColor: 'border-red-700',
+    borderColor: 'border-red-900',
     badgeVariant: 'destructive',
+    // Workflow: Manager Closure Only
+    allowCloseOnSpot: false,
+    requiresHSSEReview: true,
+    requiresManagerClosure: true,
+    blockedUntilVerified: true,
   },
 ];
 
@@ -193,4 +229,98 @@ export function mapOldSeverityToNew(oldSeverity: string | null | undefined): Sev
 export function getSeverityLevelNumber(severity: SeverityLevelV2 | null | undefined): number {
   if (!severity) return 0;
   return parseInt(severity.replace('level_', ''), 10);
+}
+
+/**
+ * Check if observation can be closed on spot based on severity
+ * Levels 1-2 allow close on spot
+ */
+export function canCloseOnSpot(severity: SeverityLevelV2 | null | undefined): boolean {
+  if (!severity) return false;
+  const config = getSeverityConfig(severity);
+  return config?.allowCloseOnSpot ?? false;
+}
+
+/**
+ * Check if severity level requires HSSE review
+ * Levels 3+ require HSSE Expert validation
+ */
+export function requiresHSSEReview(severity: SeverityLevelV2 | null | undefined): boolean {
+  if (!severity) return false;
+  const config = getSeverityConfig(severity);
+  return config?.requiresHSSEReview ?? false;
+}
+
+/**
+ * Check if severity level requires HSSE Manager closure
+ * Level 5 (Catastrophic) requires manager approval to close
+ */
+export function requiresManagerClosure(severity: SeverityLevelV2 | null | undefined): boolean {
+  if (!severity) return false;
+  const config = getSeverityConfig(severity);
+  return config?.requiresManagerClosure ?? false;
+}
+
+/**
+ * Check if closure is blocked until actions/residual risk verified
+ * Levels 4-5 are blocked until verification complete
+ */
+export function isClosureBlocked(severity: SeverityLevelV2 | null | undefined): boolean {
+  if (!severity) return false;
+  const config = getSeverityConfig(severity);
+  return config?.blockedUntilVerified ?? false;
+}
+
+/**
+ * Map old risk_rating (low/medium/high) to new severity scale
+ * Used for unifying observations with incidents
+ */
+export function mapRiskRatingToSeverity(riskRating: string | null | undefined): SeverityLevelV2 | null {
+  if (!riskRating) return null;
+  
+  const mapping: Record<string, SeverityLevelV2> = {
+    'low': 'level_1',
+    'medium': 'level_2',
+    'high': 'level_3',
+  };
+  
+  return mapping[riskRating] || null;
+}
+
+/**
+ * Get workflow behavior description for UI display
+ */
+export function getWorkflowBehavior(severity: SeverityLevelV2 | null | undefined): {
+  canCloseOnSpot: boolean;
+  requiresHSSEReview: boolean;
+  requiresManagerClosure: boolean;
+  workflowKey: string;
+} {
+  const config = getSeverityConfig(severity);
+  
+  if (!config) {
+    return {
+      canCloseOnSpot: false,
+      requiresHSSEReview: false,
+      requiresManagerClosure: false,
+      workflowKey: 'workflow.unknown',
+    };
+  }
+  
+  let workflowKey = 'workflow.standard';
+  
+  if (config.requiresManagerClosure) {
+    workflowKey = 'workflow.managerClosureRequired';
+  } else if (config.requiresHSSEReview) {
+    workflowKey = 'workflow.hsseReviewRequired';
+  } else if (config.allowCloseOnSpot) {
+    workflowKey = 'workflow.closeOnSpotAllowed';
+  }
+  
+  return {
+    canCloseOnSpot: config.allowCloseOnSpot,
+    requiresHSSEReview: config.requiresHSSEReview,
+    requiresManagerClosure: config.requiresManagerClosure,
+    workflowKey,
+  };
 }
