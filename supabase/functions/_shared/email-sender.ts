@@ -13,7 +13,7 @@ import {
 
 // Resend Configuration
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || Deno.env.get("AWS_SES_FROM_EMAIL") || "noreply@dhuud.com";
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@dhuud.com";
 
 /**
  * Get the application base URL from environment
