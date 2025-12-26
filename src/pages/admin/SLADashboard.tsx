@@ -2,10 +2,12 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSLADashboard } from '@/hooks/use-sla-dashboard';
 import { useActionSLAConfig } from '@/hooks/use-action-sla-config';
+import { SLAPageLayout } from '@/components/sla/SLAPageLayout';
 import { SLAStatusCards } from '@/components/sla/SLAStatusCards';
 import { SLACountdownTimer } from '@/components/sla/SLACountdownTimer';
 import { SLADonutChart } from '@/components/sla/SLACharts';
 import { SLABulkActionsPanel } from '@/components/sla/SLABulkActionsPanel';
+import { SLAActionCard } from '@/components/sla/SLAActionCard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -14,10 +16,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Activity, Filter, Download, Settings, Search, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw, Activity, Filter, Download, Search, BarChart3, LayoutGrid, LayoutList, Zap } from 'lucide-react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 import { exportToCSV } from '@/lib/export-utils';
+import { cn } from '@/lib/utils';
 
 const getPriorityVariant = (priority: string | null) => {
   switch (priority) {
@@ -32,13 +35,13 @@ const getPriorityVariant = (priority: string | null) => {
 export default function SLADashboard() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
-  const navigate = useNavigate();
   const { actions, stats, isLoading, refetch } = useSLADashboard();
   const { slaConfigs } = useActionSLAConfig();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // Get warning threshold from config based on priority
   const getWarningDays = (priority: string | null) => {
@@ -108,7 +111,6 @@ export default function SLADashboard() {
       ? filteredActions.filter(a => selectedIds.includes(a.id))
       : filteredActions;
 
-    // Convert to plain objects for export
     const exportData = dataToExport.map(action => ({
       reference_id: action.reference_id || '',
       title: action.title,
@@ -132,198 +134,252 @@ export default function SLADashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6" dir={direction}>
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-5 gap-4">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
+      <SLAPageLayout
+        title={t('sla.dashboard', 'SLA Dashboard')}
+        description={t('sla.dashboardDescription', 'Real-time overview of corrective action SLA status')}
+        icon={<Activity className="h-8 w-8" />}
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-28" />
+            ))}
+          </div>
+          <Skeleton className="h-96" />
         </div>
-        <Skeleton className="h-96" />
-      </div>
+      </SLAPageLayout>
     );
   }
 
   return (
-    <div className="space-y-6 p-6" dir={direction}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Activity className="h-6 w-6" />
-            {t('sla.dashboard', 'SLA Dashboard')}
-          </h1>
-          <p className="text-muted-foreground">
-            {t('sla.dashboardDescription', 'Real-time overview of corrective action SLA status')}
-          </p>
+    <SLAPageLayout
+      title={t('sla.dashboard', 'SLA Dashboard')}
+      description={t('sla.dashboardDescription', 'Real-time overview of corrective action SLA status')}
+      icon={<Activity className="h-8 w-8" />}
+    >
+      <div className="space-y-6">
+        {/* Live Status Indicator */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            {t('sla.liveUpdates', 'Live updates enabled')}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('common.export', 'Export')}</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('common.refresh', 'Refresh')}</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/admin/action-sla')} className="gap-2">
-            <Settings className="h-4 w-4" />
-            {t('sla.settings', 'Settings')}
-          </Button>
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            {t('common.export', 'Export')}
-          </Button>
-          <Button variant="outline" onClick={() => refetch()} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            {t('common.refresh', 'Refresh')}
-          </Button>
-        </div>
-      </div>
 
-      {/* Status Cards + Chart */}
-      <div className="grid lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <SLAStatusCards stats={stats} />
+        {/* Status Cards + Chart */}
+        <div className="grid lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <SLAStatusCards stats={stats} />
+          </div>
+          <Card className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+            <CardHeader className="pb-2 relative">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                {t('sla.distribution', 'Distribution')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              <SLADonutChart stats={stats} />
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Bulk Actions */}
+        <SLABulkActionsPanel
+          selectedIds={selectedIds}
+          onClearSelection={() => setSelectedIds([])}
+          onExport={handleExport}
+        />
+
+        {/* Actions Table/Cards */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {t('sla.distribution', 'Distribution')}
-            </CardTitle>
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    {t('sla.activeActions', 'Active Actions')}
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    {t('sla.totalActions', '{{count}} actions requiring attention', { count: stats.total })}
+                  </CardDescription>
+                </div>
+                
+                {/* View Toggle */}
+                <div className="flex items-center gap-2">
+                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
+                    <TabsList className="h-9">
+                      <TabsTrigger value="table" className="gap-1.5 px-3">
+                        <LayoutList className="h-4 w-4" />
+                        <span className="hidden sm:inline">{t('common.table', 'Table')}</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="cards" className="gap-1.5 px-3">
+                        <LayoutGrid className="h-4 w-4" />
+                        <span className="hidden sm:inline">{t('common.cards', 'Cards')}</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-2">
+                <div className="relative flex-1 min-w-[180px] max-w-[300px]">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('common.search', 'Search...')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="ps-9"
+                  />
+                </div>
+                <Select value={filterStatus} onValueChange={setFilterStatus} dir={direction}>
+                  <SelectTrigger className="w-[140px]">
+                    <Filter className="h-4 w-4 me-2" />
+                    <SelectValue placeholder={t('sla.filterStatus', 'Status')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+                    <SelectItem value="ontrack">{t('sla.onTrack', 'On Track')}</SelectItem>
+                    <SelectItem value="warning">{t('sla.dueSoon', 'Due Soon')}</SelectItem>
+                    <SelectItem value="overdue">{t('sla.overdue', 'Overdue')}</SelectItem>
+                    <SelectItem value="escalated">{t('sla.escalated', 'Escalated')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterPriority} onValueChange={setFilterPriority} dir={direction}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder={t('sla.filterPriority', 'Priority')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+                    <SelectItem value="critical">{t('priority.critical', 'Critical')}</SelectItem>
+                    <SelectItem value="high">{t('priority.high', 'High')}</SelectItem>
+                    <SelectItem value="medium">{t('priority.medium', 'Medium')}</SelectItem>
+                    <SelectItem value="low">{t('priority.low', 'Low')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="relative">
-            <SLADonutChart stats={stats} />
+          <CardContent className="p-4 sm:p-6">
+            {filteredActions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Activity className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-lg font-medium text-muted-foreground">
+                  {t('sla.noActions', 'No actions matching filters')}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('sla.tryDifferentFilters', 'Try adjusting your search or filters')}
+                </p>
+              </div>
+            ) : viewMode === 'cards' ? (
+              /* Card View */
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredActions.map((action) => (
+                  <SLAActionCard
+                    key={action.id}
+                    action={action}
+                    selected={selectedIds.includes(action.id)}
+                    onSelect={(checked) => handleSelectOne(action.id, checked)}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* Table View */
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-[40px]">
+                        <Checkbox
+                          checked={selectedIds.length === filteredActions.length && filteredActions.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">{t('sla.countdown', 'Countdown')}</TableHead>
+                      <TableHead className="min-w-[200px]">{t('actions.title', 'Title')}</TableHead>
+                      <TableHead>{t('actions.priority', 'Priority')}</TableHead>
+                      <TableHead>{t('actions.assignee', 'Assignee')}</TableHead>
+                      <TableHead>{t('actions.dueDate', 'Due Date')}</TableHead>
+                      <TableHead>{t('actions.status', 'Status')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredActions.map((action) => (
+                      <TableRow 
+                        key={action.id}
+                        className={cn(
+                          "transition-colors",
+                          selectedIds.includes(action.id) && "bg-primary/5",
+                          action.escalation_level >= 2 && "bg-red-50 dark:bg-red-900/10",
+                          action.escalation_level === 1 && "bg-orange-50 dark:bg-orange-900/10"
+                        )}
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.includes(action.id)}
+                            onCheckedChange={(checked) => handleSelectOne(action.id, !!checked)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <SLACountdownTimer
+                            dueDate={action.due_date}
+                            escalationLevel={action.escalation_level}
+                            status={action.status}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[250px]">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {action.reference_id && (
+                              <Badge variant="outline" className="font-mono text-xs shrink-0">
+                                {action.reference_id}
+                              </Badge>
+                            )}
+                            <span className="truncate">{action.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getPriorityVariant(action.priority) as any}>
+                            {action.priority || 'medium'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {action.assignee_name || (
+                            <span className="text-muted-foreground italic">
+                              {t('actions.unassigned', 'Unassigned')}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {action.due_date ? format(new Date(action.due_date), 'PP') : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{action.status || 'pending'}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Bulk Actions */}
-      <SLABulkActionsPanel
-        selectedIds={selectedIds}
-        onClearSelection={() => setSelectedIds([])}
-        onExport={handleExport}
-      />
-
-      {/* Actions Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <CardTitle>{t('sla.activeActions', 'Active Actions')}</CardTitle>
-              <CardDescription>
-                {t('sla.totalActions', '{{count}} actions requiring attention', { count: stats.total })}
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <div className="relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('common.search', 'Search...')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ps-9 w-[180px]"
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus} dir={direction}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="h-4 w-4 me-2" />
-                  <SelectValue placeholder={t('sla.filterStatus', 'Status')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                  <SelectItem value="ontrack">{t('sla.onTrack', 'On Track')}</SelectItem>
-                  <SelectItem value="warning">{t('sla.dueSoon', 'Due Soon')}</SelectItem>
-                  <SelectItem value="overdue">{t('sla.overdue', 'Overdue')}</SelectItem>
-                  <SelectItem value="escalated">{t('sla.escalated', 'Escalated')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterPriority} onValueChange={setFilterPriority} dir={direction}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder={t('sla.filterPriority', 'Priority')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                  <SelectItem value="critical">{t('priority.critical', 'Critical')}</SelectItem>
-                  <SelectItem value="high">{t('priority.high', 'High')}</SelectItem>
-                  <SelectItem value="medium">{t('priority.medium', 'Medium')}</SelectItem>
-                  <SelectItem value="low">{t('priority.low', 'Low')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40px]">
-                    <Checkbox
-                      checked={selectedIds.length === filteredActions.length && filteredActions.length > 0}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>{t('sla.countdown', 'Countdown')}</TableHead>
-                  <TableHead>{t('actions.title', 'Title')}</TableHead>
-                  <TableHead>{t('actions.priority', 'Priority')}</TableHead>
-                  <TableHead>{t('actions.assignee', 'Assignee')}</TableHead>
-                  <TableHead>{t('actions.dueDate', 'Due Date')}</TableHead>
-                  <TableHead>{t('actions.status', 'Status')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredActions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      {t('sla.noActions', 'No actions matching filters')}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredActions.map((action) => (
-                    <TableRow key={action.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedIds.includes(action.id)}
-                          onCheckedChange={(checked) => handleSelectOne(action.id, !!checked)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <SLACountdownTimer
-                          dueDate={action.due_date}
-                          escalationLevel={action.escalation_level}
-                          status={action.status}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[250px]">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {action.reference_id && (
-                            <Badge variant="outline" className="font-mono text-xs shrink-0">
-                              {action.reference_id}
-                            </Badge>
-                          )}
-                          <span className="truncate">{action.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getPriorityVariant(action.priority) as any}>
-                          {action.priority || 'medium'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {action.assignee_name || (
-                          <span className="text-muted-foreground italic">
-                            {t('actions.unassigned', 'Unassigned')}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {action.due_date ? format(new Date(action.due_date), 'PP') : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{action.status || 'pending'}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </SLAPageLayout>
   );
 }
