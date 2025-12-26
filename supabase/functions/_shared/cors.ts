@@ -34,7 +34,9 @@ export function getCorsHeaders(requestOrigin?: string | null): Record<string, st
   
   // Check if origin is in allowed list
   const isAllowedOrigin = ALLOWED_ORIGINS.some(allowed => 
-    origin === allowed || origin.endsWith('.lovable.app')
+    origin === allowed || 
+    origin.endsWith('.lovable.app') ||
+    origin.endsWith('.lovableproject.com')
   );
   
   // If origin is allowed, reflect it; otherwise use first allowed origin
