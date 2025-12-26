@@ -21,6 +21,10 @@ import {
   useToggleEventSubtype,
   type EventSubtypeWithStatus,
 } from '@/hooks/use-active-event-subtypes';
+import AddCategoryDialog from './AddCategoryDialog';
+import AddSubtypeDialog from './AddSubtypeDialog';
+import EditCategoryDialog from './EditCategoryDialog';
+import EditSubtypeDialog from './EditSubtypeDialog';
 
 interface CategoryRowProps {
   category: EventCategoryWithStatus;
@@ -107,6 +111,7 @@ function CategoryRow({ category, isExpanded, onToggleExpand, searchQuery }: Cate
                 {t('settings.eventCategories.customized')}
               </Badge>
             )}
+            <EditCategoryDialog category={category} />
             <Switch
               checked={category.is_active}
               onCheckedChange={handleCategoryToggle}
@@ -118,6 +123,11 @@ function CategoryRow({ category, isExpanded, onToggleExpand, searchQuery }: Cate
         {/* Subtypes List */}
         <CollapsibleContent>
           <div className="border-t px-4 py-3 space-y-2 bg-muted/20">
+            {/* Add Subtype Button */}
+            <div className="flex justify-end mb-2">
+              <AddSubtypeDialog categoryId={category.id} categoryName={t(category.name_key)} />
+            </div>
+            
             {subtypesLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map(i => (
@@ -149,12 +159,15 @@ function CategoryRow({ category, isExpanded, onToggleExpand, searchQuery }: Cate
                       </Badge>
                     )}
                   </div>
-                  <Switch
-                    checked={subtype.is_active}
-                    onCheckedChange={(checked) => handleSubtypeToggle(subtype.id, checked)}
-                    disabled={toggleSubtype.isPending || !category.is_active}
-                    className="scale-90"
-                  />
+                  <div className="flex items-center gap-2">
+                    <EditSubtypeDialog subtype={subtype} />
+                    <Switch
+                      checked={subtype.is_active}
+                      onCheckedChange={(checked) => handleSubtypeToggle(subtype.id, checked)}
+                      disabled={toggleSubtype.isPending || !category.is_active}
+                      className="scale-90"
+                    />
+                  </div>
                 </div>
               ))
             )}
@@ -217,13 +230,18 @@ export default function EventCategoryManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5" />
-          {t('settings.eventCategories.title')}
-        </CardTitle>
-        <CardDescription>
-          {t('settings.eventCategories.description')}
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              {t('settings.eventCategories.title')}
+            </CardTitle>
+            <CardDescription>
+              {t('settings.eventCategories.description')}
+            </CardDescription>
+          </div>
+          <AddCategoryDialog />
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Stats & Controls */}

@@ -108,3 +108,83 @@ export function useToggleEventCategory() {
     },
   });
 }
+
+/**
+ * Hook to create a new tenant-specific event category
+ */
+export function useCreateEventCategory() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { code: string; name_key: string; name_ar?: string; icon?: string; sort_order?: number }) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      
+      const { error } = await supabase
+        .from('hsse_event_categories')
+        .insert({
+          code: data.code,
+          name_key: data.name_key,
+          name_ar: data.name_ar || null,
+          icon: data.icon || null,
+          sort_order: data.sort_order || 100,
+          is_active: true,
+          tenant_id: tenantId,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-categories-status'] });
+    },
+  });
+}
+
+/**
+ * Hook to update an existing event category
+ */
+export function useUpdateEventCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ categoryId, data }: { categoryId: string; data: { name_key?: string; name_ar?: string; icon?: string; sort_order?: number } }) => {
+      const { error } = await supabase
+        .from('hsse_event_categories')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-categories-status'] });
+    },
+  });
+}
+
+/**
+ * Hook to delete (soft delete) an event category
+ */
+export function useDeleteEventCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (categoryId: string) => {
+      const { error } = await supabase
+        .from('hsse_event_categories')
+        .update({ is_active: false })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-event-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['all-event-categories-status'] });
+    },
+  });
+}

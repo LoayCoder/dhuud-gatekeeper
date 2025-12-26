@@ -440,6 +440,172 @@ const testPhases: TestPhase[] = [
       },
     ],
   },
+  // NEW: Observation Workflow Test Phases
+  {
+    name: 'Phase 12: Observation Workflow - Low Risk (Levels 1-2)',
+    nameAr: 'المرحلة 12: سير عمل الملاحظات - خطر منخفض (المستوى 1-2)',
+    testCases: [
+      {
+        id: 'TC-OBS-001',
+        scenario: 'Submit Level 1/2 observation with Close on Spot',
+        preconditions: 'User logged in, observation form open',
+        steps: [
+          'Select observation type',
+          'Choose severity Level 1 or Level 2',
+          'Enable "Close on Spot" toggle',
+          'Upload photo evidence (required)',
+          'Add resolution notes (required)',
+          'Submit observation',
+        ],
+        expectedResult: 'Observation created with status "closed", closed_on_spot=true',
+      },
+      {
+        id: 'TC-OBS-002',
+        scenario: 'Verify photo required for close-on-spot',
+        preconditions: 'Level 1/2 observation, Close on Spot enabled',
+        steps: [
+          'Complete observation form',
+          'Enable Close on Spot without uploading photo',
+          'Attempt to submit',
+        ],
+        expectedResult: 'Validation error: Photo evidence required for close-on-spot',
+      },
+      {
+        id: 'TC-OBS-003',
+        scenario: 'Verify Level 3+ cannot use close-on-spot',
+        preconditions: 'Observation form open',
+        steps: [
+          'Select severity Level 3, 4, or 5',
+          'Check Close on Spot toggle state',
+        ],
+        expectedResult: 'Close on Spot toggle is disabled/hidden for Level 3+',
+      },
+    ],
+  },
+  {
+    name: 'Phase 13: Observation Workflow - Serious/Major Risk (Levels 3-4)',
+    nameAr: 'المرحلة 13: سير عمل الملاحظات - خطر جسيم/كبير (المستوى 3-4)',
+    testCases: [
+      {
+        id: 'TC-OBS-004',
+        scenario: 'Submit Level 3/4 observation',
+        preconditions: 'User logged in with reporter role',
+        steps: [
+          'Create new observation',
+          'Select severity Level 3 or Level 4',
+          'Complete required fields',
+          'Submit observation',
+        ],
+        expectedResult: 'Observation created, goes to action planning workflow',
+      },
+      {
+        id: 'TC-OBS-005',
+        scenario: 'HSSE Expert validates L3/L4 observation actions',
+        preconditions: 'L3/L4 observation with all actions verified',
+        steps: [
+          'HSSE Expert opens observation',
+          'Reviews all corrective actions',
+          'Verifies actions are complete',
+          'Clicks "Accept Risk & Actions"',
+        ],
+        expectedResult: 'Status changes to "closed" (auto-close after HSSE validation)',
+      },
+      {
+        id: 'TC-OBS-006',
+        scenario: 'HSSE Expert returns observation for more actions',
+        preconditions: 'L3/L4 observation pending validation',
+        steps: [
+          'HSSE Expert reviews observation',
+          'Finds actions insufficient',
+          'Clicks "Return for Additional Actions"',
+          'Enters return reason',
+        ],
+        expectedResult: 'Status changes to "observation_actions_pending"',
+      },
+    ],
+  },
+  {
+    name: 'Phase 14: Observation Workflow - Catastrophic Risk (Level 5)',
+    nameAr: 'المرحلة 14: سير عمل الملاحظات - خطر كارثي (المستوى 5)',
+    testCases: [
+      {
+        id: 'TC-OBS-007',
+        scenario: 'Submit Level 5 observation',
+        preconditions: 'User logged in with reporter role',
+        steps: [
+          'Create new observation',
+          'Select severity Level 5 (Catastrophic)',
+          'Complete required fields',
+          'Submit observation',
+        ],
+        expectedResult: 'Observation created, closure_requires_manager=true',
+      },
+      {
+        id: 'TC-OBS-008',
+        scenario: 'HSSE Expert validates L5 observation',
+        preconditions: 'L5 observation with all actions verified',
+        steps: [
+          'HSSE Expert opens L5 observation',
+          'Reviews and validates all actions',
+          'Clicks "Accept Risk & Actions"',
+        ],
+        expectedResult: 'Status changes to "pending_final_closure" (not auto-closed)',
+      },
+      {
+        id: 'TC-OBS-009',
+        scenario: 'HSSE Manager final closure for L5',
+        preconditions: 'L5 observation in "pending_final_closure" status',
+        steps: [
+          'HSSE Manager opens observation',
+          'Reviews full history and actions',
+          'Adds final closure notes',
+          'Clicks "Finalize & Close"',
+        ],
+        expectedResult: 'Observation closed, audit log created with manager signature',
+      },
+      {
+        id: 'TC-OBS-010',
+        scenario: 'Verify HSSE Manager notification for L5',
+        preconditions: 'L5 observation submitted',
+        steps: [
+          'Submit new L5 observation',
+          'Check HSSE Manager notification inbox',
+        ],
+        expectedResult: 'HSSE Manager receives immediate WhatsApp and Email notification',
+      },
+    ],
+  },
+  {
+    name: 'Phase 15: 5-Level Severity System',
+    nameAr: 'المرحلة 15: نظام الخطورة من 5 مستويات',
+    testCases: [
+      {
+        id: 'TC-SEV-001',
+        scenario: 'Verify severity badge colors',
+        preconditions: 'Observation list with various severities',
+        steps: [
+          'Navigate to observation list',
+          'Verify Level 1 shows emerald/green badge',
+          'Verify Level 2 shows yellow badge',
+          'Verify Level 3 shows orange badge',
+          'Verify Level 4 shows red badge',
+          'Verify Level 5 shows dark red badge',
+        ],
+        expectedResult: 'All severity levels display correct colors per design spec',
+      },
+      {
+        id: 'TC-SEV-002',
+        scenario: 'Verify severity selector in form',
+        preconditions: 'Observation form open',
+        steps: [
+          'View severity selection options',
+          'Verify 5 levels displayed with descriptions',
+          'Select each level and verify UI feedback',
+        ],
+        expectedResult: 'All 5 severity levels selectable with proper descriptions',
+      },
+    ],
+  },
 ];
 
 const statusReference = [
@@ -457,6 +623,8 @@ const statusReference = [
   { status: 'pending_closure_approval', description: 'Closure pending approval', arabicDesc: 'الإغلاق في انتظار الموافقة' },
   { status: 'investigation_closed', description: 'Investigation complete', arabicDesc: 'اكتمل التحقيق' },
   { status: 'no_investigation_needed', description: 'Observation with actions', arabicDesc: 'ملاحظة مع إجراءات' },
+  { status: 'pending_hsse_validation', description: 'Awaiting HSSE Expert validation', arabicDesc: 'في انتظار تحقق خبير السلامة' },
+  { status: 'pending_final_closure', description: 'Awaiting HSSE Manager final closure', arabicDesc: 'في انتظار الإغلاق النهائي من مدير السلامة' },
   { status: 'closed', description: 'Incident fully closed', arabicDesc: 'الحادث مُغلق بالكامل' },
 ];
 
