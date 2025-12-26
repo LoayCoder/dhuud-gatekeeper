@@ -142,6 +142,8 @@ const AdminSecurityDashboard = lazyWithRetry(() => import("./pages/admin/Securit
 const BillingOverview = lazyWithRetry(() => import("./pages/admin/BillingOverview"));
 const ActionSLASettings = lazyWithRetry(() => import("./pages/admin/ActionSLASettings"));
 const SLADashboard = lazyWithRetry(() => import("./pages/admin/SLADashboard"));
+const SLAAnalytics = lazyWithRetry(() => import("./pages/admin/SLAAnalytics"));
+const InvestigationSLASettings = lazyWithRetry(() => import("./pages/admin/InvestigationSLASettings"));
 const UsageBilling = lazyWithRetry(() => import("./pages/settings/UsageBilling"));
 const DocumentSettings = lazyWithRetry(() => import("./pages/admin/DocumentSettings"));
 const TeamPerformance = lazyWithRetry(() => import("./pages/admin/TeamPerformance"));
@@ -476,6 +478,22 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <KPITargetsManagement />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/sla-analytics"
+                        element={
+                          <AdminRoute>
+                            <SLAAnalytics />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/investigation-sla"
+                        element={
+                          <AdminRoute>
+                            <InvestigationSLASettings />
                           </AdminRoute>
                         }
                       />
