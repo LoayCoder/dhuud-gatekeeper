@@ -1,7 +1,7 @@
-import { MessageSquare, Mail, Smartphone } from "lucide-react";
+import { MessageSquare, Mail, Smartphone, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type NotificationChannel = 'whatsapp' | 'email' | 'sms';
+export type NotificationChannel = 'whatsapp' | 'email' | 'sms' | 'push';
 
 interface ChannelIconProps {
   channel: NotificationChannel;
@@ -33,6 +33,12 @@ const channelConfig: Record<NotificationChannel, {
     labelAr: 'رسالة نصية',
     icon: Smartphone,
     color: 'text-purple-600',
+  },
+  push: {
+    label: 'Push',
+    labelAr: 'إشعار',
+    icon: Bell,
+    color: 'text-amber-600',
   },
 };
 

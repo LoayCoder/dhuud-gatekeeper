@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,129 +7,68 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DeliveryStatusBadge, type DeliveryStatus } from "@/components/notifications/DeliveryStatusBadge";
-import { ChannelIcon, type NotificationChannel } from "@/components/notifications/ChannelIcon";
-import { WebhookEventDetailsDialog } from "@/components/notifications/WebhookEventDetailsDialog";
+import { Badge } from "@/components/ui/badge";
+import { DeliveryStatusBadge } from "@/components/notifications/DeliveryStatusBadge";
+import { ChannelIcon } from "@/components/notifications/ChannelIcon";
+import { DeliveryLogStatsCards } from "@/components/notifications/DeliveryLogStatsCards";
+import { DeliveryLogDetailDialog } from "@/components/notifications/DeliveryLogDetailDialog";
 import { WhatsAppSettings } from "@/components/admin/WhatsAppSettings";
-import { RefreshCw, Search, Filter, AlertCircle, Clock, Info, ExternalLink, Copy, Check, MessageSquare, FileText } from "lucide-react";
+import { 
+  useNotificationDeliveryLogs, 
+  type NotificationSource,
+  type UnifiedNotificationLog 
+} from "@/hooks/use-notification-delivery-logs";
+import { 
+  RefreshCw, 
+  Search, 
+  Filter, 
+  AlertCircle, 
+  Clock, 
+  Info, 
+  ExternalLink, 
+  Copy, 
+  Check, 
+  MessageSquare, 
+  FileText,
+  Zap,
+  BellOff
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { toast } from "sonner";
 
-interface WebhookEvent {
-  provider: string;
-  event_type: string;
-  status?: string;
-  ack?: number;
-  ack_name?: string;
-  error_code?: string;
-  error_message?: string;
-  error?: string;
-  received_at: string;
-  raw_payload?: unknown;
-}
-
-interface NotificationLog {
-  id: string;
-  channel: NotificationChannel;
-  provider: string;
-  provider_message_id: string | null;
-  to_address: string;
-  template_name: string | null;
-  subject: string | null;
-  status: DeliveryStatus;
-  is_final: boolean;
-  error_code: string | null;
-  error_message: string | null;
-  related_entity_type: string | null;
-  created_at: string;
-  sent_at: string | null;
-  delivered_at: string | null;
-  read_at?: string | null;
-  failed_at?: string | null;
-  webhook_events: WebhookEvent[];
-}
-
 const WEBHOOK_URL = "https://xdlowvfzhvjzbtgvurzj.supabase.co/functions/v1/webhook-notification-status";
 
+const SEVERITY_COLORS: Record<string, string> = {
+  'level_1': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'level_2': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  'level_3': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  'level_4': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  'level_5': 'bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+};
+
 export default function NotificationDeliveryLog() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const dateLocale = isRTL ? ar : enUS;
   
-  const [logs, setLogs] = useState<NotificationLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<NotificationSource>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedNotification, setSelectedNotification] = useState<NotificationLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<UnifiedNotificationLog | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [webhookUrlCopied, setWebhookUrlCopied] = useState(false);
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      let query = supabase
-        .from('notification_logs')
-        .select('id, channel, provider, provider_message_id, to_address, template_name, subject, status, is_final, error_code, error_message, related_entity_type, created_at, sent_at, delivered_at, read_at, failed_at, webhook_events')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (channelFilter !== 'all') {
-        query = query.eq('channel', channelFilter);
-      }
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-      if (searchQuery) {
-        query = query.ilike('to_address', `%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching notification logs:', error);
-        return;
-      }
-
-      // Cast with proper type handling for webhook_events
-      const typedLogs = (data || []).map(log => ({
-        ...log,
-        webhook_events: (log.webhook_events || []) as unknown as WebhookEvent[],
-      })) as NotificationLog[];
-      setLogs(typedLogs);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('notification_logs_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notification_logs',
-        },
-        () => {
-          fetchLogs();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [channelFilter, statusFilter, searchQuery]);
+  const { logs, stats, loading, refetch } = useNotificationDeliveryLogs({
+    channelFilter,
+    statusFilter,
+    sourceFilter,
+    searchQuery,
+  });
 
   const maskAddress = (address: string): string => {
     if (!address) return '-';
-    // For phone numbers
     if (address.includes('whatsapp:') || address.startsWith('+')) {
       const cleaned = address.replace('whatsapp:', '');
       if (cleaned.length > 6) {
@@ -138,7 +76,6 @@ export default function NotificationDeliveryLog() {
       }
       return cleaned;
     }
-    // For emails
     if (address.includes('@')) {
       const [local, domain] = address.split('@');
       if (local.length > 2) {
@@ -157,8 +94,8 @@ export default function NotificationDeliveryLog() {
     });
   };
 
-  const handleViewDetails = (log: NotificationLog) => {
-    setSelectedNotification(log);
+  const handleViewDetails = (log: UnifiedNotificationLog) => {
+    setSelectedLog(log);
     setDetailsDialogOpen(true);
   };
 
@@ -167,6 +104,10 @@ export default function NotificationDeliveryLog() {
     setWebhookUrlCopied(true);
     toast.success(isRTL ? 'تم نسخ الرابط' : 'URL copied');
     setTimeout(() => setWebhookUrlCopied(false), 2000);
+  };
+
+  const handleSourceTabChange = (value: string) => {
+    setSourceFilter(value as NotificationSource);
   };
 
   return (
@@ -184,6 +125,9 @@ export default function NotificationDeliveryLog() {
         </TabsList>
 
         <TabsContent value="delivery-log" className="mt-6 space-y-6">
+          {/* Stats Cards */}
+          <DeliveryLogStatsCards stats={stats} loading={loading} />
+
           {/* Webhook URL Card */}
           <Card>
             <CardHeader className="pb-3">
@@ -197,7 +141,7 @@ export default function NotificationDeliveryLog() {
                   : 'Use this URL in your WhatsApp provider settings to receive delivery status updates'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-muted px-3 py-2 rounded-md text-xs font-mono overflow-x-auto">
                   {WEBHOOK_URL}
@@ -215,38 +159,10 @@ export default function NotificationDeliveryLog() {
                   )}
                 </Button>
               </div>
-              
-              {/* Provider-specific instructions */}
-              <div className="rounded-md border p-3 bg-muted/50">
-                <h4 className="text-sm font-medium mb-2">
-                  {isRTL ? 'تعليمات إعداد مزود الخدمة:' : 'Provider Setup Instructions:'}
-                </h4>
-                <ul className="text-xs text-muted-foreground space-y-1.5">
-                  <li>
-                    <strong>WaSender:</strong> {isRTL 
-                      ? 'انتقل إلى إعدادات Webhook في لوحة WaSender والصق الرابط أعلاه' 
-                      : 'Go to Webhook settings in WaSender dashboard and paste the URL above'}
-                  </li>
-                  <li>
-                    <strong>WAHA:</strong> {isRTL 
-                      ? 'أضف الرابط في إعدادات webhook_url في تكوين WAHA' 
-                      : 'Add the URL to webhook_url in WAHA configuration'}
-                  </li>
-                  <li>
-                    <strong>Twilio:</strong> {isRTL 
-                      ? 'أضف الرابط كـ Status Callback URL في إعدادات WhatsApp' 
-                      : 'Add the URL as Status Callback URL in WhatsApp settings'}
-                  </li>
-                  <li>
-                    <strong>Resend:</strong> {isRTL 
-                      ? 'أضف الرابط كـ Webhook URL في إعدادات البريد الإلكتروني' 
-                      : 'Add the URL as Webhook URL in email settings'}
-                  </li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
 
+          {/* Main Log Card */}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -257,14 +173,14 @@ export default function NotificationDeliveryLog() {
                   </CardTitle>
                   <CardDescription>
                     {isRTL 
-                      ? 'تتبع حالة تسليم جميع الإشعارات المرسلة عبر واتساب والبريد الإلكتروني' 
-                      : 'Track delivery status of all notifications sent via WhatsApp and Email'}
+                      ? 'تتبع حالة تسليم جميع الإشعارات المرسلة' 
+                      : 'Track delivery status of all sent notifications'}
                   </CardDescription>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={fetchLogs}
+                  onClick={refetch}
                   disabled={loading}
                 >
                   <RefreshCw className={`h-4 w-4 me-2 ${loading ? 'animate-spin' : ''}`} />
@@ -272,9 +188,26 @@ export default function NotificationDeliveryLog() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Source Tabs */}
+              <Tabs value={sourceFilter} onValueChange={handleSourceTabChange}>
+                <TabsList>
+                  <TabsTrigger value="all" className="gap-1.5">
+                    {isRTL ? 'الكل' : 'All'}
+                  </TabsTrigger>
+                  <TabsTrigger value="incident" className="gap-1.5">
+                    <Zap className="h-3.5 w-3.5" />
+                    {isRTL ? 'الحوادث' : 'Incidents'}
+                  </TabsTrigger>
+                  <TabsTrigger value="manual" className="gap-1.5">
+                    <FileText className="h-3.5 w-3.5" />
+                    {isRTL ? 'يدوي' : 'Manual'}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -285,7 +218,7 @@ export default function NotificationDeliveryLog() {
                   />
                 </div>
                 <Select value={channelFilter} onValueChange={setChannelFilter}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[140px]">
                     <Filter className="h-4 w-4 me-2" />
                     <SelectValue placeholder={isRTL ? 'القناة' : 'Channel'} />
                   </SelectTrigger>
@@ -293,11 +226,12 @@ export default function NotificationDeliveryLog() {
                     <SelectItem value="all">{isRTL ? 'جميع القنوات' : 'All Channels'}</SelectItem>
                     <SelectItem value="whatsapp">{isRTL ? 'واتساب' : 'WhatsApp'}</SelectItem>
                     <SelectItem value="email">{isRTL ? 'البريد' : 'Email'}</SelectItem>
+                    <SelectItem value="push">{isRTL ? 'إشعار' : 'Push'}</SelectItem>
                     <SelectItem value="sms">{isRTL ? 'رسالة نصية' : 'SMS'}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder={isRTL ? 'الحالة' : 'Status'} />
                   </SelectTrigger>
                   <SelectContent>
@@ -307,44 +241,87 @@ export default function NotificationDeliveryLog() {
                     <SelectItem value="delivered">{isRTL ? 'تم التسليم' : 'Delivered'}</SelectItem>
                     <SelectItem value="read">{isRTL ? 'مقروء' : 'Read'}</SelectItem>
                     <SelectItem value="failed">{isRTL ? 'فشل' : 'Failed'}</SelectItem>
-                    <SelectItem value="bounced">{isRTL ? 'مرتد' : 'Bounced'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Table */}
-              <ScrollArea className="h-[600px] rounded-md border">
+              <ScrollArea className="h-[500px] rounded-md border">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background">
+                  <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
-                      <TableHead className="w-[80px]">{isRTL ? 'القناة' : 'Channel'}</TableHead>
+                      <TableHead className="w-[70px]">{isRTL ? 'القناة' : 'Channel'}</TableHead>
                       <TableHead>{isRTL ? 'المستلم' : 'Recipient'}</TableHead>
-                      <TableHead>{isRTL ? 'القالب/الموضوع' : 'Template/Subject'}</TableHead>
-                      <TableHead className="w-[120px]">{isRTL ? 'الحالة' : 'Status'}</TableHead>
+                      <TableHead>{isRTL ? 'النوع' : 'Type'}</TableHead>
+                      <TableHead className="w-[80px]">{isRTL ? 'المستوى' : 'Severity'}</TableHead>
+                      <TableHead className="w-[100px]">{isRTL ? 'الحالة' : 'Status'}</TableHead>
                       <TableHead>{isRTL ? 'الوقت' : 'Time'}</TableHead>
-                      <TableHead className="w-[80px]">{isRTL ? 'الأحداث' : 'Events'}</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {logs.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          {loading 
-                            ? (isRTL ? 'جارٍ التحميل...' : 'Loading...') 
-                            : (isRTL ? 'لا توجد سجلات' : 'No logs found')}
+                        <TableCell colSpan={7} className="text-center py-12">
+                          {loading ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+                              <span className="text-muted-foreground">
+                                {isRTL ? 'جارٍ التحميل...' : 'Loading...'}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-2">
+                              <BellOff className="h-10 w-10 text-muted-foreground/40" />
+                              <span className="text-muted-foreground">
+                                {isRTL ? 'لا توجد سجلات' : 'No notifications found'}
+                              </span>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     ) : (
                       logs.map((log) => (
-                        <TableRow key={log.id}>
+                        <TableRow 
+                          key={`${log.source}-${log.id}`} 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleViewDetails(log)}
+                        >
                           <TableCell>
-                            <ChannelIcon channel={log.channel} size="md" />
+                            <ChannelIcon channel={log.channel} size="sm" />
                           </TableCell>
                           <TableCell className="font-mono text-sm">
-                            {maskAddress(log.to_address)}
+                            {maskAddress(log.recipient)}
                           </TableCell>
-                          <TableCell className="max-w-[200px] truncate">
-                            {log.subject || log.template_name || '-'}
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={log.source === 'incident' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {log.source === 'incident' 
+                                  ? (isRTL ? 'حادثة' : 'Incident')
+                                  : (isRTL ? 'يدوي' : 'Manual')
+                                }
+                              </Badge>
+                              {log.stakeholder_role && (
+                                <span className="text-xs text-muted-foreground capitalize truncate max-w-[100px]">
+                                  {log.stakeholder_role.replace(/_/g, ' ')}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {log.severity_level ? (
+                              <Badge 
+                                variant="secondary"
+                                className={`text-xs ${SEVERITY_COLORS[log.severity_level] || ''}`}
+                              >
+                                {log.severity_level.replace('level_', 'L')}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <DeliveryStatusBadge status={log.status} size="sm" />
@@ -353,49 +330,11 @@ export default function NotificationDeliveryLog() {
                             {formatTimestamp(log.created_at)}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1">
-                              {/* Event count badge */}
-                              {log.webhook_events && log.webhook_events.length > 0 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => handleViewDetails(log)}
-                                >
-                                  {log.webhook_events.length}
-                                </Button>
-                              )}
-
-                              {/* Error/Info icon - clickable */}
-                              {(log.error_code || log.error_message) ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 hover:bg-destructive/10"
-                                  onClick={() => handleViewDetails(log)}
-                                >
-                                  <AlertCircle className="h-4 w-4 text-destructive" />
-                                </Button>
-                              ) : log.is_final && log.status === 'delivered' ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 hover:bg-green-500/10"
-                                  onClick={() => handleViewDetails(log)}
-                                >
-                                  <Info className="h-4 w-4 text-green-500" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => handleViewDetails(log)}
-                                >
-                                  <Info className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                              )}
-                            </div>
+                            {log.error_message ? (
+                              <AlertCircle className="h-4 w-4 text-destructive" />
+                            ) : (
+                              <Info className="h-4 w-4 text-muted-foreground/50" />
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
@@ -412,11 +351,11 @@ export default function NotificationDeliveryLog() {
         </TabsContent>
       </Tabs>
 
-      {/* Details Dialog */}
-      <WebhookEventDetailsDialog
+      {/* Detail Dialog */}
+      <DeliveryLogDetailDialog
+        log={selectedLog}
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
-        notification={selectedNotification}
       />
     </div>
   );
