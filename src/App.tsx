@@ -1,5 +1,5 @@
 // App component - force rebuild v2
-import { Suspense, lazy, useState, useCallback } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +25,7 @@ import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNot
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
 import { usePrefetchOnIdle } from "./hooks/use-prefetch";
-import { SplashScreen } from "./components/SplashScreen";
+import { SplashWrapper } from "./components/SplashWrapper";
 import { lazyWithRetry } from "./lib/lazy-with-retry";
 
 // Critical path pages - loaded immediately
@@ -168,27 +168,13 @@ function AppInitializer() {
   return null;
 }
 
-// Wrapper component to handle splash screen state
-function AppWithSplash({ children }: { children: React.ReactNode }) {
-  const [showSplash, setShowSplash] = useState(true);
-  
-  const handleSplashComplete = useCallback(() => {
-    setShowSplash(false);
-  }, []);
-
-  return (
-    <>
-      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-      {children}
-    </>
-  );
-}
+// AppInitializer moved above - no AppWithSplash needed here
+// SplashWrapper is now used inside ProtectedRoute for the Home route only
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <ThemeProvider>
-        <AppWithSplash>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -230,7 +216,9 @@ const App = () => (
                       path="/"
                       element={
                         <ProtectedRoute>
-                          <Home />
+                          <SplashWrapper>
+                            <Home />
+                          </SplashWrapper>
                         </ProtectedRoute>
                       }
                     />
@@ -563,7 +551,6 @@ const App = () => (
             </AuthProvider>
           </BrowserRouter>
           </TooltipProvider>
-        </AppWithSplash>
       </ThemeProvider>
     </NextThemesProvider>
   </QueryClientProvider>
