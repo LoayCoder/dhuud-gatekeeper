@@ -74,6 +74,10 @@
     "pendingApprovals": "Pending Approvals",
     "myActions": "My Actions",
     "reportNewEvent": "Report New Event",
+    "quickActionModal": {
+      "noItems": "No items to display",
+      "viewDetails": "View Details"
+    },
     "recentEvents": "Recent Events",
     "dateRanges": {
       "last7Days": "Last 7 Days",

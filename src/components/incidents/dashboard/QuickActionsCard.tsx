@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import { useQuickActionCounts } from "@/hooks/use-quick-action-counts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QuickActionDrilldownModal } from "./QuickActionDrilldownModal";
+import { QuickActionType } from "@/hooks/use-quick-action-drilldown";
 
 interface QuickActionButtonProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -64,6 +67,11 @@ export function QuickActionsCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: counts, isLoading } = useQuickActionCounts();
+  const [modalType, setModalType] = useState<QuickActionType | null>(null);
+
+  const openModal = (type: QuickActionType) => {
+    setModalType(type);
+  };
 
   if (isLoading) {
     return (
@@ -83,47 +91,55 @@ export function QuickActionsCard() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{t('hsseDashboard.quickActions', 'Quick Actions')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-3">
-          <QuickActionButton
-            icon={ClipboardCheck}
-            label={t('hsseDashboard.pendingApprovals', 'Pending Approvals')}
-            count={counts?.pending_approvals}
-            variant={counts?.pending_approvals && counts.pending_approvals > 0 ? 'warning' : 'default'}
-            onClick={() => navigate('/incidents/investigate')}
-          />
-          <QuickActionButton
-            icon={Search}
-            label={t('hsseDashboard.openInvestigations')}
-            count={counts?.open_investigations}
-            onClick={() => navigate('/incidents/investigate')}
-          />
-          <QuickActionButton
-            icon={AlertTriangle}
-            label={t('hsseDashboard.overdueActions')}
-            count={counts?.overdue_actions}
-            variant={counts?.overdue_actions && counts.overdue_actions > 0 ? 'danger' : 'default'}
-            onClick={() => navigate('/incidents/my-actions')}
-          />
-          <QuickActionButton
-            icon={ListTodo}
-            label={t('hsseDashboard.myActions', 'My Actions')}
-            count={counts?.my_actions}
-            onClick={() => navigate('/incidents/my-actions')}
-          />
-        </div>
-        <button
-          onClick={() => navigate('/incidents/report')}
-          className="w-full mt-3 flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-primary/50 text-primary hover:bg-primary/5 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="text-sm font-medium">{t('hsseDashboard.reportNewEvent', 'Report New Event')}</span>
-        </button>
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('hsseDashboard.quickActions', 'Quick Actions')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            <QuickActionButton
+              icon={ClipboardCheck}
+              label={t('hsseDashboard.pendingApprovals', 'Pending Approvals')}
+              count={counts?.pending_approvals}
+              variant={counts?.pending_approvals && counts.pending_approvals > 0 ? 'warning' : 'default'}
+              onClick={() => openModal('pending_approvals')}
+            />
+            <QuickActionButton
+              icon={Search}
+              label={t('hsseDashboard.openInvestigations')}
+              count={counts?.open_investigations}
+              onClick={() => openModal('open_investigations')}
+            />
+            <QuickActionButton
+              icon={AlertTriangle}
+              label={t('hsseDashboard.overdueActions')}
+              count={counts?.overdue_actions}
+              variant={counts?.overdue_actions && counts.overdue_actions > 0 ? 'danger' : 'default'}
+              onClick={() => openModal('overdue_actions')}
+            />
+            <QuickActionButton
+              icon={ListTodo}
+              label={t('hsseDashboard.myActions', 'My Actions')}
+              count={counts?.my_actions}
+              onClick={() => openModal('my_actions')}
+            />
+          </div>
+          <button
+            onClick={() => navigate('/incidents/report')}
+            className="w-full mt-3 flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-primary/50 text-primary hover:bg-primary/5 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('hsseDashboard.reportNewEvent', 'Report New Event')}</span>
+          </button>
+        </CardContent>
+      </Card>
+      
+      <QuickActionDrilldownModal
+        open={modalType !== null}
+        onOpenChange={(open) => !open && setModalType(null)}
+        actionType={modalType}
+      />
+    </>
   );
 }

@@ -74,6 +74,10 @@
     "pendingApprovals": "زیر التواء منظوریاں",
     "myActions": "میرے اقدامات",
     "reportNewEvent": "نیا واقعہ رپورٹ کریں",
+    "quickActionModal": {
+      "noItems": "دکھانے کے لیے کوئی آئٹم نہیں",
+      "viewDetails": "تفصیلات دیکھیں"
+    },
     "recentEvents": "حالیہ واقعات",
     "totalActions": "اصلاحی اقدامات",
     "totalInvestigationsCount": "تحقیقات",

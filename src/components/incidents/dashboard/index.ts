@@ -32,6 +32,7 @@ export { DaysSinceCounter } from './DaysSinceCounter';
 export { DateRangeFilter } from './DateRangeFilter';
 export { TrendBadge } from './TrendBadge';
 export { QuickActionsCard } from './QuickActionsCard';
+export { QuickActionDrilldownModal } from './QuickActionDrilldownModal';
 export { RecentEventsCard } from './RecentEventsCard';
 
 // Action & Investigation Charts

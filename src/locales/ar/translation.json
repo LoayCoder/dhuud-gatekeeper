@@ -74,6 +74,10 @@
     "pendingApprovals": "الموافقات المعلقة",
     "myActions": "إجراءاتي",
     "reportNewEvent": "الإبلاغ عن حدث جديد",
+    "quickActionModal": {
+      "noItems": "لا توجد عناصر للعرض",
+      "viewDetails": "عرض التفاصيل"
+    },
     "recentEvents": "الأحداث الأخيرة",
     "dateRanges": {
       "last7Days": "آخر 7 أيام",
