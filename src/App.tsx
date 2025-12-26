@@ -158,6 +158,7 @@ const WhatsAppTemplates = lazyWithRetry(() => import("./pages/admin/WhatsAppTemp
 const WhatsAppSettingsPage = lazyWithRetry(() => import("./pages/admin/WhatsAppSettingsPage"));
 const NotificationRulesPage = lazyWithRetry(() => import("./pages/admin/NotificationRulesPage"));
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
+const HSSEValidationDashboard = lazyWithRetry(() => import("./pages/admin/HSSEValidationDashboard"));
 
 const queryClient = new QueryClient();
 

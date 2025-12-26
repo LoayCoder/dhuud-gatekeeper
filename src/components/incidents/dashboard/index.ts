@@ -48,3 +48,6 @@ export { KPITrendCard } from './KPITrendCard';
 export { KPIHistoricalTrendChart } from './KPIHistoricalTrendChart';
 export { IncidentTypeBreakdownChart } from './IncidentTypeBreakdownChart';
 export { PositiveObservationCard } from './PositiveObservationCard';
+export { ObservationTrendChart } from './ObservationTrendChart';
+export { ObservationRatioBreakdown } from './ObservationRatioBreakdown';
+export { ResidualRiskCard } from './ResidualRiskCard';
