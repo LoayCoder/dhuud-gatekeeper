@@ -1,53 +1,81 @@
+// Core Distribution Charts
 export { EventTypeDistributionChart } from './EventTypeDistributionChart';
 export { SeverityDistributionChart } from './SeverityDistributionChart';
-export { EventTrendChart } from './EventTrendChart';
-export { EnhancedEventTrendChart } from './EnhancedEventTrendChart';
 export { StatusDistributionChart } from './StatusDistributionChart';
-export { LocationAnalytics } from './LocationAnalytics';
+
+// Enhanced Charts (Primary - use these)
+export { EnhancedEventTrendChart } from './EnhancedEventTrendChart';
 export { EnhancedLocationAnalytics } from './EnhancedLocationAnalytics';
-export { ReporterLeaderboard } from './ReporterLeaderboard';
-export { ActionsStatusWidget } from './ActionsStatusWidget';
-export { CorrectiveActionDonutChart } from './CorrectiveActionDonutChart';
-export { InvestigationProgressChart } from './InvestigationProgressChart';
-export { BranchComparisonChart } from './BranchComparisonChart';
-export { DepartmentAnalyticsChart } from './DepartmentAnalyticsChart';
-export { SafetyKPICards } from './SafetyKPICards';
-export { AIInsightsPanel } from './AIInsightsPanel';
 export { EnhancedAIInsightsPanel } from './EnhancedAIInsightsPanel';
-export { QuickActionsCard } from './QuickActionsCard';
-export { RecentEventsCard } from './RecentEventsCard';
-export { DateRangeFilter } from './DateRangeFilter';
-export { TrendBadge } from './TrendBadge';
 export { EnhancedKPIGrid } from './EnhancedKPIGrid';
-export { MajorEventsTimeline } from './MajorEventsTimeline';
-export { RootCauseDistributionChart } from './RootCauseDistributionChart';
-export { CauseFlowDiagram } from './CauseFlowDiagram';
-export { BranchHeatmapGrid } from './BranchHeatmapGrid';
-export { SiteBubbleMap } from './SiteBubbleMap';
-export { TemporalHeatmap } from './TemporalHeatmap';
-export { DashboardExportDropdown } from './DashboardExportDropdown';
-export { LiveUpdateIndicator } from './LiveUpdateIndicator';
-export { AutoRefreshToggle } from './AutoRefreshToggle';
-export { DrilldownModal } from './DrilldownModal';
-export { RootCauseParetoChart } from './RootCauseParetoChart';
-export { IncidentWaterfallChart } from './IncidentWaterfallChart';
-export { DataFreshnessBadge } from './DataFreshnessBadge';
-export { DashboardCacheStatus } from './DashboardCacheStatus';
-export { ParetoChartSkeleton, WaterfallChartSkeleton, DonutChartSkeleton, BarChartSkeleton, LineChartSkeleton } from './ChartSkeletons';
+
+// KPI Components
+export { KPICard } from './KPICard';
 export { KPIGaugeChart } from './KPIGaugeChart';
-export { DaysSinceCounter } from './DaysSinceCounter';
+export { KPISparkline } from './KPISparkline';
+export { KPITrendCard } from './KPITrendCard';
+export { KPIHistoricalTrendChart } from './KPIHistoricalTrendChart';
+export { KPIAlertsBanner } from './KPIAlertsBanner';
+export { KPIDashboardExport } from './KPIDashboardExport';
+
+// Indicator Cards
 export { LaggingIndicatorsCard } from './LaggingIndicatorsCard';
 export { LeadingIndicatorsCard } from './LeadingIndicatorsCard';
 export { ResponseMetricsCard } from './ResponseMetricsCard';
 export { PeopleMetricsCard } from './PeopleMetricsCard';
-export { KPIAlertsBanner } from './KPIAlertsBanner';
 export { IncidentMetricsCard } from './IncidentMetricsCard';
-export { KPIDashboardExport } from './KPIDashboardExport';
-export { KPISparkline } from './KPISparkline';
-export { KPITrendCard } from './KPITrendCard';
-export { KPIHistoricalTrendChart } from './KPIHistoricalTrendChart';
+
+// Dashboard Layout Components
+export { DashboardSection } from './DashboardSection';
+export { ExecutiveSummaryCard } from './ExecutiveSummaryCard';
+export { DaysSinceCounter } from './DaysSinceCounter';
+export { DateRangeFilter } from './DateRangeFilter';
+export { TrendBadge } from './TrendBadge';
+export { QuickActionsCard } from './QuickActionsCard';
+export { RecentEventsCard } from './RecentEventsCard';
+
+// Action & Investigation Charts
+export { ActionsStatusWidget } from './ActionsStatusWidget';
+export { CorrectiveActionDonutChart } from './CorrectiveActionDonutChart';
+export { InvestigationProgressChart } from './InvestigationProgressChart';
+
+// Location Analytics
+export { BranchComparisonChart } from './BranchComparisonChart';
+export { DepartmentAnalyticsChart } from './DepartmentAnalyticsChart';
+export { BranchHeatmapGrid } from './BranchHeatmapGrid';
+export { SiteBubbleMap } from './SiteBubbleMap';
+export { TemporalHeatmap } from './TemporalHeatmap';
+export { ReporterLeaderboard } from './ReporterLeaderboard';
+
+// Timeline & Events
+export { MajorEventsTimeline } from './MajorEventsTimeline';
+export { IncidentWaterfallChart } from './IncidentWaterfallChart';
 export { IncidentTypeBreakdownChart } from './IncidentTypeBreakdownChart';
+
+// Root Cause Analysis
+export { RootCauseDistributionChart } from './RootCauseDistributionChart';
+export { RootCauseParetoChart } from './RootCauseParetoChart';
+export { CauseFlowDiagram } from './CauseFlowDiagram';
+
+// Observations
 export { PositiveObservationCard } from './PositiveObservationCard';
 export { ObservationTrendChart } from './ObservationTrendChart';
 export { ObservationRatioBreakdown } from './ObservationRatioBreakdown';
 export { ResidualRiskCard } from './ResidualRiskCard';
+
+// Dashboard Utilities
+export { DashboardExportDropdown } from './DashboardExportDropdown';
+export { LiveUpdateIndicator } from './LiveUpdateIndicator';
+export { AutoRefreshToggle } from './AutoRefreshToggle';
+export { DrilldownModal } from './DrilldownModal';
+export { DashboardCacheStatus } from './DashboardCacheStatus';
+export { DataFreshnessBadge } from './DataFreshnessBadge';
+
+// Skeletons
+export { 
+  ParetoChartSkeleton, 
+  WaterfallChartSkeleton, 
+  DonutChartSkeleton, 
+  BarChartSkeleton, 
+  LineChartSkeleton 
+} from './ChartSkeletons';

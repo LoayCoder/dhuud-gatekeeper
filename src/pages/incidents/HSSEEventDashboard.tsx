@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/select";
 import { 
   RefreshCw, 
-  TrendingUp,
-  TrendingDown,
   Activity,
   Clock,
   Users,
@@ -23,6 +21,11 @@ import {
   Building2,
   MapPin,
   LineChart,
+  PieChart,
+  GitBranch,
+  Lightbulb,
+  Eye,
+  Flame,
 } from "lucide-react";
 import { subDays, subMonths, startOfYear, format } from "date-fns";
 import { useHSSEEventDashboard } from "@/hooks/use-hsse-event-dashboard";
@@ -60,7 +63,6 @@ import {
   InvestigationProgressChart,
   BranchComparisonChart,
   DepartmentAnalyticsChart,
-  SafetyKPICards,
   EnhancedAIInsightsPanel,
   QuickActionsCard,
   RecentEventsCard,
@@ -94,75 +96,9 @@ import {
   ObservationTrendChart,
   ObservationRatioBreakdown,
   ResidualRiskCard,
+  DashboardSection,
+  ExecutiveSummaryCard,
 } from "@/components/incidents/dashboard";
-
-function KPICard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend,
-  trendLabel,
-  variant = 'default',
-  onClick,
-}: { 
-  title: string; 
-  value: number | string; 
-  icon: React.ComponentType<{ className?: string }>;
-  trend?: number;
-  trendLabel?: string;
-  variant?: 'default' | 'warning' | 'danger' | 'success';
-  onClick?: () => void;
-}) {
-  const bgClass = variant === 'danger' 
-    ? 'bg-gradient-to-br from-destructive/15 to-destructive/5 border-destructive/30' 
-    : variant === 'warning' 
-      ? 'bg-gradient-to-br from-warning/20 to-warning/5 border-warning/30'
-      : variant === 'success'
-        ? 'bg-gradient-to-br from-chart-3/20 to-chart-3/5 border-chart-3/30'
-        : 'bg-gradient-to-br from-card to-muted/30';
-
-  const Component = onClick ? 'button' : 'div';
-
-  return (
-    <Card className={`${bgClass} ${onClick ? 'cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]' : ''}`}>
-      <Component onClick={onClick} className="w-full">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="text-start">
-              <p className="text-sm text-muted-foreground">{title}</p>
-              <p className="text-2xl font-bold mt-1">{value}</p>
-              {trend !== undefined && (
-                <div className="flex items-center gap-1 mt-1">
-                  {trend >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-destructive" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-chart-3" />
-                  )}
-                  <span className={`text-xs ${trend >= 0 ? 'text-destructive' : 'text-chart-3'}`}>
-                    {Math.abs(trend)}% {trendLabel}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className={`p-2.5 rounded-xl shadow-sm ${
-              variant === 'danger' ? 'bg-destructive/20' : 
-              variant === 'warning' ? 'bg-warning/20' : 
-              variant === 'success' ? 'bg-chart-3/20' :
-              'bg-primary/10'
-            }`}>
-              <Icon className={`h-5 w-5 ${
-                variant === 'danger' ? 'text-destructive' : 
-                variant === 'warning' ? 'text-warning' : 
-                variant === 'success' ? 'text-chart-3' :
-                'text-primary'
-              }`} />
-            </div>
-          </div>
-        </CardContent>
-      </Component>
-    </Card>
-  );
-}
 
 type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd';
 
@@ -334,58 +270,76 @@ export default function HSSEEventDashboard() {
   return (
     <DrilldownProvider>
       <div ref={dashboardRef} className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{t('hsseDashboard.title')}</h1>
-          <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{t('hsseDashboard.title')}</h1>
+            <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <DashboardCacheStatus 
+              cacheInfos={[
+                { dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching },
+                { dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching },
+                { dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching },
+                { dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching },
+              ]}
+            />
+            <LiveUpdateIndicator 
+              isConnected={isConnected} 
+              newEventCount={newEventCount}
+              onAcknowledge={handleRefreshAndAcknowledge}
+            />
+            <AutoRefreshToggle onRefresh={handleRefresh} disabled={isLoading || kpiLoading} />
+            <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
+            <DashboardExportDropdown 
+              dashboardRef={dashboardRef}
+              dashboardData={dashboardData}
+              locationData={locationData}
+              rcaData={rcaData}
+            />
+            <Button variant="outline" size="sm" onClick={handleRefreshAndAcknowledge} disabled={isLoading || kpiLoading} className="relative">
+              <RefreshCw className={`h-4 w-4 me-2 ${isLoading || kpiLoading ? 'animate-spin' : ''}`} />
+              {t('hsseDashboard.refresh')}
+              {newEventCount > 0 && (
+                <Badge variant="destructive" className="absolute -top-2 -end-2 h-5 min-w-5 px-1 text-xs">
+                  {newEventCount > 99 ? '99+' : newEventCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <DashboardCacheStatus 
-            cacheInfos={[
-              { dataUpdatedAt: dashboardUpdatedAt, isFetching: dashboardFetching },
-              { dataUpdatedAt: locationUpdatedAt, isFetching: locationFetching },
-              { dataUpdatedAt: rcaUpdatedAt, isFetching: rcaFetching },
-              { dataUpdatedAt: progressionUpdatedAt, isFetching: progressionFetching },
-            ]}
+
+        {/* KPI Alerts Banner */}
+        <KPIAlertsBanner alerts={alerts} />
+
+        {/* ========== SECTION 1: Executive Summary (Always Visible) ========== */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Executive Summary Card */}
+          <div className="lg:col-span-2">
+            {dashboardLoading ? (
+              <Card><CardContent className="h-[260px] flex items-center justify-center"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
+            ) : dashboardData ? (
+              <ExecutiveSummaryCard 
+                summary={dashboardData.summary} 
+                actions={dashboardData.actions}
+                trir={laggingData?.trir}
+                ltifr={laggingData?.ltifr}
+                actionClosureRate={leadingData?.action_closure_pct}
+              />
+            ) : null}
+          </div>
+          
+          {/* Days Since Counter */}
+          <DaysSinceCounter
+            days={daysSince ?? 0}
+            label={t('kpiDashboard.daysSinceRecordable', 'Days Since Last Recordable Injury')}
+            milestone={100}
           />
-          <LiveUpdateIndicator 
-            isConnected={isConnected} 
-            newEventCount={newEventCount}
-            onAcknowledge={handleRefreshAndAcknowledge}
-          />
-          <AutoRefreshToggle onRefresh={handleRefresh} disabled={isLoading || kpiLoading} />
-          <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
-          <DashboardExportDropdown 
-            dashboardRef={dashboardRef}
-            dashboardData={dashboardData}
-            locationData={locationData}
-            rcaData={rcaData}
-          />
-          <Button variant="outline" size="sm" onClick={handleRefreshAndAcknowledge} disabled={isLoading || kpiLoading} className="relative">
-            <RefreshCw className={`h-4 w-4 me-2 ${isLoading || kpiLoading ? 'animate-spin' : ''}`} />
-            {t('hsseDashboard.refresh')}
-            {newEventCount > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -end-2 h-5 min-w-5 px-1 text-xs">
-                {newEventCount > 99 ? '99+' : newEventCount}
-              </Badge>
-            )}
-          </Button>
         </div>
-      </div>
 
-      {/* KPI Alerts Banner */}
-      <KPIAlertsBanner alerts={alerts} />
-
-      {/* Days Since Counter + KPI Trend Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <DaysSinceCounter
-          days={daysSince ?? 0}
-          label={t('kpiDashboard.daysSinceRecordable', 'Days Since Last Recordable Injury')}
-          milestone={100}
-        />
-
-        <div className="md:col-span-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {/* KPI Trend Cards Row */}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KPITrendCard
             title="TRIR"
             value={laggingData?.trir ?? 0}
@@ -425,319 +379,343 @@ export default function HSSEEventDashboard() {
             isLoading={responseLoading}
           />
         </div>
-      </div>
 
-      {/* KPI Filters Row */}
-      <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg">
-        <span className="text-sm font-medium text-muted-foreground">{t('kpiDashboard.filters', 'KPI Filters')}:</span>
-        <Select value={kpiDateRange} onValueChange={(v) => setKpiDateRange(v as DateRange)}>
-          <SelectTrigger className="w-[140px] h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">{t('common.lastWeek', 'Last Week')}</SelectItem>
-            <SelectItem value="month">{t('common.lastMonth', 'Last Month')}</SelectItem>
-            <SelectItem value="30days">{t('common.last30Days', 'Last 30 Days')}</SelectItem>
-            <SelectItem value="90days">{t('common.last90Days', 'Last 90 Days')}</SelectItem>
-            <SelectItem value="ytd">{t('common.ytd', 'Year to Date')}</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* KPI Filters Row */}
+        <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg">
+          <span className="text-sm font-medium text-muted-foreground">{t('kpiDashboard.filters', 'KPI Filters')}:</span>
+          <Select value={kpiDateRange} onValueChange={(v) => setKpiDateRange(v as DateRange)}>
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">{t('common.lastWeek', 'Last Week')}</SelectItem>
+              <SelectItem value="month">{t('common.lastMonth', 'Last Month')}</SelectItem>
+              <SelectItem value="30days">{t('common.last30Days', 'Last 30 Days')}</SelectItem>
+              <SelectItem value="90days">{t('common.last90Days', 'Last 90 Days')}</SelectItem>
+              <SelectItem value="ytd">{t('common.ytd', 'Year to Date')}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={branchId || 'all'} onValueChange={(v) => setBranchId(v === 'all' ? '' : v)}>
-          <SelectTrigger className="w-[160px] h-8">
-            <Building2 className="me-2 h-4 w-4" />
-            <SelectValue placeholder={t('common.allBranches', 'All Branches')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('common.allBranches', 'All Branches')}</SelectItem>
-            {branches?.map((branch) => (
-              <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={branchId || 'all'} onValueChange={(v) => setBranchId(v === 'all' ? '' : v)}>
+            <SelectTrigger className="w-[160px] h-8">
+              <Building2 className="me-2 h-4 w-4" />
+              <SelectValue placeholder={t('common.allBranches', 'All Branches')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('common.allBranches', 'All Branches')}</SelectItem>
+              {branches?.map((branch) => (
+                <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={siteId || 'all'} onValueChange={(v) => setSiteId(v === 'all' ? '' : v)} disabled={!branchId}>
-          <SelectTrigger className="w-[160px] h-8">
-            <MapPin className="me-2 h-4 w-4" />
-            <SelectValue placeholder={t('common.allSites', 'All Sites')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('common.allSites', 'All Sites')}</SelectItem>
-            {sites?.map((site) => (
-              <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={siteId || 'all'} onValueChange={(v) => setSiteId(v === 'all' ? '' : v)} disabled={!branchId}>
+            <SelectTrigger className="w-[160px] h-8">
+              <MapPin className="me-2 h-4 w-4" />
+              <SelectValue placeholder={t('common.allSites', 'All Sites')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('common.allSites', 'All Sites')}</SelectItem>
+              {sites?.map((site) => (
+                <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <KPIDashboardExport
-          laggingData={laggingData ?? null}
-          leadingData={leadingData ?? null}
-          responseData={responseData ?? null}
-          peopleData={peopleData ?? null}
-          dateRange={{ start: kpiStartDate, end: kpiEndDate }}
-        />
-      </div>
-
-      {/* Enhanced KPI Grid with breakdowns */}
-      {dashboardLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-8 w-16 mb-3" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-5 w-16" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <KPIDashboardExport
+            laggingData={laggingData ?? null}
+            leadingData={leadingData ?? null}
+            responseData={responseData ?? null}
+            peopleData={peopleData ?? null}
+            dateRange={{ start: kpiStartDate, end: kpiEndDate }}
+          />
         </div>
-      ) : dashboardData ? (
-        <EnhancedKPIGrid summary={dashboardData.summary} actions={dashboardData.actions} />
-      ) : null}
 
-      {/* Quick Actions & Recent Events Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <QuickActionsCard />
-        <RecentEventsCard />
-      </div>
+        {/* Enhanced KPI Grid with breakdowns */}
+        {dashboardLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16 mb-3" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : dashboardData ? (
+          <EnhancedKPIGrid summary={dashboardData.summary} actions={dashboardData.actions} />
+        ) : null}
 
-      {/* KPI Analysis Tabs */}
-      <Tabs defaultValue="lagging" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-6">
-          <TabsTrigger value="lagging" className="gap-2">
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.lagging', 'Lagging')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="leading" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.leading', 'Leading')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="response" className="gap-2">
-            <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.response', 'Response')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="people" className="gap-2">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.people', 'People')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="trends" className="gap-2">
-            <LineChart className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.trends', 'Trends')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="metrics" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('kpiDashboard.metrics', 'Metrics')}</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Quick Actions & Recent Events Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <QuickActionsCard />
+          <RecentEventsCard />
+        </div>
 
-        <TabsContent value="lagging">
-          <LaggingIndicatorsCard data={laggingData ?? null} isLoading={laggingLoading} />
-        </TabsContent>
+        {/* ========== SECTION 2: KPI Analysis (Consolidated 4 Tabs) ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.kpiAnalysis', 'KPI Analysis')} 
+          icon={Activity}
+          defaultExpanded={true}
+        >
+          <Tabs defaultValue="safety" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-4">
+              <TabsTrigger value="safety" className="gap-2">
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('kpiDashboard.safetyKPIs', 'Safety KPIs')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="operations" className="gap-2">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('kpiDashboard.operations', 'Operations')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="trends" className="gap-2">
+                <LineChart className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('kpiDashboard.trends', 'Trends')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="metrics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('kpiDashboard.metrics', 'Metrics')}</span>
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="leading">
-          <LeadingIndicatorsCard data={leadingData ?? null} isLoading={leadingLoading} />
-        </TabsContent>
+            {/* Safety KPIs Tab (Merged Lagging + Leading) */}
+            <TabsContent value="safety" className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <LaggingIndicatorsCard data={laggingData ?? null} isLoading={laggingLoading} />
+                <LeadingIndicatorsCard data={leadingData ?? null} isLoading={leadingLoading} />
+              </div>
+            </TabsContent>
 
-        <TabsContent value="response">
-          <ResponseMetricsCard data={responseData ?? null} isLoading={responseLoading} />
-        </TabsContent>
+            {/* Operations Tab (Merged Response + People) */}
+            <TabsContent value="operations" className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <ResponseMetricsCard data={responseData ?? null} isLoading={responseLoading} />
+                <PeopleMetricsCard data={peopleData ?? null} isLoading={peopleLoading} />
+              </div>
+            </TabsContent>
 
-        <TabsContent value="people">
-          <PeopleMetricsCard data={peopleData ?? null} isLoading={peopleLoading} />
-        </TabsContent>
+            <TabsContent value="trends">
+              <KPIHistoricalTrendChart data={trendData || []} isLoading={trendLoading} />
+            </TabsContent>
 
-        <TabsContent value="trends">
-          <KPIHistoricalTrendChart data={trendData || []} isLoading={trendLoading} />
-        </TabsContent>
+            <TabsContent value="metrics">
+              <IncidentMetricsCard
+                startDate={kpiStartDate}
+                endDate={kpiEndDate}
+                branchId={branchId || undefined}
+                siteId={siteId || undefined}
+              />
+            </TabsContent>
+          </Tabs>
+        </DashboardSection>
 
-        <TabsContent value="metrics">
-          <IncidentMetricsCard
-            startDate={kpiStartDate}
-            endDate={kpiEndDate}
+        {/* ========== SECTION 3: Event Distribution ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.eventDistribution', 'Event Distribution')} 
+          icon={PieChart}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dashboardLoading ? (
+              <>
+                <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+              </>
+            ) : dashboardData ? (
+              <>
+                <EventTypeDistributionChart data={dashboardData.by_event_type} />
+                <SeverityDistributionChart data={dashboardData.by_severity} />
+              </>
+            ) : null}
+          </div>
+          
+          {dashboardLoading ? (
+            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+          ) : dashboardData ? (
+            <StatusDistributionChart data={dashboardData.by_status} />
+          ) : null}
+
+          <IncidentTypeBreakdownChart data={incidentTypeData || []} isLoading={incidentTypeLoading} />
+        </DashboardSection>
+
+        {/* ========== SECTION 4: Trend Analysis ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.trendAnalysis', 'Trend Analysis')} 
+          icon={LineChart}
+          defaultExpanded={false}
+        >
+          {dashboardLoading ? (
+            <Card><CardContent className="h-[350px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+          ) : dashboardData ? (
+            <EnhancedEventTrendChart data={dashboardData.monthly_trend} />
+          ) : null}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <IncidentWaterfallChart 
+              data={progressionData?.waterfall || []} 
+              isLoading={progressionLoading}
+              dataUpdatedAt={progressionUpdatedAt}
+              isFetching={progressionFetching}
+            />
+            <MajorEventsTimeline events={rcaData?.major_events || []} isLoading={rcaLoading} />
+          </div>
+        </DashboardSection>
+
+        {/* ========== SECTION 5: Actions & Investigations ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.actionsInvestigations', 'Actions & Investigations')} 
+          icon={Flame}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {dashboardLoading ? (
+              <>
+                <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
+              </>
+            ) : dashboardData ? (
+              <>
+                <CorrectiveActionDonutChart data={dashboardData.actions} />
+                <InvestigationProgressChart data={dashboardData.summary} />
+                <ActionsStatusWidget data={dashboardData.actions} />
+              </>
+            ) : null}
+          </div>
+        </DashboardSection>
+
+        {/* ========== SECTION 6: Location Analytics ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.locationAnalytics', 'Location Analytics')} 
+          icon={MapPin}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {locationLoading ? (
+              <>
+                <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+              </>
+            ) : locationData ? (
+              <>
+                <BranchComparisonChart data={locationData.by_branch} />
+                <DepartmentAnalyticsChart data={locationData.by_department} />
+              </>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {heatmapLoading ? (
+              <>
+                <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+                <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
+              </>
+            ) : heatmapData ? (
+              <>
+                <BranchHeatmapGrid data={heatmapData.branches} />
+                <SiteBubbleMap data={heatmapData.sites} />
+                <TemporalHeatmap data={heatmapData.temporal} maxCount={heatmapData.maxTemporalCount} />
+              </>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {locationLoading ? (
+              <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+            ) : locationData ? (
+              <EnhancedLocationAnalytics data={locationData} />
+            ) : null}
+
+            {reportersLoading ? (
+              <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+            ) : reporters ? (
+              <ReporterLeaderboard reporters={reporters} />
+            ) : null}
+          </div>
+        </DashboardSection>
+
+        {/* ========== SECTION 7: Observations ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.observations', 'Observations')} 
+          icon={Eye}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {dashboardLoading ? (
+              <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+            ) : dashboardData ? (
+              <PositiveObservationCard 
+                data={dashboardData.by_subtype ? {
+                  safe_act_count: (dashboardData.by_subtype as Record<string, number>)?.safe_act ?? 0,
+                  safe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.safe_condition ?? 0,
+                  unsafe_act_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_act ?? 0,
+                  unsafe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_condition ?? 0,
+                } : null}
+                isLoading={dashboardLoading}
+              />
+            ) : null}
+            <ResidualRiskCard startDate={startDate} endDate={endDate} />
+          </div>
+
+          <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} siteId={siteId || undefined} />
+          
+          <ObservationRatioBreakdown 
+            startDate={startDate}
+            endDate={endDate}
             branchId={branchId || undefined}
             siteId={siteId || undefined}
           />
-        </TabsContent>
-      </Tabs>
+        </DashboardSection>
 
-      {/* Charts Row 1 - Event Type Distribution */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {dashboardLoading ? (
-          <>
-            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-          </>
-        ) : dashboardData ? (
-          <>
-            <EventTypeDistributionChart data={dashboardData.by_event_type} />
-            <SeverityDistributionChart data={dashboardData.by_severity} />
-          </>
-        ) : null}
+        {/* ========== SECTION 8: Root Cause Analysis ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.rootCauseAnalysis', 'Root Cause Analysis')} 
+          icon={GitBranch}
+          defaultExpanded={false}
+        >
+          <RootCauseParetoChart 
+            data={rcaData?.root_cause_distribution || []} 
+            isLoading={rcaLoading} 
+            dataUpdatedAt={rcaUpdatedAt}
+            isFetching={rcaFetching}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
+            {rcaLoading ? (
+              <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+            ) : rcaData ? (
+              <CauseFlowDiagram data={rcaData.cause_flow} />
+            ) : null}
+          </div>
+        </DashboardSection>
+
+        {/* ========== SECTION 9: AI Insights ========== */}
+        <DashboardSection 
+          title={t('hsseDashboard.aiInsights', 'AI Insights')} 
+          icon={Lightbulb}
+          defaultExpanded={false}
+          badge={
+            <Badge variant="secondary" className="text-xs">AI</Badge>
+          }
+        >
+          <EnhancedAIInsightsPanel 
+            insights={insights} 
+            isLoading={aiLoading} 
+            onRefresh={handleGenerateAIInsights}
+            lastUpdated={insights ? new Date() : undefined}
+          />
+        </DashboardSection>
+        
+        {/* Drilldown Modal */}
+        <DrilldownModal />
       </div>
-
-      {/* Incident Type Breakdown Chart */}
-      <IncidentTypeBreakdownChart data={incidentTypeData || []} isLoading={incidentTypeLoading} />
-
-      {/* Monthly Trend with Filters */}
-      <div className="grid grid-cols-1 gap-4">
-        {dashboardLoading ? (
-          <Card><CardContent className="h-[350px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
-        ) : dashboardData ? (
-          <EnhancedEventTrendChart data={dashboardData.monthly_trend} />
-        ) : null}
-      </div>
-
-      {/* New Charts Row - Corrective Actions & Investigation Progress */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {dashboardLoading ? (
-          <>
-            <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[320px] flex items-center justify-center"><Skeleton className="h-[280px] w-full" /></CardContent></Card>
-          </>
-        ) : dashboardData ? (
-          <>
-            <CorrectiveActionDonutChart data={dashboardData.actions} />
-            <InvestigationProgressChart data={dashboardData.summary} />
-          </>
-        ) : null}
-      </div>
-
-      {/* Charts Row 2 - Status & Positive Observations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {dashboardLoading ? (
-          <>
-            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
-          </>
-        ) : dashboardData ? (
-          <>
-            <StatusDistributionChart data={dashboardData.by_status} />
-            <PositiveObservationCard 
-              data={dashboardData.by_subtype ? {
-                safe_act_count: (dashboardData.by_subtype as Record<string, number>)?.safe_act ?? 0,
-                safe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.safe_condition ?? 0,
-                unsafe_act_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_act ?? 0,
-                unsafe_condition_count: (dashboardData.by_subtype as Record<string, number>)?.unsafe_condition ?? 0,
-              } : null}
-              isLoading={dashboardLoading}
-            />
-            <ActionsStatusWidget data={dashboardData.actions} />
-          </>
-        ) : null}
-      </div>
-
-      {/* Branch & Department Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {locationLoading ? (
-          <>
-            <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[340px] flex items-center justify-center"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
-          </>
-        ) : locationData ? (
-          <>
-            <BranchComparisonChart data={locationData.by_branch} />
-            <DepartmentAnalyticsChart data={locationData.by_department} />
-          </>
-        ) : null}
-      </div>
-
-      {/* Incident Progression & Major Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <IncidentWaterfallChart 
-          data={progressionData?.waterfall || []} 
-          isLoading={progressionLoading}
-          dataUpdatedAt={progressionUpdatedAt}
-          isFetching={progressionFetching}
-        />
-        <MajorEventsTimeline events={rcaData?.major_events || []} isLoading={rcaLoading} />
-      </div>
-
-      {/* Location Heatmaps */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {heatmapLoading ? (
-          <>
-            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
-            <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
-          </>
-        ) : heatmapData ? (
-          <>
-            <BranchHeatmapGrid data={heatmapData.branches} />
-            <SiteBubbleMap data={heatmapData.sites} />
-            <TemporalHeatmap data={heatmapData.temporal} maxCount={heatmapData.maxTemporalCount} />
-          </>
-        ) : null}
-      </div>
-
-      {/* Location Analytics & Top Reporters */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {locationLoading ? (
-          <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-        ) : locationData ? (
-          <EnhancedLocationAnalytics data={locationData} />
-        ) : null}
-
-        {reportersLoading ? (
-          <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-        ) : reporters ? (
-          <ReporterLeaderboard reporters={reporters} />
-        ) : null}
-      </div>
-
-      {/* Observation Trends & Residual Risk */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} siteId={siteId || undefined} />
-        <ResidualRiskCard startDate={startDate} endDate={endDate} />
-      </div>
-
-      {/* Observation Ratio by Department & Site */}
-      <ObservationRatioBreakdown 
-        startDate={startDate}
-        endDate={endDate}
-        branchId={branchId || undefined}
-        siteId={siteId || undefined}
-      />
-
-      {/* Safety KPIs */}
-      {dashboardLoading ? (
-        <Card><CardContent className="h-[280px] flex items-center justify-center"><Skeleton className="h-[240px] w-full" /></CardContent></Card>
-      ) : dashboardData ? (
-        <SafetyKPICards summary={dashboardData.summary} actions={dashboardData.actions} />
-      ) : null}
-
-      {/* Root Cause Pareto Analysis */}
-      <RootCauseParetoChart 
-        data={rcaData?.root_cause_distribution || []} 
-        isLoading={rcaLoading} 
-        dataUpdatedAt={rcaUpdatedAt}
-        isFetching={rcaFetching}
-      />
-
-      {/* Root Cause Distribution & Cause Flow */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RootCauseDistributionChart data={rcaData?.root_cause_distribution || []} isLoading={rcaLoading} />
-        {rcaLoading ? (
-          <Card><CardContent className="h-[400px] flex items-center justify-center"><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-        ) : rcaData ? (
-          <CauseFlowDiagram data={rcaData.cause_flow} />
-        ) : null}
-      </div>
-
-      {/* AI Risk Insights */}
-      <EnhancedAIInsightsPanel 
-        insights={insights} 
-        isLoading={aiLoading} 
-        onRefresh={handleGenerateAIInsights}
-        lastUpdated={insights ? new Date() : undefined}
-      />
-      
-      {/* Drilldown Modal */}
-      <DrilldownModal />
-    </div>
     </DrilldownProvider>
   );
 }
