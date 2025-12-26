@@ -357,6 +357,7 @@
       "pending_dept_rep_approval": "محکمہ نمائندہ کی منظوری کا انتظار",
       "observation_actions_pending": "کاروائیاں جاری ہیں",
       "pending_closure": "بند ہونے کے منتظر",
+      "pending_closure_approval": "مینیجر کی منظوری کا انتظار",
       "investigation_closed": "تحقیقات بند",
       "pending_final_closure": "حتمی بندش کا انتظار"
     },

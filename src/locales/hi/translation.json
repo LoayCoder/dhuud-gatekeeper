@@ -357,6 +357,7 @@
       "pending_dept_rep_approval": "विभाग प्रतिनिधि अनुमोदन लंबित",
       "observation_actions_pending": "कार्रवाई प्रगति पर",
       "pending_closure": "बंद होने की प्रतीक्षा में",
+      "pending_closure_approval": "प्रबंधक अनुमोदन की प्रतीक्षा में",
       "investigation_closed": "जांच बंद",
       "pending_final_closure": "अंतिम समापन लंबित"
     },
