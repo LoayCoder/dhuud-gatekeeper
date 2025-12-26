@@ -541,6 +541,7 @@ const App = () => (
                       <Route path="/settings/subscription" element={<SubscriptionManagement />} />
                       <Route path="/settings/usage-billing" element={<UsageBilling />} />
                       <Route path="/admin/event-categories" element={<AdminRoute><EventCategorySettings /></AdminRoute>} />
+                      <Route path="/admin/hsse-validation" element={<HSSERoute><HSSEValidationDashboard /></HSSERoute>} />
                     </Route>
 
                     {/* Catch-all */}

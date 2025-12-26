@@ -190,6 +190,16 @@ export default function IncidentDetail() {
         </div>
       </div>
 
+      {/* HSSE Validation Card for Observations at Levels 3-4 */}
+      {incident.event_type === 'observation' && (
+        <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
+      )}
+
+      {/* Observation Closure Gate for Level 5 pending final closure */}
+      {incident.event_type === 'observation' && (
+        <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
+      )}
+
       {/* Status and Type Badges - Read-only display (status changes via workflow only) */}
       <div className="flex flex-wrap gap-2 items-center">
         {incident.severity_v2 && (

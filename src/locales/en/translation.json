@@ -6239,5 +6239,79 @@
     "topRecognized": "Most Recognized",
     "observationRatio": "Observation Ratio",
     "positiveToNegative": "Positive : Negative"
+  },
+  "observationTrends": {
+    "title": "Observation Trends",
+    "subtitle": "Positive vs Negative observation analysis",
+    "byMonth": "Monthly Trend",
+    "byDepartment": "By Department",
+    "bySite": "By Site",
+    "positive": "Positive",
+    "negative": "Negative",
+    "total": "Total",
+    "ratio": "Ratio",
+    "positiveRatio": "Positive Ratio",
+    "noData": "No observation data available"
+  },
+  "residualRisk": {
+    "title": "Risk Reduction Metrics",
+    "subtitle": "Effectiveness of corrective actions",
+    "totalAssessed": "Actions Assessed",
+    "avgReduction": "Avg Risk Reduction",
+    "improved": "Improved",
+    "unchanged": "Unchanged",
+    "worsened": "Worsened",
+    "effectivenessRate": "Effectiveness Rate",
+    "byInitialLevel": "By Initial Risk Level",
+    "monthlyTrend": "Monthly Trend",
+    "noData": "No risk reduction data available"
+  },
+  "hsseValidationDashboard": {
+    "title": "HSSE Validation Dashboard",
+    "subtitle": "Pending validation tasks for HSSE Experts",
+    "pendingValidation": "Pending Validation",
+    "pendingClosure": "Pending Final Closure",
+    "level3Count": "Level 3",
+    "level4Count": "Level 4",
+    "level5Count": "Level 5",
+    "avgPendingDays": "Avg Days Pending",
+    "filterBySeverity": "Filter by Severity",
+    "filterBySite": "Filter by Site",
+    "allSeverities": "All Severities",
+    "allSites": "All Sites",
+    "reference": "Reference",
+    "eventTitle": "Title",
+    "severity": "Severity",
+    "site": "Site",
+    "reportedAt": "Reported At",
+    "daysPending": "Days Pending",
+    "actions": "Actions",
+    "viewDetails": "View Details",
+    "noData": "No pending validation tasks",
+    "accept": "Accept",
+    "reject": "Reject"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "HSSE Expert Validation",
+      "description": "Review risk assessment and proposed actions",
+      "acceptRisk": "Accept Risk & Actions",
+      "rejectRisk": "Reject & Return",
+      "notesPlaceholder": "Additional notes (optional)...",
+      "rejectionNotesPlaceholder": "Please explain rejection reason...",
+      "rejectionNotesRequired": "Rejection reason is required",
+      "submitDecision": "Submit Decision",
+      "level34Info": "This observation is Level 3-4 severity and requires your validation.",
+      "level5Warning": "Warning: Level 5 severity - requires HSSE Manager approval for closure."
+    },
+    "finalClosure": {
+      "title": "Final Closure (Level 5)",
+      "description": "As HSSE Manager, you can perform final closure",
+      "confirmClosure": "Confirm Final Closure",
+      "notesPlaceholder": "Closure notes...",
+      "managerOnlyWarning": "Only HSSE Manager can close Level 5 observations.",
+      "actionsNotComplete": "Cannot close: There are still pending actions.",
+      "validationRequired": "Cannot close: HSSE Expert validation is required."
+    }
   }
 }
