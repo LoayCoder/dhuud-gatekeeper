@@ -13174,17 +13174,30 @@ export type Database = {
         }
         Returns: undefined
       }
-      upsert_notification_matrix_rule: {
-        Args: {
-          p_channels: string[]
-          p_condition_type?: string
-          p_severity_level: string
-          p_stakeholder_role: string
-          p_tenant_id: string
-          p_user_id?: string
-        }
-        Returns: string
-      }
+      upsert_notification_matrix_rule:
+        | {
+            Args: {
+              p_channels: string[]
+              p_condition_type?: string
+              p_severity_level: string
+              p_stakeholder_role: string
+              p_tenant_id: string
+              p_user_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_channels: string[]
+              p_condition_type?: string
+              p_severity_level: string
+              p_stakeholder_role: string
+              p_tenant_id: string
+              p_user_id?: string
+              p_whatsapp_template_id?: string
+            }
+            Returns: string
+          }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
