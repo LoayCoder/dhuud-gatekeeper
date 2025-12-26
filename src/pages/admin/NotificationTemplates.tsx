@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, MoreHorizontal, Pencil, Trash2, FileText, Loader2 } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, FileText, Loader2, MessageSquare, Mail } from 'lucide-react';
 import { TemplateEditor } from '@/components/admin/TemplateEditor';
 import { TemplateTestConsole } from '@/components/admin/TemplateTestConsole';
 import {
@@ -40,7 +40,7 @@ import {
   CreateTemplateInput,
 } from '@/hooks/useNotificationTemplates';
 
-export default function WhatsAppTemplates() {
+export default function NotificationTemplates() {
   const { t } = useTranslation();
   const { data: templates = [], isLoading } = useNotificationTemplates();
   const createTemplate = useCreateTemplate();
@@ -98,13 +98,45 @@ export default function WhatsAppTemplates() {
 
   const activeTemplates = templates.filter((t) => t.is_active);
 
+  const getChannelBadge = (channelType: string) => {
+    switch (channelType) {
+      case 'whatsapp':
+        return (
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <MessageSquare className="h-3 w-3" />
+            WhatsApp
+          </Badge>
+        );
+      case 'email':
+        return (
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Mail className="h-3 w-3" />
+            Email
+          </Badge>
+        );
+      case 'both':
+        return (
+          <div className="flex gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+            </Badge>
+          </div>
+        );
+      default:
+        return <Badge variant="outline">{channelType}</Badge>;
+    }
+  };
+
   return (
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('WhatsApp Templates')}</h1>
+          <h1 className="text-2xl font-bold">{t('Notification Templates Generator')}</h1>
           <p className="text-muted-foreground">
-            {t('Manage notification templates for WhatsApp messages')}
+            {t('Create and manage notification templates for WhatsApp and Email channels')}
           </p>
         </div>
         <Button onClick={handleCreate}>
@@ -143,8 +175,8 @@ export default function WhatsAppTemplates() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t('Slug')}</TableHead>
+                      <TableHead>{t('Channel')}</TableHead>
                       <TableHead>{t('Category')}</TableHead>
-                      <TableHead>{t('Gateway')}</TableHead>
                       <TableHead>{t('Variables')}</TableHead>
                       <TableHead>{t('Active')}</TableHead>
                       <TableHead className="w-12"></TableHead>
@@ -157,14 +189,10 @@ export default function WhatsAppTemplates() {
                           {template.slug}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{template.category}</Badge>
+                          {getChannelBadge(template.channel_type)}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={template.default_gateway === 'official' ? 'default' : 'secondary'}
-                          >
-                            {template.default_gateway === 'official' ? 'Meta' : 'WaSender'}
-                          </Badge>
+                          <Badge variant="outline">{template.category}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">

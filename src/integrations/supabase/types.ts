@@ -7130,10 +7130,12 @@ export type Database = {
       notification_templates: {
         Row: {
           category: string | null
+          channel_type: string
           content_pattern: string
           created_at: string | null
           default_gateway: string
           deleted_at: string | null
+          email_subject: string | null
           id: string
           is_active: boolean | null
           language: string | null
@@ -7145,10 +7147,12 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          channel_type?: string
           content_pattern: string
           created_at?: string | null
           default_gateway?: string
           deleted_at?: string | null
+          email_subject?: string | null
           id?: string
           is_active?: boolean | null
           language?: string | null
@@ -7160,10 +7164,12 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          channel_type?: string
           content_pattern?: string
           created_at?: string | null
           default_gateway?: string
           deleted_at?: string | null
+          email_subject?: string | null
           id?: string
           is_active?: boolean | null
           language?: string | null
