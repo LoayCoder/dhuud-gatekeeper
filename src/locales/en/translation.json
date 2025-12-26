@@ -6091,7 +6091,43 @@
       "noCategories": "No categories available",
       "noMatchingSubtypes": "No matching subtypes found",
       "noSubtypes": "No subtypes available",
-      "infoNote": "Disabled categories and subtypes will not appear in incident reporting forms. Changes apply immediately to all users in your organization."
+      "infoNote": "Disabled categories and subtypes will not appear in incident reporting forms. Changes apply immediately to all users in your organization.",
+      "tabs": {
+        "testing": "Testing"
+      },
+      "testing": {
+        "title": "HSSE Event Testing",
+        "description": "Download test documentation and resources for HSSE event workflow testing",
+        "functionalTestDoc": "Functional Test Document",
+        "functionalTestDocDesc": "Complete test scenarios covering the entire HSSE incident lifecycle from reporting to closure."
+      },
+      "crud": {
+        "addCategory": "Add Category",
+        "addCategoryDescription": "Create a new custom event category for your organization",
+        "editCategory": "Edit Category",
+        "editCategoryDescription": "Modify category details",
+        "deleteConfirmTitle": "Delete Category?",
+        "deleteConfirmDescription": "This will deactivate the category. It can be re-enabled later.",
+        "categoryCreated": "Category created successfully",
+        "categoryUpdated": "Category updated successfully",
+        "categoryDeleted": "Category deleted successfully",
+        "addSubtype": "Add Subtype",
+        "addSubtypeDescription": "Create a new subtype under {{category}}",
+        "editSubtype": "Edit Subtype",
+        "editSubtypeDescription": "Modify subtype details",
+        "deleteSubtypeConfirmTitle": "Delete Subtype?",
+        "deleteSubtypeConfirmDescription": "This will deactivate the subtype. It can be re-enabled later.",
+        "subtypeCreated": "Subtype created successfully",
+        "subtypeUpdated": "Subtype updated successfully",
+        "subtypeDeleted": "Subtype deleted successfully",
+        "code": "Code",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "nameKey": "Translation Key",
+        "icon": "Icon",
+        "sortOrder": "Sort Order",
+        "validationError": "Please fill in all required fields"
+      }
     },
     "notificationMatrix": {
       "title": "Incident Notification Matrix",
