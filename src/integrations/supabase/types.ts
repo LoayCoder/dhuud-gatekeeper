@@ -4549,6 +4549,7 @@ export type Database = {
           closure_request_notes: string | null
           closure_requested_at: string | null
           closure_requested_by: string | null
+          closure_requires_manager: boolean | null
           closure_signature_path: string | null
           closure_signed_at: string | null
           closure_signed_by: string | null
@@ -4581,6 +4582,10 @@ export type Database = {
           hsse_manager_decision: string | null
           hsse_manager_decision_by: string | null
           hsse_manager_justification: string | null
+          hsse_validated_at: string | null
+          hsse_validated_by: string | null
+          hsse_validation_notes: string | null
+          hsse_validation_status: string | null
           id: string
           immediate_actions: string | null
           immediate_actions_data: Json | null
@@ -4664,6 +4669,7 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          closure_requires_manager?: boolean | null
           closure_signature_path?: string | null
           closure_signed_at?: string | null
           closure_signed_by?: string | null
@@ -4696,6 +4702,10 @@ export type Database = {
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
+          hsse_validated_at?: string | null
+          hsse_validated_by?: string | null
+          hsse_validation_notes?: string | null
+          hsse_validation_status?: string | null
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
@@ -4779,6 +4789,7 @@ export type Database = {
           closure_request_notes?: string | null
           closure_requested_at?: string | null
           closure_requested_by?: string | null
+          closure_requires_manager?: boolean | null
           closure_signature_path?: string | null
           closure_signed_at?: string | null
           closure_signed_by?: string | null
@@ -4811,6 +4822,10 @@ export type Database = {
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
+          hsse_validated_at?: string | null
+          hsse_validated_by?: string | null
+          hsse_validation_notes?: string | null
+          hsse_validation_status?: string | null
           id?: string
           immediate_actions?: string | null
           immediate_actions_data?: Json | null
@@ -4957,6 +4972,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
             columns: ["hsse_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_validated_by_fkey"
+            columns: ["hsse_validated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -13233,6 +13255,7 @@ export type Database = {
         | "pending_closure"
         | "investigation_closed"
         | "pending_final_closure"
+        | "pending_hsse_validation"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -13532,6 +13555,7 @@ export const Constants = {
         "pending_closure",
         "investigation_closed",
         "pending_final_closure",
+        "pending_hsse_validation",
       ],
       maintenance_frequency: [
         "daily",
