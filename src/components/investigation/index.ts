@@ -34,3 +34,4 @@ export { WorkflowProgressBanner } from './WorkflowProgressBanner';
 export { DeptRepApprovalCard } from './DeptRepApprovalCard';
 export { SubmitInvestigationCard } from './SubmitInvestigationCard';
 export { CauseCoverageIndicator } from './CauseCoverageIndicator';
+export { PotentialSeverityApprovalCard } from './PotentialSeverityApprovalCard';

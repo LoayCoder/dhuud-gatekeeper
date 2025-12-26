@@ -192,7 +192,12 @@ export default function IncidentDetail() {
       <div className="flex flex-wrap gap-2 items-center">
         {incident.severity_v2 && (
           <Badge variant={getSeverityBadgeVariant(incident.severity_v2)} className="text-sm">
-            {t(`severity.${incident.severity_v2}.label`)}
+            {t('severity.actualSeverity')}: {t(`severity.${incident.severity_v2}.label`)}
+          </Badge>
+        )}
+        {(incident as any).potential_severity_v2 && (
+          <Badge variant="outline" className="text-sm border-dashed">
+            {t('severity.potentialSeverity')}: {t(`severity.${(incident as any).potential_severity_v2}.label`)}
           </Badge>
         )}
         {incident.status && (
