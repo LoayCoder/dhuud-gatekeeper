@@ -17,6 +17,7 @@ interface IncidentReportData {
     subtype?: string | null;
     incident_type?: string | null; // HSSE category (safety, health, etc.)
     severity?: string | null;
+    potential_severity?: string | null; // Potential severity (worst-case scenario)
     status?: string | null;
     occurred_at?: string | null;
     location?: string | null;
@@ -381,13 +382,24 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'نوع الحدث' : 'Event Type'}</td>
         <td style="padding: 10px; border: 1px solid #ddd;">${isRTL ? (incident.event_type === 'incident' ? 'حادث' : 'ملاحظة') : (incident.event_type === 'incident' ? 'Incident' : 'Observation')}</td>
-        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الخطورة' : 'Severity'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الخطورة الفعلية' : 'Actual Severity'}</td>
         <td style="padding: 10px; border: 1px solid #ddd;">
           <span style="padding: 4px 10px; border-radius: 4px; font-size: 11px; ${getSeverityStyle(incident.severity)}">
             ${incident.severity?.toUpperCase() || '-'}
           </span>
         </td>
       </tr>
+      ${incident.potential_severity ? `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الخطورة المحتملة' : 'Potential Severity'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;" colspan="3">
+          <span style="padding: 4px 10px; border-radius: 4px; font-size: 11px; ${getSeverityStyle(incident.potential_severity)}">
+            ${incident.potential_severity?.toUpperCase() || '-'}
+          </span>
+          <span style="margin-inline-start: 8px; font-size: 11px; color: #6b7280;">(${isRTL ? 'أسوأ سيناريو' : 'worst-case scenario'})</span>
+        </td>
+      </tr>
+      ` : ''}
       ${incident.event_type === 'incident' ? `
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'فئة الحادث' : 'Incident Category'}</td>
