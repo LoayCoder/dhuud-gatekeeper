@@ -457,7 +457,7 @@ async function executeMutation(mutation) {
     return { ok: false };
   }
   
-  return fetch(mutation.endpoint, {
+  const response = await fetch(mutation.endpoint, {
     method: mutation.method || 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -465,6 +465,56 @@ async function executeMutation(mutation) {
     },
     body: mutation.body ? JSON.stringify(mutation.body) : undefined,
   });
+  
+  // After successful incident/observation creation, trigger notification dispatch
+  if (response.ok && mutation.mutationKey) {
+    const key = mutation.mutationKey.toLowerCase();
+    if (key.includes('incident') || key.includes('observation')) {
+      await triggerIncidentNotification(mutation, response.clone());
+    }
+  }
+  
+  return response;
+}
+
+// Trigger notification dispatch for synced incidents/observations
+async function triggerIncidentNotification(mutation, response) {
+  try {
+    const data = await response.json();
+    const incidentId = data?.id || data?.data?.id;
+    
+    if (!incidentId) {
+      console.log('[SW] No incident ID found in response, skipping notification');
+      return;
+    }
+    
+    // Get the Supabase URL from the mutation endpoint or use stored config
+    const supabaseUrl = mutation.endpoint?.split('/rest/')[0] || 
+                        self.SUPABASE_URL || 
+                        'https://xdlowvfzhvjzbtgvurzj.supabase.co';
+    
+    // Call the notification dispatch edge function
+    const notifyResponse = await fetch(`${supabaseUrl}/functions/v1/dispatch-incident-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': mutation.headers?.Authorization || mutation.headers?.authorization || '',
+      },
+      body: JSON.stringify({
+        incident_id: incidentId,
+        event_type: 'incident_created',
+        source: 'offline_sync'
+      }),
+    });
+    
+    if (notifyResponse.ok) {
+      console.log('[SW] Notification dispatched for synced incident:', incidentId);
+    } else {
+      console.warn('[SW] Notification dispatch failed:', await notifyResponse.text());
+    }
+  } catch (error) {
+    console.error('[SW] Failed to trigger incident notification:', error);
+  }
 }
 
 // Trim cache to max entries (LRU-style)
