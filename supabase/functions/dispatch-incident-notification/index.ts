@@ -76,13 +76,13 @@ const SEVERITY_LEVEL_MAP: Record<string, number> = {
   'level_5': 5,
 };
 
-// Severity level labels for messages (localized)
+// Severity level labels for messages (localized) - Updated for 5-level unified matrix
 const SEVERITY_LABELS: Record<string, Record<SupportedLanguage, string>> = {
-  'level_1': { en: 'Low', ar: 'منخفض', ur: 'کم', hi: 'निम्न', fil: 'Mababa' },
-  'level_2': { en: 'Medium', ar: 'متوسط', ur: 'درمیانہ', hi: 'मध्यम', fil: 'Katamtaman' },
-  'level_3': { en: 'Serious', ar: 'خطير', ur: 'سنگین', hi: 'गंभीर', fil: 'Seryoso' },
-  'level_4': { en: 'Major', ar: 'كبير', ur: 'بڑا', hi: 'बड़ा', fil: 'Malaki' },
-  'level_5': { en: 'Catastrophic', ar: 'كارثي', ur: 'تباہ کن', hi: 'विनाशकारी', fil: 'Sakuna' },
+  'level_1': { en: 'Level 1 (Low)', ar: 'المستوى 1 (منخفض)', ur: 'لیول 1 (کم)', hi: 'स्तर 1 (निम्न)', fil: 'Antas 1 (Mababa)' },
+  'level_2': { en: 'Level 2 (Moderate)', ar: 'المستوى 2 (متوسط)', ur: 'لیول 2 (درمیانہ)', hi: 'स्तर 2 (मध्यम)', fil: 'Antas 2 (Katamtaman)' },
+  'level_3': { en: 'Level 3 (Serious)', ar: 'المستوى 3 (خطير)', ur: 'لیول 3 (سنگین)', hi: 'स्तर 3 (गंभीर)', fil: 'Antas 3 (Seryoso)' },
+  'level_4': { en: 'Level 4 (Major)', ar: 'المستوى 4 (كبير)', ur: 'لیول 4 (بڑا)', hi: 'स्तर 4 (बड़ा)', fil: 'Antas 4 (Malaki)' },
+  'level_5': { en: 'Level 5 (Catastrophic)', ar: 'المستوى 5 (كارثي)', ur: 'لیول 5 (تباہ کن)', hi: 'स्तर 5 (विनाशकारी)', fil: 'Antas 5 (Sakuna)' },
 };
 
 const SEVERITY_EMOJI: Record<string, string> = {
@@ -355,16 +355,17 @@ Deno.serve(async (req) => {
     const recipientList = (recipients || []) as NotificationRecipient[];
     console.log(`[Dispatch] Found ${recipientList.length} recipients to notify`);
 
-    // 8. Apply channel gating based on severity level:
-    // - Level 3+ (Serious/Major/Catastrophic): WhatsApp + Email + Push (all channels)
-    // - Level 1-2 (Low/Medium): Email only (WhatsApp gate applies)
+    // 8. Apply channel gating based on severity level per GCC-Standard 5-Level Matrix:
+    // - Level 5 (Catastrophic): WhatsApp + Email + Push to ALL including HSSE Manager
+    // - Level 3-4 (Serious/Major): WhatsApp + Email + Push (all channels) + HSSE Expert
+    // - Level 1-2 (Low/Moderate): Email only (WhatsApp gate applies)
     // - Exception: First Aiders always get WhatsApp if there's an injury
     const processedRecipients = recipientList.map(r => {
       const severityLevel = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
       let filteredChannels = [...r.channels];
       
       if (severityLevel < 3) {
-        // Low/Medium severity: Only Email, no WhatsApp/Push
+        // Low/Moderate severity: Only Email, no WhatsApp/Push
         const isFirstAiderWithInjury = r.stakeholder_role === 'first_aider' && hasInjury;
         
         if (!isFirstAiderWithInjury) {
@@ -374,6 +375,14 @@ Deno.serve(async (req) => {
         
         // Keep email as primary channel for low severity
         // Push is still allowed for quick notification
+      }
+      
+      // Level 5: Ensure HSSE Manager gets immediate notification on all channels
+      if (severityLevel >= 5 && r.stakeholder_role === 'hsse_manager') {
+        // Ensure all channels are present for HSSE Manager on Level 5
+        if (!filteredChannels.includes('whatsapp')) filteredChannels.push('whatsapp');
+        if (!filteredChannels.includes('email')) filteredChannels.push('email');
+        if (!filteredChannels.includes('push')) filteredChannels.push('push');
       }
       
       return { ...r, channels: filteredChannels };
