@@ -79,7 +79,7 @@ export function useSLAAnalytics(filters: SLAAnalyticsFilters = {}) {
           profiles!corrective_actions_assigned_to_fkey(
             id,
             full_name,
-            department_id
+            assigned_department_id
           )
         `)
         .eq('tenant_id', profile.tenant_id)
@@ -142,7 +142,7 @@ export function useSLAAnalytics(filters: SLAAnalyticsFilters = {}) {
       updated_at: string | null;
       assigned_to: string | null;
       tenant_id: string;
-      profiles: { id: string; full_name: string; department_id: string | null } | null;
+      profiles: { id: string; full_name: string; assigned_department_id: string | null } | null;
     }>;
 
     // Monthly Trends (last 12 months)
@@ -183,7 +183,7 @@ export function useSLAAnalytics(filters: SLAAnalyticsFilters = {}) {
     const deptMap = new Map<string, { total: number; onTime: number; breached: number; totalDays: number; completedCount: number }>();
     
     actions.forEach(action => {
-      const deptId = action.profiles?.department_id || 'unknown';
+      const deptId = action.profiles?.assigned_department_id || 'unknown';
       if (!deptMap.has(deptId)) {
         deptMap.set(deptId, { total: 0, onTime: 0, breached: 0, totalDays: 0, completedCount: 0 });
       }
