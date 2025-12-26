@@ -91,6 +91,9 @@ import {
   KPIHistoricalTrendChart,
   IncidentTypeBreakdownChart,
   PositiveObservationCard,
+  ObservationTrendChart,
+  ObservationRatioBreakdown,
+  ResidualRiskCard,
 } from "@/components/incidents/dashboard";
 
 function KPICard({ 
@@ -684,6 +687,20 @@ export default function HSSEEventDashboard() {
           <ReporterLeaderboard reporters={reporters} />
         ) : null}
       </div>
+
+      {/* Observation Trends & Residual Risk */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ObservationTrendChart startDate={startDate} endDate={endDate} branchId={branchId || undefined} siteId={siteId || undefined} />
+        <ResidualRiskCard startDate={startDate} endDate={endDate} />
+      </div>
+
+      {/* Observation Ratio by Department & Site */}
+      <ObservationRatioBreakdown 
+        startDate={startDate}
+        endDate={endDate}
+        branchId={branchId || undefined}
+        siteId={siteId || undefined}
+      />
 
       {/* Safety KPIs */}
       {dashboardLoading ? (

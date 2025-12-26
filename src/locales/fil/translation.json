@@ -5791,5 +5791,79 @@
     "topRecognized": "Pinaka Kinikilala",
     "observationRatio": "Ratio ng Obserbasyon",
     "positiveToNegative": "Positibo : Negatibo"
+  },
+  "observationTrends": {
+    "title": "Mga Trend ng Obserbasyon",
+    "subtitle": "Positibo kumpara sa Negatibong pagsusuri ng obserbasyon",
+    "byMonth": "Buwanang Trend",
+    "byDepartment": "Ayon sa Departamento",
+    "bySite": "Ayon sa Site",
+    "positive": "Positibo",
+    "negative": "Negatibo",
+    "total": "Kabuuan",
+    "ratio": "Ratio",
+    "positiveRatio": "Positibong Ratio",
+    "noData": "Walang available na data ng obserbasyon"
+  },
+  "residualRisk": {
+    "title": "Mga Sukatan ng Pagbabawas ng Panganib",
+    "subtitle": "Bisa ng mga corrective action",
+    "totalAssessed": "Mga Nasukat na Aksyon",
+    "avgReduction": "Avg na Pagbabawas ng Panganib",
+    "improved": "Napabuti",
+    "unchanged": "Walang Pagbabago",
+    "worsened": "Lumala",
+    "effectivenessRate": "Rate ng Bisa",
+    "byInitialLevel": "Ayon sa Paunang Antas ng Panganib",
+    "monthlyTrend": "Buwanang Trend",
+    "noData": "Walang available na data ng pagbabawas ng panganib"
+  },
+  "hsseValidationDashboard": {
+    "title": "HSSE Validation Dashboard",
+    "subtitle": "Mga naghihintay na validation task para sa HSSE Experts",
+    "pendingValidation": "Naghihintay ng Validation",
+    "pendingClosure": "Naghihintay ng Pinal na Pagsara",
+    "level3Count": "Level 3",
+    "level4Count": "Level 4",
+    "level5Count": "Level 5",
+    "avgPendingDays": "Avg na Araw Naghihintay",
+    "filterBySeverity": "I-filter ayon sa Kalubhaan",
+    "filterBySite": "I-filter ayon sa Site",
+    "allSeverities": "Lahat ng Antas",
+    "allSites": "Lahat ng Site",
+    "reference": "Reference",
+    "eventTitle": "Pamagat",
+    "severity": "Kalubhaan",
+    "site": "Site",
+    "reportedAt": "Petsa ng Ulat",
+    "daysPending": "Mga Araw Naghihintay",
+    "actions": "Mga Aksyon",
+    "viewDetails": "Tingnan ang Detalye",
+    "noData": "Walang naghihintay na validation task",
+    "accept": "Tanggapin",
+    "reject": "Tanggihan"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "HSSE Expert Validation",
+      "description": "Suriin ang pagsusuri ng panganib at mga iminungkahing aksyon",
+      "acceptRisk": "Tanggapin ang Panganib at mga Aksyon",
+      "rejectRisk": "Tanggihan at Ibalik",
+      "notesPlaceholder": "Karagdagang mga tala (opsyonal)...",
+      "rejectionNotesPlaceholder": "Pakipaliwanag ang dahilan ng pagtanggi...",
+      "rejectionNotesRequired": "Kinakailangan ang dahilan ng pagtanggi",
+      "submitDecision": "Isumite ang Desisyon",
+      "level34Info": "Ang obserbasyon na ito ay Level 3-4 na kalubhaan at nangangailangan ng iyong validation.",
+      "level5Warning": "Babala: Level 5 na kalubhaan - nangangailangan ng HSSE Manager approval para sa pagsara."
+    },
+    "finalClosure": {
+      "title": "Pinal na Pagsara (Level 5)",
+      "description": "Bilang HSSE Manager, maaari mong isagawa ang pinal na pagsara",
+      "confirmClosure": "Kumpirmahin ang Pinal na Pagsara",
+      "notesPlaceholder": "Mga tala sa pagsara...",
+      "managerOnlyWarning": "HSSE Manager lang ang maaaring magsara ng Level 5 na obserbasyon.",
+      "actionsNotComplete": "Hindi maisara: May mga naghihintay pa ring aksyon.",
+      "validationRequired": "Hindi maisara: Kinakailangan ang HSSE Expert validation."
+    }
   }
 }

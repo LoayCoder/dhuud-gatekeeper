@@ -5802,5 +5802,79 @@
     "topRecognized": "सर्वाधिक मान्यता प्राप्त",
     "observationRatio": "अवलोकन अनुपात",
     "positiveToNegative": "सकारात्मक : नकारात्मक"
+  },
+  "observationTrends": {
+    "title": "अवलोकन रुझान",
+    "subtitle": "सकारात्मक बनाम नकारात्मक अवलोकन विश्लेषण",
+    "byMonth": "मासिक रुझान",
+    "byDepartment": "विभाग के अनुसार",
+    "bySite": "साइट के अनुसार",
+    "positive": "सकारात्मक",
+    "negative": "नकारात्मक",
+    "total": "कुल",
+    "ratio": "अनुपात",
+    "positiveRatio": "सकारात्मक अनुपात",
+    "noData": "अवलोकन डेटा उपलब्ध नहीं"
+  },
+  "residualRisk": {
+    "title": "जोखिम कमी मापदंड",
+    "subtitle": "सुधारात्मक कार्रवाई की प्रभावशीलता",
+    "totalAssessed": "मूल्यांकन की गई कार्रवाइयां",
+    "avgReduction": "औसत जोखिम कमी",
+    "improved": "सुधार हुआ",
+    "unchanged": "अपरिवर्तित",
+    "worsened": "बिगड़ा",
+    "effectivenessRate": "प्रभावशीलता दर",
+    "byInitialLevel": "प्रारंभिक जोखिम स्तर के अनुसार",
+    "monthlyTrend": "मासिक रुझान",
+    "noData": "जोखिम कमी डेटा उपलब्ध नहीं"
+  },
+  "hsseValidationDashboard": {
+    "title": "HSSE सत्यापन डैशबोर्ड",
+    "subtitle": "HSSE विशेषज्ञों के लिए लंबित सत्यापन कार्य",
+    "pendingValidation": "सत्यापन लंबित",
+    "pendingClosure": "अंतिम समापन लंबित",
+    "level3Count": "स्तर 3",
+    "level4Count": "स्तर 4",
+    "level5Count": "स्तर 5",
+    "avgPendingDays": "औसत लंबित दिन",
+    "filterBySeverity": "गंभीरता से फ़िल्टर करें",
+    "filterBySite": "साइट से फ़िल्टर करें",
+    "allSeverities": "सभी स्तर",
+    "allSites": "सभी साइट",
+    "reference": "संदर्भ",
+    "eventTitle": "शीर्षक",
+    "severity": "गंभीरता",
+    "site": "साइट",
+    "reportedAt": "रिपोर्ट तिथि",
+    "daysPending": "लंबित दिन",
+    "actions": "कार्रवाइयां",
+    "viewDetails": "विवरण देखें",
+    "noData": "कोई लंबित सत्यापन कार्य नहीं",
+    "accept": "स्वीकार करें",
+    "reject": "अस्वीकार करें"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "HSSE विशेषज्ञ सत्यापन",
+      "description": "जोखिम मूल्यांकन और प्रस्तावित कार्रवाइयों की समीक्षा करें",
+      "acceptRisk": "जोखिम और कार्रवाइयां स्वीकार करें",
+      "rejectRisk": "अस्वीकार करें और वापस करें",
+      "notesPlaceholder": "अतिरिक्त नोट्स (वैकल्पिक)...",
+      "rejectionNotesPlaceholder": "कृपया अस्वीकृति का कारण बताएं...",
+      "rejectionNotesRequired": "अस्वीकृति का कारण आवश्यक है",
+      "submitDecision": "निर्णय सबमिट करें",
+      "level34Info": "यह अवलोकन स्तर 3-4 गंभीरता का है और आपके सत्यापन की आवश्यकता है।",
+      "level5Warning": "चेतावनी: स्तर 5 गंभीरता - समापन के लिए HSSE प्रबंधक अनुमोदन आवश्यक है।"
+    },
+    "finalClosure": {
+      "title": "अंतिम समापन (स्तर 5)",
+      "description": "HSSE प्रबंधक के रूप में, आप अंतिम समापन कर सकते हैं",
+      "confirmClosure": "अंतिम समापन की पुष्टि करें",
+      "notesPlaceholder": "समापन नोट्स...",
+      "managerOnlyWarning": "केवल HSSE प्रबंधक स्तर 5 अवलोकन बंद कर सकते हैं।",
+      "actionsNotComplete": "बंद नहीं कर सकते: अभी भी लंबित कार्रवाइयां हैं।",
+      "validationRequired": "बंद नहीं कर सकते: HSSE विशेषज्ञ सत्यापन आवश्यक है।"
+    }
   }
 }

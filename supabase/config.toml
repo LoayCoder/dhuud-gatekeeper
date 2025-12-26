@@ -170,3 +170,6 @@ verify_jwt = false
 
 [functions.check-confidentiality-expiry]
 verify_jwt = false
+
+[functions.seed-test-observations]
+verify_jwt = true

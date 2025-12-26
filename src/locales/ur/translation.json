@@ -5817,5 +5817,79 @@
     "topRecognized": "سب سے زیادہ تعریف یافتہ",
     "observationRatio": "مشاہدات کا تناسب",
     "positiveToNegative": "مثبت : منفی"
+  },
+  "observationTrends": {
+    "title": "مشاہدات کے رجحانات",
+    "subtitle": "مثبت بمقابلہ منفی مشاہدات کا تجزیہ",
+    "byMonth": "ماہانہ رجحان",
+    "byDepartment": "شعبہ کے لحاظ سے",
+    "bySite": "سائٹ کے لحاظ سے",
+    "positive": "مثبت",
+    "negative": "منفی",
+    "total": "کل",
+    "ratio": "تناسب",
+    "positiveRatio": "مثبت تناسب",
+    "noData": "مشاہدات کا ڈیٹا دستیاب نہیں"
+  },
+  "residualRisk": {
+    "title": "خطرے میں کمی کے اعداد و شمار",
+    "subtitle": "اصلاحی اقدامات کی تاثیر",
+    "totalAssessed": "جانچے گئے اقدامات",
+    "avgReduction": "اوسط خطرے میں کمی",
+    "improved": "بہتر ہوا",
+    "unchanged": "تبدیلی نہیں",
+    "worsened": "بگڑ گیا",
+    "effectivenessRate": "تاثیر کی شرح",
+    "byInitialLevel": "ابتدائی خطرے کی سطح کے لحاظ سے",
+    "monthlyTrend": "ماہانہ رجحان",
+    "noData": "خطرے میں کمی کا ڈیٹا دستیاب نہیں"
+  },
+  "hsseValidationDashboard": {
+    "title": "HSSE توثیق ڈیش بورڈ",
+    "subtitle": "HSSE ماہرین کے لیے زیر التوا توثیق کے کام",
+    "pendingValidation": "توثیق کے منتظر",
+    "pendingClosure": "حتمی بندش کے منتظر",
+    "level3Count": "سطح 3",
+    "level4Count": "سطح 4",
+    "level5Count": "سطح 5",
+    "avgPendingDays": "اوسط زیر التوا دن",
+    "filterBySeverity": "شدت سے فلٹر کریں",
+    "filterBySite": "سائٹ سے فلٹر کریں",
+    "allSeverities": "تمام سطحیں",
+    "allSites": "تمام سائٹس",
+    "reference": "حوالہ",
+    "eventTitle": "عنوان",
+    "severity": "شدت",
+    "site": "سائٹ",
+    "reportedAt": "رپورٹ کی تاریخ",
+    "daysPending": "زیر التوا دن",
+    "actions": "اقدامات",
+    "viewDetails": "تفصیلات دیکھیں",
+    "noData": "کوئی زیر التوا توثیق کے کام نہیں",
+    "accept": "قبول کریں",
+    "reject": "مسترد کریں"
+  },
+  "workflow": {
+    "hsseValidation": {
+      "title": "HSSE ماہر کی توثیق",
+      "description": "خطرے کی تشخیص اور تجویز کردہ اقدامات کا جائزہ لیں",
+      "acceptRisk": "خطرے اور اقدامات کو قبول کریں",
+      "rejectRisk": "مسترد کریں اور واپس کریں",
+      "notesPlaceholder": "اضافی نوٹس (اختیاری)...",
+      "rejectionNotesPlaceholder": "براہ کرم مسترد کرنے کی وجہ بیان کریں...",
+      "rejectionNotesRequired": "مسترد کرنے کی وجہ ضروری ہے",
+      "submitDecision": "فیصلہ جمع کریں",
+      "level34Info": "یہ مشاہدہ سطح 3-4 کی شدت کا ہے اور آپ کی توثیق درکار ہے۔",
+      "level5Warning": "انتباہ: سطح 5 کی شدت - بندش کے لیے HSSE مینیجر کی منظوری درکار ہے۔"
+    },
+    "finalClosure": {
+      "title": "حتمی بندش (سطح 5)",
+      "description": "HSSE مینیجر کے طور پر، آپ حتمی بندش کر سکتے ہیں",
+      "confirmClosure": "حتمی بندش کی تصدیق کریں",
+      "notesPlaceholder": "بندش کے نوٹس...",
+      "managerOnlyWarning": "صرف HSSE مینیجر سطح 5 کے مشاہدات کو بند کر سکتا ہے۔",
+      "actionsNotComplete": "بند نہیں ہو سکتا: ابھی بھی زیر التوا اقدامات ہیں۔",
+      "validationRequired": "بند نہیں ہو سکتا: HSSE ماہر کی توثیق درکار ہے۔"
+    }
   }
 }
