@@ -5890,6 +5890,39 @@ export type Database = {
           },
         ]
       }
+      investigation_sla_configs: {
+        Row: {
+          created_at: string | null
+          escalation_days_after: number
+          id: string
+          second_escalation_days_after: number | null
+          severity_level: string
+          target_days: number
+          updated_at: string | null
+          warning_days_before: number
+        }
+        Insert: {
+          created_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          second_escalation_days_after?: number | null
+          severity_level: string
+          target_days?: number
+          updated_at?: string | null
+          warning_days_before?: number
+        }
+        Update: {
+          created_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          second_escalation_days_after?: number | null
+          severity_level?: string
+          target_days?: number
+          updated_at?: string | null
+          warning_days_before?: number
+        }
+        Relationships: []
+      }
       investigations: {
         Row: {
           ai_summary: string | null
@@ -5903,15 +5936,20 @@ export type Database = {
           contributing_factors_list: Json | null
           created_at: string | null
           deleted_at: string | null
+          escalation_level: number | null
           findings_summary: string | null
           five_whys: Json | null
           id: string
           immediate_cause: string | null
           incident_id: string | null
           investigator_id: string | null
+          review_deadline: string | null
           root_cause: string | null
           root_causes: Json | null
+          sla_escalation_sent_at: string | null
+          sla_warning_sent_at: string | null
           started_at: string | null
+          target_completion_date: string | null
           tenant_id: string
           underlying_cause: string | null
           updated_at: string | null
@@ -5928,15 +5966,20 @@ export type Database = {
           contributing_factors_list?: Json | null
           created_at?: string | null
           deleted_at?: string | null
+          escalation_level?: number | null
           findings_summary?: string | null
           five_whys?: Json | null
           id?: string
           immediate_cause?: string | null
           incident_id?: string | null
           investigator_id?: string | null
+          review_deadline?: string | null
           root_cause?: string | null
           root_causes?: Json | null
+          sla_escalation_sent_at?: string | null
+          sla_warning_sent_at?: string | null
           started_at?: string | null
+          target_completion_date?: string | null
           tenant_id: string
           underlying_cause?: string | null
           updated_at?: string | null
@@ -5953,15 +5996,20 @@ export type Database = {
           contributing_factors_list?: Json | null
           created_at?: string | null
           deleted_at?: string | null
+          escalation_level?: number | null
           findings_summary?: string | null
           five_whys?: Json | null
           id?: string
           immediate_cause?: string | null
           incident_id?: string | null
           investigator_id?: string | null
+          review_deadline?: string | null
           root_cause?: string | null
           root_causes?: Json | null
+          sla_escalation_sent_at?: string | null
+          sla_warning_sent_at?: string | null
           started_at?: string | null
+          target_completion_date?: string | null
           tenant_id?: string
           underlying_cause?: string | null
           updated_at?: string | null
