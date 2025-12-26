@@ -12770,12 +12770,15 @@ export type Database = {
         Returns: {
           channels: string[]
           email: string
+          email_template_id: string
           full_name: string
+          matrix_rule_id: string
           phone_number: string
           preferred_language: string
           stakeholder_role: string
           user_id: string
           was_condition_match: boolean
+          whatsapp_template_id: string
         }[]
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
