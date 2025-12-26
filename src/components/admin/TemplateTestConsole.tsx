@@ -33,6 +33,61 @@ interface TestResult {
   channel?: string;
 }
 
+// Realistic sample values for common template variables
+const REALISTIC_SAMPLES: Record<string, string> = {
+  // Common
+  reference_id: 'INC-2025-0042',
+  title: 'Equipment Malfunction in Zone B',
+  description: 'Hydraulic pump failure detected during routine inspection',
+  location: 'Building A, Floor 3',
+  site_name: 'Main Facility',
+  department: 'Operations',
+  action_link: 'https://app.example.com/incidents/123',
+  
+  // Incidents
+  incident_id: 'abc123-def456',
+  risk_level: 'Level 3 (Serious)',
+  reported_by: 'Ahmed Al-Rashid',
+  incident_time: '2025-12-26 14:30',
+  event_type: 'Near Miss',
+  incident_type: 'Near Miss',
+  
+  // Inspections
+  inspection_date: '2025-12-26',
+  inspector_name: 'Mohammed Hassan',
+  
+  // Actions
+  due_date: '2025-01-15',
+  assigned_to: 'Sara Al-Malki',
+  priority: 'High',
+  
+  // Contractors
+  contractor_name: 'ABC Construction LLC',
+  permit_type: 'Hot Work Permit',
+  valid_until: '2025-12-31',
+  company_name: 'XYZ Industries',
+  worker_name: 'Khalid Omar',
+  
+  // Assets
+  asset_name: 'Fire Extinguisher #FE-042',
+  asset_type: 'Fire Safety Equipment',
+  
+  // Alerts & Notifications
+  alert_time: '2025-12-26 09:15',
+  notification_type: 'Safety Alert',
+  expiry_date: '2025-12-31',
+  
+  // Users
+  user_name: 'Admin User',
+  recipient_name: 'Mohammed Ahmed',
+  sender_name: 'HSSE Department',
+};
+
+// Helper to get realistic sample value for a variable key
+const getRealisticSample = (key: string): string => {
+  return REALISTIC_SAMPLES[key] || `[${key}]`;
+};
+
 export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
@@ -151,7 +206,7 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
     if (!selectedTemplate) return;
     const sample: Record<string, string> = {};
     (selectedTemplate.variable_keys || []).forEach((key) => {
-      sample[key] = `sample_${key}`;
+      sample[key] = getRealisticSample(key);
     });
     setJsonData(JSON.stringify(sample, null, 2));
   };
@@ -166,10 +221,10 @@ export function TemplateTestConsole({ templates }: TemplateTestConsoleProps) {
       } else if (template.channel_type === 'whatsapp') {
         setTestChannel('whatsapp');
       }
-      // Auto-generate sample JSON for the selected template
+      // Auto-generate sample JSON with realistic values
       const sample: Record<string, string> = {};
       (template.variable_keys || []).forEach((key) => {
-        sample[key] = `sample_${key}`;
+        sample[key] = getRealisticSample(key);
       });
       setJsonData(JSON.stringify(sample, null, 2));
       setJsonError(null);
