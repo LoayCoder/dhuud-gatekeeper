@@ -193,7 +193,7 @@ serve(async (req: Request) => {
               <p>${bodyText}</p>
               <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
               ${payload.notes ? `<p><strong>${t.expertNotes}:</strong> ${payload.notes}</p>` : ""}
-              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#1e40af", rtl)}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#1e40af", rtl)}
               <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
             </div>
           `;
@@ -223,7 +223,7 @@ serve(async (req: Request) => {
               <p>${replaceVariables(common.greeting, { name: investigator?.full_name || 'Investigator' })}</p>
               <p>${bodyText}</p>
               <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
-              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#16a34a", rtl)}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#16a34a", rtl)}
               <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
             </div>
           `;
@@ -255,7 +255,7 @@ serve(async (req: Request) => {
               <p>${bodyText}</p>
               <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
               ${payload.notes ? `<p><strong>${t.expertNotes}:</strong> ${payload.notes}</p>` : ""}
-              ${emailButton(t.button, `${appUrl}/incidents/investigate?id=${incidentId}`, "#7c3aed", rtl)}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#7c3aed", rtl)}
               <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
             </div>
           `;
