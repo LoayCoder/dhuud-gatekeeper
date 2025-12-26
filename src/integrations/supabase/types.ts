@@ -2251,6 +2251,7 @@ export type Database = {
           finding_id: string | null
           id: string
           incident_id: string | null
+          initial_risk_level: string | null
           last_return_reason: string | null
           last_returned_at: string | null
           linked_cause_type: string | null
@@ -2263,8 +2264,10 @@ export type Database = {
           rejected_by: string | null
           rejection_notes: string | null
           released_at: string | null
+          residual_risk_level: string | null
           responsible_department_id: string | null
           return_count: number | null
+          risk_reduction_score: number | null
           session_id: string | null
           sla_escalation_sent_at: string | null
           sla_warning_sent_at: string | null
@@ -2297,6 +2300,7 @@ export type Database = {
           finding_id?: string | null
           id?: string
           incident_id?: string | null
+          initial_risk_level?: string | null
           last_return_reason?: string | null
           last_returned_at?: string | null
           linked_cause_type?: string | null
@@ -2309,8 +2313,10 @@ export type Database = {
           rejected_by?: string | null
           rejection_notes?: string | null
           released_at?: string | null
+          residual_risk_level?: string | null
           responsible_department_id?: string | null
           return_count?: number | null
+          risk_reduction_score?: number | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
@@ -2343,6 +2349,7 @@ export type Database = {
           finding_id?: string | null
           id?: string
           incident_id?: string | null
+          initial_risk_level?: string | null
           last_return_reason?: string | null
           last_returned_at?: string | null
           linked_cause_type?: string | null
@@ -2355,8 +2362,10 @@ export type Database = {
           rejected_by?: string | null
           rejection_notes?: string | null
           released_at?: string | null
+          residual_risk_level?: string | null
           responsible_department_id?: string | null
           return_count?: number | null
+          risk_reduction_score?: number | null
           session_id?: string | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
@@ -12726,6 +12735,10 @@ export type Database = {
           priority: string
         }[]
       }
+      get_hsse_validation_dashboard: {
+        Args: { p_severity_filter?: string; p_site_id?: string }
+        Returns: Json
+      }
       get_incident_department_manager: {
         Args: { p_incident_id: string }
         Returns: string
@@ -12850,6 +12863,15 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: Json
       }
+      get_observation_trend_analytics: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       get_on_duty_personnel: {
         Args: {
           p_at_time?: string
@@ -12890,6 +12912,10 @@ export type Database = {
         Returns: Json
       }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
+      get_residual_risk_metrics: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       get_response_metrics: {
         Args: {
           p_branch_id?: string

@@ -33,6 +33,8 @@ import { generateIncidentReportPDF } from '@/lib/generate-incident-report-pdf';
 import { toast } from 'sonner';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
+import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
+import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
