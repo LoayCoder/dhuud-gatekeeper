@@ -58,6 +58,7 @@ interface NotificationRecipient {
   preferred_language: string | null;
   was_condition_match: boolean;
   whatsapp_template_id?: string | null;
+  email_template_id?: string | null;
   matrix_rule_id?: string | null;
 }
 
@@ -74,6 +75,7 @@ interface NotificationTemplate {
   content_pattern: string;
   variable_keys: string[];
   language: string;
+  email_subject?: string | null;
 }
 
 // Severity level to number mapping
@@ -498,10 +500,63 @@ Deno.serve(async (req) => {
               status = 'skipped';
               errorMsg = 'No email address';
             } else {
-              const { subject, html } = generateEmailContent(
-                lang, incident, effectiveSeverity, locationText,
-                reporterName, hasInjury, isErpOverride, tenantName
-              );
+              let subject: string;
+              let html: string;
+              
+              // Check if this recipient has a linked Email template
+              if (recipient.email_template_id) {
+                // Fetch the email template
+                const { data: emailTemplate } = await supabase
+                  .from('notification_templates')
+                  .select('content_pattern, variable_keys, language, email_subject')
+                  .eq('id', recipient.email_template_id)
+                  .single();
+                
+                if (emailTemplate) {
+                  // Build variables map
+                  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
+                  const variables: Record<string, string> = {
+                    incident_id: incident.id,
+                    reference_id: incident.reference_id || '-',
+                    title: incident.title,
+                    description: incident.description?.substring(0, 500) || '',
+                    location: locationText,
+                    risk_level: SEVERITY_LABELS[effectiveSeverity]?.[lang] || effectiveSeverity,
+                    reported_by: reporterName,
+                    incident_time: incident.occurred_at || new Date().toISOString(),
+                    action_link: `${appUrl}/incidents/${incident.id}`,
+                    event_type: incident.event_type === 'observation' ? 'Observation' : 'Incident',
+                    site_name: siteName || '-',
+                  };
+                  
+                  // Render subject from template or use default
+                  subject = emailTemplate.email_subject 
+                    ? renderTemplate(emailTemplate.email_subject, variables)
+                    : `${incident.event_type === 'observation' ? 'Observation' : 'Incident'}: ${incident.reference_id} - ${incident.title}`;
+                  
+                  // Render body from template
+                  const emailBody = renderTemplate(emailTemplate.content_pattern, variables);
+                  html = wrapEmailHtml(emailBody, lang, tenantName);
+                  
+                  console.log(`[Dispatch] Using custom email template ${recipient.email_template_id} for ${recipient.full_name}`);
+                } else {
+                  // Template not found, fall back to default
+                  const defaultEmail = generateEmailContent(
+                    lang, incident, effectiveSeverity, locationText,
+                    reporterName, hasInjury, isErpOverride, tenantName
+                  );
+                  subject = defaultEmail.subject;
+                  html = defaultEmail.html;
+                }
+              } else {
+                // No template linked, use default message generator
+                const defaultEmail = generateEmailContent(
+                  lang, incident, effectiveSeverity, locationText,
+                  reporterName, hasInjury, isErpOverride, tenantName
+                );
+                subject = defaultEmail.subject;
+                html = defaultEmail.html;
+              }
               
               const result = await sendEmail({
                 to: [recipient.email],
