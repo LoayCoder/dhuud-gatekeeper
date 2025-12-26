@@ -25,7 +25,7 @@ export interface KPIAuditLog {
   notes: string | null;
 }
 
-// KPI metadata - stored client-side since schema doesn't have these columns
+// KPI metadata - matches database CHECK constraint codes
 export const KPI_METADATA: Record<string, { name: string; nameAr: string; comparison_type: 'less_than' | 'greater_than'; description: string }> = {
   trir: { 
     name: 'TRIR', 
@@ -39,7 +39,7 @@ export const KPI_METADATA: Record<string, { name: string; nameAr: string; compar
     comparison_type: 'less_than', 
     description: 'Lost time injuries per 1,000,000 man-hours' 
   },
-  dart_rate: { 
+  dart: { 
     name: 'DART Rate', 
     nameAr: 'معدل أيام العمل المفقودة',
     comparison_type: 'less_than', 
@@ -63,17 +63,35 @@ export const KPI_METADATA: Record<string, { name: string; nameAr: string; compar
     comparison_type: 'greater_than', 
     description: 'Near misses per 200,000 man-hours (higher is better - indicates reporting culture)' 
   },
-  action_closure_pct: { 
-    name: 'Action Closure %', 
-    nameAr: 'نسبة إغلاق الإجراءات',
+  action_closure_rate: { 
+    name: 'Action Closure Rate', 
+    nameAr: 'معدل إغلاق الإجراءات',
     comparison_type: 'greater_than', 
     description: 'Percentage of corrective actions closed on time' 
   },
-  observation_completion_pct: { 
-    name: 'Observation Completion %', 
-    nameAr: 'نسبة اكتمال الملاحظات',
+  observation_rate: { 
+    name: 'Observation Completion Rate', 
+    nameAr: 'معدل اكتمال الملاحظات',
     comparison_type: 'greater_than', 
     description: 'Percentage of observations resolved' 
+  },
+  training_completion: { 
+    name: 'Training Completion', 
+    nameAr: 'اكتمال التدريب',
+    comparison_type: 'greater_than', 
+    description: 'Percentage of required safety training completed' 
+  },
+  hazard_rate: { 
+    name: 'Hazard Identification Rate', 
+    nameAr: 'معدل تحديد المخاطر',
+    comparison_type: 'greater_than', 
+    description: 'Hazards identified per 200,000 man-hours' 
+  },
+  investigation_target_days: { 
+    name: 'Investigation Target Days', 
+    nameAr: 'أيام هدف التحقيق',
+    comparison_type: 'less_than', 
+    description: 'Average days to complete incident investigations' 
   },
 };
 
