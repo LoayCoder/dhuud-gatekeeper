@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+export type ChannelType = 'whatsapp' | 'email' | 'both';
+
 export interface NotificationTemplate {
   id: string;
   tenant_id: string;
@@ -14,6 +16,8 @@ export interface NotificationTemplate {
   category: string;
   language: string;
   is_active: boolean;
+  channel_type: ChannelType;
+  email_subject: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +31,8 @@ export interface CreateTemplateInput {
   category?: string;
   language?: string;
   is_active?: boolean;
+  channel_type?: ChannelType;
+  email_subject?: string;
 }
 
 export function useNotificationTemplates() {

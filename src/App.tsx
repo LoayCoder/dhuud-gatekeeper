@@ -154,7 +154,7 @@ const PlatformSettings = lazyWithRetry(() => import("./pages/admin/PlatformSetti
 const HSSENotificationAnalytics = lazyWithRetry(() => import("./pages/admin/HSSENotificationAnalytics"));
 const HSSENotifications = lazyWithRetry(() => import("./pages/admin/HSSENotifications"));
 const NotificationDeliveryLog = lazyWithRetry(() => import("./pages/admin/NotificationDeliveryLog"));
-const WhatsAppTemplates = lazyWithRetry(() => import("./pages/admin/WhatsAppTemplates"));
+const NotificationTemplates = lazyWithRetry(() => import("./pages/admin/NotificationTemplates"));
 const WhatsAppSettingsPage = lazyWithRetry(() => import("./pages/admin/WhatsAppSettingsPage"));
 const NotificationRulesPage = lazyWithRetry(() => import("./pages/admin/NotificationRulesPage"));
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
@@ -507,7 +507,7 @@ const App = () => (
                         path="/admin/whatsapp-templates"
                         element={
                           <AdminRoute>
-                            <WhatsAppTemplates />
+                            <NotificationTemplates />
                           </AdminRoute>
                         }
                       />

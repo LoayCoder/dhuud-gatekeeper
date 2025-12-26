@@ -23,8 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { X, Plus, Eye, GripVertical } from 'lucide-react';
-import { NotificationTemplate, CreateTemplateInput } from '@/hooks/useNotificationTemplates';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X, Plus, Eye, GripVertical, MessageSquare, Mail } from 'lucide-react';
+import { NotificationTemplate, CreateTemplateInput, ChannelType } from '@/hooks/useNotificationTemplates';
 
 interface TemplateEditorProps {
   open: boolean;
@@ -60,6 +61,12 @@ const CATEGORIES = [
   'alerts',
 ];
 
+const CHANNEL_OPTIONS: { value: ChannelType; label: string; icon: React.ReactNode }[] = [
+  { value: 'whatsapp', label: 'WhatsApp Only', icon: <MessageSquare className="h-4 w-4" /> },
+  { value: 'email', label: 'Email Only', icon: <Mail className="h-4 w-4" /> },
+  { value: 'both', label: 'Both Channels', icon: null },
+];
+
 export function TemplateEditor({
   open,
   onOpenChange,
@@ -80,6 +87,8 @@ export function TemplateEditor({
     category: 'general',
     language: 'en',
     is_active: true,
+    channel_type: 'whatsapp',
+    email_subject: '',
   });
   const [newVariable, setNewVariable] = useState('');
   const [previewData, setPreviewData] = useState<Record<string, string>>({});
@@ -95,6 +104,8 @@ export function TemplateEditor({
         category: template.category || 'general',
         language: template.language || 'en',
         is_active: template.is_active,
+        channel_type: template.channel_type || 'whatsapp',
+        email_subject: template.email_subject || '',
       });
       // Initialize preview data with examples
       const preview: Record<string, string> = {};
@@ -113,6 +124,8 @@ export function TemplateEditor({
         category: 'general',
         language: 'en',
         is_active: true,
+        channel_type: 'whatsapp',
+        email_subject: '',
       });
       setPreviewData({});
     }
@@ -183,6 +196,16 @@ export function TemplateEditor({
     return result;
   };
 
+  const getPreviewSubject = () => {
+    let result = formData.email_subject || '';
+    formData.variable_keys.forEach((key, index) => {
+      const placeholder = `{{${index + 1}}}`;
+      const value = previewData[key] || `[${key}]`;
+      result = result.split(placeholder).join(value);
+    });
+    return result;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -208,6 +231,9 @@ export function TemplateEditor({
     e.dataTransfer.dropEffect = 'copy';
   };
 
+  const showWhatsAppFields = formData.channel_type === 'whatsapp' || formData.channel_type === 'both';
+  const showEmailFields = formData.channel_type === 'email' || formData.channel_type === 'both';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="ltr">
@@ -218,6 +244,26 @@ export function TemplateEditor({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Channel Type Selector */}
+          <div className="space-y-2">
+            <Label>Channel Type</Label>
+            <div className="flex gap-2">
+              {CHANNEL_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  variant={formData.channel_type === option.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFormData({ ...formData, channel_type: option.value })}
+                  className="flex items-center gap-2"
+                >
+                  {option.icon}
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="slug">Slug (Unique ID)</Label>
@@ -252,23 +298,25 @@ export function TemplateEditor({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="gateway">Default Gateway</Label>
-              <Select
-                value={formData.default_gateway}
-                onValueChange={(value: 'official' | 'wasender') =>
-                  setFormData({ ...formData, default_gateway: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="wasender">WaSender</SelectItem>
-                  <SelectItem value="official">Official (Meta)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {showWhatsAppFields && (
+              <div className="space-y-2">
+                <Label htmlFor="gateway">WhatsApp Gateway</Label>
+                <Select
+                  value={formData.default_gateway}
+                  onValueChange={(value: 'official' | 'wasender') =>
+                    setFormData({ ...formData, default_gateway: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wasender">WaSender</SelectItem>
+                    <SelectItem value="official">Official (Meta)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
               <Select
@@ -286,7 +334,7 @@ export function TemplateEditor({
             </div>
           </div>
 
-          {formData.default_gateway === 'official' && (
+          {showWhatsAppFields && formData.default_gateway === 'official' && (
             <div className="space-y-2">
               <Label htmlFor="meta_template_name">Meta Template Name</Label>
               <Input
@@ -297,6 +345,23 @@ export function TemplateEditor({
                 }
                 placeholder="Template name from Meta Business Manager"
               />
+            </div>
+          )}
+
+          {showEmailFields && (
+            <div className="space-y-2">
+              <Label htmlFor="email_subject">Email Subject</Label>
+              <Input
+                id="email_subject"
+                value={formData.email_subject || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, email_subject: e.target.value })
+                }
+                placeholder="🚨 New {{1}}: {{2}}"
+              />
+              <p className="text-xs text-muted-foreground">
+                Use the same placeholders as the message body (e.g., {'{{1}}'}, {'{{2}}'})
+              </p>
             </div>
           )}
 
@@ -409,9 +474,49 @@ export function TemplateEditor({
               </CardTitle>
             </CardHeader>
             <CardContent className="py-3">
-              <div className="bg-background p-3 rounded-md border whitespace-pre-wrap font-mono text-sm">
-                {getPreviewMessage() || 'Enter message content to see preview...'}
-              </div>
+              <Tabs defaultValue={showWhatsAppFields ? 'whatsapp' : 'email'}>
+                <TabsList className="mb-3">
+                  {showWhatsAppFields && (
+                    <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      WhatsApp
+                    </TabsTrigger>
+                  )}
+                  {showEmailFields && (
+                    <TabsTrigger value="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+
+                {showWhatsAppFields && (
+                  <TabsContent value="whatsapp">
+                    <div className="bg-[#e5ddd5] p-4 rounded-md">
+                      <div className="bg-[#dcf8c6] p-3 rounded-lg max-w-sm ms-auto shadow-sm whitespace-pre-wrap text-sm">
+                        {getPreviewMessage() || 'Enter message content to see preview...'}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+
+                {showEmailFields && (
+                  <TabsContent value="email">
+                    <div className="bg-background border rounded-md overflow-hidden">
+                      <div className="bg-muted/50 px-4 py-2 border-b">
+                        <p className="text-xs text-muted-foreground">Subject:</p>
+                        <p className="font-medium text-sm">
+                          {getPreviewSubject() || 'No subject set'}
+                        </p>
+                      </div>
+                      <div className="p-4 whitespace-pre-wrap text-sm">
+                        {getPreviewMessage() || 'Enter message content to see preview...'}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
+
               {formData.variable_keys.length > 0 && (
                 <div className="mt-3 space-y-2">
                   <Label className="text-xs text-muted-foreground">Test Values:</Label>
