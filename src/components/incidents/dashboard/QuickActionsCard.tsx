@@ -4,10 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ClipboardCheck, 
   Search, 
   AlertTriangle, 
-  ListTodo,
   Plus
 } from "lucide-react";
 import { useQuickActionCounts } from "@/hooks/use-quick-action-counts";
@@ -49,7 +47,7 @@ function QuickActionButton({ icon: Icon, label, count, variant = 'default', onCl
         <Icon className={`h-5 w-5 ${iconClass}`} />
       </div>
       <span className="text-sm font-medium text-center">{label}</span>
-      {count !== undefined && count > 0 && (
+      {count !== undefined && (
         <Badge 
           variant={variant === 'danger' ? 'destructive' : 'default'}
           className={`absolute -top-2 -end-2 min-w-[20px] h-5 flex items-center justify-center ${
@@ -99,13 +97,6 @@ export function QuickActionsCard() {
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
             <QuickActionButton
-              icon={ClipboardCheck}
-              label={t('hsseDashboard.pendingApprovals', 'Pending Approvals')}
-              count={counts?.pending_approvals}
-              variant={counts?.pending_approvals && counts.pending_approvals > 0 ? 'warning' : 'default'}
-              onClick={() => openModal('pending_approvals')}
-            />
-            <QuickActionButton
               icon={Search}
               label={t('hsseDashboard.openInvestigations')}
               count={counts?.open_investigations}
@@ -117,12 +108,6 @@ export function QuickActionsCard() {
               count={counts?.overdue_actions}
               variant={counts?.overdue_actions && counts.overdue_actions > 0 ? 'danger' : 'default'}
               onClick={() => openModal('overdue_actions')}
-            />
-            <QuickActionButton
-              icon={ListTodo}
-              label={t('hsseDashboard.myActions', 'My Actions')}
-              count={counts?.my_actions}
-              onClick={() => openModal('my_actions')}
             />
           </div>
           <button
