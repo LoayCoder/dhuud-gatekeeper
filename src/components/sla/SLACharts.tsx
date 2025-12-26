@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SLADonutChartProps {
   stats: {
@@ -13,12 +12,13 @@ interface SLADonutChartProps {
   };
 }
 
+// Professional monochromatic palette with subtle variations
 const COLORS = {
-  onTrack: 'hsl(142 76% 36%)', // green-600
-  warning: 'hsl(48 96% 53%)',  // yellow-400
-  overdue: 'hsl(25 95% 53%)',  // orange-500
-  escalatedL1: 'hsl(0 84% 60%)', // red-500
-  escalatedL2: 'hsl(0 72% 51%)', // red-600
+  onTrack: 'hsl(var(--muted-foreground))',
+  warning: 'hsl(45 93% 47%)', // subtle yellow
+  overdue: 'hsl(25 95% 53%)', // subtle orange
+  escalatedL1: 'hsl(var(--destructive))',
+  escalatedL2: 'hsl(0 72% 40%)', // darker red
 };
 
 export function SLADonutChart({ stats }: SLADonutChartProps) {
@@ -36,33 +36,26 @@ export function SLADonutChart({ stats }: SLADonutChartProps) {
 
   if (total === 0) {
     return (
-      <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+      <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
         {t('sla.noData', 'No SLA data available')}
       </div>
     );
   }
 
-  const chartConfig = {
-    onTrack: { label: t('sla.onTrack', 'On Track'), color: COLORS.onTrack },
-    warning: { label: t('sla.dueSoon', 'Due Soon'), color: COLORS.warning },
-    overdue: { label: t('sla.overdue', 'Overdue'), color: COLORS.overdue },
-    escalatedL1: { label: t('sla.escalatedL1', 'Escalated L1'), color: COLORS.escalatedL1 },
-    escalatedL2: { label: t('sla.escalatedL2', 'Escalated L2'), color: COLORS.escalatedL2 },
-  };
-
   return (
-    <div className="h-[250px]" dir="ltr">
+    <div className="h-[250px] relative" dir="ltr">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={80}
+            innerRadius={65}
+            outerRadius={85}
             paddingAngle={2}
             dataKey="value"
             nameKey="name"
+            stroke="none"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -74,15 +67,15 @@ export function SLADonutChart({ stats }: SLADonutChartProps) {
                 const data = payload[0].payload;
                 const percentage = ((data.value / total) * 100).toFixed(1);
                 return (
-                  <div className="bg-background border rounded-lg shadow-lg p-3">
+                  <div className="bg-popover border rounded-md shadow-sm p-2 text-sm">
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-3 h-3 rounded-full" 
+                        className="w-2 h-2 rounded-full" 
                         style={{ backgroundColor: data.color }}
                       />
                       <span className="font-medium">{data.name}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <div className="text-muted-foreground mt-1">
                       {data.value} ({percentage}%)
                     </div>
                   </div>
@@ -95,17 +88,17 @@ export function SLADonutChart({ stats }: SLADonutChartProps) {
             layout="vertical"
             align="right"
             verticalAlign="middle"
-            formatter={(value, entry) => (
-              <span className="text-sm text-foreground">{value}</span>
+            formatter={(value) => (
+              <span className="text-xs text-muted-foreground">{value}</span>
             )}
           />
         </PieChart>
       </ResponsiveContainer>
 
       {/* Center text */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingInlineEnd: '100px' }}>
         <div className="text-center">
-          <div className="text-3xl font-bold">{total}</div>
+          <div className="text-2xl font-semibold">{total}</div>
           <div className="text-xs text-muted-foreground">{t('common.total', 'Total')}</div>
         </div>
       </div>
@@ -126,15 +119,8 @@ interface PriorityBreakdownChartProps {
 export function PriorityBreakdownChart({ data }: PriorityBreakdownChartProps) {
   const { t } = useTranslation();
 
-  const chartConfig = {
-    onTrack: { label: t('sla.onTrack', 'On Track'), color: COLORS.onTrack },
-    warning: { label: t('sla.dueSoon', 'Due Soon'), color: COLORS.warning },
-    overdue: { label: t('sla.overdue', 'Overdue'), color: COLORS.overdue },
-    escalated: { label: t('sla.escalated', 'Escalated'), color: COLORS.escalatedL1 },
-  };
-
   return (
-    <Card>
+    <Card className="border bg-card">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">
           {t('sla.byPriority', 'By Priority')}
@@ -152,10 +138,10 @@ export function PriorityBreakdownChart({ data }: PriorityBreakdownChartProps) {
                   <span className="font-medium capitalize">{item.priority}</span>
                   <span className="text-muted-foreground">{total}</span>
                 </div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+                <div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
                   {item.onTrack > 0 && (
                     <div 
-                      className="bg-green-500" 
+                      className="bg-muted-foreground/50" 
                       style={{ width: `${(item.onTrack / total) * 100}%` }} 
                     />
                   )}
@@ -173,7 +159,7 @@ export function PriorityBreakdownChart({ data }: PriorityBreakdownChartProps) {
                   )}
                   {item.escalated > 0 && (
                     <div 
-                      className="bg-red-500" 
+                      className="bg-destructive" 
                       style={{ width: `${(item.escalated / total) * 100}%` }} 
                     />
                   )}
