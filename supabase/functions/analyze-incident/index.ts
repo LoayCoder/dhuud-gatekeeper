@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPrelight, validateEdgeSecret, sanitizeInput, getClientIP } from "../_shared/cors.ts";
 
 // In-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -25,12 +21,6 @@ function isRateLimited(identifier: string): boolean {
   
   entry.count++;
   return false;
-}
-
-function getClientIP(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-         req.headers.get('x-real-ip') || 
-         'unknown';
 }
 
 // New HSSE Event Type hierarchy
@@ -93,22 +83,36 @@ const ALL_SUBTYPES = [
 
 serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPrelight(req);
+  if (preflightResponse) return preflightResponse;
+  
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
 
   try {
+    // Secret token validation
+    if (!validateEdgeSecret(req)) {
+      console.warn('[analyze-incident] Invalid or missing edge function secret');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Rate limiting check
     const clientIP = getClientIP(req);
     if (isRateLimited(clientIP)) {
-      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+      console.warn(`[analyze-incident] Rate limit exceeded for IP: ${clientIP}`);
       return new Response(
         JSON.stringify({ error: 'Too many requests. Please try again later.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { description } = await req.json();
+    const body = await req.json();
+    
+    // Sanitize input to prevent XSS
+    const description = sanitizeInput(body.description || '');
     
     if (!description || description.length < 20) {
       return new Response(
@@ -130,7 +134,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Analyzing incident description:", description.substring(0, 100));
+    console.log("[analyze-incident] Analyzing incident description:", description.substring(0, 100));
 
     // Detect input language for response
     const isArabicInput = /[\u0600-\u06FF]/.test(description);
@@ -298,12 +302,12 @@ Determine:
         );
       }
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("[analyze-incident] AI gateway error:", response.status, errorText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("AI response received:", JSON.stringify(data).substring(0, 200));
+    console.log("[analyze-incident] AI response received:", JSON.stringify(data).substring(0, 200));
 
     // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
@@ -312,7 +316,7 @@ Determine:
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log("Classification result:", result);
+    console.log("[analyze-incident] Classification result:", result);
 
     return new Response(
       JSON.stringify({
@@ -334,10 +338,11 @@ Determine:
     );
 
   } catch (error) {
-    console.error("analyze-incident error:", error);
+    console.error("[analyze-incident] error:", error);
+    const origin = req.headers.get('Origin');
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Analysis failed" }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
     );
   }
 });

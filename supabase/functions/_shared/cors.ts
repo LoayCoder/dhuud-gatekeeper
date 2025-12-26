@@ -44,7 +44,7 @@ export function getCorsHeaders(requestOrigin?: string | null): Record<string, st
   
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-edge-secret',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Max-Age': '86400', // Cache preflight for 24 hours
   };
@@ -101,6 +101,21 @@ export async function verifyAuth(req: Request, supabase: any): Promise<{ user: a
 }
 
 /**
+ * Validate edge function secret token
+ * Returns true if valid or if secret not configured (development)
+ */
+export function validateEdgeSecret(req: Request): boolean {
+  const secret = Deno.env.get('EDGE_FUNCTION_SECRET');
+  if (!secret) {
+    console.warn('EDGE_FUNCTION_SECRET not configured - allowing request in development');
+    return true; // Allow if secret not yet configured (development mode)
+  }
+  
+  const providedSecret = req.headers.get('x-edge-secret');
+  return providedSecret === secret;
+}
+
+/**
  * Create unauthorized response with CORS headers
  */
 export function unauthorizedResponse(message: string, requestOrigin?: string | null): Response {
@@ -114,4 +129,73 @@ export function unauthorizedResponse(message: string, requestOrigin?: string | n
       } 
     }
   );
+}
+
+/**
+ * XSS Sanitization for user input
+ * Removes potentially dangerous HTML/script content
+ */
+export function sanitizeInput(input: string): string {
+  if (!input || typeof input !== 'string') {
+    return '';
+  }
+  
+  return input
+    // Remove script tags and their content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove event handlers (onclick, onerror, etc.)
+    .replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '')
+    // Remove javascript: urls
+    .replace(/javascript\s*:/gi, '')
+    // Remove data: urls that could contain scripts
+    .replace(/data\s*:\s*text\/html/gi, '')
+    // Remove iframe, object, embed tags
+    .replace(/<(iframe|object|embed|form|input|button)[^>]*>/gi, '')
+    // Remove style tags (can contain expressions)
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    // Escape remaining HTML entities
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Limit length to prevent DoS
+    .substring(0, 10000);
+}
+
+/**
+ * Sanitize object recursively
+ * Applies XSS sanitization to all string values in an object
+ */
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
+  if (!obj || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  const result = { ...obj } as T;
+  
+  for (const key in result) {
+    if (Object.prototype.hasOwnProperty.call(result, key)) {
+      const value = result[key];
+      if (typeof value === 'string') {
+        (result as Record<string, unknown>)[key] = sanitizeInput(value);
+      } else if (Array.isArray(value)) {
+        (result as Record<string, unknown>)[key] = value.map((item: unknown) => 
+          typeof item === 'string' ? sanitizeInput(item) : 
+          typeof item === 'object' && item !== null ? sanitizeObject(item as Record<string, unknown>) : item
+        );
+      } else if (typeof value === 'object' && value !== null) {
+        (result as Record<string, unknown>)[key] = sanitizeObject(value as Record<string, unknown>);
+      }
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Get client IP from request headers
+ */
+export function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
 }

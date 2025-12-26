@@ -1,10 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPrelight, sanitizeInput, sanitizeObject } from "../_shared/cors.ts";
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const AI_GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
@@ -484,21 +480,18 @@ Based on the above, identify the IMMEDIATE CAUSE (1-2 sentences):`;
 async function handleGenerateUnderlyingCause(data: RCAData): Promise<string> {
   const systemPrompt = `You are an expert HSSE incident investigator conducting root cause analysis.
 
-Based on all the analysis provided (5-Whys and Immediate Cause), identify the UNDERLYING CAUSE.
+Based on the 5-Whys analysis, Immediate Cause, and incident context, identify the UNDERLYING CAUSE.
 
-The Underlying Cause focuses on SYSTEM-LEVEL failures:
-- Procedural gaps (missing or inadequate SOPs)
-- Training deficiencies
-- Equipment/engineering issues
-- Organizational/management system contributors
-- Communication breakdowns
+The Underlying Cause is:
+- The systemic condition or factor that allowed the immediate cause to occur
+- WHY the immediate cause existed or was possible
+- Deeper than the immediate trigger but not yet the root cause
 
 Guidelines:
-- Base your analysis ONLY on the data provided (no assumptions beyond evidence)
-- Write 2-3 clear, factual sentences
-- Focus on WHY the system allowed the immediate cause to occur
+- Base your analysis ONLY on the data provided (no assumptions)
+- Write 1-2 clear, factual sentences
 - Use professional HSSE language aligned with ISO 45001/OSHA
-- Do NOT repeat the immediate cause - go deeper into systemic issues
+- Focus on the systemic condition, not the immediate trigger
 
 Return ONLY the underlying cause text without any explanation or formatting.`;
 
@@ -522,7 +515,7 @@ EVENT TYPE: ${data.event_type || 'Not specified'}${data.event_subtype ? ` (${dat
 5-WHYS ANALYSIS:
 ${whysText}
 
-IMMEDIATE CAUSE (already identified):
+IMMEDIATE CAUSE:
 ${data.immediate_cause || 'Not yet identified'}
 
 WITNESS STATEMENTS:
@@ -531,62 +524,41 @@ ${witnessText}
 EVIDENCE:
 ${evidenceText}
 
-Based on the above, identify the UNDERLYING CAUSE (2-3 sentences focusing on system-level failures):`;
+Based on the above, identify the UNDERLYING CAUSE (1-2 sentences):`;
 
   return await callAI(systemPrompt, userPrompt);
 }
 
-// Suggest corrective action with all fields based on selected cause
+// Generate Corrective Action suggestion based on a selected cause
 async function handleSuggestCorrectiveAction(data: RCAData): Promise<string> {
-  const systemPrompt = `You are an expert HSSE incident investigator creating corrective actions.
+  const causeTypeLabel = data.selected_cause_type === 'root_cause' ? 'ROOT CAUSE' : 'CONTRIBUTING FACTOR';
+  
+  const systemPrompt = `You are an expert HSSE professional specializing in corrective and preventive actions (CAPA).
 
-Based on the incident RCA analysis and the specific cause to be addressed, suggest an appropriate corrective action with all required fields.
+Based on the ${causeTypeLabel} provided from an RCA, suggest a corrective action that:
+- Directly addresses the identified cause
+- Is actionable and measurable
+- Follows the hierarchy of controls (Elimination > Substitution > Engineering > Administrative > PPE)
+- Is aligned with ISO 45001 standards
 
-Guidelines:
-- Title: Clear, actionable, max 80 characters, start with action verb
-- Description: 2-3 sentences explaining the specific action steps
-- Focus on PREVENTING recurrence, not just fixing the immediate issue
-- Align with ISO 45001/OSHA best practices
-
-CATEGORY Selection (Hierarchy of Controls - prefer higher controls):
-- "engineering": Physical changes to equipment, barriers, or systems (MOST EFFECTIVE)
-- "administrative": Policies, procedures, signage, scheduling changes
-- "ppe": Personal protective equipment requirements
-- "training": Training programs, competency assessments
-- "procedure_update": Documentation, work instruction updates
-
-TYPE Selection:
-- "corrective": Fixes the immediate problem that caused this incident
-- "preventive": Prevents similar incidents in the future (proactive)
-- "improvement": Enhances existing systems beyond minimum requirements
-
-PRIORITY Selection (based on severity and urgency):
-- "critical": Life-threatening, immediate action required (for severe incidents)
-- "high": Significant risk, action within 7 days
-- "medium": Moderate risk, action within 30 days
-- "low": Minor risk, action within 90 days
-
-CRITICAL: Return ONLY valid JSON (no markdown, no code blocks):
+Return ONLY a JSON object with this structure (no markdown, no code blocks):
 {
-  "suggested_title": "Action title here (max 80 chars)",
-  "suggested_description": "Detailed description here (2-3 sentences)",
-  "suggested_category": "engineering|administrative|ppe|training|procedure_update",
-  "suggested_type": "corrective|preventive|improvement",
-  "suggested_priority": "critical|high|medium|low"
+  "title": "Short, action-oriented title (max 100 chars)",
+  "description": "Detailed description of the corrective action (2-4 sentences)",
+  "category": "engineering_controls|administrative_controls|training|ppe|procedure_update|inspection|maintenance|other",
+  "action_type": "immediate|corrective|preventive",
+  "priority": "low|medium|high|critical"
 }`;
 
   const whysText = data.five_whys?.length 
     ? data.five_whys.map((w, i) => `Why ${i + 1}: ${w.question} → ${w.answer}`).join('\n')
     : 'Not analyzed';
 
-  const causeTypeLabel = data.selected_cause_type === 'root_cause' ? 'ROOT CAUSE' : 'CONTRIBUTING FACTOR';
-
   const userPrompt = `INCIDENT: ${data.incident_title || 'Untitled'}
 DESCRIPTION: ${data.incident_description || 'No description'}
 SEVERITY: ${data.severity || 'Not specified'}
-EVENT TYPE: ${data.event_type || 'Not specified'}
 
-RCA ANALYSIS:
+RCA SUMMARY:
 - 5 Whys: ${whysText}
 - Immediate Cause: ${data.immediate_cause || 'Not identified'}
 - Underlying Cause: ${data.underlying_cause || 'Not identified'}
@@ -601,12 +573,17 @@ Suggest a corrective action with title, description, category, type, and priorit
 
 serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPrelight(req);
+  if (preflightResponse) return preflightResponse;
+  
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
 
   try {
-    const payload: RequestPayload = await req.json();
+    const rawPayload = await req.json();
+    
+    // Sanitize the entire payload to prevent XSS
+    const payload: RequestPayload = sanitizeObject(rawPayload);
     const { action, text, data, target_language, context, why_level } = payload;
 
     console.log(`[RCA AI] Processing action: ${action}`);
