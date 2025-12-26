@@ -31,11 +31,21 @@ export default function PatrolDashboard() {
     return patrolDate.toDateString() === today.toDateString();
   }) || [];
 
+  // Calculate actual compliance rate from completed patrols
+  const calculateComplianceRate = () => {
+    if (!completedPatrols || completedPatrols.length === 0) return 100;
+    const withCheckpoints = completedPatrols.filter(p => p.checkpoints_visited !== undefined && p.checkpoints_total !== undefined);
+    if (withCheckpoints.length === 0) return 100;
+    const totalCompleted = withCheckpoints.reduce((sum, p) => sum + (p.checkpoints_visited || 0), 0);
+    const totalExpected = withCheckpoints.reduce((sum, p) => sum + (p.checkpoints_total || 0), 0);
+    return totalExpected > 0 ? Math.round((totalCompleted / totalExpected) * 100) : 100;
+  };
+
   const stats = {
     activePatrols: activePatrols?.length || 0,
     completedToday: todayPatrols.length,
     totalRoutes: routes?.length || 0,
-    avgCompliance: 95, // TODO: Calculate from actual data
+    avgCompliance: calculateComplianceRate(),
   };
 
   return (
