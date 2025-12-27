@@ -191,3 +191,6 @@ verify_jwt = true
 
 [functions.asset-health-daily-cron]
 verify_jwt = false
+
+[functions.asset-warranty-alerts]
+verify_jwt = false
