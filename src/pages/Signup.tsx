@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
+import { usePasswordStrength } from '@/hooks/use-password-strength';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
 import { z } from 'zod';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
@@ -25,6 +27,7 @@ export default function Signup() {
   const { tenantName, logoUrl, activeLogoUrl, invitationEmail, invitationCode, isCodeValidated, clearInvitationData } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword, isChecking } = usePasswordBreachCheck();
+  const passwordStrength = usePasswordStrength(password);
 
   // Determine the logo to display with fallback
   const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
@@ -33,7 +36,12 @@ export default function Signup() {
 
   const signupSchema = z.object({
     email: z.string().email(t('auth.invalidEmail')),
-    password: z.string().min(8, t('auth.passwordMinLength')),
+    password: z.string()
+      .min(12, t('passwordStrength.minLength'))
+      .regex(/[A-Z]/, t('passwordStrength.uppercase'))
+      .regex(/[a-z]/, t('passwordStrength.lowercase'))
+      .regex(/[0-9]/, t('passwordStrength.number'))
+      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')),
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('auth.passwordsDoNotMatch'),
@@ -299,6 +307,8 @@ export default function Signup() {
                   className="h-12"
                 />
               </div>
+
+              <PasswordStrengthMeter password={password} />
 
               {breachWarning && (
                 <Alert variant="destructive">

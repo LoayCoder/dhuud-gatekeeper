@@ -188,3 +188,6 @@ verify_jwt = false
 
 [functions.calculate-asset-health]
 verify_jwt = true
+
+[functions.asset-health-daily-cron]
+verify_jwt = false

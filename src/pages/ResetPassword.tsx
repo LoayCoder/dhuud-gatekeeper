@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
 import { z } from 'zod';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK, DHUUD_TENANT_NAME } from '@/constants/branding';
 
@@ -23,7 +24,12 @@ export default function ResetPassword() {
   const displayLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
 
   const passwordSchema = z.object({
-    password: z.string().min(6, t('auth.passwordMinLength')),
+    password: z.string()
+      .min(12, t('passwordStrength.minLength'))
+      .regex(/[A-Z]/, t('passwordStrength.uppercase'))
+      .regex(/[a-z]/, t('passwordStrength.lowercase'))
+      .regex(/[0-9]/, t('passwordStrength.number'))
+      .regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]/, t('passwordStrength.special')),
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('auth.passwordsDoNotMatch'),
@@ -113,6 +119,10 @@ export default function ResetPassword() {
                 disabled={loading}
                 className="h-12"
               />
+            </div>
+
+            <div className="space-y-2">
+              <PasswordStrengthMeter password={password} />
             </div>
 
             <div className="space-y-2">
