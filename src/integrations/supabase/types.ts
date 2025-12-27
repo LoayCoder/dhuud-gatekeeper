@@ -840,6 +840,7 @@ export type Database = {
           asset_id: string
           closing_value: number
           created_at: string
+          deleted_at: string | null
           depreciation_amount: number
           depreciation_method: string
           id: string
@@ -854,6 +855,7 @@ export type Database = {
           asset_id: string
           closing_value: number
           created_at?: string
+          deleted_at?: string | null
           depreciation_amount: number
           depreciation_method?: string
           id?: string
@@ -868,6 +870,7 @@ export type Database = {
           asset_id?: string
           closing_value?: number
           created_at?: string
+          deleted_at?: string | null
           depreciation_amount?: number
           depreciation_method?: string
           id?: string
@@ -991,6 +994,7 @@ export type Database = {
           confidence_pct: number
           cost_if_ignored: number | null
           created_at: string
+          deleted_at: string | null
           estimated_repair_cost: number | null
           id: string
           model_inputs: Json | null
@@ -1013,6 +1017,7 @@ export type Database = {
           confidence_pct: number
           cost_if_ignored?: number | null
           created_at?: string
+          deleted_at?: string | null
           estimated_repair_cost?: number | null
           id?: string
           model_inputs?: Json | null
@@ -1035,6 +1040,7 @@ export type Database = {
           confidence_pct?: number
           cost_if_ignored?: number | null
           created_at?: string
+          deleted_at?: string | null
           estimated_repair_cost?: number | null
           id?: string
           model_inputs?: Json | null
@@ -1088,6 +1094,7 @@ export type Database = {
           contributing_factors: Json | null
           created_at: string
           days_until_predicted_failure: number | null
+          deleted_at: string | null
           environment_factor: number | null
           failure_probability: number | null
           id: string
@@ -1108,6 +1115,7 @@ export type Database = {
           contributing_factors?: Json | null
           created_at?: string
           days_until_predicted_failure?: number | null
+          deleted_at?: string | null
           environment_factor?: number | null
           failure_probability?: number | null
           id?: string
@@ -1128,6 +1136,7 @@ export type Database = {
           contributing_factors?: Json | null
           created_at?: string
           days_until_predicted_failure?: number | null
+          deleted_at?: string | null
           environment_factor?: number | null
           failure_probability?: number | null
           id?: string
@@ -1479,6 +1488,7 @@ export type Database = {
       asset_maintenance_sla_configs: {
         Row: {
           created_at: string
+          deleted_at: string | null
           escalation_days_after: number
           id: string
           priority: string
@@ -1489,6 +1499,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           escalation_days_after?: number
           id?: string
           priority: string
@@ -1499,6 +1510,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           escalation_days_after?: number
           id?: string
           priority?: string
@@ -1701,6 +1713,7 @@ export type Database = {
           asset_code: string
           asset_id: string | null
           created_at: string | null
+          deleted_at: string | null
           device_info: Json | null
           id: string
           is_offline_scan: boolean | null
@@ -1716,6 +1729,7 @@ export type Database = {
           asset_code: string
           asset_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           device_info?: Json | null
           id?: string
           is_offline_scan?: boolean | null
@@ -1731,6 +1745,7 @@ export type Database = {
           asset_code?: string
           asset_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           device_info?: Json | null
           id?: string
           is_offline_scan?: boolean | null
