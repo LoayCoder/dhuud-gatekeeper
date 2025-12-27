@@ -11,8 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Download, 
   Upload, 
@@ -21,7 +21,9 @@ import {
   XCircle, 
   AlertTriangle,
   Loader2,
-  Package
+  Package,
+  Table,
+  ListChecks
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +39,7 @@ import {
   type AssetTemplateLookupData
 } from '@/lib/asset-import-utils';
 import { toast } from 'sonner';
+import { ImportPreviewTable, ImportErrorSummary } from './import';
 
 interface AssetImportDialogProps {
   open: boolean;
