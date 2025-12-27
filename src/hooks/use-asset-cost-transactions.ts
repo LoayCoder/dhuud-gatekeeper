@@ -38,7 +38,7 @@ export interface CreateTransactionInput {
 }
 
 export function useAssetCostTransactions(assetId: string | undefined) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
