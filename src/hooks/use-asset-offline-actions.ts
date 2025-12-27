@@ -292,6 +292,7 @@ export function useAssetOfflineCache() {
       if (data) {
         for (const asset of data) {
           await offlineDataCache.set(CACHE_STORES.ASSETS, `asset_${asset.id}`, asset as any);
+        }
       }
     } catch (error) {
       console.error('Failed to prefetch assets:', error);
