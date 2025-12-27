@@ -10,6 +10,9 @@ import { InspectionDueWidget } from '@/components/dashboard/InspectionDueWidget'
 import { ContractorStatsWidget } from '@/components/dashboard/ContractorStatsWidget';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
 import { InstallAppCard } from '@/components/dashboard/InstallAppCard';
+import { FleetHealthOverviewWidget } from '@/components/dashboard/FleetHealthOverviewWidget';
+import { AtRiskAssetsWidget } from '@/components/dashboard/AtRiskAssetsWidget';
+import { MaintenanceComplianceWidget } from '@/components/dashboard/MaintenanceComplianceWidget';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { useDashboardStats } from '@/hooks/use-dashboard-stats';
@@ -25,6 +28,7 @@ export default function Dashboard() {
   const hasPTWAccess = hasModule('ptw');
   const hasSecurityAccess = hasModule('security');
   const hasInspectionsAccess = hasModule('audits') || hasModule('hsse_core');
+  const hasAssetAccess = hasModule('asset_management');
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -105,6 +109,15 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Asset Health Widgets */}
+      {hasAssetAccess && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <FleetHealthOverviewWidget />
+          <AtRiskAssetsWidget />
+          <MaintenanceComplianceWidget />
+        </div>
+      )}
 
       {/* HSSE-Specific Widgets */}
       {hasHSSEAccess && (
