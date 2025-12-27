@@ -73,6 +73,7 @@ const MobileAssetScanner = lazyWithRetry(() => import("./pages/assets/MobileAsse
 const AssetFinancials = lazyWithRetry(() => import("./pages/assets/AssetFinancials"));
 const AssetHealth = lazyWithRetry(() => import("./pages/assets/AssetHealth"));
 const AssetWarranties = lazyWithRetry(() => import("./pages/assets/AssetWarranties"));
+const AssetDepreciation = lazyWithRetry(() => import("./pages/assets/AssetDepreciation"));
 const InspectionSessionsDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionSessionsDashboard"));
 const SessionWorkspace = lazyWithRetry(() => import("./pages/inspections/SessionWorkspace"));
 const AreaSessionWorkspace = lazyWithRetry(() => import("./pages/inspections/AreaSessionWorkspace"));
@@ -309,6 +310,7 @@ const App = () => (
                       <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/:id/financials" element={<AssetFinancials />} />
                       <Route path="/assets/:id/health" element={<AssetHealth />} />
+                      <Route path="/assets/:id/depreciation" element={<AssetDepreciation />} />
                       <Route path="/assets/:id/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
                       <Route path="/assets/warranties" element={<AssetWarranties />} />
 
