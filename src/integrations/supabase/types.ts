@@ -2100,6 +2100,92 @@ export type Database = {
           },
         ]
       }
+      asset_warranty_claims: {
+        Row: {
+          asset_id: string
+          claim_date: string
+          claim_number: string
+          claim_status: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          issue_description: string
+          repair_cost: number | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          tenant_id: string
+          updated_at: string
+          vendor_contact: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          asset_id: string
+          claim_date?: string
+          claim_number: string
+          claim_status?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          issue_description: string
+          repair_cost?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          tenant_id: string
+          updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          asset_id?: string
+          claim_date?: string
+          claim_number?: string
+          claim_status?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          issue_description?: string
+          repair_cost?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+          vendor_contact?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_warranty_claims_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_warranty_claims_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_warranty_claims_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_warranty_claims_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_notification_logs: {
         Row: {
           attempt_count: number | null
@@ -4324,6 +4410,8 @@ export type Database = {
           updated_at: string | null
           updated_by: string | null
           warranty_expiry_date: string | null
+          warranty_provider: string | null
+          warranty_terms: string | null
           warranty_warning_sent_at: string | null
         }
         Insert: {
@@ -4383,6 +4471,8 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           warranty_expiry_date?: string | null
+          warranty_provider?: string | null
+          warranty_terms?: string | null
           warranty_warning_sent_at?: string | null
         }
         Update: {
@@ -4442,6 +4532,8 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           warranty_expiry_date?: string | null
+          warranty_provider?: string | null
+          warranty_terms?: string | null
           warranty_warning_sent_at?: string | null
         }
         Relationships: [
