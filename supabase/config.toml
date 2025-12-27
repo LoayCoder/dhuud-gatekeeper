@@ -179,3 +179,9 @@ verify_jwt = true
 
 [functions.send-email-template]
 verify_jwt = true
+
+[functions.asset-maintenance-escalation]
+verify_jwt = false
+
+[functions.asset-expiry-alerts]
+verify_jwt = false
