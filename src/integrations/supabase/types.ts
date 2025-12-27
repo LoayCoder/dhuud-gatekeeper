@@ -663,6 +663,13 @@ export type Database = {
             foreignKeyName: "asset_audit_logs_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_audit_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -731,6 +738,169 @@ export type Database = {
           },
         ]
       }
+      asset_cost_transactions: {
+        Row: {
+          amount: number
+          asset_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deleted_at: string | null
+          description: string | null
+          fiscal_quarter: number | null
+          fiscal_year: number | null
+          id: string
+          invoice_number: string | null
+          maintenance_schedule_id: string | null
+          tenant_id: string
+          transaction_date: string
+          transaction_type: string
+          updated_at: string
+          vendor_name: string | null
+        }
+        Insert: {
+          amount: number
+          asset_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          fiscal_quarter?: number | null
+          fiscal_year?: number | null
+          id?: string
+          invoice_number?: string | null
+          maintenance_schedule_id?: string | null
+          tenant_id: string
+          transaction_date: string
+          transaction_type: string
+          updated_at?: string
+          vendor_name?: string | null
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          fiscal_quarter?: number | null
+          fiscal_year?: number | null
+          id?: string
+          invoice_number?: string | null
+          maintenance_schedule_id?: string | null
+          tenant_id?: string
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_cost_transactions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_cost_transactions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_cost_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_cost_transactions_maintenance_schedule_id_fkey"
+            columns: ["maintenance_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "asset_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_cost_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_depreciation_schedules: {
+        Row: {
+          accumulated_depreciation: number
+          asset_id: string
+          closing_value: number
+          created_at: string
+          depreciation_amount: number
+          depreciation_method: string
+          id: string
+          opening_value: number
+          period_end: string
+          period_start: string
+          period_type: string
+          tenant_id: string
+        }
+        Insert: {
+          accumulated_depreciation: number
+          asset_id: string
+          closing_value: number
+          created_at?: string
+          depreciation_amount: number
+          depreciation_method?: string
+          id?: string
+          opening_value: number
+          period_end: string
+          period_start: string
+          period_type: string
+          tenant_id: string
+        }
+        Update: {
+          accumulated_depreciation?: number
+          asset_id?: string
+          closing_value?: number
+          created_at?: string
+          depreciation_amount?: number
+          depreciation_method?: string
+          id?: string
+          opening_value?: number
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_depreciation_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_depreciation_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_depreciation_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_documents: {
         Row: {
           asset_id: string
@@ -785,6 +955,13 @@ export type Database = {
             foreignKeyName: "asset_documents_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_documents_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -800,6 +977,189 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_failure_predictions: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          actual_failure_date: string | null
+          addressed_at: string | null
+          asset_id: string
+          confidence_pct: number
+          cost_if_ignored: number | null
+          created_at: string
+          estimated_repair_cost: number | null
+          id: string
+          model_inputs: Json | null
+          predicted_date: string
+          predicted_failure_type: string
+          prediction_model_version: string | null
+          priority: number | null
+          recommended_action: string | null
+          severity: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_failure_date?: string | null
+          addressed_at?: string | null
+          asset_id: string
+          confidence_pct: number
+          cost_if_ignored?: number | null
+          created_at?: string
+          estimated_repair_cost?: number | null
+          id?: string
+          model_inputs?: Json | null
+          predicted_date: string
+          predicted_failure_type: string
+          prediction_model_version?: string | null
+          priority?: number | null
+          recommended_action?: string | null
+          severity: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_failure_date?: string | null
+          addressed_at?: string | null
+          asset_id?: string
+          confidence_pct?: number
+          cost_if_ignored?: number | null
+          created_at?: string
+          estimated_repair_cost?: number | null
+          id?: string
+          model_inputs?: Json | null
+          predicted_date?: string
+          predicted_failure_type?: string
+          prediction_model_version?: string | null
+          priority?: number | null
+          recommended_action?: string | null
+          severity?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_failure_predictions_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_failure_predictions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_failure_predictions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_failure_predictions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_health_scores: {
+        Row: {
+          age_factor: number | null
+          asset_id: string
+          calculation_model_version: string | null
+          condition_factor: number | null
+          contributing_factors: Json | null
+          created_at: string
+          days_until_predicted_failure: number | null
+          environment_factor: number | null
+          failure_probability: number | null
+          id: string
+          last_calculated_at: string
+          maintenance_compliance_pct: number | null
+          risk_level: string
+          score: number
+          tenant_id: string
+          trend: string | null
+          updated_at: string
+          usage_factor: number | null
+        }
+        Insert: {
+          age_factor?: number | null
+          asset_id: string
+          calculation_model_version?: string | null
+          condition_factor?: number | null
+          contributing_factors?: Json | null
+          created_at?: string
+          days_until_predicted_failure?: number | null
+          environment_factor?: number | null
+          failure_probability?: number | null
+          id?: string
+          last_calculated_at?: string
+          maintenance_compliance_pct?: number | null
+          risk_level: string
+          score: number
+          tenant_id: string
+          trend?: string | null
+          updated_at?: string
+          usage_factor?: number | null
+        }
+        Update: {
+          age_factor?: number | null
+          asset_id?: string
+          calculation_model_version?: string | null
+          condition_factor?: number | null
+          contributing_factors?: Json | null
+          created_at?: string
+          days_until_predicted_failure?: number | null
+          environment_factor?: number | null
+          failure_probability?: number | null
+          id?: string
+          last_calculated_at?: string
+          maintenance_compliance_pct?: number | null
+          risk_level?: string
+          score?: number
+          tenant_id?: string
+          trend?: string | null
+          updated_at?: string
+          usage_factor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_health_scores_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_health_scores_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_health_scores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -861,6 +1221,13 @@ export type Database = {
             foreignKeyName: "asset_inspections_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_inspections_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -887,6 +1254,123 @@ export type Database = {
           },
           {
             foreignKeyName: "asset_inspections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance_history: {
+        Row: {
+          actual_duration_hours: number | null
+          asset_id: string
+          condition_after: string | null
+          condition_before: string | null
+          cost: number | null
+          created_at: string
+          currency: string | null
+          deleted_at: string | null
+          downtime_hours: number | null
+          failure_mode: string | null
+          findings: Json | null
+          id: string
+          maintenance_type: string
+          next_recommended_action: string | null
+          notes: string | null
+          parts_used: Json | null
+          performed_by: string | null
+          performed_date: string
+          planned_duration_hours: number | null
+          root_cause: string | null
+          schedule_id: string | null
+          tenant_id: string
+          updated_at: string
+          was_unplanned: boolean | null
+        }
+        Insert: {
+          actual_duration_hours?: number | null
+          asset_id: string
+          condition_after?: string | null
+          condition_before?: string | null
+          cost?: number | null
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          downtime_hours?: number | null
+          failure_mode?: string | null
+          findings?: Json | null
+          id?: string
+          maintenance_type: string
+          next_recommended_action?: string | null
+          notes?: string | null
+          parts_used?: Json | null
+          performed_by?: string | null
+          performed_date: string
+          planned_duration_hours?: number | null
+          root_cause?: string | null
+          schedule_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          was_unplanned?: boolean | null
+        }
+        Update: {
+          actual_duration_hours?: number | null
+          asset_id?: string
+          condition_after?: string | null
+          condition_before?: string | null
+          cost?: number | null
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          downtime_hours?: number | null
+          failure_mode?: string | null
+          findings?: Json | null
+          id?: string
+          maintenance_type?: string
+          next_recommended_action?: string | null
+          notes?: string | null
+          parts_used?: Json | null
+          performed_by?: string | null
+          performed_date?: string
+          planned_duration_hours?: number | null
+          root_cause?: string | null
+          schedule_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          was_unplanned?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_history_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_history_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_history_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "asset_maintenance_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_history_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -966,6 +1450,13 @@ export type Database = {
             foreignKeyName: "asset_maintenance_schedules_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -1026,6 +1517,111 @@ export type Database = {
           },
         ]
       }
+      asset_offline_actions: {
+        Row: {
+          action_data: Json
+          action_type: string
+          asset_code: string | null
+          asset_id: string | null
+          captured_at: string
+          conflict_data: Json | null
+          created_at: string
+          created_by: string | null
+          device_id: string
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          resolution_strategy: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          sync_error: string | null
+          sync_status: string
+          synced_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action_data?: Json
+          action_type: string
+          asset_code?: string | null
+          asset_id?: string | null
+          captured_at: string
+          conflict_data?: Json | null
+          created_at?: string
+          created_by?: string | null
+          device_id: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          resolution_strategy?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action_data?: Json
+          action_type?: string
+          asset_code?: string | null
+          asset_id?: string | null
+          captured_at?: string
+          conflict_data?: Json | null
+          created_at?: string
+          created_by?: string | null
+          device_id?: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          resolution_strategy?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_offline_actions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "asset_offline_actions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_offline_actions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_offline_actions_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_offline_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_photos: {
         Row: {
           asset_id: string
@@ -1070,6 +1666,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "asset_photos_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
           {
             foreignKeyName: "asset_photos_asset_id_fkey"
             columns: ["asset_id"]
@@ -1140,6 +1743,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "asset_scan_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
           {
             foreignKeyName: "asset_scan_logs_asset_id_fkey"
             columns: ["asset_id"]
@@ -1318,6 +1928,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
           },
           {
             foreignKeyName: "asset_transfers_asset_id_fkey"
@@ -4390,6 +5007,13 @@ export type Database = {
             foreignKeyName: "incident_asset_links_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "incident_asset_links_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -5252,6 +5876,13 @@ export type Database = {
             foreignKeyName: "inspection_findings_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
+          {
+            foreignKeyName: "inspection_findings_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
             referencedRelation: "hsse_assets"
             referencedColumns: ["id"]
           },
@@ -5558,6 +6189,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inspection_session_assets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
           {
             foreignKeyName: "inspection_session_assets_asset_id_fkey"
             columns: ["asset_id"]
@@ -6406,6 +7044,13 @@ export type Database = {
           work_order_reference?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "maintenance_part_usage_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
           {
             foreignKeyName: "maintenance_part_usage_asset_id_fkey"
             columns: ["asset_id"]
@@ -8737,6 +9382,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ptw_lifting_details_crane_id_fkey"
+            columns: ["crane_id"]
+            isOneToOne: false
+            referencedRelation: "asset_tco_summary"
+            referencedColumns: ["asset_id"]
+          },
           {
             foreignKeyName: "ptw_lifting_details_crane_id_fkey"
             columns: ["crane_id"]
@@ -12668,12 +13320,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      asset_tco_summary: {
+        Row: {
+          acquisition_cost: number | null
+          asset_code: string | null
+          asset_id: string | null
+          cost_per_month: number | null
+          energy_cost: number | null
+          insurance_cost: number | null
+          maintenance_cost: number | null
+          months_in_service: number | null
+          name: string | null
+          other_cost: number | null
+          repair_cost: number | null
+          tenant_id: string | null
+          total_cost_of_ownership: number | null
+          upgrade_cost: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       append_notification_webhook_event: {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
+      }
+      calculate_asset_depreciation: {
+        Args: { p_asset_id: string }
+        Returns: number
       }
       calculate_next_inspection_due: {
         Args: {
