@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode, Activity, DollarSign, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -165,6 +165,18 @@ function AssetDetailContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* Quick Action Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => navigate(`/assets/${id}/health`)} className="gap-2">
+          <Activity className="h-4 w-4" />
+          {t('assets.tabs.health', 'Health & Predictions')}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/assets/${id}/financials`)} className="gap-2">
+          <DollarSign className="h-4 w-4" />
+          {t('assets.tabs.financials', 'TCO & Financials')}
+        </Button>
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" dir={direction}>
