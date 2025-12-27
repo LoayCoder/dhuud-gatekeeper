@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download } from 'lucide-react';
@@ -8,9 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { ModuleGate } from '@/components/ModuleGate';
 import { AssetImportDialog } from '@/components/assets';
+import {
+  BulkActionsToolbar,
+  BulkStatusChangeDialog,
+  BulkLocationChangeDialog,
+  BulkDeleteDialog,
+} from '@/components/assets/bulk';
 import { useAssets, useAssetCategories, type AssetFilters, type AssetWithRelations } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +42,15 @@ const CONDITION_COLORS: Record<string, string> = {
   critical: 'bg-red-500/10 text-red-700 dark:text-red-400',
 };
 
-function AssetCard({ asset, onClick }: { asset: AssetWithRelations; onClick: () => void }) {
+interface AssetCardProps {
+  asset: AssetWithRelations;
+  onClick: () => void;
+  isSelected: boolean;
+  onSelect: (checked: boolean) => void;
+  selectionMode: boolean;
+}
+
+function AssetCard({ asset, onClick, isSelected, onSelect, selectionMode }: AssetCardProps) {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
   
@@ -43,11 +58,31 @@ function AssetCard({ asset, onClick }: { asset: AssetWithRelations; onClick: () 
   const isOverdue = inspectionDue && isPast(inspectionDue);
   const isDueSoon = inspectionDue && !isOverdue && isFuture(inspectionDue) && inspectionDue <= addDays(new Date(), 7);
 
+  const handleCardClick = () => {
+    if (selectionMode) {
+      onSelect(!isSelected);
+    } else {
+      onClick();
+    }
+  };
+
   return (
     <Card 
-      className="cursor-pointer hover:border-primary/50 transition-colors"
-      onClick={onClick}
+      className={cn(
+        'cursor-pointer hover:border-primary/50 transition-colors relative',
+        isSelected && 'ring-2 ring-primary border-primary'
+      )}
+      onClick={handleCardClick}
     >
+      {selectionMode && (
+        <div className="absolute top-3 end-3 z-10">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(!!checked)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -59,9 +94,11 @@ function AssetCard({ asset, onClick }: { asset: AssetWithRelations; onClick: () 
               <CardDescription className="text-xs">{asset.asset_code}</CardDescription>
             </div>
           </div>
-          <Badge variant="outline" className={cn('text-xs', STATUS_COLORS[asset.status || 'active'])}>
-            {t(`assets.status.${asset.status || 'active'}`)}
-          </Badge>
+          {!selectionMode && (
+            <Badge variant="outline" className={cn('text-xs', STATUS_COLORS[asset.status || 'active'])}>
+              {t(`assets.status.${asset.status || 'active'}`)}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="pt-2">
@@ -104,6 +141,11 @@ function AssetCard({ asset, onClick }: { asset: AssetWithRelations; onClick: () 
               </span>
             </div>
           )}
+          {selectionMode && (
+            <Badge variant="outline" className={cn('text-xs mt-1', STATUS_COLORS[asset.status || 'active'])}>
+              {t(`assets.status.${asset.status || 'active'}`)}
+            </Badge>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -121,6 +163,12 @@ function AssetListContent() {
   const [searchInput, setSearchInput] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Bulk selection state
+  const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { hasModuleAccess } = useUserRoles();
   const canManage = hasModuleAccess('asset_management');
@@ -135,6 +183,51 @@ function AssetListContent() {
     goToNextPage, 
     goToPreviousPage 
   } = useAssets(filters);
+
+  // Selection helpers
+  const selectionMode = selectedAssetIds.size > 0;
+  const currentPageAssetIds = data?.data?.map(a => a.id) || [];
+  const allPageSelected = currentPageAssetIds.length > 0 && currentPageAssetIds.every(id => selectedAssetIds.has(id));
+  const somePageSelected = currentPageAssetIds.some(id => selectedAssetIds.has(id));
+
+  const toggleAssetSelection = useCallback((assetId: string, selected: boolean) => {
+    setSelectedAssetIds(prev => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(assetId);
+      } else {
+        next.delete(assetId);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (allPageSelected) {
+      // Deselect all on current page
+      setSelectedAssetIds(prev => {
+        const next = new Set(prev);
+        currentPageAssetIds.forEach(id => next.delete(id));
+        return next;
+      });
+    } else {
+      // Select all on current page
+      setSelectedAssetIds(prev => {
+        const next = new Set(prev);
+        currentPageAssetIds.forEach(id => next.add(id));
+        return next;
+      });
+    }
+  }, [allPageSelected, currentPageAssetIds]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedAssetIds(new Set());
+  }, []);
+
+  const handleBulkSuccess = useCallback(() => {
+    clearSelection();
+    refetchAssets();
+  }, [clearSelection, refetchAssets]);
 
   const handleSearch = (value: string) => {
     setSearchInput(value);
@@ -358,6 +451,51 @@ function AssetListContent() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Toolbar */}
+      {canManage && (
+        <BulkActionsToolbar
+          selectedCount={selectedAssetIds.size}
+          onClearSelection={clearSelection}
+          onStatusChange={() => setStatusDialogOpen(true)}
+          onLocationChange={() => setLocationDialogOpen(true)}
+          onDelete={() => setDeleteDialogOpen(true)}
+        />
+      )}
+
+      {/* Bulk Actions Dialogs */}
+      <BulkStatusChangeDialog
+        open={statusDialogOpen}
+        onOpenChange={setStatusDialogOpen}
+        selectedAssetIds={Array.from(selectedAssetIds)}
+        onSuccess={handleBulkSuccess}
+      />
+      <BulkLocationChangeDialog
+        open={locationDialogOpen}
+        onOpenChange={setLocationDialogOpen}
+        selectedAssetIds={Array.from(selectedAssetIds)}
+        onSuccess={handleBulkSuccess}
+      />
+      <BulkDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        selectedAssetIds={Array.from(selectedAssetIds)}
+        onSuccess={handleBulkSuccess}
+      />
+
+      {/* Select All for current page */}
+      {canManage && data?.data && data.data.length > 0 && (
+        <div className="flex items-center gap-2 px-1">
+          <Checkbox
+            checked={allPageSelected}
+            onCheckedChange={toggleSelectAll}
+            id="select-all"
+          />
+          <label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
+            {allPageSelected ? t('assets.bulk.deselectAll') : t('assets.bulk.selectAll')}
+          </label>
+        </div>
+      )}
+
       {/* Asset Grid/List */}
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -396,6 +534,9 @@ function AssetListContent() {
               key={asset.id} 
               asset={asset} 
               onClick={() => navigate(`/assets/${asset.id}`)}
+              isSelected={selectedAssetIds.has(asset.id)}
+              onSelect={(checked) => toggleAssetSelection(asset.id, checked)}
+              selectionMode={selectionMode || canManage}
             />
           ))}
         </div>
@@ -403,27 +544,46 @@ function AssetListContent() {
         <Card>
           <CardContent className="p-0">
             <div className="divide-y">
-              {data?.data?.map((asset) => (
-                <div 
-                  key={asset.id}
-                  className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/assets/${asset.id}`)}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                    <Package className="h-5 w-5 text-primary" />
+              {data?.data?.map((asset) => {
+                const isSelected = selectedAssetIds.has(asset.id);
+                return (
+                  <div 
+                    key={asset.id}
+                    className={cn(
+                      'flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition-colors',
+                      isSelected && 'bg-primary/5'
+                    )}
+                    onClick={() => {
+                      if (selectionMode) {
+                        toggleAssetSelection(asset.id, !isSelected);
+                      } else {
+                        navigate(`/assets/${asset.id}`);
+                      }
+                    }}
+                  >
+                    {canManage && (
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => toggleAssetSelection(asset.id, !!checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                      <Package className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{asset.name}</div>
+                      <div className="text-sm text-muted-foreground">{asset.asset_code}</div>
+                    </div>
+                    <div className="hidden sm:block text-sm text-muted-foreground">
+                      {i18n.language === 'ar' && asset.category?.name_ar ? asset.category.name_ar : asset.category?.name}
+                    </div>
+                    <Badge variant="outline" className={cn('text-xs shrink-0', STATUS_COLORS[asset.status || 'active'])}>
+                      {t(`assets.status.${asset.status || 'active'}`)}
+                    </Badge>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{asset.name}</div>
-                    <div className="text-sm text-muted-foreground">{asset.asset_code}</div>
-                  </div>
-                  <div className="hidden sm:block text-sm text-muted-foreground">
-                    {i18n.language === 'ar' && asset.category?.name_ar ? asset.category.name_ar : asset.category?.name}
-                  </div>
-                  <Badge variant="outline" className={cn('text-xs shrink-0', STATUS_COLORS[asset.status || 'active'])}>
-                    {t(`assets.status.${asset.status || 'active'}`)}
-                  </Badge>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
