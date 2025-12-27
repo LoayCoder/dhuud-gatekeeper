@@ -6576,5 +6576,48 @@
       "medium": "Medium",
       "low": "Low"
     }
+  },
+  "parts": {
+    "inventory": {
+      "title": "Parts Inventory",
+      "lowStockAlerts": "Low Stock Alerts",
+      "stockLevel": "Stock Level",
+      "currentStock": "Current Stock",
+      "minimumStock": "Minimum Stock",
+      "reorderPoint": "Reorder Point",
+      "partNumber": "Part Number",
+      "adjustStock": "Adjust Stock",
+      "viewHistory": "View History",
+      "createPO": "Create PO"
+    },
+    "orders": {
+      "title": "Purchase Orders",
+      "supplier": "Supplier",
+      "orderDate": "Order Date",
+      "expectedDelivery": "Expected Delivery",
+      "status": "Status",
+      "totalAmount": "Total Amount"
+    },
+    "transactions": {
+      "receipt": "Receipt",
+      "issue": "Issue",
+      "adjustment": "Adjustment",
+      "return": "Return"
+    }
+  },
+  "assets": {
+    "reports": {
+      "title": "Asset Reports",
+      "subtitle": "Generate and export asset reports",
+      "exportPDF": "Export PDF",
+      "exportExcel": "Export Excel",
+      "exportCSV": "Export CSV",
+      "register": "Asset Register",
+      "valuation": "Asset Valuation",
+      "warranty": "Warranty Status",
+      "location": "Location Report",
+      "health": "Asset Health",
+      "maintenance": "Maintenance Report"
+    }
   }
 }

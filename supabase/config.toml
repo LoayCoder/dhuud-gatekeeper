@@ -194,3 +194,9 @@ verify_jwt = false
 
 [functions.asset-warranty-alerts]
 verify_jwt = false
+
+[functions.asset-depreciation-cron]
+verify_jwt = false
+
+[functions.part-stock-alerts]
+verify_jwt = false
