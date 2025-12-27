@@ -6368,5 +6368,48 @@
       "medium": "متوسط",
       "low": "منخفض"
     }
+  },
+  "parts": {
+    "inventory": {
+      "title": "مخزون قطع الغيار",
+      "lowStockAlerts": "تنبيهات المخزون المنخفض",
+      "stockLevel": "مستوى المخزون",
+      "currentStock": "المخزون الحالي",
+      "minimumStock": "الحد الأدنى للمخزون",
+      "reorderPoint": "نقطة إعادة الطلب",
+      "partNumber": "رقم القطعة",
+      "adjustStock": "تعديل المخزون",
+      "viewHistory": "عرض السجل",
+      "createPO": "إنشاء أمر شراء"
+    },
+    "orders": {
+      "title": "أوامر الشراء",
+      "supplier": "المورد",
+      "orderDate": "تاريخ الطلب",
+      "expectedDelivery": "التسليم المتوقع",
+      "status": "الحالة",
+      "totalAmount": "المبلغ الإجمالي"
+    },
+    "transactions": {
+      "receipt": "استلام",
+      "issue": "صرف",
+      "adjustment": "تعديل",
+      "return": "إرجاع"
+    }
+  },
+  "assets": {
+    "reports": {
+      "title": "تقارير الأصول",
+      "subtitle": "إنشاء وتصدير تقارير الأصول",
+      "exportPDF": "تصدير PDF",
+      "exportExcel": "تصدير Excel",
+      "exportCSV": "تصدير CSV",
+      "register": "سجل الأصول",
+      "valuation": "تقييم الأصول",
+      "warranty": "حالة الضمان",
+      "location": "تقرير المواقع",
+      "health": "صحة الأصول",
+      "maintenance": "تقرير الصيانة"
+    }
   }
 }
