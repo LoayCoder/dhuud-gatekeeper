@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode, Activity, DollarSign, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Package, Edit, Trash2, MapPin, Calendar, AlertTriangle, FileText, Wrench, History, ShieldAlert, ImageIcon, ArrowRightLeft, ClipboardCheck, QrCode, Barcode, Activity, DollarSign, ExternalLink, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { ModuleGate } from '@/components/ModuleGate';
 import { AssetQRCode, AssetBarcodeLabel, MaintenanceScheduleList, AssetIncidentHistory, AssetPhotoUpload, AssetDocumentUpload, TransferHistoryTab, AssetTransferDialog, LabelSettingsDialog, LabelSettings, loadLabelSettings } from '@/components/assets';
 import { Tabs as LabelTabs, TabsContent as LabelTabsContent, TabsList as LabelTabsList, TabsTrigger as LabelTabsTrigger } from '@/components/ui/tabs';
 import { InspectionHistoryTab } from '@/components/inspections';
+import { WarrantyClaimsTab, WarrantyExpiryBadge } from '@/components/assets/warranty';
 import { useAsset, useAssetPhotos, useAssetDocuments, useAssetAuditLogs, useDeleteAsset } from '@/hooks/use-assets';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { format, isPast, addDays } from 'date-fns';
@@ -208,6 +209,10 @@ function AssetDetailContent() {
           <TabsTrigger value="transfers" className="gap-2 flex-shrink-0">
             <ArrowRightLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{t('assets.tabs.transfers')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="warranty" className="gap-2 flex-shrink-0">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('assets.tabs.warranty', 'Warranty')}</span>
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-2 flex-shrink-0">
             <History className="h-4 w-4" />
@@ -570,6 +575,47 @@ function AssetDetailContent() {
             </CardHeader>
             <CardContent>
               <TransferHistoryTab assetId={id!} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Warranty Tab */}
+        <TabsContent value="warranty">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{t('assets.tabs.warranty', 'Warranty')}</CardTitle>
+                  <CardDescription>{t('assets.warranty.description', 'Warranty information and claims')}</CardDescription>
+                </div>
+                <WarrantyExpiryBadge expiryDate={asset.warranty_expiry_date} />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Warranty Info */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <span className="text-sm text-muted-foreground">{t('assets.warranty.provider', 'Provider')}</span>
+                  <p className="font-medium">{asset.warranty_provider || t('common.notProvided', 'Not provided')}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">{t('assets.warranty.expiryDate', 'Expiry Date')}</span>
+                  <p className="font-medium">
+                    {asset.warranty_expiry_date 
+                      ? format(new Date(asset.warranty_expiry_date), 'PPP')
+                      : t('common.notProvided', 'Not provided')}
+                  </p>
+                </div>
+                {asset.warranty_terms && (
+                  <div className="md:col-span-2">
+                    <span className="text-sm text-muted-foreground">{t('assets.warranty.terms', 'Terms & Conditions')}</span>
+                    <p className="text-sm mt-1">{asset.warranty_terms}</p>
+                  </div>
+                )}
+              </div>
+              <Separator />
+              {/* Claims */}
+              <WarrantyClaimsTab assetId={id!} />
             </CardContent>
           </Card>
         </TabsContent>
