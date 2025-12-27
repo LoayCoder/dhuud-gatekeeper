@@ -738,6 +738,7 @@ export type Database = {
           deleted_at: string | null
           document_type: Database["public"]["Enums"]["asset_document_type"]
           expiry_date: string | null
+          expiry_warning_sent_at: string | null
           file_name: string
           file_size: number | null
           id: string
@@ -753,6 +754,7 @@ export type Database = {
           deleted_at?: string | null
           document_type: Database["public"]["Enums"]["asset_document_type"]
           expiry_date?: string | null
+          expiry_warning_sent_at?: string | null
           file_name: string
           file_size?: number | null
           id?: string
@@ -768,6 +770,7 @@ export type Database = {
           deleted_at?: string | null
           document_type?: Database["public"]["Enums"]["asset_document_type"]
           expiry_date?: string | null
+          expiry_warning_sent_at?: string | null
           file_name?: string
           file_size?: number | null
           id?: string
@@ -896,55 +899,67 @@ export type Database = {
           asset_id: string
           created_at: string | null
           created_by: string | null
+          criticality: string | null
           deleted_at: string | null
           description: string | null
+          escalation_level: number | null
           estimated_duration_hours: number | null
           frequency_type: Database["public"]["Enums"]["maintenance_frequency"]
           frequency_value: number | null
           id: string
           is_active: boolean | null
+          last_notification_at: string | null
           last_performed: string | null
           next_due: string | null
           schedule_type: Database["public"]["Enums"]["maintenance_type"]
           tenant_id: string
           updated_at: string | null
           vendor_name: string | null
+          warning_sent_at: string | null
         }
         Insert: {
           asset_id: string
           created_at?: string | null
           created_by?: string | null
+          criticality?: string | null
           deleted_at?: string | null
           description?: string | null
+          escalation_level?: number | null
           estimated_duration_hours?: number | null
           frequency_type: Database["public"]["Enums"]["maintenance_frequency"]
           frequency_value?: number | null
           id?: string
           is_active?: boolean | null
+          last_notification_at?: string | null
           last_performed?: string | null
           next_due?: string | null
           schedule_type: Database["public"]["Enums"]["maintenance_type"]
           tenant_id: string
           updated_at?: string | null
           vendor_name?: string | null
+          warning_sent_at?: string | null
         }
         Update: {
           asset_id?: string
           created_at?: string | null
           created_by?: string | null
+          criticality?: string | null
           deleted_at?: string | null
           description?: string | null
+          escalation_level?: number | null
           estimated_duration_hours?: number | null
           frequency_type?: Database["public"]["Enums"]["maintenance_frequency"]
           frequency_value?: number | null
           id?: string
           is_active?: boolean | null
+          last_notification_at?: string | null
           last_performed?: string | null
           next_due?: string | null
           schedule_type?: Database["public"]["Enums"]["maintenance_type"]
           tenant_id?: string
           updated_at?: string | null
           vendor_name?: string | null
+          warning_sent_at?: string | null
         }
         Relationships: [
           {
@@ -963,6 +978,47 @@ export type Database = {
           },
           {
             foreignKeyName: "asset_maintenance_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance_sla_configs: {
+        Row: {
+          created_at: string
+          escalation_days_after: number
+          id: string
+          priority: string
+          second_escalation_days_after: number | null
+          tenant_id: string
+          updated_at: string
+          warning_days_before: number
+        }
+        Insert: {
+          created_at?: string
+          escalation_days_after?: number
+          id?: string
+          priority: string
+          second_escalation_days_after?: number | null
+          tenant_id: string
+          updated_at?: string
+          warning_days_before?: number
+        }
+        Update: {
+          created_at?: string
+          escalation_days_after?: number
+          id?: string
+          priority?: string
+          second_escalation_days_after?: number | null
+          tenant_id?: string
+          updated_at?: string
+          warning_days_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_sla_configs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -3636,6 +3692,7 @@ export type Database = {
           updated_at: string | null
           updated_by: string | null
           warranty_expiry_date: string | null
+          warranty_warning_sent_at: string | null
         }
         Insert: {
           asset_code: string
@@ -3694,6 +3751,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           warranty_expiry_date?: string | null
+          warranty_warning_sent_at?: string | null
         }
         Update: {
           asset_code?: string
@@ -3752,6 +3810,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           warranty_expiry_date?: string | null
+          warranty_warning_sent_at?: string | null
         }
         Relationships: [
           {
