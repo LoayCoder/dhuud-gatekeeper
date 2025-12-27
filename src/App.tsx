@@ -69,6 +69,9 @@ const AssetRegister = lazyWithRetry(() => import("./pages/assets/AssetRegister")
 const AssetScanner = lazyWithRetry(() => import("./pages/assets/AssetScanner"));
 const BulkPrintLabels = lazyWithRetry(() => import("./pages/assets/BulkPrintLabels"));
 const InspectionWorkspaceAsset = lazyWithRetry(() => import("./pages/assets/InspectionWorkspace"));
+const MobileAssetScanner = lazyWithRetry(() => import("./pages/assets/MobileAssetScanner"));
+const AssetFinancials = lazyWithRetry(() => import("./pages/assets/AssetFinancials"));
+const AssetHealth = lazyWithRetry(() => import("./pages/assets/AssetHealth"));
 const InspectionSessionsDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionSessionsDashboard"));
 const SessionWorkspace = lazyWithRetry(() => import("./pages/inspections/SessionWorkspace"));
 const AreaSessionWorkspace = lazyWithRetry(() => import("./pages/inspections/AreaSessionWorkspace"));
@@ -299,9 +302,12 @@ const App = () => (
                       <Route path="/assets/dashboard" element={<AssetDashboard />} />
                       <Route path="/assets/register" element={<HSSERoute><AssetRegister /></HSSERoute>} />
                       <Route path="/assets/scan" element={<AssetScanner />} />
+                      <Route path="/assets/mobile-scan" element={<MobileAssetScanner />} />
                       <Route path="/assets/bulk-print" element={<HSSERoute><BulkPrintLabels /></HSSERoute>} />
                       <Route path="/assets/:id" element={<AssetDetail />} />
                       <Route path="/assets/:id/edit" element={<HSSERoute><AssetRegister /></HSSERoute>} />
+                      <Route path="/assets/:id/financials" element={<AssetFinancials />} />
+                      <Route path="/assets/:id/health" element={<AssetHealth />} />
                       <Route path="/assets/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
 
                       {/* Inspection Sessions Routes */}
