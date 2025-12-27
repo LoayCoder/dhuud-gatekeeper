@@ -6214,5 +6214,42 @@
       "actionsNotComplete": "لا يمكن الإغلاق: لا تزال هناك إجراءات معلقة.",
       "validationRequired": "لا يمكن الإغلاق: مصادقة خبير السلامة مطلوبة."
     }
+  },
+  "passwordStrength": {
+    "title": "قوة كلمة المرور",
+    "weak": "ضعيفة",
+    "fair": "مقبولة",
+    "good": "جيدة",
+    "strong": "قوية",
+    "minLength": "12 حرفاً على الأقل",
+    "uppercase": "حرف كبير واحد",
+    "lowercase": "حرف صغير واحد",
+    "number": "رقم واحد",
+    "special": "رمز خاص واحد (!@#$%...)"
+  },
+  "assetHealthDashboard": {
+    "title": "لوحة صحة الأصول",
+    "fleetHealth": "نظرة عامة على صحة الأسطول",
+    "atRiskAssets": "الأصول المعرضة للخطر",
+    "maintenanceCompliance": "الامتثال للصيانة",
+    "score": "النتيجة",
+    "assets": "الأصول",
+    "critical": "حرج",
+    "high": "خطورة عالية",
+    "medium": "خطورة متوسطة",
+    "low": "خطورة منخفضة",
+    "healthy": "سليم",
+    "overdue": "متأخر",
+    "upcoming": "قادم",
+    "compliant": "ممتثل",
+    "noData": "لا تتوفر بيانات",
+    "loading": "جاري التحميل...",
+    "viewDetails": "عرض التفاصيل",
+    "riskLevel": {
+      "critical": "حرج",
+      "high": "عالي",
+      "medium": "متوسط",
+      "low": "منخفض"
+    }
   }
 }

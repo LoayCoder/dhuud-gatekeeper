@@ -6405,5 +6405,42 @@
       "actionsNotComplete": "Cannot close: There are still pending actions.",
       "validationRequired": "Cannot close: HSSE Expert validation is required."
     }
+  },
+  "passwordStrength": {
+    "title": "Password Strength",
+    "weak": "Weak",
+    "fair": "Fair",
+    "good": "Good",
+    "strong": "Strong",
+    "minLength": "At least 12 characters",
+    "uppercase": "One uppercase letter",
+    "lowercase": "One lowercase letter",
+    "number": "One number",
+    "special": "One special character (!@#$%...)"
+  },
+  "assetHealthDashboard": {
+    "title": "Asset Health Dashboard",
+    "fleetHealth": "Fleet Health Overview",
+    "atRiskAssets": "At-Risk Assets",
+    "maintenanceCompliance": "Maintenance Compliance",
+    "score": "Score",
+    "assets": "Assets",
+    "critical": "Critical",
+    "high": "High Risk",
+    "medium": "Medium Risk",
+    "low": "Low Risk",
+    "healthy": "Healthy",
+    "overdue": "Overdue",
+    "upcoming": "Upcoming",
+    "compliant": "Compliant",
+    "noData": "No data available",
+    "loading": "Loading...",
+    "viewDetails": "View Details",
+    "riskLevel": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
   }
 }
