@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNetworkStatus } from './use-network-status';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 
@@ -32,7 +32,7 @@ function getDeviceId(): string {
 
 export function useOfflinePatrolQueue() {
   const { isOnline } = useNetworkStatus();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   
   const [queue, setQueue] = useState<OfflineCheckpoint[]>(() => {
@@ -74,7 +74,7 @@ export function useOfflinePatrolQueue() {
           tenant_id: profile.tenant_id,
           patrol_id: checkpoint.patrol_id,
           checkpoint_id: checkpoint.checkpoint_id,
-          guard_id: profile.id,
+          guard_id: user?.id,
           device_id: getDeviceId(),
           captured_at: checkpoint.captured_at,
           gps_lat: checkpoint.gps_lat,
@@ -93,7 +93,7 @@ export function useOfflinePatrolQueue() {
           tenant_id: profile.tenant_id,
           patrol_id: checkpoint.patrol_id,
           checkpoint_id: checkpoint.checkpoint_id,
-          guard_id: profile.id,
+          guard_id: user?.id,
           checked_at: checkpoint.captured_at,
           gps_lat: checkpoint.gps_lat,
           gps_lng: checkpoint.gps_lng,

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface GeofenceEscalationRule {
   id: string;
@@ -32,7 +32,7 @@ export function useGeofenceEscalationRules() {
         .order('escalation_level', { ascending: true }));
 
       if (error) throw error;
-      return data as GeofenceEscalationRule[];
+      return data as unknown as GeofenceEscalationRule[];
     },
   });
 }
@@ -40,7 +40,7 @@ export function useGeofenceEscalationRules() {
 export function useCreateEscalationRule() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return useMutation({
     mutationFn: async (params: {
@@ -71,7 +71,7 @@ export function useCreateEscalationRule() {
           notify_user_ids: params.notify_user_ids || null,
           auto_escalate: params.auto_escalate ?? true,
           escalation_delay_minutes: params.escalation_delay_minutes ?? 5,
-          created_by: profile.id,
+          created_by: user?.id,
         })
         .select()
         .single());
