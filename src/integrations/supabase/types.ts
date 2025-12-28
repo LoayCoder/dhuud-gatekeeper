@@ -3877,6 +3877,104 @@ export type Database = {
           },
         ]
       }
+      emergency_alerts: {
+        Row: {
+          accuracy: number | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string
+          deleted_at: string | null
+          guard_id: string | null
+          id: string
+          is_false_alarm: boolean | null
+          latitude: number | null
+          location_description: string | null
+          longitude: number | null
+          notes: string | null
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          response_time_seconds: number | null
+          tenant_id: string
+          triggered_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          deleted_at?: string | null
+          guard_id?: string | null
+          id?: string
+          is_false_alarm?: boolean | null
+          latitude?: number | null
+          location_description?: string | null
+          longitude?: number | null
+          notes?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          response_time_seconds?: number | null
+          tenant_id: string
+          triggered_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          deleted_at?: string | null
+          guard_id?: string | null
+          id?: string
+          is_false_alarm?: boolean | null
+          latitude?: number | null
+          location_description?: string | null
+          longitude?: number | null
+          notes?: string | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          response_time_seconds?: number | null
+          tenant_id?: string
+          triggered_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       environmental_incident_details: {
         Row: {
           actual_cleanup_cost_sar: number | null
@@ -4639,6 +4737,87 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "glass_break_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_performance_metrics: {
+        Row: {
+          avg_checkpoint_time_seconds: number | null
+          checkpoints_missed: number | null
+          checkpoints_verified: number | null
+          created_at: string
+          deleted_at: string | null
+          emergency_response_time_seconds: number | null
+          geofence_violations: number | null
+          guard_id: string
+          handovers_completed: number | null
+          id: string
+          incidents_reported: number | null
+          incidents_resolved: number | null
+          metric_date: string
+          overall_score: number | null
+          patrols_assigned: number | null
+          patrols_completed: number | null
+          shift_punctuality_minutes: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          avg_checkpoint_time_seconds?: number | null
+          checkpoints_missed?: number | null
+          checkpoints_verified?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          emergency_response_time_seconds?: number | null
+          geofence_violations?: number | null
+          guard_id: string
+          handovers_completed?: number | null
+          id?: string
+          incidents_reported?: number | null
+          incidents_resolved?: number | null
+          metric_date?: string
+          overall_score?: number | null
+          patrols_assigned?: number | null
+          patrols_completed?: number | null
+          shift_punctuality_minutes?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          avg_checkpoint_time_seconds?: number | null
+          checkpoints_missed?: number | null
+          checkpoints_verified?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          emergency_response_time_seconds?: number | null
+          geofence_violations?: number | null
+          guard_id?: string
+          handovers_completed?: number | null
+          id?: string
+          incidents_reported?: number | null
+          incidents_resolved?: number | null
+          metric_date?: string
+          overall_score?: number | null
+          patrols_assigned?: number | null
+          patrols_completed?: number | null
+          shift_punctuality_minutes?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_performance_metrics_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_performance_metrics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -12170,6 +12349,101 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_handovers: {
+        Row: {
+          acknowledged_at: string | null
+          attachments: Json | null
+          created_at: string
+          deleted_at: string | null
+          equipment_checklist: Json | null
+          handover_time: string
+          id: string
+          incoming_guard_id: string | null
+          key_observations: string | null
+          next_shift_priorities: string | null
+          notes: string | null
+          outgoing_guard_id: string
+          outstanding_issues: Json | null
+          shift_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          visitor_info: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          attachments?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          equipment_checklist?: Json | null
+          handover_time?: string
+          id?: string
+          incoming_guard_id?: string | null
+          key_observations?: string | null
+          next_shift_priorities?: string | null
+          notes?: string | null
+          outgoing_guard_id: string
+          outstanding_issues?: Json | null
+          shift_date?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          visitor_info?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          attachments?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          equipment_checklist?: Json | null
+          handover_time?: string
+          id?: string
+          incoming_guard_id?: string | null
+          key_observations?: string | null
+          next_shift_priorities?: string | null
+          notes?: string | null
+          outgoing_guard_id?: string
+          outstanding_issues?: Json | null
+          shift_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          visitor_info?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_handovers_incoming_guard_id_fkey"
+            columns: ["incoming_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_outgoing_guard_id_fkey"
+            columns: ["outgoing_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
             referencedColumns: ["id"]
           },
         ]
