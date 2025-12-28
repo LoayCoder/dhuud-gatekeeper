@@ -66,7 +66,8 @@ function getDateRange(period: AnalyticsPeriod, startDate?: Date, endDate?: Date)
  * Hook to fetch inspection analytics using RPC function
  */
 export function useInspectionAnalytics(filters: AnalyticsFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const { start, end } = getDateRange(filters.period, filters.startDate, filters.endDate);
 
   return useQuery({
@@ -97,7 +98,8 @@ export function useInspectionAnalytics(filters: AnalyticsFilters) {
  * Hook to fetch session trend data over time
  */
 export function useSessionTrend(filters: AnalyticsFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const { start, end } = getDateRange(filters.period, filters.startDate, filters.endDate);
 
   return useQuery({
@@ -152,7 +154,8 @@ export function useSessionTrend(filters: AnalyticsFilters) {
  * Hook to fetch findings trend data
  */
 export function useFindingsTrend(filters: AnalyticsFilters) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const { start, end } = getDateRange(filters.period, filters.startDate, filters.endDate);
 
   return useQuery({
@@ -205,7 +208,8 @@ export function useFindingsTrend(filters: AnalyticsFilters) {
  * Hook to fetch top failing items
  */
 export function useTopFailingItems(filters: AnalyticsFilters, limit = 10) {
-  const { tenantId } = useAuth();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const { start, end } = getDateRange(filters.period, filters.startDate, filters.endDate);
 
   return useQuery({
