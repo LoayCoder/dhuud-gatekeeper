@@ -35,6 +35,12 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
     return;
   }
 
+  // Check if we have a valid window context (required for periodic sync)
+  if (typeof window === 'undefined' || !window.document) {
+    console.log('Periodic sync requires a window context');
+    return;
+  }
+
   // Check if user has enabled periodic sync
   const periodicSyncEnabled = localStorage.getItem('periodic-sync-enabled') !== 'false';
   if (!periodicSyncEnabled) {
@@ -43,22 +49,38 @@ async function registerPeriodicSync(registration: ServiceWorkerRegistration) {
   }
 
   try {
-    // Check permission status
-    // @ts-ignore - periodicSync permission is not in TypeScript types
-    const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+    // Check permission status - wrap in try-catch as this can fail in some contexts
+    let permissionGranted = false;
+    try {
+      // @ts-ignore - periodicSync permission is not in TypeScript types
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+      permissionGranted = status.state === 'granted';
+      
+      if (!permissionGranted) {
+        console.log('Periodic sync permission not granted:', status.state);
+        return;
+      }
+    } catch (permError) {
+      // Permission API may not support periodic-background-sync query
+      console.log('Could not query periodic sync permission:', permError);
+      return;
+    }
     
-    if (status.state === 'granted') {
-      // Register for periodic sync every 4 hours
+    // Ensure registration is active before attempting to register sync
+    if (registration.active) {
       // @ts-ignore
       await registration.periodicSync.register('server-updates-sync', {
         minInterval: 4 * 60 * 60 * 1000, // 4 hours in milliseconds
       });
       console.log('Periodic sync registered for server updates');
     } else {
-      console.log('Periodic sync permission not granted:', status.state);
+      console.log('Service worker not yet active, skipping periodic sync registration');
     }
   } catch (error) {
-    console.log('Periodic sync registration failed:', error);
+    // Silently handle errors - periodic sync is a progressive enhancement
+    if (import.meta.env.DEV) {
+      console.log('Periodic sync registration failed:', error);
+    }
   }
 }
 
