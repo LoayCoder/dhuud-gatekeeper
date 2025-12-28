@@ -37,6 +37,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { CheckpointPhotoCapture } from "@/components/security/CheckpointPhotoCapture";
 import { CheckpointIncidentDialog } from "@/components/security/CheckpointIncidentDialog";
+import { OfflinePatrolIndicator } from "@/components/security/OfflinePatrolIndicator";
+import { useOfflinePatrolQueue } from "@/hooks/use-offline-patrol-queue";
 
 export default function ExecutePatrol() {
   const { t } = useTranslation();
@@ -62,6 +64,7 @@ export default function ExecutePatrol() {
   const startPatrol = useStartPatrol();
   const logCheckpoint = useLogCheckpoint();
   const completePatrol = useCompletePatrol();
+  const offlineQueue = useOfflinePatrolQueue();
 
   const checkpoints = selectedRoute?.checkpoints || [];
   const currentCheckpoint = checkpoints[currentCheckpointIndex];
@@ -186,6 +189,37 @@ export default function ExecutePatrol() {
       return;
     }
 
+    const checkpointData = {
+      patrol_id: activePatrolId,
+      checkpoint_id: currentCheckpoint.id,
+      captured_at: new Date().toISOString(),
+      gps_lat: userLocation?.lat ?? null,
+      gps_lng: userLocation?.lng ?? null,
+      gps_accuracy: userLocation?.accuracy ?? null,
+      notes: notes || null,
+      photo_paths: capturedPhotos.length > 0 ? capturedPhotos : null,
+    };
+
+    // If offline, queue the checkpoint for later sync
+    if (!offlineQueue.isOnline) {
+      offlineQueue.addCheckpoint(checkpointData);
+
+      setCompletedCheckpoints(prev => new Set([...prev, currentCheckpoint.id]));
+      setNotes('');
+      setCapturedPhotos([]);
+      setLinkedIncidentId(null);
+
+      if (currentCheckpointIndex < checkpoints.length - 1) {
+        setCurrentCheckpointIndex(prev => prev + 1);
+      }
+
+      toast({
+        title: t('security.patrols.execution.savedOffline', 'Saved Offline'),
+        description: t('security.patrols.execution.willSyncLater', 'Checkpoint will sync when online'),
+      });
+      return;
+    }
+
     try {
       await logCheckpoint.mutateAsync({
         patrolId: activePatrolId,
@@ -216,11 +250,20 @@ export default function ExecutePatrol() {
         description: t('security.patrols.execution.checkpointLogged', 'Checkpoint logged successfully'),
       });
     } catch (error) {
-      toast({
-        title: t('common.error'),
-        description: t('security.patrols.execution.checkpointLogFailed', 'Failed to log checkpoint'),
-        variant: 'destructive',
-      });
+      // If the request fails and we're now offline, queue it
+      if (!navigator.onLine) {
+        offlineQueue.addCheckpoint(checkpointData);
+        toast({
+          title: t('security.patrols.execution.savedOffline', 'Saved Offline'),
+          description: t('security.patrols.execution.willSyncLater', 'Checkpoint will sync when online'),
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: t('security.patrols.execution.checkpointLogFailed', 'Failed to log checkpoint'),
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -337,6 +380,7 @@ export default function ExecutePatrol() {
             </div>
           )}
         </div>
+        <OfflinePatrolIndicator />
       </div>
 
       {/* Progress Header */}

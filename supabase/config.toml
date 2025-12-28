@@ -203,3 +203,9 @@ verify_jwt = false
 
 [functions.finding-sla-escalation]
 verify_jwt = false
+
+[functions.shift-reminders]
+verify_jwt = false
+
+[functions.geofence-escalation]
+verify_jwt = false
