@@ -396,6 +396,18 @@ export function AppSidebar() {
           icon: QrCode,
           menuCode: 'scan_asset',
         },
+        {
+          title: t('navigation.purchaseRequests', 'Purchase Requests'),
+          url: "/assets/purchase-requests",
+          icon: CreditCard,
+          menuCode: 'purchase_requests',
+        },
+        {
+          title: t('navigation.approvalConfig', 'Approval Workflows'),
+          url: "/assets/approval-workflows",
+          icon: Workflow,
+          menuCode: 'approval_workflows',
+        },
       ],
     },
     {
