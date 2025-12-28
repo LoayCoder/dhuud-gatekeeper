@@ -368,7 +368,10 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           description: string | null
+          escalation_level: number | null
+          escalation_notes: string | null
           id: string
+          last_escalated_at: string | null
           recommendation: string | null
           reference_id: string
           response_id: string
@@ -386,7 +389,10 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          escalation_level?: number | null
+          escalation_notes?: string | null
           id?: string
+          last_escalated_at?: string | null
           recommendation?: string | null
           reference_id: string
           response_id: string
@@ -404,7 +410,10 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          escalation_level?: number | null
+          escalation_notes?: string | null
           id?: string
+          last_escalated_at?: string | null
           recommendation?: string | null
           reference_id?: string
           response_id?: string
@@ -6233,6 +6242,72 @@ export type Database = {
           },
           {
             foreignKeyName: "induction_videos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          change_summary: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown
+          new_value: Json | null
+          old_value: Json | null
+          reference_id: string | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          change_summary?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          reference_id?: string | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          change_summary?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          reference_id?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_audit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -14291,6 +14366,21 @@ export type Database = {
           user_id: string
           was_condition_match: boolean
           whatsapp_template_id: string
+        }[]
+      }
+      get_inspection_audit_trail: {
+        Args: { p_entity_id?: string; p_entity_type?: string; p_limit?: number }
+        Returns: {
+          action: string
+          actor_name: string
+          change_summary: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_value: Json
+          old_value: Json
+          reference_id: string
         }[]
       }
       get_inspection_compliance_trend: { Args: never; Returns: Json }
