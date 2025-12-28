@@ -4325,6 +4325,7 @@ export type Database = {
           notify_host: boolean | null
           passenger_count: number | null
           person_name: string
+          photo_captured_at: string | null
           preferred_language: string | null
           purpose: string | null
           qr_code_token: string | null
@@ -4332,6 +4333,7 @@ export type Database = {
           tenant_id: string
           visit_duration_hours: number | null
           visitor_id: string | null
+          visitor_photo_url: string | null
           whatsapp_sent_at: string | null
         }
         Insert: {
@@ -4357,6 +4359,7 @@ export type Database = {
           notify_host?: boolean | null
           passenger_count?: number | null
           person_name: string
+          photo_captured_at?: string | null
           preferred_language?: string | null
           purpose?: string | null
           qr_code_token?: string | null
@@ -4364,6 +4367,7 @@ export type Database = {
           tenant_id: string
           visit_duration_hours?: number | null
           visitor_id?: string | null
+          visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
         }
         Update: {
@@ -4389,6 +4393,7 @@ export type Database = {
           notify_host?: boolean | null
           passenger_count?: number | null
           person_name?: string
+          photo_captured_at?: string | null
           preferred_language?: string | null
           purpose?: string | null
           qr_code_token?: string | null
@@ -4396,6 +4401,7 @@ export type Database = {
           tenant_id?: string
           visit_duration_hours?: number | null
           visitor_id?: string | null
+          visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
         }
         Relationships: [
@@ -8907,6 +8913,78 @@ export type Database = {
           },
         ]
       }
+      offline_patrol_checkpoints: {
+        Row: {
+          captured_at: string
+          checkpoint_id: string
+          created_at: string
+          device_id: string
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          guard_id: string
+          id: string
+          notes: string | null
+          patrol_id: string
+          photo_paths: Json | null
+          sync_error: string | null
+          sync_status: string | null
+          synced_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          captured_at: string
+          checkpoint_id: string
+          created_at?: string
+          device_id: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          guard_id: string
+          id?: string
+          notes?: string | null
+          patrol_id: string
+          photo_paths?: Json | null
+          sync_error?: string | null
+          sync_status?: string | null
+          synced_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          captured_at?: string
+          checkpoint_id?: string
+          created_at?: string
+          device_id?: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          guard_id?: string
+          id?: string
+          notes?: string | null
+          patrol_id?: string
+          photo_paths?: Json | null
+          sync_error?: string | null
+          sync_status?: string | null
+          synced_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_patrol_checkpoints_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offline_patrol_checkpoints_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offline_scan_queue: {
         Row: {
           created_at: string
@@ -12463,6 +12541,9 @@ export type Database = {
           id: string
           notes: string | null
           relief_guard_id: string | null
+          reminder_acknowledged_at: string | null
+          reminder_minutes_before: number | null
+          reminder_sent_at: string | null
           roster_date: string
           shift_id: string
           status: string | null
@@ -12484,6 +12565,9 @@ export type Database = {
           id?: string
           notes?: string | null
           relief_guard_id?: string | null
+          reminder_acknowledged_at?: string | null
+          reminder_minutes_before?: number | null
+          reminder_sent_at?: string | null
           roster_date: string
           shift_id: string
           status?: string | null
@@ -12505,6 +12589,9 @@ export type Database = {
           id?: string
           notes?: string | null
           relief_guard_id?: string | null
+          reminder_acknowledged_at?: string | null
+          reminder_minutes_before?: number | null
+          reminder_sent_at?: string | null
           roster_date?: string
           shift_id?: string
           status?: string | null
