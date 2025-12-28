@@ -41,6 +41,7 @@ import {
   type AreaFinding,
 } from '@/hooks/use-area-findings';
 import { CreateActionFromFindingDialog } from './CreateActionFromFindingDialog';
+import { FindingSLACountdownTimer } from '@/components/sla/FindingSLACountdownTimer';
 
 interface FindingsPanelProps {
   sessionId: string;
@@ -210,6 +211,13 @@ export function FindingsPanel({ sessionId, isLocked }: FindingsPanelProps) {
                               {t('inspections.findings.statusActionAssigned')}
                             </Badge>
                           )}
+                          {/* SLA Countdown Timer */}
+                          <FindingSLACountdownTimer
+                            dueDate={(finding as any).due_date}
+                            escalationLevel={(finding as any).escalation_level ?? 0}
+                            status={finding.status}
+                            classification={finding.classification}
+                          />
                         </div>
                         <p className="text-sm">{getQuestionText(finding)}</p>
                         

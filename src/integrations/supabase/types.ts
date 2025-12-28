@@ -368,6 +368,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           description: string | null
+          due_date: string | null
           escalation_level: number | null
           escalation_notes: string | null
           id: string
@@ -379,6 +380,7 @@ export type Database = {
           session_id: string
           status: string | null
           tenant_id: string
+          warning_sent_at: string | null
         }
         Insert: {
           classification?: string
@@ -389,6 +391,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          due_date?: string | null
           escalation_level?: number | null
           escalation_notes?: string | null
           id?: string
@@ -400,6 +403,7 @@ export type Database = {
           session_id: string
           status?: string | null
           tenant_id: string
+          warning_sent_at?: string | null
         }
         Update: {
           classification?: string
@@ -410,6 +414,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          due_date?: string | null
           escalation_level?: number | null
           escalation_notes?: string | null
           id?: string
@@ -421,6 +426,7 @@ export type Database = {
           session_id?: string
           status?: string | null
           tenant_id?: string
+          warning_sent_at?: string | null
         }
         Relationships: [
           {
@@ -4089,6 +4095,53 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finding_sla_configs: {
+        Row: {
+          classification: string
+          created_at: string
+          deleted_at: string | null
+          escalation_days_after: number
+          id: string
+          second_escalation_days_after: number | null
+          target_days: number
+          tenant_id: string
+          updated_at: string
+          warning_days_before: number
+        }
+        Insert: {
+          classification: string
+          created_at?: string
+          deleted_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          second_escalation_days_after?: number | null
+          target_days?: number
+          tenant_id: string
+          updated_at?: string
+          warning_days_before?: number
+        }
+        Update: {
+          classification?: string
+          created_at?: string
+          deleted_at?: string | null
+          escalation_days_after?: number
+          id?: string
+          second_escalation_days_after?: number | null
+          target_days?: number
+          tenant_id?: string
+          updated_at?: string
+          warning_days_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finding_sla_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
