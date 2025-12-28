@@ -132,7 +132,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
           <SelectContent>
             {zones?.map((zone) => (
               <SelectItem key={zone.id} value={zone.id}>
-                {zone.name}
+                {zone.zone_name}
               </SelectItem>
             ))}
           </SelectContent>

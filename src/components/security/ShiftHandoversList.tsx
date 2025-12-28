@@ -19,6 +19,8 @@ import {
   usePendingHandovers,
   useAcknowledgeHandover,
   useCompleteHandover,
+  parseOutstandingIssues,
+  parseEquipmentChecklist,
   ShiftHandover,
 } from '@/hooks/use-shift-handovers';
 import { cn } from '@/lib/utils';
@@ -106,8 +108,10 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
     }
   };
 
-  const issueCount = handover.outstanding_issues?.length || 0;
-  const damagedEquipment = handover.equipment_checklist?.filter(e => e.status !== 'ok').length || 0;
+  const issues = parseOutstandingIssues(handover.outstanding_issues);
+  const equipment = parseEquipmentChecklist(handover.equipment_checklist);
+  const issueCount = issues.length;
+  const damagedEquipment = equipment.filter(e => e.status !== 'ok').length;
 
   return (
     <AccordionItem value={handover.id} className="border rounded-lg px-4">
@@ -118,11 +122,11 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">
-                  {(handover.outgoing_guard as any)?.full_name || t('common.unknown', 'Unknown')}
+                  {handover.outgoing_guard?.full_name || t('common.unknown', 'Unknown')}
                 </span>
                 <span className="text-muted-foreground">→</span>
                 <span className="font-medium">
-                  {(handover.incoming_guard as any)?.full_name || t('security.awaitingGuard', 'Awaiting...')}
+                  {handover.incoming_guard?.full_name || t('security.awaitingGuard', 'Awaiting...')}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -130,10 +134,10 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
                   <Clock className="h-3 w-3" />
                   {format(new Date(handover.handover_time), 'HH:mm')}
                 </span>
-                {(handover.zone as any)?.name && (
+                {handover.zone?.zone_name && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
-                    {(handover.zone as any).name}
+                    {handover.zone.zone_name}
                   </span>
                 )}
               </div>
@@ -161,7 +165,7 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">{t('security.outstandingIssues', 'Outstanding Issues')}</h4>
             <div className="space-y-1">
-              {handover.outstanding_issues.map((issue) => (
+              {issues.map((issue) => (
                 <div key={issue.id} className="flex items-center gap-2 text-sm">
                   <Badge variant={
                     issue.priority === 'high' ? 'destructive' :
@@ -177,11 +181,11 @@ function HandoverCard({ handover }: { handover: ShiftHandover }) {
         )}
 
         {/* Equipment Status */}
-        {handover.equipment_checklist?.length > 0 && (
+        {equipment.length > 0 && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium">{t('security.equipmentStatus', 'Equipment Status')}</h4>
             <div className="grid grid-cols-2 gap-2">
-              {handover.equipment_checklist.map((item, i) => (
+              {equipment.map((item, i) => (
                 <div key={i} className={cn(
                   'flex items-center gap-2 text-sm p-2 rounded',
                   item.status === 'ok' && 'bg-green-500/10',

@@ -13,7 +13,9 @@ import {
   Clock,
   ArrowRight,
   RefreshCw,
-  Activity
+  Activity,
+  FileText,
+  Target
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSecurityStats } from '@/hooks/use-security-stats';
@@ -32,11 +34,16 @@ import {
   Cell
 } from 'recharts';
 import { format } from 'date-fns';
+import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
+import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
+import { useActiveEmergencyAlerts, useRealtimeEmergencyAlerts } from '@/hooks/use-emergency-alerts';
 
 export default function SecurityDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, isLoading, refetch } = useSecurityStats();
+  const { data: activeEmergencyAlerts } = useActiveEmergencyAlerts();
+  useRealtimeEmergencyAlerts();
 
   const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -54,9 +61,15 @@ export default function SecurityDashboard() {
       variant: 'secondary' as const
     },
     { 
-      label: t('security.dashboard.viewAlerts', 'View Alerts'), 
-      icon: AlertTriangle, 
-      path: '/security/command-center',
+      label: t('security.shiftHandover', 'Shift Handover'), 
+      icon: FileText, 
+      path: '/security/handover',
+      variant: 'outline' as const
+    },
+    { 
+      label: t('security.guardPerformance', 'Guard Performance'), 
+      icon: Target, 
+      path: '/security/performance',
       variant: 'outline' as const
     },
     { 
@@ -348,6 +361,9 @@ export default function SecurityDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Floating Panic Button */}
+      <EmergencyPanicButton variant="floating" />
     </div>
   );
 }
