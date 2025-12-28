@@ -142,31 +142,39 @@ export function useSessionManagement() {
   const handleSessionInvalid = useCallback(async (reason: string, details?: Record<string, string>) => {
     localStorage.removeItem(SESSION_TOKEN_KEY);
     
-    // Sign out from Supabase
-    await supabase.auth.signOut();
-
-    let message = 'Your session has ended.';
-    
-    switch (reason) {
-      case 'session_not_found':
-        message = 'Your session was terminated. Please log in again.';
-        break;
-      case 'session_expired':
-        message = 'Your session has expired due to inactivity.';
-        break;
-      case 'ip_country_changed':
-        message = `Security alert: Your location changed from ${details?.originalCountry} to ${details?.currentCountry}. Please log in again.`;
-        break;
-      case 'new_login':
-        message = 'You have been logged out because you logged in from another device.';
-        break;
+    // Sign out from Supabase - use local scope to avoid errors when session is already gone
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (err) {
+      // Ignore errors - session may already be gone
+      console.log('SignOut during handleSessionInvalid failed (likely already signed out):', err);
     }
 
-    toast({
-      title: 'Session Ended',
-      description: message,
-      variant: 'destructive',
-    });
+    // Only show toast for non-auth-expired reasons (auth-expired is handled silently)
+    if (reason !== 'auth_session_expired') {
+      let message = 'Your session has ended.';
+      
+      switch (reason) {
+        case 'session_not_found':
+          message = 'Your session was terminated. Please log in again.';
+          break;
+        case 'session_expired':
+          message = 'Your session has expired due to inactivity.';
+          break;
+        case 'ip_country_changed':
+          message = `Security alert: Your location changed from ${details?.originalCountry} to ${details?.currentCountry}. Please log in again.`;
+          break;
+        case 'new_login':
+          message = 'You have been logged out because you logged in from another device.';
+          break;
+      }
+
+      toast({
+        title: 'Session Ended',
+        description: message,
+        variant: 'destructive',
+      });
+    }
 
     navigate('/login');
   }, [navigate]);
@@ -248,7 +256,8 @@ export function useSessionManagement() {
       // Validate session periodically (every heartbeat)
       const validateInterval = setInterval(async () => {
         const result = await validateSession();
-        if (!result.valid && result.reason !== 'no_token') {
+        // Only handle invalid sessions that aren't auth-related (auth-related ones are handled by validateSession itself)
+        if (!result.valid && result.reason !== 'no_token' && result.reason !== 'auth_session_expired') {
           handleSessionInvalid(result.reason || 'unknown', {
             originalCountry: result.originalCountry || '',
             currentCountry: result.currentCountry || '',
