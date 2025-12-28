@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'dhuud-offline-cache';
-const DB_VERSION = 3; // Incremented to trigger onupgradeneeded for new stores (added SCAN_LOGS)
+const DB_VERSION = 4; // Incremented to trigger onupgradeneeded for new stores (added Area Inspection stores)
 
 export interface CacheEntry<T> {
   key: string;
@@ -42,6 +42,11 @@ export const CACHE_STORES = {
   DASHBOARD_STATS: 'dashboard_stats',
   // Barcode scanning stores
   SCAN_LOGS: 'scan_logs',
+  // Area Inspection Offline stores (Phase 2)
+  AREA_SESSIONS: 'area_sessions',
+  AREA_RESPONSES: 'area_responses',
+  AREA_FINDINGS: 'area_findings',
+  TEMPLATE_ITEMS: 'template_items',
 } as const;
 
 export type CacheStoreName = typeof CACHE_STORES[keyof typeof CACHE_STORES];
