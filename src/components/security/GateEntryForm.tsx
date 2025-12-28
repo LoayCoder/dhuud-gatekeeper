@@ -10,10 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
+import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { useCreateGateEntry, useSendWhatsAppNotification } from '@/hooks/use-gate-entries';
 import { useSites } from '@/hooks/use-sites';
 import { Car, User, Phone, Building2, MessageSquare, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const VISIT_DURATION_OPTIONS = [
   { value: 1, labelKey: 'security.gate.duration1h', label: '1 hour' },
@@ -54,6 +57,8 @@ export function GateEntryForm() {
   const sendWhatsApp = useSendWhatsAppNotification();
   const { data: sites } = useSites();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [visitorPhoto, setVisitorPhoto] = useState<Blob | null>(null);
+  const [visitorPhotoPreview, setVisitorPhotoPreview] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -79,6 +84,29 @@ export function GateEntryForm() {
     form.setValue('nationality', scannedValue);
   };
 
+  const handlePhotoCapture = (blob: Blob) => {
+    setVisitorPhoto(blob);
+    setVisitorPhotoPreview(URL.createObjectURL(blob));
+  };
+
+  const uploadVisitorPhoto = async (entryId: string): Promise<string | null> => {
+    if (!visitorPhoto) return null;
+
+    const fileName = `${entryId}-${Date.now()}.jpg`;
+    const storagePath = `gate-entries/${entryId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('visitor-photos')
+      .upload(storagePath, visitorPhoto, { contentType: 'image/jpeg' });
+
+    if (error) {
+      console.error('Error uploading visitor photo:', error);
+      return null;
+    }
+
+    return storagePath;
+  };
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -96,6 +124,18 @@ export function GateEntryForm() {
         notes: values.notes || null,
       });
 
+      // Upload visitor photo if captured
+      if (visitorPhoto && entry.id) {
+        const photoPath = await uploadVisitorPhoto(entry.id);
+        if (photoPath) {
+          // Update the entry with photo path
+          await supabase
+            .from('gate_entry_logs')
+            .update({ visitor_photo_url: photoPath })
+            .eq('id', entry.id);
+        }
+      }
+
       if (values.send_whatsapp && values.mobile_number) {
         await sendWhatsApp.mutateAsync({
           entryId: entry.id,
@@ -109,6 +149,8 @@ export function GateEntryForm() {
       }
 
       form.reset();
+      setVisitorPhoto(null);
+      setVisitorPhotoPreview(null);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,6 +168,26 @@ export function GateEntryForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Visitor Photo */}
+              <div className="md:col-span-2 flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
+                <Avatar className="h-16 w-16">
+                  {visitorPhotoPreview ? (
+                    <AvatarImage src={visitorPhotoPreview} alt="Visitor" />
+                  ) : (
+                    <AvatarFallback>
+                      <User className="h-8 w-8 text-muted-foreground" />
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-1">{t('security.gate.visitorPhoto', 'Visitor Photo')}</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {t('security.gate.photoOptional', 'Optional: Capture visitor photo for records')}
+                  </p>
+                  <VisitorPhotoCapture onCapture={handlePhotoCapture} />
+                </div>
+              </div>
+
               {/* Person Name with ID Scanner */}
               <FormField
                 control={form.control}

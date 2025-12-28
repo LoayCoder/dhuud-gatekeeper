@@ -4603,9 +4603,14 @@ export type Database = {
           acknowledged_by: string | null
           alert_message: string | null
           alert_type: string
+          auto_escalated: boolean | null
           created_at: string | null
           deleted_at: string | null
           distance_from_zone: number | null
+          escalated_at: string | null
+          escalated_by: string | null
+          escalation_level: number | null
+          escalation_notes: string | null
           guard_id: string
           guard_lat: number | null
           guard_lng: number | null
@@ -4623,9 +4628,14 @@ export type Database = {
           acknowledged_by?: string | null
           alert_message?: string | null
           alert_type: string
+          auto_escalated?: boolean | null
           created_at?: string | null
           deleted_at?: string | null
           distance_from_zone?: number | null
+          escalated_at?: string | null
+          escalated_by?: string | null
+          escalation_level?: number | null
+          escalation_notes?: string | null
           guard_id: string
           guard_lat?: number | null
           guard_lng?: number | null
@@ -4643,9 +4653,14 @@ export type Database = {
           acknowledged_by?: string | null
           alert_message?: string | null
           alert_type?: string
+          auto_escalated?: boolean | null
           created_at?: string | null
           deleted_at?: string | null
           distance_from_zone?: number | null
+          escalated_at?: string | null
+          escalated_by?: string | null
+          escalation_level?: number | null
+          escalation_notes?: string | null
           guard_id?: string
           guard_lat?: number | null
           guard_lng?: number | null
@@ -4696,6 +4711,81 @@ export type Database = {
           },
           {
             foreignKeyName: "geofence_alerts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geofence_escalation_rules: {
+        Row: {
+          auto_escalate: boolean | null
+          breach_count_threshold: number
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          escalation_delay_minutes: number | null
+          escalation_level: number
+          id: string
+          is_active: boolean | null
+          notify_roles: string[] | null
+          notify_user_ids: string[] | null
+          rule_name: string
+          tenant_id: string
+          time_window_minutes: number
+          updated_at: string | null
+          zone_id: string | null
+          zone_type: string | null
+        }
+        Insert: {
+          auto_escalate?: boolean | null
+          breach_count_threshold?: number
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          escalation_delay_minutes?: number | null
+          escalation_level?: number
+          id?: string
+          is_active?: boolean | null
+          notify_roles?: string[] | null
+          notify_user_ids?: string[] | null
+          rule_name: string
+          tenant_id: string
+          time_window_minutes?: number
+          updated_at?: string | null
+          zone_id?: string | null
+          zone_type?: string | null
+        }
+        Update: {
+          auto_escalate?: boolean | null
+          breach_count_threshold?: number
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          escalation_delay_minutes?: number | null
+          escalation_level?: number
+          id?: string
+          is_active?: boolean | null
+          notify_roles?: string[] | null
+          notify_user_ids?: string[] | null
+          rule_name?: string
+          tenant_id?: string
+          time_window_minutes?: number
+          updated_at?: string | null
+          zone_id?: string | null
+          zone_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_escalation_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_escalation_rules_zone_id_fkey"
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "security_zones"
