@@ -188,9 +188,9 @@ export async function generateAssetReportPDF(options: AssetReportOptions): Promi
         <h3 style="font-size: 14px; color: #6b7280; margin: 0 0 12px 0;">Important Dates</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px;">
           <div>
-            <p style="color: #6b7280; margin: 0; font-size: 12px;">Purchase Date</p>
+            <p style="color: #6b7280; margin: 0; font-size: 12px;">Installation Date</p>
             <p style="font-weight: 500; margin: 4px 0 0 0;">
-              ${asset.purchase_date ? format(new Date(asset.purchase_date), 'MMM d, yyyy') : '-'}
+              ${asset.installation_date ? format(new Date(asset.installation_date), 'MMM d, yyyy') : '-'}
             </p>
           </div>
           <div>
@@ -220,21 +220,21 @@ export async function generateAssetReportPDF(options: AssetReportOptions): Promi
         <h3 style="font-size: 14px; color: #6b7280; margin: 0 0 12px 0;">Financial Information</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
           <div>
-            <p style="color: #6b7280; margin: 0; font-size: 12px;">Purchase Value</p>
+            <p style="color: #6b7280; margin: 0; font-size: 12px;">Purchase Price</p>
             <p style="font-weight: 500; margin: 4px 0 0 0; font-size: 18px;">
-              ${formatCurrency(asset.purchase_value, asset.currency || 'SAR')}
+              ${formatCurrency(asset.purchase_price, asset.currency || 'SAR')}
             </p>
           </div>
           <div>
-            <p style="color: #6b7280; margin: 0; font-size: 12px;">Current Value</p>
+            <p style="color: #6b7280; margin: 0; font-size: 12px;">Current Book Value</p>
             <p style="font-weight: 500; margin: 4px 0 0 0; font-size: 18px;">
-              ${formatCurrency(asset.current_value, asset.currency || 'SAR')}
+              ${formatCurrency(asset.current_book_value, asset.currency || 'SAR')}
             </p>
           </div>
           <div>
-            <p style="color: #6b7280; margin: 0; font-size: 12px;">Residual Value</p>
+            <p style="color: #6b7280; margin: 0; font-size: 12px;">Salvage Value</p>
             <p style="font-weight: 500; margin: 4px 0 0 0; font-size: 18px;">
-              ${formatCurrency(asset.residual_value, asset.currency || 'SAR')}
+              ${formatCurrency(asset.salvage_value, asset.currency || 'SAR')}
             </p>
           </div>
         </div>

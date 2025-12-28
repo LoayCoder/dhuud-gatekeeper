@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
 import { useTranslation } from 'react-i18next';
 
 export interface AssetWithGPS {
@@ -49,7 +50,7 @@ export function useAssetsWithGPS(filters: UseAssetsWithGPSFilters = {}) {
         query = query.eq('site_id', filters.siteId);
       }
       if (filters.status) {
-        query = query.eq('status', filters.status);
+        query = query.eq('status', filters.status as Database['public']['Tables']['hsse_assets']['Row']['status']);
       }
 
       const { data, error } = await query.order('name');
