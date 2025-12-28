@@ -1318,7 +1318,21 @@
     "priorityLow": "Low",
     "priorityMedium": "Medium",
     "priorityHigh": "High",
-    "priorityCritical": "Critical"
+    "priorityCritical": "Critical",
+    "code": "Code",
+    "sortOrder": "Sort Order",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
+    "descriptionEn": "Description (English)",
+    "descriptionAr": "Description (Arabic)",
+    "icon": "Icon",
+    "color": "Color",
+    "inactive": "Inactive",
+    "custom": "Custom",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "requiredFields": "Please fill all required fields",
+    "type": "Type"
   },
   "search": {
     "placeholder": "Search by title, description, or reference...",

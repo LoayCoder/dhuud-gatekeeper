@@ -1283,7 +1283,21 @@
     "priorityLow": "Mababa",
     "priorityMedium": "Katamtaman",
     "priorityHigh": "Mataas",
-    "priorityCritical": "Kritikal"
+    "priorityCritical": "Kritikal",
+    "code": "Code",
+    "sortOrder": "Pagkakasunod",
+    "nameEn": "Pangalan (Ingles)",
+    "nameAr": "Pangalan (Arabic)",
+    "descriptionEn": "Paglalarawan (Ingles)",
+    "descriptionAr": "Paglalarawan (Arabic)",
+    "icon": "Icon",
+    "color": "Kulay",
+    "inactive": "Hindi Aktibo",
+    "custom": "Custom",
+    "activate": "I-activate",
+    "deactivate": "I-deactivate",
+    "requiredFields": "Pakipunan ang lahat ng kinakailangang field",
+    "type": "Uri"
   },
   "auth": {
     "signIn": "Mag-sign In",

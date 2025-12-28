@@ -1294,7 +1294,21 @@
     "priorityLow": "کم",
     "priorityMedium": "درمیانی",
     "priorityHigh": "زیادہ",
-    "priorityCritical": "نازک"
+    "priorityCritical": "نازک",
+    "code": "کوڈ",
+    "sortOrder": "ترتیب",
+    "nameEn": "نام (انگریزی)",
+    "nameAr": "نام (عربی)",
+    "descriptionEn": "تفصیل (انگریزی)",
+    "descriptionAr": "تفصیل (عربی)",
+    "icon": "آئیکن",
+    "color": "رنگ",
+    "inactive": "غیر فعال",
+    "custom": "کسٹم",
+    "activate": "فعال کریں",
+    "deactivate": "غیر فعال کریں",
+    "requiredFields": "براہ کرم تمام ضروری فیلڈز پُر کریں",
+    "type": "قسم"
   },
   "auth": {
     "signIn": "سائن ان",

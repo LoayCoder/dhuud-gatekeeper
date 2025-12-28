@@ -1294,7 +1294,21 @@
     "priorityLow": "कम",
     "priorityMedium": "मध्यम",
     "priorityHigh": "उच्च",
-    "priorityCritical": "गंभीर"
+    "priorityCritical": "गंभीर",
+    "code": "कोड",
+    "sortOrder": "क्रम क्रमांक",
+    "nameEn": "नाम (अंग्रेज़ी)",
+    "nameAr": "नाम (अरबी)",
+    "descriptionEn": "विवरण (अंग्रेज़ी)",
+    "descriptionAr": "विवरण (अरबी)",
+    "icon": "आइकन",
+    "color": "रंग",
+    "inactive": "निष्क्रिय",
+    "custom": "कस्टम",
+    "activate": "सक्रिय करें",
+    "deactivate": "निष्क्रिय करें",
+    "requiredFields": "कृपया सभी आवश्यक फ़ील्ड भरें",
+    "type": "प्रकार"
   },
   "auth": {
     "signIn": "साइन इन करें",
