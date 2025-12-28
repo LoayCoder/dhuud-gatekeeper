@@ -5417,7 +5417,52 @@
       "pendingActions": "Pending Actions",
       "warningItemsIncomplete": "Some checklist items have not been answered.",
       "warningOpenFindings": "There are open findings without verified actions."
-    }
+    },
+    "form": {
+      "templateType": "Template Type",
+      "areaType": "Area Type",
+      "inspectionCategory": "Inspection Category",
+      "classification": "Classification",
+      "complianceSettings": "Compliance Settings",
+      "locationAssignment": "Location Assignment",
+      "requirements": "Requirements",
+      "standardReference": "Standard Reference",
+      "standardReferenceHint": "e.g., OSHA 29 CFR 1910.106, ISO 45001",
+      "passingScore": "Passing Score (%)",
+      "estimatedDuration": "Est. Duration (min)",
+      "requiresPhotos": "Require Photos",
+      "requiresPhotosHint": "Inspectors must capture photo evidence",
+      "requiresGPS": "Require GPS",
+      "requiresGPSHint": "Capture GPS coordinates during inspection"
+    },
+    "areaTypes": {
+      "warehouse": "Warehouse",
+      "accommodation": "Accommodation",
+      "site": "Construction Site",
+      "building": "Building",
+      "office": "Office",
+      "workshop": "Workshop"
+    },
+    "templateCategories": {
+      "title": "Template Categories",
+      "chemStorage": "Chemical Storage",
+      "chemStorageDesc": "Inspections for chemical warehouses and hazardous material storage",
+      "accommodation": "Accommodation",
+      "accommodationDesc": "Staff housing and living quarters inspections",
+      "siteSafety": "Site Safety",
+      "siteSafetyDesc": "General site walkthrough and safety inspections",
+      "structural": "Structural",
+      "structuralDesc": "Building structural integrity assessments",
+      "fireSafety": "Fire Safety",
+      "fireSafetyDesc": "Fire prevention and emergency equipment inspections",
+      "electrical": "Electrical",
+      "electricalDesc": "Electrical systems and equipment safety inspections",
+      "general": "General",
+      "generalDesc": "General purpose inspection templates"
+    },
+    "categoryCreated": "Category created successfully",
+    "categoryUpdated": "Category updated successfully",
+    "categoryDeleted": "Category deleted successfully"
   },
   "inspectionDashboard": {
     "title": "Inspection Dashboard",

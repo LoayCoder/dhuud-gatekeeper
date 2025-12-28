@@ -6969,6 +6969,68 @@ export type Database = {
           },
         ]
       }
+      inspection_template_categories: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          description_ar: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_template_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_template_items: {
         Row: {
           clause_reference: string | null
@@ -7052,6 +7114,7 @@ export type Database = {
       }
       inspection_templates: {
         Row: {
+          area_type: string | null
           branch_id: string | null
           category_id: string | null
           code: string
@@ -7061,6 +7124,7 @@ export type Database = {
           description: string | null
           estimated_duration_minutes: number | null
           id: string
+          inspection_category_id: string | null
           is_active: boolean | null
           name: string
           name_ar: string | null
@@ -7077,6 +7141,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
+          area_type?: string | null
           branch_id?: string | null
           category_id?: string | null
           code: string
@@ -7086,6 +7151,7 @@ export type Database = {
           description?: string | null
           estimated_duration_minutes?: number | null
           id?: string
+          inspection_category_id?: string | null
           is_active?: boolean | null
           name: string
           name_ar?: string | null
@@ -7102,6 +7168,7 @@ export type Database = {
           version?: number | null
         }
         Update: {
+          area_type?: string | null
           branch_id?: string | null
           category_id?: string | null
           code?: string
@@ -7111,6 +7178,7 @@ export type Database = {
           description?: string | null
           estimated_duration_minutes?: number | null
           id?: string
+          inspection_category_id?: string | null
           is_active?: boolean | null
           name?: string
           name_ar?: string | null
@@ -7146,6 +7214,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_inspection_category_id_fkey"
+            columns: ["inspection_category_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_template_categories"
             referencedColumns: ["id"]
           },
           {
