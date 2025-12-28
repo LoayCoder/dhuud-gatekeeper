@@ -313,6 +313,19 @@ self.addEventListener('sync', (event) => {
       })
     );
   }
+  
+  // Handle area inspection sync
+  if (event.tag === 'area-inspection-sync') {
+    event.waitUntil(
+      (async () => {
+        // Notify clients to sync area inspections
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({ type: 'AREA_INSPECTION_SYNC' });
+        });
+      })()
+    );
+  }
 });
 
 // Periodic Background Sync event handler - checks for server updates
