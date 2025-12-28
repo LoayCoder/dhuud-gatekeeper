@@ -5252,7 +5252,52 @@
       "complianceRate": "نسبة الامتثال",
       "checklistResults": "نتائج قائمة التفتيش",
       "findingsSummary": "ملخص النتائج"
-    }
+    },
+    "form": {
+      "templateType": "نوع القالب",
+      "areaType": "نوع المنطقة",
+      "inspectionCategory": "فئة الفحص",
+      "classification": "التصنيف",
+      "complianceSettings": "إعدادات الامتثال",
+      "locationAssignment": "تعيين الموقع",
+      "requirements": "المتطلبات",
+      "standardReference": "مرجع المعيار",
+      "standardReferenceHint": "مثال: OSHA 29 CFR 1910.106، ISO 45001",
+      "passingScore": "درجة النجاح (%)",
+      "estimatedDuration": "المدة المقدرة (دقيقة)",
+      "requiresPhotos": "يتطلب صور",
+      "requiresPhotosHint": "يجب على المفتشين التقاط صور كدليل",
+      "requiresGPS": "يتطلب GPS",
+      "requiresGPSHint": "التقاط إحداثيات GPS أثناء الفحص"
+    },
+    "areaTypes": {
+      "warehouse": "مستودع",
+      "accommodation": "سكن",
+      "site": "موقع إنشائي",
+      "building": "مبنى",
+      "office": "مكتب",
+      "workshop": "ورشة عمل"
+    },
+    "templateCategories": {
+      "title": "فئات القوالب",
+      "chemStorage": "التخزين الكيميائي",
+      "chemStorageDesc": "فحوصات المستودعات الكيميائية وتخزين المواد الخطرة",
+      "accommodation": "السكن",
+      "accommodationDesc": "فحوصات سكن الموظفين والمرافق السكنية",
+      "siteSafety": "سلامة الموقع",
+      "siteSafetyDesc": "جولات السلامة العامة في الموقع",
+      "structural": "الهيكلية",
+      "structuralDesc": "تقييمات سلامة هيكل المباني",
+      "fireSafety": "السلامة من الحرائق",
+      "fireSafetyDesc": "فحوصات الوقاية من الحرائق ومعدات الطوارئ",
+      "electrical": "الكهرباء",
+      "electricalDesc": "فحوصات سلامة الأنظمة والمعدات الكهربائية",
+      "general": "عام",
+      "generalDesc": "قوالب الفحص العامة"
+    },
+    "categoryCreated": "تم إنشاء الفئة بنجاح",
+    "categoryUpdated": "تم تحديث الفئة بنجاح",
+    "categoryDeleted": "تم حذف الفئة بنجاح"
   },
   "inspectionDashboard": {
     "title": "لوحة معلومات الفحص",

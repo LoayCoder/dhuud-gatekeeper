@@ -179,8 +179,19 @@ export function useCreateTemplate() {
       name: string;
       name_ar?: string;
       description?: string;
+      template_type?: 'asset' | 'area' | 'audit';
+      inspection_category_id?: string;
+      area_type?: string;
+      standard_reference?: string;
+      passing_score_percentage?: number;
+      estimated_duration_minutes?: number;
+      requires_photos?: boolean;
+      requires_gps?: boolean;
       category_id?: string;
       type_id?: string;
+      branch_id?: string;
+      site_id?: string;
+      is_active?: boolean;
     }) => {
       const { data: result, error } = await supabase
         .from('inspection_templates')
@@ -216,8 +227,18 @@ export function useUpdateTemplate() {
       name?: string;
       name_ar?: string;
       description?: string;
+      template_type?: 'asset' | 'area' | 'audit';
+      inspection_category_id?: string | null;
+      area_type?: string | null;
+      standard_reference?: string | null;
+      passing_score_percentage?: number | null;
+      estimated_duration_minutes?: number | null;
+      requires_photos?: boolean;
+      requires_gps?: boolean;
       category_id?: string | null;
       type_id?: string | null;
+      branch_id?: string | null;
+      site_id?: string | null;
       is_active?: boolean;
     }) => {
       const { data: result, error } = await supabase

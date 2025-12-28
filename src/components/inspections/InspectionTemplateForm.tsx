@@ -20,6 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,14 +33,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { InspectionTemplate } from '@/hooks/use-inspections';
+import { useInspectionTemplateCategories, AREA_TYPES, TEMPLATE_TYPES } from '@/hooks/use-inspection-categories';
 import i18n from '@/i18n';
+import { ClipboardList, MapPin, Briefcase } from 'lucide-react';
 
 const templateSchema = z.object({
   code: z.string().min(1).max(50),
   name: z.string().min(1).max(255),
   name_ar: z.string().optional(),
   description: z.string().optional(),
+  template_type: z.enum(['asset', 'area', 'audit']).default('asset'),
+  inspection_category_id: z.string().optional(),
+  area_type: z.string().optional(),
+  standard_reference: z.string().optional(),
+  passing_score_percentage: z.number().min(0).max(100).optional(),
+  estimated_duration_minutes: z.number().min(0).optional(),
+  requires_photos: z.boolean().default(false),
+  requires_gps: z.boolean().default(false),
   category_id: z.string().optional(),
   type_id: z.string().optional(),
   branch_id: z.string().optional(),
@@ -56,6 +69,12 @@ interface InspectionTemplateFormProps {
   onSubmit: (data: TemplateFormData) => Promise<void>;
   isLoading?: boolean;
 }
+
+const templateTypeIcons = {
+  asset: ClipboardList,
+  area: MapPin,
+  audit: Briefcase,
+};
 
 export function InspectionTemplateForm({
   open,
@@ -75,6 +94,14 @@ export function InspectionTemplateForm({
       name: '',
       name_ar: '',
       description: '',
+      template_type: 'asset',
+      inspection_category_id: undefined,
+      area_type: undefined,
+      standard_reference: '',
+      passing_score_percentage: 80,
+      estimated_duration_minutes: undefined,
+      requires_photos: false,
+      requires_gps: false,
       category_id: undefined,
       type_id: undefined,
       branch_id: undefined,
@@ -82,6 +109,8 @@ export function InspectionTemplateForm({
       is_active: true,
     },
   });
+
+  const templateType = form.watch('template_type');
 
   // Reset form when dialog opens with template data
   useEffect(() => {
@@ -91,6 +120,14 @@ export function InspectionTemplateForm({
         name: template?.name || '',
         name_ar: template?.name_ar || '',
         description: template?.description || '',
+        template_type: (template?.template_type as 'asset' | 'area' | 'audit') || 'asset',
+        inspection_category_id: (template as any)?.inspection_category_id || undefined,
+        area_type: (template as any)?.area_type || undefined,
+        standard_reference: (template as any)?.standard_reference || '',
+        passing_score_percentage: (template as any)?.passing_score_percentage || 80,
+        estimated_duration_minutes: (template as any)?.estimated_duration_minutes || undefined,
+        requires_photos: (template as any)?.requires_photos || false,
+        requires_gps: (template as any)?.requires_gps || false,
         category_id: template?.category_id || undefined,
         type_id: template?.type_id || undefined,
         branch_id: template?.branch_id || undefined,
@@ -99,6 +136,9 @@ export function InspectionTemplateForm({
       });
     }
   }, [open, template, form]);
+  
+  // Fetch inspection template categories
+  const { data: inspectionCategories } = useInspectionTemplateCategories();
   
   // Fetch branches
   const { data: branches } = useQuery({
@@ -140,7 +180,8 @@ export function InspectionTemplateForm({
     enabled: !!profile?.tenant_id,
   });
   
-  const { data: categories } = useQuery({
+  // Fetch asset categories (for asset type templates)
+  const { data: assetCategories } = useQuery({
     queryKey: ['asset-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -152,11 +193,12 @@ export function InspectionTemplateForm({
       if (error) throw error;
       return data;
     },
+    enabled: templateType === 'asset',
   });
   
   const selectedCategoryId = form.watch('category_id');
   
-  const { data: types } = useQuery({
+  const { data: assetTypes } = useQuery({
     queryKey: ['asset-types', selectedCategoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -169,14 +211,16 @@ export function InspectionTemplateForm({
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedCategoryId,
+    enabled: !!selectedCategoryId && templateType === 'asset',
   });
   
   const handleSubmit = async (data: TemplateFormData) => {
     await onSubmit({
       ...data,
-      category_id: data.category_id || undefined,
-      type_id: data.type_id || undefined,
+      inspection_category_id: data.inspection_category_id || undefined,
+      area_type: templateType === 'area' ? data.area_type : undefined,
+      category_id: templateType === 'asset' ? data.category_id : undefined,
+      type_id: templateType === 'asset' ? data.type_id : undefined,
       branch_id: data.branch_id || undefined,
       site_id: data.site_id || undefined,
     });
@@ -185,7 +229,7 @@ export function InspectionTemplateForm({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir={direction}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={direction}>
         <DialogHeader>
           <DialogTitle>
             {template ? t('inspections.editTemplate') : t('inspections.createTemplate')}
@@ -193,193 +237,431 @@ export function InspectionTemplateForm({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Template Type Selection */}
             <FormField
               control={form.control}
-              name="code"
+              name="template_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('inspections.code')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="FIRE-EXT-01" disabled={!!template} />
-                  </FormControl>
+                  <FormLabel>{t('inspections.form.templateType')}</FormLabel>
+                  <div className="flex gap-2">
+                    {TEMPLATE_TYPES.map((type) => {
+                      const Icon = templateTypeIcons[type.value];
+                      const isSelected = field.value === type.value;
+                      return (
+                        <Button
+                          key={type.value}
+                          type="button"
+                          variant={isSelected ? 'default' : 'outline'}
+                          className="flex-1 flex items-center gap-2"
+                          onClick={() => field.onChange(type.value)}
+                          disabled={!!template}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {t(type.labelKey)}
+                        </Button>
+                      );
+                    })}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <Separator />
             
-            <div className="grid grid-cols-2 gap-4">
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">{t('common.basicInfo')}</h4>
+              
               <FormField
                 control={form.control}
-                name="name"
+                name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('inspections.templateName')} (EN)</FormLabel>
+                    <FormLabel>{t('inspections.code')}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="CHEM-WH-001" disabled={!!template} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.templateName')} (EN)</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="name_ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.templateName')} (AR)</FormLabel>
+                      <FormControl>
+                        <Input {...field} dir="rtl" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
               <FormField
                 control={form.control}
-                name="name_ar"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('inspections.templateName')} (AR)</FormLabel>
+                    <FormLabel>{t('inspections.templateDescription')}</FormLabel>
                     <FormControl>
-                      <Input {...field} dir="rtl" />
+                      <Textarea {...field} rows={2} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <Separator />
             
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('inspections.templateDescription')}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={2} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Branch and Site Assignment */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="branch_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('inspections.linkedBranch')}</FormLabel>
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={(val) => {
-                        field.onChange(val || undefined);
-                        form.setValue('site_id', undefined);
-                      }}
-                      dir={direction}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('common.selectOptional')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {branches?.map((branch) => (
-                          <SelectItem key={branch.id} value={branch.id}>
-                            {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Category & Classification */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">{t('inspections.form.classification')}</h4>
               
-              <FormField
-                control={form.control}
-                name="site_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('inspections.linkedSite')}</FormLabel>
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={(val) => field.onChange(val || undefined)}
-                      dir={direction}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('common.selectOptional')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {sites?.map((site) => (
-                          <SelectItem key={site.id} value={site.id}>
-                            {site.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Inspection Category */}
+                <FormField
+                  control={form.control}
+                  name="inspection_category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.form.inspectionCategory')}</FormLabel>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={(val) => field.onChange(val || undefined)}
+                        dir={direction}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.selectOptional')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {inspectionCategories?.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  style={{ borderColor: cat.color || undefined }}
+                                >
+                                  {direction === 'rtl' ? cat.name_ar || cat.name : cat.name}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Area Type - only for area template type */}
+                {templateType === 'area' && (
+                  <FormField
+                    control={form.control}
+                    name="area_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('inspections.form.areaType')}</FormLabel>
+                        <Select
+                          value={field.value || ''}
+                          onValueChange={(val) => field.onChange(val || undefined)}
+                          dir={direction}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('common.select')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {AREA_TYPES.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {t(type.labelKey)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+
+                {/* Asset Category & Type - only for asset template type */}
+                {templateType === 'asset' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="category_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('inspections.linkedCategory')}</FormLabel>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(val) => {
+                              field.onChange(val || undefined);
+                              form.setValue('type_id', undefined);
+                            }}
+                            dir={direction}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.selectOptional')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {assetCategories?.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {direction === 'rtl' ? cat.name_ar || cat.name : cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="type_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('inspections.linkedType')}</FormLabel>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(val) => field.onChange(val || undefined)}
+                            disabled={!selectedCategoryId}
+                            dir={direction}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('common.selectOptional')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {assetTypes?.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {direction === 'rtl' ? type.name_ar || type.name : type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
             </div>
-            
-            {/* Category and Type */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('inspections.linkedCategory')}</FormLabel>
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={(val) => {
-                        field.onChange(val || undefined);
-                        form.setValue('type_id', undefined);
-                      }}
-                      dir={direction}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('common.selectOptional')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories?.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {direction === 'rtl' ? cat.name_ar || cat.name : cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+            <Separator />
+
+            {/* Compliance Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">{t('inspections.form.complianceSettings')}</h4>
               
-              <FormField
-                control={form.control}
-                name="type_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('inspections.linkedType')}</FormLabel>
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={(val) => field.onChange(val || undefined)}
-                      disabled={!selectedCategoryId}
-                      dir={direction}
-                    >
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="standard_reference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.form.standardReference')}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('common.selectOptional')} />
-                        </SelectTrigger>
+                        <Input {...field} placeholder="OSHA 29 CFR 1910.106" />
                       </FormControl>
-                      <SelectContent>
-                        {types?.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {direction === 'rtl' ? type.name_ar || type.name : type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormDescription className="text-xs">
+                        {t('inspections.form.standardReferenceHint')}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="passing_score_percentage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.form.passingScore')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min={0} 
+                          max={100}
+                          {...field} 
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 80)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="estimated_duration_minutes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.form.estimatedDuration')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min={0}
+                          {...field} 
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                          placeholder="60"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
+
+            <Separator />
+            
+            {/* Location Assignment */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">{t('inspections.form.locationAssignment')}</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="branch_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.linkedBranch')}</FormLabel>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={(val) => {
+                          field.onChange(val || undefined);
+                          form.setValue('site_id', undefined);
+                        }}
+                        dir={direction}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.selectOptional')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {branches?.map((branch) => (
+                            <SelectItem key={branch.id} value={branch.id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="site_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inspections.linkedSite')}</FormLabel>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={(val) => field.onChange(val || undefined)}
+                        dir={direction}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('common.selectOptional')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sites?.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Requirements */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">{t('inspections.form.requirements')}</h4>
+              
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="requires_photos"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-1 items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <FormLabel className="cursor-pointer">{t('inspections.form.requiresPhotos')}</FormLabel>
+                        <FormDescription className="text-xs">
+                          {t('inspections.form.requiresPhotosHint')}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="requires_gps"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-1 items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <FormLabel className="cursor-pointer">{t('inspections.form.requiresGPS')}</FormLabel>
+                        <FormDescription className="text-xs">
+                          {t('inspections.form.requiresGPSHint')}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <Separator />
             
             <FormField
               control={form.control}
