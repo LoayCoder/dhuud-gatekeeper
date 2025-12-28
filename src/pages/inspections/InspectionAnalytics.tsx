@@ -222,11 +222,3 @@ export default function InspectionAnalytics() {
     </div>
   );
 }
-
-export default function InspectionAnalytics() {
-  return (
-    <ModuleGate moduleCode="inspections">
-      <InspectionAnalyticsContent />
-    </ModuleGate>
-  );
-}
