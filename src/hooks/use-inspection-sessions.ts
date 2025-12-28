@@ -35,8 +35,11 @@ export interface InspectionSession {
   // Area inspection extended fields
   scope_notes: string | null;
   weather_conditions: string | null;
-  attendees: { name: string; role?: string }[] | null;
-  gps_boundary: { lat: number; lng: number }[] | null;
+  attendees: unknown; // JSON type from DB - cast as needed
+  gps_boundary: unknown; // JSON type from DB - cast as needed
+  // Report fields
+  report_url: string | null;
+  report_generated_at: string | null;
   // Joined data
   template?: { name: string; name_ar: string | null };
   site?: { name: string };

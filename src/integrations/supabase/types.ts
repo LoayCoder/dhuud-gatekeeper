@@ -6801,6 +6801,8 @@ export type Database = {
           passed_count: number | null
           period: string
           reference_id: string | null
+          report_generated_at: string | null
+          report_url: string | null
           scope_notes: string | null
           session_type: string
           site_id: string | null
@@ -6834,6 +6836,8 @@ export type Database = {
           passed_count?: number | null
           period: string
           reference_id?: string | null
+          report_generated_at?: string | null
+          report_url?: string | null
           scope_notes?: string | null
           session_type?: string
           site_id?: string | null
@@ -6867,6 +6871,8 @@ export type Database = {
           passed_count?: number | null
           period?: string
           reference_id?: string | null
+          report_generated_at?: string | null
+          report_url?: string | null
           scope_notes?: string | null
           session_type?: string
           site_id?: string | null

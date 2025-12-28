@@ -150,6 +150,7 @@ const SecurityAuditLog = lazyWithRetry(() => import("./pages/admin/SecurityAudit
 const AdminSecurityDashboard = lazyWithRetry(() => import("./pages/admin/SecurityDashboard"));
 const BillingOverview = lazyWithRetry(() => import("./pages/admin/BillingOverview"));
 const ActionSLASettings = lazyWithRetry(() => import("./pages/admin/ActionSLASettings"));
+const FindingSLASettings = lazyWithRetry(() => import("./pages/admin/FindingSLASettings"));
 const SLADashboard = lazyWithRetry(() => import("./pages/admin/SLADashboard"));
 const SLAAnalytics = lazyWithRetry(() => import("./pages/admin/SLAAnalytics"));
 const InvestigationSLASettings = lazyWithRetry(() => import("./pages/admin/InvestigationSLASettings"));
@@ -426,6 +427,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <ActionSLASettings />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/finding-sla"
+                        element={
+                          <AdminRoute>
+                            <FindingSLASettings />
                           </AdminRoute>
                         }
                       />
