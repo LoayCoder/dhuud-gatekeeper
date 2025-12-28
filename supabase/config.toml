@@ -200,3 +200,6 @@ verify_jwt = false
 
 [functions.part-stock-alerts]
 verify_jwt = false
+
+[functions.finding-sla-escalation]
+verify_jwt = false

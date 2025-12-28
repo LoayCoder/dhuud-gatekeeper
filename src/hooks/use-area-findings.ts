@@ -22,6 +22,12 @@ export interface AreaFinding {
   created_at: string;
   closed_at: string | null;
   closed_by: string | null;
+  // SLA fields
+  due_date: string | null;
+  escalation_level: number;
+  escalation_notes: string | null;
+  last_escalated_at: string | null;
+  warning_sent_at: string | null;
   // Joined data
   creator?: { full_name: string };
   closer?: { full_name: string };
@@ -64,7 +70,8 @@ export function useAreaFindings(sessionId: string | undefined) {
           id, tenant_id, session_id, response_id, reference_id,
           classification, risk_level, description, recommendation,
           corrective_action_id, status, created_by, created_at,
-          closed_at, closed_by,
+          closed_at, closed_by, due_date, escalation_level, 
+          escalation_notes, last_escalated_at, warning_sent_at,
           creator:profiles!area_inspection_findings_created_by_fkey(full_name),
           closer:profiles!area_inspection_findings_closed_by_fkey(full_name),
           corrective_action:corrective_actions(id, title, status),
