@@ -595,6 +595,12 @@ export function AppSidebar() {
           menuCode: 'admin_action_sla',
         },
         {
+          title: t('navigation.findingSlaSettings', 'Finding SLA Settings'),
+          url: "/admin/finding-sla",
+          icon: ClipboardCheck,
+          menuCode: 'admin_finding_sla',
+        },
+        {
           title: t('admin.menuAccess.title', 'Menu Access'),
           url: "/admin/menu-access",
           icon: Menu,
