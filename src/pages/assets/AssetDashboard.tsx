@@ -9,12 +9,15 @@ import {
   XCircle,
   Activity,
   ArrowRight,
+  ShieldAlert,
+  TrendingDown,
+  BoxIcon,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line, Area, AreaChart } from "recharts";
 import {
   useAssetDashboardStats,
   useAssetConditionDistribution,
@@ -23,6 +26,12 @@ import {
   useOverdueMaintenance,
   useRecentAssetActivity,
 } from "@/hooks/use-asset-dashboard";
+import {
+  useExpiringWarranties,
+  useLowStockCount,
+  useDepreciationTotals,
+  useAssetTrendData,
+} from "@/hooks/use-asset-dashboard-extended";
 import { PendingTransfersCard } from "@/components/assets";
 import { RecentInspectionsCard, InspectionStatsCard } from "@/components/inspections";
 import { format, formatDistanceToNow } from "date-fns";
@@ -48,6 +57,12 @@ export default function AssetDashboard() {
   const { data: overdueInspections, isLoading: inspectionsLoading } = useOverdueInspections();
   const { data: overdueMaintenance, isLoading: maintenanceLoading } = useOverdueMaintenance();
   const { data: recentActivity, isLoading: activityLoading } = useRecentAssetActivity();
+  
+  // New extended dashboard hooks
+  const { data: expiringWarrantiesCount, isLoading: warrantiesLoading } = useExpiringWarranties();
+  const { data: lowStockCount, isLoading: lowStockLoading } = useLowStockCount();
+  const { data: depreciationTotals, isLoading: depreciationLoading } = useDepreciationTotals();
+  const { data: trendData, isLoading: trendLoading } = useAssetTrendData();
 
   // Prepare condition chart data
   const conditionChartData = conditionData
@@ -134,7 +149,111 @@ export default function AssetDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Low Stock Parts */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t("assets.dashboard.lowStockParts", "Low Stock Parts")}</CardTitle>
+            <BoxIcon className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            {lowStockLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold text-orange-600">{lowStockCount || 0}</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Expiring Warranties */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t("assets.dashboard.expiringWarranties", "Expiring Warranties")}</CardTitle>
+            <ShieldAlert className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            {warrantiesLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-amber-600">{expiringWarrantiesCount || 0}</div>
+                <p className="text-xs text-muted-foreground">{t("assets.dashboard.next30Days", "Next 30 days")}</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Depreciation This Month */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t("assets.dashboard.monthlyDepreciation", "Monthly Depreciation")}</CardTitle>
+            <TrendingDown className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            {depreciationLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-blue-600">
+                  {new Intl.NumberFormat(i18n.language, { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(depreciationTotals?.monthlyDepreciation || 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("assets.dashboard.accumulated", "Accumulated")}: {new Intl.NumberFormat(i18n.language, { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(depreciationTotals?.accumulatedDepreciation || 0)}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Asset Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("assets.dashboard.assetTrend", "Asset & Maintenance Trend")}</CardTitle>
+          <CardDescription>{t("assets.dashboard.assetTrendDescription", "6-month overview of asset growth and maintenance activity")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {trendLoading ? (
+            <div className="flex h-[200px] items-center justify-center">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : !trendData || trendData.length === 0 ? (
+            <div className="flex h-[200px] items-center justify-center text-muted-foreground">
+              {t("assets.dashboard.noData")}
+            </div>
+          ) : (
+            <div className="h-[200px]" dir="ltr">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData}>
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="assets"
+                    name={t("assets.dashboard.totalAssets")}
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary) / 0.2)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="maintenance"
+                    name={t("assets.dashboard.maintenanceRecords", "Maintenance")}
+                    stroke="hsl(142, 76%, 36%)"
+                    fill="hsl(142, 76%, 36%, 0.2)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">

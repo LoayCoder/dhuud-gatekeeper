@@ -617,6 +617,139 @@ export type Database = {
           },
         ]
       }
+      asset_approval_configs: {
+        Row: {
+          auto_approve_below_amount: number | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          deleted_at: string | null
+          description: string | null
+          escalation_enabled: boolean
+          escalation_hours: number
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+          workflow_type: string
+        }
+        Insert: {
+          auto_approve_below_amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          escalation_enabled?: boolean
+          escalation_hours?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+          workflow_type: string
+        }
+        Update: {
+          auto_approve_below_amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          escalation_enabled?: boolean
+          escalation_hours?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+          workflow_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_approval_configs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_approval_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_approval_levels: {
+        Row: {
+          config_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          level_order: number
+          max_amount: number | null
+          min_amount: number | null
+          name: string
+          required_role: string | null
+          specific_user_id: string | null
+          tenant_id: string
+          timeout_hours: number
+        }
+        Insert: {
+          config_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          level_order?: number
+          max_amount?: number | null
+          min_amount?: number | null
+          name: string
+          required_role?: string | null
+          specific_user_id?: string | null
+          tenant_id: string
+          timeout_hours?: number
+        }
+        Update: {
+          config_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          level_order?: number
+          max_amount?: number | null
+          min_amount?: number | null
+          name?: string
+          required_role?: string | null
+          specific_user_id?: string | null
+          tenant_id?: string
+          timeout_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_approval_levels_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "asset_approval_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_approval_levels_specific_user_id_fkey"
+            columns: ["specific_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_approval_levels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_audit_logs: {
         Row: {
           action: string
@@ -1704,6 +1837,191 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_purchase_approvals: {
+        Row: {
+          approval_level: number
+          approver_id: string
+          created_at: string
+          decided_at: string
+          decision: string
+          id: string
+          notes: string | null
+          request_id: string
+          tenant_id: string
+        }
+        Insert: {
+          approval_level: number
+          approver_id: string
+          created_at?: string
+          decided_at?: string
+          decision: string
+          id?: string
+          notes?: string | null
+          request_id: string
+          tenant_id: string
+        }
+        Update: {
+          approval_level?: number
+          approver_id?: string
+          created_at?: string
+          decided_at?: string
+          decision?: string
+          id?: string
+          notes?: string | null
+          request_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_purchase_approvals_approver_id_fkey"
+            columns: ["approver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_approvals_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "asset_purchase_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_approvals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_purchase_requests: {
+        Row: {
+          approval_config_id: string | null
+          asset_category_id: string | null
+          asset_type_id: string | null
+          budget_code: string | null
+          created_at: string
+          currency: string
+          current_approval_level: number
+          deleted_at: string | null
+          description: string | null
+          estimated_cost: number
+          final_decision_at: string | null
+          final_decision_by: string | null
+          id: string
+          justification: string | null
+          quantity: number
+          rejection_reason: string | null
+          request_number: string
+          requested_at: string
+          requested_by: string
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          vendor_name: string | null
+          vendor_quote_path: string | null
+        }
+        Insert: {
+          approval_config_id?: string | null
+          asset_category_id?: string | null
+          asset_type_id?: string | null
+          budget_code?: string | null
+          created_at?: string
+          currency?: string
+          current_approval_level?: number
+          deleted_at?: string | null
+          description?: string | null
+          estimated_cost: number
+          final_decision_at?: string | null
+          final_decision_by?: string | null
+          id?: string
+          justification?: string | null
+          quantity?: number
+          rejection_reason?: string | null
+          request_number: string
+          requested_at?: string
+          requested_by: string
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+          vendor_name?: string | null
+          vendor_quote_path?: string | null
+        }
+        Update: {
+          approval_config_id?: string | null
+          asset_category_id?: string | null
+          asset_type_id?: string | null
+          budget_code?: string | null
+          created_at?: string
+          currency?: string
+          current_approval_level?: number
+          deleted_at?: string | null
+          description?: string | null
+          estimated_cost?: number
+          final_decision_at?: string | null
+          final_decision_by?: string | null
+          id?: string
+          justification?: string | null
+          quantity?: number
+          rejection_reason?: string | null
+          request_number?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          vendor_name?: string | null
+          vendor_quote_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_purchase_requests_approval_config_id_fkey"
+            columns: ["approval_config_id"]
+            isOneToOne: false
+            referencedRelation: "asset_approval_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_asset_category_id_fkey"
+            columns: ["asset_category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_asset_type_id_fkey"
+            columns: ["asset_type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_final_decision_by_fkey"
+            columns: ["final_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
