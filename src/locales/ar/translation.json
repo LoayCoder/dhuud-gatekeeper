@@ -1212,7 +1212,21 @@
     "priorityLow": "منخفضة",
     "priorityMedium": "متوسطة",
     "priorityHigh": "عالية",
-    "priorityCritical": "حرجة"
+    "priorityCritical": "حرجة",
+    "code": "الرمز",
+    "sortOrder": "ترتيب العرض",
+    "nameEn": "الاسم (إنجليزي)",
+    "nameAr": "الاسم (عربي)",
+    "descriptionEn": "الوصف (إنجليزي)",
+    "descriptionAr": "الوصف (عربي)",
+    "icon": "الأيقونة",
+    "color": "اللون",
+    "inactive": "غير نشط",
+    "custom": "مخصص",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
+    "requiredFields": "يرجى ملء جميع الحقول المطلوبة",
+    "type": "النوع"
   },
   "search": {
     "placeholder": "البحث بالعنوان أو الوصف أو المرجع...",
