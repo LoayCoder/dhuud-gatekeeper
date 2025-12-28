@@ -19,3 +19,4 @@ export { AssetLocationMap } from './AssetLocationMap';
 export { AssetLocationCapture } from './AssetLocationCapture';
 export { AssetReportExportButton } from './AssetReportExportButton';
 export { OfflinePhotoSyncIndicator } from './OfflinePhotoSyncIndicator';
+export { AssetHealthDashboardWidget } from './AssetHealthDashboardWidget';
