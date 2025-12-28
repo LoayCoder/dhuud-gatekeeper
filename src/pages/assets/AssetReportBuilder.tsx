@@ -104,7 +104,7 @@ interface ReportTemplate {
 export default function AssetReportBuilder() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   const direction = i18n.dir();
 
@@ -148,7 +148,7 @@ export default function AssetReportBuilder() {
         .from('saved_report_templates')
         .insert({
           tenant_id: profile.tenant_id,
-          created_by: profile.id || null,
+          created_by: user?.id || null,
           name: template.name,
           entity_type: 'asset',
           columns: template.columns as unknown as Json,
