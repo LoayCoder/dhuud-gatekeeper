@@ -4715,6 +4715,15 @@
       "recentActivityDescription": "Latest changes to assets",
       "noRecentActivity": "No recent activity",
       "noData": "No data available",
+      "viewMap": "View Map",
+      "lowStockParts": "Low Stock Parts",
+      "expiringWarranties": "Expiring Warranties",
+      "next30Days": "Next 30 days",
+      "monthlyDepreciation": "Monthly Depreciation",
+      "accumulated": "Accumulated",
+      "assetTrend": "Asset & Maintenance Trend",
+      "assetTrendDescription": "6-month overview of asset growth and maintenance activity",
+      "maintenanceRecords": "Maintenance",
       "actions": {
         "created": "created",
         "updated": "updated",
@@ -4730,6 +4739,84 @@
         "reportEvent": "Report HSSE Event",
         "scanAgain": "Scan Another"
       }
+    },
+    "reportBuilder": {
+      "title": "Report Builder",
+      "description": "Create custom asset reports",
+      "selectColumns": "Select Columns",
+      "columnSelection": "Column Selection",
+      "filters": "Filters",
+      "preview": "Preview",
+      "generate": "Generate Report",
+      "export": "Export",
+      "saveTemplate": "Save Template",
+      "templateName": "Template Name",
+      "templateSaved": "Report template saved",
+      "noColumnsSelected": "Please select at least one column"
+    },
+    "geoMap": {
+      "title": "Asset Location Map",
+      "fullscreen": "Fullscreen",
+      "clusterView": "Cluster View",
+      "noLocationData": "No location data available",
+      "setLocation": "Set Location",
+      "viewOnMap": "View on Map",
+      "assetsInArea": "{{count}} assets in this area",
+      "filterByStatus": "Filter by Status",
+      "filterByCategory": "Filter by Category"
+    },
+    "offlineSync": {
+      "pending": "Pending Sync",
+      "syncing": "Syncing...",
+      "syncNow": "Sync Now",
+      "photosUploaded": "Photos uploaded successfully",
+      "photosPending": "{{count}} photos pending upload",
+      "syncComplete": "Sync complete",
+      "syncFailed": "Some items failed to sync"
+    },
+    "healthDashboard": {
+      "title": "Fleet Health Overview",
+      "fleetHealth": "Fleet Health Score",
+      "riskDistribution": "Risk Distribution",
+      "atRiskAssets": "At-Risk Assets",
+      "predictiveAlerts": "Predictive Alerts",
+      "maintenanceCompliance": "Maintenance Compliance",
+      "healthTrend": "Health Trend (30 Days)",
+      "trend": {
+        "improving": "Improving",
+        "declining": "Declining",
+        "stable": "Stable",
+        "weekTrend": "vs last week"
+      },
+      "predictions": {
+        "daysUntil": "days until",
+        "predictedFailure": "predicted failure",
+        "confidence": "Confidence",
+        "acknowledged": "Acknowledged",
+        "address": "Address Now"
+      },
+      "riskLevels": {
+        "critical": "Critical",
+        "high": "High Risk",
+        "medium": "Medium Risk",
+        "low": "Low Risk"
+      },
+      "noRiskAssets": "No at-risk assets",
+      "noAlerts": "No predictive alerts",
+      "viewAllAlerts": "View All Alerts",
+      "viewAllAtRisk": "View All At-Risk"
+    },
+    "mobile": {
+      "pullToRefresh": "Pull to refresh",
+      "releasing": "Release to refresh",
+      "refreshing": "Refreshing...",
+      "swipeActions": {
+        "inspect": "Inspect",
+        "delete": "Delete",
+        "edit": "Edit"
+      },
+      "scanAsset": "Scan Asset",
+      "quickActions": "Quick Actions"
     },
     "barcodeScan": "Barcode Scan",
     "qrCodeScan": "QR Code Scan",
