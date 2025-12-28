@@ -15,6 +15,13 @@ interface LowStockPart {
   tenant_id: string;
 }
 
+interface NotificationPreference {
+  user_id: string;
+  tenant_id: string;
+  low_stock_email: boolean;
+  low_stock_whatsapp: boolean;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -26,12 +33,36 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Starting part stock alerts check...');
+    console.log('Starting part stock alerts check with user preferences...');
 
-    // Get all parts where current_stock <= minimum_stock
-    const { data: lowStockParts, error: partsError } = await supabase
+    // Get all user notification preferences for low stock alerts
+    const { data: preferences, error: prefError } = await supabase
+      .from('asset_notification_preferences')
+      .select('user_id, tenant_id, low_stock_email, low_stock_whatsapp')
+      .or('low_stock_email.eq.true,low_stock_whatsapp.eq.true');
+
+    if (prefError) {
+      console.error('Error fetching notification preferences:', prefError);
+      throw prefError;
+    }
+
+    console.log(`Found ${preferences?.length || 0} users with low stock alert preferences enabled`);
+
+    if (!preferences || preferences.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'No users have low stock notifications enabled', alertsCount: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get unique tenant IDs
+    const tenantIds = [...new Set(preferences.map(p => p.tenant_id))];
+
+    // Get all parts where current_stock <= minimum_stock for these tenants
+    const { data: allParts, error: partsError } = await supabase
       .from('maintenance_parts')
       .select('id, name, part_number, current_stock, minimum_stock, tenant_id')
+      .in('tenant_id', tenantIds)
       .filter('deleted_at', 'is', null)
       .filter('is_active', 'eq', true);
 
@@ -41,21 +72,21 @@ serve(async (req) => {
     }
 
     // Filter to only parts that are low on stock
-    const alertParts: LowStockPart[] = (lowStockParts || []).filter(
+    const lowStockParts: LowStockPart[] = (allParts || []).filter(
       (part: LowStockPart) => part.current_stock <= part.minimum_stock
     );
 
-    console.log(`Found ${alertParts.length} parts with low stock`);
+    console.log(`Found ${lowStockParts.length} parts with low stock`);
 
-    if (alertParts.length === 0) {
+    if (lowStockParts.length === 0) {
       return new Response(
         JSON.stringify({ success: true, message: 'No low stock alerts needed', alertsCount: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Group by tenant
-    const partsByTenant = alertParts.reduce((acc, part) => {
+    // Group parts by tenant
+    const partsByTenant = lowStockParts.reduce((acc, part) => {
       if (!acc[part.tenant_id]) {
         acc[part.tenant_id] = [];
       }
@@ -63,76 +94,86 @@ serve(async (req) => {
       return acc;
     }, {} as Record<string, LowStockPart[]>);
 
+    // Group preferences by tenant
+    const prefsByTenant = preferences.reduce((acc, pref) => {
+      if (!acc[pref.tenant_id]) {
+        acc[pref.tenant_id] = [];
+      }
+      acc[pref.tenant_id].push(pref);
+      return acc;
+    }, {} as Record<string, NotificationPreference[]>);
+
     let alertsSent = 0;
 
-    // For each tenant, get HSSE managers and send alerts
+    // For each tenant with low stock parts
     for (const [tenantId, parts] of Object.entries(partsByTenant)) {
-      // Get HSSE managers for this tenant
-      const { data: hsseManagers, error: managersError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name')
-        .eq('tenant_id', tenantId)
-        .eq('role', 'hsse_manager')
-        .filter('deleted_at', 'is', null);
+      const tenantPrefs = prefsByTenant[tenantId];
+      if (!tenantPrefs || tenantPrefs.length === 0) continue;
 
-      if (managersError) {
-        console.error(`Error fetching HSSE managers for tenant ${tenantId}:`, managersError);
-        continue;
-      }
+      // For each user with preferences in this tenant
+      for (const pref of tenantPrefs) {
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', pref.user_id)
+          .single();
 
-      if (!hsseManagers || hsseManagers.length === 0) {
-        console.log(`No HSSE managers found for tenant ${tenantId}, skipping`);
-        continue;
-      }
+        if (profileError || !profile?.email) {
+          console.error(`Error fetching profile for user ${pref.user_id}:`, profileError);
+          continue;
+        }
 
-      // Build alert message
-      const partsListHtml = parts.map(p => 
-        `<tr>
-          <td style="padding: 8px; border: 1px solid #ddd;">${p.part_number}</td>
-          <td style="padding: 8px; border: 1px solid #ddd;">${p.name}</td>
-          <td style="padding: 8px; border: 1px solid #ddd; color: ${p.current_stock === 0 ? 'red' : 'orange'}; font-weight: bold;">${p.current_stock}</td>
-          <td style="padding: 8px; border: 1px solid #ddd;">${p.minimum_stock}</td>
-        </tr>`
-      ).join('');
+        // Build alert message
+        if (pref.low_stock_email) {
+          const partsListHtml = parts.map(p => 
+            `<tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">${p.part_number}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${p.name}</td>
+              <td style="padding: 8px; border: 1px solid #ddd; color: ${p.current_stock === 0 ? 'red' : 'orange'}; font-weight: bold;">${p.current_stock}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${p.minimum_stock}</td>
+            </tr>`
+          ).join('');
 
-      const emailHtml = `
-        <h2>⚠️ Low Stock Alert - Maintenance Parts</h2>
-        <p>The following maintenance parts are running low on stock:</p>
-        <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">
-          <thead>
-            <tr style="background-color: #f5f5f5;">
-              <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Part Number</th>
-              <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Name</th>
-              <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Current Stock</th>
-              <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Minimum Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${partsListHtml}
-          </tbody>
-        </table>
-        <p style="margin-top: 16px;">Please review and reorder these parts as needed.</p>
-      `;
+          const emailHtml = `
+            <h2>⚠️ Low Stock Alert - Maintenance Parts</h2>
+            <p>Hello ${profile.full_name || 'User'},</p>
+            <p>The following maintenance parts are running low on stock:</p>
+            <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">
+              <thead>
+                <tr style="background-color: #f5f5f5;">
+                  <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">Part Number</th>
+                  <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">Name</th>
+                  <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">Current Stock</th>
+                  <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">Minimum Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${partsListHtml}
+              </tbody>
+            </table>
+            <p style="margin-top: 16px;">Please review and reorder these parts as needed.</p>
+          `;
 
-      // Queue email for each HSSE manager
-      for (const manager of hsseManagers) {
-        const { error: emailError } = await supabase
-          .from('email_queue')
-          .insert({
-            tenant_id: tenantId,
-            to_email: manager.email,
-            subject: `⚠️ Low Stock Alert: ${parts.length} parts need reordering`,
-            html_content: emailHtml,
-            email_type: 'part_stock_alert',
-            priority: 'normal',
-            status: 'pending'
-          });
+          // Queue email
+          const { error: emailError } = await supabase
+            .from('email_queue')
+            .insert({
+              tenant_id: tenantId,
+              to_email: profile.email,
+              subject: `⚠️ Low Stock Alert: ${parts.length} parts need reordering`,
+              html_content: emailHtml,
+              email_type: 'part_stock_alert',
+              priority: parts.some(p => p.current_stock === 0) ? 'high' : 'normal',
+              status: 'pending'
+            });
 
-        if (emailError) {
-          console.error(`Error queuing email for ${manager.email}:`, emailError);
-        } else {
-          alertsSent++;
-          console.log(`Queued low stock alert email for ${manager.email}`);
+          if (emailError) {
+            console.error(`Error queuing email for ${profile.email}:`, emailError);
+          } else {
+            alertsSent++;
+            console.log(`Queued low stock alert email for ${profile.email}`);
+          }
         }
       }
     }
@@ -142,7 +183,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Processed ${alertParts.length} low stock parts`,
+        message: `Processed ${lowStockParts.length} low stock parts`,
         alertsCount: alertsSent 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

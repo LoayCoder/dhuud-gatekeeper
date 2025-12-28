@@ -75,6 +75,7 @@ const AssetHealth = lazyWithRetry(() => import("./pages/assets/AssetHealth"));
 const AssetWarranties = lazyWithRetry(() => import("./pages/assets/AssetWarranties"));
 const AssetDepreciation = lazyWithRetry(() => import("./pages/assets/AssetDepreciation"));
 const AssetReports = lazyWithRetry(() => import("./pages/assets/AssetReports"));
+const ApprovalWorkflowConfigPage = lazyWithRetry(() => import("./pages/assets/ApprovalWorkflowConfigPage"));
 const PartsInventoryPage = lazyWithRetry(() => import("./pages/parts/PartsInventoryPage"));
 const InspectionSessionsDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionSessionsDashboard"));
 const SessionWorkspace = lazyWithRetry(() => import("./pages/inspections/SessionWorkspace"));
@@ -316,6 +317,7 @@ const App = () => (
                       <Route path="/assets/:id/inspections/:inspectionId" element={<HSSERoute><InspectionWorkspaceAsset /></HSSERoute>} />
                       <Route path="/assets/warranties" element={<AssetWarranties />} />
                       <Route path="/assets/reports" element={<HSSERoute><AssetReports /></HSSERoute>} />
+                      <Route path="/assets/approval-workflows" element={<AdminRoute><ApprovalWorkflowConfigPage /></AdminRoute>} />
 
                       {/* Parts Inventory Routes */}
                       <Route path="/parts/inventory" element={<HSSERoute><PartsInventoryPage /></HSSERoute>} />
