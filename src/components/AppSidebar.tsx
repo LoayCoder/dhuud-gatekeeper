@@ -225,6 +225,18 @@ export function AppSidebar() {
               icon: ClipboardCheck,
               menuCode: 'my_inspection_actions',
             },
+            {
+              title: t('navigation.inspectionTemplates', 'Inspection Templates'),
+              url: "/admin/inspection-templates",
+              icon: ClipboardList,
+              menuCode: 'admin_templates',
+            },
+            {
+              title: t('navigation.inspectionCategories', 'Inspection Categories'),
+              url: "/admin/inspection-category-settings",
+              icon: FolderTree,
+              menuCode: 'admin_inspection_categories',
+            },
           ],
         },
         {
@@ -558,18 +570,6 @@ export function AppSidebar() {
           url: "/admin/document-settings",
           icon: FileCog,
           menuCode: 'admin_document_settings',
-        },
-        {
-          title: t('navigation.inspectionTemplates', 'Inspection Templates'),
-          url: "/admin/inspection-templates",
-          icon: ClipboardList,
-          menuCode: 'admin_templates',
-        },
-        {
-          title: t('navigation.inspectionCategories', 'Inspection Categories'),
-          url: "/admin/inspection-category-settings",
-          icon: FolderTree,
-          menuCode: 'admin_inspection_categories',
         },
         {
           title: t('navigation.billingOverview'),
