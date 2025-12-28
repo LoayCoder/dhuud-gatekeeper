@@ -8579,6 +8579,65 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          body_ar: string | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_read: boolean | null
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          body_ar?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          tenant_id: string
+          title: string
+          title_ar?: string | null
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          body_ar?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          tenant_id?: string
+          title?: string
+          title_ar?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offline_scan_queue: {
         Row: {
           created_at: string
@@ -14436,6 +14495,15 @@ export type Database = {
           was_condition_match: boolean
           whatsapp_template_id: string
         }[]
+      }
+      get_inspection_analytics: {
+        Args: {
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       get_inspection_audit_trail: {
         Args: { p_entity_id?: string; p_entity_type?: string; p_limit?: number }
