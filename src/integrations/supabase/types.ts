@@ -4757,6 +4757,10 @@ export type Database = {
           description: string | null
           expected_lifespan_years: number | null
           floor_zone_id: string | null
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          gps_validated_at: string | null
           id: string
           inspection_interval_days: number | null
           installation_date: string | null
@@ -4767,6 +4771,7 @@ export type Database = {
           last_valuation_date: string | null
           latitude: number | null
           location_details: string | null
+          location_verified: boolean | null
           longitude: number | null
           maintenance_contract_id: string | null
           maintenance_vendor: string | null
@@ -4818,6 +4823,10 @@ export type Database = {
           description?: string | null
           expected_lifespan_years?: number | null
           floor_zone_id?: string | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          gps_validated_at?: string | null
           id?: string
           inspection_interval_days?: number | null
           installation_date?: string | null
@@ -4828,6 +4837,7 @@ export type Database = {
           last_valuation_date?: string | null
           latitude?: number | null
           location_details?: string | null
+          location_verified?: boolean | null
           longitude?: number | null
           maintenance_contract_id?: string | null
           maintenance_vendor?: string | null
@@ -4879,6 +4889,10 @@ export type Database = {
           description?: string | null
           expected_lifespan_years?: number | null
           floor_zone_id?: string | null
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          gps_validated_at?: string | null
           id?: string
           inspection_interval_days?: number | null
           installation_date?: string | null
@@ -4889,6 +4903,7 @@ export type Database = {
           last_valuation_date?: string | null
           latitude?: number | null
           location_details?: string | null
+          location_verified?: boolean | null
           longitude?: number | null
           maintenance_contract_id?: string | null
           maintenance_vendor?: string | null
@@ -11211,6 +11226,65 @@ export type Database = {
           sort_order?: number | null
         }
         Relationships: []
+      }
+      saved_report_templates: {
+        Row: {
+          columns: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          entity_type: string
+          filters: Json | null
+          grouping: Json | null
+          id: string
+          is_shared: boolean | null
+          name: string
+          sorting: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          columns?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          entity_type?: string
+          filters?: Json | null
+          grouping?: Json | null
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          sorting?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          columns?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          entity_type?: string
+          filters?: Json | null
+          grouping?: Json | null
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          sorting?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_report_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scan_error_logs: {
         Row: {
