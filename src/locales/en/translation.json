@@ -6787,6 +6787,17 @@
         "validationError": "Please fill in all required fields"
       }
     },
+    "inspectionCategories": {
+      "title": "Inspection Categories",
+      "description": "Manage categories for inspection templates",
+      "addCategory": "Add Category",
+      "addCategoryDescription": "Create a new inspection category",
+      "editCategory": "Edit Category",
+      "editCategoryDescription": "Modify inspection category details",
+      "deleteConfirmTitle": "Delete Category?",
+      "deleteConfirmDescription": "This will soft-delete the category. It can be restored later.",
+      "iconHelp": "Use Lucide icon name (e.g., Flame, Shield, Wrench)"
+    },
     "notificationMatrix": {
       "title": "Incident Notification Matrix",
       "description": "Configure who receives notifications based on incident severity",

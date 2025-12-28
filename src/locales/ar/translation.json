@@ -6578,6 +6578,17 @@
         "validationError": "يرجى ملء جميع الحقول المطلوبة"
       }
     },
+    "inspectionCategories": {
+      "title": "فئات الفحص",
+      "description": "إدارة فئات قوالب الفحص",
+      "addCategory": "إضافة فئة",
+      "addCategoryDescription": "إنشاء فئة فحص جديدة",
+      "editCategory": "تعديل الفئة",
+      "editCategoryDescription": "تعديل تفاصيل فئة الفحص",
+      "deleteConfirmTitle": "حذف الفئة؟",
+      "deleteConfirmDescription": "سيتم حذف الفئة. يمكن استعادتها لاحقاً.",
+      "iconHelp": "استخدم اسم أيقونة Lucide (مثل: Flame, Shield, Wrench)"
+    },
     "notificationMatrix": {
       "title": "مصفوفة إشعارات الحوادث",
       "description": "تحديد من يتلقى الإشعارات بناءً على خطورة الحادثة",
