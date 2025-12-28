@@ -15,3 +15,7 @@ export { AssetTransferDialog } from './AssetTransferDialog';
 export { TransferApprovalDialog } from './TransferApprovalDialog';
 export { TransferHistoryTab } from './TransferHistoryTab';
 export { PendingTransfersCard } from './PendingTransfersCard';
+export { AssetLocationMap } from './AssetLocationMap';
+export { AssetLocationCapture } from './AssetLocationCapture';
+export { AssetReportExportButton } from './AssetReportExportButton';
+export { OfflinePhotoSyncIndicator } from './OfflinePhotoSyncIndicator';

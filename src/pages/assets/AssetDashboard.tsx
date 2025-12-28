@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   TrendingDown,
   BoxIcon,
+  Map,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ import {
   useDepreciationTotals,
   useAssetTrendData,
 } from "@/hooks/use-asset-dashboard-extended";
-import { PendingTransfersCard } from "@/components/assets";
+import { PendingTransfersCard, AssetLocationMap, OfflinePhotoSyncIndicator } from "@/components/assets";
 import { RecentInspectionsCard, InspectionStatsCard } from "@/components/inspections";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -86,10 +87,17 @@ export default function AssetDashboard() {
           <h1 className="text-2xl font-bold tracking-tight">{t("assets.dashboard.title")}</h1>
           <p className="text-muted-foreground">{t("assets.dashboard.description")}</p>
         </div>
-        <Button onClick={() => navigate("/assets")} variant="outline">
-          {t("assets.dashboard.viewAllAssets")}
-          <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <OfflinePhotoSyncIndicator />
+          <Button onClick={() => navigate("/assets/map")} variant="outline" className="gap-2">
+            <Map className="h-4 w-4" />
+            {t("assets.dashboard.viewMap", "View Map")}
+          </Button>
+          <Button onClick={() => navigate("/assets")} variant="outline">
+            {t("assets.dashboard.viewAllAssets")}
+            <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -342,6 +350,9 @@ export default function AssetDashboard() {
 
       {/* Pending Transfers */}
       <PendingTransfersCard />
+
+      {/* Asset Location Map */}
+      <AssetLocationMap className="h-[400px]" />
 
       {/* Alerts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
