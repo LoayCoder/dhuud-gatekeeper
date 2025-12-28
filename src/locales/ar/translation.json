@@ -4039,7 +4039,10 @@
       "transfers": "التحويلات",
       "audit": "سجل التدقيق",
       "warranty": "الضمان",
-      "depreciation": "الإهلاك"
+      "depreciation": "الإهلاك",
+      "health": "الصحة والتنبؤات",
+      "financials": "التكاليف والماليات",
+      "tco": "التكلفة الإجمالية للملكية"
     },
     "depreciation": {
       "title": "جدول الإهلاك",
@@ -4438,7 +4441,12 @@
       "deleteError": "فشل في حذف الصورة",
       "primary": "رئيسية",
       "primarySet": "تم تحديث الصورة الرئيسية",
-      "primaryError": "فشل في تعيين الصورة الرئيسية"
+      "primaryError": "فشل في تعيين الصورة الرئيسية",
+      "syncing": "جارٍ مزامنة الصور...",
+      "pendingSync": "{{count}} صور في انتظار المزامنة",
+      "syncNow": "مزامنة الآن",
+      "syncFailed": "{{count}} صور فشلت في المزامنة",
+      "retrySync": "إعادة المحاولة"
     },
     "documents": {
       "dragDrop": "اسحب وأفلت مستند هنا",
@@ -4490,7 +4498,23 @@
       "assetNotFound": "الأصل غير موجود",
       "viewDetails": "عرض تفاصيل الأصل",
       "reportEvent": "الإبلاغ عن حدث",
-      "scanAgain": "مسح آخر"
+      "scanAgain": "مسح آخر",
+      "offlineMode": "أنت غير متصل. سيتم حفظ عمليات المسح ومزامنتها عند الاتصال مجدداً.",
+      "qrCode": "رمز QR",
+      "barcode": "باركود",
+      "lastScanned": "آخر مسح",
+      "selectAsset": "اختيار الأصل",
+      "quickActions": {
+        "view": "عرض التفاصيل",
+        "inspect": "بدء الفحص",
+        "maintenance": "تسجيل الصيانة",
+        "transfer": "تحويل الأصل"
+      },
+      "gpsStatus": {
+        "available": "GPS متاح",
+        "unavailable": "GPS غير متاح",
+        "acquiring": "جارٍ الحصول على GPS..."
+      }
     },
     "status": {
       "label": "الحالة",
@@ -4502,6 +4526,13 @@
       "under_maintenance": "تحت الصيانة"
     },
     "conditions": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "fair": "مقبول",
+      "poor": "ضعيف",
+      "critical": "حرج"
+    },
+    "condition": {
       "excellent": "ممتاز",
       "good": "جيد",
       "fair": "مقبول",
@@ -4754,6 +4785,49 @@
       "predictive": "تنبؤية",
       "emergency": "طارئة",
       "condition_based": "مبنية على الحالة"
+    },
+    "healthRecalculated": "تم إعادة حساب درجة الصحة بنجاح",
+    "healthPredictions": "الصحة والتنبؤات",
+    "recalculateHealth": "إعادة حساب الصحة",
+    "healthScore": "درجة الصحة",
+    "noHealthData": "لا تتوفر بيانات صحية. انقر على إعادة الحساب لإنشائها.",
+    "noMaintenanceHistory": "لا يوجد سجل صيانة",
+    "contributingFactors": "العوامل المؤثرة",
+    "maintenanceHistory": "سجل الصيانة",
+    "unplanned": "غير مخطط",
+    "fillRequiredFields": "يرجى ملء جميع الحقول المطلوبة",
+    "financials": "الماليات",
+    "tco": "التكلفة الإجمالية للملكية",
+    "addTransaction": "إضافة معاملة",
+    "addCostTransaction": "إضافة معاملة تكلفة",
+    "transactionType": "نوع المعاملة",
+    "amount": "المبلغ",
+    "currency": "العملة",
+    "transactionDate": "تاريخ المعاملة",
+    "purchaseCost": "سعر الشراء",
+    "currentBookValue": "القيمة الدفترية الحالية",
+    "totalCosts": "إجمالي التكاليف",
+    "depreciatedAmount": "المبلغ المستهلك",
+    "remainingLife": "العمر المتبقي",
+    "assetsWithLocation": "{{count}} أصول مع GPS",
+    "noAssetsWithLocation": "لا توجد أصول مع إحداثيات GPS",
+    "addGPSCoordinates": "أضف إحداثيات GPS للأصول",
+    "assetMap": "خريطة الأصول",
+    "assetMapDescription": "عرض مواقع الأصول على خريطة تفاعلية",
+    "severity": {
+      "critical": "حرج",
+      "high": "عالي",
+      "medium": "متوسط",
+      "low": "منخفض"
+    },
+    "transactionTypes": {
+      "maintenance": "صيانة",
+      "repair": "إصلاح",
+      "upgrade": "ترقية",
+      "insurance": "تأمين",
+      "training": "تدريب",
+      "operating": "تكلفة تشغيل",
+      "other": "أخرى"
     }
   },
   "maintenance": {

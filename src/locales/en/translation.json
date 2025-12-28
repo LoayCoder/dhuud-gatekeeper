@@ -4210,7 +4210,11 @@
       "incidents": "Incidents",
       "transfers": "Transfers",
       "audit": "Audit Log",
-      "depreciation": "Depreciation"
+      "depreciation": "Depreciation",
+      "health": "Health & Predictions",
+      "financials": "TCO & Financials",
+      "warranty": "Warranty",
+      "tco": "Total Cost of Ownership"
     },
     "depreciation": {
       "title": "Depreciation Schedule",
@@ -4341,7 +4345,23 @@
       "assetNotFound": "Asset not found",
       "viewDetails": "View Details",
       "reportEvent": "Report Event",
-      "scanAgain": "Scan Again"
+      "scanAgain": "Scan Again",
+      "offlineMode": "You are offline. Scans will be saved and synced when back online.",
+      "qrCode": "QR Code",
+      "barcode": "Barcode",
+      "lastScanned": "Last Scanned",
+      "selectAsset": "Select Asset",
+      "quickActions": {
+        "view": "View Details",
+        "inspect": "Start Inspection",
+        "maintenance": "Log Maintenance",
+        "transfer": "Transfer Asset"
+      },
+      "gpsStatus": {
+        "available": "GPS Available",
+        "unavailable": "GPS Unavailable",
+        "acquiring": "Acquiring GPS..."
+      }
     },
     "manualEntry": "Manual Entry",
     "manualEntryDescription": "Enter an asset code to search",
@@ -4565,7 +4585,12 @@
       "deleteError": "Failed to delete photo",
       "primary": "Primary",
       "primarySet": "Primary photo updated",
-      "primaryError": "Failed to set primary photo"
+      "primaryError": "Failed to set primary photo",
+      "syncing": "Syncing photos...",
+      "pendingSync": "{{count}} photos pending sync",
+      "syncNow": "Sync now",
+      "syncFailed": "{{count}} photos failed to sync",
+      "retrySync": "Retry Sync"
     },
     "documents": {
       "dragDrop": "Drag & drop a document here",
@@ -4680,6 +4705,13 @@
       "under_maintenance": "Under Maintenance"
     },
     "conditions": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "critical": "Critical"
+    },
+    "condition": {
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
@@ -4939,6 +4971,49 @@
       "predictive": "Predictive",
       "emergency": "Emergency",
       "condition_based": "Condition-Based"
+    },
+    "healthRecalculated": "Health score recalculated successfully",
+    "healthPredictions": "Health & Predictions",
+    "recalculateHealth": "Recalculate Health",
+    "healthScore": "Health Score",
+    "noHealthData": "No health data available. Click recalculate to generate.",
+    "noMaintenanceHistory": "No maintenance history recorded",
+    "contributingFactors": "Contributing Factors",
+    "maintenanceHistory": "Maintenance History",
+    "unplanned": "Unplanned",
+    "fillRequiredFields": "Please fill in all required fields",
+    "financials": "Financials",
+    "tco": "Total Cost of Ownership",
+    "addTransaction": "Add Transaction",
+    "addCostTransaction": "Add Cost Transaction",
+    "transactionType": "Transaction Type",
+    "amount": "Amount",
+    "currency": "Currency",
+    "transactionDate": "Transaction Date",
+    "purchaseCost": "Purchase Cost",
+    "currentBookValue": "Current Book Value",
+    "totalCosts": "Total Costs",
+    "depreciatedAmount": "Depreciated Amount",
+    "remainingLife": "Remaining Life",
+    "assetsWithLocation": "{{count}} assets with GPS",
+    "noAssetsWithLocation": "No assets with GPS coordinates",
+    "addGPSCoordinates": "Add GPS coordinates to assets",
+    "assetMap": "Asset Map",
+    "assetMapDescription": "View asset locations on an interactive map",
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "transactionTypes": {
+      "maintenance": "Maintenance",
+      "repair": "Repair",
+      "upgrade": "Upgrade",
+      "insurance": "Insurance",
+      "training": "Training",
+      "operating": "Operating Cost",
+      "other": "Other"
     }
   },
   "maintenance": {
