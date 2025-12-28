@@ -5186,6 +5186,7 @@ export type Database = {
           notification_type: Database["public"]["Enums"]["hsse_notification_type"]
           priority: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at: string | null
+          related_incident_id: string | null
           send_email_notification: boolean | null
           send_push_notification: boolean
           target_audience: Database["public"]["Enums"]["hsse_notification_target"]
@@ -5212,6 +5213,7 @@ export type Database = {
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at?: string | null
+          related_incident_id?: string | null
           send_email_notification?: boolean | null
           send_push_notification?: boolean
           target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
@@ -5238,6 +5240,7 @@ export type Database = {
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
           published_at?: string | null
+          related_incident_id?: string | null
           send_email_notification?: boolean | null
           send_push_notification?: boolean
           target_audience?: Database["public"]["Enums"]["hsse_notification_target"]
@@ -5255,6 +5258,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notifications_related_incident_id_fkey"
+            columns: ["related_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
           {
