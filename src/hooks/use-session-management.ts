@@ -59,8 +59,15 @@ export function useSessionManagement() {
 
       if (error) {
         // Handle 401 errors gracefully - session may have expired during the call
-        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
-          console.log('Session expired during registration, skipping');
+        const isAuthExpired = error.message?.includes('401') || 
+                              error.message?.includes('Invalid token') ||
+                              error.message?.includes('auth_session_expired') ||
+                              error.message?.includes('AUTH_SESSION_EXPIRED');
+        if (isAuthExpired) {
+          console.log('Auth session expired during registration, clearing local state');
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          // Force clear the stale session from Supabase client
+          await supabase.auth.signOut({ scope: 'local' });
           return;
         }
         console.error('Session registration failed:', error);
@@ -110,8 +117,14 @@ export function useSessionManagement() {
 
       if (error) {
         // Handle 401 gracefully - auth session expired
-        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
+        const isAuthExpired = error.message?.includes('401') || 
+                              error.message?.includes('Invalid token') ||
+                              error.message?.includes('auth_session_expired') ||
+                              error.message?.includes('AUTH_SESSION_EXPIRED');
+        if (isAuthExpired) {
           localStorage.removeItem(SESSION_TOKEN_KEY);
+          // Force clear the stale session from Supabase client
+          await supabase.auth.signOut({ scope: 'local' });
           return { valid: false, reason: 'auth_session_expired' };
         }
         console.error('Session validation failed:', error);
@@ -180,8 +193,15 @@ export function useSessionManagement() {
 
       // Handle 401 gracefully - don't force logout on network errors
       if (error) {
-        if (error.message?.includes('401') || error.message?.includes('Invalid token')) {
-          console.log('Auth session expired during heartbeat');
+        const isAuthExpired = error.message?.includes('401') || 
+                              error.message?.includes('Invalid token') ||
+                              error.message?.includes('auth_session_expired') ||
+                              error.message?.includes('AUTH_SESSION_EXPIRED');
+        if (isAuthExpired) {
+          console.log('Auth session expired during heartbeat, clearing local state');
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          // Force clear the stale session from Supabase client
+          await supabase.auth.signOut({ scope: 'local' });
           return;
         }
         console.error('Session heartbeat error:', error);

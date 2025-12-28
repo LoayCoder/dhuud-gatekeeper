@@ -94,9 +94,20 @@ Deno.serve(async (req) => {
     // Verify user - don't pass token as parameter, it's already in the header
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
-      console.error('Auth verification failed:', authError?.message);
+      const errorMessage = authError?.message || 'No user found';
+      console.error('Auth verification failed:', errorMessage);
+      
+      // Return specific error for session_not_found so client can handle it
+      const isSessionExpired = errorMessage.includes('session_not_found') || 
+                               errorMessage.includes('Session from session_id') ||
+                               errorMessage.includes('missing sub claim');
+      
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid token' }),
+        JSON.stringify({ 
+          success: false, 
+          error: isSessionExpired ? 'auth_session_expired' : 'Invalid token',
+          code: isSessionExpired ? 'AUTH_SESSION_EXPIRED' : 'INVALID_TOKEN'
+        }),
         { status: 401, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
       );
     }
