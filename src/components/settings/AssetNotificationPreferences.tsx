@@ -59,7 +59,7 @@ export function AssetNotificationPreferences() {
             onCheckedChange={(v) => updateField(emailField, v)}
           />
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <Label>{t("settings.email", "Email")}</Label>
+          <Label>{t("assets.notifications.email")}</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch
@@ -67,7 +67,7 @@ export function AssetNotificationPreferences() {
             onCheckedChange={(v) => updateField(whatsappField, v)}
           />
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <Label>{t("settings.whatsapp", "WhatsApp")}</Label>
+          <Label>{t("assets.notifications.whatsapp")}</Label>
         </div>
         {daysField && (
           <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export function AssetNotificationPreferences() {
               onChange={(e) => updateField(daysField, parseInt(e.target.value) || 7)}
               className="w-20"
             />
-            <Label className="text-muted-foreground">{t("settings.daysBefore", "days before")}</Label>
+            <Label className="text-muted-foreground">{t("assets.notifications.daysBefore")}</Label>
           </div>
         )}
       </div>
@@ -91,37 +91,37 @@ export function AssetNotificationPreferences() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
-          {t("settings.assetNotifications", "Asset Notifications")}
+          {t("assets.notifications.title")}
         </CardTitle>
         <CardDescription>
-          {t("settings.assetNotificationsDescription", "Configure how you receive alerts for asset-related events")}
+          {t("assets.notifications.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <NotificationRow
-          title={t("settings.warrantyExpiry", "Warranty Expiry")}
+          title={t("assets.notifications.warrantyExpiry")}
           emailField="warranty_expiry_email"
           whatsappField="warranty_expiry_whatsapp"
           daysField="warranty_expiry_days_before"
         />
         <NotificationRow
-          title={t("settings.maintenanceDue", "Maintenance Due")}
+          title={t("assets.notifications.maintenanceDue")}
           emailField="maintenance_due_email"
           whatsappField="maintenance_due_whatsapp"
           daysField="maintenance_due_days_before"
         />
         <NotificationRow
-          title={t("settings.lowStock", "Low Stock Alerts")}
+          title={t("assets.notifications.lowStock")}
           emailField="low_stock_email"
           whatsappField="low_stock_whatsapp"
         />
         <NotificationRow
-          title={t("settings.depreciation", "Depreciation Alerts")}
+          title={t("assets.notifications.depreciation")}
           emailField="depreciation_email"
           whatsappField="depreciation_whatsapp"
         />
         <NotificationRow
-          title={t("settings.insuranceExpiry", "Insurance Expiry")}
+          title={t("assets.notifications.insuranceExpiry")}
           emailField="insurance_expiry_email"
           whatsappField="insurance_expiry_whatsapp"
           daysField="insurance_expiry_days_before"
@@ -130,7 +130,7 @@ export function AssetNotificationPreferences() {
         <div className="flex justify-end pt-4">
           <Button onClick={handleSave} disabled={savePreferences.isPending}>
             {savePreferences.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-            {t("common.save")}
+            {t("assets.notifications.savePreferences")}
           </Button>
         </div>
       </CardContent>
