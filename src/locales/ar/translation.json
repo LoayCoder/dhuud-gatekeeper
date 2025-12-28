@@ -4029,6 +4029,7 @@
   "assets": {
     "title": "إدارة الأصول",
     "description": "إدارة وتتبع جميع أصول الصحة والسلامة",
+    "searchPlaceholder": "البحث بالاسم أو الكود أو الفئة...",
     "tabs": {
       "overview": "نظرة عامة",
       "inspections": "الفحوصات",

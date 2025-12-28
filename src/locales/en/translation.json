@@ -4201,6 +4201,7 @@
   "assets": {
     "title": "Asset Management",
     "description": "Manage and track all HSSE assets",
+    "searchPlaceholder": "Search by name, code, or category...",
     "tabs": {
       "overview": "Overview",
       "inspections": "Inspections",
