@@ -1721,7 +1721,9 @@
     "actionSlaSettings": "إعدادات SLA للإجراءات",
     "manhoursManagement": "إدارة ساعات العمل",
     "notificationRules": "قواعد الإشعارات",
-    "menuAccess": "صلاحيات القائمة"
+    "menuAccess": "صلاحيات القائمة",
+    "purchaseRequests": "طلبات الشراء",
+    "approvalConfig": "سير عمل الموافقات"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

@@ -448,11 +448,11 @@ export default function ApprovalWorkflowConfigPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12">{t("assetApproval.order", "#")}</TableHead>
-                        <TableHead>{t("common.name", "Name")}</TableHead>
-                        <TableHead>{t("assetApproval.role", "Role")}</TableHead>
-                        <TableHead>{t("assetApproval.amountRange", "Amount Range")}</TableHead>
-                        <TableHead>{t("assetApproval.timeout", "Timeout")}</TableHead>
+                        <TableHead className="w-12 text-start">{t("assetApproval.order", "#")}</TableHead>
+                        <TableHead className="text-start">{t("common.name", "Name")}</TableHead>
+                        <TableHead className="text-start">{t("assetApproval.role", "Role")}</TableHead>
+                        <TableHead className="text-start">{t("assetApproval.amountRange", "Amount Range")}</TableHead>
+                        <TableHead className="text-start">{t("assetApproval.timeout", "Timeout")}</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>

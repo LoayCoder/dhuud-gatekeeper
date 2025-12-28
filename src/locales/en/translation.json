@@ -1573,7 +1573,9 @@
     "actionSlaSettings": "Action SLA Settings",
     "manhoursManagement": "Manhours Management",
     "notificationRules": "Notification Rules",
-    "menuAccess": "Menu Access"
+    "menuAccess": "Menu Access",
+    "purchaseRequests": "Purchase Requests",
+    "approvalConfig": "Approval Workflows"
   },
   "actions": {
     "sessionActions": "Session Actions",

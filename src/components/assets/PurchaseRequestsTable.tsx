@@ -62,13 +62,13 @@ export function PurchaseRequestsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("purchaseRequest.requestNumber", "Request #")}</TableHead>
-              <TableHead>{t("common.title", "Title")}</TableHead>
-              <TableHead>{t("purchaseRequest.amount", "Amount")}</TableHead>
-              <TableHead>{t("purchaseRequest.requestedBy", "Requested By")}</TableHead>
-              <TableHead>{t("common.date", "Date")}</TableHead>
-              <TableHead>{t("common.status", "Status")}</TableHead>
-              <TableHead>{t("purchaseRequest.approvalLevel", "Level")}</TableHead>
+              <TableHead className="text-start">{t("purchaseRequest.requestNumber", "Request #")}</TableHead>
+              <TableHead className="text-start">{t("common.title", "Title")}</TableHead>
+              <TableHead className="text-start">{t("purchaseRequest.amount", "Amount")}</TableHead>
+              <TableHead className="text-start">{t("purchaseRequest.requestedBy", "Requested By")}</TableHead>
+              <TableHead className="text-start">{t("common.date", "Date")}</TableHead>
+              <TableHead className="text-start">{t("common.status", "Status")}</TableHead>
+              <TableHead className="text-start">{t("purchaseRequest.approvalLevel", "Level")}</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>

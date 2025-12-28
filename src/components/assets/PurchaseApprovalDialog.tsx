@@ -120,7 +120,7 @@ export function PurchaseApprovalDialog({ open, onOpenChange, requestId }: Purcha
           </div>
         </div>
         
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.cancel", "Cancel")}
           </Button>
@@ -130,7 +130,7 @@ export function PurchaseApprovalDialog({ open, onOpenChange, requestId }: Purcha
             disabled={decideRequest.isPending}
           >
             {decideRequest.isPending && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            <XCircle className="h-4 w-4 me-2" />
+            <XCircle className="h-4 w-4 me-2 rtl:rotate-0" />
             {t("purchaseApproval.reject", "Reject")}
           </Button>
           <Button 
