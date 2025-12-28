@@ -15277,6 +15277,10 @@ export type Database = {
         }[]
       }
       get_user_tenant_id: { Args: never; Returns: string }
+      get_user_tenant_id_secure: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_users_with_roles_paginated: {
         Args: {
           p_branch_id?: string
