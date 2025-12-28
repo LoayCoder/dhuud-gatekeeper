@@ -12,6 +12,7 @@ import { NotificationHistory } from "./NotificationHistory";
 import { NotificationSoundSettings } from "./NotificationSoundSettings";
 import { NotificationCategoryPreferences } from "./NotificationCategoryPreferences";
 import { PushNotificationTypePreferences } from "./PushNotificationTypePreferences";
+import { AssetNotificationPreferences } from "@/components/settings/AssetNotificationPreferences";
 import { usePushSubscription } from "@/hooks/use-push-subscription";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -367,6 +368,11 @@ export function NotificationPreferences() {
       
       {/* Notification History */}
       <NotificationHistory />
+      
+      <Separator className="my-6" />
+      
+      {/* Asset Notification Preferences */}
+      <AssetNotificationPreferences />
     </div>
   );
 }
