@@ -32,6 +32,7 @@ import {
   User,
   Network,
   Layers,
+  FolderTree,
   HelpCircle,
   LifeBuoy,
   CreditCard,
@@ -563,6 +564,12 @@ export function AppSidebar() {
           url: "/admin/inspection-templates",
           icon: ClipboardList,
           menuCode: 'admin_templates',
+        },
+        {
+          title: t('navigation.inspectionCategories', 'Inspection Categories'),
+          url: "/admin/inspection-category-settings",
+          icon: FolderTree,
+          menuCode: 'admin_inspection_categories',
         },
         {
           title: t('navigation.billingOverview'),
