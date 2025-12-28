@@ -1168,6 +1168,8 @@
     "update": "تحديث",
     "none": "لا شيء",
     "select": "اختر",
+    "selectOptional": "اختر (اختياري)",
+    "basicInfo": "المعلومات الأساسية",
     "selected": "محدد",
     "add": "إضافة",
     "remove": "إزالة",

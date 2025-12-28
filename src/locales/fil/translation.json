@@ -1239,6 +1239,8 @@
     "all": "Lahat",
     "none": "Wala",
     "select": "Pumili",
+    "selectOptional": "Pumili (Opsyonal)",
+    "basicInfo": "Pangunahing Impormasyon",
     "selected": "Napili",
     "add": "Idagdag",
     "remove": "Alisin",

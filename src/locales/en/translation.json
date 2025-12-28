@@ -1274,6 +1274,8 @@
     "update": "Update",
     "none": "None",
     "select": "Select",
+    "selectOptional": "Select (Optional)",
+    "basicInfo": "Basic Information",
     "selected": "Selected",
     "add": "Add",
     "remove": "Remove",
