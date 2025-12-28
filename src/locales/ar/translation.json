@@ -4537,6 +4537,15 @@
       "recentActivityDescription": "آخر التغييرات على الأصول",
       "noRecentActivity": "لا يوجد نشاط حديث",
       "noData": "لا توجد بيانات متاحة",
+      "viewMap": "عرض الخريطة",
+      "lowStockParts": "قطع منخفضة المخزون",
+      "expiringWarranties": "ضمانات منتهية قريباً",
+      "next30Days": "خلال 30 يوم",
+      "monthlyDepreciation": "الإهلاك الشهري",
+      "accumulated": "المتراكم",
+      "assetTrend": "اتجاه الأصول والصيانة",
+      "assetTrendDescription": "نظرة عامة على 6 أشهر لنمو الأصول ونشاط الصيانة",
+      "maintenanceRecords": "الصيانة",
       "actions": {
         "created": "أنشأ",
         "updated": "حدّث",
@@ -4545,6 +4554,84 @@
         "inspection_completed": "أكمل فحص",
         "maintenance_completed": "أكمل صيانة"
       }
+    },
+    "reportBuilder": {
+      "title": "منشئ التقارير",
+      "description": "إنشاء تقارير مخصصة للأصول",
+      "selectColumns": "اختيار الأعمدة",
+      "columnSelection": "اختيار الأعمدة",
+      "filters": "الفلاتر",
+      "preview": "معاينة",
+      "generate": "إنشاء التقرير",
+      "export": "تصدير",
+      "saveTemplate": "حفظ القالب",
+      "templateName": "اسم القالب",
+      "templateSaved": "تم حفظ قالب التقرير",
+      "noColumnsSelected": "يرجى اختيار عمود واحد على الأقل"
+    },
+    "geoMap": {
+      "title": "خريطة مواقع الأصول",
+      "fullscreen": "ملء الشاشة",
+      "clusterView": "عرض المجموعات",
+      "noLocationData": "لا تتوفر بيانات الموقع",
+      "setLocation": "تحديد الموقع",
+      "viewOnMap": "عرض على الخريطة",
+      "assetsInArea": "{{count}} أصول في هذه المنطقة",
+      "filterByStatus": "تصفية حسب الحالة",
+      "filterByCategory": "تصفية حسب الفئة"
+    },
+    "offlineSync": {
+      "pending": "في انتظار المزامنة",
+      "syncing": "جارٍ المزامنة...",
+      "syncNow": "مزامنة الآن",
+      "photosUploaded": "تم رفع الصور بنجاح",
+      "photosPending": "{{count}} صور في انتظار الرفع",
+      "syncComplete": "اكتملت المزامنة",
+      "syncFailed": "فشلت بعض العناصر في المزامنة"
+    },
+    "healthDashboard": {
+      "title": "نظرة عامة على صحة الأسطول",
+      "fleetHealth": "درجة صحة الأسطول",
+      "riskDistribution": "توزيع المخاطر",
+      "atRiskAssets": "أصول معرضة للخطر",
+      "predictiveAlerts": "تنبيهات تنبؤية",
+      "maintenanceCompliance": "امتثال الصيانة",
+      "healthTrend": "اتجاه الصحة (30 يوم)",
+      "trend": {
+        "improving": "تحسن",
+        "declining": "تراجع",
+        "stable": "مستقر",
+        "weekTrend": "مقارنة بالأسبوع الماضي"
+      },
+      "predictions": {
+        "daysUntil": "يوم حتى",
+        "predictedFailure": "عطل متوقع",
+        "confidence": "الثقة",
+        "acknowledged": "تم الإقرار",
+        "address": "معالجة الآن"
+      },
+      "riskLevels": {
+        "critical": "حرج",
+        "high": "خطر عالي",
+        "medium": "خطر متوسط",
+        "low": "خطر منخفض"
+      },
+      "noRiskAssets": "لا توجد أصول معرضة للخطر",
+      "noAlerts": "لا توجد تنبيهات تنبؤية",
+      "viewAllAlerts": "عرض جميع التنبيهات",
+      "viewAllAtRisk": "عرض جميع الأصول المعرضة للخطر"
+    },
+    "mobile": {
+      "pullToRefresh": "اسحب للتحديث",
+      "releasing": "أفلت للتحديث",
+      "refreshing": "جارٍ التحديث...",
+      "swipeActions": {
+        "inspect": "فحص",
+        "delete": "حذف",
+        "edit": "تعديل"
+      },
+      "scanAsset": "مسح الأصل",
+      "quickActions": "إجراءات سريعة"
     },
     "barcodeScan": "مسح الباركود",
     "qrCodeScan": "مسح رمز QR",

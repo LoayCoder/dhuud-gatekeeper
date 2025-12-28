@@ -33,7 +33,7 @@ import {
   useDepreciationTotals,
   useAssetTrendData,
 } from "@/hooks/use-asset-dashboard-extended";
-import { PendingTransfersCard, AssetLocationMap, OfflinePhotoSyncIndicator, AssetHealthDashboardWidget } from "@/components/assets";
+import { PendingTransfersCard, AssetLocationMap, OfflinePhotoSyncIndicator, AssetHealthDashboardWidget, ScanFAB } from "@/components/assets";
 import { RecentInspectionsCard, InspectionStatsCard } from "@/components/inspections";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -509,6 +509,9 @@ export default function AssetDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Mobile Scan FAB */}
+      <ScanFAB />
     </div>
   );
 }
