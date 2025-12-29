@@ -57,6 +57,12 @@ export default function SecurityDashboard() {
       variant: 'default' as const
     },
     { 
+      label: t('security.emergencyAlerts', 'Emergency Alerts'), 
+      icon: AlertTriangle, 
+      path: '/security/emergency-alerts',
+      variant: 'destructive' as const
+    },
+    { 
       label: t('security.dashboard.startPatrol', 'Start Patrol'), 
       icon: Route, 
       path: '/security/patrols',
