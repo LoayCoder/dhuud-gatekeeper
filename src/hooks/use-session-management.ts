@@ -22,7 +22,12 @@ export function useSessionManagement() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const validateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isRegistering = useRef(false);
+  
+  // Track if we've already registered a session for the current user
+  const hasRegisteredSession = useRef(false);
+  const lastUserId = useRef<string | null>(null);
 
   // Get device info for session tracking
   const getDeviceInfo = useCallback(() => {
@@ -142,6 +147,10 @@ export function useSessionManagement() {
   const handleSessionInvalid = useCallback(async (reason: string, details?: Record<string, string>) => {
     localStorage.removeItem(SESSION_TOKEN_KEY);
     
+    // Reset registration tracking
+    hasRegisteredSession.current = false;
+    lastUserId.current = null;
+    
     // Sign out from Supabase - use local scope to avoid errors when session is already gone
     try {
       await supabase.auth.signOut({ scope: 'local' });
@@ -241,44 +250,82 @@ export function useSessionManagement() {
       console.error('Session invalidation error:', err);
     } finally {
       localStorage.removeItem(SESSION_TOKEN_KEY);
+      // Reset registration tracking on logout
+      hasRegisteredSession.current = false;
+      lastUserId.current = null;
     }
   }, []);
 
-  // Effect: Register session on login, start heartbeat
+  // Store handlers in refs to avoid effect re-runs from callback recreation
+  const handlersRef = useRef({ sendHeartbeat, validateSession, handleSessionInvalid, registerSession });
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Register new session
-      registerSession();
+    handlersRef.current = { sendHeartbeat, validateSession, handleSessionInvalid, registerSession };
+  });
 
-      // Start heartbeat interval
-      heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+  // Effect: Register session on login, start heartbeat
+  // Only depends on isAuthenticated and user?.id to prevent unnecessary re-runs
+  useEffect(() => {
+    const userId = user?.id;
+    
+    if (isAuthenticated && userId) {
+      // Check if this is a new user (new login)
+      if (userId !== lastUserId.current) {
+        // New user login - reset registration tracking
+        hasRegisteredSession.current = false;
+        lastUserId.current = userId;
+      }
 
-      // Validate session periodically (every heartbeat)
-      const validateInterval = setInterval(async () => {
-        const result = await validateSession();
-        // Only handle invalid sessions that aren't auth-related (auth-related ones are handled by validateSession itself)
-        if (!result.valid && result.reason !== 'no_token' && result.reason !== 'auth_session_expired') {
-          handleSessionInvalid(result.reason || 'unknown', {
-            originalCountry: result.originalCountry || '',
-            currentCountry: result.currentCountry || '',
-          });
-        }
-      }, HEARTBEAT_INTERVAL);
+      // Only register if we haven't already registered for this session
+      if (!hasRegisteredSession.current) {
+        hasRegisteredSession.current = true;
+        handlersRef.current.registerSession();
+      }
+
+      // Start heartbeat interval (only if not already running)
+      if (!heartbeatIntervalRef.current) {
+        heartbeatIntervalRef.current = setInterval(() => {
+          handlersRef.current.sendHeartbeat();
+        }, HEARTBEAT_INTERVAL);
+      }
+
+      // Start validation interval (only if not already running)
+      if (!validateIntervalRef.current) {
+        validateIntervalRef.current = setInterval(async () => {
+          const result = await handlersRef.current.validateSession();
+          // Only handle invalid sessions that aren't auth-related
+          if (!result.valid && result.reason !== 'no_token' && result.reason !== 'auth_session_expired') {
+            handlersRef.current.handleSessionInvalid(result.reason || 'unknown', {
+              originalCountry: result.originalCountry || '',
+              currentCountry: result.currentCountry || '',
+            });
+          }
+        }, HEARTBEAT_INTERVAL);
+      }
 
       return () => {
         if (heartbeatIntervalRef.current) {
           clearInterval(heartbeatIntervalRef.current);
+          heartbeatIntervalRef.current = null;
         }
-        clearInterval(validateInterval);
+        if (validateIntervalRef.current) {
+          clearInterval(validateIntervalRef.current);
+          validateIntervalRef.current = null;
+        }
       };
     } else {
-      // User logged out, clear interval
+      // User logged out, clear intervals and reset tracking
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
         heartbeatIntervalRef.current = null;
       }
+      if (validateIntervalRef.current) {
+        clearInterval(validateIntervalRef.current);
+        validateIntervalRef.current = null;
+      }
+      hasRegisteredSession.current = false;
+      lastUserId.current = null;
     }
-  }, [isAuthenticated, user, registerSession, sendHeartbeat, validateSession, handleSessionInvalid]);
+  }, [isAuthenticated, user?.id]);
 
   return {
     validateSession,
