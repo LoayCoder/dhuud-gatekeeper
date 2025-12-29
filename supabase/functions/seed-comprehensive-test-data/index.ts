@@ -252,30 +252,29 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
   console.log('Seeding organization structure...')
   const results = { branches: 0, sites: 0, buildings: 0, floors: 0, divisions: 0, departments: 0 }
   
-  // Seed branches
+  // Seed branches - using actual schema: id, tenant_id, name, location
   const branchIds: string[] = []
   for (const branch of BRANCHES) {
     const { data, error } = await supabase
       .from('branches')
       .insert({
         tenant_id: tenantId,
-        name: branch.name,
-        name_ar: branch.name_ar,
-        code: `TEST-${branch.code}`,
-        city: branch.city,
-        address: branch.address,
-        is_active: true,
+        name: `TEST - ${branch.name}`,
+        location: `${branch.city}, ${branch.address}`,
       })
       .select('id')
       .single()
     
+    if (error) {
+      console.log('Branch insert error:', error.message)
+    }
     if (!error && data) {
       branchIds.push(data.id)
       results.branches++
     }
   }
 
-  // Seed sites
+  // Seed sites - actual schema: id, tenant_id, name, address, branch_id, is_active
   const siteIds: string[] = []
   for (let i = 0; i < branchIds.length; i++) {
     const sitesForBranch = SITES_PER_BRANCH[i] || SITES_PER_BRANCH[0]
@@ -285,15 +284,16 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
         .insert({
           tenant_id: tenantId,
           branch_id: branchIds[i],
-          name: site.name,
-          name_ar: site.name_ar,
-          code: `TEST-${site.code}`,
-          type: site.type,
+          name: `TEST - ${site.name}`,
+          address: `${BRANCHES[i].city} - ${site.type}`,
           is_active: true,
         })
         .select('id')
         .single()
       
+      if (error) {
+        console.log('Site insert error:', error.message)
+      }
       if (!error && data) {
         siteIds.push(data.id)
         results.sites++
@@ -301,7 +301,7 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
     }
   }
 
-  // Seed buildings
+  // Seed buildings - actual schema: id, tenant_id, site_id, name, name_ar, code, is_active
   const buildingIds: string[] = []
   for (const siteId of siteIds) {
     const buildingsToCreate = pickRandomN(BUILDINGS, 2)
@@ -311,7 +311,7 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
         .insert({
           tenant_id: tenantId,
           site_id: siteId,
-          name: building.name,
+          name: `TEST - ${building.name}`,
           name_ar: building.name_ar,
           code: `TEST-${building.code}-${Math.random().toString(36).substring(7)}`,
           is_active: true,
@@ -319,6 +319,9 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
         .select('id')
         .single()
       
+      if (error) {
+        console.log('Building insert error:', error.message)
+      }
       if (!error && data) {
         buildingIds.push(data.id)
         results.buildings++
@@ -326,7 +329,7 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
     }
   }
 
-  // Seed floors/zones
+  // Seed floors/zones - actual schema: id, tenant_id, building_id, name, name_ar, zone_type, is_active
   for (const buildingId of buildingIds) {
     const floorsToCreate = pickRandomN(FLOORS, 2)
     for (const floor of floorsToCreate) {
@@ -335,38 +338,40 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
         .insert({
           tenant_id: tenantId,
           building_id: buildingId,
-          name: floor.name,
+          name: `TEST - ${floor.name}`,
           name_ar: floor.name_ar,
-          code: `TEST-${floor.code}-${Math.random().toString(36).substring(7)}`,
           is_active: true,
         })
       
+      if (error) {
+        console.log('Floor insert error:', error.message)
+      }
       if (!error) results.floors++
     }
   }
 
-  // Seed divisions
+  // Seed divisions - actual schema: id, tenant_id, name
   const divisionMap: Record<string, string> = {}
   for (const division of DIVISIONS) {
     const { data, error } = await supabase
       .from('divisions')
       .insert({
         tenant_id: tenantId,
-        name: division.name,
-        name_ar: division.name_ar,
-        code: `TEST-${division.code}`,
-        is_active: true,
+        name: `TEST - ${division.name}`,
       })
       .select('id')
       .single()
     
+    if (error) {
+      console.log('Division insert error:', error.message)
+    }
     if (!error && data) {
       divisionMap[division.code] = data.id
       results.divisions++
     }
   }
 
-  // Seed departments
+  // Seed departments - actual schema: id, tenant_id, division_id, name
   for (const dept of DEPARTMENTS) {
     const divisionId = divisionMap[dept.division]
     if (divisionId) {
@@ -375,11 +380,12 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
         .insert({
           tenant_id: tenantId,
           division_id: divisionId,
-          name: dept.name,
-          name_ar: dept.name_ar,
-          is_active: true,
+          name: `TEST - ${dept.name}`,
         })
       
+      if (error) {
+        console.log('Department insert error:', error.message)
+      }
       if (!error) results.departments++
     }
   }
@@ -1160,15 +1166,16 @@ Deno.serve(async (req) => {
   try {
     console.log('Starting comprehensive test data seeding...')
 
-    // Get auth token and create authenticated client
+    // Get auth token for user verification
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       throw new Error('No authorization header')
     }
 
-    const supabase = createClient(
+    // Create user client for authentication
+    const userClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
           headers: { Authorization: authHeader },
@@ -1176,14 +1183,20 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Get current user and tenant
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Create service role client for bypassing RLS
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Verify user is authenticated using user client
+    const { data: { user }, error: userError } = await userClient.auth.getUser()
     if (userError || !user) {
       throw new Error('User not authenticated')
     }
 
-    // Get tenant_id from profile
-    const { data: profile, error: profileError } = await supabase
+    // Get tenant_id from profile using user client
+    const { data: profile, error: profileError } = await userClient
       .from('profiles')
       .select('tenant_id')
       .eq('id', user.id)
