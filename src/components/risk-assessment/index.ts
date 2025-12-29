@@ -4,7 +4,6 @@ export { RiskReductionSummary } from "./RiskReductionSummary";
 export { RiskFlowLines, StaticRiskFlowLines } from "./RiskFlowLines";
 export { PrintableRiskAssessmentSummary } from "./PrintableRiskAssessmentSummary";
 export { RiskAssessmentPDFExportButton } from "./RiskAssessmentPDFExportButton";
-export { AIHazardSuggestions } from "./AIHazardSuggestions";
 export { HazardForm } from "./HazardForm";
 export { TeamSignatureSection } from "./TeamSignatureSection";
 export { RiskAssessmentWizard } from "./RiskAssessmentWizard";
