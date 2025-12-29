@@ -11,6 +11,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
 import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 import { SessionManagementProvider } from "./components/SessionManagementProvider";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { SessionFallbackUI } from "./components/SessionFallbackUI";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { HSSERoute } from "./components/HSSERoute";
@@ -210,8 +212,9 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
                 <SessionTimeoutProvider>
-                  <SessionManagementProvider>
-                    <SessionTimeoutWarning />
+                  <ErrorBoundary fallback={<SessionFallbackUI />}>
+                    <SessionManagementProvider>
+                      <SessionTimeoutWarning />
                     <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
@@ -630,7 +633,8 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-                  </SessionManagementProvider>
+                    </SessionManagementProvider>
+                  </ErrorBoundary>
                 </SessionTimeoutProvider>
             </AuthProvider>
           </BrowserRouter>
