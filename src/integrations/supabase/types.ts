@@ -16083,6 +16083,10 @@ export type Database = {
         Args: { p_incident_id: string }
         Returns: boolean
       }
+      is_project_mobilized: {
+        Args: { project_id_param: string }
+        Returns: boolean
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       lookup_invitation: { Args: { lookup_code: string }; Returns: Json }
