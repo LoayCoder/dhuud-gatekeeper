@@ -146,6 +146,10 @@ const CreatePermit = lazyWithRetry(() => import("./pages/ptw/CreatePermit"));
 const PermitView = lazyWithRetry(() => import("./pages/ptw/PermitView"));
 const PTWFieldInspection = lazyWithRetry(() => import("./pages/ptw/PTWFieldInspection"));
 
+// Risk Assessment pages - lazy loaded with retry
+const RiskAssessments = lazyWithRetry(() => import("./pages/RiskAssessments"));
+const RiskAssessmentCreate = lazyWithRetry(() => import("./pages/RiskAssessmentCreate"));
+
 // Admin pages - lazy loaded with retry
 const InspectionTemplates = lazyWithRetry(() => import("./pages/admin/InspectionTemplates"));
 const AdminBranding = lazyWithRetry(() => import("./pages/AdminBranding"));
@@ -325,6 +329,10 @@ const App = () => (
                       <Route path="/ptw/create" element={<HSSERoute><CreatePermit /></HSSERoute>} />
                       <Route path="/ptw/permits/:id" element={<HSSERoute><PermitView /></HSSERoute>} />
                       <Route path="/ptw/inspection/:id" element={<HSSERoute><PTWFieldInspection /></HSSERoute>} />
+
+                      {/* Risk Assessment Routes */}
+                      <Route path="/risk-assessments" element={<HSSERoute><RiskAssessments /></HSSERoute>} />
+                      <Route path="/risk-assessments/create" element={<HSSERoute><RiskAssessmentCreate /></HSSERoute>} />
 
                       {/* Asset Routes */}
                       <Route path="/assets" element={<AssetList />} />
