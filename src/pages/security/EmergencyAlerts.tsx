@@ -13,15 +13,19 @@ import {
   RefreshCw,
   TrendingUp,
   Timer,
-  Download
+  Download,
+  ChevronDown,
+  Settings2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
 import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
+import { EmergencySLAConfig } from '@/components/security/EmergencySLAConfig';
 import { 
   useEmergencyAlerts, 
   useRealtimeEmergencyAlerts 
@@ -284,6 +288,35 @@ export default function EmergencyAlerts() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* SLA Configuration Section */}
+      <Collapsible>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <CardTitle className="text-lg">
+                      {t('security.emergencySLAConfig', 'Emergency Response SLA')}
+                    </CardTitle>
+                    <CardDescription>
+                      {t('security.emergencySLAConfigDesc', 'Configure response time targets and escalation rules')}
+                    </CardDescription>
+                  </div>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <EmergencySLAConfig />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Floating Panic Button for Mobile */}
       <EmergencyPanicButton variant="floating" />
