@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { ArrowRight, TrendingDown, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, TrendingDown, AlertTriangle, CheckCircle2, GitCompareArrows } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { RiskFlowLines } from "./RiskFlowLines";
 
 interface Hazard {
   id: string;
@@ -19,6 +22,7 @@ interface CompactRiskMatrixProps {
   size?: 'sm' | 'md';
   showLegend?: boolean;
   showReductionStats?: boolean;
+  showFlowLines?: boolean;
 }
 
 const getRiskLevel = (score: number): { level: string; gradient: string; textColor: string } => {
@@ -44,19 +48,23 @@ const getRiskLevel = (score: number): { level: string; gradient: string; textCol
   };
 };
 
-function MiniMatrix({ 
-  hazards, 
-  showResidual, 
-  size,
-  title,
-  subtitle
-}: { 
+interface MiniMatrixProps {
   hazards: Hazard[]; 
   showResidual: boolean;
   size: 'sm' | 'md';
   title: string;
   subtitle: string;
-}) {
+  matrixRef?: React.RefObject<HTMLDivElement>;
+}
+
+function MiniMatrix({ 
+  hazards, 
+  showResidual, 
+  size,
+  title,
+  subtitle,
+  matrixRef
+}: MiniMatrixProps) {
   const { t } = useTranslation();
   
   const cellSize = size === 'sm' ? 'w-6 h-6 text-[8px]' : 'w-8 h-8 text-[10px]';
@@ -92,7 +100,7 @@ function MiniMatrix({
         <p className="text-[10px] text-muted-foreground">{subtitle}</p>
       </div>
       
-      <div className="bg-card/50 backdrop-blur-sm rounded-lg p-2 border border-border/50 shadow-sm">
+      <div ref={matrixRef} className="bg-card/50 backdrop-blur-sm rounded-lg p-2 border border-border/50 shadow-sm">
         <div className="flex flex-col gap-0.5">
           {[5, 4, 3, 2, 1].map((likelihood) => (
             <div key={likelihood} className="flex gap-0.5">
@@ -166,9 +174,16 @@ export function CompactRiskMatrix({
   mode = 'single',
   size = 'md',
   showLegend = true,
-  showReductionStats = true
+  showReductionStats = true,
+  showFlowLines: showFlowLinesProp = true
 }: CompactRiskMatrixProps) {
   const { t } = useTranslation();
+  const [showFlowLines, setShowFlowLines] = useState(showFlowLinesProp);
+  
+  // Refs for flow lines
+  const containerRef = useRef<HTMLDivElement>(null);
+  const leftMatrixRef = useRef<HTMLDivElement>(null);
+  const rightMatrixRef = useRef<HTMLDivElement>(null);
 
   const reductionStats = useMemo(() => {
     if (hazards.length === 0) return { initial: 0, residual: 0, reduction: 0 };
@@ -201,18 +216,47 @@ export function CompactRiskMatrix({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Comparison View */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      {/* Flow Lines Toggle */}
+      {hazards.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Switch
+            id="flow-lines-toggle"
+            checked={showFlowLines}
+            onCheckedChange={setShowFlowLines}
+          />
+          <Label htmlFor="flow-lines-toggle" className="text-xs text-muted-foreground flex items-center gap-1.5 cursor-pointer">
+            <GitCompareArrows className="w-3.5 h-3.5" />
+            {t("risk.flowLines.showLines", "Show Flow Lines")}
+          </Label>
+        </div>
+      )}
+
+      {/* Comparison View with Flow Lines */}
+      <div ref={containerRef} className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+        {/* Animated Flow Lines SVG Overlay */}
+        {showFlowLines && hazards.length > 0 && (
+          <RiskFlowLines
+            hazards={hazards}
+            leftMatrixRef={leftMatrixRef}
+            rightMatrixRef={rightMatrixRef}
+            containerRef={containerRef}
+            animated={true}
+            cellSize={size === 'sm' ? 24 : 32}
+            gap={4}
+          />
+        )}
+
         <MiniMatrix 
           hazards={hazards} 
           showResidual={false} 
           size={size}
           title={t("risk.matrix.initialRisk", "Initial Risk")}
           subtitle={t("risk.matrix.beforeControls", "Before Controls")}
+          matrixRef={leftMatrixRef}
         />
         
         {/* Arrow with Reduction */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 z-20">
           <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-red-100 to-emerald-100 dark:from-red-900/30 dark:to-emerald-900/30">
             <ArrowRight className="w-5 h-5 text-muted-foreground" />
           </div>
@@ -233,6 +277,7 @@ export function CompactRiskMatrix({
           size={size}
           title={t("risk.matrix.residualRisk", "Residual Risk")}
           subtitle={t("risk.matrix.afterControls", "After Controls")}
+          matrixRef={rightMatrixRef}
         />
       </div>
 
