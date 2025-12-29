@@ -116,6 +116,8 @@ const ShiftHandover = lazyWithRetry(() => import("./pages/security/ShiftHandover
 const GuardPerformance = lazyWithRetry(() => import("./pages/security/GuardPerformance"));
 const GuardMobileDashboard = lazyWithRetry(() => import("./pages/security/GuardMobileDashboard"));
 const EmergencyAlerts = lazyWithRetry(() => import("./pages/security/EmergencyAlerts"));
+const GuardAttendance = lazyWithRetry(() => import("./pages/security/GuardAttendance"));
+const CCTVManagement = lazyWithRetry(() => import("./pages/security/CCTVManagement"));
 
 // Contractor Management pages - lazy loaded with retry
 const ContractorCompanies = lazyWithRetry(() => import("./pages/contractors/Companies"));
@@ -291,6 +293,8 @@ const App = () => (
                       <Route path="/security/performance" element={<SecurityRoute><GuardPerformance /></SecurityRoute>} />
                       <Route path="/security/guard-app" element={<SecurityRoute><GuardMobileDashboard /></SecurityRoute>} />
                       <Route path="/security/emergency-alerts" element={<SecurityRoute><EmergencyAlerts /></SecurityRoute>} />
+                      <Route path="/security/attendance" element={<SecurityRoute><GuardAttendance /></SecurityRoute>} />
+                      <Route path="/security/cctv" element={<SecurityRoute><CCTVManagement /></SecurityRoute>} />
 
                       {/* Contractor Management Routes */}
                       <Route path="/contractors" element={<AdminRoute><ContractorDashboard /></AdminRoute>} />
