@@ -5924,5 +5924,160 @@
       "actionsNotComplete": "बंद नहीं कर सकते: अभी भी लंबित कार्रवाइयां हैं।",
       "validationRequired": "बंद नहीं कर सकते: HSSE विशेषज्ञ सत्यापन आवश्यक है।"
     }
+  },
+  "risk": {
+    "title": "जोखिम मूल्यांकन",
+    "subtitle": "गतिविधि जोखिम मूल्यांकन प्रबंधित करें",
+    "create": "नया मूल्यांकन",
+    "search": "मूल्यांकन खोजें...",
+    "noAssessments": "कोई जोखिम मूल्यांकन नहीं मिला",
+    "wizard": {
+      "title": "जोखिम मूल्यांकन",
+      "step1": "गतिविधि विवरण",
+      "step2": "AI विश्लेषण",
+      "step3": "टीम चयन",
+      "step4": "खतरा पहचान",
+      "step5": "नियंत्रण उपाय",
+      "step6": "अंतिम समीक्षा"
+    },
+    "step1": { "title": "गतिविधि विवरण" },
+    "step2": { "title": "AI जोखिम विश्लेषण" },
+    "step3": { "title": "मूल्यांकन टीम" },
+    "step4": { "title": "खतरा पहचान" },
+    "step5": { "title": "नियंत्रण उपाय और अवशिष्ट जोखिम" },
+    "step6": { "title": "अंतिम समीक्षा" },
+    "activity": {
+      "name": "गतिविधि का नाम",
+      "namePlaceholder": "जैसे, हॉट वर्क - वेल्डिंग ऑपरेशन",
+      "location": "स्थान",
+      "locationPlaceholder": "जैसे, प्रोसेसिंग यूनिट 2, डेक लेवल",
+      "description": "गतिविधि विवरण",
+      "descriptionPlaceholder": "कार्य गतिविधियों, उपकरण, अवधि का वर्णन करें..."
+    },
+    "stats": {
+      "total": "कुल",
+      "draft": "ड्राफ्ट",
+      "underReview": "समीक्षाधीन",
+      "approved": "स्वीकृत"
+    },
+    "filter": {
+      "status": "स्थिति",
+      "risk": "जोखिम स्तर"
+    },
+    "status": {
+      "draft": "ड्राफ्ट",
+      "underReview": "समीक्षाधीन",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "expired": "समाप्त"
+    },
+    "table": {
+      "number": "संदर्भ #",
+      "activity": "गतिविधि",
+      "location": "स्थान",
+      "risk": "जोखिम",
+      "status": "स्थिति",
+      "date": "तारीख",
+      "validUntil": "तक वैध"
+    },
+    "level": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च",
+      "critical": "गंभीर"
+    },
+    "severity": {
+      "label": "गंभीरता",
+      "negligible": "नगण्य",
+      "minor": "मामूली",
+      "moderate": "मध्यम",
+      "major": "बड़ा",
+      "catastrophic": "विनाशकारी"
+    },
+    "likelihood": {
+      "label": "संभावना",
+      "veryUnlikely": "बहुत असंभावित",
+      "unlikely": "असंभावित",
+      "possible": "संभव",
+      "likely": "संभावित",
+      "veryLikely": "बहुत संभावित"
+    },
+    "category": {
+      "physical": "भौतिक",
+      "chemical": "रासायनिक",
+      "biological": "जैविक",
+      "ergonomic": "एर्गोनोमिक",
+      "psychological": "मनोवैज्ञानिक",
+      "environmental": "पर्यावरणीय"
+    },
+    "hazard": {
+      "add": "+ खतरा जोड़ें",
+      "atLeastOne": "कम से कम एक खतरा आवश्यक है",
+      "description": "खतरे का विवरण",
+      "descriptionPlaceholder": "खतरे का वर्णन करें...",
+      "category": "श्रेणी"
+    },
+    "controls": {
+      "hierarchy": "नियंत्रण इस क्रम में लागू करें: उन्मूलन - प्रतिस्थापन - इंजीनियरिंग - प्रशासनिक - PPE",
+      "existing": "मौजूदा नियंत्रण",
+      "additional": "अतिरिक्त नियंत्रण आवश्यक",
+      "addExisting": "+ मौजूदा नियंत्रण जोड़ें",
+      "addAdditional": "+ अतिरिक्त नियंत्रण जोड़ें",
+      "descriptionPlaceholder": "नियंत्रण उपाय...",
+      "responsible": "जिम्मेदार व्यक्ति"
+    },
+    "controlType": {
+      "elimination": "उन्मूलन",
+      "substitution": "प्रतिस्थापन",
+      "engineering": "इंजीनियरिंग",
+      "administrative": "प्रशासनिक",
+      "ppe": "PPE"
+    },
+    "residual": {
+      "title": "अवशिष्ट जोखिम (नियंत्रणों के बाद)"
+    },
+    "score": "स्कोर",
+    "validUntil": "तक वैध",
+    "overall": {
+      "rating": "समग्र जोखिम रेटिंग",
+      "selectRating": "रेटिंग चुनें..."
+    },
+    "summary": {
+      "hazards": "खतरे",
+      "team": "टीम सदस्य",
+      "controls": "नियंत्रण",
+      "rating": "रेटिंग"
+    },
+    "team": {
+      "requirement": "जोखिम मूल्यांकन एक सक्षम टीम द्वारा किया जाना चाहिए जिसमें पर्यवेक्षक, सुरक्षा प्रतिनिधि और कर्मचारी प्रतिनिधि शामिल हों।",
+      "roleExists": "यह भूमिका पहले से असाइन है",
+      "minimum": "कम से कम 2 टीम सदस्य आवश्यक हैं",
+      "signatures": "टीम हस्ताक्षर",
+      "signed": "हस्ताक्षरित",
+      "required": "आवश्यक",
+      "signatureNote": "हस्ताक्षर करके, मैं इस जोखिम मूल्यांकन में भागीदारी की पुष्टि करता हूं",
+      "sign": "हस्ताक्षर",
+      "awaitingSignature": "हस्ताक्षर की प्रतीक्षा"
+    },
+    "ai": {
+      "missingInfo": "कृपया पहले गतिविधि विवरण प्रदान करें",
+      "analysisComplete": "AI विश्लेषण पूर्ण",
+      "analysisFailed": "AI विश्लेषण विफल",
+      "riskScore": "AI जोखिम स्कोर",
+      "confidence": "विश्वास",
+      "analyzing": "विश्लेषण हो रहा है...",
+      "startAnalysis": "AI विश्लेषण शुरू करें",
+      "suggestionsFound": "खतरे पहचाने गए",
+      "suggestedHazards": "AI-सुझाए गए खतरे",
+      "addAll": "सभी जोड़ें",
+      "suggestedControls": "नियंत्रण",
+      "added": "जोड़ा गया",
+      "add": "जोड़ें"
+    },
+    "saveAsDraft": "ड्राफ्ट के रूप में सहेजें",
+    "submitForReview": "समीक्षा के लिए सबमिट करें",
+    "savedAsDraft": "ड्राफ्ट के रूप में सहेजा गया",
+    "submittedForReview": "समीक्षा के लिए सबमिट किया गया",
+    "saveFailed": "मूल्यांकन सहेजने में विफल"
   }
 }

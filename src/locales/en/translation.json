@@ -7115,5 +7115,160 @@
     "vertices": "vertices",
     "showRadiusBuffer": "Show radius buffer",
     "coordinates": "Coordinates"
+  },
+  "risk": {
+    "title": "Risk Assessments",
+    "subtitle": "Manage activity risk assessments",
+    "create": "New Assessment",
+    "search": "Search assessments...",
+    "noAssessments": "No risk assessments found",
+    "wizard": {
+      "title": "Risk Assessment",
+      "step1": "Activity Details",
+      "step2": "AI Analysis",
+      "step3": "Team Selection",
+      "step4": "Hazard Identification",
+      "step5": "Control Measures",
+      "step6": "Final Review"
+    },
+    "step1": { "title": "Activity Details" },
+    "step2": { "title": "AI Risk Analysis" },
+    "step3": { "title": "Assessment Team" },
+    "step4": { "title": "Hazard Identification" },
+    "step5": { "title": "Control Measures & Residual Risk" },
+    "step6": { "title": "Final Review" },
+    "activity": {
+      "name": "Activity Name",
+      "namePlaceholder": "e.g., Hot Work - Welding Operations",
+      "location": "Location",
+      "locationPlaceholder": "e.g., Processing Unit 2, Deck Level",
+      "description": "Activity Description",
+      "descriptionPlaceholder": "Describe the work activities, equipment, duration..."
+    },
+    "stats": {
+      "total": "Total",
+      "draft": "Drafts",
+      "underReview": "Under Review",
+      "approved": "Approved"
+    },
+    "filter": {
+      "status": "Status",
+      "risk": "Risk Level"
+    },
+    "status": {
+      "draft": "Draft",
+      "underReview": "Under Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "table": {
+      "number": "Ref #",
+      "activity": "Activity",
+      "location": "Location",
+      "risk": "Risk",
+      "status": "Status",
+      "date": "Date",
+      "validUntil": "Valid Until"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "severity": {
+      "label": "Severity",
+      "negligible": "Negligible",
+      "minor": "Minor",
+      "moderate": "Moderate",
+      "major": "Major",
+      "catastrophic": "Catastrophic"
+    },
+    "likelihood": {
+      "label": "Likelihood",
+      "veryUnlikely": "Very Unlikely",
+      "unlikely": "Unlikely",
+      "possible": "Possible",
+      "likely": "Likely",
+      "veryLikely": "Very Likely"
+    },
+    "category": {
+      "physical": "Physical",
+      "chemical": "Chemical",
+      "biological": "Biological",
+      "ergonomic": "Ergonomic",
+      "psychological": "Psychological",
+      "environmental": "Environmental"
+    },
+    "hazard": {
+      "add": "+ Add Hazard",
+      "atLeastOne": "At least one hazard is required",
+      "description": "Hazard Description",
+      "descriptionPlaceholder": "Describe the hazard...",
+      "category": "Category"
+    },
+    "controls": {
+      "hierarchy": "Apply controls in order: Elimination - Substitution - Engineering - Administrative - PPE",
+      "existing": "Existing Controls",
+      "additional": "Additional Controls Required",
+      "addExisting": "+ Add Existing Control",
+      "addAdditional": "+ Add Additional Control",
+      "descriptionPlaceholder": "Control measure...",
+      "responsible": "Responsible person"
+    },
+    "controlType": {
+      "elimination": "Elimination",
+      "substitution": "Substitution",
+      "engineering": "Engineering",
+      "administrative": "Administrative",
+      "ppe": "PPE"
+    },
+    "residual": {
+      "title": "Residual Risk (After Controls)"
+    },
+    "score": "Score",
+    "validUntil": "Valid Until",
+    "overall": {
+      "rating": "Overall Risk Rating",
+      "selectRating": "Select rating..."
+    },
+    "summary": {
+      "hazards": "Hazards",
+      "team": "Team Members",
+      "controls": "Controls",
+      "rating": "Rating"
+    },
+    "team": {
+      "requirement": "Risk assessments must be conducted by a competent team including supervisor, safety rep, and worker representative.",
+      "roleExists": "This role is already assigned",
+      "minimum": "At least 2 team members are required",
+      "signatures": "Team Signatures",
+      "signed": "Signed",
+      "required": "Required",
+      "signatureNote": "By signing, I confirm participation in this risk assessment",
+      "sign": "Sign",
+      "awaitingSignature": "Awaiting signature"
+    },
+    "ai": {
+      "missingInfo": "Please provide activity details first",
+      "analysisComplete": "AI analysis complete",
+      "analysisFailed": "AI analysis failed",
+      "riskScore": "AI Risk Score",
+      "confidence": "Confidence",
+      "analyzing": "Analyzing...",
+      "startAnalysis": "Start AI Analysis",
+      "suggestionsFound": "Hazards Identified",
+      "suggestedHazards": "AI-Suggested Hazards",
+      "addAll": "Add All",
+      "suggestedControls": "Controls",
+      "added": "Added",
+      "add": "Add"
+    },
+    "saveAsDraft": "Save Draft",
+    "submitForReview": "Submit for Review",
+    "savedAsDraft": "Saved as draft",
+    "submittedForReview": "Submitted for review",
+    "saveFailed": "Failed to save assessment"
   }
 }

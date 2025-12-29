@@ -5939,5 +5939,160 @@
       "actionsNotComplete": "بند نہیں ہو سکتا: ابھی بھی زیر التوا اقدامات ہیں۔",
       "validationRequired": "بند نہیں ہو سکتا: HSSE ماہر کی توثیق درکار ہے۔"
     }
+  },
+  "risk": {
+    "title": "خطرے کی تشخیص",
+    "subtitle": "سرگرمی کے خطرے کی تشخیص کا انتظام",
+    "create": "نئی تشخیص",
+    "search": "تشخیص تلاش کریں...",
+    "noAssessments": "کوئی خطرے کی تشخیص نہیں ملی",
+    "wizard": {
+      "title": "خطرے کی تشخیص",
+      "step1": "سرگرمی کی تفصیلات",
+      "step2": "AI تجزیہ",
+      "step3": "ٹیم کا انتخاب",
+      "step4": "خطرات کی شناخت",
+      "step5": "کنٹرول کے اقدامات",
+      "step6": "حتمی جائزہ"
+    },
+    "step1": { "title": "سرگرمی کی تفصیلات" },
+    "step2": { "title": "AI خطرے کا تجزیہ" },
+    "step3": { "title": "تشخیص ٹیم" },
+    "step4": { "title": "خطرات کی شناخت" },
+    "step5": { "title": "کنٹرول کے اقدامات اور بقایا خطرہ" },
+    "step6": { "title": "حتمی جائزہ" },
+    "activity": {
+      "name": "سرگرمی کا نام",
+      "namePlaceholder": "مثلاً، گرم کام - ویلڈنگ آپریشنز",
+      "location": "مقام",
+      "locationPlaceholder": "مثلاً، پراسیسنگ یونٹ 2، ڈیک لیول",
+      "description": "سرگرمی کی تفصیل",
+      "descriptionPlaceholder": "کام کی سرگرمیوں، آلات، مدت کی وضاحت کریں..."
+    },
+    "stats": {
+      "total": "کل",
+      "draft": "مسودے",
+      "underReview": "جائزے میں",
+      "approved": "منظور شدہ"
+    },
+    "filter": {
+      "status": "حالت",
+      "risk": "خطرے کی سطح"
+    },
+    "status": {
+      "draft": "مسودہ",
+      "underReview": "جائزے میں",
+      "approved": "منظور شدہ",
+      "rejected": "مسترد",
+      "expired": "ختم شدہ"
+    },
+    "table": {
+      "number": "حوالہ نمبر",
+      "activity": "سرگرمی",
+      "location": "مقام",
+      "risk": "خطرہ",
+      "status": "حالت",
+      "date": "تاریخ",
+      "validUntil": "تک درست"
+    },
+    "level": {
+      "low": "کم",
+      "medium": "درمیانی",
+      "high": "زیادہ",
+      "critical": "نازک"
+    },
+    "severity": {
+      "label": "شدت",
+      "negligible": "نہ ہونے کے برابر",
+      "minor": "معمولی",
+      "moderate": "درمیانی",
+      "major": "بڑا",
+      "catastrophic": "تباہ کن"
+    },
+    "likelihood": {
+      "label": "امکان",
+      "veryUnlikely": "بہت غیر محتمل",
+      "unlikely": "غیر محتمل",
+      "possible": "ممکن",
+      "likely": "محتمل",
+      "veryLikely": "بہت محتمل"
+    },
+    "category": {
+      "physical": "جسمانی",
+      "chemical": "کیمیائی",
+      "biological": "حیاتیاتی",
+      "ergonomic": "ارگونومک",
+      "psychological": "نفسیاتی",
+      "environmental": "ماحولیاتی"
+    },
+    "hazard": {
+      "add": "+ خطرہ شامل کریں",
+      "atLeastOne": "کم از کم ایک خطرہ ضروری ہے",
+      "description": "خطرے کی تفصیل",
+      "descriptionPlaceholder": "خطرے کی وضاحت کریں...",
+      "category": "زمرہ"
+    },
+    "controls": {
+      "hierarchy": "کنٹرول اس ترتیب سے لاگو کریں: خاتمہ - متبادل - انجینئرنگ - انتظامی - PPE",
+      "existing": "موجودہ کنٹرولز",
+      "additional": "اضافی کنٹرولز درکار",
+      "addExisting": "+ موجودہ کنٹرول شامل کریں",
+      "addAdditional": "+ اضافی کنٹرول شامل کریں",
+      "descriptionPlaceholder": "کنٹرول اقدام...",
+      "responsible": "ذمہ دار شخص"
+    },
+    "controlType": {
+      "elimination": "خاتمہ",
+      "substitution": "متبادل",
+      "engineering": "انجینئرنگ",
+      "administrative": "انتظامی",
+      "ppe": "PPE"
+    },
+    "residual": {
+      "title": "بقایا خطرہ (کنٹرولز کے بعد)"
+    },
+    "score": "اسکور",
+    "validUntil": "تک درست",
+    "overall": {
+      "rating": "مجموعی خطرے کی درجہ بندی",
+      "selectRating": "درجہ بندی منتخب کریں..."
+    },
+    "summary": {
+      "hazards": "خطرات",
+      "team": "ٹیم ممبران",
+      "controls": "کنٹرولز",
+      "rating": "درجہ بندی"
+    },
+    "team": {
+      "requirement": "خطرے کی تشخیص ایک اہل ٹیم کے ذریعے کی جانی چاہیے جس میں سپروائزر، سیفٹی نمائندہ، اور ورکر نمائندہ شامل ہوں۔",
+      "roleExists": "یہ کردار پہلے سے تفویض ہے",
+      "minimum": "کم از کم 2 ٹیم ممبران ضروری ہیں",
+      "signatures": "ٹیم کے دستخط",
+      "signed": "دستخط شدہ",
+      "required": "ضروری",
+      "signatureNote": "دستخط کرکے، میں اس خطرے کی تشخیص میں شرکت کی تصدیق کرتا ہوں",
+      "sign": "دستخط",
+      "awaitingSignature": "دستخط کا انتظار"
+    },
+    "ai": {
+      "missingInfo": "براہ کرم پہلے سرگرمی کی تفصیلات فراہم کریں",
+      "analysisComplete": "AI تجزیہ مکمل",
+      "analysisFailed": "AI تجزیہ ناکام",
+      "riskScore": "AI خطرے کا اسکور",
+      "confidence": "اعتماد",
+      "analyzing": "تجزیہ ہو رہا ہے...",
+      "startAnalysis": "AI تجزیہ شروع کریں",
+      "suggestionsFound": "خطرات کی شناخت",
+      "suggestedHazards": "AI تجویز کردہ خطرات",
+      "addAll": "سب شامل کریں",
+      "suggestedControls": "کنٹرولز",
+      "added": "شامل کیا گیا",
+      "add": "شامل کریں"
+    },
+    "saveAsDraft": "مسودے کے طور پر محفوظ کریں",
+    "submitForReview": "جائزے کے لیے جمع کریں",
+    "savedAsDraft": "مسودے کے طور پر محفوظ",
+    "submittedForReview": "جائزے کے لیے جمع",
+    "saveFailed": "تشخیص محفوظ کرنے میں ناکام"
   }
 }

@@ -5913,5 +5913,160 @@
       "actionsNotComplete": "Hindi maisara: May mga naghihintay pa ring aksyon.",
       "validationRequired": "Hindi maisara: Kinakailangan ang HSSE Expert validation."
     }
+  },
+  "risk": {
+    "title": "Mga Pagsusuri ng Panganib",
+    "subtitle": "Pamahalaan ang mga pagsusuri ng panganib sa gawain",
+    "create": "Bagong Pagsusuri",
+    "search": "Maghanap ng mga pagsusuri...",
+    "noAssessments": "Walang nakitang pagsusuri ng panganib",
+    "wizard": {
+      "title": "Pagsusuri ng Panganib",
+      "step1": "Mga Detalye ng Gawain",
+      "step2": "AI Pagsusuri",
+      "step3": "Pagpili ng Koponan",
+      "step4": "Pagtukoy ng Panganib",
+      "step5": "Mga Hakbang sa Pagkontrol",
+      "step6": "Huling Pagsusuri"
+    },
+    "step1": { "title": "Mga Detalye ng Gawain" },
+    "step2": { "title": "AI Pagsusuri ng Panganib" },
+    "step3": { "title": "Koponan ng Pagsusuri" },
+    "step4": { "title": "Pagtukoy ng Panganib" },
+    "step5": { "title": "Mga Hakbang sa Pagkontrol at Natitirang Panganib" },
+    "step6": { "title": "Huling Pagsusuri" },
+    "activity": {
+      "name": "Pangalan ng Gawain",
+      "namePlaceholder": "hal., Hot Work - Welding Operations",
+      "location": "Lokasyon",
+      "locationPlaceholder": "hal., Processing Unit 2, Deck Level",
+      "description": "Paglalarawan ng Gawain",
+      "descriptionPlaceholder": "Ilarawan ang mga gawain, kagamitan, tagal..."
+    },
+    "stats": {
+      "total": "Kabuuan",
+      "draft": "Mga Draft",
+      "underReview": "Sinusuri",
+      "approved": "Naaprubahan"
+    },
+    "filter": {
+      "status": "Status",
+      "risk": "Antas ng Panganib"
+    },
+    "status": {
+      "draft": "Draft",
+      "underReview": "Sinusuri",
+      "approved": "Naaprubahan",
+      "rejected": "Tinanggihan",
+      "expired": "Nag-expire"
+    },
+    "table": {
+      "number": "Ref #",
+      "activity": "Gawain",
+      "location": "Lokasyon",
+      "risk": "Panganib",
+      "status": "Status",
+      "date": "Petsa",
+      "validUntil": "May Bisa Hanggang"
+    },
+    "level": {
+      "low": "Mababa",
+      "medium": "Katamtaman",
+      "high": "Mataas",
+      "critical": "Kritikal"
+    },
+    "severity": {
+      "label": "Kalubhaan",
+      "negligible": "Napakaliit",
+      "minor": "Maliit",
+      "moderate": "Katamtaman",
+      "major": "Malaki",
+      "catastrophic": "Mapaminsala"
+    },
+    "likelihood": {
+      "label": "Posibilidad",
+      "veryUnlikely": "Hindi Malamang",
+      "unlikely": "Malamang Hindi",
+      "possible": "Posible",
+      "likely": "Malamang",
+      "veryLikely": "Tiyak na Mangyayari"
+    },
+    "category": {
+      "physical": "Pisikal",
+      "chemical": "Kemikal",
+      "biological": "Biyolohikal",
+      "ergonomic": "Ergonomik",
+      "psychological": "Sikolohikal",
+      "environmental": "Pangkapaligiran"
+    },
+    "hazard": {
+      "add": "+ Magdagdag ng Panganib",
+      "atLeastOne": "Kailangan ng kahit isang panganib",
+      "description": "Paglalarawan ng Panganib",
+      "descriptionPlaceholder": "Ilarawan ang panganib...",
+      "category": "Kategorya"
+    },
+    "controls": {
+      "hierarchy": "Ilapat ang mga kontrol sa pagkakasunod-sunod: Pag-aalis - Pagpapalit - Engineering - Administrative - PPE",
+      "existing": "Mga Kasalukuyang Kontrol",
+      "additional": "Karagdagang Kontrol na Kailangan",
+      "addExisting": "+ Magdagdag ng Kasalukuyang Kontrol",
+      "addAdditional": "+ Magdagdag ng Karagdagang Kontrol",
+      "descriptionPlaceholder": "Hakbang sa pagkontrol...",
+      "responsible": "Responsableng tao"
+    },
+    "controlType": {
+      "elimination": "Pag-aalis",
+      "substitution": "Pagpapalit",
+      "engineering": "Engineering",
+      "administrative": "Administrative",
+      "ppe": "PPE"
+    },
+    "residual": {
+      "title": "Natitirang Panganib (Pagkatapos ng mga Kontrol)"
+    },
+    "score": "Iskor",
+    "validUntil": "May Bisa Hanggang",
+    "overall": {
+      "rating": "Pangkalahatang Rating ng Panganib",
+      "selectRating": "Pumili ng rating..."
+    },
+    "summary": {
+      "hazards": "Mga Panganib",
+      "team": "Mga Miyembro ng Koponan",
+      "controls": "Mga Kontrol",
+      "rating": "Rating"
+    },
+    "team": {
+      "requirement": "Ang mga pagsusuri ng panganib ay dapat isagawa ng isang may kakayahang koponan kasama ang superbisor, kinatawan ng kaligtasan, at kinatawan ng manggagawa.",
+      "roleExists": "Itinalaga na ang tungkuling ito",
+      "minimum": "Kailangan ng hindi bababa sa 2 miyembro ng koponan",
+      "signatures": "Mga Pirma ng Koponan",
+      "signed": "Napirmahan",
+      "required": "Kinakailangan",
+      "signatureNote": "Sa pagpirma, kinukumpirma ko ang pakikilahok sa pagsusuri ng panganib na ito",
+      "sign": "Pumirma",
+      "awaitingSignature": "Naghihintay ng pirma"
+    },
+    "ai": {
+      "missingInfo": "Pakibigay muna ang mga detalye ng gawain",
+      "analysisComplete": "Kumpleto ang AI pagsusuri",
+      "analysisFailed": "Nabigo ang AI pagsusuri",
+      "riskScore": "AI Iskor ng Panganib",
+      "confidence": "Kumpiyansa",
+      "analyzing": "Sinusuri...",
+      "startAnalysis": "Simulan ang AI Pagsusuri",
+      "suggestionsFound": "Mga Panganib na Natukoy",
+      "suggestedHazards": "Mga Panganib na Iminungkahi ng AI",
+      "addAll": "Idagdag Lahat",
+      "suggestedControls": "Mga Kontrol",
+      "added": "Naidagdag",
+      "add": "Idagdag"
+    },
+    "saveAsDraft": "I-save bilang Draft",
+    "submitForReview": "Isumite para sa Pagsusuri",
+    "savedAsDraft": "Na-save bilang draft",
+    "submittedForReview": "Naisumite para sa pagsusuri",
+    "saveFailed": "Nabigong i-save ang pagsusuri"
   }
 }
