@@ -854,61 +854,52 @@ export function AppSidebar() {
     },
   ];
 
+  // Recursive function to filter menu items at any depth
+  const filterItemsRecursively = (items: any[]): any[] => {
+    return items
+      .map(item => {
+        // Handle items with 'items' array (top-level groups)
+        if (item.items) {
+          const filteredChildren = filterItemsRecursively(item.items);
+          // Keep the group if it has accessible children
+          if (filteredChildren.length > 0) {
+            return { ...item, items: filteredChildren };
+          }
+          // Also keep if user has direct access to this menu code
+          if (!item.menuCode || canAccess(item.menuCode)) {
+            return { ...item, items: filteredChildren };
+          }
+          return null;
+        }
+        
+        // Handle items with 'subItems' array (nested sub-groups)
+        if ('subItems' in item && item.subItems) {
+          const filteredSubItems = filterItemsRecursively(item.subItems);
+          // Keep the sub-group if it has accessible children
+          if (filteredSubItems.length > 0) {
+            return { ...item, subItems: filteredSubItems };
+          }
+          // Also keep if user has direct access to this menu code
+          if (!item.menuCode || canAccess(item.menuCode)) {
+            return { ...item, subItems: filteredSubItems };
+          }
+          return null;
+        }
+        
+        // Leaf item - check direct access
+        if (!item.menuCode || canAccess(item.menuCode)) {
+          return item;
+        }
+        return null;
+      })
+      .filter(Boolean); // Remove nulls
+  };
+
   // Filter menu items based on database-driven access control
   const filteredMenuItems = useMemo(() => {
     if (menuLoading) return menuItems;
-    
-    return menuItems
-      .filter(item => {
-        // Check if user can access this menu item
-        if (item.menuCode && !canAccess(item.menuCode)) {
-          // Check if there are accessible children
-          if (item.items && hasAccessibleChildren(item.menuCode)) {
-            return true;
-          }
-          return false;
-        }
-        return true;
-      })
-      .map(item => {
-        if (!item.items) return item;
-        
-        // Filter sub-items
-        const filteredSubItems = item.items
-          .filter(subItem => {
-            if (subItem.menuCode && !canAccess(subItem.menuCode)) {
-              // Check for accessible nested items
-              if ('subItems' in subItem && subItem.subItems && hasAccessibleChildren(subItem.menuCode)) {
-                return true;
-              }
-              return false;
-            }
-            return true;
-          })
-          .map(subItem => {
-            if (!('subItems' in subItem) || !subItem.subItems) return subItem;
-            
-            // Filter nested sub-items
-            const filteredNestedItems = subItem.subItems.filter(nested => 
-              !nested.menuCode || canAccess(nested.menuCode)
-            );
-            
-            return { ...subItem, subItems: filteredNestedItems };
-          })
-          .filter(subItem => {
-            // Remove empty groups
-            if ('subItems' in subItem && subItem.subItems) return subItem.subItems.length > 0;
-            return true;
-          });
-        
-        return { ...item, items: filteredSubItems };
-      })
-      .filter(item => {
-        // Remove empty groups
-        if (item.items) return item.items.length > 0;
-        return true;
-      });
-  }, [menuItems, canAccess, hasAccessibleChildren, menuLoading]);
+    return filterItemsRecursively(menuItems);
+  }, [menuItems, canAccess, menuLoading]);
 
   return (
     <Sidebar collapsible="icon" side={isRtl ? "right" : "left"}>
