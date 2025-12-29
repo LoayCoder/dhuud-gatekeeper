@@ -66,6 +66,7 @@ import {
   MessageSquare,
   FileText,
   Bell,
+  AlertTriangle,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -551,6 +552,12 @@ export function AppSidebar() {
           url: "/ptw/create",
           icon: Plus,
           menuCode: 'ptw_create',
+        },
+        {
+          title: t('ptw.nav.riskAssessments', 'Risk Assessments'),
+          url: "/risk-assessments",
+          icon: AlertTriangle,
+          menuCode: 'ptw_risk_assessments',
         },
       ],
     },
