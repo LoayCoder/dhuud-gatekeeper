@@ -1740,7 +1740,16 @@
     "notificationRules": "قواعد الإشعارات",
     "menuAccess": "صلاحيات القائمة",
     "purchaseRequests": "طلبات الشراء",
-    "approvalConfig": "سير عمل الموافقات"
+    "approvalConfig": "سير عمل الموافقات",
+    "slaManagement": "إدارة اتفاقية مستوى الخدمة",
+    "slaAnalytics": "تحليلات SLA",
+    "investigationSlaSettings": "إعدادات SLA للتحقيقات",
+    "findingSlaSettings": "إعدادات SLA للملاحظات",
+    "userAccess": "المستخدمين والصلاحيات",
+    "notificationsGroup": "الإشعارات",
+    "reportingKpis": "التقارير ومؤشرات الأداء",
+    "systemConfig": "إعدادات النظام",
+    "platformManagement": "إدارة المنصة"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

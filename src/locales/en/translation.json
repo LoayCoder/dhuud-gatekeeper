@@ -1592,7 +1592,16 @@
     "notificationRules": "Notification Rules",
     "menuAccess": "Menu Access",
     "purchaseRequests": "Purchase Requests",
-    "approvalConfig": "Approval Workflows"
+    "approvalConfig": "Approval Workflows",
+    "slaManagement": "SLA Management",
+    "slaAnalytics": "SLA Analytics",
+    "investigationSlaSettings": "Investigation SLA",
+    "findingSlaSettings": "Finding SLA Settings",
+    "userAccess": "User & Access",
+    "notificationsGroup": "Notifications",
+    "reportingKpis": "Reporting & KPIs",
+    "systemConfig": "System Configuration",
+    "platformManagement": "Platform Management"
   },
   "actions": {
     "sessionActions": "Session Actions",
