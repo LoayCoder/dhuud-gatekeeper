@@ -1332,7 +1332,8 @@
     "activate": "Activate",
     "deactivate": "Deactivate",
     "requiredFields": "Please fill all required fields",
-    "type": "Type"
+    "type": "Type",
+    "retry": "Retry"
   },
   "search": {
     "placeholder": "Search by title, description, or reference...",
