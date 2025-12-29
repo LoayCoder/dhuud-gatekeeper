@@ -209,3 +209,6 @@ verify_jwt = false
 
 [functions.geofence-escalation]
 verify_jwt = false
+
+[functions.dispatch-emergency-alert]
+verify_jwt = false
