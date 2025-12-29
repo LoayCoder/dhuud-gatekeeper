@@ -252,6 +252,116 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_incident_patterns: {
+        Row: {
+          activity_type: string
+          common_causes: Json | null
+          contractor_type: string | null
+          effective_controls: Json | null
+          equipment_factors: Json | null
+          id: string
+          incident_frequency: number | null
+          last_updated: string | null
+          location_factors: Json | null
+          seasonal_factors: Json | null
+          severity_pattern: Json | null
+          tenant_id: string | null
+          training_weight: number | null
+        }
+        Insert: {
+          activity_type: string
+          common_causes?: Json | null
+          contractor_type?: string | null
+          effective_controls?: Json | null
+          equipment_factors?: Json | null
+          id?: string
+          incident_frequency?: number | null
+          last_updated?: string | null
+          location_factors?: Json | null
+          seasonal_factors?: Json | null
+          severity_pattern?: Json | null
+          tenant_id?: string | null
+          training_weight?: number | null
+        }
+        Update: {
+          activity_type?: string
+          common_causes?: Json | null
+          contractor_type?: string | null
+          effective_controls?: Json | null
+          equipment_factors?: Json | null
+          id?: string
+          incident_frequency?: number | null
+          last_updated?: string | null
+          location_factors?: Json | null
+          seasonal_factors?: Json | null
+          severity_pattern?: Json | null
+          tenant_id?: string | null
+          training_weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_incident_patterns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_risk_predictions: {
+        Row: {
+          actual_outcome: string | null
+          confidence_level: number | null
+          created_at: string | null
+          id: string
+          learning_feedback: Json | null
+          predicted_risk_score: number | null
+          prediction_accuracy: number | null
+          prediction_factors: Json | null
+          risk_assessment_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actual_outcome?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          learning_feedback?: Json | null
+          predicted_risk_score?: number | null
+          prediction_accuracy?: number | null
+          prediction_factors?: Json | null
+          risk_assessment_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actual_outcome?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          learning_feedback?: Json | null
+          predicted_risk_score?: number | null
+          prediction_accuracy?: number | null
+          prediction_factors?: Json | null
+          risk_assessment_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_risk_predictions_risk_assessment_id_fkey"
+            columns: ["risk_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_risk_predictions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_delegations: {
         Row: {
           approval_types: string[]
@@ -2948,6 +3058,143 @@ export type Database = {
           },
           {
             foreignKeyName: "cctv_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clearance_template_items: {
+        Row: {
+          competency_required: Json | null
+          created_at: string | null
+          depends_on_items: string[] | null
+          document_types: Json | null
+          id: string
+          is_mandatory: boolean | null
+          item_type: string | null
+          label: string
+          label_ar: string | null
+          requires_document: boolean | null
+          risk_level: string | null
+          sort_order: number | null
+          stage_name: string
+          stage_name_ar: string | null
+          template_id: string
+          tenant_id: string
+          track_expiry: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          competency_required?: Json | null
+          created_at?: string | null
+          depends_on_items?: string[] | null
+          document_types?: Json | null
+          id?: string
+          is_mandatory?: boolean | null
+          item_type?: string | null
+          label: string
+          label_ar?: string | null
+          requires_document?: boolean | null
+          risk_level?: string | null
+          sort_order?: number | null
+          stage_name: string
+          stage_name_ar?: string | null
+          template_id: string
+          tenant_id: string
+          track_expiry?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          competency_required?: Json | null
+          created_at?: string | null
+          depends_on_items?: string[] | null
+          document_types?: Json | null
+          id?: string
+          is_mandatory?: boolean | null
+          item_type?: string | null
+          label?: string
+          label_ar?: string | null
+          requires_document?: boolean | null
+          risk_level?: string | null
+          sort_order?: number | null
+          stage_name?: string
+          stage_name_ar?: string | null
+          template_id?: string
+          tenant_id?: string
+          track_expiry?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "clearance_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_template_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clearance_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          name_ar: string | null
+          requires_risk_assessment: boolean | null
+          risk_assessment_categories: Json | null
+          safety_level: string | null
+          tenant_id: string
+          updated_at: string | null
+          validity_period_days: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          name_ar?: string | null
+          requires_risk_assessment?: boolean | null
+          risk_assessment_categories?: Json | null
+          safety_level?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          validity_period_days?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          name_ar?: string | null
+          requires_risk_assessment?: boolean | null
+          risk_assessment_categories?: Json | null
+          safety_level?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          validity_period_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -10521,6 +10768,121 @@ export type Database = {
           },
         ]
       }
+      project_clearance_execution: {
+        Row: {
+          ai_validation_notes: string | null
+          ai_validation_passed: boolean | null
+          clearance_template_id: string | null
+          competency_verified: boolean | null
+          completion_percentage: number | null
+          created_at: string | null
+          deleted_at: string | null
+          document_type: string | null
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          is_completed: boolean | null
+          item_id: string | null
+          note: string | null
+          project_id: string
+          risk_assessment_id: string | null
+          signature_data: string | null
+          tenant_id: string
+          updated_at: string | null
+          verified_by: string | null
+          witness_id: string | null
+        }
+        Insert: {
+          ai_validation_notes?: string | null
+          ai_validation_passed?: boolean | null
+          clearance_template_id?: string | null
+          competency_verified?: boolean | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document_type?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          item_id?: string | null
+          note?: string | null
+          project_id: string
+          risk_assessment_id?: string | null
+          signature_data?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          verified_by?: string | null
+          witness_id?: string | null
+        }
+        Update: {
+          ai_validation_notes?: string | null
+          ai_validation_passed?: boolean | null
+          clearance_template_id?: string | null
+          competency_verified?: boolean | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          deleted_at?: string | null
+          document_type?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          item_id?: string | null
+          note?: string | null
+          project_id?: string
+          risk_assessment_id?: string | null
+          signature_data?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          verified_by?: string | null
+          witness_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_clearance_execution_clearance_template_id_fkey"
+            columns: ["clearance_template_id"]
+            isOneToOne: false
+            referencedRelation: "clearance_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "clearance_template_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_risk_assessment_id_fkey"
+            columns: ["risk_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clearance_execution_witness_id_fkey"
+            columns: ["witness_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_safety_officers: {
         Row: {
           assigned_at: string
@@ -11314,6 +11676,7 @@ export type Database = {
           qr_code_token: string | null
           reference_id: string
           requested_at: string | null
+          risk_assessment_id: string | null
           risk_assessment_ref: string | null
           simops_notes: string | null
           simops_status: string | null
@@ -11358,6 +11721,7 @@ export type Database = {
           qr_code_token?: string | null
           reference_id: string
           requested_at?: string | null
+          risk_assessment_id?: string | null
           risk_assessment_ref?: string | null
           simops_notes?: string | null
           simops_status?: string | null
@@ -11402,6 +11766,7 @@ export type Database = {
           qr_code_token?: string | null
           reference_id?: string
           requested_at?: string | null
+          risk_assessment_id?: string | null
           risk_assessment_ref?: string | null
           simops_notes?: string | null
           simops_status?: string | null
@@ -11468,6 +11833,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_risk_assessment_id_fkey"
+            columns: ["risk_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
             referencedColumns: ["id"]
           },
           {
@@ -12140,6 +12512,329 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "push_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_assessment_details: {
+        Row: {
+          additional_controls: Json | null
+          ai_confidence: number | null
+          ai_suggested: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          existing_controls: Json | null
+          hazard_category: string | null
+          hazard_description: string
+          hazard_description_ar: string | null
+          id: string
+          initial_risk_score: number | null
+          likelihood: number | null
+          residual_likelihood: number | null
+          residual_risk_score: number | null
+          residual_severity: number | null
+          responsible_person: string | null
+          risk_assessment_id: string
+          severity: number | null
+          sort_order: number | null
+          target_completion_date: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          additional_controls?: Json | null
+          ai_confidence?: number | null
+          ai_suggested?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          existing_controls?: Json | null
+          hazard_category?: string | null
+          hazard_description: string
+          hazard_description_ar?: string | null
+          id?: string
+          initial_risk_score?: number | null
+          likelihood?: number | null
+          residual_likelihood?: number | null
+          residual_risk_score?: number | null
+          residual_severity?: number | null
+          responsible_person?: string | null
+          risk_assessment_id: string
+          severity?: number | null
+          sort_order?: number | null
+          target_completion_date?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          additional_controls?: Json | null
+          ai_confidence?: number | null
+          ai_suggested?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          existing_controls?: Json | null
+          hazard_category?: string | null
+          hazard_description?: string
+          hazard_description_ar?: string | null
+          id?: string
+          initial_risk_score?: number | null
+          likelihood?: number | null
+          residual_likelihood?: number | null
+          residual_risk_score?: number | null
+          residual_severity?: number | null
+          responsible_person?: string | null
+          risk_assessment_id?: string
+          severity?: number | null
+          sort_order?: number | null
+          target_completion_date?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_assessment_details_risk_assessment_id_fkey"
+            columns: ["risk_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_details_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_assessment_team: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_required: boolean | null
+          risk_assessment_id: string
+          role: string
+          role_ar: string | null
+          signature_data: string | null
+          signed_at: string | null
+          tenant_id: string
+          updated_at: string | null
+          user_id: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          risk_assessment_id: string
+          role: string
+          role_ar?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          risk_assessment_id?: string
+          role?: string
+          role_ar?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_assessment_team_risk_assessment_id_fkey"
+            columns: ["risk_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_team_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_team_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_assessment_templates: {
+        Row: {
+          activity_category: string
+          control_library: Json | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          hazard_library: Json | null
+          id: string
+          industry_type: string | null
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          name_ar: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          activity_category: string
+          control_library?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          hazard_library?: Json | null
+          id?: string
+          industry_type?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          activity_category?: string
+          control_library?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          hazard_library?: Json | null
+          id?: string
+          industry_type?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_assessment_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_assessments: {
+        Row: {
+          activity_description: string | null
+          activity_name: string
+          activity_name_ar: string | null
+          ai_confidence_level: number | null
+          ai_risk_score: number | null
+          approved_at: string | null
+          approved_by: string | null
+          assessment_date: string | null
+          assessment_number: string
+          contractor_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          location: string | null
+          overall_risk_rating: string | null
+          project_id: string | null
+          rejection_reason: string | null
+          status: string | null
+          template_id: string | null
+          tenant_id: string
+          updated_at: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          activity_description?: string | null
+          activity_name: string
+          activity_name_ar?: string | null
+          ai_confidence_level?: number | null
+          ai_risk_score?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_date?: string | null
+          assessment_number: string
+          contractor_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          location?: string | null
+          overall_risk_rating?: string | null
+          project_id?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          template_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          activity_description?: string | null
+          activity_name?: string
+          activity_name_ar?: string | null
+          ai_confidence_level?: number | null
+          ai_risk_score?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_date?: string | null
+          assessment_number?: string
+          contractor_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          location?: string | null
+          overall_risk_rating?: string | null
+          project_id?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          template_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_assessments_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessment_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
