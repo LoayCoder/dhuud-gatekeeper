@@ -6906,5 +6906,160 @@
     "vertices": "رؤوس",
     "showRadiusBuffer": "إظهار منطقة النصف قطر",
     "coordinates": "الإحداثيات"
+  },
+  "risk": {
+    "title": "تقييمات المخاطر",
+    "subtitle": "إدارة تقييمات مخاطر الأنشطة",
+    "create": "تقييم جديد",
+    "search": "البحث في التقييمات...",
+    "noAssessments": "لا توجد تقييمات مخاطر",
+    "wizard": {
+      "title": "تقييم المخاطر",
+      "step1": "تفاصيل النشاط",
+      "step2": "تحليل الذكاء الاصطناعي",
+      "step3": "اختيار الفريق",
+      "step4": "تحديد المخاطر",
+      "step5": "إجراءات التحكم",
+      "step6": "المراجعة النهائية"
+    },
+    "step1": { "title": "تفاصيل النشاط" },
+    "step2": { "title": "تحليل المخاطر بالذكاء الاصطناعي" },
+    "step3": { "title": "فريق التقييم" },
+    "step4": { "title": "تحديد المخاطر" },
+    "step5": { "title": "إجراءات التحكم والمخاطر المتبقية" },
+    "step6": { "title": "المراجعة النهائية" },
+    "activity": {
+      "name": "اسم النشاط",
+      "namePlaceholder": "مثال: أعمال اللحام الساخنة",
+      "location": "الموقع",
+      "locationPlaceholder": "مثال: وحدة المعالجة 2، مستوى السطح",
+      "description": "وصف النشاط",
+      "descriptionPlaceholder": "صف أنشطة العمل والمعدات والمدة..."
+    },
+    "stats": {
+      "total": "الإجمالي",
+      "draft": "مسودات",
+      "underReview": "قيد المراجعة",
+      "approved": "معتمد"
+    },
+    "filter": {
+      "status": "الحالة",
+      "risk": "مستوى الخطر"
+    },
+    "status": {
+      "draft": "مسودة",
+      "underReview": "قيد المراجعة",
+      "approved": "معتمد",
+      "rejected": "مرفوض",
+      "expired": "منتهي الصلاحية"
+    },
+    "table": {
+      "number": "رقم المرجع",
+      "activity": "النشاط",
+      "location": "الموقع",
+      "risk": "الخطر",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "validUntil": "صالح حتى"
+    },
+    "level": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "عالي",
+      "critical": "حرج"
+    },
+    "severity": {
+      "label": "الشدة",
+      "negligible": "مهمل",
+      "minor": "طفيف",
+      "moderate": "معتدل",
+      "major": "كبير",
+      "catastrophic": "كارثي"
+    },
+    "likelihood": {
+      "label": "الاحتمالية",
+      "veryUnlikely": "مستبعد جداً",
+      "unlikely": "مستبعد",
+      "possible": "محتمل",
+      "likely": "مرجح",
+      "veryLikely": "مرجح جداً"
+    },
+    "category": {
+      "physical": "فيزيائي",
+      "chemical": "كيميائي",
+      "biological": "بيولوجي",
+      "ergonomic": "بيئة العمل",
+      "psychological": "نفسي",
+      "environmental": "بيئي"
+    },
+    "hazard": {
+      "add": "+ إضافة خطر",
+      "atLeastOne": "مطلوب خطر واحد على الأقل",
+      "description": "وصف الخطر",
+      "descriptionPlaceholder": "صف الخطر...",
+      "category": "الفئة"
+    },
+    "controls": {
+      "hierarchy": "تطبيق الضوابط بالترتيب: الإزالة - الاستبدال - الهندسة - الإدارية - معدات الوقاية",
+      "existing": "الضوابط الحالية",
+      "additional": "ضوابط إضافية مطلوبة",
+      "addExisting": "+ إضافة ضابط حالي",
+      "addAdditional": "+ إضافة ضابط إضافي",
+      "descriptionPlaceholder": "إجراء التحكم...",
+      "responsible": "الشخص المسؤول"
+    },
+    "controlType": {
+      "elimination": "الإزالة",
+      "substitution": "الاستبدال",
+      "engineering": "الهندسة",
+      "administrative": "الإدارية",
+      "ppe": "معدات الوقاية"
+    },
+    "residual": {
+      "title": "المخاطر المتبقية (بعد الضوابط)"
+    },
+    "score": "الدرجة",
+    "validUntil": "صالح حتى",
+    "overall": {
+      "rating": "التصنيف العام للمخاطر",
+      "selectRating": "اختر التصنيف..."
+    },
+    "summary": {
+      "hazards": "المخاطر",
+      "team": "أعضاء الفريق",
+      "controls": "الضوابط",
+      "rating": "التصنيف"
+    },
+    "team": {
+      "requirement": "يجب إجراء تقييمات المخاطر بواسطة فريق مؤهل يشمل المشرف وممثل السلامة وممثل العمال.",
+      "roleExists": "هذا الدور مُعيّن بالفعل",
+      "minimum": "مطلوب عضوان على الأقل في الفريق",
+      "signatures": "توقيعات الفريق",
+      "signed": "موقّع",
+      "required": "مطلوب",
+      "signatureNote": "بالتوقيع، أؤكد مشاركتي في تقييم المخاطر هذا",
+      "sign": "توقيع",
+      "awaitingSignature": "في انتظار التوقيع"
+    },
+    "ai": {
+      "missingInfo": "يرجى تقديم تفاصيل النشاط أولاً",
+      "analysisComplete": "اكتمل تحليل الذكاء الاصطناعي",
+      "analysisFailed": "فشل تحليل الذكاء الاصطناعي",
+      "riskScore": "درجة المخاطر بالذكاء الاصطناعي",
+      "confidence": "الثقة",
+      "analyzing": "جاري التحليل...",
+      "startAnalysis": "بدء تحليل الذكاء الاصطناعي",
+      "suggestionsFound": "المخاطر المحددة",
+      "suggestedHazards": "المخاطر المقترحة بالذكاء الاصطناعي",
+      "addAll": "إضافة الكل",
+      "suggestedControls": "الضوابط",
+      "added": "تمت الإضافة",
+      "add": "إضافة"
+    },
+    "saveAsDraft": "حفظ كمسودة",
+    "submitForReview": "إرسال للمراجعة",
+    "savedAsDraft": "تم الحفظ كمسودة",
+    "submittedForReview": "تم الإرسال للمراجعة",
+    "saveFailed": "فشل في حفظ التقييم"
   }
 }
