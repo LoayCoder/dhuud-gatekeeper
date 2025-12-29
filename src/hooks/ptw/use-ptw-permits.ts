@@ -147,8 +147,33 @@ export function useCreatePTWPermit() {
   const { profile, user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<PTWPermit>) => {
+    mutationFn: async (data: Partial<PTWPermit> & { worker_ids?: string[]; permit_holder_id?: string }) => {
       if (!profile?.tenant_id || !user?.id) throw new Error("No tenant");
+
+      // Pre-submission validation via Edge Function
+      const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+        "validate-permit-request",
+        {
+          body: {
+            project_id: data.project_id,
+            type_id: data.type_id,
+            worker_ids: data.worker_ids || [],
+            planned_start_time: data.planned_start_time,
+            planned_end_time: data.planned_end_time,
+            site_id: data.site_id,
+          },
+        }
+      );
+
+      if (validationError) {
+        console.error("Validation error:", validationError);
+        throw new Error("Failed to validate permit request");
+      }
+
+      if (!validationResult?.is_valid) {
+        const errorMessages = validationResult?.errors?.map((e: { message: string }) => e.message).join("; ") || "Validation failed";
+        throw new Error(errorMessages);
+      }
 
       const insertData = {
         project_id: data.project_id!,
@@ -175,6 +200,25 @@ export function useCreatePTWPermit() {
         .single();
 
       if (error) throw error;
+
+      // Store worker assignments in operational_data or a junction table
+      // For now, we store in operational_data as JSON
+      if (data.worker_ids && data.worker_ids.length > 0) {
+        const { error: updateError } = await supabase
+          .from("ptw_permits")
+          .update({
+            work_scope: JSON.stringify({
+              worker_ids: data.worker_ids,
+              permit_holder_id: data.permit_holder_id,
+            }),
+          })
+          .eq("id", result.id);
+
+        if (updateError) {
+          console.error("Failed to store worker assignments:", updateError);
+        }
+      }
+
       return result;
     },
     onSuccess: () => {

@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { PermitBasicsStep } from "@/components/ptw/wizard/PermitBasicsStep";
+import { PermitWorkersStep } from "@/components/ptw/wizard/PermitWorkersStep";
 import { PermitOperationalStep } from "@/components/ptw/wizard/PermitOperationalStep";
 import { PermitSafetyStep } from "@/components/ptw/wizard/PermitSafetyStep";
 import { PermitReviewStep } from "@/components/ptw/wizard/PermitReviewStep";
 import { useCreatePTWPermit } from "@/hooks/ptw";
 import { useSIMOPSCheck } from "@/hooks/ptw/use-simops-check";
+import { useMobilizationCheck } from "@/hooks/ptw/use-mobilization-check";
 import { SIMOPSConflictWarning } from "@/components/ptw/SIMOPSConflictWarning";
 
 export interface PermitFormData {
@@ -18,6 +20,8 @@ export interface PermitFormData {
   project_id: string;
   type_id: string;
   site_id: string;
+  contractor_id?: string;
+  contractor_name?: string;
   building_id?: string;
   floor_zone_id?: string;
   location_details: string;
@@ -26,9 +30,12 @@ export interface PermitFormData {
   planned_start_time: string;
   planned_end_time: string;
   job_description: string;
-  // Step 2: Operational (dynamic based on permit type)
+  // Step 2: Workers
+  worker_ids?: string[];
+  permit_holder_id?: string;
+  // Step 3: Operational (dynamic based on permit type)
   operational_data: Record<string, unknown>;
-  // Step 3: Safety
+  // Step 4: Safety
   safety_responses: Array<{
     requirement_id: string;
     is_checked: boolean;
@@ -41,9 +48,10 @@ export interface PermitFormData {
 
 const STEPS = [
   { id: 1, name: "basics", title: "Basics" },
-  { id: 2, name: "operational", title: "Operational Data" },
-  { id: 3, name: "safety", title: "Safety Checklist" },
-  { id: 4, name: "review", title: "Review & Submit" },
+  { id: 2, name: "workers", title: "Workers" },
+  { id: 3, name: "operational", title: "Operational Data" },
+  { id: 4, name: "safety", title: "Safety Checklist" },
+  { id: 5, name: "review", title: "Review & Submit" },
 ];
 
 export default function CreatePermit() {
@@ -56,6 +64,9 @@ export default function CreatePermit() {
   });
 
   const createPermit = useCreatePTWPermit();
+
+  // Mobilization status check
+  const { data: mobilizationStatus } = useMobilizationCheck(formData.project_id);
 
   // SIMOPS conflict checking
   const { conflicts, isChecking, checkConflicts } = useSIMOPSCheck();
@@ -110,6 +121,8 @@ export default function CreatePermit() {
         emergency_contact_name: formData.emergency_contact_name,
         emergency_contact_number: formData.emergency_contact_number,
         risk_assessment_ref: formData.risk_assessment_ref,
+        worker_ids: formData.worker_ids,
+        permit_holder_id: formData.permit_holder_id,
       });
       navigate("/ptw");
     } catch (error) {
@@ -120,8 +133,9 @@ export default function CreatePermit() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        // Block if critical SIMOPS conflicts exist
+        // Block if critical SIMOPS conflicts exist or project not mobilized
         if (hasCriticalConflicts) return false;
+        if (formData.project_id && mobilizationStatus && !mobilizationStatus.isReady) return false;
         return !!(
           formData.project_id &&
           formData.type_id &&
@@ -130,10 +144,17 @@ export default function CreatePermit() {
           formData.job_description
         );
       case 2:
-        return true; // Operational data is optional based on type
+        // Require at least 1 worker and a permit holder
+        return !!(
+          formData.worker_ids && 
+          formData.worker_ids.length > 0 && 
+          formData.permit_holder_id
+        );
       case 3:
-        return !!(formData.emergency_contact_name && formData.emergency_contact_number);
+        return true; // Operational data is optional based on type
       case 4:
+        return !!(formData.emergency_contact_name && formData.emergency_contact_number);
+      case 5:
         return !hasCriticalConflicts; // Also block submission if critical conflicts
       default:
         return false;
@@ -206,20 +227,23 @@ export default function CreatePermit() {
             <PermitBasicsStep data={formData} onChange={updateFormData} />
           )}
           {currentStep === 2 && (
+            <PermitWorkersStep data={formData} onChange={updateFormData} />
+          )}
+          {currentStep === 3 && (
             <PermitOperationalStep 
               data={formData} 
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <PermitSafetyStep 
               data={formData} 
               onChange={updateFormData}
               typeId={formData.type_id}
             />
           )}
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <PermitReviewStep data={formData} />
           )}
         </CardContent>
