@@ -5,14 +5,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
+import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-inductions";
 import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -24,9 +27,27 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const { t } = useTranslation();
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [isSendingInduction, setIsSendingInduction] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
   const { data: videos = [] } = useInductionVideos();
+
+  // Fetch photo URL
+  useEffect(() => {
+    const fetchPhotoUrl = async () => {
+      if (!worker?.photo_path) {
+        setPhotoUrl(null);
+        return;
+      }
+      const { data } = await supabase.storage
+        .from("worker-photos")
+        .createSignedUrl(worker.photo_path, 3600);
+      if (data?.signedUrl) {
+        setPhotoUrl(data.signedUrl);
+      }
+    };
+    fetchPhotoUrl();
+  }, [worker?.photo_path]);
 
   if (!worker) return null;
 
@@ -109,14 +130,24 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
     }
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-              <User className="h-6 w-6 text-muted-foreground" />
-            </div>
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={photoUrl || undefined} alt={worker.full_name} />
+              <AvatarFallback>{getInitials(worker.full_name)}</AvatarFallback>
+            </Avatar>
             <div>
               <DialogTitle className="text-start">{worker.full_name}</DialogTitle>
               <p className="text-sm text-muted-foreground">{worker.company?.company_name}</p>
@@ -128,8 +159,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
         </DialogHeader>
 
         <Tabs defaultValue="details" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details">{t("contractors.workers.details", "Details")}</TabsTrigger>
+            <TabsTrigger value="documents">{t("contractors.workers.documents", "Documents")}</TabsTrigger>
             <TabsTrigger value="qr">{t("contractors.workers.qrCode", "QR Code")}</TabsTrigger>
             <TabsTrigger value="induction">{t("contractors.workers.induction", "Induction")}</TabsTrigger>
           </TabsList>
@@ -180,6 +212,20 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  {t("contractors.documents.workerDocuments", "Worker Documents")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ContractorDocumentUpload workerId={worker.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="qr" className="mt-4">
