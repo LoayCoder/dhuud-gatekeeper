@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Settings, Smartphone, Eye, Save, Database, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, Settings, Smartphone, Eye, Save, Database, Trash2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { clearSplashCache, type SplashSettings } from '@/hooks/use-splash-settings';
 import { SplashScreen } from '@/components/SplashScreen';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 const DEFAULT_SETTINGS: SplashSettings = {
   enabled: true,
@@ -47,6 +55,9 @@ export default function PlatformSettings() {
   const [isCleaning, setIsCleaning] = useState(false);
   const [seedResults, setSeedResults] = useState<any>(null);
   const [cleanResults, setCleanResults] = useState<any>(null);
+  const [seedProgress, setSeedProgress] = useState(0);
+  const [showSeedModal, setShowSeedModal] = useState(false);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchSettings();
@@ -107,16 +118,46 @@ export default function PlatformSettings() {
   const handleSeedTestData = async () => {
     setIsSeeding(true);
     setSeedResults(null);
+    setSeedProgress(0);
+    setShowSeedModal(true);
+    
+    // Simulate progress since we can't get real progress from edge function
+    progressIntervalRef.current = setInterval(() => {
+      setSeedProgress(prev => {
+        if (prev >= 90) return prev; // Cap at 90% until complete
+        return prev + Math.random() * 8;
+      });
+    }, 1500);
+    
     try {
       const { data, error } = await supabase.functions.invoke('seed-comprehensive-test-data');
+      
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      setSeedProgress(100);
       
       if (error) throw error;
       
       setSeedResults(data);
-      toast.success(t('platformSettings.seedSuccess', 'Test data seeded successfully'));
+      
+      if (data?.success) {
+        toast.success(t('platformSettings.seedSuccess', 'Test data seeded successfully'), {
+          duration: 5000,
+        });
+      } else {
+        toast.warning(t('platformSettings.seedPartial', 'Seeding completed with some issues'), {
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error('Error seeding test data:', error);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      setSeedProgress(0);
       toast.error(t('platformSettings.seedError', 'Failed to seed test data'));
+      setShowSeedModal(false);
     } finally {
       setIsSeeding(false);
     }
@@ -154,6 +195,70 @@ export default function PlatformSettings() {
       {showPreview && (
         <SplashScreen onComplete={() => setShowPreview(false)} />
       )}
+
+      {/* Seed Progress Modal */}
+      <Dialog open={showSeedModal} onOpenChange={(open) => !isSeeding && setShowSeedModal(open)}>
+        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => isSeeding && e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {isSeeding ? (
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              ) : seedResults?.success ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-destructive" />
+              )}
+              {isSeeding 
+                ? t('platformSettings.seedingInProgress', 'Seeding in Progress...')
+                : t('platformSettings.seedComplete', 'Seeding Complete')
+              }
+            </DialogTitle>
+            <DialogDescription>
+              {isSeeding 
+                ? t('platformSettings.seedingDescription', 'Creating test data across all modules. This may take up to 2 minutes.')
+                : t('platformSettings.seedCompleteDescription', 'Test data has been created successfully.')
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {isSeeding && (
+              <div className="space-y-2">
+                <Progress value={seedProgress} className="h-2" />
+                <p className="text-sm text-muted-foreground text-center">
+                  {Math.round(seedProgress)}% {t('common.complete', 'complete')}
+                </p>
+              </div>
+            )}
+            
+            {seedResults && (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {seedResults.results && Object.entries(seedResults.results).map(([category, data]: [string, any]) => (
+                    <div key={category} className="flex justify-between p-2 bg-muted/50 rounded">
+                      <span className="font-medium capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <span className="text-muted-foreground">
+                        {typeof data === 'object' 
+                          ? Object.values(data).reduce((a: number, b: any) => a + (typeof b === 'number' ? b : 0), 0)
+                          : data
+                        }
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {!isSeeding && (
+            <div className="flex justify-end">
+              <Button onClick={() => setShowSeedModal(false)}>
+                {t('common.close', 'Close')}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <div className="flex items-center justify-between">
