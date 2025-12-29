@@ -6102,6 +6102,109 @@
       "contractor": "ٹھیکیدار",
       "location": "مقام",
       "autoPopulated": "پروجیکٹ سے خود بخود بھرا گیا"
+    },
+    "compliance": {
+      "sectionTitle": "ISO 45001 / OSHA تعمیل",
+      "activityType": "سرگرمی کی قسم",
+      "workEnvironment": "کام کا ماحول",
+      "workEnvironmentPlaceholder": "مثلاً، کھلی جگہ، محدود جگہ، اونچائی پر کام، کیمیائی نمائش کا علاقہ...",
+      "scopeDescription": "دائرہ کار اور حدود",
+      "scopePlaceholder": "اس تشخیص میں کیا شامل/خارج ہے اس کی وضاحت کریں۔ آلات، عمل، علاقوں، اور وقت کو مدنظر رکھیں...",
+      "scopeHelp": "ISO 45001 تشخیص کے دائرہ کار اور حدود کی واضح تعریف کا تقاضا کرتا ہے۔",
+      "applicableLegislation": "قابل اطلاق قانون سازی اور معیارات",
+      "legislationHelp": "اس سرگرمی پر لاگو تمام قانون سازی اور معیارات کا انتخاب کریں۔",
+      "jobStepNumber": "قدم #",
+      "jobStepDescription": "کام کے قدم کی تفصیل",
+      "jobStepPlaceholder": "مثلاً، سیڑھی کو محفوظ طریقے سے رکھیں...",
+      "personsAtRisk": "خطرے میں افراد (ISO 45001)",
+      "numberExposed": "متاثرہ تعداد",
+      "controlHierarchy": "کنٹرول درجہ بندی کی سطح",
+      "hierarchyJustification": "اعلیٰ سطح کے کنٹرولز کیوں نہیں لاگو ہو سکتے؟",
+      "hierarchyJustificationPlaceholder": "وضاحت کریں کہ خاتمہ، متبادل، یا انجینئرنگ کنٹرولز قابل عمل کیوں نہیں ہیں...",
+      "requiredPPE": "ضروری PPE",
+      "controlStatus": "عملدرآمد کی حیثیت",
+      "riskReduction": "کمی"
+    },
+    "activityType": {
+      "routine": "معمول",
+      "routineDesc": "باقاعدہ، روزمرہ کی سرگرمیاں",
+      "non_routine": "غیر معمولی",
+      "non_routineDesc": "کبھی کبھار یا نایاب سرگرمیاں",
+      "emergency": "ہنگامی",
+      "emergencyDesc": "ہنگامی ردعمل کی سرگرمیاں",
+      "maintenance": "دیکھ بھال",
+      "maintenanceDesc": "دیکھ بھال یا مرمت کا کام"
+    },
+    "personsAtRisk": {
+      "employees": "ملازمین",
+      "contractors": "ٹھیکیدار",
+      "visitors": "زائرین",
+      "public": "عوام",
+      "young_workers": "نوجوان کارکن",
+      "pregnant_workers": "حاملہ کارکن",
+      "disabled_persons": "معذور افراد"
+    },
+    "ppe": {
+      "hard_hat": "سخت ٹوپی",
+      "safety_glasses": "حفاظتی عینک",
+      "face_shield": "چہرے کی ڈھال",
+      "hearing_protection": "سماعت کا تحفظ",
+      "respirator": "سانس کا آلہ",
+      "gloves": "دستانے",
+      "safety_boots": "حفاظتی جوتے",
+      "high_vis_vest": "اعلیٰ مرئیت واسکٹ",
+      "fall_protection": "گرنے سے تحفظ",
+      "coveralls": "کوورال"
+    },
+    "controlStatus": {
+      "pending": "زیر التواء",
+      "inProgress": "جاری",
+      "implemented": "نافذ",
+      "verified": "تصدیق شدہ"
+    },
+    "consultation": {
+      "title": "کارکنوں سے مشاورت (ISO 45001 7.4)",
+      "requirement": "ISO 45001 پیشہ ورانہ صحت اور حفاظت کے معاملات پر کارکنوں سے مشاورت کا تقاضا کرتا ہے۔ کارکنوں کی شرکت کا ثبوت دستاویز کریں۔",
+      "date": "مشاورت کی تاریخ",
+      "unionRep": "یونین/کارکن نمائندے سے مشورہ کیا گیا",
+      "notes": "مشاورت کے نوٹس",
+      "notesPlaceholder": "مشاورت کے عمل، کارکنوں کے اٹھائے گئے اہم خدشات، اور ان کو کیسے حل کیا گیا کی دستاویز کریں...",
+      "help": "ٹول باکس ٹاکس، سیفٹی میٹنگز، یا انفرادی مشاورت کی تفصیلات شامل کریں۔"
+    },
+    "acceptability": {
+      "title": "خطرے کی قبولیت کا فیصلہ (ISO 45001)",
+      "selectLevel": "خطرے کی قبولیت کی سطح",
+      "acceptable": "قابل قبول",
+      "acceptableDesc": "خطرہ قابل قبول سطح پر ہے۔ معیاری نگرانی کے ساتھ آگے بڑھیں۔",
+      "tolerable_alarp": "برداشت کے قابل (ALARP)",
+      "tolerable_alarpDesc": "خطرہ جتنا کم معقول طور پر قابل عمل ہے۔ بہتر نگرانی کے ساتھ آگے بڑھیں۔",
+      "unacceptable": "ناقابل قبول",
+      "unacceptableDesc": "خطرہ بہت زیادہ ہے۔ کام روکیں اور اضافی کنٹرولز نافذ کریں۔",
+      "unacceptableWarning": "ناقابل قبول خطرے کی سطح کے ساتھ کام آگے نہیں بڑھ سکتا۔ کام شروع کرنے سے پہلے اضافی کنٹرولز نافذ ہونے چاہئیں۔",
+      "justificationRequired": "ALARP جواز ضروری",
+      "justificationPlaceholder": "وضاحت کریں کہ مزید خطرے میں کمی معقول طور پر قابل عمل کیوں نہیں ہے...",
+      "justificationHelp": "لاگت فائدے کا تجزیہ دستاویز کریں جو ظاہر کرے کہ مزید خطرے میں کمی حاصل ہونے والے فوائد کے مقابلے میں غیر متناسب ہوگی۔",
+      "managementApproval": "اعلیٰ/نازک خطرے کی سطح کی وجہ سے اس تشخیص کو انتظامی منظوری درکار ہے۔",
+      "approvalRequired": "منظوری درکار"
+    },
+    "review": {
+      "title": "جائزہ شیڈول (ISO 45001)",
+      "frequency": "جائزے کی تعدد",
+      "selectFrequency": "تعدد منتخب کریں...",
+      "nextDate": "اگلے جائزے کی تاریخ",
+      "help": "ISO 45001 خطرے کی تشخیص کا متواتر جائزہ لینے کا تقاضا کرتا ہے۔ جائزے کی تعدد خطرے کی سطح اور تبدیلی کی امکانات کی عکاسی کرے۔",
+      "daily": "روزانہ",
+      "weekly": "ہفتہ وار",
+      "monthly": "ماہانہ",
+      "quarterly": "سہ ماہی",
+      "annually": "سالانہ"
+    },
+    "summary": {
+      "hazards": "خطرات",
+      "team": "ٹیم ممبران",
+      "controls": "کنٹرولز",
+      "rating": "درجہ بندی",
+      "highRisk": "زیادہ/نازک"
     }
   }
 }

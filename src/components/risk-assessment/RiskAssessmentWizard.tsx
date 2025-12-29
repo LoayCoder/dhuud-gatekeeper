@@ -377,7 +377,7 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
-        const hasRequiredFields = !!activityName && !!activityDescription;
+        const hasRequiredFields = !!activityName && !!activityDescription && !!activityType;
         if (isProjectLinked) {
           return hasRequiredFields && !!selectedProjectId;
         }
@@ -393,7 +393,13 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
           (h) => h.residual_likelihood && h.residual_severity
         );
       case 6:
-        return !!overallRating;
+        // Require risk tolerance and review frequency for ISO 45001 compliance
+        const hasRating = !!overallRating;
+        const hasRiskTolerance = !!riskTolerance;
+        const hasReviewFrequency = !!reviewFrequency;
+        const hasJustificationIfNeeded = riskTolerance !== "tolerable_alarp" || !!acceptanceJustification;
+        const isNotUnacceptable = riskTolerance !== "unacceptable";
+        return hasRating && hasRiskTolerance && hasReviewFrequency && hasJustificationIfNeeded && isNotUnacceptable;
       default:
         return false;
     }
@@ -561,6 +567,25 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
                 onChange={(e) => setActivityDescription(e.target.value)}
                 placeholder={t("risk.activity.descriptionPlaceholder", "Describe the work activities, equipment, duration...")}
                 className="mt-1 min-h-[120px]"
+              />
+            </div>
+
+            {/* ISO 45001 Compliance Section */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold">{t("risk.compliance.sectionTitle", "ISO 45001 / OSHA Compliance")}</h3>
+              </div>
+              
+              <ActivityDetailsSection
+                activityType={activityType}
+                onActivityTypeChange={setActivityType}
+                workEnvironment={workEnvironment}
+                onWorkEnvironmentChange={setWorkEnvironment}
+                scopeDescription={scopeDescription}
+                onScopeDescriptionChange={setScopeDescription}
+                applicableLegislation={applicableLegislation}
+                onApplicableLegislationChange={setApplicableLegislation}
               />
             </div>
           </CardContent>
@@ -797,6 +822,32 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
       {/* Step 6: Final Review & Signatures */}
       {currentStep === 6 && (
         <div className="space-y-6">
+          {/* Worker Consultation (ISO 45001 7.4) */}
+          <WorkerConsultationSection
+            consultationDate={workerConsultationDate}
+            onConsultationDateChange={setWorkerConsultationDate}
+            consultationNotes={workerConsultationNotes}
+            onConsultationNotesChange={setWorkerConsultationNotes}
+            unionRepConsulted={unionRepConsulted}
+            onUnionRepConsultedChange={setUnionRepConsulted}
+          />
+
+          {/* Risk Acceptability (ISO 45001 6.1.2.2) */}
+          <RiskAcceptabilitySection
+            riskTolerance={riskTolerance}
+            onRiskToleranceChange={setRiskTolerance}
+            acceptanceJustification={acceptanceJustification}
+            onAcceptanceJustificationChange={setAcceptanceJustification}
+            reviewFrequency={reviewFrequency}
+            onReviewFrequencyChange={setReviewFrequency}
+            nextReviewDate={nextReviewDate}
+            onNextReviewDateChange={setNextReviewDate}
+            managementApprovalRequired={overallRating === "high" || overallRating === "critical" || calculateOverallRisk() === "high" || calculateOverallRisk() === "critical"}
+            overallRiskRating={overallRating || calculateOverallRisk()}
+            hazardCount={hazards.length}
+            highRiskCount={hazards.filter((h) => h.residual_likelihood * h.residual_severity > 9).length}
+          />
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

@@ -7278,6 +7278,109 @@
       "contractor": "Contractor",
       "location": "Location",
       "autoPopulated": "Auto-populated from project"
+    },
+    "compliance": {
+      "sectionTitle": "ISO 45001 / OSHA Compliance",
+      "activityType": "Activity Type",
+      "workEnvironment": "Work Environment",
+      "workEnvironmentPlaceholder": "e.g., Outdoor, confined space, elevated work, chemical exposure area...",
+      "scopeDescription": "Scope & Boundaries",
+      "scopePlaceholder": "Define what is included/excluded from this assessment. Consider equipment, processes, areas, and timeframes...",
+      "scopeHelp": "ISO 45001 requires clear definition of assessment scope and boundaries.",
+      "applicableLegislation": "Applicable Legislation & Standards",
+      "legislationHelp": "Select all applicable legislation and standards that apply to this activity.",
+      "jobStepNumber": "Step #",
+      "jobStepDescription": "Job Step Description",
+      "jobStepPlaceholder": "e.g., Position ladder securely...",
+      "personsAtRisk": "Persons at Risk (ISO 45001)",
+      "numberExposed": "Number Exposed",
+      "controlHierarchy": "Control Hierarchy Level",
+      "hierarchyJustification": "Why can't higher-level controls be applied?",
+      "hierarchyJustificationPlaceholder": "Explain why elimination, substitution, or engineering controls are not feasible...",
+      "requiredPPE": "Required PPE",
+      "controlStatus": "Implementation Status",
+      "riskReduction": "Reduction"
+    },
+    "activityType": {
+      "routine": "Routine",
+      "routineDesc": "Regular, day-to-day activities",
+      "non_routine": "Non-Routine",
+      "non_routineDesc": "Occasional or infrequent activities",
+      "emergency": "Emergency",
+      "emergencyDesc": "Emergency response activities",
+      "maintenance": "Maintenance",
+      "maintenanceDesc": "Maintenance or repair work"
+    },
+    "personsAtRisk": {
+      "employees": "Employees",
+      "contractors": "Contractors",
+      "visitors": "Visitors",
+      "public": "Public",
+      "young_workers": "Young Workers",
+      "pregnant_workers": "Pregnant Workers",
+      "disabled_persons": "Disabled Persons"
+    },
+    "ppe": {
+      "hard_hat": "Hard Hat",
+      "safety_glasses": "Safety Glasses",
+      "face_shield": "Face Shield",
+      "hearing_protection": "Hearing Protection",
+      "respirator": "Respirator",
+      "gloves": "Gloves",
+      "safety_boots": "Safety Boots",
+      "high_vis_vest": "High Visibility Vest",
+      "fall_protection": "Fall Protection",
+      "coveralls": "Coveralls"
+    },
+    "controlStatus": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "implemented": "Implemented",
+      "verified": "Verified"
+    },
+    "consultation": {
+      "title": "Worker Consultation (ISO 45001 7.4)",
+      "requirement": "ISO 45001 requires consultation with workers on OH&S matters. Document evidence of worker participation.",
+      "date": "Consultation Date",
+      "unionRep": "Union/Worker Representative Consulted",
+      "notes": "Consultation Notes",
+      "notesPlaceholder": "Document the consultation process, key concerns raised by workers, and how they were addressed...",
+      "help": "Include details of toolbox talks, safety meetings, or individual consultations. Record worker suggestions and how they were incorporated."
+    },
+    "acceptability": {
+      "title": "Risk Acceptability Decision (ISO 45001)",
+      "selectLevel": "Risk Acceptability Level",
+      "acceptable": "Acceptable",
+      "acceptableDesc": "Risk is at an acceptable level. Proceed with standard monitoring.",
+      "tolerable_alarp": "Tolerable (ALARP)",
+      "tolerable_alarpDesc": "Risk is As Low As Reasonably Practicable. Proceed with enhanced monitoring.",
+      "unacceptable": "Unacceptable",
+      "unacceptableDesc": "Risk is too high. STOP work and implement additional controls.",
+      "unacceptableWarning": "Work cannot proceed with unacceptable risk level. Additional controls must be implemented before work begins.",
+      "justificationRequired": "ALARP Justification Required",
+      "justificationPlaceholder": "Explain why further risk reduction is not reasonably practicable...",
+      "justificationHelp": "Document the cost-benefit analysis demonstrating that further risk reduction would be grossly disproportionate to the benefits gained.",
+      "managementApproval": "This assessment requires management approval due to high/critical risk level.",
+      "approvalRequired": "Approval Required"
+    },
+    "review": {
+      "title": "Review Schedule (ISO 45001)",
+      "frequency": "Review Frequency",
+      "selectFrequency": "Select frequency...",
+      "nextDate": "Next Review Date",
+      "help": "ISO 45001 requires periodic review of risk assessments. Review frequency should reflect the level of risk and potential for change.",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "annually": "Annually"
+    },
+    "summary": {
+      "hazards": "Hazards",
+      "team": "Team Members",
+      "controls": "Controls",
+      "rating": "Rating",
+      "highRisk": "High/Critical"
     }
   }
 }

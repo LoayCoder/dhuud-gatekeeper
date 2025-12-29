@@ -7069,6 +7069,109 @@
       "contractor": "المقاول",
       "location": "الموقع",
       "autoPopulated": "تم التعبئة التلقائية من المشروع"
+    },
+    "compliance": {
+      "sectionTitle": "التوافق مع ISO 45001 / OSHA",
+      "activityType": "نوع النشاط",
+      "workEnvironment": "بيئة العمل",
+      "workEnvironmentPlaceholder": "مثال: في الهواء الطلق، مكان محصور، عمل مرتفع، منطقة تعرض كيميائي...",
+      "scopeDescription": "النطاق والحدود",
+      "scopePlaceholder": "حدد ما هو مشمول/مستثنى من هذا التقييم. ضع في اعتبارك المعدات والعمليات والمناطق والأطر الزمنية...",
+      "scopeHelp": "يتطلب ISO 45001 تعريفاً واضحاً لنطاق وحدود التقييم.",
+      "applicableLegislation": "التشريعات والمعايير المطبقة",
+      "legislationHelp": "حدد جميع التشريعات والمعايير المطبقة على هذا النشاط.",
+      "jobStepNumber": "الخطوة #",
+      "jobStepDescription": "وصف خطوة العمل",
+      "jobStepPlaceholder": "مثال: ثبت السلم بشكل آمن...",
+      "personsAtRisk": "الأشخاص المعرضون للخطر (ISO 45001)",
+      "numberExposed": "عدد المعرضين",
+      "controlHierarchy": "مستوى تسلسل التحكم",
+      "hierarchyJustification": "لماذا لا يمكن تطبيق ضوابط المستوى الأعلى؟",
+      "hierarchyJustificationPlaceholder": "اشرح لماذا لا يمكن تطبيق الإزالة أو الاستبدال أو الضوابط الهندسية...",
+      "requiredPPE": "معدات الوقاية الشخصية المطلوبة",
+      "controlStatus": "حالة التنفيذ",
+      "riskReduction": "التخفيض"
+    },
+    "activityType": {
+      "routine": "روتيني",
+      "routineDesc": "أنشطة يومية منتظمة",
+      "non_routine": "غير روتيني",
+      "non_routineDesc": "أنشطة عرضية أو نادرة",
+      "emergency": "طوارئ",
+      "emergencyDesc": "أنشطة الاستجابة للطوارئ",
+      "maintenance": "صيانة",
+      "maintenanceDesc": "أعمال الصيانة أو الإصلاح"
+    },
+    "personsAtRisk": {
+      "employees": "الموظفون",
+      "contractors": "المقاولون",
+      "visitors": "الزوار",
+      "public": "العامة",
+      "young_workers": "العمال الشباب",
+      "pregnant_workers": "العاملات الحوامل",
+      "disabled_persons": "ذوو الإعاقة"
+    },
+    "ppe": {
+      "hard_hat": "خوذة صلبة",
+      "safety_glasses": "نظارات السلامة",
+      "face_shield": "واقي الوجه",
+      "hearing_protection": "حماية السمع",
+      "respirator": "جهاز التنفس",
+      "gloves": "قفازات",
+      "safety_boots": "أحذية السلامة",
+      "high_vis_vest": "سترة عالية الوضوح",
+      "fall_protection": "حماية السقوط",
+      "coveralls": "بدلة عمل"
+    },
+    "controlStatus": {
+      "pending": "قيد الانتظار",
+      "inProgress": "قيد التنفيذ",
+      "implemented": "تم التنفيذ",
+      "verified": "تم التحقق"
+    },
+    "consultation": {
+      "title": "استشارة العمال (ISO 45001 7.4)",
+      "requirement": "يتطلب ISO 45001 استشارة العمال في شؤون السلامة والصحة المهنية. وثق دليل مشاركة العمال.",
+      "date": "تاريخ الاستشارة",
+      "unionRep": "تمت استشارة ممثل النقابة/العمال",
+      "notes": "ملاحظات الاستشارة",
+      "notesPlaceholder": "وثق عملية الاستشارة، المخاوف الرئيسية التي أثارها العمال، وكيف تم معالجتها...",
+      "help": "أضف تفاصيل اجتماعات السلامة أو المشاورات الفردية. سجل اقتراحات العمال وكيف تم دمجها."
+    },
+    "acceptability": {
+      "title": "قرار قبول المخاطر (ISO 45001)",
+      "selectLevel": "مستوى قبول المخاطر",
+      "acceptable": "مقبول",
+      "acceptableDesc": "المخاطر في مستوى مقبول. المضي قدماً مع المراقبة القياسية.",
+      "tolerable_alarp": "محتمل (ALARP)",
+      "tolerable_alarpDesc": "المخاطر منخفضة بقدر ما هو معقول عملياً. المضي قدماً مع مراقبة معززة.",
+      "unacceptable": "غير مقبول",
+      "unacceptableDesc": "المخاطر عالية جداً. أوقف العمل ونفذ ضوابط إضافية.",
+      "unacceptableWarning": "لا يمكن المضي في العمل بمستوى مخاطر غير مقبول. يجب تنفيذ ضوابط إضافية قبل بدء العمل.",
+      "justificationRequired": "مطلوب تبرير ALARP",
+      "justificationPlaceholder": "اشرح لماذا لا يمكن تقليل المخاطر بشكل أكبر بشكل معقول...",
+      "justificationHelp": "وثق تحليل التكلفة والفائدة الذي يوضح أن المزيد من تقليل المخاطر سيكون غير متناسب بشكل كبير مع الفوائد المكتسبة.",
+      "managementApproval": "يتطلب هذا التقييم موافقة الإدارة بسبب مستوى المخاطر العالي/الحرج.",
+      "approvalRequired": "الموافقة مطلوبة"
+    },
+    "review": {
+      "title": "جدول المراجعة (ISO 45001)",
+      "frequency": "تكرار المراجعة",
+      "selectFrequency": "اختر التكرار...",
+      "nextDate": "تاريخ المراجعة التالية",
+      "help": "يتطلب ISO 45001 مراجعة دورية لتقييمات المخاطر. يجب أن يعكس تكرار المراجعة مستوى المخاطر وإمكانية التغيير.",
+      "daily": "يومياً",
+      "weekly": "أسبوعياً",
+      "monthly": "شهرياً",
+      "quarterly": "ربع سنوي",
+      "annually": "سنوياً"
+    },
+    "summary": {
+      "hazards": "المخاطر",
+      "team": "أعضاء الفريق",
+      "controls": "الضوابط",
+      "rating": "التصنيف",
+      "highRisk": "عالي/حرج"
     }
   }
 }
