@@ -1,9 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
-  Brain,
   Users,
   AlertTriangle,
   Shield,
@@ -36,13 +35,11 @@ import {
 import { toast } from "sonner";
 import { CompactRiskMatrix } from "./CompactRiskMatrix";
 import { RiskReductionSummary } from "./RiskReductionSummary";
-import { AIHazardSuggestions } from "./AIHazardSuggestions";
 import { HazardForm, type HazardFormData } from "./HazardForm";
 import { TeamSignatureSection } from "./TeamSignatureSection";
 import { RiskAcceptabilitySection } from "./RiskAcceptabilitySection";
 import { ActivityDetailsSection } from "./ActivityDetailsSection";
 import { WorkerConsultationSection } from "./WorkerConsultationSection";
-import { useRiskAssessmentAI } from "@/hooks/risk-assessment";
 import { useAuth } from "@/contexts/AuthContext";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,11 +52,10 @@ interface WizardProps {
 
 const STEPS = [
   { id: 1, key: "activity", icon: FileText },
-  { id: 2, key: "ai-analysis", icon: Brain },
-  { id: 3, key: "team", icon: Users },
-  { id: 4, key: "hazards", icon: AlertTriangle },
-  { id: 5, key: "controls", icon: Shield },
-  { id: 6, key: "signatures", icon: PenTool },
+  { id: 2, key: "team", icon: Users },
+  { id: 3, key: "hazards", icon: AlertTriangle },
+  { id: 4, key: "controls", icon: Shield },
+  { id: 5, key: "signatures", icon: PenTool },
 ];
 
 const TEAM_ROLES = [
@@ -140,15 +136,6 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   // Hazards state
   const [hazards, setHazards] = useState<HazardFormData[]>([createEmptyHazard()]);
 
-  // AI state
-  const { analyzeActivity, suggestHazards, isLoading: aiLoading } = useRiskAssessmentAI();
-  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
-  const [aiAnalysis, setAiAnalysis] = useState<{
-    risk_score?: number;
-    confidence?: number;
-    recommendations?: string[];
-  } | null>(null);
-
   // Auto-populate location and contractor from selected project
   const selectedProject = projects?.find((p) => p.id === selectedProjectId);
 
@@ -164,58 +151,6 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
       }
     }
   }, [selectedProjectId, selectedProject, isProjectLinked, location]);
-
-  const runAIAnalysis = useCallback(async () => {
-    if (!activityName || !activityDescription) {
-      toast.error(t("risk.ai.missingInfo", "Please provide activity details first"));
-      return;
-    }
-
-    try {
-      const [analysisResult, hazardResult] = await Promise.all([
-        analyzeActivity({
-          activityName,
-          activityDescription,
-          location,
-        }),
-        suggestHazards({
-          activityName,
-          activityDescription,
-        }),
-      ]);
-
-      if (analysisResult) {
-        setAiAnalysis(analysisResult);
-      }
-      if (hazardResult?.hazards) {
-        setAiSuggestions(hazardResult.hazards);
-      }
-
-      toast.success(t("risk.ai.analysisComplete", "AI analysis complete"));
-    } catch (error) {
-      console.error("AI analysis error:", error);
-      toast.error(t("risk.ai.analysisFailed", "AI analysis failed"));
-    }
-  }, [activityName, activityDescription, location, analyzeActivity, suggestHazards, t]);
-
-  const addAISuggestion = (suggestion: any) => {
-    const newHazard: HazardFormData = {
-      hazard_description: suggestion.description,
-      hazard_description_ar: suggestion.description_ar,
-      hazard_category: suggestion.category || "physical",
-      likelihood: suggestion.likelihood || 3,
-      severity: suggestion.severity || 3,
-      existing_controls: [],
-      additional_controls: suggestion.suggested_controls?.map((c: string) => ({
-        description: c,
-        responsible: "",
-        target_date: "",
-      })) || [],
-      residual_likelihood: Math.max(1, (suggestion.likelihood || 3) - 1),
-      residual_severity: Math.max(1, (suggestion.severity || 3) - 1),
-    };
-    setHazards((prev) => [...prev, newHazard]);
-  };
 
   const updateHazard = (index: number, field: string, value: unknown) => {
     setHazards((prev) =>
@@ -279,9 +214,6 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
           activity_name_ar: null,
           activity_description: activityDescription,
           location,
-          status,
-          ai_risk_score: aiAnalysis?.risk_score || null,
-          ai_confidence_level: aiAnalysis?.confidence || null,
           overall_risk_rating: calculatedRating,
           valid_until: validUntil || null,
           created_by: user?.id,
@@ -384,16 +316,14 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         }
         return hasRequiredFields;
       case 2:
-        return true; // AI analysis is optional
-      case 3:
         return teamMembers.length >= 2;
-      case 4:
+      case 3:
         return hazards.length > 0 && hazards.every((h) => h.hazard_description);
-      case 5:
+      case 4:
         return hazards.every(
           (h) => h.residual_likelihood && h.residual_severity
         );
-      case 6:
+      case 5:
         // Require risk tolerance and review frequency for ISO 45001 compliance
         const hasRating = !!overallRating;
         const hasRiskTolerance = !!riskTolerance;
@@ -593,88 +523,13 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         </Card>
       )}
 
-      {/* Step 2: AI Analysis */}
+      {/* Step 2: Team Selection */}
       {currentStep === 2 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-blue-600" />
-              {t("risk.step2.title", "AI Risk Analysis")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-center py-6">
-              <Button
-                onClick={runAIAnalysis}
-                disabled={aiLoading}
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {aiLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                    {t("risk.ai.analyzing", "Analyzing...")}
-                  </>
-                ) : (
-                  <>
-                    <Brain className="h-4 w-4 me-2" />
-                    {t("risk.ai.startAnalysis", "Start AI Analysis")}
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {aiAnalysis && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-orange-700">
-                      {aiAnalysis.risk_score?.toFixed(1) || "N/A"}/5.0
-                    </div>
-                    <div className="text-sm text-orange-600">
-                      {t("risk.ai.riskScore", "AI Risk Score")}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-700">
-                      {aiAnalysis.confidence ? `${Math.round(aiAnalysis.confidence * 100)}%` : "N/A"}
-                    </div>
-                    <div className="text-sm text-blue-600">
-                      {t("risk.ai.confidence", "Confidence")}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-green-700">
-                      {aiSuggestions.length}
-                    </div>
-                    <div className="text-sm text-green-600">
-                      {t("risk.ai.suggestionsFound", "Hazards Identified")}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            <AIHazardSuggestions
-              suggestions={aiSuggestions}
-              isLoading={aiLoading}
-              onAddHazard={addAISuggestion}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 3: Team Selection */}
-      {currentStep === 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              {t("risk.step3.title", "Assessment Team")}
+              {t("risk.step2.title", "Assessment Team")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -729,14 +584,14 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         </Card>
       )}
 
-      {/* Step 4: Hazard Analysis */}
-      {currentStep === 4 && (
+      {/* Step 3: Hazard Analysis */}
+      {currentStep === 3 && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
-                {t("risk.step4.title", "Hazard Identification")}
+                {t("risk.step3.title", "Hazard Identification")}
               </CardTitle>
             </CardHeader>
           <CardContent>
@@ -776,14 +631,14 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         </div>
       )}
 
-      {/* Step 5: Control Measures */}
-      {currentStep === 5 && (
+      {/* Step 4: Control Measures */}
+      {currentStep === 4 && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-green-600" />
-                {t("risk.step5.title", "Control Measures & Residual Risk")}
+                {t("risk.step4.title", "Control Measures & Residual Risk")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -835,8 +690,8 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         </div>
       )}
 
-      {/* Step 6: Final Review & Signatures */}
-      {currentStep === 6 && (
+      {/* Step 5: Final Review & Signatures */}
+      {currentStep === 5 && (
         <div className="space-y-6">
           {/* Worker Consultation (ISO 45001 7.4) */}
           <WorkerConsultationSection
@@ -868,7 +723,7 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PenTool className="h-5 w-5" />
-                {t("risk.step6.title", "Final Review")}
+                {t("risk.step5.title", "Final Review")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -937,7 +792,7 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         </Button>
 
         <div className="flex items-center gap-2">
-          {currentStep === 6 ? (
+          {currentStep === 5 ? (
             <>
               <Button
                 variant="outline"
@@ -961,7 +816,7 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
             </>
           ) : (
             <Button
-              onClick={() => setCurrentStep((s) => Math.min(6, s + 1))}
+              onClick={() => setCurrentStep((s) => Math.min(5, s + 1))}
               disabled={!canProceed()}
             >
               {t("common.next", "Next")}
