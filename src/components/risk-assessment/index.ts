@@ -10,3 +10,4 @@ export { RiskAssessmentWizard } from "./RiskAssessmentWizard";
 export { RiskAcceptabilitySection } from "./RiskAcceptabilitySection";
 export { ActivityDetailsSection } from "./ActivityDetailsSection";
 export { WorkerConsultationSection } from "./WorkerConsultationSection";
+export { TeamMemberSelector, SelectedMemberCard } from "./TeamMemberSelector";

@@ -40,6 +40,7 @@ import { TeamSignatureSection } from "./TeamSignatureSection";
 import { RiskAcceptabilitySection } from "./RiskAcceptabilitySection";
 import { ActivityDetailsSection } from "./ActivityDetailsSection";
 import { WorkerConsultationSection } from "./WorkerConsultationSection";
+import { TeamMemberSelector, SelectedMemberCard, type SelectedUser } from "./TeamMemberSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,12 +59,10 @@ const STEPS = [
   { id: 5, key: "signatures", icon: PenTool },
 ];
 
-const TEAM_ROLES = [
-  { value: "team_leader", label: "Team Leader", label_ar: "قائد الفريق" },
-  { value: "safety_rep", label: "Safety Representative", label_ar: "ممثل السلامة" },
-  { value: "sme", label: "Subject Matter Expert", label_ar: "خبير متخصص" },
-  { value: "worker_rep", label: "Worker Representative", label_ar: "ممثل العمال" },
-];
+const TEAM_ROLES = {
+  team_leader: { label: "Team Leader", label_ar: "قائد الفريق" },
+  member: { label: "Team Member", label_ar: "عضو الفريق" },
+};
 
 const createEmptyHazard = (): HazardFormData => ({
   hazard_description: "",
@@ -128,10 +127,9 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   const [reviewFrequency, setReviewFrequency] = useState("");
   const [nextReviewDate, setNextReviewDate] = useState("");
 
-  // Team state
-  const [teamMembers, setTeamMembers] = useState<
-    { role: string; role_ar: string; worker_id?: string; user_id?: string }[]
-  >([]);
+  // Team state - simplified to Team Leader and Members
+  const [teamLeader, setTeamLeader] = useState<SelectedUser | null>(null);
+  const [teamMembers, setTeamMembers] = useState<SelectedUser[]>([]);
 
   // Hazards state
   const [hazards, setHazards] = useState<HazardFormData[]>([createEmptyHazard()]);
@@ -166,16 +164,16 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
     setHazards((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const addTeamMember = (role: typeof TEAM_ROLES[number]) => {
-    if (teamMembers.some((m) => m.role === role.value)) {
-      toast.error(t("risk.team.roleExists", "This role is already assigned"));
+  const addTeamMember = (user: SelectedUser) => {
+    if (teamMembers.some((m) => m.user_id === user.user_id)) {
+      toast.error(t("risk.team.userExists", "This user is already in the team"));
       return;
     }
-    setTeamMembers((prev) => [...prev, { role: role.value, role_ar: role.label_ar }]);
+    setTeamMembers((prev) => [...prev, user]);
   };
 
-  const removeTeamMember = (index: number) => {
-    setTeamMembers((prev) => prev.filter((_, i) => i !== index));
+  const removeTeamMember = (userId: string) => {
+    setTeamMembers((prev) => prev.filter((m) => m.user_id !== userId));
   };
 
   const calculateOverallRisk = (): string => {
@@ -270,15 +268,21 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
       }
 
       // Insert team members
-      if (teamMembers.length > 0) {
-        const teamInserts = teamMembers.map((m) => ({
+      const allTeamMembers: SelectedUser[] = [];
+      if (teamLeader) {
+        allTeamMembers.push(teamLeader);
+      }
+      allTeamMembers.push(...teamMembers);
+
+      if (allTeamMembers.length > 0) {
+        const teamInserts = allTeamMembers.map((m, idx) => ({
           tenant_id: profile.tenant_id,
           risk_assessment_id: assessment.id,
-          role: m.role,
-          role_ar: m.role_ar,
-          worker_id: m.worker_id || null,
-          user_id: m.user_id || user?.id,
-          is_required: true,
+          role: idx === 0 && teamLeader ? "team_leader" : "member",
+          role_ar: idx === 0 && teamLeader ? TEAM_ROLES.team_leader.label_ar : TEAM_ROLES.member.label_ar,
+          worker_id: null,
+          user_id: m.user_id,
+          is_required: idx === 0, // Team leader is required
         }));
 
         const { error: teamError } = await supabase
@@ -316,7 +320,8 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         }
         return hasRequiredFields;
       case 2:
-        return teamMembers.length >= 2;
+        // Require Team Leader + at least 1 member
+        return teamLeader !== null && teamMembers.length >= 1;
       case 3:
         return hazards.length > 0 && hazards.every((h) => h.hazard_description);
       case 4:
@@ -532,53 +537,87 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
               {t("risk.step2.title", "Assessment Team")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                {t("risk.team.requirement", "Risk assessments must be conducted by a competent team including supervisor, safety rep, and worker representative.")}
+                {t("risk.team.requirement", "Risk assessments must be conducted by a competent team including a Team Leader and at least one Team Member.")}
               </AlertDescription>
             </Alert>
 
+            {/* Team Leader Section */}
             <div className="space-y-3">
-              {TEAM_ROLES.map((role) => {
-                const assigned = teamMembers.find((m) => m.role === role.value);
-                const roleLabel = isRTL ? role.label_ar : role.label;
-
-                return (
-                  <div
-                    key={role.value}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div>
-                      <div className="font-medium">{roleLabel}</div>
-                    </div>
-                    {assigned ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeTeamMember(teamMembers.indexOf(assigned))}
-                      >
-                        {t("common.remove", "Remove")}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addTeamMember(role)}
-                      >
-                        {t("common.assign", "Assign")}
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  {isRTL ? TEAM_ROLES.team_leader.label_ar : TEAM_ROLES.team_leader.label}
+                  <Badge variant="destructive" className="text-xs">
+                    {t("common.required", "Required")}
+                  </Badge>
+                </Label>
+              </div>
+              
+              {teamLeader ? (
+                <SelectedMemberCard
+                  user={teamLeader}
+                  role={isRTL ? TEAM_ROLES.team_leader.label_ar : TEAM_ROLES.team_leader.label}
+                  onRemove={() => setTeamLeader(null)}
+                  isRequired
+                />
+              ) : (
+                <TeamMemberSelector
+                  onSelect={(user) => setTeamLeader(user)}
+                  excludeIds={teamMembers.map((m) => m.user_id)}
+                  placeholder={t("risk.team.searchLeaderPlaceholder", "Search for Team Leader by name or ID...")}
+                />
+              )}
             </div>
 
-            {teamMembers.length < 2 && (
-              <p className="text-sm text-destructive">
-                {t("risk.team.minimum", "At least 2 team members are required")}
-              </p>
+            {/* Team Members Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">
+                  {isRTL ? TEAM_ROLES.member.label_ar : TEAM_ROLES.member.label}
+                </Label>
+                <Badge variant="outline">
+                  {teamMembers.length} {t("common.selected", "selected")}
+                </Badge>
+              </div>
+
+              {/* Selected Members */}
+              {teamMembers.length > 0 && (
+                <div className="space-y-2">
+                  {teamMembers.map((member) => (
+                    <SelectedMemberCard
+                      key={member.user_id}
+                      user={member}
+                      role={isRTL ? TEAM_ROLES.member.label_ar : TEAM_ROLES.member.label}
+                      onRemove={() => removeTeamMember(member.user_id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Add Member Selector */}
+              <TeamMemberSelector
+                onSelect={addTeamMember}
+                excludeIds={[
+                  ...(teamLeader ? [teamLeader.user_id] : []),
+                  ...teamMembers.map((m) => m.user_id),
+                ]}
+                placeholder={t("risk.team.searchMemberPlaceholder", "Add team member by name or ID...")}
+              />
+            </div>
+
+            {/* Validation Message */}
+            {(!teamLeader || teamMembers.length < 1) && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {!teamLeader
+                    ? t("risk.team.leaderRequired", "Please select a Team Leader")
+                    : t("risk.team.memberRequired", "Please add at least one Team Member")}
+                </AlertDescription>
+              </Alert>
             )}
           </CardContent>
         </Card>
