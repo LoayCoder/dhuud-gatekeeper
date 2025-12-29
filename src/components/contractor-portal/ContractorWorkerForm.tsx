@@ -11,7 +11,6 @@ import { useCreateContractorWorker } from "@/hooks/contractor-management";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
-  full_name_ar: z.string().optional(),
   national_id: z.string().min(5, "National ID is required"),
   mobile_number: z.string().min(8, "Mobile number is required"),
   nationality: z.string().optional(),
@@ -40,14 +39,13 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
 
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerSchema),
-    defaultValues: { full_name: "", full_name_ar: "", national_id: "", mobile_number: "", nationality: "", preferred_language: "ar" },
+    defaultValues: { full_name: "", national_id: "", mobile_number: "", nationality: "", preferred_language: "ar" },
   });
 
   const onSubmit = async (data: WorkerFormData) => {
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
-      full_name_ar: data.full_name_ar,
       national_id: data.national_id,
       mobile_number: data.mobile_number,
       nationality: data.nationality,

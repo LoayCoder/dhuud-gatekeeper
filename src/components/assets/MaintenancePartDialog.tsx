@@ -28,7 +28,6 @@ import {
 const partSchema = z.object({
   part_number: z.string().min(1, 'Part number is required'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  name_ar: z.string().optional(),
   description: z.string().optional(),
   category: z.string().optional(),
   unit_of_measure: z.string().min(1, 'Unit is required'),
@@ -74,7 +73,6 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
     defaultValues: {
       part_number: '',
       name: '',
-      name_ar: '',
       description: '',
       category: '',
       unit_of_measure: 'each',
@@ -93,7 +91,6 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
       form.reset({
         part_number: part.part_number,
         name: part.name,
-        name_ar: part.name_ar || '',
         description: part.description || '',
         category: part.category || '',
         unit_of_measure: part.unit_of_measure || 'each',
@@ -127,7 +124,7 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
         await createPart.mutateAsync({
           part_number: values.part_number,
           name: values.name,
-          name_ar: values.name_ar || null,
+          name_ar: null,
           description: values.description || null,
           category: values.category || null,
           unit_of_measure: values.unit_of_measure || null,
@@ -216,18 +213,6 @@ export function MaintenancePartDialog({ open, onOpenChange, part }: MaintenanceP
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="name_ar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('parts.nameAr', 'Name (Arabic)')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} dir="rtl" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
             </div>
 
             <FormField

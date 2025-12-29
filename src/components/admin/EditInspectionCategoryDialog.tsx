@@ -25,9 +25,7 @@ export default function EditInspectionCategoryDialog({ category }: EditInspectio
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(category.name);
-  const [nameAr, setNameAr] = useState(category.name_ar || '');
   const [description, setDescription] = useState(category.description || '');
-  const [descriptionAr, setDescriptionAr] = useState(category.description_ar || '');
   const [icon, setIcon] = useState(category.icon || '');
   const [color, setColor] = useState(category.color || '#3b82f6');
   const [sortOrder, setSortOrder] = useState(category.sort_order);
@@ -38,9 +36,7 @@ export default function EditInspectionCategoryDialog({ category }: EditInspectio
   useEffect(() => {
     if (open) {
       setName(category.name);
-      setNameAr(category.name_ar || '');
       setDescription(category.description || '');
-      setDescriptionAr(category.description_ar || '');
       setIcon(category.icon || '');
       setColor(category.color || '#3b82f6');
       setSortOrder(category.sort_order);
@@ -59,9 +55,9 @@ export default function EditInspectionCategoryDialog({ category }: EditInspectio
       await updateCategory.mutateAsync({
         id: category.id,
         name: name.trim(),
-        name_ar: nameAr.trim() || null,
+        name_ar: category.name_ar || null, // Preserve existing value
         description: description.trim() || null,
-        description_ar: descriptionAr.trim() || null,
+        description_ar: category.description_ar || null, // Preserve existing value
         icon: icon.trim() || null,
         color: color || null,
         sort_order: sortOrder,
@@ -123,35 +119,12 @@ export default function EditInspectionCategoryDialog({ category }: EditInspectio
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="nameAr">{t('common.nameAr')}</Label>
-              <Input
-                id="nameAr"
-                value={nameAr}
-                onChange={(e) => setNameAr(e.target.value)}
-                placeholder="اسم الفئة (عربي)"
-                dir="rtl"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">{t('common.descriptionEn')}</Label>
+              <Label htmlFor="description">{t('common.description')}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description (English)"
-                rows={2}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="descriptionAr">{t('common.descriptionAr')}</Label>
-              <Textarea
-                id="descriptionAr"
-                value={descriptionAr}
-                onChange={(e) => setDescriptionAr(e.target.value)}
-                placeholder="الوصف (عربي)"
-                dir="rtl"
+                placeholder={t('common.descriptionPlaceholder', 'Description')}
                 rows={2}
               />
             </div>

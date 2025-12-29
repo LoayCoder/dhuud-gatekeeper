@@ -82,7 +82,6 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
 
   // Form state
   const [activityName, setActivityName] = useState("");
-  const [activityNameAr, setActivityNameAr] = useState("");
   const [activityDescription, setActivityDescription] = useState("");
   const [location, setLocation] = useState("");
   const [validUntil, setValidUntil] = useState("");
@@ -212,7 +211,7 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
           contractor_id: contractorId || null,
           project_id: projectId || null,
           activity_name: activityName,
-          activity_name_ar: activityNameAr || null,
+          activity_name_ar: null,
           activity_description: activityDescription,
           location,
           status,
@@ -374,26 +373,14 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>{t("risk.activity.name", "Activity Name")} *</Label>
-                <Input
-                  value={activityName}
-                  onChange={(e) => setActivityName(e.target.value)}
-                  placeholder={t("risk.activity.namePlaceholder", "e.g., Hot Work - Welding Operations")}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>{t("risk.activity.nameAr", "Activity Name (Arabic)")}</Label>
-                <Input
-                  value={activityNameAr}
-                  onChange={(e) => setActivityNameAr(e.target.value)}
-                  placeholder="اسم النشاط"
-                  className="mt-1"
-                  dir="rtl"
-                />
-              </div>
+            <div>
+              <Label>{t("risk.activity.name", "Activity Name")} *</Label>
+              <Input
+                value={activityName}
+                onChange={(e) => setActivityName(e.target.value)}
+                placeholder={t("risk.activity.namePlaceholder", "e.g., Hot Work - Welding Operations")}
+                className="mt-1"
+              />
             </div>
 
             <div>
