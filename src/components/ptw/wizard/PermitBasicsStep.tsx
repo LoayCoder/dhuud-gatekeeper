@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePTWTypes, usePTWProjects } from "@/hooks/ptw";
 import { useSites } from "@/hooks/use-sites";
+import { useMobilizationCheck } from "@/hooks/ptw/use-mobilization-check";
+import { MobilizationStatusBanner } from "@/components/ptw/MobilizationStatusBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Construction, Shield, Shovel, Radiation, Zap, Mountain, FileWarning, Wrench } from "lucide-react";
@@ -33,6 +36,9 @@ interface PermitBasicsStepProps {
     planned_start_time?: string;
     planned_end_time?: string;
     job_description?: string;
+    // Auto-populated from project
+    contractor_id?: string;
+    contractor_name?: string;
   };
   onChange: (data: Partial<PermitBasicsStepProps["data"]>) => void;
 }
@@ -44,8 +50,33 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
   const { data: permitTypes, isLoading: typesLoading } = usePTWTypes();
   const { data: projects, isLoading: projectsLoading } = usePTWProjects({ status: "active" });
   const { data: sites, isLoading: sitesLoading } = useSites();
+  
+  // Mobilization status check for selected project
+  const { data: mobilizationStatus, isLoading: mobilizationLoading } = useMobilizationCheck(data.project_id);
 
   const selectedType = permitTypes?.find(pt => pt.id === data.type_id);
+
+  // Auto-populate contractor and site when project is selected
+  useEffect(() => {
+    if (mobilizationStatus && data.project_id) {
+      const updates: Partial<PermitBasicsStepProps["data"]> = {};
+      
+      // Auto-populate contractor info
+      if (mobilizationStatus.contractorId && mobilizationStatus.contractorId !== data.contractor_id) {
+        updates.contractor_id = mobilizationStatus.contractorId;
+        updates.contractor_name = mobilizationStatus.contractorName || undefined;
+      }
+      
+      // Auto-populate site if project has one and user hasn't selected one yet
+      if (mobilizationStatus.siteId && !data.site_id) {
+        updates.site_id = mobilizationStatus.siteId;
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        onChange(updates);
+      }
+    }
+  }, [mobilizationStatus, data.project_id, data.contractor_id, data.site_id, onChange]);
 
   return (
     <div className="space-y-6">
@@ -82,6 +113,15 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
           </p>
         )}
       </div>
+
+      {/* Mobilization Status Banner - Shows when project is selected */}
+      {data.project_id && (
+        <MobilizationStatusBanner 
+          status={mobilizationStatus} 
+          isLoading={mobilizationLoading}
+          projectId={data.project_id}
+        />
+      )}
 
       {/* Permit Type Selection */}
       <div className="space-y-2">
