@@ -245,52 +245,80 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
   console.log('Seeding organization structure...')
   const results = { branches: 0, sites: 0, buildings: 0, floors: 0, divisions: 0, departments: 0 }
 
-  // Seed branches
+  // Seed branches - use upsert to handle existing data
   const branchIds: string[] = []
   for (const branch of BRANCHES) {
-    const { data, error } = await supabase
+    // First try to find existing branch
+    const { data: existingBranch } = await supabase
       .from('branches')
-      .insert({
-        tenant_id: tenantId,
-        name: `TEST - ${branch.name}`,
-        location: branch.location,
-        is_active: true,
-      })
       .select('id')
-      .single()
+      .eq('tenant_id', tenantId)
+      .eq('name', `TEST - ${branch.name}`)
+      .maybeSingle()
     
-    if (!error && data) {
-      branchIds.push(data.id)
+    if (existingBranch) {
+      branchIds.push(existingBranch.id)
       results.branches++
+      console.log(`Branch already exists: TEST - ${branch.name}`)
     } else {
-      console.log('Branch insert error:', error)
-    }
-  }
-
-  // Seed sites
-  const siteIds: string[] = []
-  for (let i = 0; i < branchIds.length; i++) {
-    const branchId = branchIds[i]
-    const sitesForBranch = SITES_PER_BRANCH[i] || SITES_PER_BRANCH[0]
-    
-    for (const site of sitesForBranch) {
       const { data, error } = await supabase
-        .from('sites')
+        .from('branches')
         .insert({
           tenant_id: tenantId,
-          branch_id: branchId,
-          name: `TEST - ${site.name}`,
-          address: site.address,
+          name: `TEST - ${branch.name}`,
+          location: branch.location,
           is_active: true,
         })
         .select('id')
         .single()
       
       if (!error && data) {
-        siteIds.push(data.id)
-        results.sites++
+        branchIds.push(data.id)
+        results.branches++
       } else {
-        console.log('Site insert error:', error)
+        console.log('Branch insert error:', error?.message || error)
+      }
+    }
+  }
+
+  // Seed sites - check for existing
+  const siteIds: string[] = []
+  for (let i = 0; i < branchIds.length; i++) {
+    const branchId = branchIds[i]
+    const sitesForBranch = SITES_PER_BRANCH[i] || SITES_PER_BRANCH[0]
+    
+    for (const site of sitesForBranch) {
+      // Check for existing site
+      const { data: existingSite } = await supabase
+        .from('sites')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('name', `TEST - ${site.name}`)
+        .maybeSingle()
+      
+      if (existingSite) {
+        siteIds.push(existingSite.id)
+        results.sites++
+        console.log(`Site already exists: TEST - ${site.name}`)
+      } else {
+        const { data, error } = await supabase
+          .from('sites')
+          .insert({
+            tenant_id: tenantId,
+            branch_id: branchId,
+            name: `TEST - ${site.name}`,
+            address: site.address,
+            is_active: true,
+          })
+          .select('id')
+          .single()
+        
+        if (!error && data) {
+          siteIds.push(data.id)
+          results.sites++
+        } else {
+          console.log('Site insert error:', error?.message || error)
+        }
       }
     }
   }
@@ -645,6 +673,7 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
   }
 
   // Seed risk assessment details (hazards) - match actual schema
+  // Note: initial_risk_score and residual_risk_score are generated columns, don't insert them
   for (const assessmentId of assessmentIds) {
     const hazardsToAdd = pickRandomN(HAZARDS_DATA, 5)
     for (let i = 0; i < hazardsToAdd.length; i++) {
@@ -661,15 +690,15 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
           additional_controls: ['Implement additional monitoring', 'Provide training'],
           likelihood: hazard.likelihood,
           severity: hazard.severity,
-          initial_risk_score: hazard.likelihood * hazard.severity,
+          // initial_risk_score is a generated column - don't insert
           residual_likelihood: Math.max(1, hazard.likelihood - 1),
           residual_severity: hazard.severity,
-          residual_risk_score: Math.max(1, hazard.likelihood - 1) * hazard.severity,
+          // residual_risk_score is a generated column - don't insert
           sort_order: i + 1,
         })
       
       if (!error) results.details++
-      else console.log('Risk assessment detail insert error:', error)
+      else console.log('Risk assessment detail insert error:', error?.message || error)
     }
   }
 
@@ -749,7 +778,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
             template_id: templateId,
             question: item.question,
             question_ar: item.question_ar,
-            response_type: 'boolean', // Valid response type
+            response_type: 'yes_no', // Valid response type per check constraint
             is_required: true,
             sort_order: i + 1,
           })
@@ -781,7 +810,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
         period: pickRandom(['2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4']),
         reference_id: generateReferenceId('INSP'),
         inspector_id: userId,
-        status: pickRandom(['completed', 'in_progress', 'scheduled']), // Fixed - removed duplicate, valid statuses
+        status: pickRandom(['draft', 'in_progress', 'completed_with_open_actions', 'closed']), // Valid statuses per check constraint
         started_at: randomPastDate(30),
         completed_at: Math.random() > 0.3 ? randomPastDate(30) : null,
       })
