@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme as useNextTheme } from 'next-themes';
+import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
 import { z } from 'zod';
@@ -17,8 +19,10 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [breachWarning, setBreachWarning] = useState<string | null>(null);
   const navigate = useNavigate();
   const { resolvedTheme } = useNextTheme();
+  const { checkPassword, isChecking } = usePasswordBreachCheck();
 
   // Determine the logo to display
   const displayLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
@@ -56,6 +60,16 @@ export default function ResetPassword() {
     try {
       passwordSchema.parse({ password, confirmPassword });
       setLoading(true);
+      setBreachWarning(null);
+
+      // Check for breached password
+      const breachResult = await checkPassword(password);
+      if (breachResult.isBreached) {
+        const breachMessage = t('security.passwordBreached').replace('{{count}}', breachResult.count.toLocaleString());
+        setBreachWarning(breachMessage);
+        setLoading(false);
+        return;
+      }
 
       const { error } = await supabase.auth.updateUser({
         password: password,
@@ -121,9 +135,7 @@ export default function ResetPassword() {
               />
             </div>
 
-            <div className="space-y-2">
-              <PasswordStrengthMeter password={password} />
-            </div>
+            <PasswordStrengthMeter password={password} />
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t('resetPassword.confirmPassword')}</Label>
@@ -138,9 +150,17 @@ export default function ResetPassword() {
                 className="h-12"
               />
             </div>
+
+            {breachWarning && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{breachWarning}</AlertDescription>
+              </Alert>
+            )}
           </div>
 
-          <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
+          <Button type="submit" className="h-12 w-full text-lg" disabled={loading || isChecking}>
+            {isChecking && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {loading ? t('resetPassword.updating') : t('resetPassword.updatePassword')}
           </Button>
         </form>
