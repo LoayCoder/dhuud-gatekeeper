@@ -26,6 +26,7 @@ interface SiteLocationPickerProps {
   latitude?: number | null;
   longitude?: number | null;
   boundaryPolygon?: Coordinate[] | null;
+  geofenceRadius?: number;
   onLocationChange: (lat: number, lng: number) => void;
   onPolygonChange: (polygon: Coordinate[] | null) => void;
   readOnly?: boolean;
@@ -37,6 +38,7 @@ export function SiteLocationPicker({
   latitude,
   longitude,
   boundaryPolygon,
+  geofenceRadius = 100,
   onLocationChange,
   onPolygonChange,
   readOnly = false,
