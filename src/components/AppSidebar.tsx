@@ -352,6 +352,55 @@ export function AppSidebar() {
               ],
             },
             {
+              title: t('security.menu.operations', 'Operations'),
+              icon: Radio,
+              menuCode: 'security_operations',
+              isActive: location.pathname.startsWith("/security/attendance") || 
+                        location.pathname.startsWith("/security/cctv") ||
+                        location.pathname.startsWith("/security/emergency-alerts") ||
+                        location.pathname.startsWith("/security/handover") ||
+                        location.pathname.startsWith("/security/performance") ||
+                        location.pathname.startsWith("/security/guard-app"),
+              subItems: [
+                {
+                  title: t('security.menu.guardAttendance', 'Guard Attendance'),
+                  url: "/security/attendance",
+                  icon: Clock,
+                  menuCode: 'guard_attendance',
+                },
+                {
+                  title: t('security.menu.cctvManagement', 'CCTV Management'),
+                  url: "/security/cctv",
+                  icon: Video,
+                  menuCode: 'cctv_management',
+                },
+                {
+                  title: t('security.menu.emergencyAlerts', 'Emergency Alerts'),
+                  url: "/security/emergency-alerts",
+                  icon: Bell,
+                  menuCode: 'emergency_alerts',
+                },
+                {
+                  title: t('security.menu.shiftHandover', 'Shift Handover'),
+                  url: "/security/handover",
+                  icon: FileText,
+                  menuCode: 'shift_handover',
+                },
+                {
+                  title: t('security.menu.guardPerformance', 'Guard Performance'),
+                  url: "/security/performance",
+                  icon: BarChart3,
+                  menuCode: 'guard_performance',
+                },
+                {
+                  title: t('security.menu.guardMobileApp', 'Guard Mobile'),
+                  url: "/security/guard-app",
+                  icon: MapPin,
+                  menuCode: 'guard_mobile_app',
+                },
+              ],
+            },
+            {
               title: t('security.menu.gateDashboard', 'Gate Dashboard'),
               url: "/security/gate-dashboard",
               icon: Shield,
