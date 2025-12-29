@@ -15269,6 +15269,14 @@ export type Database = {
         }
         Returns: Json
       }
+      get_profile_department_id_bypass: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
+      get_profile_tenant_id_bypass: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
         Args: { p_end_date?: string; p_start_date?: string }
