@@ -6199,12 +6199,30 @@
       "quarterly": "سہ ماہی",
       "annually": "سالانہ"
     },
+    "matrix": {
+      "initialRisk": "ابتدائی خطرہ",
+      "residualRisk": "بقایا خطرہ",
+      "beforeControls": "کنٹرولز سے پہلے",
+      "afterControls": "کنٹرولز کے بعد",
+      "riskDistribution": "خطرے کی تقسیم",
+      "hazardPlacement": "خطرے کی جگہ",
+      "avgScore": "اوسط",
+      "totalInitial": "ابتدائی",
+      "totalResidual": "بقایا",
+      "reduction": "کمی"
+    },
     "summary": {
       "hazards": "خطرات",
       "team": "ٹیم ممبران",
       "controls": "کنٹرولز",
       "rating": "درجہ بندی",
-      "highRisk": "زیادہ/نازک"
+      "highRisk": "زیادہ/نازک",
+      "totalHazards": "کل خطرات",
+      "improved": "بہتر",
+      "avgReduction": "اوسط کمی",
+      "overallReduction": "مجموعی کمی",
+      "riskReductionProgress": "خطرے میں کمی کی پیشرفت",
+      "noHazards": "تجزیہ کرنے کے لیے کوئی خطرات نہیں"
     }
   }
 }

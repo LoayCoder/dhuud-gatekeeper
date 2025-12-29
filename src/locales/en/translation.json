@@ -7233,11 +7233,29 @@
       "rating": "Overall Risk Rating",
       "selectRating": "Select rating..."
     },
+    "matrix": {
+      "initialRisk": "Initial Risk",
+      "residualRisk": "Residual Risk",
+      "beforeControls": "Before Controls",
+      "afterControls": "After Controls",
+      "riskDistribution": "Risk Distribution",
+      "hazardPlacement": "Hazard placement",
+      "avgScore": "Avg",
+      "totalInitial": "Initial",
+      "totalResidual": "Residual",
+      "reduction": "Reduction"
+    },
     "summary": {
       "hazards": "Hazards",
       "team": "Team Members",
       "controls": "Controls",
-      "rating": "Rating"
+      "rating": "Rating",
+      "totalHazards": "Total Hazards",
+      "improved": "Improved",
+      "avgReduction": "Avg. Reduction",
+      "overallReduction": "Overall Reduction",
+      "riskReductionProgress": "Risk Reduction Progress",
+      "noHazards": "No hazards to analyze"
     },
     "team": {
       "requirement": "Risk assessments must be conducted by a competent team including supervisor, safety rep, and worker representative.",

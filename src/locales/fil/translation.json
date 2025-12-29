@@ -6173,12 +6173,30 @@
       "quarterly": "Quarterly",
       "annually": "Taun-taon"
     },
+    "matrix": {
+      "initialRisk": "Paunang Panganib",
+      "residualRisk": "Natitirang Panganib",
+      "beforeControls": "Bago ang mga Kontrol",
+      "afterControls": "Pagkatapos ng mga Kontrol",
+      "riskDistribution": "Distribusyon ng Panganib",
+      "hazardPlacement": "Lokasyon ng panganib",
+      "avgScore": "Avg",
+      "totalInitial": "Paunang",
+      "totalResidual": "Natitira",
+      "reduction": "Pagbabawas"
+    },
     "summary": {
       "hazards": "Mga Panganib",
       "team": "Mga Miyembro ng Koponan",
       "controls": "Mga Kontrol",
       "rating": "Rating",
-      "highRisk": "Mataas/Kritikal"
+      "highRisk": "Mataas/Kritikal",
+      "totalHazards": "Kabuuang Panganib",
+      "improved": "Pinabuti",
+      "avgReduction": "Avg. Pagbabawas",
+      "overallReduction": "Kabuuang Pagbabawas",
+      "riskReductionProgress": "Progreso ng Pagbabawas ng Panganib",
+      "noHazards": "Walang panganib na suriin"
     }
   }
 }
