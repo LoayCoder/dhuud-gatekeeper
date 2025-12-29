@@ -12524,15 +12524,24 @@ export type Database = {
           additional_controls: Json | null
           ai_confidence: number | null
           ai_suggested: boolean | null
+          control_hierarchy_level: string | null
+          control_status: string | null
           created_at: string | null
           deleted_at: string | null
           existing_controls: Json | null
           hazard_category: string | null
           hazard_description: string
           hazard_description_ar: string | null
+          higher_control_justification: string | null
           id: string
+          implementation_date: string | null
           initial_risk_score: number | null
+          job_step_description: string | null
+          job_step_number: number | null
           likelihood: number | null
+          number_exposed: number | null
+          persons_at_risk: Json | null
+          required_ppe: Json | null
           residual_likelihood: number | null
           residual_risk_score: number | null
           residual_severity: number | null
@@ -12543,20 +12552,31 @@ export type Database = {
           target_completion_date: string | null
           tenant_id: string
           updated_at: string | null
+          verification_date: string | null
+          verified_by: string | null
         }
         Insert: {
           additional_controls?: Json | null
           ai_confidence?: number | null
           ai_suggested?: boolean | null
+          control_hierarchy_level?: string | null
+          control_status?: string | null
           created_at?: string | null
           deleted_at?: string | null
           existing_controls?: Json | null
           hazard_category?: string | null
           hazard_description: string
           hazard_description_ar?: string | null
+          higher_control_justification?: string | null
           id?: string
+          implementation_date?: string | null
           initial_risk_score?: number | null
+          job_step_description?: string | null
+          job_step_number?: number | null
           likelihood?: number | null
+          number_exposed?: number | null
+          persons_at_risk?: Json | null
+          required_ppe?: Json | null
           residual_likelihood?: number | null
           residual_risk_score?: number | null
           residual_severity?: number | null
@@ -12567,20 +12587,31 @@ export type Database = {
           target_completion_date?: string | null
           tenant_id: string
           updated_at?: string | null
+          verification_date?: string | null
+          verified_by?: string | null
         }
         Update: {
           additional_controls?: Json | null
           ai_confidence?: number | null
           ai_suggested?: boolean | null
+          control_hierarchy_level?: string | null
+          control_status?: string | null
           created_at?: string | null
           deleted_at?: string | null
           existing_controls?: Json | null
           hazard_category?: string | null
           hazard_description?: string
           hazard_description_ar?: string | null
+          higher_control_justification?: string | null
           id?: string
+          implementation_date?: string | null
           initial_risk_score?: number | null
+          job_step_description?: string | null
+          job_step_number?: number | null
           likelihood?: number | null
+          number_exposed?: number | null
+          persons_at_risk?: Json | null
+          required_ppe?: Json | null
           residual_likelihood?: number | null
           residual_risk_score?: number | null
           residual_severity?: number | null
@@ -12591,6 +12622,8 @@ export type Database = {
           target_completion_date?: string | null
           tenant_id?: string
           updated_at?: string | null
+          verification_date?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -12605,6 +12638,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_details_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -12737,79 +12777,130 @@ export type Database = {
       }
       risk_assessments: {
         Row: {
+          acceptance_justification: string | null
           activity_description: string | null
           activity_name: string
           activity_name_ar: string | null
+          activity_type: string | null
           ai_confidence_level: number | null
           ai_risk_score: number | null
+          applicable_legislation: Json | null
           approved_at: string | null
           approved_by: string | null
           assessment_date: string | null
           assessment_number: string
+          boundaries: string | null
           contractor_id: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
           id: string
           location: string | null
+          management_approval_required: boolean | null
+          next_review_date: string | null
           overall_risk_rating: string | null
+          permit_requirements: string | null
+          previous_version_id: string | null
           project_id: string | null
           rejection_reason: string | null
+          review_frequency: string | null
+          revision_number: number | null
+          revision_reason: string | null
+          risk_tolerance: string | null
+          scope_description: string | null
           status: string | null
           template_id: string | null
           tenant_id: string
+          union_representative_consulted: boolean | null
           updated_at: string | null
           valid_until: string | null
+          work_environment: string | null
+          worker_consultation_date: string | null
+          worker_consultation_notes: string | null
         }
         Insert: {
+          acceptance_justification?: string | null
           activity_description?: string | null
           activity_name: string
           activity_name_ar?: string | null
+          activity_type?: string | null
           ai_confidence_level?: number | null
           ai_risk_score?: number | null
+          applicable_legislation?: Json | null
           approved_at?: string | null
           approved_by?: string | null
           assessment_date?: string | null
           assessment_number: string
+          boundaries?: string | null
           contractor_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           id?: string
           location?: string | null
+          management_approval_required?: boolean | null
+          next_review_date?: string | null
           overall_risk_rating?: string | null
+          permit_requirements?: string | null
+          previous_version_id?: string | null
           project_id?: string | null
           rejection_reason?: string | null
+          review_frequency?: string | null
+          revision_number?: number | null
+          revision_reason?: string | null
+          risk_tolerance?: string | null
+          scope_description?: string | null
           status?: string | null
           template_id?: string | null
           tenant_id: string
+          union_representative_consulted?: boolean | null
           updated_at?: string | null
           valid_until?: string | null
+          work_environment?: string | null
+          worker_consultation_date?: string | null
+          worker_consultation_notes?: string | null
         }
         Update: {
+          acceptance_justification?: string | null
           activity_description?: string | null
           activity_name?: string
           activity_name_ar?: string | null
+          activity_type?: string | null
           ai_confidence_level?: number | null
           ai_risk_score?: number | null
+          applicable_legislation?: Json | null
           approved_at?: string | null
           approved_by?: string | null
           assessment_date?: string | null
           assessment_number?: string
+          boundaries?: string | null
           contractor_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           id?: string
           location?: string | null
+          management_approval_required?: boolean | null
+          next_review_date?: string | null
           overall_risk_rating?: string | null
+          permit_requirements?: string | null
+          previous_version_id?: string | null
           project_id?: string | null
           rejection_reason?: string | null
+          review_frequency?: string | null
+          revision_number?: number | null
+          revision_reason?: string | null
+          risk_tolerance?: string | null
+          scope_description?: string | null
           status?: string | null
           template_id?: string | null
           tenant_id?: string
+          union_representative_consulted?: boolean | null
           updated_at?: string | null
           valid_until?: string | null
+          work_environment?: string | null
+          worker_consultation_date?: string | null
+          worker_consultation_notes?: string | null
         }
         Relationships: [
           {
@@ -12817,6 +12908,13 @@ export type Database = {
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessments_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "risk_assessments"
             referencedColumns: ["id"]
           },
           {

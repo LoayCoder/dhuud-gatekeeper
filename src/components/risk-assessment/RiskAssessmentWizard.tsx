@@ -14,6 +14,7 @@ import {
   Send,
   Loader2,
   FolderKanban,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,9 @@ import { RiskMatrix } from "./RiskMatrix";
 import { AIHazardSuggestions } from "./AIHazardSuggestions";
 import { HazardForm, type HazardFormData } from "./HazardForm";
 import { TeamSignatureSection } from "./TeamSignatureSection";
+import { RiskAcceptabilitySection } from "./RiskAcceptabilitySection";
+import { ActivityDetailsSection } from "./ActivityDetailsSection";
+import { WorkerConsultationSection } from "./WorkerConsultationSection";
 import { useRiskAssessmentAI } from "@/hooks/risk-assessment";
 import { useAuth } from "@/contexts/AuthContext";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
@@ -73,6 +77,15 @@ const createEmptyHazard = (): HazardFormData => ({
   additional_controls: [],
   residual_likelihood: 2,
   residual_severity: 2,
+  // ISO 45001 compliance fields
+  job_step_number: undefined,
+  job_step_description: "",
+  persons_at_risk: [],
+  number_exposed: undefined,
+  control_hierarchy_level: "",
+  higher_control_justification: "",
+  required_ppe: [],
+  control_status: "pending",
 });
 
 export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: WizardProps) {
@@ -100,6 +113,23 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   const [location, setLocation] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [overallRating, setOverallRating] = useState<string>("");
+
+  // ISO 45001 Compliance Fields - Activity Details
+  const [activityType, setActivityType] = useState("routine");
+  const [workEnvironment, setWorkEnvironment] = useState("");
+  const [scopeDescription, setScopeDescription] = useState("");
+  const [applicableLegislation, setApplicableLegislation] = useState<string[]>(["iso_45001"]);
+
+  // ISO 45001 Compliance Fields - Worker Consultation
+  const [workerConsultationDate, setWorkerConsultationDate] = useState("");
+  const [workerConsultationNotes, setWorkerConsultationNotes] = useState("");
+  const [unionRepConsulted, setUnionRepConsulted] = useState(false);
+
+  // ISO 45001 Compliance Fields - Risk Acceptability
+  const [riskTolerance, setRiskTolerance] = useState("");
+  const [acceptanceJustification, setAcceptanceJustification] = useState("");
+  const [reviewFrequency, setReviewFrequency] = useState("");
+  const [nextReviewDate, setNextReviewDate] = useState("");
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<
@@ -232,7 +262,11 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
       // Generate assessment number
       const assessmentNumber = `RA-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
 
-      // Insert risk assessment
+      // Determine if management approval is required
+      const calculatedRating = overallRating || calculateOverallRisk();
+      const managementApprovalRequired = calculatedRating === "high" || calculatedRating === "critical";
+
+      // Insert risk assessment with compliance fields
       const { data: assessment, error: assessmentError } = await supabase
         .from("risk_assessments")
         .insert({
@@ -247,9 +281,22 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
           status,
           ai_risk_score: aiAnalysis?.risk_score || null,
           ai_confidence_level: aiAnalysis?.confidence || null,
-          overall_risk_rating: overallRating || calculateOverallRisk(),
+          overall_risk_rating: calculatedRating,
           valid_until: validUntil || null,
           created_by: user?.id,
+          // ISO 45001 Compliance Fields
+          activity_type: activityType,
+          work_environment: workEnvironment,
+          scope_description: scopeDescription,
+          applicable_legislation: applicableLegislation,
+          worker_consultation_date: workerConsultationDate || null,
+          worker_consultation_notes: workerConsultationNotes,
+          union_representative_consulted: unionRepConsulted,
+          risk_tolerance: riskTolerance,
+          acceptance_justification: acceptanceJustification,
+          review_frequency: reviewFrequency,
+          next_review_date: nextReviewDate || null,
+          management_approval_required: managementApprovalRequired,
         })
         .select()
         .single();
@@ -271,6 +318,15 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
           residual_likelihood: h.residual_likelihood,
           residual_severity: h.residual_severity,
           sort_order: idx,
+          // ISO 45001 Compliance Fields
+          job_step_number: h.job_step_number,
+          job_step_description: h.job_step_description,
+          persons_at_risk: h.persons_at_risk || [],
+          number_exposed: h.number_exposed,
+          control_hierarchy_level: h.control_hierarchy_level,
+          higher_control_justification: h.higher_control_justification,
+          required_ppe: h.required_ppe || [],
+          control_status: h.control_status || "pending",
         }));
 
         const { error: detailsError } = await supabase
