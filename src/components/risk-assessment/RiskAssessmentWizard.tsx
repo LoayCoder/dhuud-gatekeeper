@@ -34,7 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { RiskMatrix } from "./RiskMatrix";
+import { CompactRiskMatrix } from "./CompactRiskMatrix";
+import { RiskReductionSummary } from "./RiskReductionSummary";
 import { AIHazardSuggestions } from "./AIHazardSuggestions";
 import { HazardForm, type HazardFormData } from "./HazardForm";
 import { TeamSignatureSection } from "./TeamSignatureSection";
@@ -738,14 +739,16 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
                 {t("risk.step4.title", "Hazard Identification")}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <RiskMatrix
+          <CardContent>
+              <CompactRiskMatrix
                 hazards={hazards.map((h, i) => ({
                   id: String(i),
                   likelihood: h.likelihood,
                   severity: h.severity,
                   hazard_description: h.hazard_description,
                 }))}
+                mode="single"
+                size="md"
               />
             </CardContent>
           </Card>
@@ -783,14 +786,14 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
                 {t("risk.step5.title", "Control Measures & Residual Risk")}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               <Alert className="mb-4">
                 <AlertDescription>
                   {t("risk.controls.hierarchy", "Apply controls in order: Elimination → Substitution → Engineering → Administrative → PPE")}
                 </AlertDescription>
               </Alert>
 
-              <RiskMatrix
+              <CompactRiskMatrix
                 hazards={hazards.map((h, i) => ({
                   id: String(i),
                   likelihood: h.likelihood,
@@ -799,7 +802,20 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
                   residual_severity: h.residual_severity,
                   hazard_description: h.hazard_description,
                 }))}
-                showResidual
+                mode="comparison"
+                size="md"
+                showReductionStats
+              />
+
+              <RiskReductionSummary
+                hazards={hazards.map((h, i) => ({
+                  id: String(i),
+                  likelihood: h.likelihood,
+                  severity: h.severity,
+                  residual_likelihood: h.residual_likelihood,
+                  residual_severity: h.residual_severity,
+                  hazard_description: h.hazard_description,
+                }))}
               />
             </CardContent>
           </Card>

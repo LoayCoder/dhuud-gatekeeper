@@ -7166,12 +7166,30 @@
       "quarterly": "ربع سنوي",
       "annually": "سنوياً"
     },
+    "matrix": {
+      "initialRisk": "المخاطر الأولية",
+      "residualRisk": "المخاطر المتبقية",
+      "beforeControls": "قبل الضوابط",
+      "afterControls": "بعد الضوابط",
+      "riskDistribution": "توزيع المخاطر",
+      "hazardPlacement": "موضع الخطر",
+      "avgScore": "المتوسط",
+      "totalInitial": "الأولية",
+      "totalResidual": "المتبقية",
+      "reduction": "التخفيض"
+    },
     "summary": {
       "hazards": "المخاطر",
       "team": "أعضاء الفريق",
       "controls": "الضوابط",
       "rating": "التصنيف",
-      "highRisk": "عالي/حرج"
+      "highRisk": "عالي/حرج",
+      "totalHazards": "إجمالي المخاطر",
+      "improved": "محسّن",
+      "avgReduction": "متوسط التخفيض",
+      "overallReduction": "التخفيض الكلي",
+      "riskReductionProgress": "تقدم تخفيض المخاطر",
+      "noHazards": "لا توجد مخاطر للتحليل"
     }
   }
 }

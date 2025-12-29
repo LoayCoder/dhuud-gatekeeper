@@ -1,4 +1,6 @@
 export { RiskMatrix } from "./RiskMatrix";
+export { CompactRiskMatrix } from "./CompactRiskMatrix";
+export { RiskReductionSummary } from "./RiskReductionSummary";
 export { AIHazardSuggestions } from "./AIHazardSuggestions";
 export { HazardForm } from "./HazardForm";
 export { TeamSignatureSection } from "./TeamSignatureSection";
