@@ -2704,6 +2704,257 @@ export type Database = {
           },
         ]
       }
+      cctv_cameras: {
+        Row: {
+          assigned_to: string | null
+          audio_enabled: boolean | null
+          building: string | null
+          camera_code: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          floor_number: number | null
+          health_check_interval_minutes: number | null
+          id: string
+          installation_date: string | null
+          ip_address: string | null
+          is_active: boolean | null
+          is_motion_detection_enabled: boolean | null
+          is_recording: boolean | null
+          last_health_check: string | null
+          last_seen_at: string | null
+          latitude: number | null
+          location_description: string | null
+          longitude: number | null
+          mac_address: string | null
+          model: string | null
+          name: string
+          name_ar: string | null
+          night_vision: boolean | null
+          provider: string | null
+          ptz_enabled: boolean | null
+          resolution: string | null
+          rtsp_url: string | null
+          snapshot_url: string | null
+          status: string | null
+          stream_url: string | null
+          tenant_id: string
+          updated_at: string
+          warranty_expiry: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          audio_enabled?: boolean | null
+          building?: string | null
+          camera_code: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          floor_number?: number | null
+          health_check_interval_minutes?: number | null
+          id?: string
+          installation_date?: string | null
+          ip_address?: string | null
+          is_active?: boolean | null
+          is_motion_detection_enabled?: boolean | null
+          is_recording?: boolean | null
+          last_health_check?: string | null
+          last_seen_at?: string | null
+          latitude?: number | null
+          location_description?: string | null
+          longitude?: number | null
+          mac_address?: string | null
+          model?: string | null
+          name: string
+          name_ar?: string | null
+          night_vision?: boolean | null
+          provider?: string | null
+          ptz_enabled?: boolean | null
+          resolution?: string | null
+          rtsp_url?: string | null
+          snapshot_url?: string | null
+          status?: string | null
+          stream_url?: string | null
+          tenant_id: string
+          updated_at?: string
+          warranty_expiry?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          audio_enabled?: boolean | null
+          building?: string | null
+          camera_code?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          floor_number?: number | null
+          health_check_interval_minutes?: number | null
+          id?: string
+          installation_date?: string | null
+          ip_address?: string | null
+          is_active?: boolean | null
+          is_motion_detection_enabled?: boolean | null
+          is_recording?: boolean | null
+          last_health_check?: string | null
+          last_seen_at?: string | null
+          latitude?: number | null
+          location_description?: string | null
+          longitude?: number | null
+          mac_address?: string | null
+          model?: string | null
+          name?: string
+          name_ar?: string | null
+          night_vision?: boolean | null
+          provider?: string | null
+          ptz_enabled?: boolean | null
+          resolution?: string | null
+          rtsp_url?: string | null
+          snapshot_url?: string | null
+          status?: string | null
+          stream_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+          warranty_expiry?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cctv_cameras_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_cameras_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_cameras_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cctv_events: {
+        Row: {
+          camera_id: string
+          clip_duration_seconds: number | null
+          clip_url: string | null
+          created_at: string
+          deleted_at: string | null
+          detection_confidence: number | null
+          detection_metadata: Json | null
+          event_type: string
+          id: string
+          is_false_positive: boolean | null
+          linked_alert_id: string | null
+          linked_incident_id: string | null
+          linked_patrol_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string | null
+          tenant_id: string
+          thumbnail_url: string | null
+          triggered_at: string
+        }
+        Insert: {
+          camera_id: string
+          clip_duration_seconds?: number | null
+          clip_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          detection_confidence?: number | null
+          detection_metadata?: Json | null
+          event_type: string
+          id?: string
+          is_false_positive?: boolean | null
+          linked_alert_id?: string | null
+          linked_incident_id?: string | null
+          linked_patrol_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          tenant_id: string
+          thumbnail_url?: string | null
+          triggered_at?: string
+        }
+        Update: {
+          camera_id?: string
+          clip_duration_seconds?: number | null
+          clip_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          detection_confidence?: number | null
+          detection_metadata?: Json | null
+          event_type?: string
+          id?: string
+          is_false_positive?: boolean | null
+          linked_alert_id?: string | null
+          linked_incident_id?: string | null
+          linked_patrol_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          tenant_id?: string
+          thumbnail_url?: string | null
+          triggered_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cctv_events_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cctv_cameras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_linked_alert_id_fkey"
+            columns: ["linked_alert_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_linked_incident_id_fkey"
+            columns: ["linked_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_linked_patrol_id_fkey"
+            columns: ["linked_patrol_id"]
+            isOneToOne: false
+            referencedRelation: "security_patrols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_access_logs: {
         Row: {
           access_type: string
@@ -3885,6 +4136,8 @@ export type Database = {
           alert_type: string
           created_at: string
           deleted_at: string | null
+          escalated_to: Json | null
+          escalation_level: number | null
           guard_id: string | null
           id: string
           is_false_alarm: boolean | null
@@ -3897,6 +4150,7 @@ export type Database = {
           resolved_at: string | null
           resolved_by: string | null
           response_time_seconds: number | null
+          sla_breach_notified_at: string | null
           tenant_id: string
           triggered_at: string
         }
@@ -3907,6 +4161,8 @@ export type Database = {
           alert_type?: string
           created_at?: string
           deleted_at?: string | null
+          escalated_to?: Json | null
+          escalation_level?: number | null
           guard_id?: string | null
           id?: string
           is_false_alarm?: boolean | null
@@ -3919,6 +4175,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           response_time_seconds?: number | null
+          sla_breach_notified_at?: string | null
           tenant_id: string
           triggered_at?: string
         }
@@ -3929,6 +4186,8 @@ export type Database = {
           alert_type?: string
           created_at?: string
           deleted_at?: string | null
+          escalated_to?: Json | null
+          escalation_level?: number | null
           guard_id?: string | null
           id?: string
           is_false_alarm?: boolean | null
@@ -3941,6 +4200,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           response_time_seconds?: number | null
+          sla_breach_notified_at?: string | null
           tenant_id?: string
           triggered_at?: string
         }
@@ -3968,6 +4228,62 @@ export type Database = {
           },
           {
             foreignKeyName: "emergency_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_response_sla_configs: {
+        Row: {
+          alert_type: string
+          created_at: string
+          deleted_at: string | null
+          escalation_after_seconds: number | null
+          escalation_recipients: Json | null
+          id: string
+          is_active: boolean | null
+          max_response_seconds: number
+          notification_channels: string[] | null
+          priority: string
+          second_escalation_seconds: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          deleted_at?: string | null
+          escalation_after_seconds?: number | null
+          escalation_recipients?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_response_seconds?: number
+          notification_channels?: string[] | null
+          priority?: string
+          second_escalation_seconds?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          deleted_at?: string | null
+          escalation_after_seconds?: number | null
+          escalation_recipients?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_response_seconds?: number
+          notification_channels?: string[] | null
+          priority?: string
+          second_escalation_seconds?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_response_sla_configs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -4836,6 +5152,147 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_attendance_logs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          check_in_accuracy: number | null
+          check_in_at: string | null
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_in_method: string | null
+          check_in_photo_path: string | null
+          check_out_accuracy: number | null
+          check_out_at: string | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          check_out_method: string | null
+          check_out_photo_path: string | null
+          created_at: string
+          deleted_at: string | null
+          early_departure_minutes: number | null
+          expected_end_time: string | null
+          expected_start_time: string | null
+          gps_validated: boolean | null
+          guard_id: string
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          rejection_reason: string | null
+          roster_id: string | null
+          status: string | null
+          tenant_id: string
+          total_hours_worked: number | null
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          check_in_accuracy?: number | null
+          check_in_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_method?: string | null
+          check_in_photo_path?: string | null
+          check_out_accuracy?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_method?: string | null
+          check_out_photo_path?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          early_departure_minutes?: number | null
+          expected_end_time?: string | null
+          expected_start_time?: string | null
+          gps_validated?: boolean | null
+          guard_id: string
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          overtime_minutes?: number | null
+          rejection_reason?: string | null
+          roster_id?: string | null
+          status?: string | null
+          tenant_id: string
+          total_hours_worked?: number | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          check_in_accuracy?: number | null
+          check_in_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_method?: string | null
+          check_in_photo_path?: string | null
+          check_out_accuracy?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_method?: string | null
+          check_out_photo_path?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          early_departure_minutes?: number | null
+          expected_end_time?: string | null
+          expected_start_time?: string | null
+          gps_validated?: boolean | null
+          guard_id?: string
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          overtime_minutes?: number | null
+          rejection_reason?: string | null
+          roster_id?: string | null
+          status?: string | null
+          tenant_id?: string
+          total_hours_worked?: number | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_attendance_logs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_logs_roster_id_fkey"
+            columns: ["roster_id"]
+            isOneToOne: false
+            referencedRelation: "shift_roster"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_logs_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
             referencedColumns: ["id"]
           },
         ]
@@ -6106,6 +6563,8 @@ export type Database = {
           original_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          patrol_checkpoint_id: string | null
+          patrol_id: string | null
           potential_severity_approved_at: string | null
           potential_severity_approved_by: string | null
           potential_severity_justification: string | null
@@ -6226,6 +6685,8 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          patrol_checkpoint_id?: string | null
+          patrol_id?: string | null
           potential_severity_approved_at?: string | null
           potential_severity_approved_by?: string | null
           potential_severity_justification?: string | null
@@ -6346,6 +6807,8 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          patrol_checkpoint_id?: string | null
+          patrol_id?: string | null
           potential_severity_approved_at?: string | null
           potential_severity_approved_by?: string | null
           potential_severity_justification?: string | null
@@ -6470,6 +6933,20 @@ export type Database = {
             columns: ["hsse_validated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_patrol_checkpoint_id_fkey"
+            columns: ["patrol_checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_checkpoint_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_patrol_id_fkey"
+            columns: ["patrol_id"]
+            isOneToOne: false
+            referencedRelation: "security_patrols"
             referencedColumns: ["id"]
           },
           {
