@@ -6093,6 +6093,15 @@
     "submitForReview": "جائزے کے لیے جمع کریں",
     "savedAsDraft": "مسودے کے طور پر محفوظ",
     "submittedForReview": "جائزے کے لیے جمع",
-    "saveFailed": "تشخیص محفوظ کرنے میں ناکام"
+    "saveFailed": "تشخیص محفوظ کرنے میں ناکام",
+    "project": {
+      "linkToggle": "پروجیکٹ سے لنک کریں",
+      "linkDescription": "اس تشخیص کو ٹھیکیدار کے پروجیکٹ سے منسلک کریں",
+      "select": "پروجیکٹ منتخب کریں",
+      "selectPlaceholder": "پروجیکٹ منتخب کریں...",
+      "contractor": "ٹھیکیدار",
+      "location": "مقام",
+      "autoPopulated": "پروجیکٹ سے خود بخود بھرا گیا"
+    }
   }
 }

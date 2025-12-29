@@ -6078,6 +6078,15 @@
     "submitForReview": "समीक्षा के लिए सबमिट करें",
     "savedAsDraft": "ड्राफ्ट के रूप में सहेजा गया",
     "submittedForReview": "समीक्षा के लिए सबमिट किया गया",
-    "saveFailed": "मूल्यांकन सहेजने में विफल"
+    "saveFailed": "मूल्यांकन सहेजने में विफल",
+    "project": {
+      "linkToggle": "प्रोजेक्ट से लिंक करें",
+      "linkDescription": "इस मूल्यांकन को ठेकेदार प्रोजेक्ट से जोड़ें",
+      "select": "प्रोजेक्ट चुनें",
+      "selectPlaceholder": "प्रोजेक्ट चुनें...",
+      "contractor": "ठेकेदार",
+      "location": "स्थान",
+      "autoPopulated": "प्रोजेक्ट से स्वचालित रूप से भरा गया"
+    }
   }
 }

@@ -7060,6 +7060,15 @@
     "submitForReview": "إرسال للمراجعة",
     "savedAsDraft": "تم الحفظ كمسودة",
     "submittedForReview": "تم الإرسال للمراجعة",
-    "saveFailed": "فشل في حفظ التقييم"
+    "saveFailed": "فشل في حفظ التقييم",
+    "project": {
+      "linkToggle": "ربط بمشروع",
+      "linkDescription": "ربط هذا التقييم بمشروع المقاول",
+      "select": "اختر المشروع",
+      "selectPlaceholder": "اختر مشروعاً...",
+      "contractor": "المقاول",
+      "location": "الموقع",
+      "autoPopulated": "تم التعبئة التلقائية من المشروع"
+    }
   }
 }

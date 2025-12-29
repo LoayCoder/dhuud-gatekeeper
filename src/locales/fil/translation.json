@@ -6067,6 +6067,15 @@
     "submitForReview": "Isumite para sa Pagsusuri",
     "savedAsDraft": "Na-save bilang draft",
     "submittedForReview": "Naisumite para sa pagsusuri",
-    "saveFailed": "Nabigong i-save ang pagsusuri"
+    "saveFailed": "Nabigong i-save ang pagsusuri",
+    "project": {
+      "linkToggle": "I-link sa Proyekto",
+      "linkDescription": "Iugnay ang pagsusuri na ito sa proyekto ng kontratista",
+      "select": "Pumili ng Proyekto",
+      "selectPlaceholder": "Pumili ng proyekto...",
+      "contractor": "Kontratista",
+      "location": "Lokasyon",
+      "autoPopulated": "Awtomatikong napunan mula sa proyekto"
+    }
   }
 }
