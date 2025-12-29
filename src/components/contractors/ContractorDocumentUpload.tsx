@@ -44,7 +44,6 @@ export function ContractorDocumentUpload({ companyId, workerId, canManage = true
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: "",
-    titleAr: "",
     documentType: "other" as ContractorDocumentType,
     expiryDate: "",
     notes: "",
@@ -85,7 +84,6 @@ export function ContractorDocumentUpload({ companyId, workerId, canManage = true
       workerId,
       documentType: formData.documentType,
       title: formData.title,
-      titleAr: formData.titleAr || undefined,
       expiryDate: formData.expiryDate || undefined,
       notes: formData.notes || undefined,
     });
@@ -96,7 +94,7 @@ export function ContractorDocumentUpload({ companyId, workerId, canManage = true
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setSelectedFile(null);
-    setFormData({ title: "", titleAr: "", documentType: "other", expiryDate: "", notes: "" });
+    setFormData({ title: "", documentType: "other", expiryDate: "", notes: "" });
   };
 
   const getExpiryStatus = (expiryDate: string | null) => {
@@ -224,15 +222,6 @@ export function ContractorDocumentUpload({ companyId, workerId, canManage = true
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t("contractors.documents.titleAr", "Title (Arabic)")}</Label>
-              <Input
-                value={formData.titleAr}
-                onChange={(e) => setFormData({ ...formData, titleAr: e.target.value })}
-                dir="rtl"
               />
             </div>
             

@@ -43,7 +43,6 @@ const LANGUAGES = [
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  title_ar: z.string().optional(),
   description: z.string().optional(),
   language: z.string().min(1, "Language is required"),
   video_url: z.string().url("Must be a valid URL"),
@@ -77,7 +76,6 @@ export function InductionVideoFormDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      title_ar: "",
       description: "",
       language: "en",
       video_url: "",
@@ -92,7 +90,6 @@ export function InductionVideoFormDialog({
     if (video) {
       form.reset({
         title: video.title,
-        title_ar: video.title_ar || "",
         description: video.description || "",
         language: video.language,
         video_url: video.video_url,
@@ -104,7 +101,6 @@ export function InductionVideoFormDialog({
     } else {
       form.reset({
         title: "",
-        title_ar: "",
         description: "",
         language: "en",
         video_url: "",
@@ -152,20 +148,6 @@ export function InductionVideoFormDialog({
                   <FormLabel>{t("contractors.induction.title", "Title")} *</FormLabel>
                   <FormControl>
                     <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="title_ar"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("contractors.induction.titleAr", "Title (Arabic)")}</FormLabel>
-                  <FormControl>
-                    <Input {...field} dir="rtl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

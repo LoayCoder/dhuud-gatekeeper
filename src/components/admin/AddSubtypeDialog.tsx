@@ -26,7 +26,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [nameAr, setNameAr] = useState('');
   const [sortOrder, setSortOrder] = useState(100);
 
   const createSubtype = useCreateEventSubtype();
@@ -44,7 +43,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
         category_id: categoryId,
         code: code.trim().toLowerCase().replace(/\s+/g, '_'),
         name_key: `hsse.subtypes.custom.${code.trim().toLowerCase().replace(/\s+/g, '_')}`,
-        name_ar: nameAr.trim() || undefined,
         sort_order: sortOrder,
       });
       
@@ -59,7 +57,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
   const resetForm = () => {
     setCode('');
     setNameEn('');
-    setNameAr('');
     setSortOrder(100);
   };
 
@@ -100,17 +97,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
                 onChange={(e) => setNameEn(e.target.value)}
                 placeholder="Subtype Name (English)"
                 required
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="nameAr">{t('settings.eventCategories.crud.nameAr')}</Label>
-              <Input
-                id="nameAr"
-                value={nameAr}
-                onChange={(e) => setNameAr(e.target.value)}
-                placeholder="اسم النوع الفرعي (عربي)"
-                dir="rtl"
               />
             </div>
             

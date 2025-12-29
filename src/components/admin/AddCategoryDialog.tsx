@@ -21,7 +21,6 @@ export default function AddCategoryDialog() {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [nameAr, setNameAr] = useState('');
   const [icon, setIcon] = useState('');
   const [sortOrder, setSortOrder] = useState(100);
 
@@ -39,7 +38,6 @@ export default function AddCategoryDialog() {
       await createCategory.mutateAsync({
         code: code.trim().toLowerCase().replace(/\s+/g, '_'),
         name_key: `hsse.categories.custom.${code.trim().toLowerCase().replace(/\s+/g, '_')}`,
-        name_ar: nameAr.trim() || undefined,
         icon: icon.trim() || undefined,
         sort_order: sortOrder,
       });
@@ -55,7 +53,6 @@ export default function AddCategoryDialog() {
   const resetForm = () => {
     setCode('');
     setNameEn('');
-    setNameAr('');
     setIcon('');
     setSortOrder(100);
   };
@@ -97,17 +94,6 @@ export default function AddCategoryDialog() {
                 onChange={(e) => setNameEn(e.target.value)}
                 placeholder="Category Name (English)"
                 required
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="nameAr">{t('settings.eventCategories.crud.nameAr')}</Label>
-              <Input
-                id="nameAr"
-                value={nameAr}
-                onChange={(e) => setNameAr(e.target.value)}
-                placeholder="اسم الفئة (عربي)"
-                dir="rtl"
               />
             </div>
             

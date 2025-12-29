@@ -22,7 +22,7 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
   const isEditing = !!worker;
 
   const [formData, setFormData] = useState({
-    company_id: "", full_name: "", full_name_ar: "", national_id: "",
+    company_id: "", full_name: "", national_id: "",
     nationality: "", mobile_number: "", preferred_language: "en", photo_path: "" as string | null,
   });
 
@@ -31,7 +31,6 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
       setFormData({
         company_id: worker.company_id,
         full_name: worker.full_name,
-        full_name_ar: worker.full_name_ar || "",
         national_id: worker.national_id,
         nationality: worker.nationality || "",
         mobile_number: worker.mobile_number,
@@ -39,7 +38,7 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
         photo_path: worker.photo_path || null,
       });
     } else {
-      setFormData({ company_id: "", full_name: "", full_name_ar: "", national_id: "", nationality: "", mobile_number: "", preferred_language: "en", photo_path: null });
+      setFormData({ company_id: "", full_name: "", national_id: "", nationality: "", mobile_number: "", preferred_language: "en", photo_path: null });
     }
   }, [worker, open]);
 
@@ -73,15 +72,9 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{t("contractors.workers.name", "Full Name")} *</Label>
-              <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("contractors.workers.nameAr", "Name (Arabic)")}</Label>
-              <Input value={formData.full_name_ar} onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })} dir="rtl" />
-            </div>
+          <div className="space-y-2">
+            <Label>{t("contractors.workers.name", "Full Name")} *</Label>
+            <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

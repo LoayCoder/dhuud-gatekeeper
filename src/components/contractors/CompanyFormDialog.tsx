@@ -19,7 +19,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   const isEditing = !!company;
 
   const [formData, setFormData] = useState({
-    company_name: "", company_name_ar: "", email: "", phone: "", address: "", city: "",
+    company_name: "", email: "", phone: "", address: "", city: "",
     commercial_registration_number: "", vat_number: "",
   });
 
@@ -27,7 +27,6 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     if (company) {
       setFormData({
         company_name: company.company_name || "",
-        company_name_ar: company.company_name_ar || "",
         email: company.email || "",
         phone: company.phone || "",
         address: company.address || "",
@@ -36,7 +35,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         vat_number: company.vat_number || "",
       });
     } else {
-      setFormData({ company_name: "", company_name_ar: "", email: "", phone: "", address: "", city: "", commercial_registration_number: "", vat_number: "" });
+      setFormData({ company_name: "", email: "", phone: "", address: "", city: "", commercial_registration_number: "", vat_number: "" });
     }
   }, [company, open]);
 
@@ -57,15 +56,9 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
           <DialogTitle>{isEditing ? t("contractors.companies.editCompany", "Edit Company") : t("contractors.companies.addCompany", "Add Company")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{t("contractors.companies.name", "Company Name")} *</Label>
-              <Input value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("contractors.companies.nameAr", "Name (Arabic)")}</Label>
-              <Input value={formData.company_name_ar} onChange={(e) => setFormData({ ...formData, company_name_ar: e.target.value })} dir="rtl" />
-            </div>
+          <div className="space-y-2">
+            <Label>{t("contractors.companies.name", "Company Name")} *</Label>
+            <Input value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
