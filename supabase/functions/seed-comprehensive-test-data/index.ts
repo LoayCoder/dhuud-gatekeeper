@@ -749,7 +749,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
             template_id: templateId,
             question: item.question,
             question_ar: item.question_ar,
-            response_type: 'yes_no_na',
+            response_type: 'boolean', // Valid response type
             is_required: true,
             sort_order: i + 1,
           })
@@ -760,7 +760,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
           templateItemIds[templateId].push(data.id)
           results.items++
         } else {
-          console.log('Template item insert error:', error)
+          console.log('Template item insert error:', error?.message || error)
         }
       }
     }
@@ -781,7 +781,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
         period: pickRandom(['2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4']),
         reference_id: generateReferenceId('INSP'),
         inspector_id: userId,
-        status: pickRandom(['completed', 'completed', 'in_progress', 'scheduled']),
+        status: pickRandom(['completed', 'in_progress', 'scheduled']), // Fixed - removed duplicate, valid statuses
         started_at: randomPastDate(30),
         completed_at: Math.random() > 0.3 ? randomPastDate(30) : null,
       })
@@ -837,7 +837,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
         }
       }
     } else {
-      console.log('Inspection session insert error:', error)
+      console.log('Inspection session insert error:', error?.message || error)
     }
   }
 
