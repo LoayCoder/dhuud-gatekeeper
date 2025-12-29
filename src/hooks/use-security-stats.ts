@@ -12,6 +12,7 @@ interface SecurityStats {
   patrolCompletionRate: number;
   visitorTrend: Array<{ date: string; count: number }>;
   patrolTrend: Array<{ date: string; rate: number }>;
+  breachTrend: Array<{ date: string; count: number }>;
   alertsByZone: Array<{ zone: string; count: number }>;
   recentActivity: Array<{
     type: 'alert' | 'patrol' | 'visitor';
@@ -132,6 +133,33 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
     rate: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0
   }));
 
+  // Breach trend (last 7 days) - fetch geofence alerts
+  const { data: breachData } = await supabase
+    .from('geofence_alerts')
+    .select('created_at')
+    .gte('created_at', sevenDaysAgo.toISOString())
+    .is('deleted_at', null);
+
+  const breachByDay: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const date = subDays(today, i);
+    breachByDay[format(date, 'yyyy-MM-dd')] = 0;
+  }
+  
+  breachData?.forEach(b => {
+    if (b.created_at) {
+      const day = format(new Date(b.created_at), 'yyyy-MM-dd');
+      if (breachByDay[day] !== undefined) {
+        breachByDay[day]++;
+      }
+    }
+  });
+
+  const breachTrend = Object.entries(breachByDay).map(([date, count]) => ({
+    date: format(new Date(date), 'EEE'),
+    count
+  }));
+
   // Alerts by zone
   const { data: alertsData } = await supabase
     .from('geofence_alerts')
@@ -218,6 +246,7 @@ async function fetchSecurityStats(): Promise<SecurityStats> {
     patrolCompletionRate,
     visitorTrend,
     patrolTrend,
+    breachTrend,
     alertsByZone,
     recentActivity: recentActivity.slice(0, 10)
   };

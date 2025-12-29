@@ -37,6 +37,8 @@ import { format } from 'date-fns';
 import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
 import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
 import { useActiveEmergencyAlerts, useRealtimeEmergencyAlerts } from '@/hooks/use-emergency-alerts';
+import { GeofenceBreachesChart } from '@/components/security/GeofenceBreachesChart';
+import { TopGuardsWidget } from '@/components/security/TopGuardsWidget';
 
 export default function SecurityDashboard() {
   const { t } = useTranslation();
@@ -273,6 +275,12 @@ export default function SecurityDashboard() {
         </Card>
       </div>
 
+      {/* Geofence Breaches Chart */}
+      <GeofenceBreachesChart 
+        data={stats?.breachTrend ?? []} 
+        isLoading={isLoading}
+      />
+
       {/* Bottom Row */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Alerts by Zone */}
@@ -361,6 +369,9 @@ export default function SecurityDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Guards Performance */}
+      <TopGuardsWidget limit={5} />
 
       {/* Floating Panic Button */}
       <EmergencyPanicButton variant="floating" />
