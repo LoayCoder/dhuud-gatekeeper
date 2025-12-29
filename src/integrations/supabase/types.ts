@@ -15206,6 +15206,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           expires_at: string
+          expiry_warning_sent_at: string | null
           id: string
           project_id: string
           sent_at: string | null
@@ -15224,6 +15225,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           expires_at: string
+          expiry_warning_sent_at?: string | null
           id?: string
           project_id: string
           sent_at?: string | null
@@ -15242,6 +15244,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           expires_at?: string
+          expiry_warning_sent_at?: string | null
           id?: string
           project_id?: string
           sent_at?: string | null
