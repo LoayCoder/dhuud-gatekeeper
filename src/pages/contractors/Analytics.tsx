@@ -16,7 +16,7 @@ export default function ContractorAnalytics() {
   
   const { data: companies = [], isLoading: loadingCompanies } = useContractorCompanies();
   const { data: workers = [], isLoading: loadingWorkers } = useContractorWorkers();
-  const { data: gatePasses = [], isLoading: loadingPasses } = useGatePasses();
+  const { data: gatePasses = [], isLoading: loadingPasses } = useMaterialGatePasses();
 
   const isLoading = loadingCompanies || loadingWorkers || loadingPasses;
 
