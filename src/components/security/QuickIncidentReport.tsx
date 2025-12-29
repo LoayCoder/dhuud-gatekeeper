@@ -129,14 +129,12 @@ export function QuickIncidentReport({ onSuccess, onCancel, className }: QuickInc
           reporter_id: user.id,
           title: `Quick Report: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Incident`,
           description: notes || `Quick incident report - ${selectedType}`,
+          event_type: 'incident',
           incident_type: selectedType === 'hazard' ? 'near_miss' : 
                         selectedType === 'medical' ? 'injury' : 
                         selectedType === 'security' ? 'property_damage' : 'other',
           severity: selectedType === 'medical' ? 'high' : 'medium',
           status: 'submitted',
-          incident_date: new Date().toISOString(),
-          gps_lat: location?.lat,
-          gps_lng: location?.lng,
         }]);
 
       if (insertError) throw insertError;
