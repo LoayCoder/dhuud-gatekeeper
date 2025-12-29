@@ -227,3 +227,6 @@ verify_jwt = false
 
 [functions.risk-ai-assistant]
 verify_jwt = true
+
+[functions.seed-comprehensive-test-data]
+verify_jwt = true
