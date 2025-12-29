@@ -33,18 +33,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
-interface EmergencySLAConfig {
+// Use the actual DB schema types
+type EmergencySLAConfig = {
   id: string;
   tenant_id: string;
   alert_type: string;
+  priority: string;
   max_response_seconds: number;
-  max_resolution_seconds: number;
-  escalation_after_seconds: number;
-  second_escalation_after_seconds: number | null;
-  is_active: boolean;
+  escalation_after_seconds: number | null;
+  second_escalation_seconds: number | null;
+  escalation_recipients: unknown;
+  notification_channels: string[] | null;
+  is_active: boolean | null;
   created_at: string;
   updated_at: string;
-}
+  deleted_at: string | null;
+};
 
 const ALERT_TYPES = ['panic', 'security_breach', 'medical', 'fire', 'other'] as const;
 
@@ -83,10 +87,10 @@ export function EmergencySLAConfig() {
         if (!configMap[type]) {
           configMap[type] = {
             alert_type: type,
+            priority: type === 'panic' || type === 'fire' ? 'critical' : 'high',
             max_response_seconds: (type === 'panic' || type === 'fire' ? 2 : 5) * 60,
-            max_resolution_seconds: (type === 'panic' || type === 'fire' ? 15 : 30) * 60,
             escalation_after_seconds: (type === 'panic' || type === 'fire' ? 3 : 10) * 60,
-            second_escalation_after_seconds: (type === 'panic' || type === 'fire' ? 10 : 20) * 60,
+            second_escalation_seconds: (type === 'panic' || type === 'fire' ? 10 : 20) * 60,
             is_active: true,
           };
         }
@@ -104,23 +108,31 @@ export function EmergencySLAConfig() {
         
         if (id) {
           // Update existing
-          const { error } = await supabase
+          const { error: updateError } = await supabase
             .from('emergency_response_sla_configs')
             .update({
-              ...data,
+              max_response_seconds: data.max_response_seconds,
+              escalation_after_seconds: data.escalation_after_seconds,
+              second_escalation_seconds: data.second_escalation_seconds,
+              is_active: data.is_active,
               updated_at: new Date().toISOString(),
             })
             .eq('id', id);
-          if (error) throw error;
+          if (updateError) throw updateError;
         } else {
           // Insert new
-          const { error } = await supabase
+          const { error: insertError } = await supabase
             .from('emergency_response_sla_configs')
             .insert({
-              ...data,
+              alert_type: data.alert_type!,
+              priority: data.priority ?? 'high',
+              max_response_seconds: data.max_response_seconds ?? 300,
+              escalation_after_seconds: data.escalation_after_seconds,
+              second_escalation_seconds: data.second_escalation_seconds,
+              is_active: data.is_active,
               tenant_id: tenantId,
-            } as never);
-          if (error) throw error;
+            });
+          if (insertError) throw insertError;
         }
       });
 
@@ -235,19 +247,6 @@ export function EmergencySLAConfig() {
                     </Tooltip>
                   </TooltipProvider>
                 </TableHead>
-                <TableHead>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger className="flex items-center gap-1">
-                        {t('security.resolutionTarget', 'Resolution Target')}
-                        <Info className="h-3 w-3" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {t('security.resolutionTargetTooltip', 'Time to fully resolve the alert')}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableHead>
                 <TableHead>{t('security.escalation1', 'Escalation 1')}</TableHead>
                 <TableHead>{t('security.escalation2', 'Escalation 2')}</TableHead>
                 <TableHead>{t('common.active', 'Active')}</TableHead>
@@ -257,9 +256,8 @@ export function EmergencySLAConfig() {
             {ALERT_TYPES.map((type) => {
                 const config = configs[type] || {};
                 const responseMin = Math.round((config.max_response_seconds ?? 300) / 60);
-                const resolutionMin = Math.round((config.max_resolution_seconds ?? 1800) / 60);
                 const esc1Min = Math.round((config.escalation_after_seconds ?? 300) / 60);
-                const esc2Min = Math.round((config.second_escalation_after_seconds ?? 900) / 60);
+                const esc2Min = Math.round((config.second_escalation_seconds ?? 900) / 60);
                 return (
                   <TableRow key={type}>
                     <TableCell>{getAlertTypeBadge(type)}</TableCell>
@@ -271,19 +269,6 @@ export function EmergencySLAConfig() {
                           max={60}
                           value={responseMin}
                           onChange={(e) => updateConfig(type, 'max_response_seconds', (parseInt(e.target.value) || 5) * 60)}
-                          className="w-16"
-                        />
-                        <span className="text-sm text-muted-foreground">{t('common.min', 'min')}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Input
-                          type="number"
-                          min={5}
-                          max={240}
-                          value={resolutionMin}
-                          onChange={(e) => updateConfig(type, 'max_resolution_seconds', (parseInt(e.target.value) || 30) * 60)}
                           className="w-16"
                         />
                         <span className="text-sm text-muted-foreground">{t('common.min', 'min')}</span>
