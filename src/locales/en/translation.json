@@ -7269,6 +7269,15 @@
     "submitForReview": "Submit for Review",
     "savedAsDraft": "Saved as draft",
     "submittedForReview": "Submitted for review",
-    "saveFailed": "Failed to save assessment"
+    "saveFailed": "Failed to save assessment",
+    "project": {
+      "linkToggle": "Link to Project",
+      "linkDescription": "Associate this assessment with a contractor project",
+      "select": "Select Project",
+      "selectPlaceholder": "Choose a project...",
+      "contractor": "Contractor",
+      "location": "Location",
+      "autoPopulated": "Auto-populated from project"
+    }
   }
 }

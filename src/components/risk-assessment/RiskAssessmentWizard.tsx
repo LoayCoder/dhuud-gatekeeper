@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,6 +13,7 @@ import {
   Save,
   Send,
   Loader2,
+  FolderKanban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -36,6 +39,7 @@ import { HazardForm, type HazardFormData } from "./HazardForm";
 import { TeamSignatureSection } from "./TeamSignatureSection";
 import { useRiskAssessmentAI } from "@/hooks/risk-assessment";
 import { useAuth } from "@/contexts/AuthContext";
+import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { supabase } from "@/integrations/supabase/client";
 
 interface WizardProps {
@@ -80,6 +84,16 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Project linking state
+  const [isProjectLinked, setIsProjectLinked] = useState(!!projectId);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId || "");
+  const [selectedContractorId, setSelectedContractorId] = useState(contractorId || "");
+
+  // Fetch active projects
+  const { data: projects, isLoading: projectsLoading } = useContractorProjects({
+    status: "active",
+  });
+
   // Form state
   const [activityName, setActivityName] = useState("");
   const [activityDescription, setActivityDescription] = useState("");
@@ -103,6 +117,22 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
     confidence?: number;
     recommendations?: string[];
   } | null>(null);
+
+  // Auto-populate location and contractor from selected project
+  const selectedProject = projects?.find((p) => p.id === selectedProjectId);
+
+  useEffect(() => {
+    if (isProjectLinked && selectedProjectId && selectedProject) {
+      // Auto-populate location from project if not already set
+      if (selectedProject.location_description && !location) {
+        setLocation(selectedProject.location_description);
+      }
+      // Auto-populate contractor from project's company
+      if (selectedProject.company_id) {
+        setSelectedContractorId(selectedProject.company_id);
+      }
+    }
+  }, [selectedProjectId, selectedProject, isProjectLinked, location]);
 
   const runAIAnalysis = useCallback(async () => {
     if (!activityName || !activityDescription) {
@@ -208,8 +238,8 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
         .insert({
           tenant_id: profile.tenant_id,
           assessment_number: assessmentNumber,
-          contractor_id: contractorId || null,
-          project_id: projectId || null,
+          contractor_id: isProjectLinked ? selectedContractorId || null : contractorId || null,
+          project_id: isProjectLinked ? selectedProjectId || null : projectId || null,
           activity_name: activityName,
           activity_name_ar: null,
           activity_description: activityDescription,
@@ -291,7 +321,11 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
-        return !!activityName && !!activityDescription;
+        const hasRequiredFields = !!activityName && !!activityDescription;
+        if (isProjectLinked) {
+          return hasRequiredFields && !!selectedProjectId;
+        }
+        return hasRequiredFields;
       case 2:
         return true; // AI analysis is optional
       case 3:
@@ -373,6 +407,77 @@ export function RiskAssessmentWizard({ projectId, contractorId, onComplete }: Wi
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Project Link Toggle */}
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <FolderKanban className="h-4 w-4" />
+                  {t("risk.project.linkToggle", "Link to Project")}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("risk.project.linkDescription", "Associate this assessment with a contractor project")}
+                </p>
+              </div>
+              <Switch 
+                checked={isProjectLinked}
+                onCheckedChange={(checked) => {
+                  setIsProjectLinked(checked);
+                  if (!checked) {
+                    setSelectedProjectId("");
+                    setSelectedContractorId("");
+                  }
+                }}
+              />
+            </div>
+
+            {/* Project Selector - Only shows when toggle is ON */}
+            {isProjectLinked && (
+              <div className="space-y-2">
+                <Label>{t("risk.project.select", "Select Project")} *</Label>
+                {projectsLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <Select
+                    value={selectedProjectId}
+                    onValueChange={setSelectedProjectId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("risk.project.selectPlaceholder", "Choose a project...")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects?.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{project.project_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({project.project_code})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {/* Show auto-populated info */}
+                {selectedProjectId && selectedProject && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg space-y-1 border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <strong>{t("risk.project.contractor", "Contractor")}:</strong>{" "}
+                      {selectedProject.company?.company_name || "-"}
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <strong>{t("risk.project.location", "Location")}:</strong>{" "}
+                      {selectedProject.location_description || "-"}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      {t("risk.project.autoPopulated", "Auto-populated from project")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <Label>{t("risk.activity.name", "Activity Name")} *</Label>
               <Input
