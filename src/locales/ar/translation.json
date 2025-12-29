@@ -6888,5 +6888,22 @@
       "adjustment": "تعديل",
       "return": "إرجاع"
     }
+  },
+  "location": {
+    "locationAndBoundary": "الموقع والحدود",
+    "locationTab": "الموقع",
+    "geofenceRadius": "نصف قطر السياج الجغرافي",
+    "geofenceRadiusDescription": "منطقة تفعيل التنبيه حول الموقع",
+    "setMarker": "تحديد الموقع",
+    "drawBoundary": "رسم الحدود",
+    "polygonPoints": "{{count}} نقاط",
+    "needMorePoints": "تحتاج {{count}} نقاط إضافية",
+    "confirmBoundary": "تأكيد الحدود",
+    "boundarySet": "تم تحديد الحدود",
+    "boundaryConfirmed": "تم تأكيد الحدود",
+    "boundaryDefined": "تم تحديد الحدود",
+    "vertices": "رؤوس",
+    "showRadiusBuffer": "إظهار منطقة النصف قطر",
+    "coordinates": "الإحداثيات"
   }
 }

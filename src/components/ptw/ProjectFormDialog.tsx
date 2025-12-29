@@ -8,11 +8,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSites } from "@/hooks/use-sites";
 import { useCreatePTWProject } from "@/hooks/ptw";
 import { useContractorCompanies, useContractorProjects } from "@/hooks/contractor-management";
+import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPicker";
 import { toast } from "sonner";
 import { Loader2, Link2, X, Building2, Users } from "lucide-react";
+
+interface Coordinate {
+  lat: number;
+  lng: number;
+}
 
 interface ProjectFormDialogProps {
   open: boolean;
@@ -36,10 +43,26 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     is_internal_work: false,
     start_date: "",
     end_date: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
+    boundary_polygon: null as Coordinate[] | null,
+    geofence_radius_meters: 100,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLinkedFieldsLocked, setIsLinkedFieldsLocked] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
+  const [showMap, setShowMap] = useState(false);
+
+  // Delay map rendering
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => setShowMap(true), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setShowMap(false);
+    }
+  }, [open]);
 
   // Handle contractor project selection - auto-populate fields
   useEffect(() => {
@@ -53,6 +76,11 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
           ...prev,
           contractor_company_id: linkedProject.company_id,
           site_id: linkedProject.site_id || "",
+          // Also copy location data from linked project if available
+          latitude: linkedProject.latitude ?? prev.latitude,
+          longitude: linkedProject.longitude ?? prev.longitude,
+          boundary_polygon: linkedProject.boundary_polygon ?? prev.boundary_polygon,
+          geofence_radius_meters: linkedProject.geofence_radius_meters ?? prev.geofence_radius_meters,
         }));
         setIsLinkedFieldsLocked(true);
       }
@@ -140,9 +168,14 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
       is_internal_work: false,
       start_date: "",
       end_date: "",
+      latitude: null,
+      longitude: null,
+      boundary_polygon: null,
+      geofence_radius_meters: 100,
     });
     setErrors({});
     setIsLinkedFieldsLocked(false);
+    setActiveTab("details");
   };
 
   const handleClose = () => {
@@ -160,243 +193,292 @@ export function ProjectFormDialog({ open, onOpenChange }: ProjectFormDialogProps
     setIsLinkedFieldsLocked(false);
   };
 
+  const handleLocationChange = (lat: number, lng: number) => {
+    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+  };
+
+  const handlePolygonChange = (polygon: Coordinate[] | null) => {
+    setFormData(prev => ({ ...prev, boundary_polygon: polygon }));
+  };
+
+  const handleRadiusChange = (radius: number) => {
+    setFormData(prev => ({ ...prev, geofence_radius_meters: radius }));
+  };
+
   const selectedLinkedProject = contractorProjects?.find(
     (p) => p.id === formData.linked_contractor_project_id
   );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("ptw.mobilization.newProject", "New Project")}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Work Type Toggle */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">
-              {t("ptw.project.workType", "Work Type")}
-            </Label>
-            <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
-              <div className="flex items-center gap-3">
-                {formData.is_internal_work ? (
-                  <Users className="h-5 w-5 text-primary" />
-                ) : (
-                  <Building2 className="h-5 w-5 text-primary" />
-                )}
-                <div>
-                  <p className="font-medium">
-                    {formData.is_internal_work 
-                      ? t("ptw.project.internalWork", "Internal Work")
-                      : t("ptw.project.contractorWork", "Contractor Work")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.is_internal_work 
-                      ? t("ptw.project.internalWorkDesc", "Only internal team members involved")
-                      : t("ptw.project.contractorWorkDesc", "External contractor involvement required")}
-                  </p>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details">{t("ptw.project.detailsTab", "Details")}</TabsTrigger>
+              <TabsTrigger value="location">{t("location.locationTab", "Location")}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4 mt-4">
+              {/* Work Type Toggle */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">
+                  {t("ptw.project.workType", "Work Type")}
+                </Label>
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    {formData.is_internal_work ? (
+                      <Users className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Building2 className="h-5 w-5 text-primary" />
+                    )}
+                    <div>
+                      <p className="font-medium">
+                        {formData.is_internal_work 
+                          ? t("ptw.project.internalWork", "Internal Work")
+                          : t("ptw.project.contractorWork", "Contractor Work")}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formData.is_internal_work 
+                          ? t("ptw.project.internalWorkDesc", "Only internal team members involved")
+                          : t("ptw.project.contractorWorkDesc", "External contractor involvement required")}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={formData.is_internal_work}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_internal_work: checked })}
+                  />
                 </div>
               </div>
-              <Switch
-                checked={formData.is_internal_work}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_internal_work: checked })}
-              />
-            </div>
-          </div>
 
-          {/* Contractor Project Selection - Only for contractor work */}
-          {!formData.is_internal_work && (
-            <div className="space-y-2">
-              <Label htmlFor="linked_contractor_project_id" className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
-                {t("ptw.project.linkToContractor", "Link to Contractor Project")}
-                <span className="text-destructive">*</span>
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                {t("ptw.project.linkMandatoryText", "Select a contractor project to auto-populate company and site")}
-              </p>
-              
-              {selectedLinkedProject ? (
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Link2 className="h-3 w-3" />
-                    {selectedLinkedProject.project_code}
-                  </Badge>
-                  <span className="text-sm flex-1">{selectedLinkedProject.project_name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearLinkedProject}
-                    className="h-6 w-6 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+              {/* Contractor Project Selection - Only for contractor work */}
+              {!formData.is_internal_work && (
+                <div className="space-y-2">
+                  <Label htmlFor="linked_contractor_project_id" className="flex items-center gap-2">
+                    <Link2 className="h-4 w-4" />
+                    {t("ptw.project.linkToContractor", "Link to Contractor Project")}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t("ptw.project.linkMandatoryText", "Select a contractor project to auto-populate company and site")}
+                  </p>
+                  
+                  {selectedLinkedProject ? (
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Link2 className="h-3 w-3" />
+                        {selectedLinkedProject.project_code}
+                      </Badge>
+                      <span className="text-sm flex-1">{selectedLinkedProject.project_name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearLinkedProject}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select
+                      value={formData.linked_contractor_project_id}
+                      onValueChange={(value) => setFormData({ ...formData, linked_contractor_project_id: value })}
+                    >
+                      <SelectTrigger id="linked_contractor_project_id" className={errors.linked_contractor_project_id ? "border-destructive" : ""}>
+                        <SelectValue placeholder={t("ptw.project.selectContractorProject", "Select contractor project")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contractorProjects?.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            <span className="font-medium">{project.project_code}</span>
+                            <span className="text-muted-foreground ms-2">- {project.project_name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {errors.linked_contractor_project_id && (
+                    <p className="text-sm text-destructive">{errors.linked_contractor_project_id}</p>
+                  )}
                 </div>
-              ) : (
+              )}
+
+              {/* Internal Work Info Banner */}
+              {formData.is_internal_work && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <Users className="h-5 w-5 text-primary flex-shrink-0" />
+                  <p className="text-sm text-primary">
+                    {t("ptw.project.internalOnlyNote", "This project is for internal team only - no contractor involvement required")}
+                  </p>
+                </div>
+              )}
+
+              {/* Project Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name">
+                  {t("ptw.project.name", "Project Name")} <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder={t("ptw.project.namePlaceholder", "Enter project name")}
+                  maxLength={200}
+                />
+                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              </div>
+
+              {/* Arabic Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name_ar">
+                  {t("ptw.project.nameAr", "Project Name (Arabic)")}
+                </Label>
+                <Input
+                  id="name_ar"
+                  dir="rtl"
+                  value={formData.name_ar}
+                  onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                  placeholder={t("ptw.project.nameArPlaceholder", "اسم المشروع")}
+                  maxLength={200}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">
+                  {t("ptw.project.description", "Description")}
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder={t("ptw.project.descriptionPlaceholder", "Brief project description...")}
+                  rows={3}
+                  maxLength={1000}
+                />
+              </div>
+
+              {/* Site Selection - Always visible */}
+              <div className="space-y-2">
+                <Label htmlFor="site_id" className="flex items-center gap-2">
+                  {t("ptw.project.site", "Site")}
+                  {isLinkedFieldsLocked && (
+                    <Badge variant="outline" className="text-xs">
+                      {t("ptw.project.autoPopulated", "Auto-populated")}
+                    </Badge>
+                  )}
+                </Label>
                 <Select
-                  value={formData.linked_contractor_project_id}
-                  onValueChange={(value) => setFormData({ ...formData, linked_contractor_project_id: value })}
+                  value={formData.site_id}
+                  onValueChange={(value) => setFormData({ ...formData, site_id: value })}
+                  disabled={isLinkedFieldsLocked}
                 >
-                  <SelectTrigger id="linked_contractor_project_id" className={errors.linked_contractor_project_id ? "border-destructive" : ""}>
-                    <SelectValue placeholder={t("ptw.project.selectContractorProject", "Select contractor project")} />
+                  <SelectTrigger id="site_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
+                    <SelectValue placeholder={t("ptw.project.selectSite", "Select site")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {contractorProjects?.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        <span className="font-medium">{project.project_code}</span>
-                        <span className="text-muted-foreground ms-2">- {project.project_name}</span>
+                    {sites?.map((site) => (
+                      <SelectItem key={site.id} value={site.id}>
+                        {site.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Contractor Selection - Only for contractor work */}
+              {!formData.is_internal_work && (
+                <div className="space-y-2">
+                  <Label htmlFor="contractor_company_id" className="flex items-center gap-2">
+                    {t("ptw.project.contractor", "Contractor Company")}
+                    {isLinkedFieldsLocked && (
+                      <Badge variant="outline" className="text-xs">
+                        {t("ptw.project.autoPopulated", "Auto-populated")}
+                      </Badge>
+                    )}
+                  </Label>
+                  <Select
+                    value={formData.contractor_company_id}
+                    onValueChange={(value) => setFormData({ ...formData, contractor_company_id: value })}
+                    disabled={isLinkedFieldsLocked}
+                  >
+                    <SelectTrigger id="contractor_company_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
+                      <SelectValue placeholder={t("ptw.project.selectContractor", "Select contractor")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contractors?.map((contractor) => (
+                        <SelectItem key={contractor.id} value={contractor.id}>
+                          {contractor.company_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
-              {errors.linked_contractor_project_id && (
-                <p className="text-sm text-destructive">{errors.linked_contractor_project_id}</p>
+
+              {/* Date Range */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">
+                    {t("ptw.project.startDate", "Start Date")} <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  />
+                  {errors.start_date && <p className="text-sm text-destructive">{errors.start_date}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">
+                    {t("ptw.project.endDate", "End Date")} <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  />
+                  {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="location" className="space-y-4 mt-4">
+              {showMap ? (
+                <LocationBoundaryPicker
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  boundaryPolygon={formData.boundary_polygon}
+                  geofenceRadius={formData.geofence_radius_meters}
+                  onLocationChange={handleLocationChange}
+                  onPolygonChange={handlePolygonChange}
+                  onRadiusChange={handleRadiusChange}
+                  title={t("ptw.project.workAreaLocation", "Work Area Location")}
+                />
+              ) : (
+                <div className="h-[400px] rounded-lg border bg-muted/30 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
               )}
-            </div>
-          )}
-
-          {/* Internal Work Info Banner */}
-          {formData.is_internal_work && (
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <Users className="h-5 w-5 text-primary flex-shrink-0" />
-              <p className="text-sm text-primary">
-                {t("ptw.project.internalOnlyNote", "This project is for internal team only - no contractor involvement required")}
-              </p>
-            </div>
-          )}
-
-          {/* Project Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">
-              {t("ptw.project.name", "Project Name")} <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder={t("ptw.project.namePlaceholder", "Enter project name")}
-              maxLength={200}
-            />
-            {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-          </div>
-
-          {/* Arabic Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name_ar">
-              {t("ptw.project.nameAr", "Project Name (Arabic)")}
-            </Label>
-            <Input
-              id="name_ar"
-              dir="rtl"
-              value={formData.name_ar}
-              onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-              placeholder={t("ptw.project.nameArPlaceholder", "اسم المشروع")}
-              maxLength={200}
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">
-              {t("ptw.project.description", "Description")}
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder={t("ptw.project.descriptionPlaceholder", "Brief project description...")}
-              rows={3}
-              maxLength={1000}
-            />
-          </div>
-
-          {/* Site Selection - Always visible */}
-          <div className="space-y-2">
-            <Label htmlFor="site_id" className="flex items-center gap-2">
-              {t("ptw.project.site", "Site")}
-              {isLinkedFieldsLocked && (
-                <Badge variant="outline" className="text-xs">
-                  {t("ptw.project.autoPopulated", "Auto-populated")}
-                </Badge>
+              
+              {isLinkedFieldsLocked && formData.latitude && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {t("ptw.project.locationFromContractor", "Location copied from linked contractor project")}
+                  </p>
+                </div>
               )}
-            </Label>
-            <Select
-              value={formData.site_id}
-              onValueChange={(value) => setFormData({ ...formData, site_id: value })}
-              disabled={isLinkedFieldsLocked}
-            >
-              <SelectTrigger id="site_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
-                <SelectValue placeholder={t("ptw.project.selectSite", "Select site")} />
-              </SelectTrigger>
-              <SelectContent>
-                {sites?.map((site) => (
-                  <SelectItem key={site.id} value={site.id}>
-                    {site.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Contractor Selection - Only for contractor work */}
-          {!formData.is_internal_work && (
-            <div className="space-y-2">
-              <Label htmlFor="contractor_company_id" className="flex items-center gap-2">
-                {t("ptw.project.contractor", "Contractor Company")}
-                {isLinkedFieldsLocked && (
-                  <Badge variant="outline" className="text-xs">
-                    {t("ptw.project.autoPopulated", "Auto-populated")}
-                  </Badge>
-                )}
-              </Label>
-              <Select
-                value={formData.contractor_company_id}
-                onValueChange={(value) => setFormData({ ...formData, contractor_company_id: value })}
-                disabled={isLinkedFieldsLocked}
-              >
-                <SelectTrigger id="contractor_company_id" className={isLinkedFieldsLocked ? "opacity-60" : ""}>
-                  <SelectValue placeholder={t("ptw.project.selectContractor", "Select contractor")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {contractors?.map((contractor) => (
-                    <SelectItem key={contractor.id} value={contractor.id}>
-                      {contractor.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Date Range */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="start_date">
-                {t("ptw.project.startDate", "Start Date")} <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-              />
-              {errors.start_date && <p className="text-sm text-destructive">{errors.start_date}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="end_date">
-                {t("ptw.project.endDate", "End Date")} <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              />
-              {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={handleClose}>
