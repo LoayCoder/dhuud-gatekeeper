@@ -221,3 +221,6 @@ verify_jwt = true
 
 [functions.validate-permit-request]
 verify_jwt = true
+
+[functions.induction-expiry-alerts]
+verify_jwt = false
