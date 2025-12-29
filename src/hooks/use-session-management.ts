@@ -257,10 +257,9 @@ export function useSessionManagement() {
   }, []);
 
   // Store handlers in refs to avoid effect re-runs from callback recreation
+  // Update synchronously during render (safe for refs, avoids useEffect ordering issues)
   const handlersRef = useRef({ sendHeartbeat, validateSession, handleSessionInvalid, registerSession });
-  useEffect(() => {
-    handlersRef.current = { sendHeartbeat, validateSession, handleSessionInvalid, registerSession };
-  });
+  handlersRef.current = { sendHeartbeat, validateSession, handleSessionInvalid, registerSession };
 
   // Effect: Register session on login, start heartbeat
   // Only depends on isAuthenticated and user?.id to prevent unnecessary re-runs
