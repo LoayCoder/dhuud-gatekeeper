@@ -7,55 +7,55 @@ const corsHeaders = {
 
 // Realistic Saudi Arabian context data
 const BRANCHES = [
-  { name: 'Riyadh Headquarters', name_ar: 'المقر الرئيسي - الرياض', code: 'RYD-HQ', city: 'Riyadh', address: 'King Fahd Road, Al Olaya District' },
-  { name: 'Jeddah Regional Office', name_ar: 'المكتب الإقليمي - جدة', code: 'JED-REG', city: 'Jeddah', address: 'Prince Sultan Street, Al Rawdah District' },
-  { name: 'Dammam Industrial Complex', name_ar: 'المجمع الصناعي - الدمام', code: 'DMM-IND', city: 'Dammam', address: 'Industrial Area 2, Dammam' },
+  { name: 'Riyadh Headquarters', location: 'King Fahd Road, Al Olaya District, Riyadh' },
+  { name: 'Jeddah Regional Office', location: 'Prince Sultan Street, Al Rawdah District, Jeddah' },
+  { name: 'Dammam Industrial Complex', location: 'Industrial Area 2, Dammam' },
 ]
 
 const SITES_PER_BRANCH = [
   [
-    { name: 'Main Manufacturing Plant', name_ar: 'مصنع التصنيع الرئيسي', code: 'RYD-MFG', type: 'manufacturing' },
-    { name: 'Central Warehouse', name_ar: 'المستودع المركزي', code: 'RYD-WH', type: 'warehouse' },
+    { name: 'Main Manufacturing Plant', address: 'Riyadh Industrial City' },
+    { name: 'Central Warehouse', address: 'Al Sulay District, Riyadh' },
   ],
   [
-    { name: 'Jeddah Port Facility', name_ar: 'منشأة ميناء جدة', code: 'JED-PORT', type: 'logistics' },
-    { name: 'Distribution Center', name_ar: 'مركز التوزيع', code: 'JED-DC', type: 'warehouse' },
+    { name: 'Jeddah Port Facility', address: 'Jeddah Islamic Port' },
+    { name: 'Distribution Center', address: 'Al Khalidiyah, Jeddah' },
   ],
   [
-    { name: 'Petrochemical Plant', name_ar: 'مصنع البتروكيماويات', code: 'DMM-PETRO', type: 'manufacturing' },
-    { name: 'Equipment Yard', name_ar: 'ساحة المعدات', code: 'DMM-YARD', type: 'storage' },
+    { name: 'Petrochemical Plant', address: 'Jubail Industrial City' },
+    { name: 'Equipment Yard', address: 'Dammam Port Area' },
   ],
 ]
 
 const BUILDINGS = [
-  { name: 'Administration Building', name_ar: 'مبنى الإدارة', code: 'ADMIN' },
-  { name: 'Production Hall A', name_ar: 'صالة الإنتاج أ', code: 'PROD-A' },
-  { name: 'Warehouse Block 1', name_ar: 'مبنى المستودعات 1', code: 'WH-1' },
-  { name: 'Maintenance Workshop', name_ar: 'ورشة الصيانة', code: 'MAINT' },
+  { name: 'Administration Building', name_ar: 'مبنى الإدارة' },
+  { name: 'Production Hall A', name_ar: 'صالة الإنتاج أ' },
+  { name: 'Warehouse Block 1', name_ar: 'مبنى المستودعات 1' },
+  { name: 'Maintenance Workshop', name_ar: 'ورشة الصيانة' },
 ]
 
 const FLOORS = [
-  { name: 'Ground Floor', name_ar: 'الطابق الأرضي', code: 'GF' },
-  { name: 'First Floor', name_ar: 'الطابق الأول', code: '1F' },
-  { name: 'Mezzanine', name_ar: 'الميزانين', code: 'MZ' },
+  { name: 'Ground Floor', name_ar: 'الطابق الأرضي' },
+  { name: 'First Floor', name_ar: 'الطابق الأول' },
+  { name: 'Mezzanine', name_ar: 'الميزانين' },
 ]
 
 const DIVISIONS = [
-  { name: 'Operations', name_ar: 'العمليات', code: 'OPS' },
-  { name: 'Health, Safety & Environment', name_ar: 'الصحة والسلامة والبيئة', code: 'HSE' },
-  { name: 'Engineering', name_ar: 'الهندسة', code: 'ENG' },
-  { name: 'Administration', name_ar: 'الإدارة', code: 'ADM' },
+  { name: 'Operations' },
+  { name: 'Health, Safety & Environment' },
+  { name: 'Engineering' },
+  { name: 'Administration' },
 ]
 
 const DEPARTMENTS = [
-  { name: 'Production', name_ar: 'الإنتاج', division: 'OPS' },
-  { name: 'Quality Control', name_ar: 'مراقبة الجودة', division: 'OPS' },
-  { name: 'Occupational Safety', name_ar: 'السلامة المهنية', division: 'HSE' },
-  { name: 'Environmental Affairs', name_ar: 'الشؤون البيئية', division: 'HSE' },
-  { name: 'Mechanical Engineering', name_ar: 'الهندسة الميكانيكية', division: 'ENG' },
-  { name: 'Electrical Engineering', name_ar: 'الهندسة الكهربائية', division: 'ENG' },
-  { name: 'Human Resources', name_ar: 'الموارد البشرية', division: 'ADM' },
-  { name: 'Finance', name_ar: 'المالية', division: 'ADM' },
+  { name: 'Production', division: 'Operations' },
+  { name: 'Quality Control', division: 'Operations' },
+  { name: 'Occupational Safety', division: 'Health, Safety & Environment' },
+  { name: 'Environmental Affairs', division: 'Health, Safety & Environment' },
+  { name: 'Mechanical Engineering', division: 'Engineering' },
+  { name: 'Electrical Engineering', division: 'Engineering' },
+  { name: 'Human Resources', division: 'Administration' },
+  { name: 'Finance', division: 'Administration' },
 ]
 
 const ASSET_CATEGORIES = [
@@ -85,67 +85,67 @@ const ASSET_TYPES = [
 ]
 
 const CONTRACTOR_COMPANIES = [
-  { name: 'Al-Falak Contracting', name_ar: 'شركة الفلك للمقاولات', trade: 'General Contracting', license: 'CR-1234567890' },
-  { name: 'Golden Star Maintenance', name_ar: 'مجموعة النجم الذهبي للصيانة', trade: 'Mechanical Maintenance', license: 'CR-9876543210' },
-  { name: 'Saudi Electrical Works', name_ar: 'الأعمال الكهربائية السعودية', trade: 'Electrical Installation', license: 'CR-5555666677' },
-  { name: 'Al-Madinah Safety Services', name_ar: 'خدمات المدينة للسلامة', trade: 'Safety Equipment', license: 'CR-1111222233' },
-  { name: 'Eastern Province Welding', name_ar: 'لحام المنطقة الشرقية', trade: 'Welding & Fabrication', license: 'CR-4444555566' },
+  { name: 'Al-Falak Contracting', name_ar: 'شركة الفلك للمقاولات', cr: 'CR-1234567890' },
+  { name: 'Golden Star Maintenance', name_ar: 'مجموعة النجم الذهبي للصيانة', cr: 'CR-9876543210' },
+  { name: 'Saudi Electrical Works', name_ar: 'الأعمال الكهربائية السعودية', cr: 'CR-5555666677' },
+  { name: 'Al-Madinah Safety Services', name_ar: 'خدمات المدينة للسلامة', cr: 'CR-1111222233' },
+  { name: 'Eastern Province Welding', name_ar: 'لحام المنطقة الشرقية', cr: 'CR-4444555566' },
 ]
 
 const WORKER_NAMES = [
-  { first: 'Ahmed', last: 'Al-Rashid', first_ar: 'أحمد', last_ar: 'الراشد' },
-  { first: 'Mohammed', last: 'Al-Ghamdi', first_ar: 'محمد', last_ar: 'الغامدي' },
-  { first: 'Khalid', last: 'Al-Otaibi', first_ar: 'خالد', last_ar: 'العتيبي' },
-  { first: 'Abdullah', last: 'Al-Zahrani', first_ar: 'عبدالله', last_ar: 'الزهراني' },
-  { first: 'Faisal', last: 'Al-Shammari', first_ar: 'فيصل', last_ar: 'الشمري' },
-  { first: 'Omar', last: 'Al-Harbi', first_ar: 'عمر', last_ar: 'الحربي' },
-  { first: 'Saud', last: 'Al-Dosari', first_ar: 'سعود', last_ar: 'الدوسري' },
-  { first: 'Nasser', last: 'Al-Qahtani', first_ar: 'ناصر', last_ar: 'القحطاني' },
-  { first: 'Ibrahim', last: 'Al-Mutairi', first_ar: 'إبراهيم', last_ar: 'المطيري' },
-  { first: 'Youssef', last: 'Al-Subaie', first_ar: 'يوسف', last_ar: 'السبيعي' },
+  { full: 'Ahmed Al-Rashid', full_ar: 'أحمد الراشد' },
+  { full: 'Mohammed Al-Ghamdi', full_ar: 'محمد الغامدي' },
+  { full: 'Khalid Al-Otaibi', full_ar: 'خالد العتيبي' },
+  { full: 'Abdullah Al-Zahrani', full_ar: 'عبدالله الزهراني' },
+  { full: 'Faisal Al-Shammari', full_ar: 'فيصل الشمري' },
+  { full: 'Omar Al-Harbi', full_ar: 'عمر الحربي' },
+  { full: 'Saud Al-Dosari', full_ar: 'سعود الدوسري' },
+  { full: 'Nasser Al-Qahtani', full_ar: 'ناصر القحطاني' },
+  { full: 'Ibrahim Al-Mutairi', full_ar: 'إبراهيم المطيري' },
+  { full: 'Youssef Al-Subaie', full_ar: 'يوسف السبيعي' },
 ]
 
 const INCIDENTS_DATA = [
-  { type: 'observation', severity: 'L1', title: 'Minor housekeeping issue', title_ar: 'مشكلة تنظيف بسيطة', description: 'Oil spill on walkway near warehouse entrance', category: 'housekeeping' },
-  { type: 'observation', severity: 'L2', title: 'PPE non-compliance', title_ar: 'عدم الامتثال لمعدات الحماية', description: 'Worker observed without safety glasses in designated area', category: 'ppe' },
-  { type: 'observation', severity: 'L3', title: 'Missing machine guard', title_ar: 'حارس آلة مفقود', description: 'Conveyor belt guard found removed during inspection', category: 'machine_safety' },
-  { type: 'near_miss', severity: 'L4', title: 'Forklift near-miss', title_ar: 'حادث فوركليفت وشيك', description: 'Forklift almost struck pedestrian at blind corner', category: 'vehicle' },
-  { type: 'near_miss', severity: 'L5', title: 'Chemical spill prevented', title_ar: 'تم منع انسكاب كيميائي', description: 'Leaking drum identified before major spill occurred', category: 'chemical' },
-  { type: 'accident', severity: 'L3', title: 'Minor hand laceration', title_ar: 'جرح بسيط باليد', description: 'Worker cut hand on sharp metal edge while handling material', category: 'injury' },
-  { type: 'observation', severity: 'L2', title: 'Blocked emergency exit', title_ar: 'مخرج طوارئ مسدود', description: 'Pallets stacked blocking emergency exit door', category: 'emergency' },
-  { type: 'observation', severity: 'L1', title: 'Missing safety signage', title_ar: 'لافتة سلامة مفقودة', description: 'Hazard warning sign missing from chemical storage area', category: 'signage' },
-  { type: 'near_miss', severity: 'L4', title: 'Scaffolding instability', title_ar: 'عدم استقرار السقالة', description: 'Scaffolding started to tip during work at height', category: 'working_at_height' },
-  { type: 'accident', severity: 'L2', title: 'Slip and fall', title_ar: 'انزلاق وسقوط', description: 'Employee slipped on wet floor in production area', category: 'slip_trip_fall' },
+  { event_type: 'observation', severity: 'L1', title: 'Minor housekeeping issue', description: 'Oil spill on walkway near warehouse entrance' },
+  { event_type: 'observation', severity: 'L2', title: 'PPE non-compliance', description: 'Worker observed without safety glasses in designated area' },
+  { event_type: 'observation', severity: 'L3', title: 'Missing machine guard', description: 'Conveyor belt guard found removed during inspection' },
+  { event_type: 'near_miss', severity: 'L4', title: 'Forklift near-miss', description: 'Forklift almost struck pedestrian at blind corner' },
+  { event_type: 'near_miss', severity: 'L5', title: 'Chemical spill prevented', description: 'Leaking drum identified before major spill occurred' },
+  { event_type: 'accident', severity: 'L3', title: 'Minor hand laceration', description: 'Worker cut hand on sharp metal edge while handling material' },
+  { event_type: 'observation', severity: 'L2', title: 'Blocked emergency exit', description: 'Pallets stacked blocking emergency exit door' },
+  { event_type: 'observation', severity: 'L1', title: 'Missing safety signage', description: 'Hazard warning sign missing from chemical storage area' },
+  { event_type: 'near_miss', severity: 'L4', title: 'Scaffolding instability', description: 'Scaffolding started to tip during work at height' },
+  { event_type: 'accident', severity: 'L2', title: 'Slip and fall', description: 'Employee slipped on wet floor in production area' },
 ]
 
 const RISK_ASSESSMENTS_DATA = [
-  { title: 'Hot Work Operations', title_ar: 'عمليات الأعمال الساخنة', activity: 'Welding and cutting operations in production area', status: 'approved' },
-  { title: 'Confined Space Entry', title_ar: 'دخول الأماكن المحصورة', activity: 'Tank cleaning and inspection procedures', status: 'approved' },
-  { title: 'Working at Height', title_ar: 'العمل على ارتفاعات', activity: 'Maintenance work on elevated platforms', status: 'draft' },
-  { title: 'Chemical Handling', title_ar: 'التعامل مع المواد الكيميائية', activity: 'Storage and transfer of hazardous chemicals', status: 'approved' },
-  { title: 'Electrical Maintenance', title_ar: 'الصيانة الكهربائية', activity: 'Live electrical work procedures', status: 'pending_approval' },
-  { title: 'Lifting Operations', title_ar: 'عمليات الرفع', activity: 'Crane and heavy lifting activities', status: 'approved' },
-  { title: 'Excavation Work', title_ar: 'أعمال الحفر', activity: 'Deep excavation near existing utilities', status: 'expired' },
-  { title: 'Night Shift Operations', title_ar: 'عمليات المناوبة الليلية', activity: 'Reduced visibility work during night shift', status: 'draft' },
+  { title: 'Hot Work Operations', activity: 'Welding and cutting operations in production area', status: 'approved' },
+  { title: 'Confined Space Entry', activity: 'Tank cleaning and inspection procedures', status: 'approved' },
+  { title: 'Working at Height', activity: 'Maintenance work on elevated platforms', status: 'draft' },
+  { title: 'Chemical Handling', activity: 'Storage and transfer of hazardous chemicals', status: 'approved' },
+  { title: 'Electrical Maintenance', activity: 'Live electrical work procedures', status: 'pending_approval' },
+  { title: 'Lifting Operations', activity: 'Crane and heavy lifting activities', status: 'approved' },
+  { title: 'Excavation Work', activity: 'Deep excavation near existing utilities', status: 'expired' },
+  { title: 'Night Shift Operations', activity: 'Reduced visibility work during night shift', status: 'draft' },
 ]
 
 const HAZARDS_DATA = [
-  { hazard: 'Fire and explosion', hazard_ar: 'الحريق والانفجار', consequence: 'Burns, fatalities', existing_controls: 'Fire extinguishers, fire watch', likelihood: 4, severity: 5 },
-  { hazard: 'Fall from height', hazard_ar: 'السقوط من ارتفاع', consequence: 'Serious injury, death', existing_controls: 'Harness, guardrails', likelihood: 3, severity: 5 },
-  { hazard: 'Toxic gas exposure', hazard_ar: 'التعرض للغازات السامة', consequence: 'Respiratory issues, death', existing_controls: 'Gas detectors, ventilation', likelihood: 3, severity: 4 },
-  { hazard: 'Electrical shock', hazard_ar: 'الصدمة الكهربائية', consequence: 'Burns, cardiac arrest', existing_controls: 'LOTO, insulated tools', likelihood: 2, severity: 5 },
-  { hazard: 'Struck by falling object', hazard_ar: 'الإصابة بجسم ساقط', consequence: 'Head injury, death', existing_controls: 'Hard hats, exclusion zones', likelihood: 3, severity: 4 },
-  { hazard: 'Chemical burns', hazard_ar: 'حروق كيميائية', consequence: 'Skin damage, blindness', existing_controls: 'PPE, SDS available', likelihood: 2, severity: 4 },
-  { hazard: 'Noise exposure', hazard_ar: 'التعرض للضوضاء', consequence: 'Hearing loss', existing_controls: 'Ear protection, barriers', likelihood: 4, severity: 2 },
-  { hazard: 'Manual handling injury', hazard_ar: 'إصابة المناولة اليدوية', consequence: 'Back strain, sprains', existing_controls: 'Lifting aids, training', likelihood: 4, severity: 3 },
+  { hazard: 'Fire and explosion', hazard_ar: 'الحريق والانفجار', consequence: 'Burns, fatalities', existing_controls: ['Fire extinguishers', 'Fire watch'], likelihood: 4, severity: 5 },
+  { hazard: 'Fall from height', hazard_ar: 'السقوط من ارتفاع', consequence: 'Serious injury, death', existing_controls: ['Harness', 'Guardrails'], likelihood: 3, severity: 5 },
+  { hazard: 'Toxic gas exposure', hazard_ar: 'التعرض للغازات السامة', consequence: 'Respiratory issues, death', existing_controls: ['Gas detectors', 'Ventilation'], likelihood: 3, severity: 4 },
+  { hazard: 'Electrical shock', hazard_ar: 'الصدمة الكهربائية', consequence: 'Burns, cardiac arrest', existing_controls: ['LOTO', 'Insulated tools'], likelihood: 2, severity: 5 },
+  { hazard: 'Struck by falling object', hazard_ar: 'الإصابة بجسم ساقط', consequence: 'Head injury, death', existing_controls: ['Hard hats', 'Exclusion zones'], likelihood: 3, severity: 4 },
+  { hazard: 'Chemical burns', hazard_ar: 'حروق كيميائية', consequence: 'Skin damage, blindness', existing_controls: ['PPE', 'SDS available'], likelihood: 2, severity: 4 },
+  { hazard: 'Noise exposure', hazard_ar: 'التعرض للضوضاء', consequence: 'Hearing loss', existing_controls: ['Ear protection', 'Barriers'], likelihood: 4, severity: 2 },
+  { hazard: 'Manual handling injury', hazard_ar: 'إصابة المناولة اليدوية', consequence: 'Back strain, sprains', existing_controls: ['Lifting aids', 'Training'], likelihood: 4, severity: 3 },
 ]
 
 const INSPECTION_TEMPLATES = [
-  { name: 'Fire Safety Inspection', name_ar: 'فحص السلامة من الحرائق', category: 'fire_safety', frequency: 'monthly' },
-  { name: 'Electrical Safety Check', name_ar: 'فحص السلامة الكهربائية', category: 'electrical', frequency: 'quarterly' },
-  { name: 'PPE Compliance Audit', name_ar: 'تدقيق امتثال معدات الحماية', category: 'ppe', frequency: 'weekly' },
-  { name: 'Workplace Housekeeping', name_ar: 'نظافة مكان العمل', category: 'housekeeping', frequency: 'daily' },
-  { name: 'Emergency Equipment Check', name_ar: 'فحص معدات الطوارئ', category: 'emergency', frequency: 'monthly' },
+  { name: 'Fire Safety Inspection', name_ar: 'فحص السلامة من الحرائق', template_type: 'area' },
+  { name: 'Electrical Safety Check', name_ar: 'فحص السلامة الكهربائية', template_type: 'area' },
+  { name: 'PPE Compliance Audit', name_ar: 'تدقيق امتثال معدات الحماية', template_type: 'area' },
+  { name: 'Workplace Housekeeping', name_ar: 'نظافة مكان العمل', template_type: 'area' },
+  { name: 'Emergency Equipment Check', name_ar: 'فحص معدات الطوارئ', template_type: 'area' },
 ]
 
 const INSPECTION_ITEMS = [
@@ -181,62 +181,30 @@ const INSPECTION_ITEMS = [
   ]},
 ]
 
-const PTW_TYPES = [
-  { name: 'Hot Work Permit', name_ar: 'تصريح الأعمال الساخنة', code: 'HW', color: '#DC2626', requires_gas_test: true },
-  { name: 'Confined Space Entry', name_ar: 'تصريح دخول الأماكن المحصورة', code: 'CSE', color: '#7C3AED', requires_gas_test: true },
-  { name: 'Excavation Permit', name_ar: 'تصريح الحفر', code: 'EXC', color: '#B45309', requires_gas_test: false },
-  { name: 'Electrical Work Permit', name_ar: 'تصريح الأعمال الكهربائية', code: 'ELEC', color: '#0891B2', requires_gas_test: false },
-  { name: 'Working at Height', name_ar: 'تصريح العمل على ارتفاعات', code: 'WAH', color: '#059669', requires_gas_test: false },
-  { name: 'Radiography Permit', name_ar: 'تصريح التصوير الإشعاعي', code: 'RAD', color: '#9333EA', requires_gas_test: false },
-]
-
 const SECURITY_ZONES = [
-  { name: 'Main Gate', name_ar: 'البوابة الرئيسية', zone_type: 'entrance', security_level: 'high' },
-  { name: 'Perimeter Fence North', name_ar: 'السياج الشمالي', zone_type: 'perimeter', security_level: 'medium' },
-  { name: 'Perimeter Fence South', name_ar: 'السياج الجنوبي', zone_type: 'perimeter', security_level: 'medium' },
-  { name: 'Warehouse Area', name_ar: 'منطقة المستودعات', zone_type: 'storage', security_level: 'medium' },
-  { name: 'Control Room', name_ar: 'غرفة التحكم', zone_type: 'restricted', security_level: 'critical' },
-  { name: 'Chemical Storage', name_ar: 'مخزن المواد الكيميائية', zone_type: 'hazmat', security_level: 'high' },
-  { name: 'Admin Building', name_ar: 'مبنى الإدارة', zone_type: 'office', security_level: 'low' },
-  { name: 'Emergency Assembly Point', name_ar: 'نقطة التجمع الطارئة', zone_type: 'assembly', security_level: 'low' },
-]
-
-const SECURITY_SHIFTS = [
-  { name: 'Morning Shift', name_ar: 'المناوبة الصباحية', start_time: '06:00', end_time: '14:00' },
-  { name: 'Evening Shift', name_ar: 'المناوبة المسائية', start_time: '14:00', end_time: '22:00' },
-  { name: 'Night Shift', name_ar: 'المناوبة الليلية', start_time: '22:00', end_time: '06:00' },
+  { zone_code: 'MG', name: 'Main Gate', name_ar: 'البوابة الرئيسية', zone_type: 'entrance', risk_level: 'high' },
+  { zone_code: 'PFN', name: 'Perimeter Fence North', name_ar: 'السياج الشمالي', zone_type: 'perimeter', risk_level: 'medium' },
+  { zone_code: 'PFS', name: 'Perimeter Fence South', name_ar: 'السياج الجنوبي', zone_type: 'perimeter', risk_level: 'medium' },
+  { zone_code: 'WH', name: 'Warehouse Area', name_ar: 'منطقة المستودعات', zone_type: 'storage', risk_level: 'medium' },
+  { zone_code: 'CR', name: 'Control Room', name_ar: 'غرفة التحكم', zone_type: 'restricted', risk_level: 'critical' },
+  { zone_code: 'CS', name: 'Chemical Storage', name_ar: 'مخزن المواد الكيميائية', zone_type: 'hazmat', risk_level: 'high' },
+  { zone_code: 'ADM', name: 'Admin Building', name_ar: 'مبنى الإدارة', zone_type: 'office', risk_level: 'low' },
+  { zone_code: 'EAP', name: 'Emergency Assembly Point', name_ar: 'نقطة التجمع الطارئة', zone_type: 'assembly', risk_level: 'low' },
 ]
 
 const VISITORS_DATA = [
-  { name: 'Fahad Al-Mutairi', name_ar: 'فهد المطيري', company: 'Ministry of Labor', purpose: 'Regulatory Inspection' },
-  { name: 'Salman Al-Dosari', name_ar: 'سلمان الدوسري', company: 'Saudi Aramco', purpose: 'Vendor Meeting' },
-  { name: 'Turki Al-Shehri', name_ar: 'تركي الشهري', company: 'SABIC', purpose: 'Technical Consultation' },
-  { name: 'Bandar Al-Harbi', name_ar: 'بندر الحربي', company: 'Civil Defense', purpose: 'Fire Safety Audit' },
-  { name: 'Mansour Al-Qahtani', name_ar: 'منصور القحطاني', company: 'Environmental Agency', purpose: 'Environmental Review' },
+  { name: 'Fahad Al-Mutairi', company: 'Ministry of Labor' },
+  { name: 'Saleh Al-Qahtani', company: 'Aramco Inspection' },
+  { name: 'Majed Al-Harbi', company: 'Civil Defense' },
+  { name: 'Turki Al-Dosari', company: 'SASO Quality Audit' },
+  { name: 'Bandar Al-Shehri', company: 'Environmental Agency' },
 ]
 
-// Helper functions
+// Utility functions
 function generateReferenceId(prefix: string): string {
   const timestamp = Date.now().toString(36).toUpperCase()
   const random = Math.random().toString(36).substring(2, 6).toUpperCase()
   return `TEST-${prefix}-${timestamp}-${random}`
-}
-
-function randomDate(start: Date, end: Date): string {
-  const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
-  return date.toISOString()
-}
-
-function randomFutureDate(daysAhead: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() + Math.floor(Math.random() * daysAhead))
-  return date.toISOString().split('T')[0]
-}
-
-function randomPastDate(daysAgo: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() - Math.floor(Math.random() * daysAgo))
-  return date.toISOString().split('T')[0]
 }
 
 function pickRandom<T>(arr: T[]): T {
@@ -248,11 +216,36 @@ function pickRandomN<T>(arr: T[], n: number): T[] {
   return shuffled.slice(0, n)
 }
 
+function randomPastDate(daysBack: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() - Math.floor(Math.random() * daysBack))
+  return date.toISOString()
+}
+
+function randomFutureDate(daysAhead: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() + Math.floor(Math.random() * daysAhead) + 1)
+  return date.toISOString()
+}
+
+function randomPastDateOnly(daysBack: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() - Math.floor(Math.random() * daysBack))
+  return date.toISOString().split('T')[0]
+}
+
+function randomFutureDateOnly(daysAhead: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() + Math.floor(Math.random() * daysAhead) + 1)
+  return date.toISOString().split('T')[0]
+}
+
+// Seeding functions
 async function seedOrganizationStructure(supabase: any, tenantId: string) {
   console.log('Seeding organization structure...')
   const results = { branches: 0, sites: 0, buildings: 0, floors: 0, divisions: 0, departments: 0 }
-  
-  // Seed branches - using actual schema: id, tenant_id, name, location
+
+  // Seed branches
   const branchIds: string[] = []
   for (const branch of BRANCHES) {
     const { data, error } = await supabase
@@ -260,52 +253,53 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
       .insert({
         tenant_id: tenantId,
         name: `TEST - ${branch.name}`,
-        location: `${branch.city}, ${branch.address}`,
+        location: branch.location,
+        is_active: true,
       })
       .select('id')
       .single()
     
-    if (error) {
-      console.log('Branch insert error:', error.message)
-    }
     if (!error && data) {
       branchIds.push(data.id)
       results.branches++
+    } else {
+      console.log('Branch insert error:', error)
     }
   }
 
-  // Seed sites - actual schema: id, tenant_id, name, address, branch_id, is_active
+  // Seed sites
   const siteIds: string[] = []
   for (let i = 0; i < branchIds.length; i++) {
+    const branchId = branchIds[i]
     const sitesForBranch = SITES_PER_BRANCH[i] || SITES_PER_BRANCH[0]
+    
     for (const site of sitesForBranch) {
       const { data, error } = await supabase
         .from('sites')
         .insert({
           tenant_id: tenantId,
-          branch_id: branchIds[i],
+          branch_id: branchId,
           name: `TEST - ${site.name}`,
-          address: `${BRANCHES[i].city} - ${site.type}`,
+          address: site.address,
           is_active: true,
         })
         .select('id')
         .single()
       
-      if (error) {
-        console.log('Site insert error:', error.message)
-      }
       if (!error && data) {
         siteIds.push(data.id)
         results.sites++
+      } else {
+        console.log('Site insert error:', error)
       }
     }
   }
 
-  // Seed buildings - actual schema: id, tenant_id, site_id, name, name_ar, code, is_active
+  // Seed buildings
   const buildingIds: string[] = []
   for (const siteId of siteIds) {
-    const buildingsToCreate = pickRandomN(BUILDINGS, 2)
-    for (const building of buildingsToCreate) {
+    const buildingsToAdd = pickRandomN(BUILDINGS, 2)
+    for (const building of buildingsToAdd) {
       const { data, error } = await supabase
         .from('buildings')
         .insert({
@@ -313,26 +307,24 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
           site_id: siteId,
           name: `TEST - ${building.name}`,
           name_ar: building.name_ar,
-          code: `TEST-${building.code}-${Math.random().toString(36).substring(7)}`,
           is_active: true,
         })
         .select('id')
         .single()
       
-      if (error) {
-        console.log('Building insert error:', error.message)
-      }
       if (!error && data) {
         buildingIds.push(data.id)
         results.buildings++
+      } else {
+        console.log('Building insert error:', error)
       }
     }
   }
 
-  // Seed floors/zones - actual schema: id, tenant_id, building_id, name, name_ar, zone_type, is_active
+  // Seed floors/zones
   for (const buildingId of buildingIds) {
-    const floorsToCreate = pickRandomN(FLOORS, 2)
-    for (const floor of floorsToCreate) {
+    const floorsToAdd = pickRandomN(FLOORS, 2)
+    for (const floor of floorsToAdd) {
       const { error } = await supabase
         .from('floors_zones')
         .insert({
@@ -343,14 +335,12 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
           is_active: true,
         })
       
-      if (error) {
-        console.log('Floor insert error:', error.message)
-      }
       if (!error) results.floors++
+      else console.log('Floor insert error:', error)
     }
   }
 
-  // Seed divisions - actual schema: id, tenant_id, name
+  // Seed divisions
   const divisionMap: Record<string, string> = {}
   for (const division of DIVISIONS) {
     const { data, error } = await supabase
@@ -358,20 +348,20 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
       .insert({
         tenant_id: tenantId,
         name: `TEST - ${division.name}`,
+        is_active: true,
       })
       .select('id')
       .single()
     
-    if (error) {
-      console.log('Division insert error:', error.message)
-    }
     if (!error && data) {
-      divisionMap[division.code] = data.id
+      divisionMap[division.name] = data.id
       results.divisions++
+    } else {
+      console.log('Division insert error:', error)
     }
   }
 
-  // Seed departments - actual schema: id, tenant_id, division_id, name
+  // Seed departments
   for (const dept of DEPARTMENTS) {
     const divisionId = divisionMap[dept.division]
     if (divisionId) {
@@ -381,16 +371,15 @@ async function seedOrganizationStructure(supabase: any, tenantId: string) {
           tenant_id: tenantId,
           division_id: divisionId,
           name: `TEST - ${dept.name}`,
+          is_active: true,
         })
       
-      if (error) {
-        console.log('Department insert error:', error.message)
-      }
       if (!error) results.departments++
+      else console.log('Department insert error:', error)
     }
   }
 
-  return { results, siteIds, buildingIds }
+  return { results, branchIds, siteIds, buildingIds }
 }
 
 async function seedAssets(supabase: any, tenantId: string, siteIds: string[], buildingIds: string[]) {
@@ -467,10 +456,10 @@ async function seedAssets(supabase: any, tenantId: string, siteIds: string[], bu
         serial_number: `SN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         status: pickRandom(['active', 'active', 'active', 'maintenance', 'retired']),
         condition: pickRandom(['good', 'good', 'fair', 'poor']),
-        installation_date: randomPastDate(365 * 3),
-        warranty_expiry: randomFutureDate(365),
-        last_inspection_date: randomPastDate(90),
-        next_inspection_due: randomFutureDate(90),
+        installation_date: randomPastDateOnly(365 * 3),
+        warranty_expiry: randomFutureDateOnly(365),
+        last_inspection_date: randomPastDateOnly(90),
+        next_inspection_due: randomFutureDateOnly(90),
       })
       .select('id')
       .single()
@@ -492,7 +481,7 @@ async function seedAssets(supabase: any, tenantId: string, siteIds: string[], bu
         frequency_type: pickRandom(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']),
         frequency_value: pickRandom([1, 2, 3, 6]),
         description: 'Regular maintenance check',
-        next_due: randomFutureDate(30),
+        next_due: randomFutureDateOnly(30),
         is_active: true,
       })
     
@@ -502,27 +491,25 @@ async function seedAssets(supabase: any, tenantId: string, siteIds: string[], bu
   return { results, assetIds }
 }
 
-async function seedContractors(supabase: any, tenantId: string, siteIds: string[]) {
+async function seedContractors(supabase: any, tenantId: string, siteIds: string[], userId: string) {
   console.log('Seeding contractors...')
-  const results = { companies: 0, workers: 0, projects: 0 }
+  const results = { companies: 0, workers: 0 }
 
-  // Seed contractor companies
+  // Seed contractor companies - match actual schema
   const companyIds: string[] = []
   for (const company of CONTRACTOR_COMPANIES) {
     const { data, error } = await supabase
       .from('contractor_companies')
       .insert({
         tenant_id: tenantId,
-        name: company.name,
-        name_ar: company.name_ar,
-        trade_type: company.trade,
-        license_number: `TEST-${company.license}`,
-        contact_email: `info@${company.name.toLowerCase().replace(/\s+/g, '')}.sa`,
-        contact_phone: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
+        company_name: `TEST - ${company.name}`,
+        company_name_ar: company.name_ar,
+        commercial_registration_number: `TEST-${company.cr}`,
+        email: `info@${company.name.toLowerCase().replace(/\s+/g, '')}.test.sa`,
+        phone: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
+        city: pickRandom(['Riyadh', 'Jeddah', 'Dammam']),
         status: 'approved',
-        safety_rating: Math.floor(70 + Math.random() * 30),
-        insurance_expiry: randomFutureDate(365),
-        license_expiry: randomFutureDate(365),
+        created_by: userId,
       })
       .select('id')
       .single()
@@ -530,64 +517,39 @@ async function seedContractors(supabase: any, tenantId: string, siteIds: string[
     if (!error && data) {
       companyIds.push(data.id)
       results.companies++
+    } else {
+      console.log('Contractor company insert error:', error)
     }
   }
 
-  // Seed contractor workers
-  const workerIds: string[] = []
+  // Seed contractor workers - match actual schema
   for (const companyId of companyIds) {
     const workersToCreate = pickRandomN(WORKER_NAMES, 6)
     for (const worker of workersToCreate) {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('contractor_workers')
         .insert({
           tenant_id: tenantId,
           company_id: companyId,
-          first_name: worker.first,
-          last_name: worker.last,
-          first_name_ar: worker.first_ar,
-          last_name_ar: worker.last_ar,
-          iqama_number: `TEST-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-          job_title: pickRandom(['Electrician', 'Welder', 'Technician', 'Supervisor', 'Operator', 'Helper']),
-          phone: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
-          status: pickRandom(['active', 'active', 'active', 'inactive']),
-          induction_completed: Math.random() > 0.3,
-          induction_expiry: randomFutureDate(365),
-          medical_expiry: randomFutureDate(180),
+          full_name: worker.full,
+          full_name_ar: worker.full_ar,
+          national_id: `TEST${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+          nationality: pickRandom(['Saudi Arabia', 'Egypt', 'India', 'Pakistan', 'Bangladesh']),
+          mobile_number: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
+          preferred_language: pickRandom(['ar', 'en']),
+          approval_status: pickRandom(['approved', 'approved', 'approved', 'pending']),
+          created_by: userId,
         })
-        .select('id')
-        .single()
       
-      if (!error && data) {
-        workerIds.push(data.id)
-        results.workers++
-      }
+      if (!error) results.workers++
+      else console.log('Contractor worker insert error:', error)
     }
   }
 
-  // Seed contractor projects
-  for (let i = 0; i < 8; i++) {
-    const { error } = await supabase
-      .from('contractor_projects')
-      .insert({
-        tenant_id: tenantId,
-        company_id: pickRandom(companyIds),
-        site_id: pickRandom(siteIds),
-        project_name: `TEST-Project ${i + 1}: ${pickRandom(['Maintenance', 'Installation', 'Upgrade', 'Repair'])}`,
-        project_code: generateReferenceId('PROJ'),
-        start_date: randomPastDate(60),
-        end_date: randomFutureDate(120),
-        status: pickRandom(['active', 'active', 'completed', 'on_hold']),
-        description: 'Test project for development and QA',
-      })
-    
-    if (!error) results.projects++
-  }
-
-  return { results, companyIds, workerIds }
+  return { results, companyIds }
 }
 
-async function seedIncidents(supabase: any, tenantId: string, siteIds: string[], userId: string) {
+async function seedIncidents(supabase: any, tenantId: string, siteIds: string[], branchIds: string[], userId: string) {
   console.log('Seeding incidents...')
   const results = { incidents: 0, actions: 0 }
 
@@ -598,17 +560,16 @@ async function seedIncidents(supabase: any, tenantId: string, siteIds: string[],
       .insert({
         tenant_id: tenantId,
         site_id: pickRandom(siteIds),
+        branch_id: pickRandom(branchIds),
         reference_id: generateReferenceId('INC'),
-        event_type: incident.type,
-        severity_level: incident.severity,
-        title: incident.title,
-        title_ar: incident.title_ar,
+        event_type: incident.event_type,
+        severity: incident.severity,
+        title: `TEST - ${incident.title}`,
         description: incident.description,
-        category: incident.category,
-        incident_date: randomPastDate(90),
-        reported_by: userId,
-        status: pickRandom(['open', 'investigating', 'closed', 'closed']),
-        is_confidential: Math.random() > 0.9,
+        occurred_at: randomPastDate(90),
+        reporter_id: userId,
+        status: pickRandom(['new', 'investigating', 'closed', 'closed']),
+        location: pickRandom(['Production Area', 'Warehouse', 'Office Building', 'Parking Lot']),
       })
       .select('id')
       .single()
@@ -616,10 +577,12 @@ async function seedIncidents(supabase: any, tenantId: string, siteIds: string[],
     if (!error && data) {
       incidentIds.push(data.id)
       results.incidents++
+    } else {
+      console.log('Incident insert error:', error)
     }
   }
 
-  // Seed corrective actions
+  // Seed corrective actions - match actual schema
   for (const incidentId of incidentIds) {
     const numActions = Math.floor(1 + Math.random() * 3)
     for (let i = 0; i < numActions; i++) {
@@ -628,7 +591,6 @@ async function seedIncidents(supabase: any, tenantId: string, siteIds: string[],
         .insert({
           tenant_id: tenantId,
           incident_id: incidentId,
-          reference_id: generateReferenceId('ACT'),
           title: `Corrective Action ${i + 1}`,
           description: pickRandom([
             'Implement additional safety barriers',
@@ -639,12 +601,12 @@ async function seedIncidents(supabase: any, tenantId: string, siteIds: string[],
           ]),
           priority: pickRandom(['low', 'medium', 'high', 'critical']),
           status: pickRandom(['open', 'in_progress', 'completed', 'completed']),
-          due_date: randomFutureDate(30),
+          due_date: randomFutureDateOnly(30),
           assigned_to: userId,
-          created_by: userId,
         })
       
       if (!error) results.actions++
+      else console.log('Corrective action insert error:', error)
     }
   }
 
@@ -661,16 +623,15 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
       .from('risk_assessments')
       .insert({
         tenant_id: tenantId,
-        site_id: pickRandom(siteIds),
-        reference_id: generateReferenceId('RA'),
-        title: ra.title,
-        title_ar: ra.title_ar,
+        assessment_number: generateReferenceId('RA'),
+        activity_name: `TEST - ${ra.title}`,
+        activity_name_ar: ra.title,
         activity_description: ra.activity,
         status: ra.status,
         assessment_date: randomPastDate(180),
-        review_date: randomFutureDate(365),
+        location: pickRandom(siteIds),
         created_by: userId,
-        risk_level: pickRandom(['low', 'medium', 'high']),
+        overall_risk_rating: pickRandom(['low', 'medium', 'high']),
       })
       .select('id')
       .single()
@@ -678,10 +639,12 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
     if (!error && data) {
       assessmentIds.push(data.id)
       results.assessments++
+    } else {
+      console.log('Risk assessment insert error:', error)
     }
   }
 
-  // Seed risk assessment details (hazards)
+  // Seed risk assessment details (hazards) - match actual schema
   for (const assessmentId of assessmentIds) {
     const hazardsToAdd = pickRandomN(HAZARDS_DATA, 5)
     for (let i = 0; i < hazardsToAdd.length; i++) {
@@ -693,12 +656,12 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
           risk_assessment_id: assessmentId,
           hazard_description: hazard.hazard,
           hazard_description_ar: hazard.hazard_ar,
-          potential_consequences: hazard.consequence,
+          hazard_category: pickRandom(['physical', 'chemical', 'biological', 'ergonomic']),
           existing_controls: hazard.existing_controls,
-          initial_likelihood: hazard.likelihood,
-          initial_severity: hazard.severity,
+          additional_controls: ['Implement additional monitoring', 'Provide training'],
+          likelihood: hazard.likelihood,
+          severity: hazard.severity,
           initial_risk_score: hazard.likelihood * hazard.severity,
-          additional_controls: 'Implement additional monitoring and training',
           residual_likelihood: Math.max(1, hazard.likelihood - 1),
           residual_severity: hazard.severity,
           residual_risk_score: Math.max(1, hazard.likelihood - 1) * hazard.severity,
@@ -706,6 +669,7 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
         })
       
       if (!error) results.details++
+      else console.log('Risk assessment detail insert error:', error)
     }
   }
 
@@ -723,7 +687,7 @@ async function seedRiskAssessments(supabase: any, tenantId: string, siteIds: str
       })
     if (!leaderError) results.team++
 
-    // Add 2-3 team members
+    // Add 2 team members
     for (let i = 0; i < 2; i++) {
       const { error } = await supabase
         .from('risk_assessment_team')
@@ -745,17 +709,17 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
   console.log('Seeding inspections...')
   const results = { templates: 0, items: 0, sessions: 0, responses: 0, findings: 0 }
 
-  // Seed inspection templates
+  // Seed inspection templates - match actual schema
   const templateMap: Record<string, string> = {}
   for (const template of INSPECTION_TEMPLATES) {
     const { data, error } = await supabase
       .from('inspection_templates')
       .insert({
         tenant_id: tenantId,
+        code: generateReferenceId('TMPL'),
         name: `TEST - ${template.name}`,
         name_ar: template.name_ar,
-        category: template.category,
-        frequency: template.frequency,
+        template_type: template.template_type,
         is_active: true,
         created_by: userId,
       })
@@ -765,10 +729,12 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
     if (!error && data) {
       templateMap[template.name] = data.id
       results.templates++
+    } else {
+      console.log('Inspection template insert error:', error)
     }
   }
 
-  // Seed template items
+  // Seed template items - match actual schema
   const templateItemIds: Record<string, string[]> = {}
   for (const templateData of INSPECTION_ITEMS) {
     const templateId = templateMap[templateData.template]
@@ -783,7 +749,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
             template_id: templateId,
             question: item.question,
             question_ar: item.question_ar,
-            item_type: 'yes_no_na',
+            response_type: 'yes_no_na',
             is_required: true,
             sort_order: i + 1,
           })
@@ -793,12 +759,14 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
         if (!error && data) {
           templateItemIds[templateId].push(data.id)
           results.items++
+        } else {
+          console.log('Template item insert error:', error)
         }
       }
     }
   }
 
-  // Seed inspection sessions
+  // Seed inspection sessions - match actual schema
   const sessionIds: string[] = []
   const templateIds = Object.keys(templateItemIds)
   for (let i = 0; i < 15; i++) {
@@ -809,10 +777,11 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
         tenant_id: tenantId,
         template_id: templateId,
         site_id: pickRandom(siteIds),
+        session_type: 'area',
+        period: pickRandom(['2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4']),
         reference_id: generateReferenceId('INSP'),
         inspector_id: userId,
         status: pickRandom(['completed', 'completed', 'in_progress', 'scheduled']),
-        scheduled_date: randomPastDate(30),
         started_at: randomPastDate(30),
         completed_at: Math.random() > 0.3 ? randomPastDate(30) : null,
       })
@@ -859,7 +828,7 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
                 recommendation: 'Immediate corrective action required',
                 risk_level: pickRandom(['low', 'medium', 'high']),
                 status: pickRandom(['open', 'in_progress', 'closed']),
-                due_date: randomFutureDate(14),
+                due_date: randomFutureDateOnly(14),
                 created_by: userId,
               })
             
@@ -867,52 +836,36 @@ async function seedInspections(supabase: any, tenantId: string, siteIds: string[
           }
         }
       }
+    } else {
+      console.log('Inspection session insert error:', error)
     }
   }
 
   return { results, sessionIds }
 }
 
-async function seedPTW(supabase: any, tenantId: string, siteIds: string[], userId: string) {
+async function seedPTW(supabase: any, tenantId: string, siteIds: string[], buildingIds: string[], userId: string) {
   console.log('Seeding PTW...')
-  const results = { permitTypes: 0, projects: 0, permits: 0, gasTests: 0 }
+  const results = { projects: 0, permits: 0, gasTests: 0 }
 
-  // Seed PTW permit types
-  const permitTypeIds: string[] = []
-  for (const type of PTW_TYPES) {
-    const { data, error } = await supabase
-      .from('ptw_permit_types')
-      .insert({
-        tenant_id: tenantId,
-        name: `TEST - ${type.name}`,
-        name_ar: type.name_ar,
-        code: `TEST-${type.code}`,
-        color: type.color,
-        requires_gas_test: type.requires_gas_test,
-        is_active: true,
-      })
-      .select('id')
-      .single()
-    
-    if (!error && data) {
-      permitTypeIds.push(data.id)
-      results.permitTypes++
-    }
-  }
-
-  // Seed PTW projects
+  // Seed PTW projects - match actual schema
   const projectIds: string[] = []
   for (let i = 0; i < 5; i++) {
+    const startDate = randomPastDateOnly(30)
+    const endDate = randomFutureDateOnly(60)
     const { data, error } = await supabase
       .from('ptw_projects')
       .insert({
         tenant_id: tenantId,
-        site_id: pickRandom(siteIds),
+        reference_id: generateReferenceId('PTWP'),
         name: `TEST - PTW Project ${i + 1}`,
-        code: generateReferenceId('PTWP'),
-        start_date: randomPastDate(30),
-        end_date: randomFutureDate(60),
+        description: `Test PTW project ${i + 1} for development`,
+        site_id: pickRandom(siteIds),
+        building_id: pickRandom(buildingIds),
+        start_date: startDate,
+        end_date: endDate,
         status: pickRandom(['active', 'active', 'completed']),
+        is_internal_work: Math.random() > 0.5,
         created_by: userId,
       })
       .select('id')
@@ -921,33 +874,47 @@ async function seedPTW(supabase: any, tenantId: string, siteIds: string[], userI
     if (!error && data) {
       projectIds.push(data.id)
       results.projects++
+    } else {
+      console.log('PTW project insert error:', error)
     }
   }
 
-  // Seed PTW permits
+  // Note: ptw_permit_types table doesn't exist based on empty query result
+  // Skip permit type seeding and use the project type_id from ptw_projects
+
+  // Seed PTW permits - match actual schema  
   for (let i = 0; i < 20; i++) {
-    const permitTypeId = pickRandom(permitTypeIds)
+    const projectId = pickRandom(projectIds)
+    const plannedStart = new Date()
+    plannedStart.setDate(plannedStart.getDate() + Math.floor(Math.random() * 7))
+    const plannedEnd = new Date(plannedStart)
+    plannedEnd.setHours(plannedEnd.getHours() + 8)
+    
     const { data, error } = await supabase
       .from('ptw_permits')
       .insert({
         tenant_id: tenantId,
-        project_id: pickRandom(projectIds),
-        permit_type_id: permitTypeId,
+        project_id: projectId,
+        type_id: projectId, // Using project_id as type_id since ptw_permit_types doesn't exist
+        reference_id: generateReferenceId('PTW'),
         site_id: pickRandom(siteIds),
-        permit_number: generateReferenceId('PTW'),
-        work_description: pickRandom([
+        building_id: pickRandom(buildingIds),
+        job_description: pickRandom([
           'Welding operations on pipeline',
           'Tank entry for cleaning',
           'Excavation for cable laying',
           'Electrical panel maintenance',
           'Scaffold erection for painting',
         ]),
-        work_location: pickRandom(['Area A', 'Area B', 'Tank Farm', 'Electrical Room', 'Warehouse']),
-        valid_from: new Date().toISOString(),
-        valid_until: randomFutureDate(7),
-        status: pickRandom(['draft', 'pending_approval', 'approved', 'active', 'closed']),
-        requested_by: userId,
+        work_scope: 'Test work scope for development',
+        location_details: pickRandom(['Area A', 'Area B', 'Tank Farm', 'Electrical Room', 'Warehouse']),
+        planned_start_time: plannedStart.toISOString(),
+        planned_end_time: plannedEnd.toISOString(),
+        status: pickRandom(['draft', 'pending_endorsement', 'endorsed', 'issued', 'active', 'closed']),
+        applicant_id: userId,
         created_by: userId,
+        emergency_contact_name: 'Test Emergency Contact',
+        emergency_contact_number: '+966500000000',
       })
       .select('id')
       .single()
@@ -973,6 +940,8 @@ async function seedPTW(supabase: any, tenantId: string, siteIds: string[], userI
         
         if (!gasError) results.gasTests++
       }
+    } else {
+      console.log('PTW permit insert error:', error)
     }
   }
 
@@ -981,9 +950,9 @@ async function seedPTW(supabase: any, tenantId: string, siteIds: string[], userI
 
 async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], userId: string) {
   console.log('Seeding security operations...')
-  const results = { zones: 0, shifts: 0, routes: 0, checkpoints: 0, patrols: 0, roster: 0 }
+  const results = { zones: 0, routes: 0, checkpoints: 0, patrols: 0 }
 
-  // Seed security zones
+  // Seed security zones - match actual schema
   const zoneIds: string[] = []
   for (const zone of SECURITY_ZONES) {
     const { data, error } = await supabase
@@ -991,11 +960,14 @@ async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], 
       .insert({
         tenant_id: tenantId,
         site_id: pickRandom(siteIds),
-        name: `TEST - ${zone.name}`,
-        name_ar: zone.name_ar,
+        zone_code: `TEST-${zone.zone_code}`,
+        zone_name: `TEST - ${zone.name}`,
+        zone_name_ar: zone.name_ar,
         zone_type: zone.zone_type,
-        security_level: zone.security_level,
+        risk_level: zone.risk_level,
+        polygon_geojson: { type: 'Polygon', coordinates: [[[46.7, 24.7], [46.8, 24.7], [46.8, 24.8], [46.7, 24.8], [46.7, 24.7]]] },
         is_active: true,
+        created_by: userId,
       })
       .select('id')
       .single()
@@ -1003,32 +975,12 @@ async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], 
     if (!error && data) {
       zoneIds.push(data.id)
       results.zones++
+    } else {
+      console.log('Security zone insert error:', error)
     }
   }
 
-  // Seed security shifts
-  const shiftIds: string[] = []
-  for (const shift of SECURITY_SHIFTS) {
-    const { data, error } = await supabase
-      .from('security_shifts')
-      .insert({
-        tenant_id: tenantId,
-        name: `TEST - ${shift.name}`,
-        name_ar: shift.name_ar,
-        start_time: shift.start_time,
-        end_time: shift.end_time,
-        is_active: true,
-      })
-      .select('id')
-      .single()
-    
-    if (!error && data) {
-      shiftIds.push(data.id)
-      results.shifts++
-    }
-  }
-
-  // Seed patrol routes
+  // Seed patrol routes - match actual schema
   const routeIds: string[] = []
   for (let i = 0; i < 6; i++) {
     const { data, error } = await supabase
@@ -1038,8 +990,10 @@ async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], 
         site_id: pickRandom(siteIds),
         name: `TEST - Route ${i + 1}`,
         description: `Patrol route covering areas ${i + 1}`,
+        frequency: pickRandom(['hourly', 'bi_hourly', 'shift']),
         estimated_duration_minutes: 30 + Math.floor(Math.random() * 30),
         is_active: true,
+        created_by: userId,
       })
       .select('id')
       .single()
@@ -1047,10 +1001,12 @@ async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], 
     if (!error && data) {
       routeIds.push(data.id)
       results.routes++
+    } else {
+      console.log('Patrol route insert error:', error)
     }
   }
 
-  // Seed patrol checkpoints
+  // Seed patrol checkpoints - match actual schema
   for (const routeId of routeIds) {
     const numCheckpoints = 4 + Math.floor(Math.random() * 3)
     for (let i = 0; i < numCheckpoints; i++) {
@@ -1061,71 +1017,60 @@ async function seedSecurity(supabase: any, tenantId: string, siteIds: string[], 
           route_id: routeId,
           name: `Checkpoint ${i + 1}`,
           sequence_order: i + 1,
-          qr_code: `TEST-CP-${routeId}-${i + 1}`,
-          is_mandatory: Math.random() > 0.3,
+          qr_code_data: `TEST-CP-${routeId.substring(0, 8)}-${i + 1}`,
+          photo_required: Math.random() > 0.5,
+          notes_required: Math.random() > 0.7,
+          is_active: true,
         })
       
       if (!error) results.checkpoints++
+      else console.log('Patrol checkpoint insert error:', error)
     }
   }
 
-  // Seed security patrols
+  // Seed security patrols - match actual schema
   for (let i = 0; i < 20; i++) {
     const { error } = await supabase
       .from('security_patrols')
       .insert({
         tenant_id: tenantId,
         route_id: pickRandom(routeIds),
-        guard_id: userId,
-        shift_id: pickRandom(shiftIds),
-        patrol_date: randomPastDate(14),
-        started_at: randomPastDate(14),
-        completed_at: Math.random() > 0.2 ? randomPastDate(14) : null,
+        reference_id: generateReferenceId('PAT'),
+        patrol_officer_id: userId,
+        scheduled_start: randomPastDate(14),
+        actual_start: randomPastDate(14),
+        actual_end: Math.random() > 0.2 ? randomPastDate(14) : null,
         status: pickRandom(['completed', 'completed', 'in_progress', 'scheduled']),
+        checkpoints_visited: Math.floor(Math.random() * 6),
+        checkpoints_total: 6,
       })
     
     if (!error) results.patrols++
+    else console.log('Security patrol insert error:', error)
   }
 
-  // Seed shift roster
-  for (let i = 0; i < 30; i++) {
-    const { error } = await supabase
-      .from('shift_roster')
-      .insert({
-        tenant_id: tenantId,
-        guard_id: userId,
-        shift_id: pickRandom(shiftIds),
-        site_id: pickRandom(siteIds),
-        roster_date: randomFutureDate(14),
-        status: pickRandom(['scheduled', 'scheduled', 'confirmed']),
-      })
-    
-    if (!error) results.roster++
-  }
-
-  return { results, zoneIds, shiftIds }
+  return { results, zoneIds }
 }
 
 async function seedVisitors(supabase: any, tenantId: string, siteIds: string[]) {
   console.log('Seeding visitors...')
   const results = { visitors: 0, entries: 0 }
 
-  // Seed visitors
+  // Seed visitors - match actual schema
   const visitorIds: string[] = []
   for (const visitor of VISITORS_DATA) {
     const { data, error } = await supabase
       .from('visitors')
       .insert({
         tenant_id: tenantId,
-        full_name: visitor.name,
-        full_name_ar: visitor.name_ar,
+        full_name: `TEST - ${visitor.name}`,
         company_name: visitor.company,
-        purpose: visitor.purpose,
-        id_type: 'national_id',
-        id_number: `TEST-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
         phone: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
-        email: `${visitor.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-        status: 'pre_registered',
+        email: `${visitor.name.toLowerCase().replace(/\s+/g, '.')}@test.example.com`,
+        national_id: `TEST${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        nationality: 'Saudi Arabia',
+        qr_code_token: crypto.randomUUID(),
+        is_active: true,
       })
       .select('id')
       .single()
@@ -1133,26 +1078,32 @@ async function seedVisitors(supabase: any, tenantId: string, siteIds: string[]) 
     if (!error && data) {
       visitorIds.push(data.id)
       results.visitors++
+    } else {
+      console.log('Visitor insert error:', error)
     }
   }
 
-  // Seed gate entry logs
+  // Seed gate entry logs - match actual schema
   for (let i = 0; i < 50; i++) {
     const { error } = await supabase
       .from('gate_entry_logs')
       .insert({
         tenant_id: tenantId,
         site_id: pickRandom(siteIds),
-        visitor_id: Math.random() > 0.5 ? pickRandom(visitorIds) : null,
+        visitor_id: visitorIds.length > 0 && Math.random() > 0.5 ? pickRandom(visitorIds) : null,
         entry_type: pickRandom(['visitor', 'contractor', 'delivery', 'employee']),
-        gate_number: pickRandom(['Main Gate', 'Gate 2', 'Gate 3']),
+        person_name: `Test Person ${i + 1}`,
+        mobile_number: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
+        gate_id: pickRandom(['main_gate', 'gate_2', 'gate_3']),
         entry_time: randomPastDate(7),
         exit_time: Math.random() > 0.3 ? randomPastDate(7) : null,
-        vehicle_plate: Math.random() > 0.5 ? `TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}` : null,
-        status: pickRandom(['checked_in', 'checked_out', 'checked_out']),
+        car_plate: Math.random() > 0.5 ? `TEST-${Math.random().toString(36).substring(2, 6).toUpperCase()}` : null,
+        purpose: pickRandom(['Meeting', 'Delivery', 'Inspection', 'Maintenance']),
+        nationality: pickRandom(['Saudi Arabia', 'Egypt', 'India', 'Pakistan']),
       })
     
     if (!error) results.entries++
+    else console.log('Gate entry log insert error:', error)
   }
 
   return results
@@ -1214,11 +1165,11 @@ Deno.serve(async (req) => {
     // Seed all data categories
     const orgResults = await seedOrganizationStructure(supabase, tenantId)
     const assetResults = await seedAssets(supabase, tenantId, orgResults.siteIds, orgResults.buildingIds)
-    const contractorResults = await seedContractors(supabase, tenantId, orgResults.siteIds)
-    const incidentResults = await seedIncidents(supabase, tenantId, orgResults.siteIds, userId)
+    const contractorResults = await seedContractors(supabase, tenantId, orgResults.siteIds, userId)
+    const incidentResults = await seedIncidents(supabase, tenantId, orgResults.siteIds, orgResults.branchIds, userId)
     const raResults = await seedRiskAssessments(supabase, tenantId, orgResults.siteIds, userId)
     const inspectionResults = await seedInspections(supabase, tenantId, orgResults.siteIds, userId)
-    const ptwResults = await seedPTW(supabase, tenantId, orgResults.siteIds, userId)
+    const ptwResults = await seedPTW(supabase, tenantId, orgResults.siteIds, orgResults.buildingIds, userId)
     const securityResults = await seedSecurity(supabase, tenantId, orgResults.siteIds, userId)
     const visitorResults = await seedVisitors(supabase, tenantId, orgResults.siteIds)
 
