@@ -615,6 +615,14 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="/admin/platform-settings"
+                        element={
+                          <AdminRoute>
+                            <PlatformSettings />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
                         path="/admin/notification-rules"
                         element={
                           <AdminRoute>
