@@ -6076,6 +6076,109 @@
       "contractor": "Kontratista",
       "location": "Lokasyon",
       "autoPopulated": "Awtomatikong napunan mula sa proyekto"
+    },
+    "compliance": {
+      "sectionTitle": "ISO 45001 / OSHA Pagsunod",
+      "activityType": "Uri ng Gawain",
+      "workEnvironment": "Kapaligiran sa Trabaho",
+      "workEnvironmentPlaceholder": "hal., Sa labas, limitadong espasyo, mataas na trabaho, lugar na may kemikal...",
+      "scopeDescription": "Saklaw at Hangganan",
+      "scopePlaceholder": "Tukuyin kung ano ang kasama/hindi kasama sa pagsusuri na ito. Isaalang-alang ang kagamitan, proseso, lugar, at takdang panahon...",
+      "scopeHelp": "Ang ISO 45001 ay nangangailangan ng malinaw na kahulugan ng saklaw at hangganan ng pagsusuri.",
+      "applicableLegislation": "Naaangkop na Batas at Pamantayan",
+      "legislationHelp": "Piliin ang lahat ng naaangkop na batas at pamantayan para sa gawaing ito.",
+      "jobStepNumber": "Hakbang #",
+      "jobStepDescription": "Paglalarawan ng Hakbang sa Trabaho",
+      "jobStepPlaceholder": "hal., Iposisyon ang hagdan nang ligtas...",
+      "personsAtRisk": "Mga Taong Nasa Panganib (ISO 45001)",
+      "numberExposed": "Bilang ng Naapektuhan",
+      "controlHierarchy": "Antas ng Hierarchy ng Kontrol",
+      "hierarchyJustification": "Bakit hindi mailapat ang mas mataas na antas ng kontrol?",
+      "hierarchyJustificationPlaceholder": "Ipaliwanag kung bakit hindi praktikal ang pag-aalis, pagpapalit, o engineering controls...",
+      "requiredPPE": "Kinakailangang PPE",
+      "controlStatus": "Katayuan ng Pagpapatupad",
+      "riskReduction": "Pagbabawas"
+    },
+    "activityType": {
+      "routine": "Regular",
+      "routineDesc": "Regular, araw-araw na mga gawain",
+      "non_routine": "Hindi Regular",
+      "non_routineDesc": "Paminsan-minsan o bihirang mga gawain",
+      "emergency": "Emergency",
+      "emergencyDesc": "Mga gawain sa pagtugon sa emergency",
+      "maintenance": "Maintenance",
+      "maintenanceDesc": "Trabaho sa pagmamantini o pagkukumpuni"
+    },
+    "personsAtRisk": {
+      "employees": "Mga Empleyado",
+      "contractors": "Mga Kontratista",
+      "visitors": "Mga Bisita",
+      "public": "Publiko",
+      "young_workers": "Mga Batang Manggagawa",
+      "pregnant_workers": "Mga Buntis na Manggagawa",
+      "disabled_persons": "Mga Taong May Kapansanan"
+    },
+    "ppe": {
+      "hard_hat": "Hard Hat",
+      "safety_glasses": "Safety Glasses",
+      "face_shield": "Face Shield",
+      "hearing_protection": "Proteksyon sa Pandinig",
+      "respirator": "Respirator",
+      "gloves": "Guwantes",
+      "safety_boots": "Safety Boots",
+      "high_vis_vest": "High Visibility Vest",
+      "fall_protection": "Proteksyon sa Pagkahulog",
+      "coveralls": "Coveralls"
+    },
+    "controlStatus": {
+      "pending": "Nakabinbin",
+      "inProgress": "Isinasagawa",
+      "implemented": "Naipatupad",
+      "verified": "Na-verify"
+    },
+    "consultation": {
+      "title": "Konsultasyon sa Manggagawa (ISO 45001 7.4)",
+      "requirement": "Ang ISO 45001 ay nangangailangan ng konsultasyon sa mga manggagawa sa mga usapin ng OH&S. Idokumento ang ebidensya ng pakikilahok ng manggagawa.",
+      "date": "Petsa ng Konsultasyon",
+      "unionRep": "Nakonsulta ang Kinatawan ng Unyon/Manggagawa",
+      "notes": "Mga Tala sa Konsultasyon",
+      "notesPlaceholder": "Idokumento ang proseso ng konsultasyon, mga pangunahing alalahanin ng mga manggagawa, at kung paano ito natugunan...",
+      "help": "Isama ang mga detalye ng toolbox talks, safety meetings, o indibidwal na konsultasyon."
+    },
+    "acceptability": {
+      "title": "Desisyon sa Pagtanggap ng Panganib (ISO 45001)",
+      "selectLevel": "Antas ng Pagtanggap sa Panganib",
+      "acceptable": "Katanggap-tanggap",
+      "acceptableDesc": "Ang panganib ay nasa katanggap-tanggap na antas. Magpatuloy na may karaniwang pagmamanman.",
+      "tolerable_alarp": "Matitiis (ALARP)",
+      "tolerable_alarpDesc": "Ang panganib ay kasing baba ng makatwirang praktikal. Magpatuloy na may pinahusay na pagmamanman.",
+      "unacceptable": "Hindi Katanggap-tanggap",
+      "unacceptableDesc": "Ang panganib ay napakataas. Itigil ang trabaho at magpatupad ng karagdagang mga kontrol.",
+      "unacceptableWarning": "Hindi maaaring magpatuloy ang trabaho na may hindi katanggap-tanggap na antas ng panganib. Dapat ipatupad ang karagdagang mga kontrol bago magsimula ang trabaho.",
+      "justificationRequired": "Kinakailangan ang ALARP Justification",
+      "justificationPlaceholder": "Ipaliwanag kung bakit hindi makatwirang praktikal ang karagdagang pagbabawas ng panganib...",
+      "justificationHelp": "Idokumento ang cost-benefit analysis na nagpapakita na ang karagdagang pagbabawas ng panganib ay magiging hindi proporsyonal sa mga benepisyong makukuha.",
+      "managementApproval": "Ang pagsusuri na ito ay nangangailangan ng pag-apruba ng management dahil sa mataas/kritikal na antas ng panganib.",
+      "approvalRequired": "Kinakailangan ang Pag-apruba"
+    },
+    "review": {
+      "title": "Iskedyul ng Pagsusuri (ISO 45001)",
+      "frequency": "Dalas ng Pagsusuri",
+      "selectFrequency": "Pumili ng dalas...",
+      "nextDate": "Susunod na Petsa ng Pagsusuri",
+      "help": "Ang ISO 45001 ay nangangailangan ng pana-panahong pagsusuri ng mga pagsusuri ng panganib. Ang dalas ng pagsusuri ay dapat sumasalamin sa antas ng panganib at potensyal para sa pagbabago.",
+      "daily": "Araw-araw",
+      "weekly": "Lingguhan",
+      "monthly": "Buwanan",
+      "quarterly": "Quarterly",
+      "annually": "Taun-taon"
+    },
+    "summary": {
+      "hazards": "Mga Panganib",
+      "team": "Mga Miyembro ng Koponan",
+      "controls": "Mga Kontrol",
+      "rating": "Rating",
+      "highRisk": "Mataas/Kritikal"
     }
   }
 }
