@@ -101,18 +101,41 @@ export function useTriggerEmergencyAlert() {
       location_description?: string;
       notes?: string;
     }) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, tenant_id')
-        .single();
+      // Get user ID from auth (more reliable than profiles query due to RLS issues)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Try to get tenant_id - first from profiles, fallback to localStorage
+      let tenantId: string | null = null;
       
-      if (!profile?.tenant_id) throw new Error('No tenant found');
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .single();
+        tenantId = profile?.tenant_id || null;
+      } catch {
+        // If profiles query fails due to RLS, try localStorage fallback
+        tenantId = localStorage.getItem('tenant_id');
+      }
+      
+      // Final fallback: try to get from tenants table directly if user is linked
+      if (!tenantId) {
+        const { data: tenants } = await supabase
+          .from('tenants')
+          .select('id')
+          .limit(1);
+        tenantId = tenants?.[0]?.id || null;
+      }
+      
+      if (!tenantId) throw new Error('Unable to determine tenant. Please refresh and try again.');
 
       const { data, error } = await supabase
         .from('emergency_alerts')
         .insert({
-          tenant_id: profile.tenant_id,
-          guard_id: profile.id,
+          tenant_id: tenantId,
+          guard_id: user.id,
           alert_type: params.alert_type,
           priority: params.priority || 'critical',
           latitude: params.latitude,
