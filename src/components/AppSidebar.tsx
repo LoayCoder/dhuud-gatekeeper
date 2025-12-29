@@ -779,6 +779,12 @@ export function AppSidebar() {
               icon: Clock,
               menuCode: 'admin_manhours',
             },
+            {
+              title: t('navigation.platformSettings', 'Platform Settings'),
+              url: "/admin/platform-settings",
+              icon: Settings2,
+              menuCode: 'admin_platform_settings',
+            },
           ],
         },
         // Platform Management Sub-Group (Super Admin)
