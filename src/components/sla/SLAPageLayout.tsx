@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Settings, BarChart3, FileSearch, HelpCircle, ChevronRight } from 'lucide-react';
+import { Activity, Settings, BarChart3, FileSearch, HelpCircle, ChevronRight, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -17,9 +17,10 @@ interface SLAPageLayoutProps {
 
 const tabs = [
   { id: 'dashboard', path: '/admin/sla-dashboard', icon: Activity, labelKey: 'sla.dashboard' },
-  { id: 'settings', path: '/admin/action-sla', icon: Settings, labelKey: 'navigation.actionSLASettings' },
-  { id: 'analytics', path: '/admin/sla-analytics', icon: BarChart3, labelKey: 'sla.analytics' },
+  { id: 'action', path: '/admin/action-sla', icon: Settings, labelKey: 'navigation.actionSlaSettings' },
+  { id: 'finding', path: '/admin/finding-sla', icon: ClipboardCheck, labelKey: 'navigation.findingSlaSettings' },
   { id: 'investigation', path: '/admin/investigation-sla', icon: FileSearch, labelKey: 'sla.investigationSLA' },
+  { id: 'analytics', path: '/admin/sla-analytics', icon: BarChart3, labelKey: 'sla.analytics' },
 ];
 
 export function SLAPageLayout({ children, title, description, icon }: SLAPageLayoutProps) {
