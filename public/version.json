@@ -1,0 +1,10 @@
+{
+  "version": "2025.01.25.001",
+  "buildDate": "2025-01-25T00:00:00Z",
+  "releaseNotes": [
+    "Navigation reorganization with collapsible sub-groups",
+    "Enhanced SLA management with unified dashboard",
+    "Improved update notification system"
+  ],
+  "priority": "normal"
+}
