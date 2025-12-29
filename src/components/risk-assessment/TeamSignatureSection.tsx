@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Users, PenTool } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SignaturePad } from "@/components/ui/signature-pad";
+import { SignaturePad, SignaturePadRef } from "@/components/ui/signature-pad";
 import type { RiskAssessmentTeamMember } from "@/hooks/risk-assessment";
 
 interface TeamSignatureSectionProps {
@@ -23,10 +23,14 @@ export function TeamSignatureSection({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [signingMemberId, setSigningMemberId] = useState<string | null>(null);
+  const signaturePadRef = useRef<SignaturePadRef>(null);
 
-  const handleSaveSignature = async (memberId: string, signatureData: string) => {
-    await onSign(memberId, signatureData);
-    setSigningMemberId(null);
+  const handleSaveSignature = async (memberId: string) => {
+    const signatureData = signaturePadRef.current?.getSignatureDataUrl();
+    if (signatureData) {
+      await onSign(memberId, signatureData);
+      setSigningMemberId(null);
+    }
   };
 
   const signedCount = teamMembers.filter((m) => m.signed_at).length;
@@ -96,18 +100,26 @@ export function TeamSignatureSection({
                     {isSigning ? (
                       <div className="space-y-2">
                         <SignaturePad
-                          onChange={(sig) => sig && handleSaveSignature(member.id, sig)}
-                          width={250}
+                          ref={signaturePadRef}
                           height={100}
+                          className="w-64"
                         />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSigningMemberId(null)}
-                          className="w-full"
-                        >
-                          {t("common.cancel", "Cancel")}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSigningMemberId(null)}
+                          >
+                            {t("common.cancel", "Cancel")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleSaveSignature(member.id)}
+                            disabled={isSubmitting}
+                          >
+                            {t("common.save", "Save")}
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <Button
