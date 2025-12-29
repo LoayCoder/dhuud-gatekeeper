@@ -11,7 +11,9 @@ import {
   Radiation,
   Shovel,
   Zap,
-  Shield
+  Shield,
+  Mountain,
+  Wrench
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePTWPermits } from "@/hooks/ptw";
@@ -32,6 +34,8 @@ const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }
   excavation: Shovel,
   confined_space: Shield,
   electrical: Zap,
+  height: Mountain,
+  cold_work: Wrench,
   general: FileWarning,
 };
 

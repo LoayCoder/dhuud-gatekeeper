@@ -34,7 +34,7 @@ export function usePTWTypes() {
           id, tenant_id, name, name_ar, code, risk_level, requires_gas_test,
           requires_loto, validity_hours, icon_name, color, is_active, sort_order, created_at
         `)
-        .eq("tenant_id", tenantId)
+        .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
         .eq("is_active", true)
         .is("deleted_at", null)
         .order("sort_order");

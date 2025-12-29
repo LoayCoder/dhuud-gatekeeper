@@ -7,7 +7,7 @@ import { usePTWTypes, usePTWProjects } from "@/hooks/ptw";
 import { useSites } from "@/hooks/use-sites";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Construction, Shield, Shovel, Radiation, Zap, Mountain, FileWarning } from "lucide-react";
+import { Flame, Construction, Shield, Shovel, Radiation, Zap, Mountain, FileWarning, Wrench } from "lucide-react";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   HOT_WORK: Flame,
@@ -17,6 +17,7 @@ const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }
   RADIOGRAPHY: Radiation,
   ELECTRICAL: Zap,
   HEIGHT: Mountain,
+  COLD_WORK: Wrench,
 };
 
 interface PermitBasicsStepProps {
