@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { ContractorWorker, useCreateContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
+import { WorkerPhotoUpload } from "./WorkerPhotoUpload";
 
 interface WorkerFormDialogProps {
   open: boolean;
@@ -22,7 +23,7 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
 
   const [formData, setFormData] = useState({
     company_id: "", full_name: "", full_name_ar: "", national_id: "",
-    nationality: "", mobile_number: "", preferred_language: "en",
+    nationality: "", mobile_number: "", preferred_language: "en", photo_path: "" as string | null,
   });
 
   useEffect(() => {
@@ -35,9 +36,10 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
         nationality: worker.nationality || "",
         mobile_number: worker.mobile_number,
         preferred_language: worker.preferred_language,
+        photo_path: worker.photo_path || null,
       });
     } else {
-      setFormData({ company_id: "", full_name: "", full_name_ar: "", national_id: "", nationality: "", mobile_number: "", preferred_language: "en" });
+      setFormData({ company_id: "", full_name: "", full_name_ar: "", national_id: "", nationality: "", mobile_number: "", preferred_language: "en", photo_path: null });
     }
   }, [worker, open]);
 
@@ -54,6 +56,14 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
           <DialogTitle>{isEditing ? t("contractors.workers.editWorker", "Edit Worker") : t("contractors.workers.addWorker", "Add Worker")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex justify-center">
+            <WorkerPhotoUpload
+              photoPath={formData.photo_path}
+              onPhotoChange={(path) => setFormData({ ...formData, photo_path: path })}
+              workerId={worker?.id}
+              disabled={createWorker.isPending}
+            />
+          </div>
           <div className="space-y-2">
             <Label>{t("contractors.workers.company", "Company")} *</Label>
             <Select value={formData.company_id} onValueChange={(v) => setFormData({ ...formData, company_id: v })}>

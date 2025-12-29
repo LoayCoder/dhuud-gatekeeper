@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HardHat, Plus, Search, Filter, Clock } from "lucide-react";
+import { HardHat, Plus, Search, Filter, Clock, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { WorkerListTable } from "@/components/contractors/WorkerListTable";
 import { WorkerFormDialog } from "@/components/contractors/WorkerFormDialog";
 import { WorkerApprovalQueue } from "@/components/contractors/WorkerApprovalQueue";
+import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImportDialog";
 import {
   useContractorWorkers,
   usePendingWorkerApprovals,
@@ -29,6 +30,7 @@ export default function Workers() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [editingWorker, setEditingWorker] = useState<ContractorWorker | null>(null);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -53,10 +55,16 @@ export default function Workers() {
             {t("contractors.workers.description", "Manage contractor workers and approvals")}
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("contractors.workers.addWorker", "Add Worker")}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
+            <Upload className="h-4 w-4 me-2" />
+            {t("contractors.workers.bulkImport", "Bulk Import")}
+          </Button>
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("contractors.workers.addWorker", "Add Worker")}
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -142,6 +150,11 @@ export default function Workers() {
         }}
         worker={editingWorker}
         companies={companies}
+      />
+
+      <WorkerBulkImportDialog
+        open={isBulkImportOpen}
+        onOpenChange={setIsBulkImportOpen}
       />
     </div>
   );

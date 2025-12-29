@@ -514,6 +514,12 @@ export function AppSidebar() {
           icon: Video,
           menuCode: 'contractor_induction_videos',
         },
+        {
+          title: t('contractors.nav.analytics', 'Analytics'),
+          url: "/contractors/analytics",
+          icon: BarChart3,
+          menuCode: 'contractor_analytics',
+        },
       ],
     },
     {

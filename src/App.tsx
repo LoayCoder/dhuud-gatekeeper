@@ -127,6 +127,7 @@ const ContractorGatePasses = lazyWithRetry(() => import("./pages/contractors/Gat
 const ContractorDashboard = lazyWithRetry(() => import("./pages/contractors/Dashboard"));
 const InductionVideos = lazyWithRetry(() => import("./pages/contractors/InductionVideos"));
 const GatePassSettings = lazyWithRetry(() => import("./pages/contractors/GatePassSettings"));
+const ContractorAnalytics = lazyWithRetry(() => import("./pages/contractors/Analytics"));
 
 // Contractor Portal pages - external contractor representatives
 const ContractorPortalDashboard = lazyWithRetry(() => import("./pages/contractor-portal/Dashboard"));
@@ -303,6 +304,7 @@ const App = () => (
                       <Route path="/contractors/workers" element={<AdminRoute><ContractorWorkers /></AdminRoute>} />
                       <Route path="/contractors/gate-passes" element={<AdminRoute><ContractorGatePasses /></AdminRoute>} />
                       <Route path="/contractors/induction-videos" element={<AdminRoute><InductionVideos /></AdminRoute>} />
+                      <Route path="/contractors/analytics" element={<AdminRoute><ContractorAnalytics /></AdminRoute>} />
                       <Route path="/contractors/settings" element={<AdminRoute><GatePassSettings /></AdminRoute>} />
 
                       {/* Contractor Portal Routes (for external contractor reps) */}
