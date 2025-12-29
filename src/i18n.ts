@@ -30,6 +30,17 @@ const LANGUAGE_FONTS: Record<string, string> = {
   fil: "'Rubik', sans-serif",
 };
 
+// Extract readable text from translation key
+// e.g., "common.retry" → "Retry", "incidents.submit_form" → "Submit Form"
+const extractReadableText = (key: string): string => {
+  const lastPart = key.split('.').pop() || key;
+  // Convert snake_case or camelCase to Title Case with spaces
+  return lastPart
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 i18n
   .use(LanguageDetector)
   .init({
@@ -45,6 +56,22 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+    },
+
+    // Fallback mechanism for missing keys
+    saveMissing: true,
+    returnEmptyString: false,
+    
+    // Transform missing keys into readable text for users
+    parseMissingKeyHandler: (key: string) => {
+      return extractReadableText(key);
+    },
+
+    // Log missing keys in development for debugging
+    missingKeyHandler: (_lngs, _ns, key) => {
+      if (import.meta.env.DEV) {
+        console.warn(`[i18n] Missing translation key: "${key}"`);
+      }
     },
   });
 
