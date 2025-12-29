@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertCircle, HardHat, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -24,6 +26,15 @@ export interface HazardFormData {
   additional_controls: { description: string; responsible: string; target_date: string }[];
   residual_likelihood: number;
   residual_severity: number;
+  // ISO 45001 & OSHA Compliance Fields
+  job_step_number?: number;
+  job_step_description?: string;
+  persons_at_risk?: string[];
+  number_exposed?: number;
+  control_hierarchy_level?: string;
+  higher_control_justification?: string;
+  required_ppe?: string[];
+  control_status?: string;
 }
 
 interface HazardFormProps {
@@ -32,6 +43,7 @@ interface HazardFormProps {
   onChange: (index: number, field: string, value: unknown) => void;
   onRemove: (index: number) => void;
   showResidual?: boolean;
+  showComplianceFields?: boolean;
 }
 
 const HAZARD_CATEGORIES = [
@@ -51,6 +63,37 @@ const CONTROL_TYPES = [
   "ppe",
 ];
 
+const PERSONS_AT_RISK = [
+  "employees",
+  "contractors",
+  "visitors",
+  "public",
+  "young_workers",
+  "pregnant_workers",
+  "disabled_persons",
+];
+
+const PPE_TYPES = [
+  "hard_hat",
+  "safety_glasses",
+  "face_shield",
+  "hearing_protection",
+  "respirator",
+  "gloves",
+  "safety_boots",
+  "high_vis_vest",
+  "fall_protection",
+  "coveralls",
+];
+
+const CONTROL_HIERARCHY_LEVELS = [
+  { value: "elimination", color: "bg-green-500", priority: 1 },
+  { value: "substitution", color: "bg-green-400", priority: 2 },
+  { value: "engineering", color: "bg-yellow-500", priority: 3 },
+  { value: "administrative", color: "bg-orange-500", priority: 4 },
+  { value: "ppe", color: "bg-red-500", priority: 5 },
+];
+
 const getRiskScoreColor = (score: number): string => {
   if (score <= 4) return "bg-green-500 text-white";
   if (score <= 9) return "bg-yellow-500 text-white";
@@ -64,6 +107,7 @@ export function HazardForm({
   onChange,
   onRemove,
   showResidual = true,
+  showComplianceFields = true,
 }: HazardFormProps) {
   const { t } = useTranslation();
   const initialScore = hazard.likelihood * hazard.severity;
@@ -101,11 +145,60 @@ export function HazardForm({
     onChange(index, "additional_controls", controls);
   };
 
+  const togglePersonAtRisk = (person: string) => {
+    const current = hazard.persons_at_risk || [];
+    const updated = current.includes(person)
+      ? current.filter((p) => p !== person)
+      : [...current, person];
+    onChange(index, "persons_at_risk", updated);
+  };
+
+  const togglePPE = (ppe: string) => {
+    const current = hazard.required_ppe || [];
+    const updated = current.includes(ppe)
+      ? current.filter((p) => p !== ppe)
+      : [...current, ppe];
+    onChange(index, "required_ppe", updated);
+  };
+
+  const getHierarchyLevelInfo = (level?: string) => {
+    return CONTROL_HIERARCHY_LEVELS.find((h) => h.value === level);
+  };
+
+  const hierarchyLevel = getHierarchyLevelInfo(hazard.control_hierarchy_level);
+  const needsJustification = hierarchyLevel && hierarchyLevel.priority >= 4;
+
   return (
     <div className="border rounded-lg p-4 space-y-4 bg-card">
-      {/* Header with remove button */}
+      {/* Header with Job Step and remove button */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 space-y-3">
+          {/* Job Step (OSHA JHA) */}
+          {showComplianceFields && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-muted/30 p-3 rounded-lg border">
+              <div>
+                <Label className="text-xs">{t("risk.compliance.jobStepNumber", "Step #")}</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={hazard.job_step_number || ""}
+                  onChange={(e) => onChange(index, "job_step_number", parseInt(e.target.value) || null)}
+                  placeholder="1"
+                  className="mt-1"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <Label className="text-xs">{t("risk.compliance.jobStepDescription", "Job Step Description")}</Label>
+                <Input
+                  value={hazard.job_step_description || ""}
+                  onChange={(e) => onChange(index, "job_step_description", e.target.value)}
+                  placeholder={t("risk.compliance.jobStepPlaceholder", "e.g., Position ladder securely...")}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>{t("risk.hazard.description", "Hazard Description")}</Label>
             <Textarea
@@ -182,6 +275,45 @@ export function HazardForm({
               </div>
             </div>
           </div>
+
+          {/* Persons at Risk (ISO 45001) */}
+          {showComplianceFields && (
+            <div className="space-y-2 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4" />
+                {t("risk.compliance.personsAtRisk", "Persons at Risk (ISO 45001)")}
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {PERSONS_AT_RISK.map((person) => {
+                  const isSelected = hazard.persons_at_risk?.includes(person);
+                  return (
+                    <Badge
+                      key={person}
+                      variant={isSelected ? "default" : "outline"}
+                      className={cn(
+                        "cursor-pointer transition-colors",
+                        isSelected && "bg-blue-600 hover:bg-blue-700"
+                      )}
+                      onClick={() => togglePersonAtRisk(person)}
+                    >
+                      {t(`risk.personsAtRisk.${person}`, person.replace("_", " "))}
+                    </Badge>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Label className="text-xs">{t("risk.compliance.numberExposed", "Number Exposed")}</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={hazard.number_exposed || ""}
+                  onChange={(e) => onChange(index, "number_exposed", parseInt(e.target.value) || null)}
+                  placeholder="1"
+                  className="w-24 h-8 text-sm"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <Button
@@ -193,6 +325,50 @@ export function HazardForm({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+
+      {/* Control Hierarchy Level (ISO 45001) */}
+      {showComplianceFields && (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            {t("risk.compliance.controlHierarchy", "Control Hierarchy Level")}
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {CONTROL_HIERARCHY_LEVELS.map((level) => {
+              const isSelected = hazard.control_hierarchy_level === level.value;
+              return (
+                <Badge
+                  key={level.value}
+                  variant={isSelected ? "default" : "outline"}
+                  className={cn(
+                    "cursor-pointer transition-colors",
+                    isSelected && level.color
+                  )}
+                  onClick={() => onChange(index, "control_hierarchy_level", level.value)}
+                >
+                  {t(`risk.controlType.${level.value}`, level.value)}
+                </Badge>
+              );
+            })}
+          </div>
+
+          {/* Justification for lower-level controls */}
+          {needsJustification && (
+            <div className="mt-2">
+              <Label className="text-xs text-orange-600">
+                {t("risk.compliance.hierarchyJustification", "Why can't higher-level controls be applied?")} *
+              </Label>
+              <Textarea
+                value={hazard.higher_control_justification || ""}
+                onChange={(e) => onChange(index, "higher_control_justification", e.target.value)}
+                placeholder={t("risk.compliance.hierarchyJustificationPlaceholder", "Explain why elimination, substitution, or engineering controls are not feasible...")}
+                className="mt-1 text-sm"
+                rows={2}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Existing Controls */}
       <div className="space-y-2">
@@ -277,13 +453,43 @@ export function HazardForm({
         </Button>
       </div>
 
+      {/* Required PPE (derived from hazard) */}
+      {showComplianceFields && (
+        <div className="space-y-2 bg-yellow-50 dark:bg-yellow-950/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <Label className="flex items-center gap-2 text-sm font-medium">
+            <HardHat className="h-4 w-4" />
+            {t("risk.compliance.requiredPPE", "Required PPE")}
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {PPE_TYPES.map((ppe) => {
+              const isSelected = hazard.required_ppe?.includes(ppe);
+              return (
+                <div key={ppe} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`ppe-${index}-${ppe}`}
+                    checked={isSelected}
+                    onCheckedChange={() => togglePPE(ppe)}
+                  />
+                  <label
+                    htmlFor={`ppe-${index}-${ppe}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {t(`risk.ppe.${ppe}`, ppe.replace("_", " "))}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Residual Risk */}
       {showResidual && (
         <div className="bg-muted/50 p-3 rounded space-y-2">
           <Label className="text-sm font-medium">
             {t("risk.residual.title", "Residual Risk (After Controls)")}
           </Label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div>
               <Label className="text-xs">{t("risk.likelihood.label", "Likelihood")}</Label>
               <Select
@@ -326,7 +532,34 @@ export function HazardForm({
                 {residualScore}
               </div>
             </div>
+            <div>
+              <Label className="text-xs">{t("risk.compliance.riskReduction", "Reduction")}</Label>
+              <div className="mt-1 p-2 rounded text-center font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                {initialScore > 0 ? `-${Math.round(((initialScore - residualScore) / initialScore) * 100)}%` : "0%"}
+              </div>
+            </div>
           </div>
+
+          {/* Control Implementation Status */}
+          {showComplianceFields && (
+            <div className="mt-3">
+              <Label className="text-xs">{t("risk.compliance.controlStatus", "Implementation Status")}</Label>
+              <Select
+                value={hazard.control_status || "pending"}
+                onValueChange={(v) => onChange(index, "control_status", v)}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">{t("risk.controlStatus.pending", "Pending")}</SelectItem>
+                  <SelectItem value="in_progress">{t("risk.controlStatus.inProgress", "In Progress")}</SelectItem>
+                  <SelectItem value="implemented">{t("risk.controlStatus.implemented", "Implemented")}</SelectItem>
+                  <SelectItem value="verified">{t("risk.controlStatus.verified", "Verified")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       )}
     </div>
