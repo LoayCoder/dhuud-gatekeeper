@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,8 @@ import {
   CheckCircle2, 
   Clock, 
   XCircle,
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from "lucide-react";
 import { usePTWProjects } from "@/hooks/ptw";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -276,41 +278,53 @@ function ProjectCard({ project, onClick }: ProjectCardProps) {
   const { t } = useTranslation();
   
   return (
-    <button
-      onClick={onClick}
-      className="w-full text-start p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="font-medium text-sm truncate">{project.name}</p>
-          <p className="text-xs text-muted-foreground">{project.reference_id}</p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 rtl:rotate-180" />
-      </div>
-      
-      {project.contractor_company && (
-        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-          <Building2 className="h-3 w-3" />
-          <span className="truncate">{project.contractor_company.company_name}</span>
-        </div>
-      )}
-      
-      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-        <Calendar className="h-3 w-3" />
-        <span>{format(new Date(project.start_date), "MMM d")} - {format(new Date(project.end_date), "MMM d, yyyy")}</span>
-      </div>
-      
-      {project.status === "pending_clearance" && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-muted-foreground">
-              {t("ptw.mobilization.progress", "Mobilization")}
-            </span>
-            <span className="font-medium">{project.mobilization_percentage}%</span>
+    <div className="w-full text-start p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+      <button
+        onClick={onClick}
+        className="w-full text-start"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-sm truncate">{project.name}</p>
+            <p className="text-xs text-muted-foreground">{project.reference_id}</p>
           </div>
-          <Progress value={project.mobilization_percentage} className="h-1.5" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 rtl:rotate-180" />
         </div>
-      )}
-    </button>
+        
+        {project.contractor_company && (
+          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+            <Building2 className="h-3 w-3" />
+            <span className="truncate">{project.contractor_company.company_name}</span>
+          </div>
+        )}
+        
+        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+          <Calendar className="h-3 w-3" />
+          <span>{format(new Date(project.start_date), "MMM d")} - {format(new Date(project.end_date), "MMM d, yyyy")}</span>
+        </div>
+        
+        {project.status === "pending_clearance" && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-muted-foreground">
+                {t("ptw.mobilization.progress", "Mobilization")}
+              </span>
+              <span className="font-medium">{project.mobilization_percentage}%</span>
+            </div>
+            <Progress value={project.mobilization_percentage} className="h-1.5" />
+          </div>
+        )}
+      </button>
+      
+      {/* Full Page Link */}
+      <Link 
+        to={`/ptw/projects/${project.id}/clearance`}
+        className="flex items-center justify-center gap-1 mt-3 pt-2 border-t text-xs text-primary hover:underline"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExternalLink className="h-3 w-3" />
+        {t("ptw.mobilization.viewFullPage", "View Full Page")}
+      </Link>
+    </div>
   );
 }

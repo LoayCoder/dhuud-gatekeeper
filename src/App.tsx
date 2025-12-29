@@ -140,6 +140,7 @@ const ContractorPortalGatePasses = lazyWithRetry(() => import("./pages/contracto
 // PTW (Permit to Work) pages - lazy loaded with retry
 const PTWDashboard = lazyWithRetry(() => import("./pages/ptw/PTWDashboard"));
 const ProjectMobilization = lazyWithRetry(() => import("./pages/ptw/ProjectMobilization"));
+const ProjectClearance = lazyWithRetry(() => import("./pages/ptw/ProjectClearance"));
 const PermitConsole = lazyWithRetry(() => import("./pages/ptw/PermitConsole"));
 const CreatePermit = lazyWithRetry(() => import("./pages/ptw/CreatePermit"));
 const PermitView = lazyWithRetry(() => import("./pages/ptw/PermitView"));
@@ -319,6 +320,7 @@ const App = () => (
                       {/* PTW (Permit to Work) Routes */}
                       <Route path="/ptw" element={<HSSERoute><PTWDashboard /></HSSERoute>} />
                       <Route path="/ptw/projects" element={<HSSERoute><ProjectMobilization /></HSSERoute>} />
+                      <Route path="/ptw/projects/:projectId/clearance" element={<HSSERoute><ProjectClearance /></HSSERoute>} />
                       <Route path="/ptw/console" element={<HSSERoute><PermitConsole /></HSSERoute>} />
                       <Route path="/ptw/create" element={<HSSERoute><CreatePermit /></HSSERoute>} />
                       <Route path="/ptw/permits/:id" element={<HSSERoute><PermitView /></HSSERoute>} />
