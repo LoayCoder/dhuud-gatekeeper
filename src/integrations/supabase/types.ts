@@ -3291,13 +3291,17 @@ export type Database = {
       contractor_projects: {
         Row: {
           assigned_workers_count: number
+          boundary_polygon: Json | null
           company_id: string
           created_at: string
           created_by: string | null
           deleted_at: string | null
           end_date: string
+          geofence_radius_meters: number | null
           id: string
+          latitude: number | null
           location_description: string | null
+          longitude: number | null
           notes: string | null
           project_code: string
           project_manager_id: string | null
@@ -3312,13 +3316,17 @@ export type Database = {
         }
         Insert: {
           assigned_workers_count?: number
+          boundary_polygon?: Json | null
           company_id: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           end_date: string
+          geofence_radius_meters?: number | null
           id?: string
+          latitude?: number | null
           location_description?: string | null
+          longitude?: number | null
           notes?: string | null
           project_code: string
           project_manager_id?: string | null
@@ -3333,13 +3341,17 @@ export type Database = {
         }
         Update: {
           assigned_workers_count?: number
+          boundary_polygon?: Json | null
           company_id?: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           end_date?: string
+          geofence_radius_meters?: number | null
           id?: string
+          latitude?: number | null
           location_description?: string | null
+          longitude?: number | null
           notes?: string | null
           project_code?: string
           project_manager_id?: string | null
@@ -11483,6 +11495,7 @@ export type Database = {
       }
       ptw_projects: {
         Row: {
+          boundary_polygon: Json | null
           building_id: string | null
           contractor_company_id: string | null
           created_at: string | null
@@ -11490,10 +11503,13 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           end_date: string
+          geofence_radius_meters: number | null
           hsse_coordinator_id: string | null
           id: string
           is_internal_work: boolean
+          latitude: number | null
           linked_contractor_project_id: string | null
+          longitude: number | null
           mobilization_percentage: number | null
           name: string
           name_ar: string | null
@@ -11506,6 +11522,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          boundary_polygon?: Json | null
           building_id?: string | null
           contractor_company_id?: string | null
           created_at?: string | null
@@ -11513,10 +11530,13 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           end_date: string
+          geofence_radius_meters?: number | null
           hsse_coordinator_id?: string | null
           id?: string
           is_internal_work?: boolean
+          latitude?: number | null
           linked_contractor_project_id?: string | null
+          longitude?: number | null
           mobilization_percentage?: number | null
           name: string
           name_ar?: string | null
@@ -11529,6 +11549,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          boundary_polygon?: Json | null
           building_id?: string | null
           contractor_company_id?: string | null
           created_at?: string | null
@@ -11536,10 +11557,13 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           end_date?: string
+          geofence_radius_meters?: number | null
           hsse_coordinator_id?: string | null
           id?: string
           is_internal_work?: boolean
+          latitude?: number | null
           linked_contractor_project_id?: string | null
+          longitude?: number | null
           mobilization_percentage?: number | null
           name?: string
           name_ar?: string | null
@@ -13433,6 +13457,7 @@ export type Database = {
           branch_id: string | null
           created_at: string | null
           deleted_at: string | null
+          geofence_radius_meters: number | null
           id: string
           is_active: boolean | null
           latitude: number | null
@@ -13446,6 +13471,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          geofence_radius_meters?: number | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -13459,6 +13485,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          geofence_radius_meters?: number | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null

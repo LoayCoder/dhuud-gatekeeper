@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+interface Coordinate {
+  lat: number;
+  lng: number;
+}
+
 export interface ContractorProject {
   id: string;
   tenant_id: string;
@@ -19,6 +24,10 @@ export interface ContractorProject {
   required_safety_officers: number;
   notes: string | null;
   project_manager_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  boundary_polygon: Coordinate[] | null;
+  geofence_radius_meters: number;
   created_at: string;
   updated_at: string;
   company?: { company_name: string } | null;
@@ -46,7 +55,9 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
         .select(`
           id, tenant_id, company_id, project_code, project_name, project_name_ar,
           site_id, location_description, start_date, end_date, status,
-          assigned_workers_count, required_safety_officers, notes, project_manager_id, created_at, updated_at,
+          assigned_workers_count, required_safety_officers, notes, project_manager_id,
+          latitude, longitude, boundary_polygon, geofence_radius_meters,
+          created_at, updated_at,
           company:contractor_companies(company_name),
           site:sites(name),
           project_manager:profiles!contractor_projects_project_manager_id_fkey(id, full_name)
@@ -63,7 +74,12 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as ContractorProject[];
+      
+      // Map boundary_polygon from Json to Coordinate[]
+      return (data ?? []).map(item => ({
+        ...item,
+        boundary_polygon: item.boundary_polygon as unknown as Coordinate[] | null,
+      })) as ContractorProject[];
     },
     enabled: !!tenantId,
   });
@@ -77,22 +93,28 @@ export function useCreateContractorProject() {
     mutationFn: async (data: Partial<ContractorProject>) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
 
+      const insertPayload = {
+        company_id: data.company_id!,
+        project_code: data.project_code!,
+        project_name: data.project_name!,
+        project_name_ar: data.project_name_ar,
+        site_id: data.site_id,
+        location_description: data.location_description,
+        start_date: data.start_date!,
+        end_date: data.end_date!,
+        notes: data.notes,
+        project_manager_id: data.project_manager_id,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        boundary_polygon: data.boundary_polygon as unknown,
+        geofence_radius_meters: data.geofence_radius_meters ?? 100,
+        tenant_id: profile.tenant_id,
+        status: "planned",
+      };
+
       const { data: result, error } = await supabase
         .from("contractor_projects")
-        .insert({
-          company_id: data.company_id!,
-          project_code: data.project_code!,
-          project_name: data.project_name!,
-          project_name_ar: data.project_name_ar,
-          site_id: data.site_id,
-          location_description: data.location_description,
-          start_date: data.start_date!,
-          end_date: data.end_date!,
-          notes: data.notes,
-          project_manager_id: data.project_manager_id,
-          tenant_id: profile.tenant_id,
-          status: "planned",
-        })
+        .insert(insertPayload as never)
         .select()
         .single();
 
@@ -114,9 +136,14 @@ export function useUpdateContractorProject() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorProject> }) => {
+      const updatePayload = {
+        ...data,
+        boundary_polygon: data.boundary_polygon as unknown,
+      };
+      
       const { data: result, error } = await supabase
         .from("contractor_projects")
-        .update(data)
+        .update(updatePayload as never)
         .eq("id", id)
         .select()
         .single();

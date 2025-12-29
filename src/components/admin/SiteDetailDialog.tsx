@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Trash2, Star, Plus } from 'lucide-react';
+import { Loader2, Trash2, Star, Plus, Circle } from 'lucide-react';
 import { SiteLocationPicker } from './SiteLocationPicker';
 import { useSiteDepartments } from '@/hooks/use-site-departments';
 import { useTenantDepartments } from '@/hooks/use-org-hierarchy';
@@ -38,6 +39,7 @@ interface Site {
   longitude: number | null;
   branch_id: string | null;
   boundary_polygon?: Coordinate[] | null;
+  geofence_radius_meters?: number | null;
 }
 
 interface SiteDetailDialogProps {
@@ -60,6 +62,7 @@ export function SiteDetailDialog({
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [boundaryPolygon, setBoundaryPolygon] = useState<Coordinate[] | null>(null);
+  const [geofenceRadius, setGeofenceRadius] = useState(100);
   const [saving, setSaving] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [showMap, setShowMap] = useState(false);
@@ -92,11 +95,13 @@ export function SiteDetailDialog({
       setLatitude(site.latitude);
       setLongitude(site.longitude);
       setBoundaryPolygon(site.boundary_polygon ?? null);
+      setGeofenceRadius(site.geofence_radius_meters ?? 100);
     } else {
       setName('');
       setLatitude(null);
       setLongitude(null);
       setBoundaryPolygon(null);
+      setGeofenceRadius(100);
     }
     setSelectedDepartmentId('');
   }, [site]);
@@ -120,6 +125,7 @@ export function SiteDetailDialog({
         latitude,
         longitude,
         boundary_polygon: boundaryPolygon,
+        geofence_radius_meters: geofenceRadius,
       };
 
       const { error } = await supabase
@@ -174,6 +180,28 @@ export function SiteDetailDialog({
             />
           </div>
 
+          {/* Geofence Radius Slider */}
+          <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2 font-medium">
+                <Circle className="h-4 w-4" />
+                {t('location.geofenceRadius', 'Geofence Radius')}
+              </Label>
+              <Badge variant="outline">{geofenceRadius}m</Badge>
+            </div>
+            <Slider
+              value={[geofenceRadius]}
+              onValueChange={([val]) => setGeofenceRadius(val)}
+              min={10}
+              max={500}
+              step={10}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              {t('location.geofenceRadiusDescription', 'Alert trigger zone around the site boundary')}
+            </p>
+          </div>
+
           {/* Map with Location Picker - delayed render with unique key to avoid portal issues */}
           {showMap && (
             <SiteLocationPicker
@@ -181,6 +209,7 @@ export function SiteDetailDialog({
               latitude={latitude}
               longitude={longitude}
               boundaryPolygon={boundaryPolygon}
+              geofenceRadius={geofenceRadius}
               onLocationChange={handleLocationChange}
               onPolygonChange={handlePolygonChange}
             />

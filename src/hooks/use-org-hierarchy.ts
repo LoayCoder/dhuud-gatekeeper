@@ -16,6 +16,7 @@ export interface Site {
   latitude: number | null;
   longitude: number | null;
   boundary_polygon?: Coordinate[] | null;
+  geofence_radius_meters?: number | null;
 }
 
 export interface Branch {
@@ -51,6 +52,7 @@ export function useTenantSites() {
           latitude,
           longitude,
           boundary_polygon,
+          geofence_radius_meters,
           branches!sites_branch_id_fkey (name)
         `)
         .eq('tenant_id', profile.tenant_id)
@@ -79,6 +81,7 @@ export function useTenantSites() {
           latitude: site.latitude,
           longitude: site.longitude,
           boundary_polygon: boundaryPolygon,
+          geofence_radius_meters: site.geofence_radius_meters,
         };
       }) as Site[];
     },
