@@ -14998,6 +14998,17 @@ export type Database = {
         Args: { p_branch_id?: string; p_site_id?: string }
         Returns: number
       }
+      get_emergency_notification_recipients: {
+        Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          phone_number: string
+          preferred_language: string
+          role_code: string
+          user_id: string
+        }[]
+      }
       get_events_by_location: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: Json
