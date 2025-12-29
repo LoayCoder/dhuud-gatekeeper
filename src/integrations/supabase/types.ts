@@ -3136,6 +3136,98 @@ export type Database = {
           },
         ]
       }
+      contractor_documents: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          deleted_at: string | null
+          document_type: string
+          expiry_date: string | null
+          expiry_warning_sent_at: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          storage_path: string
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          updated_at: string
+          uploaded_by: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_type: string
+          expiry_date?: string | null
+          expiry_warning_sent_at?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          storage_path: string
+          tenant_id: string
+          title: string
+          title_ar?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_type?: string
+          expiry_date?: string | null
+          expiry_warning_sent_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          storage_path?: string
+          tenant_id?: string
+          title?: string
+          title_ar?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_module_audit_logs: {
         Row: {
           action: string
