@@ -9,11 +9,22 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Settings, Smartphone, Eye, Save } from 'lucide-react';
+import { Loader2, Settings, Smartphone, Eye, Save, Database, Trash2, AlertTriangle } from 'lucide-react';
 import { clearSplashCache, type SplashSettings } from '@/hooks/use-splash-settings';
 import { SplashScreen } from '@/components/SplashScreen';
 import { cn } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const DEFAULT_SETTINGS: SplashSettings = {
   enabled: true,
@@ -32,6 +43,10 @@ export default function PlatformSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [settings, setSettings] = useState<SplashSettings>(DEFAULT_SETTINGS);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [seedResults, setSeedResults] = useState<any>(null);
+  const [cleanResults, setCleanResults] = useState<any>(null);
 
   useEffect(() => {
     fetchSettings();
@@ -87,6 +102,42 @@ export default function PlatformSettings() {
       timestamp: Date.now(),
     }));
     setShowPreview(true);
+  };
+
+  const handleSeedTestData = async () => {
+    setIsSeeding(true);
+    setSeedResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-comprehensive-test-data');
+      
+      if (error) throw error;
+      
+      setSeedResults(data);
+      toast.success(t('platformSettings.seedSuccess', 'Test data seeded successfully'));
+    } catch (error) {
+      console.error('Error seeding test data:', error);
+      toast.error(t('platformSettings.seedError', 'Failed to seed test data'));
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleCleanupTestData = async () => {
+    setIsCleaning(true);
+    setCleanResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('cleanup-test-data');
+      
+      if (error) throw error;
+      
+      setCleanResults(data);
+      toast.success(t('platformSettings.cleanupSuccess', 'Test data cleaned up successfully'));
+    } catch (error) {
+      console.error('Error cleaning up test data:', error);
+      toast.error(t('platformSettings.cleanupError', 'Failed to cleanup test data'));
+    } finally {
+      setIsCleaning(false);
+    }
   };
 
   if (isLoading) {
@@ -252,6 +303,112 @@ export default function PlatformSettings() {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Developer Tools */}
+      <Card className="border-amber-500/50">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <CardTitle>{t('platformSettings.developerTools', 'Developer Tools')}</CardTitle>
+          </div>
+          <CardDescription>
+            {t('platformSettings.developerToolsDescription', 'Tools for development and QA testing. Use with caution in production.')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Seed Test Data */}
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-primary" />
+                <span className="font-medium">{t('platformSettings.seedTestData', 'Seed Test Data')}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('platformSettings.seedTestDataDescription', 'Populate the database with realistic test data for all modules (prefixed with TEST-)')}
+              </p>
+            </div>
+            <Button 
+              onClick={handleSeedTestData} 
+              disabled={isSeeding}
+              variant="outline"
+            >
+              {isSeeding ? (
+                <Loader2 className="h-4 w-4 animate-spin me-2" />
+              ) : (
+                <Database className="h-4 w-4 me-2" />
+              )}
+              {isSeeding ? t('common.loading') : t('platformSettings.seedButton', 'Seed Data')}
+            </Button>
+          </div>
+
+          {/* Seed Results */}
+          {seedResults && (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2">{t('platformSettings.seedResults', 'Seed Results')}</h4>
+              <pre className="text-xs overflow-auto max-h-48">
+                {JSON.stringify(seedResults.results, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Cleanup Test Data */}
+          <div className="flex items-center justify-between p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Trash2 className="h-4 w-4 text-destructive" />
+                <span className="font-medium">{t('platformSettings.cleanupTestData', 'Cleanup Test Data')}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('platformSettings.cleanupTestDataDescription', 'Remove all test data (records prefixed with TEST-) from the database')}
+              </p>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive"
+                  disabled={isCleaning}
+                >
+                  {isCleaning ? (
+                    <Loader2 className="h-4 w-4 animate-spin me-2" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 me-2" />
+                  )}
+                  {isCleaning ? t('common.loading') : t('platformSettings.cleanupButton', 'Cleanup')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('platformSettings.cleanupConfirmTitle', 'Are you sure?')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('platformSettings.cleanupConfirmDescription', 'This will permanently delete all test data (records with TEST- prefix) from your database. This action cannot be undone.')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCleanupTestData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    {t('platformSettings.confirmCleanup', 'Yes, delete test data')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+          {/* Cleanup Results */}
+          {cleanResults && (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2">{t('platformSettings.cleanupResults', 'Cleanup Results')}</h4>
+              <p className="text-sm text-muted-foreground mb-2">
+                {t('platformSettings.totalDeleted', 'Total deleted')}: {cleanResults.total_deleted}
+              </p>
+              <pre className="text-xs overflow-auto max-h-48">
+                {JSON.stringify(cleanResults.results, null, 2)}
+              </pre>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

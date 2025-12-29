@@ -230,3 +230,6 @@ verify_jwt = true
 
 [functions.seed-comprehensive-test-data]
 verify_jwt = true
+
+[functions.cleanup-test-data]
+verify_jwt = true
