@@ -212,3 +212,9 @@ verify_jwt = false
 
 [functions.dispatch-emergency-alert]
 verify_jwt = false
+
+[functions.emergency-sla-check]
+verify_jwt = false
+
+[functions.process-guard-attendance]
+verify_jwt = true
