@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface PTWType {
   id: string;
-  tenant_id: string;
+  tenant_id: string | null;
   name: string;
   name_ar: string | null;
   code: string;
@@ -28,6 +28,7 @@ export function usePTWTypes() {
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Fetch both tenant-specific types AND global templates (tenant_id is null)
       const { data, error } = await supabase
         .from("ptw_types")
         .select(`
@@ -40,7 +41,7 @@ export function usePTWTypes() {
         .order("sort_order");
 
       if (error) throw error;
-      return data as PTWType[];
+      return (data || []) as PTWType[];
     },
     enabled: !!tenantId,
   });
