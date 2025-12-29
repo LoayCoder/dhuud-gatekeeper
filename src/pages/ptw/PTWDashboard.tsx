@@ -26,6 +26,7 @@ import {
   ExpiringPermitsWidget,
   PTWStatsRow,
 } from "@/components/ptw/dashboard";
+import { IntegrationAuditWidget } from "@/components/ptw/dashboard/IntegrationAuditWidget";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -195,6 +196,9 @@ export default function PTWDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Integration Audit Widget */}
+      <IntegrationAuditWidget limit={10} />
     </div>
   );
 }
