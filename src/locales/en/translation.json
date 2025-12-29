@@ -7097,5 +7097,22 @@
       "adjustment": "Adjustment",
       "return": "Return"
     }
+  },
+  "location": {
+    "locationAndBoundary": "Location & Boundary",
+    "locationTab": "Location",
+    "geofenceRadius": "Geofence Radius",
+    "geofenceRadiusDescription": "Alert trigger zone around the location",
+    "setMarker": "Set Marker",
+    "drawBoundary": "Draw Boundary",
+    "polygonPoints": "{{count}} points",
+    "needMorePoints": "Need {{count}} more points",
+    "confirmBoundary": "Confirm Boundary",
+    "boundarySet": "Boundary Set",
+    "boundaryConfirmed": "Boundary confirmed",
+    "boundaryDefined": "Boundary defined",
+    "vertices": "vertices",
+    "showRadiusBuffer": "Show radius buffer",
+    "coordinates": "Coordinates"
   }
 }
