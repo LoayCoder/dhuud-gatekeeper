@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,7 +18,8 @@ import {
   Users, 
   Briefcase,
   AlertTriangle,
-  Loader2
+  Loader2,
+  ExternalLink
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -284,6 +286,19 @@ export function ProjectClearanceDialog({ projectId, open, onOpenChange }: Projec
             </p>
           </div>
         )}
+
+        {/* Footer with Full Page Link */}
+        <DialogFooter className="sm:justify-between">
+          <Link to={`/ptw/projects/${projectId}/clearance`}>
+            <Button variant="outline" size="sm">
+              <ExternalLink className="me-2 h-4 w-4" />
+              {t("ptw.clearance.openFullPage", "Open Full Page")}
+            </Button>
+          </Link>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+            {t("common.close", "Close")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

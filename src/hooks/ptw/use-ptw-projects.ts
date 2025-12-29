@@ -182,6 +182,7 @@ export function useApproveClearanceCheck() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["ptw-clearances", data.project_id] });
       queryClient.invalidateQueries({ queryKey: ["ptw-projects"] });
+      queryClient.invalidateQueries({ queryKey: ["mobilization-check", data.project_id] });
       toast.success("Clearance approved");
     },
     onError: (error: Error) => {
@@ -216,6 +217,7 @@ export function useRejectClearanceCheck() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["ptw-clearances", data.project_id] });
       queryClient.invalidateQueries({ queryKey: ["ptw-projects"] });
+      queryClient.invalidateQueries({ queryKey: ["mobilization-check", data.project_id] });
       toast.success("Clearance rejected");
     },
     onError: (error: Error) => {
