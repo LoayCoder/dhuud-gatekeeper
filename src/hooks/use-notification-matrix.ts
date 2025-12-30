@@ -24,8 +24,8 @@ export type StakeholderRole = typeof STAKEHOLDER_ROLES[number];
 export const SEVERITY_LEVELS = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const;
 export const CHANNELS = ['push', 'email', 'whatsapp'] as const;
 
-// Event types for separate notification matrices
-export const EVENT_TYPES = ['all', 'incident', 'observation'] as const;
+// Event types for separate notification matrices - now fully separate
+export const EVENT_TYPES = ['incident', 'observation'] as const;
 export type EventType = typeof EVENT_TYPES[number];
 
 export function useNotificationMatrix(eventType?: EventType) {
@@ -37,9 +37,9 @@ export function useNotificationMatrix(eventType?: EventType) {
         .select('*')
         .is('deleted_at', null);
       
-      // Filter by event_type if specified
-      if (eventType && eventType !== 'all') {
-        query = query.or(`event_type.eq.${eventType},event_type.eq.all`);
+      // Filter by exact event_type - separate matrices for incidents and observations
+      if (eventType) {
+        query = query.eq('event_type', eventType);
       }
       
       const { data, error } = await query
