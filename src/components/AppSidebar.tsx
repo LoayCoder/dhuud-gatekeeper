@@ -575,7 +575,8 @@ export function AppSidebar() {
           isActive: location.pathname.includes('/sla') || 
                     location.pathname === '/admin/action-sla' ||
                     location.pathname === '/admin/finding-sla' ||
-                    location.pathname === '/admin/investigation-sla',
+                    location.pathname === '/admin/investigation-sla' ||
+                    location.pathname === '/admin/violation-sla',
           subItems: [
             {
               title: t('navigation.slaDashboard', 'SLA Dashboard'),
@@ -600,6 +601,12 @@ export function AppSidebar() {
               url: "/admin/investigation-sla",
               icon: FileWarning,
               menuCode: 'admin_investigation_sla',
+            },
+            {
+              title: t('navigation.violationSettings', 'Violation Settings'),
+              url: "/admin/violation-sla",
+              icon: AlertTriangle,
+              menuCode: 'admin_violation_sla',
             },
             {
               title: t('navigation.slaAnalytics', 'SLA Analytics'),

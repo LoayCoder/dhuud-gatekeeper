@@ -1121,6 +1121,41 @@
     "pageNotFound": "عفواً! الصفحة غير موجودة",
     "returnHome": "العودة إلى الصفحة الرئيسية"
   },
+  "violations": {
+    "title": "إعدادات المخالفات",
+    "description": "تكوين مخالفات السلامة وإجراءات العقوبات التدريجية",
+    "list": "أنواع المخالفات",
+    "addViolation": "إضافة مخالفة",
+    "editViolation": "تعديل المخالفة",
+    "name": "اسم المخالفة",
+    "nameAr": "اسم المخالفة (عربي)",
+    "namePlaceholder": "أدخل اسم المخالفة",
+    "severity": "مستوى الخطورة",
+    "firstOccurrence": "المرة الأولى",
+    "secondOccurrence": "المرة الثانية",
+    "thirdOccurrence": "المرة الثالثة",
+    "actionType": "نوع الإجراء",
+    "fineAmount": "مبلغ الغرامة (ريال)",
+    "actionDescription": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري...",
+    "progressiveDiscipline": "العقوبات التدريجية",
+    "noViolations": "لم يتم تكوين أي مخالفات بعد",
+    "deleteTitle": "حذف المخالفة",
+    "deleteConfirm": "هل أنت متأكد من حذف هذه المخالفة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "created": "تم إنشاء نوع المخالفة بنجاح",
+    "updated": "تم تحديث نوع المخالفة بنجاح",
+    "deleted": "تم حذف نوع المخالفة بنجاح",
+    "createError": "فشل في إنشاء نوع المخالفة",
+    "updateError": "فشل في تحديث نوع المخالفة",
+    "deleteError": "فشل في حذف نوع المخالفة",
+    "actionTypes": {
+      "fine": "غرامة مالية",
+      "warning": "إنذار",
+      "suspension": "إيقاف مؤقت",
+      "siteRemoval": "إبعاد من الموقع",
+      "termination": "إنهاء العقد"
+    }
+  },
 "common": {
     "loading": "جاري التحميل...",
     "save": "حفظ",
@@ -1750,7 +1785,8 @@
     "notificationsGroup": "الإشعارات",
     "reportingKpis": "التقارير ومؤشرات الأداء",
     "systemConfig": "إعدادات النظام",
-    "platformManagement": "إدارة المنصة"
+    "platformManagement": "إدارة المنصة",
+    "violationSettings": "إعدادات المخالفات"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

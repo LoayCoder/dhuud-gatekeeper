@@ -1227,6 +1227,41 @@
     "pageNotFound": "Oops! Page not found",
     "returnHome": "Return to Home"
   },
+  "violations": {
+    "title": "Violation Settings",
+    "description": "Configure safety violations and progressive discipline actions",
+    "list": "Violation Types",
+    "addViolation": "Add Violation",
+    "editViolation": "Edit Violation",
+    "name": "Violation Name",
+    "nameAr": "Violation Name (Arabic)",
+    "namePlaceholder": "Enter violation name",
+    "severity": "Severity Level",
+    "firstOccurrence": "1st Occurrence",
+    "secondOccurrence": "2nd Occurrence",
+    "thirdOccurrence": "3rd Occurrence",
+    "actionType": "Action Type",
+    "fineAmount": "Fine Amount (SAR)",
+    "actionDescription": "Description",
+    "descriptionPlaceholder": "Optional description...",
+    "progressiveDiscipline": "Progressive Discipline",
+    "noViolations": "No violations configured yet",
+    "deleteTitle": "Delete Violation",
+    "deleteConfirm": "Are you sure you want to delete this violation? This action cannot be undone.",
+    "created": "Violation type created successfully",
+    "updated": "Violation type updated successfully",
+    "deleted": "Violation type deleted successfully",
+    "createError": "Failed to create violation type",
+    "updateError": "Failed to update violation type",
+    "deleteError": "Failed to delete violation type",
+    "actionTypes": {
+      "fine": "Fine",
+      "warning": "Warning",
+      "suspension": "Suspension",
+      "siteRemoval": "Site Removal",
+      "termination": "Termination"
+    }
+  },
 "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -1602,7 +1637,8 @@
     "notificationsGroup": "Notifications",
     "reportingKpis": "Reporting & KPIs",
     "systemConfig": "System Configuration",
-    "platformManagement": "Platform Management"
+    "platformManagement": "Platform Management",
+    "violationSettings": "Violation Settings"
   },
   "actions": {
     "sessionActions": "Session Actions",

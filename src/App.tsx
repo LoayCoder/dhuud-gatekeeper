@@ -170,6 +170,7 @@ const FindingSLASettings = lazyWithRetry(() => import("./pages/admin/FindingSLAS
 const SLADashboard = lazyWithRetry(() => import("./pages/admin/SLADashboard"));
 const SLAAnalytics = lazyWithRetry(() => import("./pages/admin/SLAAnalytics"));
 const InvestigationSLASettings = lazyWithRetry(() => import("./pages/admin/InvestigationSLASettings"));
+const ViolationSettings = lazyWithRetry(() => import("./pages/admin/ViolationSettings"));
 const UsageBilling = lazyWithRetry(() => import("./pages/settings/UsageBilling"));
 const DocumentSettings = lazyWithRetry(() => import("./pages/admin/DocumentSettings"));
 const TeamPerformance = lazyWithRetry(() => import("./pages/admin/TeamPerformance"));
@@ -476,6 +477,14 @@ const App = () => (
                           <HSSERoute>
                             <SLADashboard />
                           </HSSERoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/violation-sla"
+                        element={
+                          <AdminRoute>
+                            <ViolationSettings />
+                          </AdminRoute>
                         }
                       />
                       <Route
