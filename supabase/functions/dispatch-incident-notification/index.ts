@@ -399,31 +399,15 @@ Deno.serve(async (req) => {
       console.log(`[Dispatch] Recipients breakdown: ${recipientList.map(r => `${r.stakeholder_role}(${r.channels.join(',')})`).join(', ')}`);
     }
 
-    // 8. Apply channel gating based on severity level per GCC-Standard 5-Level Matrix:
-    // - Level 5 (Catastrophic): WhatsApp + Email + Push to ALL including HSSE Manager
-    // - Level 3-4 (Serious/Major): WhatsApp + Email + Push (all channels) + HSSE Expert
-    // - Level 1-2 (Low/Moderate): Email only (WhatsApp gate applies)
-    // - Exception: First Aiders always get WhatsApp if there's an injury
+    // 8. Channel determination is now fully driven by Notification Matrix
+    // The matrix already specifies which channels each stakeholder receives for each severity level
+    // Only Level 5 escalation is applied as an additive rule (ensures HSSE Manager gets all channels)
     const processedRecipients = recipientList.map(r => {
       const severityLevel = SEVERITY_LEVEL_MAP[effectiveSeverity] || 2;
       let filteredChannels = [...r.channels];
       
-      if (severityLevel < 3) {
-        // Low/Moderate severity: Only Email, no WhatsApp/Push
-        const isFirstAiderWithInjury = r.stakeholder_role === 'first_aider' && hasInjury;
-        
-        if (!isFirstAiderWithInjury) {
-          // Remove WhatsApp for non-critical incidents
-          filteredChannels = filteredChannels.filter(c => c !== 'whatsapp');
-        }
-        
-        // Keep email as primary channel for low severity
-        // Push is still allowed for quick notification
-      }
-      
-      // Level 5: Ensure HSSE Manager gets immediate notification on all channels
+      // Level 5: Ensure HSSE Manager gets immediate notification on all channels (additive rule)
       if (severityLevel >= 5 && r.stakeholder_role === 'hsse_manager') {
-        // Ensure all channels are present for HSSE Manager on Level 5
         if (!filteredChannels.includes('whatsapp')) filteredChannels.push('whatsapp');
         if (!filteredChannels.includes('email')) filteredChannels.push('email');
         if (!filteredChannels.includes('push')) filteredChannels.push('push');
@@ -432,7 +416,7 @@ Deno.serve(async (req) => {
       return { ...r, channels: filteredChannels };
     }).filter(r => r.channels.length > 0);
 
-    console.log(`[Dispatch] After severity-based channel gating: ${processedRecipients.length} recipients with active channels`);
+    console.log(`[Dispatch] Channels from matrix: ${processedRecipients.length} recipients with active channels`);
 
     // 9. Send notifications (per-recipient language)
     const results: NotificationResult[] = [];
