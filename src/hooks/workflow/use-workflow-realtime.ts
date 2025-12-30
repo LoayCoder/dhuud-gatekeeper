@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
+export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error';
+
 export interface WorkflowInstance {
   id: string;
   tenant_id: string;
@@ -48,6 +50,7 @@ interface UseWorkflowRealtimeReturn {
   instances: WorkflowInstance[];
   liveStatus: WorkflowLiveStatus[];
   isConnected: boolean;
+  connectionState: ConnectionState;
   lastUpdate: Date | null;
   connectionError: string | null;
   refetch: () => Promise<void>;
@@ -57,7 +60,7 @@ export function useWorkflowRealtime(workflowKey?: string): UseWorkflowRealtimeRe
   const { profile } = useAuth();
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [liveStatus, setLiveStatus] = useState<WorkflowLiveStatus[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
@@ -106,8 +109,13 @@ export function useWorkflowRealtime(workflowKey?: string): UseWorkflowRealtimeRe
   }, [profile?.tenant_id, workflowKey]);
 
   useEffect(() => {
-    if (!profile?.tenant_id) return;
+    // If no tenant_id yet, stay in idle state
+    if (!profile?.tenant_id) {
+      setConnectionState('idle');
+      return;
+    }
 
+    setConnectionState('connecting');
     fetchData();
 
     // Set up real-time subscriptions
@@ -164,9 +172,15 @@ export function useWorkflowRealtime(workflowKey?: string): UseWorkflowRealtimeRe
         }
       )
       .subscribe((status) => {
-        setIsConnected(status === 'SUBSCRIBED');
-        if (status === 'CHANNEL_ERROR') {
+        if (status === 'SUBSCRIBED') {
+          setConnectionState('connected');
+          setConnectionError(null);
+        } else if (status === 'CHANNEL_ERROR') {
+          setConnectionState('error');
           setConnectionError('Real-time connection failed');
+        } else if (status === 'TIMED_OUT') {
+          setConnectionState('error');
+          setConnectionError('Connection timed out');
         }
       });
 
@@ -178,7 +192,8 @@ export function useWorkflowRealtime(workflowKey?: string): UseWorkflowRealtimeRe
   return {
     instances,
     liveStatus,
-    isConnected,
+    isConnected: connectionState === 'connected',
+    connectionState,
     lastUpdate,
     connectionError,
     refetch: fetchData,

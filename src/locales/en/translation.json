@@ -5836,7 +5836,21 @@
       "action": "Action/Process",
       "decision": "Decision Point",
       "approval": "Approval Required"
-    }
+    },
+    "liveStatus": "Live Status",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "disconnected": "Disconnected",
+    "activeInstances": "Active",
+    "completedToday": "Today",
+    "avgTime": "Avg Time",
+    "trend": "Trend",
+    "improving": "Improving",
+    "stable": "Stable",
+    "declining": "Declining",
+    "bottlenecks": "Bottlenecks",
+    "lastUpdated": "Updated",
+    "noData": "No workflow data yet"
   },
   "emailDelivery": {
     "title": "Email Delivery Logs",
