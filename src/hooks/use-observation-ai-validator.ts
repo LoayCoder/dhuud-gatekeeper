@@ -48,8 +48,12 @@ export interface UseObservationAIValidatorReturn {
   
   // Actions
   analyzeDescription: (description: string) => Promise<void>;
-  confirmTranslation: () => void;
+  confirmTranslation: () => string | null; // Returns translated text
+  confirmAnalysis: () => void;
   reset: () => void;
+  
+  // Helpers
+  getTranslatedText: () => string | null;
   
   // Validation checks
   isBlocked: boolean;
@@ -66,6 +70,7 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
   const [error, setError] = useState<string | null>(null);
   const [processingTime, setProcessingTime] = useState(0);
   const [translationConfirmed, setTranslationConfirmed] = useState(false);
+  const [analysisConfirmed, setAnalysisConfirmed] = useState(false);
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -148,7 +153,7 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
     }
   }, [t, toast, startTimer, stopTimer]);
 
-  const confirmTranslation = useCallback(() => {
+  const confirmTranslation = useCallback((): string | null => {
     setTranslationConfirmed(true);
     
     if (analysisResult) {
@@ -157,7 +162,18 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
       } else {
         setValidationState('validated');
       }
+      return analysisResult.translatedText;
     }
+    return null;
+  }, [analysisResult]);
+
+  const confirmAnalysis = useCallback(() => {
+    setAnalysisConfirmed(true);
+    setValidationState('validated');
+  }, []);
+
+  const getTranslatedText = useCallback((): string | null => {
+    return analysisResult?.translatedText || null;
   }, [analysisResult]);
 
   const reset = useCallback(() => {
@@ -166,6 +182,7 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
     setError(null);
     setProcessingTime(0);
     setTranslationConfirmed(false);
+    setAnalysisConfirmed(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -183,8 +200,8 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
     }
     
     if (validationState === 'validation_failed' && analysisResult) {
-      if (analysisResult.wordCount < 20) {
-        return t('observations.ai.minWords', 'Please enter at least 20 words for meaningful analysis.');
+      if (analysisResult.wordCount < 10) {
+        return t('observations.ai.minWords', 'Please enter at least 10 words for meaningful analysis.');
       }
       if (analysisResult.clarityScore < 70) {
         return t('observations.ai.clarityLow', 'Input not clear enough for analysis. Please provide more specific details.');
@@ -209,7 +226,9 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
     processingTime,
     analyzeDescription,
     confirmTranslation,
+    confirmAnalysis,
     reset,
+    getTranslatedText,
     isBlocked,
     canSubmit,
     blockingReason: getBlockingReason(),
