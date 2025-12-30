@@ -15637,6 +15637,77 @@ export type Database = {
           },
         ]
       }
+      violation_types: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          first_action_description: string | null
+          first_action_type: string
+          first_fine_amount: number | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          second_action_description: string | null
+          second_action_type: string
+          second_fine_amount: number | null
+          severity_level: string
+          tenant_id: string
+          third_action_description: string | null
+          third_action_type: string
+          third_fine_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          first_action_description?: string | null
+          first_action_type: string
+          first_fine_amount?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          second_action_description?: string | null
+          second_action_type: string
+          second_fine_amount?: number | null
+          severity_level: string
+          tenant_id: string
+          third_action_description?: string | null
+          third_action_type: string
+          third_fine_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          first_action_description?: string | null
+          first_action_type?: string
+          first_fine_amount?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          second_action_description?: string | null
+          second_action_type?: string
+          second_fine_amount?: number | null
+          severity_level?: string
+          tenant_id?: string
+          third_action_description?: string | null
+          third_action_type?: string
+          third_fine_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "violation_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_requests: {
         Row: {
           approved_by: string | null
