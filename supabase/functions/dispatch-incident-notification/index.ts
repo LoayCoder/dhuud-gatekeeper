@@ -115,7 +115,64 @@ const SEVERITY_EMOJI: Record<string, string> = {
 const MAX_PHOTOS_PER_NOTIFICATION = 5;
 
 /**
- * Extract photo URLs from media_attachments, limited to MAX_PHOTOS_PER_NOTIFICATION
+ * Fetch photo URLs directly from Supabase Storage
+ * This is more reliable than relying on media_attachments column
+ */
+async function getPhotosFromStorage(
+  supabase: any,
+  tenantId: string,
+  incidentId: string
+): Promise<string[]> {
+  const storagePath = `${tenantId}/${incidentId}/photos`;
+  
+  try {
+    const { data: files, error } = await supabase.storage
+      .from('incident-attachments')
+      .list(storagePath);
+    
+    if (error) {
+      console.log(`[Dispatch] Storage list error for ${storagePath}:`, error.message);
+      return [];
+    }
+    
+    if (!files?.length) {
+      console.log(`[Dispatch] No photos found in storage: ${storagePath}`);
+      return [];
+    }
+    
+    console.log(`[Dispatch] Found ${files.length} files in storage: ${storagePath}`);
+    
+    // Generate signed URLs for each photo (filter to image files only)
+    const photoUrls: string[] = [];
+    for (const file of files.slice(0, MAX_PHOTOS_PER_NOTIFICATION)) {
+      // Skip non-image files and metadata files
+      if (!file.name || file.name.startsWith('.')) continue;
+      
+      const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+      if (!isImage) continue;
+      
+      const { data: signedUrl, error: urlError } = await supabase.storage
+        .from('incident-attachments')
+        .createSignedUrl(`${storagePath}/${file.name}`, 60 * 60); // 1 hour expiry
+      
+      if (signedUrl?.signedUrl) {
+        photoUrls.push(signedUrl.signedUrl);
+        console.log(`[Dispatch] Generated signed URL for: ${file.name}`);
+      } else if (urlError) {
+        console.log(`[Dispatch] Failed to generate URL for ${file.name}:`, urlError.message);
+      }
+    }
+    
+    return photoUrls;
+  } catch (err) {
+    console.error(`[Dispatch] Error fetching photos from storage:`, err);
+    return [];
+  }
+}
+
+/**
+ * Fallback: Extract photo URLs from media_attachments column
+ * Used when storage lookup fails or for backwards compatibility
  */
 function extractPhotoUrls(mediaAttachments: MediaAttachment[] | null): string[] {
   if (!mediaAttachments || !Array.isArray(mediaAttachments)) {
@@ -349,9 +406,18 @@ Deno.serve(async (req) => {
     const incident = incidentData as IncidentDetails;
     console.log(`[Dispatch] Incident: ${incident.reference_id}, severity: ${incident.severity_v2}, ERP: ${incident.erp_activated}`);
 
-    // Extract photo URLs from media attachments (limit to MAX_PHOTOS_PER_NOTIFICATION)
-    const photoUrls = extractPhotoUrls(incident.media_attachments);
-    console.log(`[Dispatch] Found ${photoUrls.length} photos to attach to notifications`);
+    // Fetch photos from Supabase Storage (primary) with fallback to media_attachments column
+    let photoUrls = await getPhotosFromStorage(supabase, incident.tenant_id, incident.id);
+    
+    // Fallback to media_attachments if storage lookup returned no results
+    if (photoUrls.length === 0) {
+      photoUrls = extractPhotoUrls(incident.media_attachments);
+      if (photoUrls.length > 0) {
+        console.log(`[Dispatch] Using ${photoUrls.length} photos from media_attachments column (fallback)`);
+      }
+    }
+    
+    console.log(`[Dispatch] Total ${photoUrls.length} photos to attach to notifications`);
 
     // 2. Determine effective severity (ERP Override: Force level_4 or level_5)
     let effectiveSeverity = incident.severity_v2 || 'level_2';
