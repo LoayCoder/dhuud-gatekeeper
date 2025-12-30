@@ -6863,11 +6863,16 @@
       "iconHelp": "Use Lucide icon name (e.g., Flame, Shield, Wrench)"
     },
     "notificationMatrix": {
-      "title": "Incident Notification Matrix",
-      "description": "Configure who receives notifications based on incident severity",
+      "title": "Notification Matrix",
+      "description": "Configure who receives notifications based on event severity",
       "tabs": {
         "categories": "Event Categories",
         "notifications": "Notification Matrix"
+      },
+      "eventTypes": {
+        "incident": "Incidents",
+        "observation": "Observations",
+        "all": "All Events"
       },
       "stakeholder": "Stakeholder",
       "condition": "Condition",
@@ -6885,6 +6890,8 @@
       "ruleUpdated": "Rule Updated",
       "ruleDeleted": "Rule Deleted",
       "noRules": "No notification rules configured",
+      "noRulesDesc": "Add rules to define who gets notified for each event severity level",
+      "addFirstRule": "Add Your First Rule",
       "userSpecific": "User",
       "assignToUser": "Assign to specific user",
       "selectUser": "Select User",
@@ -6895,6 +6902,9 @@
       "channelsLabel": "Notification Channels",
       "conditionLabel": "Condition (Optional)",
       "noCondition": "No condition (always notify)",
+      "conditionHelp": "Conditions filter when notifications are sent",
+      "recipientType": "Recipient Type",
+      "roleBased": "Role-based",
       "channels": {
         "push": "App Push",
         "email": "Email",
@@ -6914,11 +6924,13 @@
         "area_owner": "Area Owner",
         "hsse_manager": "HSSE Manager",
         "hsse_expert": "HSSE Expert",
+        "dept_representative": "Dept Representative",
         "bc_team": "BC Team",
         "first_aider": "First Aider",
         "clinic_team": "Clinic Team",
         "site_manager": "Site Manager",
-        "security_manager": "Security Manager"
+        "security_manager": "Security Manager",
+        "security": "Security"
       }
     }
   },

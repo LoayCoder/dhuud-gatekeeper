@@ -24,14 +24,25 @@ export type StakeholderRole = typeof STAKEHOLDER_ROLES[number];
 export const SEVERITY_LEVELS = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const;
 export const CHANNELS = ['push', 'email', 'whatsapp'] as const;
 
-export function useNotificationMatrix() {
+// Event types for separate notification matrices
+export const EVENT_TYPES = ['all', 'incident', 'observation'] as const;
+export type EventType = typeof EVENT_TYPES[number];
+
+export function useNotificationMatrix(eventType?: EventType) {
   return useQuery({
-    queryKey: ['notification-matrix'],
+    queryKey: ['notification-matrix', eventType],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('incident_notification_matrix')
         .select('*')
-        .is('deleted_at', null)
+        .is('deleted_at', null);
+      
+      // Filter by event_type if specified
+      if (eventType && eventType !== 'all') {
+        query = query.or(`event_type.eq.${eventType},event_type.eq.all`);
+      }
+      
+      const { data, error } = await query
         .order('stakeholder_role')
         .order('severity_level');
 
@@ -64,20 +75,27 @@ export function useCreateMatrixRule() {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async (rule: Omit<NotificationMatrixInsert, 'tenant_id'> & { whatsapp_template_id?: string | null; email_template_id?: string | null }) => {
+    mutationFn: async (rule: Omit<NotificationMatrixInsert, 'tenant_id'> & { 
+      whatsapp_template_id?: string | null; 
+      email_template_id?: string | null;
+      event_type?: EventType;
+    }) => {
       const tenantId = await getCurrentTenantId();
 
-      // Use RPC upsert function to avoid duplicate key errors
-      const { data, error } = await supabase.rpc('upsert_notification_matrix_rule', {
-        p_tenant_id: tenantId,
-        p_stakeholder_role: rule.stakeholder_role,
-        p_severity_level: rule.severity_level,
-        p_channels: rule.channels || [],
-        p_condition_type: rule.condition_type || null,
-        p_user_id: rule.user_id || null,
-        p_whatsapp_template_id: rule.whatsapp_template_id || null,
-        p_email_template_id: rule.email_template_id || null,
-      });
+      // Insert directly with event_type support
+      const { data, error } = await supabase
+        .from('incident_notification_matrix')
+        .insert({
+          tenant_id: tenantId,
+          stakeholder_role: rule.stakeholder_role,
+          severity_level: rule.severity_level,
+          channels: rule.channels || [],
+          condition_type: rule.condition_type || null,
+          user_id: rule.user_id || null,
+          event_type: rule.event_type || 'all',
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       return data;

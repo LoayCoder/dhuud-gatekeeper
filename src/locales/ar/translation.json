@@ -6654,11 +6654,16 @@
       "iconHelp": "استخدم اسم أيقونة Lucide (مثل: Flame, Shield, Wrench)"
     },
     "notificationMatrix": {
-      "title": "مصفوفة إشعارات الحوادث",
-      "description": "تحديد من يتلقى الإشعارات بناءً على خطورة الحادثة",
+      "title": "مصفوفة الإشعارات",
+      "description": "تحديد من يتلقى الإشعارات بناءً على خطورة الحدث",
       "tabs": {
         "categories": "فئات الأحداث",
         "notifications": "مصفوفة الإشعارات"
+      },
+      "eventTypes": {
+        "incident": "الحوادث",
+        "observation": "الملاحظات",
+        "all": "جميع الأحداث"
       },
       "stakeholder": "المعني",
       "condition": "الشرط",
@@ -6676,6 +6681,8 @@
       "ruleUpdated": "تم تحديث القاعدة",
       "ruleDeleted": "تم حذف القاعدة",
       "noRules": "لم يتم تكوين قواعد إشعار",
+      "noRulesDesc": "أضف قواعد لتحديد من يتلقى إشعارات لكل مستوى خطورة",
+      "addFirstRule": "أضف أول قاعدة",
       "userSpecific": "مستخدم",
       "assignToUser": "تعيين لمستخدم محدد",
       "selectUser": "اختر المستخدم",
@@ -6686,6 +6693,9 @@
       "channelsLabel": "قنوات الإشعار",
       "conditionLabel": "الشرط (اختياري)",
       "noCondition": "بدون شرط (إشعار دائم)",
+      "conditionHelp": "الشروط تحدد متى يتم إرسال الإشعارات",
+      "recipientType": "نوع المستلم",
+      "roleBased": "حسب الدور",
       "channels": {
         "push": "إشعار التطبيق",
         "email": "البريد الإلكتروني",
@@ -6705,11 +6715,13 @@
         "area_owner": "مالك المنطقة",
         "hsse_manager": "مدير السلامة",
         "hsse_expert": "خبير السلامة",
+        "dept_representative": "ممثل القسم",
         "bc_team": "فريق استمرارية الأعمال",
         "first_aider": "مسعف أولي",
         "clinic_team": "فريق العيادة",
         "site_manager": "مدير الموقع",
-        "security_manager": "مدير الأمن"
+        "security_manager": "مدير الأمن",
+        "security": "الأمن"
       }
     }
   },
