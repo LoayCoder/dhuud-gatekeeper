@@ -45,13 +45,18 @@ const SYSTEM_VARIABLES = [
   { key: 'action_link', label: 'Action Link', labelAr: 'رابط الإجراء', example: 'https://app.dhuud.com/...' },
   { key: 'reference_id', label: 'Reference ID', labelAr: 'رقم المرجع', example: 'REF-2024-0042' },
   
-  // Incidents
+  // Incidents & Observations
   { key: 'incident_id', label: 'Incident ID', labelAr: 'رقم الحادث', example: 'INC-2024-0042' },
   { key: 'location', label: 'Location', labelAr: 'الموقع', example: 'Site A - Building 2' },
   { key: 'risk_level', label: 'Risk Level', labelAr: 'مستوى الخطورة', example: 'Level 3 (Serious)' },
   { key: 'reported_by', label: 'Reported By', labelAr: 'أبلغ عنه', example: 'Ahmed Hassan' },
   { key: 'incident_time', label: 'Incident Time', labelAr: 'وقت الحادث', example: '2024-12-26 14:30' },
   { key: 'event_type', label: 'Event Type', labelAr: 'نوع الحدث', example: 'Observation' },
+  
+  // Media/Photos
+  { key: 'photo_url', label: 'Photo URL', labelAr: 'رابط الصورة', example: 'https://storage.dhuud.com/photos/incident-123.jpg' },
+  { key: 'first_image_url', label: 'First Image URL', labelAr: 'رابط الصورة الأولى', example: 'https://storage.dhuud.com/photos/image1.jpg' },
+  { key: 'image_count', label: 'Image Count', labelAr: 'عدد الصور', example: '3' },
   
   // Inspections
   { key: 'inspection_date', label: 'Inspection Date', labelAr: 'تاريخ التفتيش', example: '2024-12-26' },
@@ -86,7 +91,8 @@ const SYSTEM_VARIABLES = [
 // Category to variable keys mapping
 const CATEGORY_VARIABLES: Record<string, string[]> = {
   general: ['title', 'description', 'site_name', 'department', 'action_link', 'reference_id'],
-  incidents: ['incident_id', 'reference_id', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'event_type', 'title', 'description', 'site_name', 'department'],
+  incidents: ['incident_id', 'reference_id', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'event_type', 'title', 'description', 'site_name', 'department', 'photo_url', 'first_image_url', 'image_count'],
+  observations: ['incident_id', 'reference_id', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'event_type', 'title', 'description', 'site_name', 'department', 'photo_url', 'first_image_url', 'image_count'],
   inspections: ['reference_id', 'location', 'site_name', 'department', 'action_link', 'title', 'description', 'inspection_date', 'inspector_name', 'inspection_type', 'findings_count'],
   actions: ['reference_id', 'title', 'description', 'due_date', 'assigned_to', 'action_link', 'priority', 'action_status', 'site_name', 'department'],
   contractors: ['reference_id', 'contractor_name', 'permit_type', 'site_name', 'valid_until', 'action_link', 'worker_name', 'department'],
@@ -97,6 +103,7 @@ const CATEGORY_VARIABLES: Record<string, string[]> = {
 const CATEGORIES = [
   'general',
   'incidents',
+  'observations',
   'inspections',
   'actions',
   'contractors',
