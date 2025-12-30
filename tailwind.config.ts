@@ -104,6 +104,22 @@ export default {
 				"0%": { backgroundPosition: "-200% 0" },
 				"100%": { backgroundPosition: "200% 0" },
 			},
+			"workflow-pulse": {
+				"0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0.4)" },
+				"50%": { boxShadow: "0 0 0 8px hsl(var(--primary) / 0)" },
+			},
+			"workflow-progress": {
+				"0%": { height: "0%" },
+				"100%": { height: "100%" },
+			},
+			"node-enter": {
+				"0%": { opacity: "0", transform: "scale(0.8)" },
+				"100%": { opacity: "1", transform: "scale(1)" },
+			},
+			"fade-in": {
+				"0%": { opacity: "0" },
+				"100%": { opacity: "1" },
+			},
 		},
 		animation: {
 			"accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +127,10 @@ export default {
 			"chart-fade-in": "chart-fade-in 0.5s ease-out",
 			"chart-slide-up": "chart-slide-up 0.4s ease-out",
 			shimmer: "shimmer 1.5s ease-in-out infinite",
+			"workflow-pulse": "workflow-pulse 2s ease-in-out infinite",
+			"workflow-progress": "workflow-progress 0.5s ease-out forwards",
+			"node-enter": "node-enter 0.3s ease-out forwards",
+			"fade-in": "fade-in 0.3s ease-out",
 		},
     },
   },
