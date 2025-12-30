@@ -6,6 +6,7 @@ import { Paperclip, FileText, Download, Video, ImageIcon, ExternalLink } from "l
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface MediaAttachment {
   url: string;
@@ -122,6 +123,26 @@ export function IncidentAttachmentsSection({
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Proper download handler for cross-origin files (signed URLs)
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error(t('incidents.downloadFailed', 'Download failed'));
+    }
   };
 
   const allAttachments: Array<{ 
@@ -247,11 +268,10 @@ export function IncidentAttachmentsSection({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 shrink-0"
-                    asChild
+                    onClick={() => handleDownload(attachment.url, attachment.name)}
+                    title={t('incidents.downloadFile', 'Download')}
                   >
-                    <a href={attachment.url} download={attachment.name} title={t('incidents.downloadFile', 'Download')}>
-                      <Download className="h-3 w-3" />
-                    </a>
+                    <Download className="h-3 w-3" />
                   </Button>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">

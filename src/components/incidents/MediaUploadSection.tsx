@@ -14,6 +14,7 @@ interface MediaUploadSectionProps {
   onVideoChange: (video: File | null) => void;
   branchName?: string;
   siteName?: string;
+  contractorName?: string;
 }
 
 const MAX_PHOTOS = 2;
@@ -47,6 +48,7 @@ export default function MediaUploadSection({
   onVideoChange,
   branchName,
   siteName,
+  contractorName,
 }: MediaUploadSectionProps) {
   const { t, i18n } = useTranslation();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +113,7 @@ export default function MediaUploadSection({
       gpsLat: gps?.lat,
       gpsLng: gps?.lng,
       language,
+      contractorName,
     };
 
     for (let i = 0; i < files.length && photos.length + newPhotos.length < MAX_PHOTOS; i++) {

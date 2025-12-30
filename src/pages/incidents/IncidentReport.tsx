@@ -916,6 +916,9 @@ export default function IncidentReport() {
                     video={uploadedVideo}
                     onPhotosChange={setUploadedPhotos}
                     onVideoChange={setUploadedVideo}
+                    branchName={branches.find(b => b.id === form.watch('branch_id'))?.name}
+                    siteName={sites.find(s => s.id === form.watch('site_id'))?.name}
+                    contractorName={profile?.contractor_company_name ?? undefined}
                   />
                 </CardContent>
               </Card>
