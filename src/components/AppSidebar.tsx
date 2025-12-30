@@ -652,8 +652,7 @@ export function AppSidebar() {
           menuCode: 'admin_notifications_group',
           isActive: location.pathname.startsWith("/admin/whatsapp") || 
                     location.pathname.startsWith("/admin/hsse-notification") ||
-                    location.pathname === "/admin/notification-logs" ||
-                    location.pathname === "/admin/notification-rules",
+                    location.pathname === "/admin/notification-logs",
           subItems: [
             {
               title: t('navigation.hsseNotifications', 'HSSE Notifications'),
@@ -666,12 +665,6 @@ export function AppSidebar() {
               url: "/admin/hsse-notification-analytics",
               icon: BarChart3,
               menuCode: 'admin_hsse_notification_analytics',
-            },
-            {
-              title: t('navigation.notificationRules', 'Notification Rules'),
-              url: "/admin/notification-rules",
-              icon: Bell,
-              menuCode: 'admin_notification_rules',
             },
             {
               title: t('navigation.whatsapp', 'WhatsApp'),
