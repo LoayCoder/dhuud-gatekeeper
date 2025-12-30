@@ -58,6 +58,8 @@ export interface IncidentFormData {
   recognition_type?: 'individual' | 'department' | 'contractor';
   recognized_user_id?: string;
   recognized_contractor_worker_id?: string;
+  // Report against contractor
+  related_contractor_company_id?: string;
 }
 
 export function useCreateIncident() {
@@ -148,6 +150,11 @@ export function useCreateIncident() {
         if (data.recognized_contractor_worker_id) {
           (insertData as Record<string, unknown>).recognized_contractor_worker_id = data.recognized_contractor_worker_id;
         }
+      }
+
+      // Add related contractor company for negative observations
+      if (isObservation && data.related_contractor_company_id) {
+        (insertData as Record<string, unknown>).related_contractor_company_id = data.related_contractor_company_id;
       }
 
       const { data: incident, error } = await supabase

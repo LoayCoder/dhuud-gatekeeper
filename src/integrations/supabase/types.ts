@@ -6930,6 +6930,7 @@ export type Database = {
           recognized_contractor_worker_id: string | null
           recognized_user_id: string | null
           reference_id: string | null
+          related_contractor_company_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
           reporter_id: string | null
@@ -7052,6 +7053,7 @@ export type Database = {
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
           reference_id?: string | null
+          related_contractor_company_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
@@ -7174,6 +7176,7 @@ export type Database = {
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
           reference_id?: string | null
+          related_contractor_company_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
@@ -7315,6 +7318,13 @@ export type Database = {
             columns: ["recognized_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_related_contractor_company_id_fkey"
+            columns: ["related_contractor_company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
             referencedColumns: ["id"]
           },
           {
