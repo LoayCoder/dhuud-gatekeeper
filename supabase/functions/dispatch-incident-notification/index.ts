@@ -374,7 +374,7 @@ Deno.serve(async (req) => {
     const { data: recipients, error: recipientsError } = await supabase
       .rpc('get_incident_notification_recipients', {
         p_tenant_id: incident.tenant_id,
-        p_severity_level: SEVERITY_LEVEL_MAP[effectiveSeverity] || 2,
+        p_severity_level: effectiveSeverity, // Pass as TEXT (e.g., 'level_2') to match DB column type
         p_has_injury: hasInjury,
         p_erp_activated: isErpOverride,
         p_event_type: incidentEventType,
