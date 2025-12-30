@@ -393,7 +393,7 @@ Deno.serve(async (req) => {
     
     // Enhanced logging for debugging empty recipients
     if (recipientList.length === 0) {
-      console.warn(`[Dispatch] WARNING: No recipients found for severity=${effectiveSeverity}, event_type=${incidentEventType}, has_injury=${hasInjury}, erp_activated=${erpActivated}`);
+      console.warn(`[Dispatch] WARNING: No recipients found for severity=${effectiveSeverity}, event_type=${incidentEventType}, has_injury=${hasInjury}, erp_activated=${isErpOverride}`);
       console.warn(`[Dispatch] Check notification_matrix table has entries for severity_level='${effectiveSeverity}'`);
     } else {
       console.log(`[Dispatch] Recipients breakdown: ${recipientList.map(r => `${r.stakeholder_role}(${r.channels.join(',')})`).join(', ')}`);
