@@ -50,7 +50,7 @@ const SEVERITY_OPTIONS = HSSE_SEVERITY_LEVELS.map(level => ({
 }));
 
 const createQuickObservationSchema = (t: (key: string) => string) => z.object({
-  description: z.string().min(20, t('incidents.validation.descriptionMinLength')).max(2000),
+  description: z.string().min(10, t('incidents.validation.descriptionMinLength')).max(2000),
   subtype: z.string().min(1, t('incidents.validation.subtypeRequired')),
   severity_v2: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const),
   site_id: z.string().optional(),
@@ -192,15 +192,18 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     );
   };
   
-  // AI Analysis with validation gating
-  const handleAnalyzeDescription = useCallback(async () => {
-    const description = form.getValues('description');
-    if (description.length < 20) return;
-    
-    await aiValidator.analyzeDescription(description);
-    
-    // Apply AI suggestions if validated
-    if (aiValidator.analysisResult && aiValidator.validationState === 'validated') {
+  // Handle translation confirmation - replaces description with translated text
+  const handleConfirmTranslation = useCallback(() => {
+    const translatedText = aiValidator.confirmTranslation();
+    if (translatedText) {
+      form.setValue('description', translatedText);
+      toast.success(t('observations.ai.descriptionUpdated', 'Description updated with translation'));
+    }
+  }, [aiValidator, form, t]);
+
+  // Handle analysis confirmation - auto-selects type and severity
+  const handleConfirmAnalysis = useCallback(() => {
+    if (aiValidator.analysisResult) {
       const result = aiValidator.analysisResult;
       
       // Auto-set subtype
@@ -213,25 +216,21 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
         form.setValue('severity_v2', result.severity as SeverityLevelV2);
       }
       
+      aiValidator.confirmAnalysis();
       toast.success(t('quickObservation.analysisComplete'));
     }
-  }, [form, aiValidator, t]);
-  
-  // Apply AI results when validation completes
-  useEffect(() => {
-    if (aiValidator.validationState === 'validated' && aiValidator.analysisResult) {
-      const result = aiValidator.analysisResult;
-      
-      if (['unsafe_act', 'unsafe_condition', 'safe_act', 'safe_condition'].includes(result.subtype)) {
-        form.setValue('subtype', result.subtype);
-      }
-      
-      if (result.severity.startsWith('level_')) {
-        form.setValue('severity_v2', result.severity as SeverityLevelV2);
-      }
-    }
-  }, [aiValidator.validationState, aiValidator.analysisResult, form]);
+  }, [aiValidator, form, t]);
 
+  // AI Analysis with validation gating - no longer auto-applies on validated
+  const handleAnalyzeDescription = useCallback(async () => {
+    const description = form.getValues('description');
+    if (description.length < 10) return;
+    
+    await aiValidator.analyzeDescription(description);
+  }, [form, aiValidator]);
+  
+  // Remove automatic application - user must click "Confirm Analysis"
+  // (removed useEffect that auto-applied on validated state)
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>, isClosedOnSpot: boolean = false) => {
     const files = Array.from(e.target.files || []);
     if (isClosedOnSpot) {
@@ -449,7 +448,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                         variant="outline"
                         size="sm"
                         onClick={handleAnalyzeDescription}
-                        disabled={aiValidator.validationState === 'analyzing' || field.value.length < 20}
+                        disabled={aiValidator.validationState === 'analyzing' || field.value.length < 10}
                         className="gap-1.5 h-7 text-xs"
                       >
                         {aiValidator.validationState === 'analyzing' ? (
@@ -485,7 +484,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 analysisResult={aiValidator.analysisResult}
                 processingTime={aiValidator.processingTime}
                 blockingReason={aiValidator.blockingReason}
-                onConfirmTranslation={aiValidator.confirmTranslation}
+                onConfirmTranslation={handleConfirmTranslation}
+                onConfirmAnalysis={handleConfirmAnalysis}
               />
               
               {/* Observation Type */}

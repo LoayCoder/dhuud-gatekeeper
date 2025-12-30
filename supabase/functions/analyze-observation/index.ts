@@ -93,11 +93,17 @@ Severity Guidelines (HSSE Standards):
 - level_4: Serious injury, major property damage, regulatory violation
 - level_5: Fatality, catastrophic damage, major environmental disaster
 
-Clarity Scoring Guidelines:
-- 100%: Specific location, exact equipment, personnel involved, time, detailed description
-- 70-99%: Most key details present, minor gaps
-- 50-69%: Some details missing, vague in places
-- Below 50%: Too vague, missing critical context
+Clarity Scoring Guidelines (SIMPLIFIED - focus on observation, not metadata):
+- 100%: Clear description of what was observed, specific equipment/conditions involved
+- 70-99%: Understandable observation with some context
+- 50-69%: Basic observation but lacks detail
+- Below 50%: Too vague to understand what happened
+
+IMPORTANT: Do NOT penalize for missing:
+- Person names (who)
+- Specific times/dates (when)  
+- Specific locations/zones (where)
+Focus ONLY on whether the observation itself is clearly described (what happened).
 
 CRITICAL LANGUAGE INSTRUCTIONS:
 - Write ALL user-facing text in ${targetLanguage}:
@@ -107,7 +113,7 @@ CRITICAL LANGUAGE INSTRUCTIONS:
   - ambiguousTerms: Write in ${targetLanguage}
 
 - Keep these values in English (system codes only):
-  - missingSections: Use ONLY these exact English keys: "location", "equipment", "personnel", "timing", "activity"
+  - missingSections: Use ONLY these exact English keys: "equipment", "activity" (NO location, personnel, timing)
   - subtype: Use ONLY: "unsafe_act", "unsafe_condition", "safe_act", "safe_condition"
   - severity: Use ONLY: "level_1", "level_2", "level_3", "level_4", "level_5"
   - likelihood: Use ONLY: "rare", "unlikely", "possible", "likely", "almost_certain"
@@ -120,10 +126,10 @@ Required Output Format (JSON):
   "translationRequired": boolean,
   "wordCount": number,
   "clarityScore": number (0-100),
-  "isValid": boolean (true if clarityScore >= 70 AND wordCount >= 20),
+  "isValid": boolean (true if clarityScore >= 70 AND wordCount >= 10),
   "validationErrors": ["list in ${targetLanguage}"],
   "ambiguousTerms": ["list in ${targetLanguage}"],
-  "missingSections": ["English keys only: location, equipment, personnel, timing, activity"],
+  "missingSections": ["English keys only: equipment, activity"],
   "improvementSuggestions": ["list in ${targetLanguage}"],
   "subtype": "unsafe_act" | "unsafe_condition" | "safe_act" | "safe_condition",
   "subtypeConfidence": number (0-100),

@@ -28,6 +28,7 @@ interface AIAnalysisPanelProps {
   processingTime: number;
   blockingReason: string | null;
   onConfirmTranslation: () => void;
+  onConfirmAnalysis?: () => void;
   className?: string;
 }
 
@@ -37,6 +38,7 @@ export function AIAnalysisPanel({
   processingTime,
   blockingReason,
   onConfirmTranslation,
+  onConfirmAnalysis,
   className
 }: AIAnalysisPanelProps) {
   const { t, i18n } = useTranslation();
@@ -187,6 +189,56 @@ export function AIAnalysisPanel({
     </div>
   );
 
+  // Show when clarity >= 70% and ready for confirmation
+  const renderAnalysisReady = () => (
+    <div className="space-y-3 p-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-blue-500" />
+        <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+          {t('observations.ai.analysisReady', 'Analysis Ready')}
+        </p>
+        <Badge variant="secondary" className="ms-auto text-xs">
+          {processingTime}s
+        </Badge>
+      </div>
+      
+      {analysisResult && (
+        <>
+          <ClarityScoreIndicator score={analysisResult.clarityScore} />
+          
+          <p className="text-xs text-muted-foreground">
+            {t('observations.ai.reviewSelections', 'Review the AI selections and confirm to continue')}
+          </p>
+          
+          {/* Auto-Selections Preview */}
+          <div className="grid grid-cols-1 gap-2">
+            <ConfidenceIndicator
+              label={t('observations.ai.detectedType', 'Observation Type')}
+              value={t(`incidents.observationTypes.${analysisResult.subtype.replace(/_([a-z])/g, (_, c) => c.toUpperCase())}`, analysisResult.subtype)}
+              confidence={analysisResult.subtypeConfidence}
+            />
+            <ConfidenceIndicator
+              label={t('observations.ai.detectedSeverity', 'Severity')}
+              value={t(`severity.${analysisResult.severity}.label`, analysisResult.severity)}
+              confidence={analysisResult.severityConfidence}
+            />
+          </div>
+          
+          {onConfirmAnalysis && (
+            <Button 
+              onClick={onConfirmAnalysis}
+              className="w-full"
+              size="sm"
+            >
+              <CheckCircle2 className="h-4 w-4 me-2" />
+              {t('observations.ai.confirmAnalysis', 'Confirm Analysis')}
+            </Button>
+          )}
+        </>
+      )}
+    </div>
+  );
+
   const renderValidated = () => (
     <div className="space-y-3 p-4">
       <div className="flex items-center gap-2">
@@ -249,19 +301,27 @@ export function AIAnalysisPanel({
     </div>
   );
 
+  // Determine if we should show "analysis ready" state (clarity >= 70% but not yet confirmed)
+  const showAnalysisReady = validationState === 'validated' && 
+    analysisResult && 
+    analysisResult.clarityScore >= 70 && 
+    onConfirmAnalysis;
+
   return (
     <div className={cn(
       "rounded-lg border overflow-hidden",
       validationState === 'analyzing' && "border-primary/50 bg-primary/5",
       validationState === 'awaiting_translation_confirm' && "border-blue-500/50 bg-blue-500/5",
       validationState === 'validation_failed' && "border-destructive/50 bg-destructive/5",
-      validationState === 'validated' && "border-green-500/50 bg-green-500/5",
+      validationState === 'validated' && showAnalysisReady && "border-blue-500/50 bg-blue-500/5",
+      validationState === 'validated' && !showAnalysisReady && "border-green-500/50 bg-green-500/5",
       className
     )}>
       {validationState === 'analyzing' && renderAnalyzingState()}
       {validationState === 'awaiting_translation_confirm' && renderTranslationConfirm()}
       {validationState === 'validation_failed' && renderValidationFailed()}
-      {validationState === 'validated' && renderValidated()}
+      {validationState === 'validated' && showAnalysisReady && renderAnalysisReady()}
+      {validationState === 'validated' && !showAnalysisReady && renderValidated()}
     </div>
   );
 }
