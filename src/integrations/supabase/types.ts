@@ -16850,6 +16850,28 @@ export type Database = {
               user_id: string
             }[]
           }
+        | {
+            Args: {
+              p_erp_activated?: boolean
+              p_event_type?: string
+              p_has_injury?: boolean
+              p_severity_level: string
+              p_tenant_id: string
+            }
+            Returns: {
+              channels: string[]
+              email: string
+              email_template_id: string
+              full_name: string
+              matrix_rule_id: string
+              phone_number: string
+              preferred_language: string
+              stakeholder_role: string
+              user_id: string
+              was_condition_match: boolean
+              whatsapp_template_id: string
+            }[]
+          }
       get_inspection_analytics: {
         Args: {
           p_end_date: string
