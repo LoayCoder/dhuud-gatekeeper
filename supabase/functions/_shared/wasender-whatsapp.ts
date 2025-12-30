@@ -119,18 +119,39 @@ export async function sendWaSenderMediaMessage(
   console.log(`[WaSender] Sending ${mediaType} to ${formattedPhone}`);
 
   try {
-    const response = await fetch('https://www.wasenderapi.com/api/send-media', {
+    // Build payload using the correct parameter for each media type
+    // WaSender API uses /api/send-message with imageUrl, videoUrl, or documentUrl
+    const mediaPayload: Record<string, string> = {
+      to: formattedPhone,
+    };
+
+    // Add caption as text if provided
+    if (caption) {
+      mediaPayload.text = caption;
+    }
+
+    // Add the appropriate media URL based on type
+    switch (mediaType) {
+      case 'image':
+        mediaPayload.imageUrl = mediaUrl;
+        break;
+      case 'video':
+        mediaPayload.videoUrl = mediaUrl;
+        break;
+      case 'document':
+        mediaPayload.documentUrl = mediaUrl;
+        break;
+    }
+
+    console.log(`[WaSender] Sending ${mediaType} via /api/send-message with ${mediaType}Url`);
+
+    const response = await fetch('https://www.wasenderapi.com/api/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        to: formattedPhone,
-        url: mediaUrl,
-        caption: caption || '',
-        type: mediaType
-      }),
+      body: JSON.stringify(mediaPayload),
     });
 
     const responseData = await response.json();
