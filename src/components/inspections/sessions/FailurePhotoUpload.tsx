@@ -5,13 +5,16 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { compressImage } from '@/lib/upload-utils';
+import { compressImageWithWatermark, WatermarkOptions } from '@/lib/upload-utils';
+import { getCurrentGPS } from '@/hooks/use-gps-capture';
 
 interface FailurePhotoUploadProps {
   sessionId: string;
   assetId: string;
   onPhotosChange: (paths: string[]) => void;
   maxPhotos?: number;
+  branchName?: string;
+  siteName?: string;
 }
 
 export function FailurePhotoUpload({
@@ -19,8 +22,10 @@ export function FailurePhotoUpload({
   assetId,
   onPhotosChange,
   maxPhotos = 2,
+  branchName,
+  siteName,
 }: FailurePhotoUploadProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const [photos, setPhotos] = useState<{ path: string; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -36,9 +41,24 @@ export function FailurePhotoUpload({
     setUploading(true);
     const newPaths: string[] = [];
     
+    // Get GPS coordinates for watermark
+    const gps = await getCurrentGPS();
+    const timestamp = new Date();
+    const language = i18n.language === 'ar' ? 'ar' : 'en';
+    
+    // Prepare watermark options
+    const watermarkOptions: WatermarkOptions = {
+      timestamp,
+      branchName,
+      siteName,
+      gpsLat: gps?.lat,
+      gpsLng: gps?.lng,
+      language,
+    };
+    
     try {
       for (const file of Array.from(files).slice(0, maxPhotos - photos.length)) {
-        const compressed = await compressImage(file, 1920, 0.85);
+        const compressed = await compressImageWithWatermark(file, watermarkOptions, 1920, 0.85);
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const storagePath = `${profile.tenant_id}/${sessionId}/failures/${assetId}/${fileName}`;
         

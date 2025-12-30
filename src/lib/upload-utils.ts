@@ -1,6 +1,10 @@
 /**
- * Upload utilities with image compression and parallel uploads
+ * Upload utilities with image compression, watermarking, and parallel uploads
  */
+
+import { addPhotoWatermark, WatermarkOptions } from './photo-watermark';
+
+export type { WatermarkOptions };
 
 // Compress image to reduce file size
 export async function compressImage(
@@ -79,7 +83,24 @@ export async function compressImage(
   });
 }
 
-// Upload multiple files in parallel with optional compression
+// Compress image with optional watermark
+export async function compressImageWithWatermark(
+  file: File,
+  watermarkOptions?: WatermarkOptions,
+  maxWidth: number = 1920,
+  quality: number = 0.85
+): Promise<File> {
+  // Apply watermark first if options provided
+  let processedFile = file;
+  if (watermarkOptions) {
+    processedFile = await addPhotoWatermark(file, watermarkOptions);
+  }
+  
+  // Then compress
+  return compressImage(processedFile, maxWidth, quality);
+}
+
+// Upload multiple files in parallel with optional compression and watermarking
 export async function uploadFilesParallel<T>(
   files: File[],
   uploadFn: (file: File, index: number) => Promise<T>,
@@ -88,23 +109,32 @@ export async function uploadFilesParallel<T>(
     maxWidth?: number;
     quality?: number;
     onProgress?: (completed: number, total: number) => void;
+    watermarkOptions?: WatermarkOptions;
   } = {}
 ): Promise<T[]> {
   const { 
     compressImages = true, 
     maxWidth = 1920, 
     quality = 0.85,
-    onProgress 
+    onProgress,
+    watermarkOptions 
   } = options;
 
   let completed = 0;
   const total = files.length;
 
   const uploadWithProgress = async (file: File, index: number) => {
+    let processedFile = file;
+    
+    // Apply watermark if options provided
+    if (watermarkOptions && file.type.startsWith('image/')) {
+      processedFile = await addPhotoWatermark(file, watermarkOptions);
+    }
+    
     // Compress if enabled
-    const processedFile = compressImages 
-      ? await compressImage(file, maxWidth, quality) 
-      : file;
+    if (compressImages) {
+      processedFile = await compressImage(processedFile, maxWidth, quality);
+    }
 
     const result = await uploadFn(processedFile, index);
     

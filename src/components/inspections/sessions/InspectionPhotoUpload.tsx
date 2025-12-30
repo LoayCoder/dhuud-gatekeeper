@@ -10,6 +10,8 @@ import {
   useDeleteInspectionPhoto,
   getPhotoUrl 
 } from '@/hooks/use-inspection-uploads';
+import { getCurrentGPS } from '@/hooks/use-gps-capture';
+import { WatermarkOptions } from '@/lib/upload-utils';
 
 interface InspectionPhotoUploadProps {
   responseId: string | null;
@@ -19,6 +21,8 @@ interface InspectionPhotoUploadProps {
   isLocked: boolean;
   maxPhotos?: number;
   onPhotoCountChange?: (count: number) => void;
+  branchName?: string;
+  siteName?: string;
 }
 
 interface PhotoWithUrl {
@@ -36,8 +40,10 @@ export function InspectionPhotoUpload({
   isLocked,
   maxPhotos = 2,
   onPhotoCountChange,
+  branchName,
+  siteName,
 }: InspectionPhotoUploadProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photosWithUrls, setPhotosWithUrls] = useState<PhotoWithUrl[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -84,6 +90,21 @@ export function InspectionPhotoUpload({
     
     setUploading(true);
     
+    // Get GPS coordinates for watermark
+    const gps = await getCurrentGPS();
+    const timestamp = new Date();
+    const language = i18n.language === 'ar' ? 'ar' : 'en';
+    
+    // Prepare watermark options
+    const watermarkOptions: WatermarkOptions = {
+      timestamp,
+      branchName,
+      siteName,
+      gpsLat: gps?.lat,
+      gpsLng: gps?.lng,
+      language,
+    };
+    
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
         toast.error(t('inspections.photos.invalidType'));
@@ -96,6 +117,10 @@ export function InspectionPhotoUpload({
           responseId,
           sessionId,
           tenantId,
+          gpsLat: gps?.lat,
+          gpsLng: gps?.lng,
+          gpsAccuracy: gps?.accuracy,
+          watermarkOptions,
         });
       } catch (error) {
         console.error('Upload error:', error);
@@ -105,7 +130,7 @@ export function InspectionPhotoUpload({
     
     setUploading(false);
     toast.success(t('inspections.photos.uploadSuccess'));
-  }, [responseId, sessionId, tenantId, photos.length, maxPhotos, uploadMutation, t]);
+  }, [responseId, sessionId, tenantId, photos.length, maxPhotos, uploadMutation, t, i18n.language, branchName, siteName]);
 
   const handleDelete = async (photoId: string) => {
     if (!responseId) return;

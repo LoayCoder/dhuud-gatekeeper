@@ -4,13 +4,16 @@ import { Camera, Video, X, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { compressImage } from '@/lib/upload-utils';
+import { compressImageWithWatermark, WatermarkOptions } from '@/lib/upload-utils';
+import { getCurrentGPS } from '@/hooks/use-gps-capture';
 
 interface MediaUploadSectionProps {
   photos: File[];
   video: File | null;
   onPhotosChange: (photos: File[]) => void;
   onVideoChange: (video: File | null) => void;
+  branchName?: string;
+  siteName?: string;
 }
 
 const MAX_PHOTOS = 2;
@@ -42,8 +45,10 @@ export default function MediaUploadSection({
   video,
   onPhotosChange,
   onVideoChange,
+  branchName,
+  siteName,
 }: MediaUploadSectionProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const photoCameraRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +98,21 @@ export default function MediaUploadSection({
     const newPhotos: File[] = [];
     const newUrls: string[] = [];
 
+    // Get GPS coordinates for watermark
+    const gps = await getCurrentGPS();
+    const timestamp = new Date();
+    const language = i18n.language === 'ar' ? 'ar' : 'en';
+    
+    // Prepare watermark options
+    const watermarkOptions: WatermarkOptions = {
+      timestamp,
+      branchName,
+      siteName,
+      gpsLat: gps?.lat,
+      gpsLng: gps?.lng,
+      language,
+    };
+
     for (let i = 0; i < files.length && photos.length + newPhotos.length < MAX_PHOTOS; i++) {
       const file = files[i];
       
@@ -106,8 +126,8 @@ export default function MediaUploadSection({
         continue;
       }
 
-      // Compress image before adding to state
-      const compressedFile = await compressImage(file, 1920, 0.85);
+      // Compress image with watermark before adding to state
+      const compressedFile = await compressImageWithWatermark(file, watermarkOptions, 1920, 0.85);
       newPhotos.push(compressedFile);
       newUrls.push(URL.createObjectURL(compressedFile));
     }

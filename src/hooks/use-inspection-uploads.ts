@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { compressImage } from '@/lib/upload-utils';
+import { compressImageWithWatermark, WatermarkOptions } from '@/lib/upload-utils';
 
 interface InspectionPhoto {
   id: string;
@@ -25,6 +25,7 @@ interface UploadPhotoInput {
   gpsLat?: number;
   gpsLng?: number;
   gpsAccuracy?: number;
+  watermarkOptions?: WatermarkOptions;
 }
 
 // Fetch photos for a specific response
@@ -54,12 +55,12 @@ export function useUploadInspectionPhoto() {
   
   return useMutation({
     mutationFn: async (input: UploadPhotoInput) => {
-      const { file, responseId, sessionId, tenantId, caption, gpsLat, gpsLng, gpsAccuracy } = input;
+      const { file, responseId, sessionId, tenantId, caption, gpsLat, gpsLng, gpsAccuracy, watermarkOptions } = input;
       
-      // Compress image if it's an image file
+      // Apply watermark and compress image if it's an image file
       let fileToUpload = file;
       if (file.type.startsWith('image/')) {
-        fileToUpload = await compressImage(file, 1920, 0.85);
+        fileToUpload = await compressImageWithWatermark(file, watermarkOptions, 1920, 0.85);
       }
       
       // Generate unique filename

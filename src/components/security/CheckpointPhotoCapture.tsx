@@ -6,6 +6,8 @@ import { Camera, X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { compressImageWithWatermark, WatermarkOptions } from '@/lib/upload-utils';
+import { getCurrentGPS } from '@/hooks/use-gps-capture';
 
 interface CheckpointPhotoCaptureProps {
   patrolId: string;
@@ -13,6 +15,8 @@ interface CheckpointPhotoCaptureProps {
   onPhotosCaptured: (paths: string[]) => void;
   existingPhotos?: string[];
   required?: boolean;
+  branchName?: string;
+  siteName?: string;
 }
 
 export function CheckpointPhotoCapture({
@@ -21,16 +25,21 @@ export function CheckpointPhotoCapture({
   onPhotosCaptured,
   existingPhotos = [],
   required = false,
+  branchName,
+  siteName,
 }: CheckpointPhotoCaptureProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const [photos, setPhotos] = useState<string[]>(existingPhotos);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadPhoto = async (file: File) => {
+  const uploadPhoto = async (file: File, watermarkOptions?: WatermarkOptions) => {
     if (!profile?.tenant_id) return null;
+
+    // Apply watermark and compress
+    const processedFile = await compressImageWithWatermark(file, watermarkOptions, 1920, 0.85);
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${patrolId}/${checkpointId}/${Date.now()}.${fileExt}`;
@@ -38,8 +47,8 @@ export function CheckpointPhotoCapture({
 
     const { error } = await supabase.storage
       .from('patrol-evidence')
-      .upload(storagePath, file, {
-        contentType: file.type,
+      .upload(storagePath, processedFile, {
+        contentType: processedFile.type,
         upsert: false,
       });
 
@@ -57,10 +66,25 @@ export function CheckpointPhotoCapture({
 
     setIsUploading(true);
     try {
+      // Get GPS coordinates for watermark
+      const gps = await getCurrentGPS();
+      const timestamp = new Date();
+      const language = i18n.language === 'ar' ? 'ar' : 'en';
+      
+      // Prepare watermark options
+      const watermarkOptions: WatermarkOptions = {
+        timestamp,
+        branchName,
+        siteName,
+        gpsLat: gps?.lat,
+        gpsLng: gps?.lng,
+        language,
+      };
+
       const uploadedPaths: string[] = [];
       
       for (const file of Array.from(files)) {
-        const path = await uploadPhoto(file);
+        const path = await uploadPhoto(file, watermarkOptions);
         if (path) {
           uploadedPaths.push(path);
         }
