@@ -99,6 +99,7 @@ export function AIAnalysisPanel({
       </div>
       
       <Button 
+        type="button"
         onClick={onConfirmTranslation} 
         className="w-full"
         size="sm"
@@ -226,6 +227,7 @@ export function AIAnalysisPanel({
           
           {onConfirmAnalysis && (
             <Button 
+              type="button"
               onClick={onConfirmAnalysis}
               className="w-full"
               size="sm"
