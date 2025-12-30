@@ -82,7 +82,7 @@ export function useCreateMatrixRule() {
     }) => {
       const tenantId = await getCurrentTenantId();
 
-      // Insert directly with event_type support
+      // Insert directly with event_type support and template IDs
       const { data, error } = await supabase
         .from('incident_notification_matrix')
         .insert({
@@ -93,6 +93,8 @@ export function useCreateMatrixRule() {
           condition_type: rule.condition_type || null,
           user_id: rule.user_id || null,
           event_type: rule.event_type || 'all',
+          whatsapp_template_id: rule.whatsapp_template_id || null,
+          email_template_id: rule.email_template_id || null,
         })
         .select()
         .single();
