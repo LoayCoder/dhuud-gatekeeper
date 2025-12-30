@@ -6773,6 +6773,7 @@ export type Database = {
           condition_type: string | null
           created_at: string | null
           deleted_at: string | null
+          email_template_id: string | null
           event_type: string | null
           id: string
           is_active: boolean | null
@@ -6788,6 +6789,7 @@ export type Database = {
           condition_type?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          email_template_id?: string | null
           event_type?: string | null
           id?: string
           is_active?: boolean | null
@@ -6803,6 +6805,7 @@ export type Database = {
           condition_type?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          email_template_id?: string | null
           event_type?: string | null
           id?: string
           is_active?: boolean | null
@@ -6814,6 +6817,13 @@ export type Database = {
           whatsapp_template_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "incident_notification_matrix_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "incident_notification_matrix_tenant_id_fkey"
             columns: ["tenant_id"]
