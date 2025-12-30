@@ -5,9 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Trash2, RotateCcw, Check, Pencil } from 'lucide-react';
+import { MapPin, Trash2, RotateCcw, Check, Pencil, Navigation, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useGPSCapture } from '@/hooks/use-gps-capture';
 
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -45,6 +46,7 @@ export function SiteLocationPicker({
 }: SiteLocationPickerProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
+  const { isCapturing, captureGPS } = useGPSCapture();
   
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -58,6 +60,20 @@ export function SiteLocationPicker({
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
   const [boundaryConfirmed, setBoundaryConfirmed] = useState(false);
+
+  const handleUseCurrentLocation = async () => {
+    const coords = await captureGPS();
+    if (coords) {
+      setMarkerPosition({ lat: coords.lat, lng: coords.lng });
+      onLocationChange(coords.lat, coords.lng);
+      mapInstance.current?.setView([coords.lat, coords.lng], 15);
+      toast.success(t('patrolCheckpoint.locationCaptured'), {
+        description: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+      });
+    } else {
+      toast.error(t('location.locationFailed'));
+    }
+  };
 
   // Default center (Saudi Arabia)
   const defaultCenter: L.LatLngExpression = [24.7136, 46.6753];
@@ -226,7 +242,7 @@ export function SiteLocationPicker({
           </CardTitle>
           
           {!readOnly && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 type="button"
                 size="sm"
@@ -244,6 +260,20 @@ export function SiteLocationPicker({
               >
                 <Pencil className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
                 {t('orgStructure.drawBoundary')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleUseCurrentLocation}
+                disabled={isCapturing}
+              >
+                {isCapturing ? (
+                  <Loader2 className={cn("h-4 w-4 animate-spin", isRTL ? "ms-1" : "me-1")} />
+                ) : (
+                  <Navigation className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
+                )}
+                {t('location.useCurrentLocation')}
               </Button>
             </div>
           )}
