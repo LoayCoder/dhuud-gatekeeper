@@ -105,6 +105,12 @@ IMPORTANT: Do NOT penalize for missing:
 - Specific locations/zones (where)
 Focus ONLY on whether the observation itself is clearly described (what happened).
 
+CRITICAL VALIDATION RULES:
+- Do NOT add validation errors about word count or observation length
+- Do NOT penalize short but clear descriptions (e.g., "worker without helmet" is valid)
+- A clear 3-5 word observation is VALID if clarity is high
+- Only add errors for: ambiguous terms, missing activity/equipment context, unclear descriptions
+
 CRITICAL LANGUAGE INSTRUCTIONS:
 - Write ALL user-facing text in ${targetLanguage}:
   - validationErrors: Write in ${targetLanguage}
@@ -126,7 +132,7 @@ Required Output Format (JSON):
   "translationRequired": boolean,
   "wordCount": number,
   "clarityScore": number (0-100),
-  "isValid": boolean (true if clarityScore >= 70 AND wordCount >= 10),
+  "isValid": boolean (true if clarityScore >= 70),
   "validationErrors": ["list in ${targetLanguage}"],
   "ambiguousTerms": ["list in ${targetLanguage}"],
   "missingSections": ["English keys only: equipment, activity"],
