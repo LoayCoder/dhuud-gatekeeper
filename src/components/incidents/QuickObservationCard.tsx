@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -25,8 +25,9 @@ import { useActiveEvent } from '@/hooks/use-special-events';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
 import { UploadProgressOverlay } from '@/components/ui/upload-progress';
-import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, mapRiskRatingToSeverity, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
-import { analyzeIncidentWithAI } from '@/lib/incident-ai-assistant';
+import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
+import { useObservationAIValidator } from '@/hooks/use-observation-ai-validator';
+import { AIAnalysisPanel } from '@/components/observations/AIAnalysisPanel';
 
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
@@ -84,7 +85,9 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const [closedOnSpotPhotos, setClosedOnSpotPhotos] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // AI Validation hook
+  const aiValidator = useObservationAIValidator();
   
   const createIncident = useCreateIncident();
   const { data: sites = [] } = useTenantSites();
@@ -189,39 +192,45 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
     );
   };
   
-  const handleAnalyzeDescription = async () => {
+  // AI Analysis with validation gating
+  const handleAnalyzeDescription = useCallback(async () => {
     const description = form.getValues('description');
     if (description.length < 20) return;
     
-    setIsAnalyzing(true);
-    try {
-      const result = await analyzeIncidentWithAI(description);
+    await aiValidator.analyzeDescription(description);
+    
+    // Apply AI suggestions if validated
+    if (aiValidator.analysisResult && aiValidator.validationState === 'validated') {
+      const result = aiValidator.analysisResult;
       
-      // Map AI result to observation subtype
-      if (result.subtype === 'unsafe_act' || result.subtype === 'unsafe_condition' || 
-          result.subtype === 'safe_act' || result.subtype === 'safe_condition') {
+      // Auto-set subtype
+      if (['unsafe_act', 'unsafe_condition', 'safe_act', 'safe_condition'].includes(result.subtype)) {
         form.setValue('subtype', result.subtype);
-      } else if (result.eventType === 'observation') {
-        // Default to unsafe_condition for generic observations
-        form.setValue('subtype', 'unsafe_condition');
       }
       
-      // Map AI severity to 5-level system
-      const severityMap: Record<string, SeverityLevelV2> = { 
-        'low': 'level_1', 'medium': 'level_2', 'high': 'level_3', 'critical': 'level_4' 
-      };
-      if (result.severity && severityMap[result.severity]) {
-        form.setValue('severity_v2', severityMap[result.severity]);
+      // Auto-set severity
+      if (result.severity.startsWith('level_')) {
+        form.setValue('severity_v2', result.severity as SeverityLevelV2);
       }
       
       toast.success(t('quickObservation.analysisComplete'));
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      toast.error(t('incidents.ai.detectionError'));
-    } finally {
-      setIsAnalyzing(false);
     }
-  };
+  }, [form, aiValidator, t]);
+  
+  // Apply AI results when validation completes
+  useEffect(() => {
+    if (aiValidator.validationState === 'validated' && aiValidator.analysisResult) {
+      const result = aiValidator.analysisResult;
+      
+      if (['unsafe_act', 'unsafe_condition', 'safe_act', 'safe_condition'].includes(result.subtype)) {
+        form.setValue('subtype', result.subtype);
+      }
+      
+      if (result.severity.startsWith('level_')) {
+        form.setValue('severity_v2', result.severity as SeverityLevelV2);
+      }
+    }
+  }, [aiValidator.validationState, aiValidator.analysisResult, form]);
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>, isClosedOnSpot: boolean = false) => {
     const files = Array.from(e.target.files || []);
@@ -440,15 +449,15 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                         variant="outline"
                         size="sm"
                         onClick={handleAnalyzeDescription}
-                        disabled={isAnalyzing || field.value.length < 20}
+                        disabled={aiValidator.validationState === 'analyzing' || field.value.length < 20}
                         className="gap-1.5 h-7 text-xs"
                       >
-                        {isAnalyzing ? (
+                        {aiValidator.validationState === 'analyzing' ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
                           <Sparkles className="h-3.5 w-3.5" />
                         )}
-                        {isAnalyzing ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
+                        {aiValidator.validationState === 'analyzing' ? t('quickObservation.analyzing') : t('quickObservation.aiAnalyze')}
                       </Button>
                     </div>
                     <FormControl>
@@ -456,11 +465,27 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                         placeholder={t('quickObservation.descriptionPlaceholder')}
                         className="min-h-[100px] resize-none"
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Reset AI validation when text changes significantly
+                          if (aiValidator.validationState !== 'idle') {
+                            aiValidator.reset();
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+              
+              {/* AI Analysis Panel */}
+              <AIAnalysisPanel
+                validationState={aiValidator.validationState}
+                analysisResult={aiValidator.analysisResult}
+                processingTime={aiValidator.processingTime}
+                blockingReason={aiValidator.blockingReason}
+                onConfirmTranslation={aiValidator.confirmTranslation}
               />
               
               {/* Observation Type */}
@@ -779,16 +804,21 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 </div>
               )}
               
-              {/* Submit Button */}
+              {/* Submit Button - Blocked until AI validation passes */}
               <Button
                 type="submit"
                 className="w-full h-12 text-base"
-                disabled={createIncident.isPending || isUploading || photos.length === 0}
+                disabled={createIncident.isPending || isUploading || photos.length === 0 || aiValidator.isBlocked || !aiValidator.canSubmit}
               >
                 {createIncident.isPending || isUploading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin me-2" />
                     {t('quickObservation.submitting')}
+                  </>
+                ) : aiValidator.isBlocked ? (
+                  <>
+                    <AlertTriangle className="h-5 w-5 me-2" />
+                    {t('observations.ai.aiGatedSubmit', 'AI analysis required')}
                   </>
                 ) : (
                   <>
