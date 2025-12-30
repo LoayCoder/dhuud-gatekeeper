@@ -7191,41 +7191,5 @@
       "riskReductionProgress": "تقدم تخفيض المخاطر",
       "noHazards": "لا توجد مخاطر للتحليل"
     }
-  },
-  "workflow": {
-    "diagram": {
-      "title": "سير عمل الملاحظة"
-    },
-    "path": {
-      "close_on_spot": "مسار الإغلاق الفوري",
-      "hsse_review": "مسار مراجعة السلامة",
-      "manager_closure": "مسار إغلاق المدير"
-    },
-    "stages": {
-      "submitted": "مُقدَّم",
-      "closeOnSpot": "إغلاق فوري",
-      "expertScreening": "فحص الخبير",
-      "returned": "مُعاد",
-      "rejected": "مرفوض",
-      "noInvestigation": "لا يحتاج تحقيق",
-      "deptApproval": "موافقة القسم",
-      "actionsPending": "إجراءات معلقة",
-      "hsseValidation": "تحقق السلامة",
-      "pendingFinal": "انتظار الإغلاق النهائي",
-      "closed": "مغلق"
-    },
-    "roles": {
-      "reporter": "المُبلِّغ",
-      "hsse_expert": "خبير السلامة",
-      "dept_rep": "ممثل القسم",
-      "hsse_manager": "مدير السلامة",
-      "action_owner": "مسؤول الإجراء"
-    },
-    "legend": {
-      "completed": "مكتمل",
-      "current": "حالي",
-      "pending": "معلق",
-      "skipped": "تم تخطيه"
-    }
   }
 }
