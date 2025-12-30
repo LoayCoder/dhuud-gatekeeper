@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { compressImage } from '@/lib/upload-utils';
+import { compressImageWithWatermark, WatermarkOptions } from '@/lib/upload-utils';
 import type { Database } from '@/integrations/supabase/types';
 
 type DocumentType = Database['public']['Enums']['asset_document_type'];
@@ -11,6 +11,7 @@ interface UploadPhotoParams {
   file: File;
   isPrimary?: boolean;
   caption?: string;
+  watermarkOptions?: WatermarkOptions;
 }
 
 interface UploadDocumentParams {
@@ -26,11 +27,11 @@ export function useUploadAssetPhoto() {
   const { profile, user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ assetId, file, isPrimary = false, caption }: UploadPhotoParams) => {
+    mutationFn: async ({ assetId, file, isPrimary = false, caption, watermarkOptions }: UploadPhotoParams) => {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
 
-      // Compress image before upload
-      const compressedFile = await compressImage(file, 1920, 0.85);
+      // Apply watermark and compress image before upload
+      const compressedFile = await compressImageWithWatermark(file, watermarkOptions, 1920, 0.85);
       
       // Generate unique file path
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
