@@ -64,12 +64,15 @@ import {
   STAKEHOLDER_ROLES,
   SEVERITY_LEVELS,
   CHANNELS,
+  EVENT_TYPES,
   hasChannel,
   toggleChannel,
   type NotificationMatrixRule,
   type StakeholderRole,
+  type EventType,
 } from '@/hooks/use-notification-matrix';
 import { useNotificationTemplates } from '@/hooks/useNotificationTemplates';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface RuleFormState {
   stakeholder_role: StakeholderRole | '';
@@ -81,6 +84,7 @@ interface RuleFormState {
   isUserSpecific: boolean;
   whatsapp_template_id: string | null;
   email_template_id: string | null;
+  event_type: EventType;
 }
 
 const getInitialFormState = (): RuleFormState => ({
@@ -93,6 +97,7 @@ const getInitialFormState = (): RuleFormState => ({
   isUserSpecific: false,
   whatsapp_template_id: null,
   email_template_id: null,
+  event_type: 'all',
 });
 
 // Severity level colors following HSSA standards
@@ -124,7 +129,10 @@ const ChannelIcon = ({ channel, active, size = 'sm' }: { channel: string; active
 export default function NotificationMatrixManagement() {
   const { t } = useTranslation();
   
-  const { data: rules, isLoading } = useNotificationMatrix();
+  // Active event type tab
+  const [activeEventType, setActiveEventType] = useState<EventType>('incident');
+  
+  const { data: rules, isLoading } = useNotificationMatrix(activeEventType);
   const { data: users } = useNotificationMatrixUsers();
   const { data: templates } = useNotificationTemplates();
   const createMutation = useCreateMatrixRule();
@@ -198,26 +206,27 @@ export default function NotificationMatrixManagement() {
       const severityLevel = SEVERITY_LEVELS[i];
       createPromises.push(
         new Promise<void>((resolve, reject) => {
-          createMutation.mutate({
-            stakeholder_role: formState.stakeholder_role || 'area_owner',
-            severity_level: severityLevel,
-            channels: formState.channels,
-            condition_type: formState.condition_type,
-            user_id: formState.isUserSpecific ? formState.user_id : null,
-            whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
-            email_template_id: formState.channels.includes('email') ? formState.email_template_id : null,
-          }, {
-            onSuccess: () => resolve(),
-            onError: (error) => reject(error),
-          });
-        })
-      );
-    }
-    
-    // Close dialog and reset form after creating rules
-    setShowAddDialog(false);
-    setFormState(getInitialFormState());
-  };
+            createMutation.mutate({
+              stakeholder_role: formState.stakeholder_role || 'area_owner',
+              severity_level: severityLevel,
+              channels: formState.channels,
+              condition_type: formState.condition_type,
+              user_id: formState.isUserSpecific ? formState.user_id : null,
+              whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
+              email_template_id: formState.channels.includes('email') ? formState.email_template_id : null,
+              event_type: activeEventType, // Use active tab's event type
+            }, {
+              onSuccess: () => resolve(),
+              onError: (error) => reject(error),
+            });
+          })
+        );
+      }
+      
+      // Close dialog and reset form after creating rules
+      setShowAddDialog(false);
+      setFormState(getInitialFormState());
+    };
 
   const handleEditGroup = (groupKey: string) => {
     const groupRules = groupedRules[groupKey];
@@ -244,6 +253,7 @@ export default function NotificationMatrixManagement() {
       isUserSpecific,
       whatsapp_template_id: (firstRule as any).whatsapp_template_id || null,
       email_template_id: (firstRule as any).email_template_id || null,
+      event_type: activeEventType,
     });
     
     setEditingGroupKey(groupKey);
@@ -280,6 +290,7 @@ export default function NotificationMatrixManagement() {
           user_id: formState.isUserSpecific ? formState.user_id : null,
           whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
           email_template_id: formState.channels.includes('email') ? formState.email_template_id : null,
+          event_type: activeEventType, // Use active tab's event type
         }, {
           onSuccess: () => resolve(),
           onError: () => resolve(),
@@ -699,6 +710,20 @@ export default function NotificationMatrixManagement() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Event Type Tabs */}
+          <Tabs value={activeEventType} onValueChange={(v) => setActiveEventType(v as EventType)} className="mb-4">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="incident" className="gap-2">
+                <span className="h-2 w-2 rounded-full bg-destructive" />
+                {t('settings.notificationMatrix.eventTypes.incident', 'Incidents')}
+              </TabsTrigger>
+              <TabsTrigger value="observation" className="gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                {t('settings.notificationMatrix.eventTypes.observation', 'Observations')}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {/* Legend */}
           <div className="flex items-center gap-6 text-xs text-muted-foreground mb-4 pb-3 border-b border-border/50">
             <span className="flex items-center gap-1.5">

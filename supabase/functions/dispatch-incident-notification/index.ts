@@ -367,14 +367,17 @@ Deno.serve(async (req) => {
     }
     const locationText = incident.location || siteName || '-';
 
-    // 7. Get notification recipients using the database function (now includes preferred_language)
+    // 7. Get notification recipients using the database function (now includes preferred_language and event_type)
+    // Determine event type for matrix filtering
+    const incidentEventType = incident.event_type === 'observation' ? 'observation' : 'incident';
+    
     const { data: recipients, error: recipientsError } = await supabase
       .rpc('get_incident_notification_recipients', {
         p_tenant_id: incident.tenant_id,
-        p_incident_id: incident_id,
-        p_severity_level: effectiveSeverity,
+        p_severity_level: SEVERITY_LEVEL_MAP[effectiveSeverity] || 2,
         p_has_injury: hasInjury,
         p_erp_activated: isErpOverride,
+        p_event_type: incidentEventType,
       });
 
     if (recipientsError) {
