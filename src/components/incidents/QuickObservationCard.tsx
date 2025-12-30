@@ -21,6 +21,7 @@ import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } fr
 import { useTenantSites, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useTenantUsers } from '@/hooks/use-department-users';
 import { useContractorWorkers } from '@/hooks/contractor-management/use-contractor-workers';
+import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
 import { useActiveEvent } from '@/hooks/use-special-events';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { uploadFilesParallel } from '@/lib/upload-utils';
@@ -62,6 +63,9 @@ const createQuickObservationSchema = (t: (key: string) => string) => z.object({
   recognized_user_id: z.string().optional(),
   recognized_department_id: z.string().optional(),
   recognized_contractor_worker_id: z.string().optional(),
+  // Report against contractor fields for negative observations
+  is_against_contractor: z.boolean().default(false),
+  related_contractor_company_id: z.string().optional(),
 });
 
 type FormValues = z.infer<ReturnType<typeof createQuickObservationSchema>>;
@@ -94,6 +98,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const { data: departments = [] } = useTenantDepartments();
   const { data: tenantUsers = [] } = useTenantUsers();
   const { data: contractorWorkers = [] } = useContractorWorkers();
+  const { data: contractorCompanies = [] } = useContractorCompanies();
   const { data: activeEvent } = useActiveEvent();
   
   const form = useForm<FormValues>({
@@ -110,6 +115,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       recognized_user_id: undefined,
       recognized_department_id: undefined,
       recognized_contractor_worker_id: undefined,
+      is_against_contractor: false,
+      related_contractor_company_id: undefined,
     },
   });
   
@@ -117,6 +124,7 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   const selectedSeverity = form.watch('severity_v2');
   const selectedSubtype = form.watch('subtype');
   const recognitionType = form.watch('recognition_type');
+  const isAgainstContractor = form.watch('is_against_contractor');
   
   // Check if close-on-spot is allowed for this severity level
   const allowCloseOnSpot = canCloseOnSpot(selectedSeverity as SeverityLevelV2);
@@ -282,6 +290,8 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       department_id: values.recognition_type === 'department' ? values.recognized_department_id : undefined,
       // Link to active special event
       special_event_id: activeEvent?.id || undefined,
+      // Report against contractor for negative observations
+      related_contractor_company_id: values.is_against_contractor ? values.related_contractor_company_id : undefined,
     };
     
     createIncident.mutate(formData, {
@@ -513,6 +523,56 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                   </FormItem>
                 )}
               />
+              
+              {/* Report Against Contractor Toggle - Only for Negative Observations */}
+              {!isPositiveObservation && selectedSubtype && (
+                <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-amber-600" />
+                      <span className="font-medium">{t('quickObservation.reportAgainstContractor')}</span>
+                    </div>
+                    <Switch
+                      checked={isAgainstContractor}
+                      onCheckedChange={(checked) => {
+                        form.setValue('is_against_contractor', checked);
+                        if (!checked) {
+                          form.setValue('related_contractor_company_id', undefined);
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {isAgainstContractor && (
+                    <FormField
+                      control={form.control}
+                      name="related_contractor_company_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('quickObservation.contractorCompany')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('quickObservation.selectContractorCompany')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {contractorCompanies.filter(c => c.status === 'active').map((company) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {i18n.language === 'ar' && company.company_name_ar 
+                                    ? company.company_name_ar 
+                                    : company.company_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
               
               {/* Recognition Section - Only for Positive Observations */}
               {isPositiveObservation && (

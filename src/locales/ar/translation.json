@@ -6792,7 +6792,10 @@
     "analysisComplete": "اقترح الذكاء الاصطناعي النوع ومستوى الخطر",
     "noSiteNearby": "لا يوجد موقع مسجل قريب",
     "canSubmitWithoutLocation": "يمكنك الإرسال بدون تحديد الموقع",
-    "locationOptional": "الموقع اختياري"
+    "locationOptional": "الموقع اختياري",
+    "reportAgainstContractor": "بلاغ ضد المقاول",
+    "contractorCompany": "شركة المقاول",
+    "selectContractorCompany": "اختر شركة المقاول..."
   },
   "observations": {
     "ai": {
