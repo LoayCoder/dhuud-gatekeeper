@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useWorkflowRealtime, WorkflowInstance, WorkflowLiveStatus } from './use-workflow-realtime';
+import { useWorkflowRealtime, WorkflowInstance, WorkflowLiveStatus, ConnectionState } from './use-workflow-realtime';
 
 export interface WorkflowMetrics {
   totalActive: number;
@@ -32,11 +32,12 @@ interface UseWorkflowMetricsReturn {
   bottleneckAlerts: BottleneckAlert[];
   isLoading: boolean;
   isConnected: boolean;
+  connectionState: ConnectionState;
   lastUpdate: Date | null;
 }
 
 export function useWorkflowMetrics(workflowKey?: string): UseWorkflowMetricsReturn {
-  const { instances, liveStatus, isConnected, lastUpdate, connectionError } = useWorkflowRealtime(workflowKey);
+  const { instances, liveStatus, isConnected, connectionState, lastUpdate, connectionError } = useWorkflowRealtime(workflowKey);
 
   const metrics = useMemo((): WorkflowMetrics => {
     // Status breakdown
@@ -108,8 +109,9 @@ export function useWorkflowMetrics(workflowKey?: string): UseWorkflowMetricsRetu
   return {
     metrics,
     bottleneckAlerts,
-    isLoading: !lastUpdate && !connectionError,
+    isLoading: connectionState === 'connecting',
     isConnected,
+    connectionState,
     lastUpdate,
   };
 }

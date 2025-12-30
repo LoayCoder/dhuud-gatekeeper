@@ -5682,7 +5682,21 @@
       "action": "إجراء/عملية",
       "decision": "نقطة قرار",
       "approval": "موافقة مطلوبة"
-    }
+    },
+    "liveStatus": "الحالة المباشرة",
+    "connected": "متصل",
+    "connecting": "جاري الاتصال...",
+    "disconnected": "غير متصل",
+    "activeInstances": "نشط",
+    "completedToday": "اليوم",
+    "avgTime": "متوسط الوقت",
+    "trend": "الاتجاه",
+    "improving": "تحسن",
+    "stable": "مستقر",
+    "declining": "تراجع",
+    "bottlenecks": "نقاط الاختناق",
+    "lastUpdated": "آخر تحديث",
+    "noData": "لا توجد بيانات بعد"
   },
   "emailDelivery": {
     "title": "سجلات تسليم البريد الإلكتروني",

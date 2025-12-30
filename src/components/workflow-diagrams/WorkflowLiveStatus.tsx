@@ -12,7 +12,8 @@ import {
   Minus,
   Wifi,
   WifiOff,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
@@ -26,7 +27,9 @@ interface WorkflowLiveStatusProps {
 export function WorkflowLiveStatus({ workflowKey, className, compact = false }: WorkflowLiveStatusProps) {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === 'rtl';
-  const { metrics, bottleneckAlerts, isConnected, lastUpdate, isLoading } = useWorkflowMetrics(workflowKey);
+  const { metrics, bottleneckAlerts, isConnected, connectionState, lastUpdate, isLoading } = useWorkflowMetrics(workflowKey);
+  
+  const isConnecting = connectionState === 'connecting' || connectionState === 'idle';
 
   const TrendIcon = metrics.performanceTrend === 'improving' 
     ? TrendingUp 
@@ -46,7 +49,7 @@ export function WorkflowLiveStatus({ workflowKey, className, compact = false }: 
         {/* Connection Status */}
         <div className={cn(
           'flex items-center gap-1.5 text-xs',
-          isConnected ? 'text-green-500' : 'text-red-500'
+          isConnected ? 'text-green-500' : isConnecting ? 'text-amber-500' : 'text-red-500'
         )}>
           {isConnected ? (
             <>
@@ -56,6 +59,8 @@ export function WorkflowLiveStatus({ workflowKey, className, compact = false }: 
               </span>
               <Wifi className="h-3 w-3" />
             </>
+          ) : isConnecting ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
             <WifiOff className="h-3 w-3" />
           )}
@@ -85,7 +90,7 @@ export function WorkflowLiveStatus({ workflowKey, className, compact = false }: 
         <h3 className="font-semibold text-sm">{t('workflowDiagrams.liveStatus', 'Live Status')}</h3>
         <div className={cn(
           'flex items-center gap-1.5 text-xs',
-          isConnected ? 'text-green-500' : 'text-red-500'
+          isConnected ? 'text-green-500' : isConnecting ? 'text-amber-500' : 'text-red-500'
         )}>
           {isConnected ? (
             <>
@@ -94,6 +99,11 @@ export function WorkflowLiveStatus({ workflowKey, className, compact = false }: 
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
               <span>{t('workflowDiagrams.connected', 'Connected')}</span>
+            </>
+          ) : isConnecting ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>{t('workflowDiagrams.connecting', 'Connecting...')}</span>
             </>
           ) : (
             <>
