@@ -8,8 +8,8 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendWhatsAppText } from '../_shared/whatsapp-provider.ts';
-import { sendEmail, wrapEmailHtml } from '../_shared/email-sender.ts';
+import { sendWhatsAppText, sendWhatsAppWithMedia } from '../_shared/whatsapp-provider.ts';
+import { sendEmail, wrapEmailHtml, EmailAttachment } from '../_shared/email-sender.ts';
 import { logNotificationSent } from '../_shared/notification-logger.ts';
 import { 
   SupportedLanguage, 
@@ -29,6 +29,12 @@ interface DispatchPayload {
   event_type?: string; // 'incident_created', 'incident_updated', 'erp_activated'
 }
 
+interface MediaAttachment {
+  url: string;
+  type?: string;
+  name?: string;
+}
+
 interface IncidentDetails {
   id: string;
   reference_id: string | null;
@@ -46,6 +52,7 @@ interface IncidentDetails {
   site_id: string | null;
   branch_id: string | null;
   reporter_id: string | null;
+  media_attachments: MediaAttachment[] | null;
 }
 
 interface NotificationRecipient {
@@ -103,6 +110,28 @@ const SEVERITY_EMOJI: Record<string, string> = {
   'level_4': '🔴',
   'level_5': '⛔',
 };
+
+// Maximum photos to attach per notification
+const MAX_PHOTOS_PER_NOTIFICATION = 5;
+
+/**
+ * Extract photo URLs from media_attachments, limited to MAX_PHOTOS_PER_NOTIFICATION
+ */
+function extractPhotoUrls(mediaAttachments: MediaAttachment[] | null): string[] {
+  if (!mediaAttachments || !Array.isArray(mediaAttachments)) {
+    return [];
+  }
+  
+  return mediaAttachments
+    .filter((m) => {
+      // Check if it's an image by type or URL extension
+      const isImageType = m.type?.startsWith('image/');
+      const isImageUrl = m.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+      return (isImageType || isImageUrl) && m.url;
+    })
+    .map((m) => m.url)
+    .slice(0, MAX_PHOTOS_PER_NOTIFICATION);
+}
 
 /**
  * Render template with variables
@@ -303,7 +332,8 @@ Deno.serve(async (req) => {
       .select(`
         id, reference_id, title, description, event_type, 
         severity_v2, has_injury, erp_activated, injury_classification,
-        status, location, occurred_at, tenant_id, site_id, branch_id, reporter_id
+        status, location, occurred_at, tenant_id, site_id, branch_id, reporter_id,
+        media_attachments
       `)
       .eq('id', incident_id)
       .single();
@@ -318,6 +348,10 @@ Deno.serve(async (req) => {
 
     const incident = incidentData as IncidentDetails;
     console.log(`[Dispatch] Incident: ${incident.reference_id}, severity: ${incident.severity_v2}, ERP: ${incident.erp_activated}`);
+
+    // Extract photo URLs from media attachments (limit to MAX_PHOTOS_PER_NOTIFICATION)
+    const photoUrls = extractPhotoUrls(incident.media_attachments);
+    console.log(`[Dispatch] Found ${photoUrls.length} photos to attach to notifications`);
 
     // 2. Determine effective severity (ERP Override: Force level_4 or level_5)
     let effectiveSeverity = incident.severity_v2 || 'level_2';
@@ -485,7 +519,10 @@ Deno.serve(async (req) => {
                 );
               }
               
-              const result = await sendWhatsAppText(recipient.phone_number, message);
+              // Send WhatsApp message with photos as media attachments
+              const result = photoUrls.length > 0
+                ? await sendWhatsAppWithMedia(recipient.phone_number, message, photoUrls)
+                : await sendWhatsAppText(recipient.phone_number, message);
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
@@ -553,12 +590,27 @@ Deno.serve(async (req) => {
                 html = defaultEmail.html;
               }
               
+              // Build email attachments from photo URLs
+              const emailAttachments: EmailAttachment[] = photoUrls.map((url, index) => {
+                // Extract filename from URL or generate one
+                const urlParts = url.split('/');
+                const originalName = urlParts[urlParts.length - 1]?.split('?')[0] || '';
+                const extension = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+                const filename = `incident-photo-${index + 1}.${extension}`;
+                
+                return {
+                  filename,
+                  path: url, // Resend will fetch from this URL
+                };
+              });
+
               const result = await sendEmail({
                 to: [recipient.email],
                 subject,
                 html,
                 module: 'incident_workflow',
                 tenantName,
+                attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
               });
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;

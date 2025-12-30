@@ -166,12 +166,22 @@ export const EMAIL_SENDERS = {
 
 export type EmailModule = keyof typeof EMAIL_SENDERS;
 
+/**
+ * Email attachment interface for sending files via Resend
+ */
+export interface EmailAttachment {
+  filename: string;
+  path?: string;      // URL to file (Resend fetches it)
+  content?: string;   // Base64 encoded content (alternative to path)
+}
+
 export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   module: EmailModule;
   tenantName?: string; // Optional tenant name to override default sender
+  attachments?: EmailAttachment[]; // Optional file attachments
 }
 
 export interface EmailResult {
@@ -196,7 +206,7 @@ export function getSenderName(module: EmailModule, tenantName?: string): string 
  * Send email via Resend with module-based sender name
  */
 export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
-  const { to, subject, html, module, tenantName } = options;
+  const { to, subject, html, module, tenantName, attachments } = options;
   
   if (!RESEND_API_KEY) {
     console.error("RESEND_API_KEY not configured");
@@ -216,12 +226,31 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
   try {
     const resend = new Resend(RESEND_API_KEY);
     
-    const { data, error } = await resend.emails.send({
+    // Build email payload with optional attachments
+    const emailPayload: {
+      from: string;
+      to: string[];
+      subject: string;
+      html: string;
+      attachments?: { filename: string; path?: string; content?: string }[];
+    } = {
       from: fromAddress,
       to: validRecipients,
       subject: subject,
       html: html,
-    });
+    };
+
+    // Add attachments if provided
+    if (attachments && attachments.length > 0) {
+      emailPayload.attachments = attachments.map(att => ({
+        filename: att.filename,
+        ...(att.path ? { path: att.path } : {}),
+        ...(att.content ? { content: att.content } : {}),
+      }));
+      console.log(`[Email] Including ${attachments.length} attachment(s)`);
+    }
+
+    const { data, error } = await resend.emails.send(emailPayload);
 
     if (error) {
       console.error("Resend error:", error);
@@ -230,7 +259,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
 
     const messageId = data?.id;
     console.log(
-      `Email sent via ${senderName} to ${validRecipients.join(", ")}, MessageId: ${messageId}`
+      `Email sent via ${senderName} to ${validRecipients.join(", ")}, MessageId: ${messageId}${attachments?.length ? `, Attachments: ${attachments.length}` : ''}`
     );
 
     return { success: true, messageId };
