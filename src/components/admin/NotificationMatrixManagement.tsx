@@ -97,7 +97,7 @@ const getInitialFormState = (): RuleFormState => ({
   isUserSpecific: false,
   whatsapp_template_id: null,
   email_template_id: null,
-  event_type: 'all',
+  event_type: 'incident',
 });
 
 // Severity level colors following HSSA standards
