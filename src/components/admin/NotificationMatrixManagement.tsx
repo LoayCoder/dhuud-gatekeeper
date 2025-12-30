@@ -140,15 +140,22 @@ export default function NotificationMatrixManagement() {
   const deleteMutation = useDeleteMatrixRule();
   const resetMutation = useResetMatrixToDefaults();
   
-  // Filter WhatsApp-compatible templates
-  const whatsappTemplates = useMemo(() => {
-    return templates?.filter(t => t.is_active && t.category === 'incidents') || [];
-  }, [templates]);
+  // Map event type to template category
+  const getCategoryForEventType = (eventType: EventType): string => {
+    return eventType === 'incident' ? 'incidents' : 'observations';
+  };
 
-  // Filter Email-compatible templates
+  // Filter WhatsApp-compatible templates based on active event type
+  const whatsappTemplates = useMemo(() => {
+    const category = getCategoryForEventType(activeEventType);
+    return templates?.filter(t => t.is_active && t.category === category) || [];
+  }, [templates, activeEventType]);
+
+  // Filter Email-compatible templates based on active event type
   const emailTemplates = useMemo(() => {
-    return templates?.filter(t => t.is_active && t.category === 'incidents') || [];
-  }, [templates]);
+    const category = getCategoryForEventType(activeEventType);
+    return templates?.filter(t => t.is_active && t.category === category) || [];
+  }, [templates, activeEventType]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
