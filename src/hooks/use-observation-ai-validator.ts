@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 export interface AnalysisResult {
   // Translation
@@ -94,7 +95,7 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke('analyze-observation', {
-        body: { description }
+        body: { description, responseLanguage: i18n.language }
       });
 
       stopTimer();

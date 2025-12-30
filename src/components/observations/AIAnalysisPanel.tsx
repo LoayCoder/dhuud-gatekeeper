@@ -158,7 +158,7 @@ export function AIAnalysisPanel({
               </span>
               {analysisResult.missingSections.map((section, i) => (
                 <Badge key={i} variant="secondary" className="text-xs">
-                  {section}
+                  {t(`observations.ai.sections.${section}`, section)}
                 </Badge>
               ))}
             </div>
