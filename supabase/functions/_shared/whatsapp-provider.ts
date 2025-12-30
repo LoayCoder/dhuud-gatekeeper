@@ -6,7 +6,7 @@
  */
 
 import { sendWhatsAppMessage as sendTwilioMessage, sendWhatsAppTemplate as sendTwilioTemplate, TwilioResponse } from "./twilio-whatsapp.ts";
-import { sendWaSenderTextMessage, WaSenderResponse } from "./wasender-whatsapp.ts";
+import { sendWaSenderTextMessage, sendWaSenderMediaMessage, WaSenderResponse } from "./wasender-whatsapp.ts";
 
 export interface WhatsAppProviderResponse {
   success: boolean;
@@ -103,6 +103,65 @@ export async function sendWhatsAppTemplateMessage(
       error: result.error
     };
   }
+}
+
+/**
+ * Send a text message with optional media attachments via the active WhatsApp provider
+ * Sends text first, then each media file as a separate message
+ */
+export async function sendWhatsAppWithMedia(
+  to: string,
+  message: string,
+  mediaUrls?: string[]
+): Promise<WhatsAppProviderResponse> {
+  const provider = getActiveProvider();
+  console.log(`[WhatsApp Provider] Using ${provider} to send message with ${mediaUrls?.length || 0} media to ${to}`);
+  
+  // First send the text message
+  const textResult = await sendWhatsAppText(to, message);
+  
+  if (!textResult.success) {
+    return textResult;
+  }
+  
+  // If no media, we're done
+  if (!mediaUrls || mediaUrls.length === 0) {
+    return textResult;
+  }
+  
+  // Send each media file as a separate message
+  let mediaErrors: string[] = [];
+  
+  if (provider === 'wasender') {
+    for (let i = 0; i < mediaUrls.length; i++) {
+      const mediaUrl = mediaUrls[i];
+      console.log(`[WhatsApp Provider] Sending media ${i + 1}/${mediaUrls.length}: ${mediaUrl}`);
+      
+      const mediaResult = await sendWaSenderMediaMessage(to, mediaUrl, '', 'image');
+      
+      if (!mediaResult.success) {
+        console.error(`[WhatsApp Provider] Failed to send media ${i + 1}:`, mediaResult.error);
+        mediaErrors.push(mediaResult.error || 'Unknown media error');
+      }
+      
+      // Small delay between media messages to avoid rate limiting
+      if (i < mediaUrls.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+  } else {
+    // Twilio doesn't have a direct media message via our current implementation
+    // Log a warning - future enhancement could add Twilio media support
+    console.warn(`[WhatsApp Provider] Twilio media attachments not implemented, skipping ${mediaUrls.length} photos`);
+  }
+  
+  // Return success even if some media failed (text was sent)
+  return {
+    success: true,
+    messageId: textResult.messageId,
+    provider,
+    error: mediaErrors.length > 0 ? `Text sent, but ${mediaErrors.length} media failed` : undefined
+  };
 }
 
 /**
