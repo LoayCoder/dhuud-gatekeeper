@@ -1,1 +1,0 @@
-export { ObservationWorkflowDiagram } from './ObservationWorkflowDiagram';

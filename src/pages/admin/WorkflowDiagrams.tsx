@@ -21,7 +21,6 @@ import {
 } from '@/lib/workflow-definitions';
 import { renderWorkflowSVG, getSVGDataUrl } from '@/lib/render-workflow-svg';
 import { generateWorkflowPDF, generateBulkWorkflowPDFs } from '@/lib/generate-workflow-pdf';
-import { ObservationWorkflowDiagram } from '@/components/observations/workflow';
 
 export default function WorkflowDiagrams() {
   const { t, i18n } = useTranslation();
@@ -313,20 +312,6 @@ export default function WorkflowDiagrams() {
           </CardContent>
         </Card>
       </div>
-      {/* Observation Workflow Diagram Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('workflowDiagrams.observationWorkflow', 'Observation Workflow')}</CardTitle>
-          <CardDescription>
-            {t('workflowDiagrams.observationWorkflowDesc', 'Visual representation of the observation reporting and approval process')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="max-h-[800px]">
-            <ObservationWorkflowDiagram />
-          </ScrollArea>
-        </CardContent>
-      </Card>
     </div>
   );
 }
