@@ -7,7 +7,7 @@ const corsHeaders = {
 
 interface AnalysisRequest {
   description: string;
-  language?: string;
+  responseLanguage?: string;
 }
 
 interface AnalysisResult {
@@ -54,7 +54,17 @@ serve(async (req) => {
       );
     }
 
-    const { description }: AnalysisRequest = await req.json();
+    const { description, responseLanguage = 'en' }: AnalysisRequest = await req.json();
+
+    // Map language codes to full names for the AI
+    const languageNames: Record<string, string> = {
+      'ar': 'Arabic',
+      'en': 'English',
+      'ur': 'Urdu',
+      'hi': 'Hindi',
+      'fil': 'Filipino'
+    };
+    const targetLanguage = languageNames[responseLanguage] || 'English';
 
     if (!description || description.trim().length === 0) {
       return new Response(
@@ -89,6 +99,19 @@ Clarity Scoring Guidelines:
 - 50-69%: Some details missing, vague in places
 - Below 50%: Too vague, missing critical context
 
+CRITICAL LANGUAGE INSTRUCTIONS:
+- Write ALL user-facing text in ${targetLanguage}:
+  - validationErrors: Write in ${targetLanguage}
+  - improvementSuggestions: Write in ${targetLanguage}
+  - keyRisks: Write in ${targetLanguage}
+  - ambiguousTerms: Write in ${targetLanguage}
+
+- Keep these values in English (system codes only):
+  - missingSections: Use ONLY these exact English keys: "location", "equipment", "personnel", "timing", "activity"
+  - subtype: Use ONLY: "unsafe_act", "unsafe_condition", "safe_act", "safe_condition"
+  - severity: Use ONLY: "level_1", "level_2", "level_3", "level_4", "level_5"
+  - likelihood: Use ONLY: "rare", "unlikely", "possible", "likely", "almost_certain"
+
 Required Output Format (JSON):
 {
   "originalLanguage": "detected language name in English (e.g., 'Arabic', 'English', 'Hindi')",
@@ -98,17 +121,17 @@ Required Output Format (JSON):
   "wordCount": number,
   "clarityScore": number (0-100),
   "isValid": boolean (true if clarityScore >= 70 AND wordCount >= 20),
-  "validationErrors": ["list of specific issues that make the input invalid"],
-  "ambiguousTerms": ["list of vague words found"],
-  "missingSections": ["list of missing context: location, equipment, personnel, timing, activity"],
-  "improvementSuggestions": ["specific suggestions to improve the description"],
+  "validationErrors": ["list in ${targetLanguage}"],
+  "ambiguousTerms": ["list in ${targetLanguage}"],
+  "missingSections": ["English keys only: location, equipment, personnel, timing, activity"],
+  "improvementSuggestions": ["list in ${targetLanguage}"],
   "subtype": "unsafe_act" | "unsafe_condition" | "safe_act" | "safe_condition",
   "subtypeConfidence": number (0-100),
   "severity": "level_1" | "level_2" | "level_3" | "level_4" | "level_5",
   "severityConfidence": number (0-100),
   "likelihood": "rare" | "unlikely" | "possible" | "likely" | "almost_certain",
   "likelihoodConfidence": number (0-100),
-  "keyRisks": ["specific risks/hazards identified"]
+  "keyRisks": ["list in ${targetLanguage}"]
 }`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

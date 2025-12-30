@@ -7001,7 +7001,14 @@
       "takingLonger": "Taking longer than usual",
       "rateLimitError": "Rate limit exceeded. Please wait and try again.",
       "creditsError": "AI credits exhausted. Please contact administrator.",
-      "aiGatedSubmit": "AI analysis required before submitting"
+      "aiGatedSubmit": "AI analysis required before submitting",
+      "sections": {
+        "location": "Location",
+        "equipment": "Equipment",
+        "personnel": "Personnel",
+        "timing": "Timing",
+        "activity": "Activity"
+      }
     },
     "likelihood": {
       "rare": "Rare",
