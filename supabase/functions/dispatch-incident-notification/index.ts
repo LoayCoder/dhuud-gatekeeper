@@ -390,6 +390,14 @@ Deno.serve(async (req) => {
 
     const recipientList = (recipients || []) as NotificationRecipient[];
     console.log(`[Dispatch] Found ${recipientList.length} recipients to notify`);
+    
+    // Enhanced logging for debugging empty recipients
+    if (recipientList.length === 0) {
+      console.warn(`[Dispatch] WARNING: No recipients found for severity=${effectiveSeverity}, event_type=${incidentEventType}, has_injury=${hasInjury}, erp_activated=${erpActivated}`);
+      console.warn(`[Dispatch] Check notification_matrix table has entries for severity_level='${effectiveSeverity}'`);
+    } else {
+      console.log(`[Dispatch] Recipients breakdown: ${recipientList.map(r => `${r.stakeholder_role}(${r.channels.join(',')})`).join(', ')}`);
+    }
 
     // 8. Apply channel gating based on severity level per GCC-Standard 5-Level Matrix:
     // - Level 5 (Catastrophic): WhatsApp + Email + Push to ALL including HSSE Manager

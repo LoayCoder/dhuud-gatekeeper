@@ -116,14 +116,17 @@ export function useCreateIncident() {
       if (data.location_street) (insertData as Record<string, unknown>).location_street = data.location_street;
       if (data.location_formatted) (insertData as Record<string, unknown>).location_formatted = data.location_formatted;
       
-      // Add new severity_v2 for incidents (cast to bypass type check until types regenerate)
-      if (!isObservation && data.severity) {
+      // Add severity_v2 for BOTH incidents AND observations (unified 5-level system)
+      if (data.severity) {
         (insertData as Record<string, unknown>).severity_v2 = data.severity;
-        if (data.severity_override_reason) {
-          (insertData as Record<string, unknown>).severity_override_reason = data.severity_override_reason;
-        }
-        if (data.erp_activated !== undefined) {
-          (insertData as Record<string, unknown>).erp_activated = data.erp_activated;
+        // Only incidents can have severity override reasons and ERP activation
+        if (!isObservation) {
+          if (data.severity_override_reason) {
+            (insertData as Record<string, unknown>).severity_override_reason = data.severity_override_reason;
+          }
+          if (data.erp_activated !== undefined) {
+            (insertData as Record<string, unknown>).erp_activated = data.erp_activated;
+          }
         }
       }
       
