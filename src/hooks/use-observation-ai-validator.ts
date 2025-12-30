@@ -200,9 +200,6 @@ export function useObservationAIValidator(): UseObservationAIValidatorReturn {
     }
     
     if (validationState === 'validation_failed' && analysisResult) {
-      if (analysisResult.wordCount < 10) {
-        return t('observations.ai.minWords', 'Please enter at least 10 words for meaningful analysis.');
-      }
       if (analysisResult.clarityScore < 70) {
         return t('observations.ai.clarityLow', 'Input not clear enough for analysis. Please provide more specific details.');
       }
