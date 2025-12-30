@@ -106,16 +106,16 @@ const WORKER_NAMES = [
 ]
 
 const INCIDENTS_DATA = [
-  { event_type: 'observation', severity: 'L1', title: 'Minor housekeeping issue', description: 'Oil spill on walkway near warehouse entrance' },
-  { event_type: 'observation', severity: 'L2', title: 'PPE non-compliance', description: 'Worker observed without safety glasses in designated area' },
-  { event_type: 'observation', severity: 'L3', title: 'Missing machine guard', description: 'Conveyor belt guard found removed during inspection' },
-  { event_type: 'near_miss', severity: 'L4', title: 'Forklift near-miss', description: 'Forklift almost struck pedestrian at blind corner' },
-  { event_type: 'near_miss', severity: 'L5', title: 'Chemical spill prevented', description: 'Leaking drum identified before major spill occurred' },
-  { event_type: 'accident', severity: 'L3', title: 'Minor hand laceration', description: 'Worker cut hand on sharp metal edge while handling material' },
-  { event_type: 'observation', severity: 'L2', title: 'Blocked emergency exit', description: 'Pallets stacked blocking emergency exit door' },
-  { event_type: 'observation', severity: 'L1', title: 'Missing safety signage', description: 'Hazard warning sign missing from chemical storage area' },
-  { event_type: 'near_miss', severity: 'L4', title: 'Scaffolding instability', description: 'Scaffolding started to tip during work at height' },
-  { event_type: 'accident', severity: 'L2', title: 'Slip and fall', description: 'Employee slipped on wet floor in production area' },
+  { event_type: 'observation', severity_v2: 'level_1', title: 'Minor housekeeping issue', description: 'Oil spill on walkway near warehouse entrance' },
+  { event_type: 'observation', severity_v2: 'level_1', title: 'PPE non-compliance', description: 'Worker observed without safety glasses in designated area' },
+  { event_type: 'observation', severity_v2: 'level_2', title: 'Missing machine guard', description: 'Conveyor belt guard found removed during inspection' },
+  { event_type: 'near_miss', severity_v2: 'level_3', title: 'Forklift near-miss', description: 'Forklift almost struck pedestrian at blind corner' },
+  { event_type: 'near_miss', severity_v2: 'level_4', title: 'Chemical spill prevented', description: 'Leaking drum identified before major spill occurred' },
+  { event_type: 'accident', severity_v2: 'level_3', title: 'Minor hand laceration', description: 'Worker cut hand on sharp metal edge while handling material' },
+  { event_type: 'observation', severity_v2: 'level_2', title: 'Blocked emergency exit', description: 'Pallets stacked blocking emergency exit door' },
+  { event_type: 'observation', severity_v2: 'level_1', title: 'Missing safety signage', description: 'Hazard warning sign missing from chemical storage area' },
+  { event_type: 'near_miss', severity_v2: 'level_4', title: 'Scaffolding instability', description: 'Scaffolding started to tip during work at height' },
+  { event_type: 'accident', severity_v2: 'level_5', title: 'Severe injury incident', description: 'Major incident requiring immediate medical attention' },
 ]
 
 const RISK_ASSESSMENTS_DATA = [
@@ -123,7 +123,7 @@ const RISK_ASSESSMENTS_DATA = [
   { title: 'Confined Space Entry', activity: 'Tank cleaning and inspection procedures', status: 'approved' },
   { title: 'Working at Height', activity: 'Maintenance work on elevated platforms', status: 'draft' },
   { title: 'Chemical Handling', activity: 'Storage and transfer of hazardous chemicals', status: 'approved' },
-  { title: 'Electrical Maintenance', activity: 'Live electrical work procedures', status: 'pending_approval' },
+  { title: 'Electrical Maintenance', activity: 'Live electrical work procedures', status: 'draft' },
   { title: 'Lifting Operations', activity: 'Crane and heavy lifting activities', status: 'approved' },
   { title: 'Excavation Work', activity: 'Deep excavation near existing utilities', status: 'expired' },
   { title: 'Night Shift Operations', activity: 'Reduced visibility work during night shift', status: 'draft' },
@@ -536,7 +536,7 @@ async function seedContractors(supabase: any, tenantId: string, siteIds: string[
         email: `info@${company.name.toLowerCase().replace(/\s+/g, '')}.test.sa`,
         phone: `+966${Math.floor(500000000 + Math.random() * 99999999)}`,
         city: pickRandom(['Riyadh', 'Jeddah', 'Dammam']),
-        status: 'approved',
+        status: 'active',
         created_by: userId,
       })
       .select('id')
@@ -591,12 +591,12 @@ async function seedIncidents(supabase: any, tenantId: string, siteIds: string[],
         branch_id: pickRandom(branchIds),
         reference_id: generateReferenceId('INC'),
         event_type: incident.event_type,
-        severity: incident.severity,
+        severity_v2: incident.severity_v2,
         title: `TEST - ${incident.title}`,
         description: incident.description,
         occurred_at: randomPastDate(90),
         reporter_id: userId,
-        status: pickRandom(['new', 'investigating', 'closed', 'closed']),
+        status: pickRandom(['submitted', 'pending_review', 'investigation_in_progress', 'closed']),
         location: pickRandom(['Production Area', 'Warehouse', 'Office Building', 'Parking Lot']),
       })
       .select('id')
