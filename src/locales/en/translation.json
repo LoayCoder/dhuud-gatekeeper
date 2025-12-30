@@ -7400,5 +7400,41 @@
       "rating": "Rating",
       "highRisk": "High/Critical"
     }
+  },
+  "workflow": {
+    "diagram": {
+      "title": "Observation Workflow"
+    },
+    "path": {
+      "close_on_spot": "Close on Spot Path",
+      "hsse_review": "HSSE Review Path",
+      "manager_closure": "Manager Closure Path"
+    },
+    "stages": {
+      "submitted": "Submitted",
+      "closeOnSpot": "Close on Spot",
+      "expertScreening": "Expert Screening",
+      "returned": "Returned",
+      "rejected": "Rejected",
+      "noInvestigation": "No Investigation",
+      "deptApproval": "Dept. Approval",
+      "actionsPending": "Actions Pending",
+      "hsseValidation": "HSSE Validation",
+      "pendingFinal": "Pending Final",
+      "closed": "Closed"
+    },
+    "roles": {
+      "reporter": "Reporter",
+      "hsse_expert": "HSSE Expert",
+      "dept_rep": "Dept. Rep",
+      "hsse_manager": "HSSE Manager",
+      "action_owner": "Action Owner"
+    },
+    "legend": {
+      "completed": "Completed",
+      "current": "Current",
+      "pending": "Pending",
+      "skipped": "Skipped"
+    }
   }
 }
