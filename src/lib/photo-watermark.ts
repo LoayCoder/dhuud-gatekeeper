@@ -11,6 +11,7 @@ export interface WatermarkOptions {
   gpsLng?: number;
   language?: 'ar' | 'en';
   customText?: string;
+  contractorName?: string;
 }
 
 /**
@@ -118,14 +119,21 @@ export async function addPhotoWatermark(
         currentY += lineHeight;
       }
 
-      // Line 2: Timestamp
+      // Line 2: Contractor name (if present)
+      if (options.contractorName) {
+        const contractorLabel = language === 'ar' ? 'المقاول: ' : 'Contractor: ';
+        ctx.fillText(contractorLabel + options.contractorName, textX, currentY);
+        currentY += lineHeight;
+      }
+
+      // Line 3: Timestamp
       if (options.timestamp) {
         const timestampText = formatTimestamp(options.timestamp, language);
         ctx.fillText(timestampText, textX, currentY);
         currentY += lineHeight;
       }
 
-      // Line 3: GPS coordinates
+      // Line 4: GPS coordinates
       if (options.gpsLat !== undefined && options.gpsLng !== undefined) {
         const gpsLabel = language === 'ar' ? 'الموقع: ' : 'GPS: ';
         const gpsText = gpsLabel + formatGPSCoordinates(options.gpsLat, options.gpsLng);
@@ -133,7 +141,7 @@ export async function addPhotoWatermark(
         currentY += lineHeight;
       }
 
-      // Line 4: Custom text (optional)
+      // Line 5: Custom text (optional)
       if (options.customText) {
         ctx.fillText(options.customText, textX, currentY);
       }
