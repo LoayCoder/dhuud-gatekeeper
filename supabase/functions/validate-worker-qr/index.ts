@@ -2,7 +2,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders, handleCorsPrelight, verifyAuth, unauthorizedResponse } from '../_shared/cors.ts';
 
 interface ValidationRequest {
-  qr_token: string;
+  qr_token?: string;
+  search_term?: string;
+  search_mode?: boolean;
   site_id?: string;
   zone_id?: string;
   tenant_id: string;
@@ -19,6 +21,9 @@ interface ValidationResult {
     project_name: string;
     nationality: string | null;
     preferred_language: string;
+    national_id?: string;
+    mobile_number?: string;
+    tenant_id?: string;
   };
   errors: string[];
   warnings: string[];
@@ -45,11 +50,21 @@ Deno.serve(async (req) => {
       return unauthorizedResponse(authResult?.error || 'Unauthorized', origin);
     }
 
-    const { qr_token, site_id, zone_id, tenant_id }: ValidationRequest = await req.json();
+    const requestData = await req.json();
+    const { qr_token, search_term, search_mode, site_id, zone_id, tenant_id }: ValidationRequest = requestData;
+    // Also support legacy qr_data parameter
+    const searchValue = search_term || requestData.qr_data;
 
-    if (!qr_token || !tenant_id) {
+    if (!tenant_id) {
       return new Response(
-        JSON.stringify({ is_valid: false, errors: ['Missing QR token or tenant ID'] }),
+        JSON.stringify({ is_valid: false, errors: ['Missing tenant ID'] }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!qr_token && !searchValue) {
+      return new Response(
+        JSON.stringify({ is_valid: false, errors: ['Missing QR token or search term'] }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -60,19 +75,20 @@ Deno.serve(async (req) => {
       warnings: [],
     };
 
-    // Get QR code record
-    const { data: qrCode, error: qrError } = await supabase
-      .from('worker_qr_codes')
-      .select(`
-        id,
-        worker_id,
-        project_id,
-        is_active,
-        valid_from,
-        valid_until,
-        revoked_at,
-        revocation_reason,
-        worker:contractor_workers(
+    const now = new Date();
+    let qrCode: any = null;
+    let worker: any = null;
+    let project: any = null;
+    let company: any = null;
+
+    // SEARCH MODE: Find worker by national_id, name, or mobile
+    if (search_mode || (!qr_token && searchValue)) {
+      console.log(`[ValidateWorkerQR] Search mode - looking for: ${searchValue}`);
+      
+      // Search for worker
+      const { data: workers, error: searchError } = await supabase
+        .from('contractor_workers')
+        .select(`
           id,
           full_name,
           full_name_ar,
@@ -80,137 +96,274 @@ Deno.serve(async (req) => {
           nationality,
           preferred_language,
           approval_status,
-          company:contractor_companies(company_name, status)
-        ),
-        project:contractor_projects(
-          project_name,
-          status,
-          site_id,
-          start_date,
-          end_date
-        )
-      `)
-      .eq('qr_token', qr_token)
-      .eq('tenant_id', tenant_id)
-      .single();
+          national_id,
+          mobile_number,
+          tenant_id,
+          company:contractor_companies(id, company_name, status)
+        `)
+        .eq('tenant_id', tenant_id)
+        .is('deleted_at', null)
+        .or(`national_id.ilike.%${searchValue}%,full_name.ilike.%${searchValue}%,mobile_number.ilike.%${searchValue}%`)
+        .limit(1);
 
-    if (qrError || !qrCode) {
-      console.error('QR code not found:', qrError);
-      return new Response(
-        JSON.stringify({ is_valid: false, errors: ['Invalid QR code'] }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      if (searchError || !workers || workers.length === 0) {
+        console.error('Worker not found:', searchError);
+        return new Response(
+          JSON.stringify({ is_valid: false, errors: ['Worker not found'] }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-    const now = new Date();
-    const worker = qrCode.worker as any;
-    const project = qrCode.project as any;
-    const company = worker?.company as any;
+      worker = workers[0];
+      company = worker.company;
 
-    // Check QR code validity
-    if (!qrCode.is_active) {
-      result.is_valid = false;
-      result.errors.push('QR code is inactive');
-    }
+      // Check worker approval status
+      if (worker.approval_status !== 'approved') {
+        result.is_valid = false;
+        result.errors.push(`Worker not approved (status: ${worker.approval_status})`);
+      }
 
-    if (qrCode.revoked_at) {
-      result.is_valid = false;
-      result.errors.push(`QR code revoked: ${qrCode.revocation_reason || 'Unknown reason'}`);
-    }
+      // Check company status
+      if (company?.status === 'suspended') {
+        result.is_valid = false;
+        result.errors.push('Contractor company is suspended');
+      }
 
-    if (qrCode.valid_from && new Date(qrCode.valid_from) > now) {
-      result.is_valid = false;
-      result.errors.push('QR code not yet valid');
-    }
+      // Get active project assignments
+      const { data: assignments } = await supabase
+        .from('project_worker_assignments')
+        .select(`
+          project:contractor_projects(
+            id,
+            project_name,
+            status,
+            site_id,
+            start_date,
+            end_date
+          )
+        `)
+        .eq('worker_id', worker.id)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .limit(1);
 
-    if (qrCode.valid_until && new Date(qrCode.valid_until) < now) {
-      result.is_valid = false;
-      result.errors.push('QR code has expired');
-    }
+      if (assignments && assignments.length > 0) {
+        project = assignments[0].project;
+        
+        // Check project status
+        if (project?.status !== 'active') {
+          result.warnings.push(`Project is not active (status: ${project?.status})`);
+        }
 
-    // Check worker status
-    if (worker?.approval_status !== 'approved') {
-      result.is_valid = false;
-      result.errors.push(`Worker not approved (status: ${worker?.approval_status})`);
-    }
+        // Check site access
+        if (site_id && project?.site_id && project.site_id !== site_id) {
+          result.is_valid = false;
+          result.errors.push('Worker not authorized for this site');
+        }
 
-    // Check company status
-    if (company?.status === 'suspended') {
-      result.is_valid = false;
-      result.errors.push('Contractor company is suspended');
-    }
+        // Check induction status
+        const { data: induction } = await supabase
+          .from('worker_inductions')
+          .select('status, acknowledged_at, expires_at')
+          .eq('worker_id', worker.id)
+          .eq('project_id', project.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
 
-    // Check project status
-    if (project?.status !== 'active') {
-      result.is_valid = false;
-      result.errors.push(`Project is not active (status: ${project?.status})`);
-    }
+        if (!induction || induction.status !== 'completed' || !induction.acknowledged_at) {
+          result.warnings.push('Safety induction not completed');
+        } else if (induction.expires_at && new Date(induction.expires_at) < now) {
+          result.warnings.push('Safety induction has expired');
+        }
+      } else {
+        result.warnings.push('No active project assignment found');
+      }
 
-    // Check project dates
-    if (project?.start_date && new Date(project.start_date) > now) {
-      result.is_valid = false;
-      result.errors.push('Project has not started yet');
-    }
-
-    if (project?.end_date && new Date(project.end_date) < now) {
-      result.is_valid = false;
-      result.errors.push('Project has ended');
-    }
-
-    // Check site access (if site_id provided)
-    if (site_id && project?.site_id && project.site_id !== site_id) {
-      result.is_valid = false;
-      result.errors.push('Worker not authorized for this site');
-    }
-
-    // Check induction status
-    const { data: induction } = await supabase
-      .from('worker_inductions')
-      .select('status, acknowledged_at, expires_at')
-      .eq('worker_id', qrCode.worker_id)
-      .eq('project_id', qrCode.project_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!induction || induction.status !== 'completed' || !induction.acknowledged_at) {
-      result.is_valid = false;
-      result.errors.push('Safety induction not completed');
-    } else if (induction.expires_at && new Date(induction.expires_at) < now) {
-      result.is_valid = false;
-      result.errors.push('Safety induction has expired');
-    }
-
-    // Populate worker info if valid
-    if (worker) {
+      // Populate worker info
       result.worker = {
         id: worker.id,
         full_name: worker.full_name,
         full_name_ar: worker.full_name_ar,
         photo_path: worker.photo_path,
         company_name: company?.company_name || 'Unknown',
-        project_name: project?.project_name || 'Unknown',
+        project_name: project?.project_name || 'No active project',
         nationality: worker.nationality,
         preferred_language: worker.preferred_language,
+        national_id: worker.national_id,
+        mobile_number: worker.mobile_number,
+        tenant_id: worker.tenant_id,
       };
+
+    } else {
+      // QR TOKEN MODE: Validate by QR token
+      console.log(`[ValidateWorkerQR] QR token mode - validating: ${qr_token}`);
+
+      // Get QR code record
+      const { data: qrData, error: qrError } = await supabase
+        .from('worker_qr_codes')
+        .select(`
+          id,
+          worker_id,
+          project_id,
+          is_active,
+          valid_from,
+          valid_until,
+          revoked_at,
+          revocation_reason,
+          worker:contractor_workers(
+            id,
+            full_name,
+            full_name_ar,
+            photo_path,
+            nationality,
+            preferred_language,
+            approval_status,
+            national_id,
+            mobile_number,
+            tenant_id,
+            company:contractor_companies(company_name, status)
+          ),
+          project:contractor_projects(
+            project_name,
+            status,
+            site_id,
+            start_date,
+            end_date
+          )
+        `)
+        .eq('qr_token', qr_token)
+        .eq('tenant_id', tenant_id)
+        .single();
+
+      if (qrError || !qrData) {
+        console.error('QR code not found:', qrError);
+        return new Response(
+          JSON.stringify({ is_valid: false, errors: ['Invalid QR code'] }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      qrCode = qrData;
+      worker = qrCode.worker as any;
+      project = qrCode.project as any;
+      company = worker?.company as any;
+
+      // Check QR code validity
+      if (!qrCode.is_active) {
+        result.is_valid = false;
+        result.errors.push('QR code is inactive');
+      }
+
+      if (qrCode.revoked_at) {
+        result.is_valid = false;
+        result.errors.push(`QR code revoked: ${qrCode.revocation_reason || 'Unknown reason'}`);
+      }
+
+      if (qrCode.valid_from && new Date(qrCode.valid_from) > now) {
+        result.is_valid = false;
+        result.errors.push('QR code not yet valid');
+      }
+
+      if (qrCode.valid_until && new Date(qrCode.valid_until) < now) {
+        result.is_valid = false;
+        result.errors.push('QR code has expired');
+      }
+
+      // Check worker status
+      if (worker?.approval_status !== 'approved') {
+        result.is_valid = false;
+        result.errors.push(`Worker not approved (status: ${worker?.approval_status})`);
+      }
+
+      // Check company status
+      if (company?.status === 'suspended') {
+        result.is_valid = false;
+        result.errors.push('Contractor company is suspended');
+      }
+
+      // Check project status
+      if (project?.status !== 'active') {
+        result.is_valid = false;
+        result.errors.push(`Project is not active (status: ${project?.status})`);
+      }
+
+      // Check project dates
+      if (project?.start_date && new Date(project.start_date) > now) {
+        result.is_valid = false;
+        result.errors.push('Project has not started yet');
+      }
+
+      if (project?.end_date && new Date(project.end_date) < now) {
+        result.is_valid = false;
+        result.errors.push('Project has ended');
+      }
+
+      // Check site access (if site_id provided)
+      if (site_id && project?.site_id && project.site_id !== site_id) {
+        result.is_valid = false;
+        result.errors.push('Worker not authorized for this site');
+      }
+
+      // Check induction status
+      const { data: induction } = await supabase
+        .from('worker_inductions')
+        .select('status, acknowledged_at, expires_at')
+        .eq('worker_id', qrCode.worker_id)
+        .eq('project_id', qrCode.project_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!induction || induction.status !== 'completed' || !induction.acknowledged_at) {
+        result.is_valid = false;
+        result.errors.push('Safety induction not completed');
+      } else if (induction.expires_at && new Date(induction.expires_at) < now) {
+        result.is_valid = false;
+        result.errors.push('Safety induction has expired');
+      }
+
+      // Populate worker info
+      if (worker) {
+        result.worker = {
+          id: worker.id,
+          full_name: worker.full_name,
+          full_name_ar: worker.full_name_ar,
+          photo_path: worker.photo_path,
+          company_name: company?.company_name || 'Unknown',
+          project_name: project?.project_name || 'Unknown',
+          nationality: worker.nationality,
+          preferred_language: worker.preferred_language,
+          national_id: worker.national_id,
+          mobile_number: worker.mobile_number,
+          tenant_id: worker.tenant_id,
+        };
+      }
     }
 
     // Log validation attempt with authenticated user
-    await supabase.from('contractor_module_audit_logs').insert({
-      tenant_id,
-      entity_type: 'worker_qr_code',
-      entity_id: qrCode.id,
-      actor_id: authResult.user.id,
-      action: result.is_valid ? 'qr_validated_success' : 'qr_validated_failed',
-      new_value: {
-        worker_id: qrCode.worker_id,
-        project_id: qrCode.project_id,
-        site_id,
-        zone_id,
-        is_valid: result.is_valid,
-        errors: result.errors,
-      },
-    });
+    const logEntityId = qrCode?.id || worker?.id;
+    const logEntityType = qrCode ? 'worker_qr_code' : 'contractor_worker';
+    
+    if (logEntityId) {
+      await supabase.from('contractor_module_audit_logs').insert({
+        tenant_id,
+        entity_type: logEntityType,
+        entity_id: logEntityId,
+        actor_id: authResult.user.id,
+        action: result.is_valid ? 'qr_validated_success' : 'qr_validated_failed',
+        new_value: {
+          worker_id: worker?.id,
+          project_id: project?.id || qrCode?.project_id,
+          site_id,
+          zone_id,
+          is_valid: result.is_valid,
+          errors: result.errors,
+          warnings: result.warnings,
+          search_mode: search_mode || false,
+        },
+      });
+    }
 
     console.log(`QR validation for worker ${worker?.full_name}: ${result.is_valid ? 'VALID' : 'INVALID'}`);
 
