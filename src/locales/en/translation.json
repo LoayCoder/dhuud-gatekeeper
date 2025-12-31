@@ -1375,7 +1375,17 @@
     "deactivate": "Deactivate",
     "requiredFields": "Please fill all required fields",
     "type": "Type",
-    "retry": "Retry"
+    "retry": "Retry",
+    "primary": "Primary"
+  },
+  "assignment": {
+    "title": "Work Assignment",
+    "description": "Your branch and site assignment information",
+    "branch": "Branch",
+    "site": "Site",
+    "notAssigned": "Not Assigned",
+    "managedByAdmin": "Work assignments are managed by your administrator.",
+    "sitesViaDepartment": "Sites via department assignment:"
   },
   "search": {
     "placeholder": "Search by title, description, or reference...",

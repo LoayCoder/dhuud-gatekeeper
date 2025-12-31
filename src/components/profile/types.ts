@@ -11,6 +11,7 @@ export interface ProfileData {
   tenant_id: string;
   assigned_branch_id: string | null;
   assigned_site_id: string | null;
+  assigned_department_id: string | null;
   created_at: string | null;
   job_title: string | null;
   employee_id: string | null;

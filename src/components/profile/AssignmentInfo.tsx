@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { Building2, MapPin } from "lucide-react";
+import { Building2, MapPin, Star } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ProfileData } from "./types";
+import { useUserDepartmentSites } from "@/hooks/use-user-department-sites";
 
 interface AssignmentInfoProps {
   profile: ProfileData | null;
@@ -10,6 +12,13 @@ interface AssignmentInfoProps {
 export function AssignmentInfo({ profile }: AssignmentInfoProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+
+  // Fetch sites via department if no direct site assignment
+  const { data: departmentSites = [] } = useUserDepartmentSites(
+    !profile?.sites && profile?.assigned_department_id 
+      ? profile.assigned_department_id 
+      : null
+  );
 
   return (
     <Card dir={direction}>
@@ -57,6 +66,23 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
                     <p className="text-sm text-muted-foreground">{profile.sites.address}</p>
                   )}
                 </>
+              ) : departmentSites.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {t('assignment.sitesViaDepartment', 'Sites via department assignment:')}
+                  </p>
+                  {departmentSites.map(site => (
+                    <div key={site.id} className="flex items-center gap-2">
+                      <p className="font-medium">{site.name}</p>
+                      {site.is_primary && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Star className="h-3 w-3 me-1" />
+                          {t('common.primary', 'Primary')}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <p className="text-muted-foreground italic">{t('assignment.notAssigned')}</p>
               )}
