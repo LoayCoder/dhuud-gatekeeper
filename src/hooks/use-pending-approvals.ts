@@ -543,6 +543,8 @@ export function usePendingIncidentApprovals() {
       console.log('[PendingApprovals] Fetching incidents for tenant:', profile.tenant_id, 'user:', user.id);
 
       // Get incidents that are pending manager approval or escalated to HSSE Manager
+      // Use filter to bypass TypeScript strict type check for new status values
+      const pendingStatuses = ['pending_manager_approval', 'hsse_manager_escalation', 'pending_closure', 'pending_final_closure', 'pending_dept_rep_approval', 'pending_dept_rep_incident_review'];
       const { data: incidents, error } = await supabase
         .from('incidents')
         .select(`
@@ -551,7 +553,7 @@ export function usePendingIncidentApprovals() {
           reporter_id
         `)
         .eq('tenant_id', profile.tenant_id)
-        .in('status', ['pending_manager_approval', 'hsse_manager_escalation', 'pending_closure', 'pending_final_closure', 'pending_dept_rep_approval'])
+        .filter('status', 'in', `(${pendingStatuses.join(',')})`)
         .is('deleted_at', null)
         .order('created_at', { ascending: true });
 

@@ -80,6 +80,26 @@ export function useCreateIncident() {
       // Determine if this is an observation (simplified workflow)
       const isObservation = data.event_type === 'observation';
       
+      // Get department representative for auto-routing
+      const reporterDeptId = data.department_id || profile?.assigned_department_id || null;
+      let deptRepId: string | null = null;
+      
+      if (reporterDeptId) {
+        const { data: deptRep } = await supabase
+          .rpc('get_department_representative', { p_department_id: reporterDeptId });
+        deptRepId = deptRep || null;
+      }
+      
+      // Determine initial status based on event type:
+      // - Observations: pending_dept_rep_approval (mandatory Dept Rep review)
+      // - Incidents: pending_dept_rep_incident_review (mandatory Dept Rep review, read-only)
+      let initialStatus: string;
+      if (isObservation) {
+        initialStatus = 'pending_dept_rep_approval';
+      } else {
+        initialStatus = 'pending_dept_rep_incident_review';
+      }
+      
       const insertData: IncidentInsert & { risk_rating?: string; severity_v2?: string; severity_override_reason?: string; erp_activated?: boolean } = {
         tenant_id: profile.tenant_id,
         reporter_id: user.id,
@@ -98,12 +118,14 @@ export function useCreateIncident() {
         injury_details: isObservation ? null : (data.has_injury ? data.injury_details : null),
         has_damage: isObservation ? false : data.has_damage,
         damage_details: isObservation ? null : (data.has_damage ? data.damage_details : null),
-        status: 'submitted',
+        status: initialStatus as 'submitted', // Cast for type compatibility
+        // Auto-assign to Dept Rep for mandatory review
+        approval_manager_id: deptRepId,
         // Location fields
         site_id: data.site_id || null,
         branch_id: data.branch_id || null,
         // Auto-assign department from reporter's profile if not explicitly selected
-        department_id: data.department_id || profile?.assigned_department_id || null,
+        department_id: reporterDeptId,
         latitude: data.latitude || null,
         longitude: data.longitude || null,
         // Major event linkage

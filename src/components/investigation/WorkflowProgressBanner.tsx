@@ -35,6 +35,7 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
   // Define workflow steps based on current status
   const getWorkflowSteps = (): WorkflowStep[] => {
     const steps: WorkflowStep[] = [];
+    const isObservation = incident.event_type === 'observation';
     
     // Step 1: Submitted
     steps.push({
@@ -44,7 +45,44 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
       status: status === 'submitted' ? 'current' : 'completed',
     });
     
-    // Step 2: Expert Screening
+    // Step 2: Department Representative Review (NEW - mandatory first stop)
+    if (isObservation) {
+      // Observation workflow: Dept Rep can take actions
+      if (status === 'pending_dept_rep_approval') {
+        steps.push({
+          key: 'dept_rep',
+          label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          status: 'current',
+        });
+      } else if (['observation_actions_pending', 'closed', 'pending_manager_approval', 'hsse_manager_escalation'].includes(status)) {
+        steps.push({
+          key: 'dept_rep',
+          label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          status: 'completed',
+        });
+      }
+    } else {
+      // Incident workflow: Dept Rep only approves/rejects
+      if (status === 'pending_dept_rep_incident_review') {
+        steps.push({
+          key: 'dept_rep',
+          label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          status: 'current',
+        });
+      } else if (['pending_manager_approval', 'manager_rejected', 'hsse_manager_escalation', 'investigation_pending', 'investigation_in_progress', 'pending_closure', 'closed'].includes(status)) {
+        steps.push({
+          key: 'dept_rep',
+          label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          status: 'completed',
+        });
+      }
+    }
+    
+    // Step 3: Expert Screening (now after Dept Rep for incidents that get escalated)
     if (['returned_to_reporter', 'expert_rejected', 'no_investigation_required'].includes(status)) {
       steps.push({
         key: 'screening',
@@ -77,14 +115,7 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
         });
       }
     } else if (['pending_manager_approval', 'manager_rejected', 'hsse_manager_escalation', 'investigation_pending', 'investigation_in_progress', 'pending_closure', 'closed'].includes(status)) {
-      steps.push({
-        key: 'screening',
-        label: t('workflow.steps.screening', 'Expert Screening'),
-        icon: <ClipboardCheck className="h-4 w-4" />,
-        status: 'completed',
-      });
-      
-      // Step 3: Manager Approval
+      // Step 4: Manager Approval
       if (status === 'pending_manager_approval') {
         steps.push({
           key: 'manager',
@@ -113,7 +144,7 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
           status: 'completed',
         });
         
-        // Step 4: Investigator Assignment
+        // Step 5: Investigator Assignment
         if (status === 'investigation_pending') {
           steps.push({
             key: 'assignment',
@@ -129,7 +160,7 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
             status: 'completed',
           });
           
-          // Step 5: Investigation
+          // Step 6: Investigation
           if (status === 'investigation_in_progress') {
             steps.push({
               key: 'investigation',
@@ -166,10 +197,18 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
           }
         }
       }
+    } else if (status === 'observation_actions_pending') {
+      // Observation with pending actions
+      steps.push({
+        key: 'actions',
+        label: t('workflow.steps.actionsPending', 'Actions Pending'),
+        icon: <Clock className="h-4 w-4" />,
+        status: 'current',
+      });
     } else if (status === 'submitted') {
       steps.push({
-        key: 'screening',
-        label: t('workflow.steps.screening', 'Expert Screening'),
+        key: 'dept_rep',
+        label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
         icon: <ClipboardCheck className="h-4 w-4" />,
         status: 'pending',
       });
