@@ -17,6 +17,13 @@
       "inactive": "Inactive",
       "suspended": "Suspended",
       "expired": "Expired"
+    },
+    "idCard": {
+      "sentSuccess": "ID card sent via WhatsApp",
+      "qrCreated": "Access QR code created (WhatsApp not configured)",
+      "sendError": "Failed to send ID card: {{error}}",
+      "batchSent": "{{count}} ID card(s) sent via WhatsApp",
+      "batchCreated": "{{count}} access code(s) created"
     }
   },
   "hsseDashboard": {

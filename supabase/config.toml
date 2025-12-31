@@ -239,3 +239,9 @@ verify_jwt = true
 
 [functions.test-photo-notification]
 verify_jwt = false
+
+[functions.send-contractor-id-card]
+verify_jwt = false
+
+[functions.validate-contractor-rep-qr]
+verify_jwt = false

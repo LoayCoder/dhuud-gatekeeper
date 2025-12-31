@@ -3469,6 +3469,97 @@ export type Database = {
           },
         ]
       }
+      contractor_company_access_qr: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          is_revoked: boolean | null
+          person_email: string | null
+          person_name: string
+          person_phone: string | null
+          person_type: string
+          qr_token: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          safety_officer_id: string | null
+          tenant_id: string
+          updated_at: string | null
+          valid_from: string | null
+          valid_until: string | null
+          whatsapp_message_id: string | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_revoked?: boolean | null
+          person_email?: string | null
+          person_name: string
+          person_phone?: string | null
+          person_type: string
+          qr_token: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          safety_officer_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_revoked?: boolean | null
+          person_email?: string | null
+          person_name?: string
+          person_phone?: string | null
+          person_type?: string
+          qr_token?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          safety_officer_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_company_access_qr_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_company_access_qr_safety_officer_id_fkey"
+            columns: ["safety_officer_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_safety_officers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_company_access_qr_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_documents: {
         Row: {
           company_id: string | null

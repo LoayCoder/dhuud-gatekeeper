@@ -17,6 +17,13 @@
       "inactive": "غير نشط",
       "suspended": "موقوف",
       "expired": "منتهي الصلاحية"
+    },
+    "idCard": {
+      "sentSuccess": "تم إرسال بطاقة الهوية عبر واتساب",
+      "qrCreated": "تم إنشاء رمز الوصول (واتساب غير مُعد)",
+      "sendError": "فشل في إرسال بطاقة الهوية: {{error}}",
+      "batchSent": "تم إرسال {{count}} بطاقة هوية عبر واتساب",
+      "batchCreated": "تم إنشاء {{count}} رمز وصول"
     }
   },
   "hsseDashboard": {
