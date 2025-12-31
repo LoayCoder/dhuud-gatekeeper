@@ -16664,6 +16664,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      can_review_dept_rep_incident: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_set_confidentiality: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -16765,6 +16769,10 @@ export type Database = {
       get_days_since_last_recordable: {
         Args: { p_branch_id?: string; p_site_id?: string }
         Returns: number
+      }
+      get_department_representative: {
+        Args: { p_department_id: string }
+        Returns: string
       }
       get_emergency_notification_recipients: {
         Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
@@ -17283,6 +17291,15 @@ export type Database = {
           new_level: string
           old_level: string
         }[]
+      }
+      process_dept_rep_incident_decision: {
+        Args: {
+          _decision: string
+          _incident_id: string
+          _justification: string
+          _user_id: string
+        }
+        Returns: Json
       }
       process_due_inspection_schedules: {
         Args: { p_tenant_id?: string }

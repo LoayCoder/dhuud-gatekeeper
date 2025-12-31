@@ -29,10 +29,12 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   const [notes, setNotes] = useState("");
   const [showActions, setShowActions] = useState(false);
   
+  // Use the new can_approve_dept_rep_observation RPC function for observations
   const { data: canApprove } = useCanApproveDeptRep(incident.id);
   const deptRepApproval = useDeptRepApproval();
   
-  if (!canApprove) {
+  // Only show for observations in pending_dept_rep_approval status
+  if (!canApprove || incident.event_type !== 'observation') {
     return null;
   }
   

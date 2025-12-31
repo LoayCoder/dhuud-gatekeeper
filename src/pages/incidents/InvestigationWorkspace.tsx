@@ -33,6 +33,7 @@ import {
   HSSEManagerEscalationCard,
   InvestigatorAssignmentStep,
   DeptRepApprovalCard,
+  DeptRepIncidentReviewCard,
   SubmitInvestigationCard,
   CauseCoverageIndicator
 } from "@/components/investigation";
@@ -161,8 +162,18 @@ export default function InvestigationWorkspace() {
         );
 
       case 'pending_dept_rep_approval':
+        // Observations go through DeptRepApprovalCard (full access with actions)
         return (
           <DeptRepApprovalCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_dept_rep_incident_review':
+        // Incidents go through DeptRepIncidentReviewCard (read-only, approve/reject only)
+        return (
+          <DeptRepIncidentReviewCard 
             incident={incidentData} 
             onComplete={handleRefresh} 
           />

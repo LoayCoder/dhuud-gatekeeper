@@ -32,6 +32,7 @@ export { RejectionConfirmationCard } from './RejectionConfirmationCard';
 export { InvestigatorAssignmentStep } from './InvestigatorAssignmentStep';
 export { WorkflowProgressBanner } from './WorkflowProgressBanner';
 export { DeptRepApprovalCard } from './DeptRepApprovalCard';
+export { DeptRepIncidentReviewCard } from './DeptRepIncidentReviewCard';
 export { SubmitInvestigationCard } from './SubmitInvestigationCard';
 export { CauseCoverageIndicator } from './CauseCoverageIndicator';
 export { PotentialSeverityApprovalCard } from './PotentialSeverityApprovalCard';
