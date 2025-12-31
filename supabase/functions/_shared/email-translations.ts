@@ -927,6 +927,38 @@ export const INCIDENT_TRANSLATIONS = {
   },
 };
 
+// Event type labels for all HSSE event types (localized)
+export const EVENT_TYPE_LABELS: Record<string, Record<SupportedLanguage, string>> = {
+  'incident': { en: 'Incident', ar: 'حادث', ur: 'واقعہ', hi: 'घटना', fil: 'Insidente' },
+  'observation': { en: 'Observation', ar: 'ملاحظة', ur: 'مشاہدہ', hi: 'अवलोकन', fil: 'Obserbasyon' },
+  'near_miss': { en: 'Near Miss', ar: 'حادث وشيك', ur: 'قریب المس', hi: 'निकट चूक', fil: 'Halos Aksidente' },
+  'security_event': { en: 'Security Event', ar: 'حدث أمني', ur: 'سیکیورٹی واقعہ', hi: 'सुरक्षा घटना', fil: 'Insidente sa Seguridad' },
+  'environmental_event': { en: 'Environmental Event', ar: 'حدث بيئي', ur: 'ماحولیاتی واقعہ', hi: 'पर्यावरणीय घटना', fil: 'Insidente sa Kapaligiran' },
+  'unsafe_act': { en: 'Unsafe Act', ar: 'تصرف غير آمن', ur: 'غیر محفوظ عمل', hi: 'असुरक्षित कार्य', fil: 'Hindi Ligtas na Gawain' },
+  'unsafe_condition': { en: 'Unsafe Condition', ar: 'حالة غير آمنة', ur: 'غیر محفوظ حالت', hi: 'असुरक्षित स्थिति', fil: 'Hindi Ligtas na Kondisyon' },
+};
+
+// Event type emojis for visual distinction
+export const EVENT_TYPE_EMOJI: Record<string, string> = {
+  'incident': '🔴',
+  'observation': '👁️',
+  'near_miss': '⚡',
+  'security_event': '🔒',
+  'environmental_event': '🌿',
+  'unsafe_act': '⚠️',
+  'unsafe_condition': '🚧',
+};
+
+// Get localized event type label with optional emoji
+export function getEventTypeLabel(eventType: string, lang: SupportedLanguage, includeEmoji = false): string {
+  const label = EVENT_TYPE_LABELS[eventType]?.[lang] || EVENT_TYPE_LABELS[eventType]?.['en'] || eventType;
+  if (includeEmoji) {
+    const emoji = EVENT_TYPE_EMOJI[eventType] || '📋';
+    return `${emoji} ${label}`;
+  }
+  return label;
+}
+
 // Helper function to get translations for a specific language
 export function getTranslations<T>(translations: Record<SupportedLanguage, T>, lang: string): T {
   const validLang = (lang as SupportedLanguage) in translations ? (lang as SupportedLanguage) : 'en';
