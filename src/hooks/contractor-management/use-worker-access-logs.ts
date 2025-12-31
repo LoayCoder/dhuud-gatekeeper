@@ -5,14 +5,15 @@ import { useTranslation } from 'react-i18next';
 
 export interface WorkerAccessLog {
   id: string;
-  worker_id: string;
+  worker_id: string | null;
+  contractor_id: string | null;
   project_id: string | null;
   site_id: string | null;
   zone_id: string | null;
   guard_id: string | null;
   entry_time: string;
   exit_time: string | null;
-  access_type: 'entry' | 'exit';
+  access_type: string;
   validation_status: string;
   validation_errors: string[] | null;
   notes: string | null;
@@ -27,10 +28,10 @@ export interface WorkerAccessLog {
     company?: {
       company_name: string;
     };
-  };
+  } | null;
   project?: {
     project_name: string;
-  };
+  } | null;
 }
 
 interface UseWorkerAccessLogsFilters {
@@ -57,10 +58,11 @@ export function useWorkerAccessLogs(filters: UseWorkerAccessLogsFilters = {}) {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
       let query = supabase
-        .from('worker_access_logs')
+        .from('contractor_access_logs')
         .select(`
           id,
           worker_id,
+          contractor_id,
           project_id,
           site_id,
           zone_id,
@@ -72,19 +74,11 @@ export function useWorkerAccessLogs(filters: UseWorkerAccessLogsFilters = {}) {
           validation_errors,
           notes,
           tenant_id,
-          created_at,
-          worker:contractor_workers(
-            id,
-            full_name,
-            full_name_ar,
-            photo_path,
-            national_id,
-            company:contractor_companies(company_name)
-          ),
-          project:contractor_projects(project_name)
+          created_at
         `)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
+        .not('worker_id', 'is', null) // Only get worker entries, not legacy contractor
         .order('entry_time', { ascending: false });
 
       if (filters.workerId) {
@@ -110,7 +104,34 @@ export function useWorkerAccessLogs(filters: UseWorkerAccessLogsFilters = {}) {
       const { data, error } = await query.limit(100);
 
       if (error) throw error;
-      return data as WorkerAccessLog[];
+
+      // Fetch worker details separately if we have logs
+      if (data && data.length > 0) {
+        const workerIds = [...new Set(data.map(log => log.worker_id).filter(Boolean))] as string[];
+        
+        if (workerIds.length > 0) {
+          const { data: workers } = await supabase
+            .from('contractor_workers')
+            .select(`
+              id,
+              full_name,
+              full_name_ar,
+              photo_path,
+              national_id,
+              company:contractor_companies(company_name)
+            `)
+            .in('id', workerIds);
+
+          const workerMap = new Map(workers?.map(w => [w.id, w]) || []);
+
+          return data.map(log => ({
+            ...log,
+            worker: log.worker_id ? workerMap.get(log.worker_id) : null,
+          })) as WorkerAccessLog[];
+        }
+      }
+
+      return (data || []) as WorkerAccessLog[];
     },
   });
 }
@@ -149,17 +170,17 @@ export function useLogWorkerEntry() {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
       const { data, error } = await supabase
-        .from('worker_access_logs')
+        .from('contractor_access_logs')
         .insert({
           worker_id: workerId,
-          project_id: projectId,
-          site_id: siteId,
-          zone_id: zoneId,
+          project_id: projectId || null,
+          site_id: siteId || null,
+          zone_id: zoneId || null,
           guard_id: userData.user.id,
           access_type: 'entry',
           validation_status: validationStatus,
-          validation_errors: validationErrors,
-          notes,
+          validation_errors: validationErrors || null,
+          notes: notes || null,
           tenant_id: profile.tenant_id,
           entry_time: new Date().toISOString(),
         })
@@ -207,12 +228,12 @@ export function useRecordWorkerExit() {
 
       // If logId provided, update that specific log
       if (logId) {
+        const updateData: Record<string, unknown> = { exit_time: new Date().toISOString() };
+        if (notes) updateData.notes = notes;
+        
         const { error } = await supabase
-          .from('worker_access_logs')
-          .update({ 
-            exit_time: new Date().toISOString(),
-            notes: notes || undefined,
-          })
+          .from('contractor_access_logs')
+          .update(updateData)
           .eq('id', logId);
 
         if (error) throw error;
@@ -221,25 +242,25 @@ export function useRecordWorkerExit() {
 
       // Otherwise find the most recent entry without exit for this worker
       if (workerId) {
-        const { data: existingLog, error: fetchError } = await supabase
-          .from('worker_access_logs')
+        const { data: existingLogs, error: fetchError } = await supabase
+          .from('contractor_access_logs')
           .select('id')
           .eq('worker_id', workerId)
           .eq('tenant_id', profile.tenant_id)
           .is('exit_time', null)
           .order('entry_time', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
 
-        if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+        if (fetchError) throw fetchError;
 
-        if (existingLog) {
+        if (existingLogs && existingLogs.length > 0) {
+          const existingLog = existingLogs[0];
+          const updateData: Record<string, unknown> = { exit_time: new Date().toISOString() };
+          if (notes) updateData.notes = notes;
+          
           const { error } = await supabase
-            .from('worker_access_logs')
-            .update({ 
-              exit_time: new Date().toISOString(),
-              notes: notes || undefined,
-            })
+            .from('contractor_access_logs')
+            .update(updateData)
             .eq('id', existingLog.id);
 
           if (error) throw error;
@@ -248,7 +269,7 @@ export function useRecordWorkerExit() {
 
         // No entry found, create an exit-only record
         const { error } = await supabase
-          .from('worker_access_logs')
+          .from('contractor_access_logs')
           .insert({
             worker_id: workerId,
             guard_id: userData.user.id,
@@ -257,7 +278,7 @@ export function useRecordWorkerExit() {
             exit_time: new Date().toISOString(),
             entry_time: new Date().toISOString(), // Required field
             tenant_id: profile.tenant_id,
-            notes,
+            notes: notes || null,
           });
 
         if (error) throw error;
@@ -297,9 +318,10 @@ export function useWorkersOnSiteCount() {
       today.setHours(0, 0, 0, 0);
 
       const { count, error } = await supabase
-        .from('worker_access_logs')
+        .from('contractor_access_logs')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', profile.tenant_id)
+        .not('worker_id', 'is', null)
         .gte('entry_time', today.toISOString())
         .is('exit_time', null)
         .is('deleted_at', null);

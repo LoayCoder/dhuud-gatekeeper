@@ -419,12 +419,6 @@ export function AppSidebar() {
               icon: List,
               menuCode: 'contractor_list',
             },
-            {
-              title: t('security.menu.contractorCheck', 'Contractor Check'),
-              url: "/security/contractor-check",
-              icon: Shield,
-              menuCode: 'contractor_check',
-            },
           ],
         },
       ],
