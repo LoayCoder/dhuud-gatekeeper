@@ -325,11 +325,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [refreshTenantData, loadPlatformBranding]);
 
-  // Apply the primary color to CSS variable based on resolved theme
+  // Apply the branding color to CSS variable for branding-specific elements ONLY
+  // System UI colors (--primary, --secondary) are FIXED in index.css and NOT overridden
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary', activePrimaryColor);
+    // Only set brand-specific variables - used for login page, sidebar header, splash screen
+    document.documentElement.style.setProperty('--brand-primary', activePrimaryColor);
     if (activeSecondaryColor) {
-      document.documentElement.style.setProperty('--secondary', activeSecondaryColor);
+      document.documentElement.style.setProperty('--brand-accent', activeSecondaryColor);
     }
   }, [activePrimaryColor, activeSecondaryColor]);
 

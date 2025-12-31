@@ -83,7 +83,13 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 13%;
 
-    /* Dynamic Primary - Will be overridden by tenant branding */
+    /* ========================================
+       FIXED SYSTEM COLORS - HSSA Standard
+       These colors are FIXED and NOT affected by tenant branding.
+       Used by all UI components: buttons, inputs, badges, etc.
+       ======================================== */
+    
+    /* Primary - Professional Blue (Action buttons, links) */
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 0 0% 100%;
 
@@ -99,9 +105,30 @@ All colors MUST be HSL.
     --accent: 27 96% 61%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive */
+    /* Destructive - HSSA Danger Red */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Warning - HSSA Caution Yellow */
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Success - HSSA Safe Green */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Info - Professional Blue */
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* ========================================
+       TENANT BRANDING COLORS
+       These are the ONLY colors controlled by tenant branding.
+       Used ONLY for: Login page, Sidebar header, Splash screen
+       ======================================== */
+    --brand-primary: 221.2 83.2% 53.3%;
+    --brand-accent: 27 96% 61%;
+    --brand-background: 0 0% 100%;
 
     /* Borders & Inputs */
     --border: 214.3 31.8% 91.4%;
@@ -131,10 +158,6 @@ All colors MUST be HSL.
     --chart-3: 142 71% 45%;
     --chart-4: 262 83% 58%;
     --chart-5: 174 72% 41%;
-
-    /* Warning Color */
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -148,25 +171,55 @@ All colors MUST be HSL.
     --popover: 220 13% 16%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221.2 83.2% 53.3%;
+    /* ========================================
+       FIXED SYSTEM COLORS - HSSA Standard (Dark Mode)
+       ======================================== */
+    
+    /* Primary - Professional Blue */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
+    /* Secondary - Dark Industrial Gray */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
+    /* Muted */
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
+    /* Accent - Safety Orange */
     --accent: 27 96% 61%;
     --accent-foreground: 0 0% 100%;
 
+    /* Destructive - HSSA Danger Red */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Warning - HSSA Caution Yellow */
+    --warning: 48 96% 53%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Success - HSSA Safe Green */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Info - Professional Blue */
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* ========================================
+       TENANT BRANDING COLORS (Dark Mode)
+       ======================================== */
+    --brand-primary: 217 91% 60%;
+    --brand-accent: 27 96% 61%;
+    --brand-background: 220 13% 13%;
+
+    /* Borders & Inputs */
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: var(--primary);
 
+    /* Sidebar */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -182,10 +235,6 @@ All colors MUST be HSL.
     --chart-3: 142 76% 36%;
     --chart-4: 263 70% 50%;
     --chart-5: 172 67% 38%;
-
-    /* Warning Color - Dark Mode */
-    --warning: 48 96% 53%;
-    --warning-foreground: 0 0% 0%;
   }
 }
 
