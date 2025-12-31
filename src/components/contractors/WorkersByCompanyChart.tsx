@@ -99,17 +99,26 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
           <YAxis
             type="category"
             dataKey="shortName"
-            tick={{ 
-              fontSize: 11, 
-              fill: "hsl(var(--foreground))",
+            tick={(props) => {
+              const { x, y, payload } = props;
+              return (
+                <text
+                  x={isRTL ? x : 8}
+                  y={y}
+                  dy={4}
+                  textAnchor="start"
+                  fill="hsl(var(--foreground))"
+                  fontSize={11}
+                >
+                  {payload.value}
+                </text>
+              );
             }}
             width={yAxisWidth}
             axisLine={false}
             tickLine={false}
             interval={0}
             orientation={isRTL ? "right" : "left"}
-            textAnchor={isRTL ? "end" : "start"}
-            tickMargin={4}
           />
           <Tooltip
             cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
