@@ -122,9 +122,17 @@ export function ApprovalWorkflowBanner({ incident, investigation, onRefresh }: A
     },
   });
 
-  // Don't render for closure workflow statuses - IncidentClosureApprovalCard handles those
-  const closureStatuses = ['pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'];
-  if (closureStatuses.includes(incident.status as string)) {
+  // Don't render for closure workflow or Dept Rep workflow statuses
+  const excludedStatuses = [
+    'pending_closure', 
+    'pending_final_closure', 
+    'investigation_closed', 
+    'closed',
+    // Dept Rep workflow - handled by DeptRepApprovalCard and DeptRepIncidentReviewCard
+    'pending_dept_rep_approval',
+    'pending_dept_rep_incident_review'
+  ];
+  if (excludedStatuses.includes(incident.status as string)) {
     return null;
   }
 
