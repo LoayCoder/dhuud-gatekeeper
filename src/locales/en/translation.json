@@ -6221,6 +6221,17 @@
       "gatePasses": "Gate Passes",
       "inductionVideos": "Induction Videos"
     },
+    "companies": {
+      "title": "Contractor Companies",
+      "description": "Manage contractor companies and their information",
+      "addCompany": "Add Company",
+      "searchPlaceholder": "Search companies..."
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "inactive": "Inactive"
+    },
     "companyManagement": {
       "title": "Company Management",
       "description": "Manage contractor companies, representatives, and their status",

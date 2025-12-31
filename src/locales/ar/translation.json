@@ -6055,6 +6055,17 @@
       "gatePasses": "تصاريح البوابة",
       "inductionVideos": "فيديوهات التعريف"
     },
+    "companies": {
+      "title": "شركات المقاولين",
+      "description": "إدارة شركات المقاولين ومعلوماتها",
+      "addCompany": "إضافة شركة",
+      "searchPlaceholder": "البحث عن شركات..."
+    },
+    "status": {
+      "active": "نشط",
+      "suspended": "معلق",
+      "inactive": "غير نشط"
+    },
     "companyManagement": {
       "title": "إدارة الشركات",
       "description": "إدارة شركات المقاولين وممثليهم وحالتهم",
