@@ -526,31 +526,40 @@ export default function MyActions() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
-        <TabsList>
-          <TabsTrigger value="actions">
-            <ClipboardList className="h-4 w-4 me-2" />
-            {t('investigation.correctiveActions', 'Corrective Actions')} ({allActions?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="witness">
-            <MessageSquare className="h-4 w-4 me-2" />
-            {t('investigation.witnesses.title', 'Witness Statements')} ({witnessStatements?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="reported">
-            <FileText className="h-4 w-4 me-2" />
-            {t('investigation.myReportedIncidents', 'My Reported Incidents')} ({myReportedIncidents?.length || 0})
-          </TabsTrigger>
-          {canAccessApprovals && (
-            <TabsTrigger value="approvals" className="gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              {t('investigation.approvals.pendingApprovals', 'Pending Approvals')}
-              {totalPendingApprovals > 0 && (
-                <Badge variant="secondary" className="ms-1">
-                  {totalPendingApprovals}
-                </Badge>
-              )}
+        <div className="overflow-x-auto -mx-1 px-1 pb-1">
+          <TabsList className="inline-flex w-auto min-w-full sm:w-full">
+            <TabsTrigger value="actions" className="whitespace-nowrap">
+              <ClipboardList className="h-4 w-4 me-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('investigation.correctiveActions', 'Corrective Actions')}</span>
+              <span className="sm:hidden">{t('investigation.actions', 'Actions')}</span>
+              <span className="ms-1">({allActions?.length || 0})</span>
             </TabsTrigger>
-          )}
-        </TabsList>
+            <TabsTrigger value="witness" className="whitespace-nowrap">
+              <MessageSquare className="h-4 w-4 me-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('investigation.witnesses.title', 'Witness Statements')}</span>
+              <span className="sm:hidden">{t('investigation.witness', 'Witness')}</span>
+              <span className="ms-1">({witnessStatements?.length || 0})</span>
+            </TabsTrigger>
+            <TabsTrigger value="reported" className="whitespace-nowrap">
+              <FileText className="h-4 w-4 me-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('investigation.myReportedIncidents', 'My Reported Incidents')}</span>
+              <span className="sm:hidden">{t('investigation.reported', 'Reported')}</span>
+              <span className="ms-1">({myReportedIncidents?.length || 0})</span>
+            </TabsTrigger>
+            {canAccessApprovals && (
+              <TabsTrigger value="approvals" className="gap-2 whitespace-nowrap">
+                <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{t('investigation.approvals.pendingApprovals', 'Pending Approvals')}</span>
+                <span className="sm:hidden">{t('investigation.approvals.approvals', 'Approvals')}</span>
+                {totalPendingApprovals > 0 && (
+                  <Badge variant="secondary" className="ms-1">
+                    {totalPendingApprovals}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
         <TabsContent value="actions" className="mt-4 space-y-4">
           {/* Search Bar and Filters */}
