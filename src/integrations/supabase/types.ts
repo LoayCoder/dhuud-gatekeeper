@@ -16792,6 +16792,7 @@ export type Database = {
           total_actions: number
         }[]
       }
+      get_dept_rep_sla_analytics: { Args: { p_period?: string }; Returns: Json }
       get_emergency_notification_recipients: {
         Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
         Returns: {
