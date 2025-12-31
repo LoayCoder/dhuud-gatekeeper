@@ -1,4 +1,17 @@
 {
+  "contractors": {
+    "companies": {
+      "contractorSafetyOfficers": "مسؤولو السلامة لدى المقاول",
+      "addSafetyOfficer": "إضافة",
+      "noSafetyOfficers": "لم تتم إضافة مسؤولي سلامة",
+      "addFirstOfficer": "أضف أول مسؤول سلامة",
+      "officerName": "اسم المسؤول",
+      "primary": "رئيسي",
+      "setAsPrimary": "تعيين كرئيسي",
+      "safetyOfficerNote": "أضف جميع مسؤولي السلامة المعينين لهذا المقاول. حدد واحداً كجهة اتصال رئيسية.",
+      "syncError": "فشل في حفظ مسؤولي السلامة"
+    }
+  },
   "hsseDashboard": {
     "title": "لوحة معلومات أحداث السلامة",
     "subtitle": "رؤية فورية لأداء السلامة وتحليلات المخاطر",

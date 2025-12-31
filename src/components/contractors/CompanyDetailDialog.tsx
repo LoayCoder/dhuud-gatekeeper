@@ -4,9 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building } from "lucide-react";
+import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star } from "lucide-react";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
+import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
 import { format } from "date-fns";
@@ -21,6 +22,7 @@ interface CompanyDetailDialogProps {
 export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: CompanyDetailDialogProps) {
   const { t } = useTranslation();
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
+  const { data: safetyOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
 
   if (!company) return null;
 
@@ -213,36 +215,45 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
               </CardContent>
             </Card>
 
-            {/* Contractor Safety Officer */}
+            {/* Contractor Safety Officers */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
-                  {t("contractors.companies.contractorSafetyOfficer", "Contractor's Safety Officer")}
+                  {t("contractors.companies.contractorSafetyOfficers", "Contractor's Safety Officers")}
+                  <Badge variant="secondary" className="ms-auto">{safetyOfficers.length}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                {details?.contractor_safety_officer_name ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {details.contractor_safety_officer_name}
+              <CardContent className="space-y-3">
+                {safetyOfficers.length > 0 ? (
+                  safetyOfficers.map((officer) => (
+                    <div key={officer.id} className="p-3 bg-muted/50 rounded-md space-y-1">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">{officer.name}</span>
+                        {officer.is_primary && (
+                          <Badge variant="secondary" className="text-xs gap-1">
+                            <Star className="h-3 w-3" />
+                            {t("contractors.companies.primary", "Primary")}
+                          </Badge>
+                        )}
+                      </div>
+                      {officer.phone && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground ps-6">
+                          <Phone className="h-3 w-3" />
+                          {officer.phone}
+                        </div>
+                      )}
+                      {officer.email && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground ps-6">
+                          <Mail className="h-3 w-3" />
+                          {officer.email}
+                        </div>
+                      )}
                     </div>
-                    {details.contractor_safety_officer_phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        {details.contractor_safety_officer_phone}
-                      </div>
-                    )}
-                    {details.contractor_safety_officer_email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        {details.contractor_safety_officer_email}
-                      </div>
-                    )}
-                  </>
+                  ))
                 ) : (
-                  <p className="text-muted-foreground">{t("contractors.companies.notAssigned", "Not assigned")}</p>
+                  <p className="text-muted-foreground text-sm">{t("contractors.companies.noSafetyOfficers", "No safety officers added")}</p>
                 )}
               </CardContent>
             </Card>
@@ -280,7 +291,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
           <TabsContent value="safety" className="mt-4 space-y-4">
             <SafetyRatioAlert 
               workerCount={details?.total_workers ?? 0} 
-              safetyOfficerCount={details?.safety_officers_count ?? 0} 
+              safetyOfficerCount={safetyOfficers.length} 
             />
 
             <Card>
@@ -296,7 +307,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t("contractors.companies.safetyOfficersCount", "Safety Officers")}:</span>
-                  <p className="font-medium text-lg">{details?.safety_officers_count ?? 0}</p>
+                  <p className="font-medium text-lg">{safetyOfficers.length}</p>
                 </div>
               </CardContent>
             </Card>
