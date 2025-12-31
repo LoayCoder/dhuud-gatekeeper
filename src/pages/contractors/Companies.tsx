@@ -18,7 +18,7 @@ import { CompanyDetailDialog } from "@/components/contractors/CompanyDetailDialo
 import { ContractorCompanyKPICards } from "@/components/contractors/ContractorCompanyKPICards";
 import { CompanyStatusChart } from "@/components/contractors/CompanyStatusChart";
 import { WorkersByCompanyChart } from "@/components/contractors/WorkersByCompanyChart";
-import { CompaniesByCityChart } from "@/components/contractors/CompaniesByCityChart";
+import { StatusByBranchChart } from "@/components/contractors/StatusByBranchChart";
 import { useContractorCompanies, ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyStats } from "@/hooks/contractor-management/use-contractor-company-stats";
 
@@ -108,8 +108,8 @@ export default function Companies() {
           data={stats?.topCompaniesByWorkers || []}
           isLoading={statsLoading}
         />
-        <CompaniesByCityChart
-          data={stats?.cityDistribution || []}
+        <StatusByBranchChart
+          data={stats?.statusByBranch || []}
           isLoading={statsLoading}
         />
       </div>
