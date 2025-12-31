@@ -2648,6 +2648,8 @@ export type Database = {
           severity_level: string | null
           stakeholder_role: string | null
           status: string
+          template_id: string | null
+          template_source: string | null
           tenant_id: string
           was_erp_override: boolean | null
         }
@@ -2669,6 +2671,8 @@ export type Database = {
           severity_level?: string | null
           stakeholder_role?: string | null
           status?: string
+          template_id?: string | null
+          template_source?: string | null
           tenant_id: string
           was_erp_override?: boolean | null
         }
@@ -2690,6 +2694,8 @@ export type Database = {
           severity_level?: string | null
           stakeholder_role?: string | null
           status?: string
+          template_id?: string | null
+          template_source?: string | null
           tenant_id?: string
           was_erp_override?: boolean | null
         }
@@ -2699,6 +2705,13 @@ export type Database = {
             columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_notification_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
             referencedColumns: ["id"]
           },
           {
@@ -6777,6 +6790,7 @@ export type Database = {
           event_type: string | null
           id: string
           is_active: boolean | null
+          push_template_id: string | null
           severity_level: string
           stakeholder_role: string
           tenant_id: string | null
@@ -6793,6 +6807,7 @@ export type Database = {
           event_type?: string | null
           id?: string
           is_active?: boolean | null
+          push_template_id?: string | null
           severity_level: string
           stakeholder_role: string
           tenant_id?: string | null
@@ -6809,6 +6824,7 @@ export type Database = {
           event_type?: string | null
           id?: string
           is_active?: boolean | null
+          push_template_id?: string | null
           severity_level?: string
           stakeholder_role?: string
           tenant_id?: string | null
@@ -6820,6 +6836,13 @@ export type Database = {
           {
             foreignKeyName: "incident_notification_matrix_email_template_id_fkey"
             columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_notification_matrix_push_template_id_fkey"
+            columns: ["push_template_id"]
             isOneToOne: false
             referencedRelation: "notification_templates"
             referencedColumns: ["id"]
