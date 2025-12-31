@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { ContractorCompany, useCreateContractorCompany, useUpdateContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useBranches, useDepartments, useSections, useClientRepresentatives } from "@/hooks/contractor-management/use-contractor-company-details";
+import { useContractorSafetyOfficers, useSyncContractorSafetyOfficers, SafetyOfficerFormData } from "@/hooks/contractor-management/use-contractor-safety-officers";
+import { SafetyOfficersList } from "./SafetyOfficersList";
 import { Building, Users, Briefcase, Info } from "lucide-react";
 
 interface CompanyFormDialogProps {
@@ -30,13 +32,9 @@ interface FormData {
   contract_start_date: string;
   contract_end_date: string;
   total_workers: number;
-  safety_officers_count: number;
   contractor_site_rep_name: string;
   contractor_site_rep_phone: string;
   contractor_site_rep_email: string;
-  contractor_safety_officer_name: string;
-  contractor_safety_officer_phone: string;
-  contractor_safety_officer_email: string;
   client_site_rep_id: string;
   assigned_branch_id: string;
   assigned_department_id: string;
@@ -56,13 +54,9 @@ const initialFormData: FormData = {
   contract_start_date: "",
   contract_end_date: "",
   total_workers: 0,
-  safety_officers_count: 0,
   contractor_site_rep_name: "",
   contractor_site_rep_phone: "",
   contractor_site_rep_email: "",
-  contractor_safety_officer_name: "",
-  contractor_safety_officer_phone: "",
-  contractor_safety_officer_email: "",
   client_site_rep_id: "",
   assigned_branch_id: "",
   assigned_department_id: "",
@@ -73,15 +67,18 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   const { t } = useTranslation();
   const createCompany = useCreateContractorCompany();
   const updateCompany = useUpdateContractorCompany();
+  const syncSafetyOfficers = useSyncContractorSafetyOfficers();
   const isEditing = !!company;
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [safetyOfficers, setSafetyOfficers] = useState<SafetyOfficerFormData[]>([]);
 
   // Fetch dropdown data
   const { data: branches = [] } = useBranches();
   const { data: departments = [] } = useDepartments(formData.assigned_branch_id || null);
   const { data: sections = [] } = useSections(formData.assigned_department_id || null);
   const { data: representatives = [] } = useClientRepresentatives();
+  const { data: existingOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
 
   useEffect(() => {
     if (company && open) {
@@ -98,13 +95,9 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         contract_start_date: (company as any).contract_start_date || "",
         contract_end_date: (company as any).contract_end_date || "",
         total_workers: (company as any).total_workers || 0,
-        safety_officers_count: (company as any).safety_officers_count || 0,
         contractor_site_rep_name: (company as any).contractor_site_rep_name || "",
         contractor_site_rep_phone: (company as any).contractor_site_rep_phone || "",
         contractor_site_rep_email: (company as any).contractor_site_rep_email || "",
-        contractor_safety_officer_name: (company as any).contractor_safety_officer_name || "",
-        contractor_safety_officer_phone: (company as any).contractor_safety_officer_phone || "",
-        contractor_safety_officer_email: (company as any).contractor_safety_officer_email || "",
         client_site_rep_id: (company as any).client_site_rep_id || "",
         assigned_branch_id: (company as any).assigned_branch_id || "",
         assigned_department_id: (company as any).assigned_department_id || "",
@@ -112,8 +105,22 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       });
     } else if (!open) {
       setFormData(initialFormData);
+      setSafetyOfficers([]);
     }
   }, [company, open]);
+
+  // Load existing safety officers when editing
+  useEffect(() => {
+    if (existingOfficers.length > 0 && open) {
+      setSafetyOfficers(existingOfficers.map(o => ({
+        id: o.id,
+        name: o.name,
+        phone: o.phone || "",
+        email: o.email || "",
+        is_primary: o.is_primary,
+      })));
+    }
+  }, [existingOfficers, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,13 +133,25 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       assigned_section_id: formData.assigned_section_id || null,
       contract_start_date: formData.contract_start_date || null,
       contract_end_date: formData.contract_end_date || null,
+      // Update safety_officers_count based on actual officers
+      safety_officers_count: safetyOfficers.length,
     };
+
+    let companyId: string;
 
     if (isEditing) {
       await updateCompany.mutateAsync({ id: company.id, data: submitData });
+      companyId = company.id;
     } else {
-      await createCompany.mutateAsync(submitData);
+      const result = await createCompany.mutateAsync(submitData);
+      companyId = result.id;
     }
+
+    // Sync safety officers
+    if (safetyOfficers.length > 0 || existingOfficers.length > 0) {
+      await syncSafetyOfficers.mutateAsync({ companyId, officers: safetyOfficers });
+    }
+
     onOpenChange(false);
   };
 
@@ -269,16 +288,10 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
                     onChange={(e) => handleChange("total_workers", parseInt(e.target.value) || 0)} 
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>{t("contractors.companies.safetyOfficersCount", "Safety Officers Count")}</Label>
-                  <Input 
-                    type="number" 
-                    min="0"
-                    value={formData.safety_officers_count} 
-                    onChange={(e) => handleChange("safety_officers_count", parseInt(e.target.value) || 0)} 
-                  />
-                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                {t("contractors.companies.safetyOfficerCountNote", "Safety officers are managed in the Personnel tab")}
+              </p>
               <div className="space-y-2">
                 <Label>{t("contractors.companies.scopeOfWork", "Scope of Work")}</Label>
                 <Textarea 
@@ -389,35 +402,11 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
                 </div>
               </div>
 
-              {/* Contractor Safety Officer */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm">{t("contractors.companies.contractorSafetyOfficer", "Contractor's Safety Officer")}</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.name", "Name")}</Label>
-                    <Input 
-                      value={formData.contractor_safety_officer_name} 
-                      onChange={(e) => handleChange("contractor_safety_officer_name", e.target.value)}
-                      placeholder={t("contractors.companies.officerName", "Safety officer name")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.phone", "Phone")}</Label>
-                    <Input 
-                      value={formData.contractor_safety_officer_phone} 
-                      onChange={(e) => handleChange("contractor_safety_officer_phone", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.email", "Email")}</Label>
-                    <Input 
-                      type="email"
-                      value={formData.contractor_safety_officer_email} 
-                      onChange={(e) => handleChange("contractor_safety_officer_email", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Contractor Safety Officers List */}
+              <SafetyOfficersList 
+                officers={safetyOfficers} 
+                onChange={setSafetyOfficers} 
+              />
 
               {/* Client Site Representative */}
               <div className="space-y-2">

@@ -1,4 +1,17 @@
 {
+  "contractors": {
+    "companies": {
+      "contractorSafetyOfficers": "Contractor's Safety Officers",
+      "addSafetyOfficer": "Add",
+      "noSafetyOfficers": "No safety officers added",
+      "addFirstOfficer": "Add the first safety officer",
+      "officerName": "Officer name",
+      "primary": "Primary",
+      "setAsPrimary": "Set as primary",
+      "safetyOfficerNote": "Add all safety officers assigned to this contractor. Mark one as primary contact.",
+      "syncError": "Failed to save safety officers"
+    }
+  },
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
     "subtitle": "Real-time visibility into safety performance and risk analytics",
