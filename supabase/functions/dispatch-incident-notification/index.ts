@@ -5,6 +5,7 @@
  * using Push, Email, and WhatsApp channels with role-based routing.
  * 
  * LOCALIZATION: All notifications sent in recipient's preferred_language
+ * DYNAMIC TEMPLATES: Uses matrix-assigned → default database → hardcoded fallback
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -69,6 +70,7 @@ interface NotificationRecipient {
   was_condition_match: boolean;
   whatsapp_template_id?: string | null;
   email_template_id?: string | null;
+  push_template_id?: string | null;
   matrix_rule_id?: string | null;
 }
 
@@ -78,6 +80,8 @@ interface NotificationResult {
   stakeholder_role: string;
   status: 'sent' | 'failed' | 'skipped';
   error?: string;
+  template_id?: string | null;
+  template_source?: 'matrix' | 'default' | 'fallback';
 }
 
 interface NotificationTemplate {
@@ -87,6 +91,9 @@ interface NotificationTemplate {
   language: string;
   email_subject?: string | null;
 }
+
+// Template source tracking
+type TemplateSource = 'matrix' | 'default' | 'fallback';
 
 // Severity level to number mapping
 const SEVERITY_LEVEL_MAP: Record<string, number> = {
@@ -116,6 +123,47 @@ const SEVERITY_EMOJI: Record<string, string> = {
 
 // Maximum photos to attach per notification
 const MAX_PHOTOS_PER_NOTIFICATION = 5;
+
+/**
+ * Find default template from database by slug pattern
+ * Priority: tenant-specific template → null (use fallback)
+ */
+async function findDefaultTemplate(
+  supabase: any,
+  tenantId: string,
+  language: string,
+  notificationType: 'new' | 'update' | 'erp'
+): Promise<NotificationTemplate | null> {
+  const slug = `hsse_event_${notificationType}_${language}`;
+  
+  console.log(`[Template] Looking for default template: ${slug} for tenant ${tenantId}`);
+  
+  const { data, error } = await supabase
+    .from('notification_templates')
+    .select('id, content_pattern, variable_keys, language, email_subject')
+    .eq('tenant_id', tenantId)
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .single();
+  
+  if (error) {
+    console.log(`[Template] No default template found for slug: ${slug}`);
+    return null;
+  }
+  
+  console.log(`[Template] Found default template: ${data.id} (${slug})`);
+  return data as NotificationTemplate;
+}
+
+/**
+ * Determine notification type from event_type
+ */
+function getNotificationType(eventType: string): 'new' | 'update' | 'erp' {
+  if (eventType === 'erp_activated') return 'erp';
+  if (eventType === 'incident_updated') return 'update';
+  return 'new';
+}
 
 /**
  * Fetch photo URLs directly from Supabase Storage
@@ -246,7 +294,8 @@ function renderTemplate(contentPattern: string, variables: Record<string, string
   });
   
   // Also replace positional placeholders {{1}}, {{2}}, etc.
-  const orderedKeys = ['reference_id', 'title', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'event_type', 'description'];
+  // Order: event_type, reference_id, title, location, risk_level, reported_by, incident_time, action_link, description
+  const orderedKeys = ['event_type', 'reference_id', 'title', 'location', 'risk_level', 'reported_by', 'incident_time', 'action_link', 'description'];
   orderedKeys.forEach((key, index) => {
     const placeholder = `{{${index + 1}}}`;
     result = result.split(placeholder).join(variables[key] || '');
@@ -256,7 +305,38 @@ function renderTemplate(contentPattern: string, variables: Record<string, string
 }
 
 /**
- * Generate localized WhatsApp message
+ * Build template variables map (centralized for consistency)
+ */
+function buildTemplateVariables(
+  incident: IncidentDetails,
+  lang: SupportedLanguage,
+  locationText: string,
+  reporterName: string,
+  siteName: string,
+  effectiveSeverity: string
+): Record<string, string> {
+  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
+  
+  // Use localized event type label
+  const eventTypeLabel = getEventTypeLabel(incident.event_type, lang, false);
+  
+  return {
+    incident_id: incident.id,
+    reference_id: incident.reference_id || '-',
+    title: incident.title,
+    description: incident.description?.substring(0, 500) || '',
+    location: locationText,
+    risk_level: SEVERITY_LABELS[effectiveSeverity]?.[lang] || effectiveSeverity,
+    reported_by: reporterName,
+    incident_time: incident.occurred_at || new Date().toISOString(),
+    action_link: `${appUrl}/incidents/${incident.id}`,
+    event_type: eventTypeLabel, // DYNAMIC: Uses localized label
+    site_name: siteName || '-',
+  };
+}
+
+/**
+ * Generate localized WhatsApp message (FALLBACK generator)
  */
 function generateWhatsAppMessage(
   lang: SupportedLanguage,
@@ -289,8 +369,9 @@ function generateWhatsAppMessage(
 👤 ${t.whatsapp.reportedBy}: ${reporterName}
 ${injuryLine}${descriptionLine}`;
 }
+
 /**
- * Generate localized email HTML content with deep-link button
+ * Generate localized email HTML content with deep-link button (FALLBACK generator)
  */
 function generateEmailContent(
   lang: SupportedLanguage,
@@ -378,7 +459,7 @@ function generateEmailContent(
 }
 
 /**
- * Generate localized push notification payload
+ * Generate localized push notification payload (FALLBACK generator)
  */
 function generatePushPayload(
   lang: SupportedLanguage,
@@ -561,6 +642,10 @@ Deno.serve(async (req) => {
 
     console.log(`[Dispatch] Channels from matrix: ${processedRecipients.length} recipients with active channels`);
 
+    // Determine notification type for template lookup
+    const notificationType = getNotificationType(event_type);
+    console.log(`[Dispatch] Notification type: ${notificationType}`);
+
     // 9. Send notifications (per-recipient language)
     const results: NotificationResult[] = [];
 
@@ -572,11 +657,18 @@ Deno.serve(async (req) => {
 
       console.log(`[Dispatch] Sending to ${recipient.full_name} in language: ${lang}`);
 
+      // Build template variables once per recipient (for all channels)
+      const templateVariables = buildTemplateVariables(
+        incident, lang, locationText, reporterName, siteName, effectiveSeverity
+      );
+
       for (const channel of recipient.channels) {
         try {
           let status: 'sent' | 'failed' | 'skipped' = 'skipped';
           let errorMsg: string | undefined;
           let providerMessageId: string | undefined;
+          let usedTemplateId: string | null = null;
+          let templateSource: TemplateSource = 'fallback';
 
           if (channel === 'whatsapp') {
             if (!recipient.phone_number) {
@@ -585,53 +677,48 @@ Deno.serve(async (req) => {
             } else {
               let message: string;
               
-              // Check if this recipient has a linked WhatsApp template
+              // STEP 1: Check matrix-assigned template
               if (recipient.whatsapp_template_id) {
-                // Fetch the template
                 const { data: template } = await supabase
                   .from('notification_templates')
-                  .select('content_pattern, variable_keys, language')
+                  .select('id, content_pattern, variable_keys, language')
                   .eq('id', recipient.whatsapp_template_id)
+                  .is('deleted_at', null)
                   .single();
                 
                 if (template) {
-                  // Build variables map
-                  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
-                  const variables: Record<string, string> = {
-                    incident_id: incident.id,
-                    reference_id: incident.reference_id || '-',
-                    title: incident.title,
-                    description: incident.description?.substring(0, 200) || '',
-                    location: locationText,
-                    risk_level: SEVERITY_LABELS[effectiveSeverity]?.[lang] || effectiveSeverity,
-                    reported_by: reporterName,
-                    incident_time: incident.occurred_at || new Date().toISOString(),
-                    action_link: `${appUrl}/incidents/${incident.id}`,
-                    event_type: incident.event_type === 'observation' ? 'Observation' : 'Incident',
-                    site_name: siteName || '-',
-                  };
-                  
-                  message = renderTemplate(template.content_pattern, variables);
-                  console.log(`[Dispatch] Using custom template ${recipient.whatsapp_template_id} for ${recipient.full_name}`);
-                } else {
-                  // Template not found, fall back to default
-                  message = generateWhatsAppMessage(
-                    lang, incident, effectiveSeverity, locationText, 
-                    reporterName, hasInjury, isErpOverride
-                  );
+                  message = renderTemplate(template.content_pattern, templateVariables);
+                  usedTemplateId = template.id;
+                  templateSource = 'matrix';
+                  console.log(`[Dispatch] WhatsApp: Using MATRIX template ${template.id} for ${recipient.full_name}`);
                 }
-              } else {
-                // No template linked, use default message generator
+              }
+              
+              // STEP 2: Try default template from database
+              if (!usedTemplateId) {
+                const defaultTemplate = await findDefaultTemplate(supabase, incident.tenant_id, lang, notificationType);
+                if (defaultTemplate) {
+                  message = renderTemplate(defaultTemplate.content_pattern, templateVariables);
+                  usedTemplateId = defaultTemplate.id;
+                  templateSource = 'default';
+                  console.log(`[Dispatch] WhatsApp: Using DEFAULT template ${defaultTemplate.id} for ${recipient.full_name}`);
+                }
+              }
+              
+              // STEP 3: Use hardcoded fallback generator (with warning)
+              if (!usedTemplateId) {
                 message = generateWhatsAppMessage(
                   lang, incident, effectiveSeverity, locationText, 
                   reporterName, hasInjury, isErpOverride
                 );
+                templateSource = 'fallback';
+                console.warn(`[Dispatch] WhatsApp: Using FALLBACK generator for ${recipient.full_name} (no template found)`);
               }
               
               // Send WhatsApp message with photos as media attachments
               const result = photoUrls.length > 0
-                ? await sendWhatsAppWithMedia(recipient.phone_number, message, photoUrls)
-                : await sendWhatsAppText(recipient.phone_number, message);
+                ? await sendWhatsAppWithMedia(recipient.phone_number, message!, photoUrls)
+                : await sendWhatsAppText(recipient.phone_number, message!);
               status = result.success ? 'sent' : 'failed';
               errorMsg = result.error;
               providerMessageId = result.messageId;
@@ -644,64 +731,58 @@ Deno.serve(async (req) => {
               let subject: string;
               let html: string;
               
-              // Check if this recipient has a linked Email template
+              // STEP 1: Check matrix-assigned template
               if (recipient.email_template_id) {
-                // Fetch the email template
                 const { data: emailTemplate } = await supabase
                   .from('notification_templates')
-                  .select('content_pattern, variable_keys, language, email_subject')
+                  .select('id, content_pattern, variable_keys, language, email_subject')
                   .eq('id', recipient.email_template_id)
+                  .is('deleted_at', null)
                   .single();
                 
                 if (emailTemplate) {
-                  // Build variables map
-                  const appUrl = Deno.env.get('APP_URL') || 'https://app.dhuud.com';
-                  const variables: Record<string, string> = {
-                    incident_id: incident.id,
-                    reference_id: incident.reference_id || '-',
-                    title: incident.title,
-                    description: incident.description?.substring(0, 500) || '',
-                    location: locationText,
-                    risk_level: SEVERITY_LABELS[effectiveSeverity]?.[lang] || effectiveSeverity,
-                    reported_by: reporterName,
-                    incident_time: incident.occurred_at || new Date().toISOString(),
-                    action_link: `${appUrl}/incidents/${incident.id}`,
-                    event_type: incident.event_type === 'observation' ? 'Observation' : 'Incident',
-                    site_name: siteName || '-',
-                  };
-                  
-                  // Render subject from template or use default
                   subject = emailTemplate.email_subject 
-                    ? renderTemplate(emailTemplate.email_subject, variables)
-                    : `${incident.event_type === 'observation' ? 'Observation' : 'Incident'}: ${incident.reference_id} - ${incident.title}`;
+                    ? renderTemplate(emailTemplate.email_subject, templateVariables)
+                    : `${templateVariables.event_type}: ${incident.reference_id} - ${incident.title}`;
                   
-                  // Render body from template
-                  const emailBody = renderTemplate(emailTemplate.content_pattern, variables);
+                  const emailBody = renderTemplate(emailTemplate.content_pattern, templateVariables);
                   html = wrapEmailHtml(emailBody, lang, tenantName);
-                  
-                  console.log(`[Dispatch] Using custom email template ${recipient.email_template_id} for ${recipient.full_name}`);
-                } else {
-                  // Template not found, fall back to default
-                  const defaultEmail = generateEmailContent(
-                    lang, incident, effectiveSeverity, locationText,
-                    reporterName, hasInjury, isErpOverride, tenantName
-                  );
-                  subject = defaultEmail.subject;
-                  html = defaultEmail.html;
+                  usedTemplateId = emailTemplate.id;
+                  templateSource = 'matrix';
+                  console.log(`[Dispatch] Email: Using MATRIX template ${emailTemplate.id} for ${recipient.full_name}`);
                 }
-              } else {
-                // No template linked, use default message generator
+              }
+              
+              // STEP 2: Try default template from database
+              if (!usedTemplateId) {
+                const defaultTemplate = await findDefaultTemplate(supabase, incident.tenant_id, lang, notificationType);
+                if (defaultTemplate) {
+                  subject = defaultTemplate.email_subject 
+                    ? renderTemplate(defaultTemplate.email_subject, templateVariables)
+                    : `${templateVariables.event_type}: ${incident.reference_id} - ${incident.title}`;
+                  
+                  const emailBody = renderTemplate(defaultTemplate.content_pattern, templateVariables);
+                  html = wrapEmailHtml(emailBody, lang, tenantName);
+                  usedTemplateId = defaultTemplate.id;
+                  templateSource = 'default';
+                  console.log(`[Dispatch] Email: Using DEFAULT template ${defaultTemplate.id} for ${recipient.full_name}`);
+                }
+              }
+              
+              // STEP 3: Use hardcoded fallback generator (with warning)
+              if (!usedTemplateId) {
                 const defaultEmail = generateEmailContent(
                   lang, incident, effectiveSeverity, locationText,
                   reporterName, hasInjury, isErpOverride, tenantName
                 );
                 subject = defaultEmail.subject;
                 html = defaultEmail.html;
+                templateSource = 'fallback';
+                console.warn(`[Dispatch] Email: Using FALLBACK generator for ${recipient.full_name} (no template found)`);
               }
               
               // Build email attachments from photo URLs
               const emailAttachments: EmailAttachment[] = photoUrls.map((url, index) => {
-                // Extract filename from URL or generate one
                 const urlParts = url.split('/');
                 const originalName = urlParts[urlParts.length - 1]?.split('?')[0] || '';
                 const extension = originalName.split('.').pop()?.toLowerCase() || 'jpg';
@@ -709,14 +790,14 @@ Deno.serve(async (req) => {
                 
                 return {
                   filename,
-                  path: url, // Resend will fetch from this URL
+                  path: url,
                 };
               });
 
               const result = await sendEmail({
                 to: [recipient.email],
-                subject,
-                html,
+                subject: subject!,
+                html: html!,
                 module: 'incident_workflow',
                 tenantName,
                 attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
@@ -726,8 +807,29 @@ Deno.serve(async (req) => {
               providerMessageId = result.messageId;
             }
           } else if (channel === 'push') {
-            // Send localized push notification
+            // STEP 1: Check matrix-assigned push template (NEW!)
+            if (recipient.push_template_id) {
+              const { data: pushTemplate } = await supabase
+                .from('notification_templates')
+                .select('id, content_pattern, variable_keys, language, email_subject')
+                .eq('id', recipient.push_template_id)
+                .is('deleted_at', null)
+                .single();
+              
+              if (pushTemplate) {
+                usedTemplateId = pushTemplate.id;
+                templateSource = 'matrix';
+                console.log(`[Dispatch] Push: Using MATRIX template ${pushTemplate.id} for ${recipient.full_name}`);
+              }
+            }
+            
+            // Send localized push notification (always uses generator for now, but tracks template)
             const pushPayload = generatePushPayload(lang, incident, effectiveSeverity, isErpOverride);
+            
+            if (!usedTemplateId) {
+              templateSource = 'fallback';
+              console.log(`[Dispatch] Push: Using FALLBACK generator for ${recipient.full_name}`);
+            }
             
             try {
               const pushResponse = await supabase.functions.invoke('send-push-notification', {
@@ -760,7 +862,7 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Log to audit table
+          // Log to audit table with template tracking
           await supabase.from('auto_notification_logs').insert({
             tenant_id: incident.tenant_id,
             event_type,
@@ -775,6 +877,8 @@ Deno.serve(async (req) => {
             severity_level: effectiveSeverity,
             stakeholder_role: recipient.stakeholder_role,
             was_erp_override: isErpOverride,
+            template_id: usedTemplateId,
+            template_source: templateSource,
           });
 
           results.push({
@@ -783,9 +887,11 @@ Deno.serve(async (req) => {
             stakeholder_role: recipient.stakeholder_role,
             status,
             error: errorMsg,
+            template_id: usedTemplateId,
+            template_source: templateSource,
           });
 
-          console.log(`[Dispatch] ${channel} → ${recipient.full_name} (${recipient.stakeholder_role}, ${lang}): ${status}`);
+          console.log(`[Dispatch] ${channel} → ${recipient.full_name} (${recipient.stakeholder_role}, ${lang}): ${status} [template: ${templateSource}${usedTemplateId ? ` #${usedTemplateId.substring(0, 8)}` : ''}]`);
 
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -802,6 +908,7 @@ Deno.serve(async (req) => {
             severity_level: effectiveSeverity,
             stakeholder_role: recipient.stakeholder_role,
             was_erp_override: isErpOverride,
+            template_source: 'fallback',
           });
 
           results.push({
@@ -810,17 +917,22 @@ Deno.serve(async (req) => {
             stakeholder_role: recipient.stakeholder_role,
             status: 'failed',
             error: errorMsg,
+            template_source: 'fallback',
           });
         }
       }
     }
 
-    // 10. Summary
+    // 10. Summary with template usage stats
     const sent = results.filter(r => r.status === 'sent').length;
     const failed = results.filter(r => r.status === 'failed').length;
     const skipped = results.filter(r => r.status === 'skipped').length;
+    const matrixTemplates = results.filter(r => r.template_source === 'matrix').length;
+    const defaultTemplates = results.filter(r => r.template_source === 'default').length;
+    const fallbackTemplates = results.filter(r => r.template_source === 'fallback').length;
 
     console.log(`[Dispatch] Complete: ${sent} sent, ${failed} failed, ${skipped} skipped`);
+    console.log(`[Dispatch] Templates: ${matrixTemplates} matrix, ${defaultTemplates} default, ${fallbackTemplates} fallback`);
 
     return new Response(
       JSON.stringify({
@@ -832,6 +944,7 @@ Deno.serve(async (req) => {
         has_injury: hasInjury,
         total_recipients: processedRecipients.length,
         notifications: { sent, failed, skipped },
+        template_usage: { matrix: matrixTemplates, default: defaultTemplates, fallback: fallbackTemplates },
         results,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
