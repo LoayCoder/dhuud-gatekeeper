@@ -74,7 +74,7 @@ export function useCreateContractorCompany() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<ContractorCompany>) => {
+    mutationFn: async (data: Partial<ContractorCompany> & Record<string, any>) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
 
       const { data: result, error } = await supabase
@@ -90,6 +90,21 @@ export function useCreateContractorCompany() {
           city: data.city,
           tenant_id: profile.tenant_id,
           status: "active",
+          scope_of_work: data.scope_of_work,
+          contract_start_date: data.contract_start_date,
+          contract_end_date: data.contract_end_date,
+          total_workers: data.total_workers || 0,
+          safety_officers_count: data.safety_officers_count || 0,
+          contractor_site_rep_name: data.contractor_site_rep_name,
+          contractor_site_rep_phone: data.contractor_site_rep_phone,
+          contractor_site_rep_email: data.contractor_site_rep_email,
+          contractor_safety_officer_name: data.contractor_safety_officer_name,
+          contractor_safety_officer_phone: data.contractor_safety_officer_phone,
+          contractor_safety_officer_email: data.contractor_safety_officer_email,
+          client_site_rep_id: data.client_site_rep_id,
+          assigned_branch_id: data.assigned_branch_id,
+          assigned_department_id: data.assigned_department_id,
+          assigned_section_id: data.assigned_section_id,
         })
         .select()
         .single();
@@ -111,7 +126,7 @@ export function useUpdateContractorCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorCompany> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorCompany> & Record<string, any> }) => {
       const { data: result, error } = await supabase
         .from("contractor_companies")
         .update({
@@ -121,6 +136,21 @@ export function useUpdateContractorCompany() {
           phone: data.phone,
           address: data.address,
           city: data.city,
+          scope_of_work: data.scope_of_work,
+          contract_start_date: data.contract_start_date,
+          contract_end_date: data.contract_end_date,
+          total_workers: data.total_workers,
+          safety_officers_count: data.safety_officers_count,
+          contractor_site_rep_name: data.contractor_site_rep_name,
+          contractor_site_rep_phone: data.contractor_site_rep_phone,
+          contractor_site_rep_email: data.contractor_site_rep_email,
+          contractor_safety_officer_name: data.contractor_safety_officer_name,
+          contractor_safety_officer_phone: data.contractor_safety_officer_phone,
+          contractor_safety_officer_email: data.contractor_safety_officer_email,
+          client_site_rep_id: data.client_site_rep_id,
+          assigned_branch_id: data.assigned_branch_id,
+          assigned_department_id: data.assigned_department_id,
+          assigned_section_id: data.assigned_section_id,
         })
         .eq("id", id)
         .select()
@@ -131,6 +161,7 @@ export function useUpdateContractorCompany() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-company-details"] });
       toast.success("Company updated");
     },
     onError: (error: Error) => {
