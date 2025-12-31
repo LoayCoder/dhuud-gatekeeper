@@ -28,15 +28,37 @@ function generateQRToken(): string {
   return token;
 }
 
-// Format phone number for WhatsApp
+/**
+ * Format phone number to E.164 format WITH + prefix
+ * WaSender expects format like: +966501234567
+ */
 function formatPhoneNumber(phone: string): string {
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '966' + cleaned.substring(1);
+  // Remove any whatsapp: prefix
+  let cleaned = phone.replace(/^whatsapp:/, '');
+  
+  // Remove spaces, dashes, parentheses
+  cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
+  
+  // Handle 00 international prefix
+  if (cleaned.startsWith('00')) {
+    cleaned = '+' + cleaned.substring(2);
   }
-  if (!cleaned.startsWith('966') && cleaned.length === 9) {
-    cleaned = '966' + cleaned;
+  
+  // If starts with 0, assume Saudi Arabia
+  if (cleaned.startsWith('0') && !cleaned.startsWith('00')) {
+    cleaned = '+966' + cleaned.substring(1);
   }
+  
+  // If just 9 digits, assume Saudi Arabia
+  if (/^\d{9}$/.test(cleaned)) {
+    cleaned = '+966' + cleaned;
+  }
+  
+  // Ensure + prefix exists
+  if (!cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned;
+  }
+  
   return cleaned;
 }
 
@@ -215,27 +237,33 @@ serve(async (req) => {
     let whatsappError = null;
 
     try {
-      // Use the CORRECT WaSender API endpoint and format
-      const wasenderResponse = await fetch('https://api.wasenderapi.com/send-message', {
+      // Use the CORRECT WaSender API endpoint and format (per official docs)
+      // Endpoint: https://wasenderapi.com/api/send-message
+      // Payload: { to: "+966...", text: "message" }
+      const payload = {
+        to: formattedPhone,
+        text: message
+      };
+      
+      console.log('[Send ID Card] WaSender request payload:', JSON.stringify(payload));
+      
+      const wasenderResponse = await fetch('https://wasenderapi.com/api/send-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${wasenderApiKey}`,
         },
-        body: JSON.stringify({
-          to: formattedPhone, // Format: 966XXXXXXXXX (no + prefix)
-          type: 'text',
-          text: {
-            body: message,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
 
       const wasenderResult = await wasenderResponse.json();
-      console.log('[Send ID Card] WaSender response:', JSON.stringify(wasenderResult));
+      console.log('[Send ID Card] WaSender response status:', wasenderResponse.status);
+      console.log('[Send ID Card] WaSender response body:', JSON.stringify(wasenderResult));
       
       whatsappSuccess = wasenderResponse.ok && wasenderResult.success !== false;
-      messageId = wasenderResult.messageId || wasenderResult.id || null;
+      
+      // Extract message ID from response data structure
+      messageId = wasenderResult.data?.msgId || wasenderResult.msgId || wasenderResult.messageId || wasenderResult.id || null;
       
       if (!whatsappSuccess) {
         whatsappError = wasenderResult.error || wasenderResult.message || 'Unknown error';
@@ -251,9 +279,33 @@ serve(async (req) => {
         .from('contractor_company_access_qr')
         .update({
           whatsapp_sent_at: new Date().toISOString(),
-          whatsapp_message_id: messageId,
+          whatsapp_message_id: messageId ? String(messageId) : null,
         })
         .eq('id', qrRecord.id);
+    }
+
+    // Log to notification_logs table for delivery tracking
+    try {
+      await supabase.from('notification_logs').insert({
+        tenant_id,
+        notification_type: 'whatsapp',
+        recipient: formattedPhone,
+        subject: 'Contractor ID Card',
+        message_preview: `ID Card for ${person_name} - ${company_name}`,
+        status: whatsappSuccess ? 'sent' : 'failed',
+        provider: 'wasender',
+        provider_message_id: messageId ? String(messageId) : null,
+        error_message: whatsappError,
+        metadata: {
+          entity_type: 'contractor_company_access_qr',
+          entity_id: qrRecord.id,
+          person_type,
+          qr_token,
+        },
+      });
+      console.log('[Send ID Card] Notification logged to notification_logs');
+    } catch (logError) {
+      console.warn('[Send ID Card] Failed to log to notification_logs:', logError);
     }
 
     // Log to audit
@@ -269,6 +321,7 @@ serve(async (req) => {
         whatsapp_sent: whatsappSuccess,
         whatsapp_error: whatsappError,
         phone: formattedPhone,
+        message_id: messageId,
       },
     });
 
