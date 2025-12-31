@@ -288,19 +288,23 @@ serve(async (req) => {
     try {
       await supabase.from('notification_logs').insert({
         tenant_id,
-        notification_type: 'whatsapp',
-        recipient: formattedPhone,
+        channel: 'whatsapp',
+        to_address: formattedPhone,
         subject: 'Contractor ID Card',
-        message_preview: `ID Card for ${person_name} - ${company_name}`,
         status: whatsappSuccess ? 'sent' : 'failed',
         provider: 'wasender',
         provider_message_id: messageId ? String(messageId) : null,
         error_message: whatsappError,
+        sent_at: new Date().toISOString(),
+        template_name: 'contractor_id_card',
+        related_entity_type: 'contractor_company_access_qr',
+        related_entity_id: qrRecord.id,
         metadata: {
-          entity_type: 'contractor_company_access_qr',
-          entity_id: qrRecord.id,
           person_type,
+          person_name,
+          company_name,
           qr_token,
+          message_preview: `ID Card for ${person_name} - ${company_name}`,
         },
       });
       console.log('[Send ID Card] Notification logged to notification_logs');
