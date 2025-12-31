@@ -215,15 +215,19 @@ serve(async (req) => {
     let whatsappError = null;
 
     try {
-      const wasenderResponse = await fetch('https://api.wasender.dev/api/send-message', {
+      // Use the CORRECT WaSender API endpoint and format
+      const wasenderResponse = await fetch('https://api.wasenderapi.com/send-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${wasenderApiKey}`,
         },
         body: JSON.stringify({
-          to: formattedPhone,
-          text: message,
+          to: formattedPhone, // Format: 966XXXXXXXXX (no + prefix)
+          type: 'text',
+          text: {
+            body: message,
+          },
         }),
       });
 

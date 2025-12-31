@@ -10,24 +10,19 @@ export interface WaSenderResponse {
 }
 
 /**
- * Format phone number to WaSender format (just digits with country code, no + sign)
+ * Format phone number to WaSender format (just digits with country code, NO + sign)
+ * WaSender expects format like: 966501234567
  */
 function formatPhoneNumber(phone: string): string {
   // Remove any whatsapp: prefix
   let cleaned = phone.replace(/^whatsapp:/, '');
   
-  // Remove spaces, dashes, parentheses
-  cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
+  // Remove spaces, dashes, parentheses, and + sign
+  cleaned = cleaned.replace(/[\s\-\(\)\+]/g, '');
   
-  // Keep the + for WaSender API - they accept +1234567890 format
-  // But also handle 00 international prefix
+  // Handle 00 international prefix
   if (cleaned.startsWith('00')) {
-    cleaned = '+' + cleaned.substring(2);
-  }
-  
-  // If no + prefix, add it
-  if (!cleaned.startsWith('+')) {
-    cleaned = '+' + cleaned;
+    cleaned = cleaned.substring(2);
   }
   
   return cleaned;
@@ -35,7 +30,7 @@ function formatPhoneNumber(phone: string): string {
 
 /**
  * Send a text message via WaSender API
- * Endpoint: POST https://www.wasenderapi.com/api/send-message
+ * Endpoint: POST https://api.wasenderapi.com/send-message
  */
 export async function sendWaSenderTextMessage(
   to: string,
@@ -56,7 +51,7 @@ export async function sendWaSenderTextMessage(
   console.log(`[WaSender] Sending text message to ${formattedPhone}`);
 
   try {
-    const response = await fetch('https://www.wasenderapi.com/api/send-message', {
+    const response = await fetch('https://api.wasenderapi.com/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -64,7 +59,10 @@ export async function sendWaSenderTextMessage(
       },
       body: JSON.stringify({
         to: formattedPhone,
-        text: message
+        type: 'text',
+        text: {
+          body: message
+        }
       }),
     });
 
@@ -95,8 +93,18 @@ export async function sendWaSenderTextMessage(
 }
 
 /**
- * Send a media message (image/video/document) via WaSender API
- * Endpoint: POST https://www.wasenderapi.com/api/send-media
+ * Send an image message via WaSender API
+ * Endpoint: POST https://api.wasenderapi.com/send-message
+ * 
+ * REQUIRED FORMAT:
+ * {
+ *   "to": "966XXXXXXXXX",
+ *   "type": "image",
+ *   "image": {
+ *     "url": "https://public-url-to-image.jpg",
+ *     "caption": "Optional text"
+ *   }
+ * }
  */
 export async function sendWaSenderMediaMessage(
   to: string,
@@ -120,9 +128,8 @@ export async function sendWaSenderMediaMessage(
   // Enhanced logging for debugging
   console.log(`[WaSender Media] === SENDING ${mediaType.toUpperCase()} ===`);
   console.log(`[WaSender Media] To: ${formattedPhone}`);
-  console.log(`[WaSender Media] URL: ${mediaUrl.substring(0, 100)}...`);
-  console.log(`[WaSender Media] URL Length: ${mediaUrl.length} chars`);
-  console.log(`[WaSender Media] Caption: ${caption ? caption.substring(0, 50) + '...' : '(none)'}`);
+  console.log(`[WaSender Media] URL: ${mediaUrl}`);
+  console.log(`[WaSender Media] Caption: ${caption ? caption.substring(0, 100) + '...' : '(none)'}`);
 
   // Validate URL accessibility before sending
   try {
@@ -143,7 +150,7 @@ export async function sendWaSenderMediaMessage(
       };
     }
     
-    // Validate content type is an image
+    // Validate content type
     if (mediaType === 'image' && contentType && !contentType.startsWith('image/')) {
       console.warn(`[WaSender Media] Warning: Content-Type is ${contentType}, expected image/*`);
     }
@@ -154,34 +161,40 @@ export async function sendWaSenderMediaMessage(
   }
 
   try {
-    // Build payload using the correct parameter for each media type
-    // WaSender API uses /api/send-message with imageUrl, videoUrl, or documentUrl
-    const mediaPayload: Record<string, string> = {
+    // Build payload using the CORRECT WaSender format
+    // See: https://wasenderapi.com/api-docs
+    interface MediaPayload {
+      to: string;
+      type: string;
+      image?: { url: string; caption?: string };
+      video?: { url: string; caption?: string };
+      document?: { url: string; caption?: string; filename?: string };
+    }
+
+    const mediaPayload: MediaPayload = {
       to: formattedPhone,
+      type: mediaType,
     };
 
-    // Add caption as text if provided
-    if (caption) {
-      mediaPayload.text = caption;
-    }
-
-    // Add the appropriate media URL based on type
+    // Add the media object based on type
     switch (mediaType) {
       case 'image':
-        mediaPayload.imageUrl = mediaUrl;
+        mediaPayload.image = { url: mediaUrl };
+        if (caption) mediaPayload.image.caption = caption;
         break;
       case 'video':
-        mediaPayload.videoUrl = mediaUrl;
+        mediaPayload.video = { url: mediaUrl };
+        if (caption) mediaPayload.video.caption = caption;
         break;
       case 'document':
-        mediaPayload.documentUrl = mediaUrl;
+        mediaPayload.document = { url: mediaUrl };
+        if (caption) mediaPayload.document.caption = caption;
         break;
     }
 
-    console.log(`[WaSender Media] Sending ${mediaType} via /api/send-message with ${mediaType}Url`);
-    console.log(`[WaSender Media] Request payload keys: ${Object.keys(mediaPayload).join(', ')}`);
+    console.log(`[WaSender Media] Request payload: ${JSON.stringify(mediaPayload)}`);
 
-    const response = await fetch('https://www.wasenderapi.com/api/send-message', {
+    const response = await fetch('https://api.wasenderapi.com/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
