@@ -17248,6 +17248,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      is_in_same_department: {
+        Args: { _incident_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_in_team_hierarchy: {
         Args: { p_manager_id: string; p_user_id: string }
         Returns: boolean
