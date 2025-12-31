@@ -797,6 +797,12 @@
     },
     "myActions": "إجراءاتي المسندة",
     "myActionsDescription": "عرض وتحديث الإجراءات التصحيحية المسندة إليك",
+    "actions": "الإجراءات",
+    "witness": "الشهود",
+    "reported": "بلاغاتي",
+    "myReportedIncidents": "بلاغاتي المقدمة",
+    "noReportedIncidents": "لا توجد بلاغات",
+    "noReportedDescription": "لم تقم بالإبلاغ عن أي حوادث بعد.",
     "pendingActions": "معلق",
     "inProgressActions": "قيد التنفيذ",
     "completedActions": "مكتمل",
@@ -859,6 +865,7 @@
       "investigatorAwaitingApproval": "تعيين المحقق سيكون متاحاً بعد موافقة المدير"
     },
     "approvals": {
+      "approvals": "الموافقات",
       "pendingApprovals": "الموافقات المعلقة",
       "severityChanges": "تغييرات الخطورة",
       "actionVerifications": "عمليات التحقق من الإجراءات",

@@ -874,6 +874,12 @@
     },
     "myActions": "My Assigned Actions",
     "myActionsDescription": "View and update corrective actions assigned to you",
+    "actions": "Actions",
+    "witness": "Witness",
+    "reported": "Reported",
+    "myReportedIncidents": "My Reported Incidents",
+    "noReportedIncidents": "No Reported Incidents",
+    "noReportedDescription": "You have not reported any incidents yet.",
     "pendingActions": "Pending",
     "inProgressActions": "In Progress",
     "completedActions": "Completed",
@@ -897,6 +903,7 @@
       "verified": "Verified"
     },
     "approvals": {
+      "approvals": "Approvals",
       "pendingApprovals": "Pending Approvals",
       "severityChanges": "Severity Changes",
       "actionVerifications": "Action Verifications",
