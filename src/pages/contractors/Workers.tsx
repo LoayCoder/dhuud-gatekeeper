@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { HardHat, Plus, Search, Filter, Clock, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,18 @@ import { WorkerListTable } from "@/components/contractors/WorkerListTable";
 import { WorkerFormDialog } from "@/components/contractors/WorkerFormDialog";
 import { WorkerApprovalQueue } from "@/components/contractors/WorkerApprovalQueue";
 import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImportDialog";
+import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkActionsToolbar";
+import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
+import { AddWorkerToBlacklistDialog } from "@/components/contractors/AddWorkerToBlacklistDialog";
 import {
   useContractorWorkers,
   usePendingWorkerApprovals,
+  useBulkApproveWorkers,
+  useBulkRejectWorkers,
   ContractorWorker,
 } from "@/hooks/contractor-management/use-contractor-workers";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
+import { useSecurityBlacklist, useAddToBlacklist } from "@/hooks/use-security-blacklist";
 
 export default function Workers() {
   const { t } = useTranslation();
@@ -33,6 +39,9 @@ export default function Workers() {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [editingWorker, setEditingWorker] = useState<ContractorWorker | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
+  const [isBulkRejectOpen, setIsBulkRejectOpen] = useState(false);
+  const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
 
   const { data: workers = [], isLoading } = useContractorWorkers({
     search: search || undefined,
@@ -42,6 +51,62 @@ export default function Workers() {
 
   const { data: pendingApprovals = [] } = usePendingWorkerApprovals();
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
+  const { data: blacklistEntries = [] } = useSecurityBlacklist();
+  
+  const bulkApprove = useBulkApproveWorkers();
+  const bulkReject = useBulkRejectWorkers();
+  const addToBlacklist = useAddToBlacklist();
+
+  // Create blacklist lookup maps
+  const blacklistedIds = useMemo(
+    () => blacklistEntries.map(e => e.national_id),
+    [blacklistEntries]
+  );
+  const blacklistReasons = useMemo(
+    () => Object.fromEntries(blacklistEntries.map(e => [e.national_id, e.reason || ""])),
+    [blacklistEntries]
+  );
+
+  const selectedWorkers = useMemo(
+    () => workers.filter(w => selectedWorkerIds.includes(w.id)),
+    [workers, selectedWorkerIds]
+  );
+
+  const handleBulkApprove = () => {
+    // Filter out blacklisted workers
+    const nonBlacklistedIds = selectedWorkerIds.filter(id => {
+      const worker = workers.find(w => w.id === id);
+      return worker && !blacklistedIds.includes(worker.national_id);
+    });
+    
+    if (nonBlacklistedIds.length === 0) return;
+    bulkApprove.mutate(nonBlacklistedIds, {
+      onSuccess: () => setSelectedWorkerIds([]),
+    });
+  };
+
+  const handleBulkReject = (reason: string, shouldBlacklist: boolean) => {
+    bulkReject.mutate(
+      { workerIds: selectedWorkerIds, reason },
+      {
+        onSuccess: async () => {
+          if (shouldBlacklist) {
+            for (const worker of selectedWorkers) {
+              await addToBlacklist.mutateAsync({
+                full_name: worker.full_name,
+                national_id: worker.national_id,
+                reason,
+              });
+            }
+          }
+          setSelectedWorkerIds([]);
+          setIsBulkRejectOpen(false);
+        },
+      }
+    );
+  };
+
+  const showSelection = statusFilter === "pending" || activeTab === "pending";
 
   return (
     <div className="space-y-6">
@@ -67,7 +132,7 @@ export default function Workers() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setSelectedWorkerIds([]); }}>
         <TabsList>
           <TabsTrigger value="all">
             {t("contractors.workers.allWorkers", "All Workers")}
@@ -110,7 +175,7 @@ export default function Workers() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setSelectedWorkerIds([]); }}>
                     <SelectTrigger className="w-[150px]">
                       <Filter className="h-4 w-4 me-2" />
                       <SelectValue placeholder={t("common.status", "Status")} />
@@ -126,17 +191,37 @@ export default function Workers() {
               </div>
             </CardHeader>
             <CardContent>
+              {showSelection && (
+                <WorkerBulkActionsToolbar
+                  selectedCount={selectedWorkerIds.length}
+                  onApprove={handleBulkApprove}
+                  onReject={() => setIsBulkRejectOpen(true)}
+                  onAddToBlacklist={() => setIsBlacklistDialogOpen(true)}
+                  onClear={() => setSelectedWorkerIds([])}
+                  isApproving={bulkApprove.isPending}
+                  showBlacklist={selectedWorkerIds.length > 0}
+                />
+              )}
               <WorkerListTable
                 workers={workers}
                 isLoading={isLoading}
                 onEdit={(worker) => setEditingWorker(worker)}
+                selectedIds={selectedWorkerIds}
+                onSelectionChange={setSelectedWorkerIds}
+                showSelection={showSelection}
+                blacklistedIds={blacklistedIds}
+                blacklistReasons={blacklistReasons}
               />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="pending" className="mt-4">
-          <WorkerApprovalQueue workers={pendingApprovals} />
+          <WorkerApprovalQueue 
+            workers={pendingApprovals} 
+            blacklistedIds={blacklistedIds}
+            blacklistReasons={blacklistReasons}
+          />
         </TabsContent>
       </Tabs>
 
@@ -155,6 +240,20 @@ export default function Workers() {
       <WorkerBulkImportDialog
         open={isBulkImportOpen}
         onOpenChange={setIsBulkImportOpen}
+      />
+
+      <BulkRejectDialog
+        open={isBulkRejectOpen}
+        onOpenChange={setIsBulkRejectOpen}
+        selectedCount={selectedWorkerIds.length}
+        onConfirm={handleBulkReject}
+        isPending={bulkReject.isPending}
+      />
+
+      <AddWorkerToBlacklistDialog
+        open={isBlacklistDialogOpen}
+        onOpenChange={setIsBlacklistDialogOpen}
+        workers={selectedWorkers}
       />
     </div>
   );
