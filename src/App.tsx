@@ -291,7 +291,7 @@ const App = () => (
                       <Route path="/security/patrols/history" element={<SecurityRoute><PatrolHistory /></SecurityRoute>} />
                       <Route path="/security/gate" element={<SecurityRoute><GateControl /></SecurityRoute>} />
                       <Route path="/security/contractors" element={<SecurityRoute><Contractors /></SecurityRoute>} />
-                      <Route path="/security/contractor-check" element={<SecurityRoute><ContractorCheck /></SecurityRoute>} />
+                      <Route path="/security/contractor-check" element={<Navigate to="/security/contractor-access" replace />} />
                       <Route path="/security/zones" element={<SecurityRoute><SecurityZones /></SecurityRoute>} />
                       <Route path="/security/shifts" element={<SecurityRoute><SecurityShifts /></SecurityRoute>} />
                       <Route path="/security/roster" element={<SecurityRoute><ShiftRoster /></SecurityRoute>} />

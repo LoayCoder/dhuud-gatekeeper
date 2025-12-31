@@ -3220,7 +3220,7 @@ export type Database = {
           access_type: string
           alert_language: string | null
           alert_sent: boolean | null
-          contractor_id: string
+          contractor_id: string | null
           created_at: string | null
           deleted_at: string | null
           entry_time: string
@@ -3228,17 +3228,19 @@ export type Database = {
           guard_id: string | null
           id: string
           notes: string | null
+          project_id: string | null
           site_id: string | null
           tenant_id: string
           validation_errors: Json | null
           validation_status: string
+          worker_id: string | null
           zone_id: string | null
         }
         Insert: {
           access_type?: string
           alert_language?: string | null
           alert_sent?: boolean | null
-          contractor_id: string
+          contractor_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           entry_time?: string
@@ -3246,17 +3248,19 @@ export type Database = {
           guard_id?: string | null
           id?: string
           notes?: string | null
+          project_id?: string | null
           site_id?: string | null
           tenant_id: string
           validation_errors?: Json | null
           validation_status: string
+          worker_id?: string | null
           zone_id?: string | null
         }
         Update: {
           access_type?: string
           alert_language?: string | null
           alert_sent?: boolean | null
-          contractor_id?: string
+          contractor_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
           entry_time?: string
@@ -3264,10 +3268,12 @@ export type Database = {
           guard_id?: string | null
           id?: string
           notes?: string | null
+          project_id?: string | null
           site_id?: string | null
           tenant_id?: string
           validation_errors?: Json | null
           validation_status?: string
+          worker_id?: string | null
           zone_id?: string | null
         }
         Relationships: [
@@ -3286,6 +3292,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_access_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_access_logs_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
@@ -3297,6 +3310,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
             referencedColumns: ["id"]
           },
         ]
