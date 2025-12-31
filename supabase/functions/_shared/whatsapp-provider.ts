@@ -115,52 +115,97 @@ export async function sendWhatsAppWithMedia(
   mediaUrls?: string[]
 ): Promise<WhatsAppProviderResponse> {
   const provider = getActiveProvider();
-  console.log(`[WhatsApp Provider] Using ${provider} to send message with ${mediaUrls?.length || 0} media to ${to}`);
+  const totalStartTime = Date.now();
+  
+  console.log(`[WhatsApp Media] ========================================`);
+  console.log(`[WhatsApp Media] === START MEDIA DELIVERY ===`);
+  console.log(`[WhatsApp Media] Provider: ${provider}`);
+  console.log(`[WhatsApp Media] Recipient: ${to}`);
+  console.log(`[WhatsApp Media] Text Length: ${message.length} chars`);
+  console.log(`[WhatsApp Media] Media Count: ${mediaUrls?.length || 0}`);
+  
+  // Log each media URL for debugging
+  if (mediaUrls && mediaUrls.length > 0) {
+    mediaUrls.forEach((url, i) => {
+      console.log(`[WhatsApp Media] Photo ${i + 1}/${mediaUrls.length}: ${url.substring(0, 80)}...`);
+    });
+  }
   
   // First send the text message
+  console.log(`[WhatsApp Media] Step 1: Sending text message...`);
+  const textStartTime = Date.now();
   const textResult = await sendWhatsAppText(to, message);
+  const textDuration = Date.now() - textStartTime;
+  
+  console.log(`[WhatsApp Media] Text result: ${textResult.success ? 'SUCCESS' : 'FAILED'} (${textDuration}ms)`);
   
   if (!textResult.success) {
+    console.error(`[WhatsApp Media] Text failed, aborting media delivery`);
+    console.log(`[WhatsApp Media] === END (ABORTED) ===`);
     return textResult;
   }
   
   // If no media, we're done
   if (!mediaUrls || mediaUrls.length === 0) {
+    console.log(`[WhatsApp Media] No media to send, done.`);
+    console.log(`[WhatsApp Media] === END (TEXT ONLY) ===`);
     return textResult;
   }
   
   // Send each media file as a separate message
+  console.log(`[WhatsApp Media] Step 2: Sending ${mediaUrls.length} photos...`);
   let mediaErrors: string[] = [];
+  let successCount = 0;
   
   if (provider === 'wasender') {
     for (let i = 0; i < mediaUrls.length; i++) {
       const mediaUrl = mediaUrls[i];
-      console.log(`[WhatsApp Provider] Sending media ${i + 1}/${mediaUrls.length}: ${mediaUrl}`);
+      const photoStartTime = Date.now();
+      
+      console.log(`[WhatsApp Media] --- Photo ${i + 1}/${mediaUrls.length} ---`);
       
       const mediaResult = await sendWaSenderMediaMessage(to, mediaUrl, '', 'image');
+      const photoDuration = Date.now() - photoStartTime;
       
-      if (!mediaResult.success) {
-        console.error(`[WhatsApp Provider] Failed to send media ${i + 1}:`, mediaResult.error);
-        mediaErrors.push(mediaResult.error || 'Unknown media error');
+      if (mediaResult.success) {
+        successCount++;
+        console.log(`[WhatsApp Media] Photo ${i + 1}: SUCCESS (${photoDuration}ms) - ID: ${mediaResult.messageId}`);
+      } else {
+        console.error(`[WhatsApp Media] Photo ${i + 1}: FAILED (${photoDuration}ms) - ${mediaResult.error}`);
+        mediaErrors.push(`Photo ${i + 1}: ${mediaResult.error || 'Unknown error'}`);
       }
       
       // Small delay between media messages to avoid rate limiting
       if (i < mediaUrls.length - 1) {
+        console.log(`[WhatsApp Media] Waiting 500ms before next photo...`);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
   } else {
     // Twilio doesn't have a direct media message via our current implementation
-    // Log a warning - future enhancement could add Twilio media support
-    console.warn(`[WhatsApp Provider] Twilio media attachments not implemented, skipping ${mediaUrls.length} photos`);
+    console.warn(`[WhatsApp Media] Twilio media attachments not implemented, skipping ${mediaUrls.length} photos`);
   }
+  
+  const totalDuration = Date.now() - totalStartTime;
+  
+  // Summary logging
+  console.log(`[WhatsApp Media] ========================================`);
+  console.log(`[WhatsApp Media] === DELIVERY SUMMARY ===`);
+  console.log(`[WhatsApp Media] Total Duration: ${totalDuration}ms`);
+  console.log(`[WhatsApp Media] Text: SENT`);
+  console.log(`[WhatsApp Media] Photos: ${successCount}/${mediaUrls.length} sent successfully`);
+  if (mediaErrors.length > 0) {
+    console.log(`[WhatsApp Media] Errors: ${mediaErrors.join('; ')}`);
+  }
+  console.log(`[WhatsApp Media] === END ===`);
+  console.log(`[WhatsApp Media] ========================================`);
   
   // Return success even if some media failed (text was sent)
   return {
     success: true,
     messageId: textResult.messageId,
     provider,
-    error: mediaErrors.length > 0 ? `Text sent, but ${mediaErrors.length} media failed` : undefined
+    error: mediaErrors.length > 0 ? `Text sent, but ${mediaErrors.length}/${mediaUrls.length} media failed: ${mediaErrors.join('; ')}` : undefined
   };
 }
 
