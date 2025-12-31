@@ -3304,71 +3304,144 @@ export type Database = {
       contractor_companies: {
         Row: {
           address: string | null
+          assigned_branch_id: string | null
           assigned_client_pm_id: string | null
+          assigned_department_id: string | null
+          assigned_section_id: string | null
           city: string | null
+          client_site_rep_id: string | null
           commercial_registration_number: string | null
           company_name: string
           company_name_ar: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
+          contractor_safety_officer_email: string | null
+          contractor_safety_officer_name: string | null
+          contractor_safety_officer_phone: string | null
+          contractor_site_rep_email: string | null
+          contractor_site_rep_name: string | null
+          contractor_site_rep_phone: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
           email: string | null
           id: string
           phone: string | null
+          safety_officers_count: number | null
+          scope_of_work: string | null
           status: string
           suspended_at: string | null
           suspended_by: string | null
           suspension_reason: string | null
           tenant_id: string
+          total_workers: number | null
           updated_at: string
           vat_number: string | null
         }
         Insert: {
           address?: string | null
+          assigned_branch_id?: string | null
           assigned_client_pm_id?: string | null
+          assigned_department_id?: string | null
+          assigned_section_id?: string | null
           city?: string | null
+          client_site_rep_id?: string | null
           commercial_registration_number?: string | null
           company_name: string
           company_name_ar?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          contractor_safety_officer_email?: string | null
+          contractor_safety_officer_name?: string | null
+          contractor_safety_officer_phone?: string | null
+          contractor_site_rep_email?: string | null
+          contractor_site_rep_name?: string | null
+          contractor_site_rep_phone?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
           phone?: string | null
+          safety_officers_count?: number | null
+          scope_of_work?: string | null
           status?: string
           suspended_at?: string | null
           suspended_by?: string | null
           suspension_reason?: string | null
           tenant_id: string
+          total_workers?: number | null
           updated_at?: string
           vat_number?: string | null
         }
         Update: {
           address?: string | null
+          assigned_branch_id?: string | null
           assigned_client_pm_id?: string | null
+          assigned_department_id?: string | null
+          assigned_section_id?: string | null
           city?: string | null
+          client_site_rep_id?: string | null
           commercial_registration_number?: string | null
           company_name?: string
           company_name_ar?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          contractor_safety_officer_email?: string | null
+          contractor_safety_officer_name?: string | null
+          contractor_safety_officer_phone?: string | null
+          contractor_site_rep_email?: string | null
+          contractor_site_rep_name?: string | null
+          contractor_site_rep_phone?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
           phone?: string | null
+          safety_officers_count?: number | null
+          scope_of_work?: string | null
           status?: string
           suspended_at?: string | null
           suspended_by?: string | null
           suspension_reason?: string | null
           tenant_id?: string
+          total_workers?: number | null
           updated_at?: string
           vat_number?: string | null
         }
         Relationships: [
           {
+            foreignKeyName: "contractor_companies_assigned_branch_id_fkey"
+            columns: ["assigned_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_companies_assigned_client_pm_id_fkey"
             columns: ["assigned_client_pm_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_assigned_department_id_fkey"
+            columns: ["assigned_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_assigned_section_id_fkey"
+            columns: ["assigned_section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_client_site_rep_id_fkey"
+            columns: ["client_site_rep_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
