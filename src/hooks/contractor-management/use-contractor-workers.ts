@@ -175,3 +175,53 @@ export function useRejectWorker() {
     },
   });
 }
+
+export function useBulkApproveWorkers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workerIds: string[]) => {
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .update({ approval_status: "approved", approved_at: new Date().toISOString() })
+        .in("id", workerIds)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      toast.success(`${data.length} workers approved`);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useBulkRejectWorkers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ workerIds, reason }: { workerIds: string[]; reason: string }) => {
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .update({ approval_status: "rejected", rejection_reason: reason })
+        .in("id", workerIds)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      toast.success(`${data.length} workers rejected`);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
