@@ -17,9 +17,10 @@ interface WorkerQRCodeProps {
   } | null;
   onGenerateQR?: () => void;
   isGenerating?: boolean;
+  disabled?: boolean;
 }
 
-export function WorkerQRCode({ workerId, workerName, qrData, onGenerateQR, isGenerating }: WorkerQRCodeProps) {
+export function WorkerQRCode({ workerId, workerName, qrData, onGenerateQR, isGenerating, disabled }: WorkerQRCodeProps) {
   const { t } = useTranslation();
 
   const handleDownload = () => {
@@ -102,7 +103,7 @@ export function WorkerQRCode({ workerId, workerName, qrData, onGenerateQR, isGen
                 ? t("contractors.workers.qrExpiredMessage", "QR code has expired") 
                 : t("contractors.workers.noQrCode", "No QR code generated")}
             </p>
-            <Button onClick={onGenerateQR} disabled={isGenerating}>
+            <Button onClick={onGenerateQR} disabled={isGenerating || disabled}>
               <RefreshCw className={`h-4 w-4 me-1 ${isGenerating ? "animate-spin" : ""}`} />
               {t("contractors.workers.generateQr", "Generate QR Code")}
             </Button>
