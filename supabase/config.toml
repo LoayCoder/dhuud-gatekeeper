@@ -245,3 +245,6 @@ verify_jwt = false
 
 [functions.validate-contractor-rep-qr]
 verify_jwt = false
+
+[functions.send-contractor-welcome]
+verify_jwt = false
