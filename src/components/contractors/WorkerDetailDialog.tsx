@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,16 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-inductions";
 import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
+import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect } from "react";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -28,9 +29,11 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [isSendingInduction, setIsSendingInduction] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
 
   const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
   const { data: videos = [] } = useInductionVideos();
+  const { data: projects = [] } = useContractorProjects({ companyId: worker?.company_id });
 
   // Fetch photo URL
   useEffect(() => {
@@ -65,10 +68,31 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
     : false;
 
   const handleGenerateQR = async () => {
+    if (!selectedProjectId) {
+      toast.error(t("contractors.messages.selectProject", "Please select a project first"));
+      return;
+    }
+
     setIsGeneratingQR(true);
     try {
+      // Get tenant_id from user profile
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user?.id)
+        .single();
+
+      if (!profile?.tenant_id) {
+        throw new Error("Could not determine tenant");
+      }
+
       const { error } = await supabase.functions.invoke("generate-worker-qr", {
-        body: { workerId: worker.id },
+        body: { 
+          worker_id: worker.id,
+          project_id: selectedProjectId,
+          tenant_id: profile.tenant_id
+        },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.qrGenerated", "QR code generated successfully"));
@@ -230,13 +254,40 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
 
           <TabsContent value="qr" className="mt-4">
             {worker.approval_status === "approved" ? (
-              <WorkerQRCode
-                workerId={worker.id}
-                workerName={worker.full_name}
-                qrData={null}
-                onGenerateQR={handleGenerateQR}
-                isGenerating={isGeneratingQR}
-              />
+              <Card>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      {t("contractors.workers.selectProjectForQR", "Select Project for QR Code")}
+                    </label>
+                    <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("contractors.workers.selectProject", "Select a project...")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.project_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {projects.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {t("contractors.workers.noProjects", "No projects assigned to this company")}
+                      </p>
+                    )}
+                  </div>
+                  <WorkerQRCode
+                    workerId={worker.id}
+                    workerName={worker.full_name}
+                    qrData={null}
+                    onGenerateQR={handleGenerateQR}
+                    isGenerating={isGeneratingQR}
+                    disabled={!selectedProjectId}
+                  />
+                </CardContent>
+              </Card>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
