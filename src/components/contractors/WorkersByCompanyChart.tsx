@@ -15,10 +15,10 @@ const COLORS = {
 };
 
 const MAX_LABEL_LENGTH = 22;
-const ROW_HEIGHT = 45;
+const ROW_HEIGHT = 40;
 const MAX_VISIBLE_ROWS = 6;
-const MIN_Y_AXIS_WIDTH = 120;
-const MAX_Y_AXIS_WIDTH = 180;
+const MIN_Y_AXIS_WIDTH = 100;
+const MAX_Y_AXIS_WIDTH = 150;
 
 export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChartProps) {
   const { t, i18n } = useTranslation();
@@ -83,8 +83,9 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ top: 5, right: 30, left: 5, bottom: needsScroll ? 5 : 40 }}
-          barSize={28}
+          margin={{ top: 5, right: 30, left: 0, bottom: needsScroll ? 5 : 40 }}
+          barSize={26}
+          barCategoryGap="12%"
         >
           <XAxis 
             type="number" 
@@ -107,7 +108,8 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
             tickLine={false}
             interval={0}
             orientation={isRTL ? "right" : "left"}
-            textAnchor={isRTL ? "start" : "end"}
+            textAnchor={isRTL ? "end" : "start"}
+            tickMargin={4}
           />
           <Tooltip
             cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
