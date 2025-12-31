@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Building2, MapPin, Star } from "lucide-react";
+import { Building2, MapPin, Star, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProfileData } from "./types";
@@ -20,6 +20,11 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
       : null
   );
 
+  // Check if user has full access (not assigned to specific branch/site)
+  const hasFullBranchAccess = profile?.has_full_branch_access === true;
+  // Sites follow branch access - if user has all branches, they have all sites too
+  const hasFullSiteAccess = hasFullBranchAccess;
+
   return (
     <Card dir={direction}>
       <CardHeader>
@@ -33,11 +38,23 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
         <div className="rounded-md border p-4 bg-muted/10">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
-              <Building2 className="h-4 w-4 text-primary" />
+              {hasFullBranchAccess ? (
+                <Globe className="h-4 w-4 text-primary" />
+              ) : (
+                <Building2 className="h-4 w-4 text-primary" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.branch')}</p>
-              {profile?.branches ? (
+              {hasFullBranchAccess ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-primary">{t('assignment.allBranches', 'All Branches')}</p>
+                  <Badge variant="secondary" className="text-xs">
+                    <Globe className="h-3 w-3 me-1" />
+                    {t('assignment.fullAccess', 'Full Access')}
+                  </Badge>
+                </div>
+              ) : profile?.branches ? (
                 <>
                   <p className="font-medium">{profile.branches.name}</p>
                   {profile.branches.location && (
@@ -55,11 +72,23 @@ export function AssignmentInfo({ profile }: AssignmentInfoProps) {
         <div className="rounded-md border p-4 bg-muted/10">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-primary/10 rounded-full shrink-0">
-              <MapPin className="h-4 w-4 text-primary" />
+              {hasFullSiteAccess ? (
+                <Globe className="h-4 w-4 text-primary" />
+              ) : (
+                <MapPin className="h-4 w-4 text-primary" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t('assignment.site')}</p>
-              {profile?.sites ? (
+              {hasFullSiteAccess ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-primary">{t('assignment.allSites', 'All Sites')}</p>
+                  <Badge variant="secondary" className="text-xs">
+                    <Globe className="h-3 w-3 me-1" />
+                    {t('assignment.fullAccess', 'Full Access')}
+                  </Badge>
+                </div>
+              ) : profile?.sites ? (
                 <>
                   <p className="font-medium">{profile.sites.name}</p>
                   {profile.sites.address && (

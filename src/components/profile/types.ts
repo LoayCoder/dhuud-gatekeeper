@@ -12,6 +12,7 @@ export interface ProfileData {
   assigned_branch_id: string | null;
   assigned_site_id: string | null;
   assigned_department_id: string | null;
+  has_full_branch_access: boolean | null;
   created_at: string | null;
   job_title: string | null;
   employee_id: string | null;

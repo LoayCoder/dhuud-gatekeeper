@@ -16,6 +16,7 @@ interface CachedProfile {
   assigned_division_id: string | null;
   assigned_department_id: string | null;
   assigned_section_id: string | null;
+  has_full_branch_access: boolean | null;
   user_type: string | null;
   job_title: string | null;
   employee_id: string | null;
@@ -44,6 +45,7 @@ export function useCachedProfile() {
           emergency_contact_name, emergency_contact_phone,
           assigned_branch_id, assigned_site_id,
           assigned_division_id, assigned_department_id, assigned_section_id,
+          has_full_branch_access,
           user_type, job_title, employee_id, created_at, tenant_id,
           branches:assigned_branch_id(name, location),
           sites:assigned_site_id(name, address)
