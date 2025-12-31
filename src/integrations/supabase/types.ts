@@ -3471,6 +3471,7 @@ export type Database = {
       }
       contractor_company_access_qr: {
         Row: {
+          card_image_path: string | null
           company_id: string
           created_at: string | null
           deleted_at: string | null
@@ -3493,6 +3494,7 @@ export type Database = {
           whatsapp_sent_at: string | null
         }
         Insert: {
+          card_image_path?: string | null
           company_id: string
           created_at?: string | null
           deleted_at?: string | null
@@ -3515,6 +3517,7 @@ export type Database = {
           whatsapp_sent_at?: string | null
         }
         Update: {
+          card_image_path?: string | null
           company_id?: string
           created_at?: string | null
           deleted_at?: string | null
