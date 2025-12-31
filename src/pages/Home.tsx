@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'next-themes';
 import { WelcomeHeader } from '@/components/home/WelcomeHeader';
 import { HSSEContactCard } from '@/components/home/HSSEContactCard';
-import { DeptRepEventCard } from '@/components/home/DeptRepEventCard';
 import { HomeQuickActions } from '@/components/home/HomeQuickActions';
 import { OpenDashboardButton } from '@/components/home/OpenDashboardButton';
 import { DHUUD_LOGO_LIGHT, DHUUD_LOGO_DARK } from '@/constants/branding';
@@ -36,9 +35,6 @@ export default function Home() {
 
         {/* HSSE Contact Card */}
         <HSSEContactCard />
-
-        {/* Department Representative Event Card */}
-        <DeptRepEventCard />
 
         {/* Quick Actions */}
         <HomeQuickActions />

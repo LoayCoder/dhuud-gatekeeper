@@ -194,12 +194,6 @@ export function AppSidebar() {
               icon: ClipboardCheck,
               menuCode: 'my_actions',
             },
-            {
-              title: t('navigation.deptRepDashboard', 'My Dept Reports'),
-              url: "/dept-rep/dashboard",
-              icon: ClipboardList,
-              menuCode: 'dept_rep_dashboard',
-            },
           ],
         },
         {
