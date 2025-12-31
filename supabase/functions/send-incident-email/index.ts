@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface IncidentEmailRequest {
-  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected' | 'closure_requested' | 'closure_approved' | 'closure_rejected';
+  type: 'severity_proposed' | 'severity_approved' | 'severity_rejected' | 'closure_requested' | 'closure_approved' | 'closure_rejected' | 'dept_rep_assignment';
   incident_id: string;
   incident_title: string;
   incident_reference: string;
@@ -21,6 +21,9 @@ interface IncidentEmailRequest {
   actor_name: string;
   actor_email?: string;
   tenant_id: string;
+  event_type?: string;
+  department_name?: string;
+  reporter_name?: string;
 }
 
 const getSeverityColor = (severity: string): string => {
@@ -45,25 +48,51 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Received incident email request:", payload);
     const appUrl = getAppUrl();
 
-    const { type, incident_title, incident_reference, current_severity, proposed_severity, original_severity, justification, actor_name, tenant_id } = payload;
+    const { type, incident_title, incident_reference, current_severity, proposed_severity, original_severity, justification, actor_name, tenant_id, event_type, department_name, reporter_name } = payload;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: hsseUsers, error: rolesError } = await supabase
-      .from('user_role_assignments')
-      .select(`user_id, roles!inner(code)`)
-      .in('roles.code', ['hsse_manager', 'hsse_officer', 'admin']);
+    let recipientEmails: string[] = [];
 
-    if (rolesError) console.error("Error fetching HSSE users:", rolesError);
+    // For dept_rep_assignment, we need to find department representatives
+    if (type === 'dept_rep_assignment') {
+      // Get department_id from the incident
+      const { data: incident } = await supabase
+        .from('incidents')
+        .select('department_id')
+        .eq('id', payload.incident_id)
+        .single();
 
-    const hsseUserIds = hsseUsers?.map(u => u.user_id) || [];
-    const recipientEmails: string[] = [];
-    
-    for (const userId of hsseUserIds) {
-      const { data: userData } = await supabase.auth.admin.getUserById(userId);
-      if (userData?.user?.email) recipientEmails.push(userData.user.email);
+      if (incident?.department_id) {
+        // Find users with department_representative role in the same department
+        const { data: deptRepUsers } = await supabase
+          .from('user_role_assignments')
+          .select(`user_id, profiles!inner(department_id), roles!inner(code)`)
+          .eq('roles.code', 'department_representative')
+          .eq('profiles.department_id', incident.department_id);
+
+        const deptRepUserIds = deptRepUsers?.map(u => u.user_id) || [];
+        for (const userId of deptRepUserIds) {
+          const { data: userData } = await supabase.auth.admin.getUserById(userId);
+          if (userData?.user?.email) recipientEmails.push(userData.user.email);
+        }
+      }
+    } else {
+      // Original logic for HSSE users
+      const { data: hsseUsers, error: rolesError } = await supabase
+        .from('user_role_assignments')
+        .select(`user_id, roles!inner(code)`)
+        .in('roles.code', ['hsse_manager', 'hsse_officer', 'admin']);
+
+      if (rolesError) console.error("Error fetching HSSE users:", rolesError);
+
+      const hsseUserIds = hsseUsers?.map(u => u.user_id) || [];
+      for (const userId of hsseUserIds) {
+        const { data: userData } = await supabase.auth.admin.getUserById(userId);
+        if (userData?.user?.email) recipientEmails.push(userData.user.email);
+      }
     }
 
     console.log("Recipient emails:", recipientEmails);
@@ -80,6 +109,10 @@ const handler = async (req: Request): Promise<Response> => {
     let htmlContent = '';
 
     switch (type) {
+      case 'dept_rep_assignment':
+        subject = `📋 New Event Report Assigned - ${incident_reference}`;
+        htmlContent = `<div style="${baseStyles}"><div style="${cardStyles}"><h2 style="margin-top: 0; color: #1e40af;">New Event Report Requires Your Review</h2><p style="color: #6b7280;">A new event report has been submitted and assigned to your department for review.</p><table style="width: 100%; border-collapse: collapse; margin: 20px 0;"><tr><td style="padding: 8px 0; color: #6b7280; width: 140px;">Reference:</td><td style="padding: 8px 0; font-weight: 600;">${incident_reference}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Title:</td><td style="padding: 8px 0;">${incident_title}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Event Type:</td><td style="padding: 8px 0;">${event_type || 'N/A'}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Department:</td><td style="padding: 8px 0;">${department_name || 'N/A'}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Severity:</td><td style="padding: 8px 0;"><span style="${badgeStyles(getSeverityColor(current_severity))}">${getSeverityLabel(current_severity)}</span></td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Reported By:</td><td style="padding: 8px 0;">${reporter_name || actor_name}</td></tr></table><div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 20px 0;"><p style="margin: 0; color: #1e40af;">⚡ Action Required: Please review this event report and take appropriate action.</p></div>${emailButton("Review Event Report", `${appUrl}/incidents/investigate?id=${payload.incident_id}`, "#1e40af")}</div><p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated notification from DHUUD HSSE Platform</p></div>`;
+        break;
       case 'severity_proposed':
         subject = `🔔 Severity Change Proposed - ${incident_reference}`;
         htmlContent = `<div style="${baseStyles}"><div style="${cardStyles}"><h2 style="margin-top: 0; color: #1f2937;">Severity Change Proposed</h2><p style="color: #6b7280;">A severity change has been proposed for an incident and requires your review.</p><table style="width: 100%; border-collapse: collapse; margin: 20px 0;"><tr><td style="padding: 8px 0; color: #6b7280; width: 140px;">Reference:</td><td style="padding: 8px 0; font-weight: 600;">${incident_reference}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Title:</td><td style="padding: 8px 0;">${incident_title}</td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Current Severity:</td><td style="padding: 8px 0;"><span style="${badgeStyles(getSeverityColor(current_severity))}">${getSeverityLabel(current_severity)}</span></td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Proposed Severity:</td><td style="padding: 8px 0;"><span style="${badgeStyles(getSeverityColor(proposed_severity || ''))}">${getSeverityLabel(proposed_severity || '')}</span></td></tr><tr><td style="padding: 8px 0; color: #6b7280;">Proposed By:</td><td style="padding: 8px 0;">${actor_name}</td></tr></table><div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 16px; margin: 20px 0;"><p style="margin: 0 0 8px 0; font-weight: 600; color: #92400e;">Justification:</p><p style="margin: 0; color: #78350f;">${justification || 'No justification provided'}</p></div>${emailButton("Review in Investigation Workspace", `${appUrl}/incidents/investigate?id=${payload.incident_id}`, "#1e40af")}</div><p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated notification from DHUUD HSSE Platform</p></div>`;
