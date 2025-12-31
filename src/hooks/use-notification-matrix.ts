@@ -78,6 +78,7 @@ export function useCreateMatrixRule() {
     mutationFn: async (rule: Omit<NotificationMatrixInsert, 'tenant_id'> & { 
       whatsapp_template_id?: string | null; 
       email_template_id?: string | null;
+      push_template_id?: string | null;
       event_type?: EventType;
     }) => {
       const tenantId = await getCurrentTenantId();
@@ -95,6 +96,7 @@ export function useCreateMatrixRule() {
           event_type: rule.event_type || 'all',
           whatsapp_template_id: rule.whatsapp_template_id || null,
           email_template_id: rule.email_template_id || null,
+          push_template_id: rule.push_template_id || null,
         })
         .select()
         .single();
@@ -126,7 +128,11 @@ export function useBatchCreateMatrixRules() {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async (rules: Array<Omit<NotificationMatrixInsert, 'tenant_id'> & { whatsapp_template_id?: string | null; email_template_id?: string | null }>) => {
+    mutationFn: async (rules: Array<Omit<NotificationMatrixInsert, 'tenant_id'> & { 
+      whatsapp_template_id?: string | null; 
+      email_template_id?: string | null;
+      push_template_id?: string | null;
+    }>) => {
       const tenantId = await getCurrentTenantId();
 
       // Process all rules using upsert RPC
@@ -141,6 +147,7 @@ export function useBatchCreateMatrixRules() {
             p_user_id: rule.user_id || null,
             p_whatsapp_template_id: rule.whatsapp_template_id || null,
             p_email_template_id: rule.email_template_id || null,
+            p_push_template_id: rule.push_template_id || null,
           })
         )
       );
