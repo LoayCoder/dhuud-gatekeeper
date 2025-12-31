@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface WorkersByCompanyChartProps {
   data: { name: string; approved: number; pending: number; total: number }[];
@@ -50,10 +51,118 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
     );
   }
 
-  // Calculate dynamic height based on number of companies
-  const barHeight = 32;
-  const barGap = 16;
-  const chartHeight = Math.max(280, (data.length * (barHeight + barGap)) + 60);
+  // Prepare chart data with truncated names for display
+  const chartData = data.map((item) => ({
+    ...item,
+    shortName: item.name.length > 18 ? `${item.name.substring(0, 18)}...` : item.name,
+  }));
+
+  // Calculate dynamic height - each bar needs ~40px
+  const rowHeight = 40;
+  const minHeight = 200;
+  const maxVisibleRows = 6;
+  const calculatedHeight = chartData.length * rowHeight + 60; // +60 for legend
+  const needsScroll = chartData.length > maxVisibleRows;
+  const containerHeight = needsScroll ? maxVisibleRows * rowHeight + 60 : Math.max(minHeight, calculatedHeight);
+  const chartHeight = calculatedHeight;
+
+  const chartContent = (
+    <div style={{ height: `${chartHeight}px`, minHeight: `${minHeight}px` }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{ top: 5, right: 30, left: 5, bottom: needsScroll ? 5 : 40 }}
+          barSize={24}
+        >
+          <XAxis 
+            type="number" 
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            axisLine={{ stroke: "hsl(var(--border))" }}
+            tickLine={false}
+            domain={[0, 'dataMax + 1']}
+            allowDecimals={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="shortName"
+            tick={{ 
+              fontSize: 11, 
+              fill: "hsl(var(--foreground))",
+            }}
+            width={130}
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+          />
+          <Tooltip
+            cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
+            contentStyle={{
+              backgroundColor: "hsl(var(--popover))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "var(--radius)",
+              fontSize: "12px",
+              padding: "8px 12px",
+            }}
+            formatter={(value: number, name: string) => [
+              value,
+              name === "approved" 
+                ? String(t("contractors.status.approved", "Approved"))
+                : String(t("contractors.status.pending", "Pending")),
+            ]}
+            labelFormatter={(label) => {
+              const item = chartData.find(d => d.shortName === label);
+              return item?.name || label;
+            }}
+          />
+          {!needsScroll && (
+            <Legend
+              verticalAlign="bottom"
+              wrapperStyle={{ paddingTop: "16px", fontSize: "12px" }}
+              iconType="circle"
+              iconSize={10}
+              formatter={(value) => {
+                const label = value === "approved"
+                  ? t("contractors.status.approved", "Approved")
+                  : t("contractors.status.pending", "Pending");
+                return <span style={{ color: "hsl(var(--foreground))", marginInlineStart: "4px" }}>{String(label)}</span>;
+              }}
+            />
+          )}
+          <Bar 
+            dataKey="approved" 
+            stackId="workers" 
+            fill={COLORS.approved} 
+            radius={[0, 0, 0, 0]}
+          >
+            <LabelList 
+              dataKey="approved" 
+              position="center" 
+              fill="#fff" 
+              fontSize={10}
+              fontWeight={600}
+              formatter={(value: number) => value > 0 ? value : ''}
+            />
+          </Bar>
+          <Bar 
+            dataKey="pending" 
+            stackId="workers" 
+            fill={COLORS.pending} 
+            radius={[0, 4, 4, 0]}
+          >
+            <LabelList 
+              dataKey="pending" 
+              position="center" 
+              fill="#fff" 
+              fontSize={10}
+              fontWeight={600}
+              formatter={(value: number) => value > 0 ? value : ''}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
 
   return (
     <Card>
@@ -63,92 +172,25 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div style={{ height: `${chartHeight}px` }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 5, right: 40, left: 5, bottom: 40 }}
-              barSize={barHeight}
-              barGap={4}
-            >
-              <XAxis 
-                type="number" 
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                axisLine={{ stroke: "hsl(var(--border))" }}
-                tickLine={false}
-                domain={[0, 'auto']}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }}
-                width={120}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value) => value.length > 16 ? `${value.substring(0, 16)}...` : value}
-              />
-              <Tooltip
-                cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                  fontSize: "12px",
-                  padding: "8px 12px",
-                }}
-                formatter={(value: number, name: string) => [
-                  value,
-                  name === "approved" 
-                    ? String(t("contractors.status.approved", "Approved"))
-                    : String(t("contractors.status.pending", "Pending")),
-                ]}
-              />
-              <Legend
-                verticalAlign="bottom"
-                wrapperStyle={{ paddingTop: "20px", fontSize: "12px" }}
-                iconType="circle"
-                iconSize={10}
-                formatter={(value) => {
-                  const label = value === "approved"
-                    ? t("contractors.status.approved", "Approved")
-                    : t("contractors.status.pending", "Pending");
-                  return <span style={{ color: "hsl(var(--foreground))", marginInlineStart: "4px" }}>{String(label)}</span>;
-                }}
-              />
-              <Bar 
-                dataKey="approved" 
-                stackId="workers" 
-                fill={COLORS.approved} 
-                radius={[0, 0, 0, 0]}
-              >
-                <LabelList 
-                  dataKey="approved" 
-                  position="center" 
-                  fill="#fff" 
-                  fontSize={11}
-                  fontWeight={600}
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-              <Bar 
-                dataKey="pending" 
-                stackId="workers" 
-                fill={COLORS.pending} 
-                radius={[0, 4, 4, 0]}
-              >
-                <LabelList 
-                  dataKey="pending" 
-                  position="center" 
-                  fill="#fff" 
-                  fontSize={11}
-                  fontWeight={600}
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {needsScroll ? (
+          <>
+            <ScrollArea style={{ height: `${containerHeight}px` }}>
+              {chartContent}
+            </ScrollArea>
+            <div className="flex items-center justify-center gap-4 pt-3 border-t mt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.approved }} />
+                <span className="text-xs text-foreground">{t("contractors.status.approved", "Approved")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.pending }} />
+                <span className="text-xs text-foreground">{t("contractors.status.pending", "Pending")}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          chartContent
+        )}
       </CardContent>
     </Card>
   );
