@@ -16767,49 +16767,31 @@ export type Database = {
         Returns: number
       }
       get_dept_rep_event_dashboard_stats: { Args: never; Returns: Json }
-      get_dept_rep_events:
-        | {
-            Args: { p_search?: string; p_status?: string }
-            Returns: {
-              completed_actions: number
-              event_type: string
-              id: string
-              overdue_actions: number
-              reference_id: string
-              reported_at: string
-              reporter_name: string
-              severity: string
-              sla_status: string
-              status: string
-              title: string
-              total_actions: number
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_search?: string
-              p_status?: string
-            }
-            Returns: {
-              completed_actions: number
-              days_overdue: number
-              department_name: string
-              earliest_due_date: string
-              event_type: string
-              id: string
-              overdue_actions: number
-              reference_id: string
-              reported_at: string
-              reporter_name: string
-              severity: string
-              sla_status: string
-              status: string
-              title: string
-              total_actions: number
-            }[]
-          }
+      get_dept_rep_events: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          completed_actions: number
+          days_overdue: number
+          department_name: string
+          earliest_due_date: string
+          event_type: string
+          id: string
+          overdue_actions: number
+          reference_id: string
+          reported_at: string
+          reporter_name: string
+          severity: string
+          sla_status: string
+          status: string
+          title: string
+          total_actions: number
+        }[]
+      }
       get_dept_rep_sla_analytics: { Args: { p_period?: string }; Returns: Json }
       get_emergency_notification_recipients: {
         Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
