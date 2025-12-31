@@ -32,9 +32,10 @@ export default function DeptRepDashboard() {
   });
 
   const isDeptRep = hasRole('department_representative');
+  const isAdmin = hasRole('admin');
 
-  // Redirect if not department representative
-  if (!rolesLoading && !isDeptRep) {
+  // Redirect if not department representative or admin
+  if (!rolesLoading && !isDeptRep && !isAdmin) {
     navigate('/');
     return null;
   }
