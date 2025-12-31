@@ -84,6 +84,7 @@ interface RuleFormState {
   isUserSpecific: boolean;
   whatsapp_template_id: string | null;
   email_template_id: string | null;
+  push_template_id: string | null;
   event_type: EventType;
 }
 
@@ -97,6 +98,7 @@ const getInitialFormState = (): RuleFormState => ({
   isUserSpecific: false,
   whatsapp_template_id: null,
   email_template_id: null,
+  push_template_id: null,
   event_type: 'incident',
 });
 
@@ -153,6 +155,12 @@ export default function NotificationMatrixManagement() {
 
   // Filter Email-compatible templates based on active event type
   const emailTemplates = useMemo(() => {
+    const category = getCategoryForEventType(activeEventType);
+    return templates?.filter(t => t.is_active && t.category === category) || [];
+  }, [templates, activeEventType]);
+
+  // Filter Push-compatible templates based on active event type
+  const pushTemplates = useMemo(() => {
     const category = getCategoryForEventType(activeEventType);
     return templates?.filter(t => t.is_active && t.category === category) || [];
   }, [templates, activeEventType]);
@@ -221,6 +229,7 @@ export default function NotificationMatrixManagement() {
               user_id: formState.isUserSpecific ? formState.user_id : null,
               whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
               email_template_id: formState.channels.includes('email') ? formState.email_template_id : null,
+              push_template_id: formState.channels.includes('push') ? formState.push_template_id : null,
               event_type: activeEventType, // Use active tab's event type
             }, {
               onSuccess: () => resolve(),
@@ -260,6 +269,7 @@ export default function NotificationMatrixManagement() {
       isUserSpecific,
       whatsapp_template_id: (firstRule as any).whatsapp_template_id || null,
       email_template_id: (firstRule as any).email_template_id || null,
+      push_template_id: (firstRule as any).push_template_id || null,
       event_type: activeEventType,
     });
     
@@ -297,6 +307,7 @@ export default function NotificationMatrixManagement() {
           user_id: formState.isUserSpecific ? formState.user_id : null,
           whatsapp_template_id: formState.channels.includes('whatsapp') ? formState.whatsapp_template_id : null,
           email_template_id: formState.channels.includes('email') ? formState.email_template_id : null,
+          push_template_id: formState.channels.includes('push') ? formState.push_template_id : null,
           event_type: activeEventType, // Use active tab's event type
         }, {
           onSuccess: () => resolve(),
@@ -626,6 +637,36 @@ export default function NotificationMatrixManagement() {
                         {t('settings.notificationMatrix.defaultTemplate', 'Default System Template')}
                       </SelectItem>
                       {whatsappTemplates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.slug} ({template.language})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {formState.channels.includes('push') && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    {t('settings.notificationMatrix.pushTemplate', 'Push Notification Template')}
+                  </Label>
+                  <Select
+                    value={formState.push_template_id || 'default'}
+                    onValueChange={(value) => setFormState(prev => ({ 
+                      ...prev, 
+                      push_template_id: value === 'default' ? null : value 
+                    }))}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={t('settings.notificationMatrix.selectTemplate', 'Select template...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">
+                        {t('settings.notificationMatrix.defaultTemplate', 'Default System Template')}
+                      </SelectItem>
+                      {pushTemplates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
                           {template.slug} ({template.language})
                         </SelectItem>

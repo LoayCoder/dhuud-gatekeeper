@@ -16869,6 +16869,7 @@ export type Database = {
           matrix_rule_id: string
           phone_number: string
           preferred_language: string
+          push_template_id: string
           stakeholder_role: string
           user_id: string
           was_condition_match: boolean
