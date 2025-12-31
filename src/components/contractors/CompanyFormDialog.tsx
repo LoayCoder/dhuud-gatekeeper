@@ -10,7 +10,9 @@ import { useState, useEffect } from "react";
 import { ContractorCompany, useCreateContractorCompany, useUpdateContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useBranches, useDepartments, useSections, useClientRepresentatives } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers, useSyncContractorSafetyOfficers, SafetyOfficerFormData } from "@/hooks/contractor-management/use-contractor-safety-officers";
+import { useSendIdCardsForCompany } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { SafetyOfficersList } from "./SafetyOfficersList";
+import { useAuth } from "@/contexts/AuthContext";
 import { Building, Users, Briefcase, Info } from "lucide-react";
 
 interface CompanyFormDialogProps {
@@ -65,9 +67,11 @@ const initialFormData: FormData = {
 
 export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDialogProps) {
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const createCompany = useCreateContractorCompany();
   const updateCompany = useUpdateContractorCompany();
   const syncSafetyOfficers = useSyncContractorSafetyOfficers();
+  const sendIdCards = useSendIdCardsForCompany();
   const isEditing = !!company;
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -150,6 +154,36 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     // Sync safety officers
     if (safetyOfficers.length > 0 || existingOfficers.length > 0) {
       await syncSafetyOfficers.mutateAsync({ companyId, officers: safetyOfficers });
+    }
+
+    // Send ID cards via WhatsApp for new companies or when contacts have phones
+    if (profile?.tenant_id) {
+      const hasContactsWithPhones = 
+        formData.contractor_site_rep_phone || 
+        safetyOfficers.some(o => o.phone);
+
+      if (hasContactsWithPhones) {
+        // Send ID cards in background (don't block form close)
+        sendIdCards.mutate({
+          company_id: companyId,
+          tenant_id: profile.tenant_id,
+          company_name: formData.company_name,
+          contract_end_date: formData.contract_end_date || undefined,
+          site_rep: formData.contractor_site_rep_phone ? {
+            name: formData.contractor_site_rep_name,
+            phone: formData.contractor_site_rep_phone,
+            email: formData.contractor_site_rep_email || undefined,
+          } : undefined,
+          safety_officers: safetyOfficers
+            .filter(o => o.phone)
+            .map(o => ({
+              id: o.id,
+              name: o.name,
+              phone: o.phone,
+              email: o.email || undefined,
+            })),
+        });
+      }
     }
 
     onOpenChange(false);
