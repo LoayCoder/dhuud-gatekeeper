@@ -1,6 +1,12 @@
 /**
  * WaSender API WhatsApp utility for sending messages
- * API Documentation: https://wasenderapi.com/api-docs/messages/send-text-message
+ * API Documentation: https://wasenderapi.com/api-docs
+ * 
+ * CORRECT FORMATS (per official docs):
+ * - Endpoint: https://wasenderapi.com/api/send-message
+ * - Phone format: E.164 with + prefix (e.g., +966501234567)
+ * - Text payload: { to, text }
+ * - Image payload: { to, text, imageUrl }
  */
 
 export interface WaSenderResponse {
@@ -10,19 +16,34 @@ export interface WaSenderResponse {
 }
 
 /**
- * Format phone number to WaSender format (just digits with country code, NO + sign)
- * WaSender expects format like: 966501234567
+ * Format phone number to E.164 format WITH + prefix
+ * WaSender expects format like: +966501234567
  */
 function formatPhoneNumber(phone: string): string {
   // Remove any whatsapp: prefix
   let cleaned = phone.replace(/^whatsapp:/, '');
   
-  // Remove spaces, dashes, parentheses, and + sign
-  cleaned = cleaned.replace(/[\s\-\(\)\+]/g, '');
+  // Remove spaces, dashes, parentheses
+  cleaned = cleaned.replace(/[\s\-\(\)]/g, '');
   
   // Handle 00 international prefix
   if (cleaned.startsWith('00')) {
-    cleaned = cleaned.substring(2);
+    cleaned = '+' + cleaned.substring(2);
+  }
+  
+  // If starts with 0, assume Saudi Arabia
+  if (cleaned.startsWith('0') && !cleaned.startsWith('00')) {
+    cleaned = '+966' + cleaned.substring(1);
+  }
+  
+  // If just 9 digits, assume Saudi Arabia
+  if (/^\d{9}$/.test(cleaned)) {
+    cleaned = '+966' + cleaned;
+  }
+  
+  // Ensure + prefix exists
+  if (!cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned;
   }
   
   return cleaned;
@@ -30,7 +51,8 @@ function formatPhoneNumber(phone: string): string {
 
 /**
  * Send a text message via WaSender API
- * Endpoint: POST https://api.wasenderapi.com/send-message
+ * Endpoint: POST https://wasenderapi.com/api/send-message
+ * Payload: { to: "+966...", text: "message" }
  */
 export async function sendWaSenderTextMessage(
   to: string,
@@ -51,24 +73,28 @@ export async function sendWaSenderTextMessage(
   console.log(`[WaSender] Sending text message to ${formattedPhone}`);
 
   try {
-    const response = await fetch('https://api.wasenderapi.com/send-message', {
+    const payload = {
+      to: formattedPhone,
+      text: message
+    };
+    
+    console.log(`[WaSender] Request payload: ${JSON.stringify(payload)}`);
+
+    const response = await fetch('https://wasenderapi.com/api/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        to: formattedPhone,
-        type: 'text',
-        text: {
-          body: message
-        }
-      }),
+      body: JSON.stringify(payload),
     });
 
     const responseData = await response.json();
 
-    if (!response.ok) {
+    console.log(`[WaSender] Response status: ${response.status}`);
+    console.log(`[WaSender] Response body: ${JSON.stringify(responseData)}`);
+
+    if (!response.ok || responseData.success === false) {
       console.error('[WaSender] API error:', responseData);
       return {
         success: false,
@@ -78,9 +104,12 @@ export async function sendWaSenderTextMessage(
 
     console.log(`[WaSender] Message sent successfully:`, responseData);
     
+    // Extract message ID from response data structure
+    const msgId = responseData.data?.msgId || responseData.msgId || responseData.messageId || responseData.id || 'sent';
+    
     return {
       success: true,
-      messageId: responseData.messageId || responseData.id || responseData.message_id || 'sent'
+      messageId: String(msgId)
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -94,17 +123,10 @@ export async function sendWaSenderTextMessage(
 
 /**
  * Send an image message via WaSender API
- * Endpoint: POST https://api.wasenderapi.com/send-message
+ * Endpoint: POST https://wasenderapi.com/api/send-message
+ * Payload: { to: "+966...", text: "caption", imageUrl: "https://..." }
  * 
- * REQUIRED FORMAT:
- * {
- *   "to": "966XXXXXXXXX",
- *   "type": "image",
- *   "image": {
- *     "url": "https://public-url-to-image.jpg",
- *     "caption": "Optional text"
- *   }
- * }
+ * Supported formats: JPEG, PNG. Max size: 5MB
  */
 export async function sendWaSenderMediaMessage(
   to: string,
@@ -125,7 +147,6 @@ export async function sendWaSenderMediaMessage(
   const formattedPhone = formatPhoneNumber(to);
   const startTime = Date.now();
 
-  // Enhanced logging for debugging
   console.log(`[WaSender Media] === SENDING ${mediaType.toUpperCase()} ===`);
   console.log(`[WaSender Media] To: ${formattedPhone}`);
   console.log(`[WaSender Media] URL: ${mediaUrl}`);
@@ -149,11 +170,6 @@ export async function sendWaSenderMediaMessage(
         error: `Media URL not accessible: HTTP ${urlCheck.status}`
       };
     }
-    
-    // Validate content type
-    if (mediaType === 'image' && contentType && !contentType.startsWith('image/')) {
-      console.warn(`[WaSender Media] Warning: Content-Type is ${contentType}, expected image/*`);
-    }
   } catch (urlError) {
     const errorMsg = urlError instanceof Error ? urlError.message : 'Unknown error';
     console.warn(`[WaSender Media] URL validation failed: ${errorMsg}`);
@@ -161,46 +177,47 @@ export async function sendWaSenderMediaMessage(
   }
 
   try {
-    // Build payload using the CORRECT WaSender format
-    // See: https://wasenderapi.com/api-docs
+    // Build payload using the CORRECT WaSender format from docs
+    // Image: { to, text (caption), imageUrl }
     interface MediaPayload {
       to: string;
-      type: string;
-      image?: { url: string; caption?: string };
-      video?: { url: string; caption?: string };
-      document?: { url: string; caption?: string; filename?: string };
+      text?: string;
+      imageUrl?: string;
+      videoUrl?: string;
+      documentUrl?: string;
     }
 
-    const mediaPayload: MediaPayload = {
+    const payload: MediaPayload = {
       to: formattedPhone,
-      type: mediaType,
     };
 
-    // Add the media object based on type
+    // Add caption if provided
+    if (caption) {
+      payload.text = caption;
+    }
+
+    // Add media URL based on type
     switch (mediaType) {
       case 'image':
-        mediaPayload.image = { url: mediaUrl };
-        if (caption) mediaPayload.image.caption = caption;
+        payload.imageUrl = mediaUrl;
         break;
       case 'video':
-        mediaPayload.video = { url: mediaUrl };
-        if (caption) mediaPayload.video.caption = caption;
+        payload.videoUrl = mediaUrl;
         break;
       case 'document':
-        mediaPayload.document = { url: mediaUrl };
-        if (caption) mediaPayload.document.caption = caption;
+        payload.documentUrl = mediaUrl;
         break;
     }
 
-    console.log(`[WaSender Media] Request payload: ${JSON.stringify(mediaPayload)}`);
+    console.log(`[WaSender Media] Request payload: ${JSON.stringify(payload)}`);
 
-    const response = await fetch('https://api.wasenderapi.com/send-message', {
+    const response = await fetch('https://wasenderapi.com/api/send-message', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(mediaPayload),
+      body: JSON.stringify(payload),
     });
 
     const responseData = await response.json();
@@ -210,7 +227,7 @@ export async function sendWaSenderMediaMessage(
     console.log(`[WaSender Media] API Response Body: ${JSON.stringify(responseData)}`);
     console.log(`[WaSender Media] Request Duration: ${duration}ms`);
 
-    if (!response.ok) {
+    if (!response.ok || responseData.success === false) {
       console.error(`[WaSender Media] === FAILED (${duration}ms) ===`);
       console.error(`[WaSender Media] Error details: ${JSON.stringify(responseData)}`);
       return {
@@ -219,13 +236,14 @@ export async function sendWaSenderMediaMessage(
       };
     }
 
-    const messageId = responseData.messageId || responseData.id || responseData.message_id || 'sent';
+    // Extract message ID from response data structure
+    const msgId = responseData.data?.msgId || responseData.msgId || responseData.messageId || responseData.id || 'sent';
     console.log(`[WaSender Media] === SUCCESS (${duration}ms) ===`);
-    console.log(`[WaSender Media] Message ID: ${messageId}`);
+    console.log(`[WaSender Media] Message ID: ${msgId}`);
     
     return {
       success: true,
-      messageId
+      messageId: String(msgId)
     };
   } catch (error) {
     const duration = Date.now() - startTime;
