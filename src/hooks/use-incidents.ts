@@ -363,6 +363,34 @@ export function useIncident(id: string | undefined) {
   });
 }
 
+// Hook to get incidents reported by the current user
+export function useMyReportedIncidents() {
+  const { user, profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['my-reported-incidents', user?.id],
+    queryFn: async () => {
+      if (!user?.id || !profile?.tenant_id) return [];
+
+      const { data, error } = await supabase
+        .from('incidents')
+        .select(`
+          id, reference_id, title, status, severity, event_type, created_at, occurred_at,
+          site:sites(id, name),
+          branch:branches(id, name)
+        `)
+        .eq('reporter_id', user.id)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!profile?.tenant_id,
+  });
+}
+
 // Hook to get corrective actions assigned to the current user (only released actions)
 export function useMyCorrectiveActions() {
   const { user, profile } = useAuth();

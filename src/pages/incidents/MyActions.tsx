@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search, ChevronDown } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, ArrowRight, MessageSquare, Loader2, ShieldCheck, AlertTriangle, FileCheck, PlayCircle, RotateCcw, CalendarPlus, HardHat, Truck, ClipboardList, X, Search, ChevronDown, FileText, Eye } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useMyCorrectiveActions, useUpdateMyActionStatus } from '@/hooks/use-incidents';
+import { useMyCorrectiveActions, useUpdateMyActionStatus, useMyReportedIncidents } from '@/hooks/use-incidents';
 import { useMyAssignedWitnessStatements, useStartWitnessWork, useUpdateWitnessStatement } from '@/hooks/use-witness-statements';
 import { usePendingActionApprovals, usePendingSeverityApprovals, usePendingPotentialSeverityApprovals, usePendingIncidentApprovals, useCanAccessApprovals, type PendingActionApproval } from '@/hooks/use-pending-approvals';
 import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
@@ -69,6 +69,7 @@ export default function MyActions() {
   const { data: incidentActions, isLoading: actionsLoading } = useMyCorrectiveActions();
   const { data: inspectionActions, isLoading: inspectionActionsLoading } = useMyInspectionActions();
   const { data: witnessStatements, isLoading: witnessLoading, refetch: refetchWitness } = useMyAssignedWitnessStatements();
+  const { data: myReportedIncidents, isLoading: reportedLoading } = useMyReportedIncidents();
   
   const updateStatus = useUpdateMyActionStatus();
   const uploadEvidence = useUploadActionEvidence();
@@ -534,6 +535,10 @@ export default function MyActions() {
             <MessageSquare className="h-4 w-4 me-2" />
             {t('investigation.witnesses.title', 'Witness Statements')} ({witnessStatements?.length || 0})
           </TabsTrigger>
+          <TabsTrigger value="reported">
+            <FileText className="h-4 w-4 me-2" />
+            {t('investigation.myReportedIncidents', 'My Reported Incidents')} ({myReportedIncidents?.length || 0})
+          </TabsTrigger>
           {canAccessApprovals && (
             <TabsTrigger value="approvals" className="gap-2">
               <ShieldCheck className="h-4 w-4" />
@@ -973,6 +978,103 @@ export default function MyActions() {
                 <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">{t('investigation.witnesses.noAssignedStatements', 'No Assigned Statements')}</h3>
                 <p className="text-muted-foreground">{t('investigation.witnesses.noAssignedDescription', 'You have no pending witness statement requests.')}</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* My Reported Incidents Tab */}
+        <TabsContent value="reported" className="mt-4 space-y-4">
+          {reportedLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : myReportedIncidents && myReportedIncidents.length > 0 ? (
+            <div className="space-y-4">
+              {myReportedIncidents.map((incident) => (
+                <Card key={incident.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {getStatusIcon(incident.status)}
+                        {incident.reference_id && (
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {incident.reference_id}
+                          </Badge>
+                        )}
+                        <CardTitle className="text-base">{incident.title}</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {incident.severity && (
+                          <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'}>
+                            {t(`investigation.severity.${incident.severity}`, incident.severity)}
+                          </Badge>
+                        )}
+                        {incident.event_type && (
+                          <Badge variant="outline">
+                            {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
+                          </Badge>
+                        )}
+                        <Badge variant="secondary">
+                          {t(`incidents.status.${incident.status}`, incident.status)}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      {incident.site && (
+                        <div>
+                          <span className="font-medium">{t('common.site', 'Site')}:</span>{' '}
+                          {incident.site.name}
+                        </div>
+                      )}
+                      {incident.branch && (
+                        <div>
+                          <span className="font-medium">{t('common.branch', 'Branch')}:</span>{' '}
+                          {incident.branch.name}
+                        </div>
+                      )}
+                      {incident.occurred_at && (
+                        <div>
+                          <span className="font-medium">{t('incidents.occurredAt', 'Occurred')}:</span>{' '}
+                          {new Date(incident.occurred_at).toLocaleDateString()}
+                        </div>
+                      )}
+                      {incident.created_at && (
+                        <div>
+                          <span className="font-medium">{t('common.createdAt', 'Reported')}:</span>{' '}
+                          {formatDistanceToNow(new Date(incident.created_at), { addSuffix: true })}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/incidents/${incident.id}`} className="gap-2">
+                        <Eye className="h-4 w-4" />
+                        {t('common.viewDetails', 'View Details')}
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="py-12">
+              <CardContent className="flex flex-col items-center justify-center text-center">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">{t('investigation.noReportedIncidents', 'No Reported Incidents')}</h3>
+                <p className="text-muted-foreground">{t('investigation.noReportedDescription', 'You have not reported any incidents yet.')}</p>
               </CardContent>
             </Card>
           )}
