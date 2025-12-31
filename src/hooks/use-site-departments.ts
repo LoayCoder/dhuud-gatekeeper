@@ -67,6 +67,32 @@ export function useSiteDepartments(siteId?: string) {
 
       if (!profile) throw new Error('Profile not found');
 
+      // Check if a soft-deleted record already exists (upsert logic)
+      const { data: existing } = await supabase
+        .from('site_departments')
+        .select('id')
+        .eq('site_id', siteId)
+        .eq('department_id', departmentId)
+        .not('deleted_at', 'is', null)
+        .maybeSingle();
+
+      if (existing) {
+        // Restore the soft-deleted record
+        const { data, error } = await supabase
+          .from('site_departments')
+          .update({ 
+            deleted_at: null,
+            is_primary: isPrimary,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // No existing soft-deleted record, insert new
       const { data, error } = await supabase
         .from('site_departments')
         .insert({
