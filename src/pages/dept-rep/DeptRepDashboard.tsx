@@ -12,6 +12,7 @@ import { useDeptRepEvents } from '@/hooks/use-dept-rep-events';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { DeptRepStatsCards } from '@/components/dept-rep/DeptRepStatsCards';
 import { DeptRepEventsTable } from '@/components/dept-rep/DeptRepEventsTable';
+import { DeptRepChartsSection } from '@/components/dept-rep/DeptRepChartsSection';
 import { useQueryClient } from '@tanstack/react-query';
 
 type TabValue = 'all' | 'pending' | 'in_progress' | 'overdue' | 'completed';
@@ -80,6 +81,9 @@ export default function DeptRepDashboard() {
 
       {/* Stats Cards */}
       <DeptRepStatsCards stats={stats} isLoading={statsLoading} />
+
+      {/* SLA Charts Section */}
+      <DeptRepChartsSection />
 
       {/* Events Card with Tabs */}
       <Card>
