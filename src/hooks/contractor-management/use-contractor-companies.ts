@@ -227,3 +227,64 @@ export function useActivateContractorCompany() {
     },
   });
 }
+
+export function useChangeContractorStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: Record<string, any> = { status };
+      
+      // Clear suspension data when activating
+      if (status === "active") {
+        updateData.suspension_reason = null;
+        updateData.suspended_at = null;
+      }
+
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+      toast.success("Status updated");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// Hook to check and update expired contracts
+export function useCheckExpiredContracts() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      
+      const { data, error } = await supabase
+        .from("contractor_companies")
+        .update({ status: "expired" })
+        .lt("contract_end_date", today)
+        .eq("status", "active")
+        .is("deleted_at", null)
+        .select("id");
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data && data.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["contractor-companies"] });
+        toast.info(`${data.length} contract(s) marked as expired`);
+      }
+    },
+  });
+}

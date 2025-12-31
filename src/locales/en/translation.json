@@ -9,7 +9,14 @@
       "primary": "Primary",
       "setAsPrimary": "Set as primary",
       "safetyOfficerNote": "Add all safety officers assigned to this contractor. Mark one as primary contact.",
-      "syncError": "Failed to save safety officers"
+      "syncError": "Failed to save safety officers",
+      "changeStatus": "Change Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "expired": "Expired"
     }
   },
   "hsseDashboard": {

@@ -9,7 +9,14 @@
       "primary": "رئيسي",
       "setAsPrimary": "تعيين كرئيسي",
       "safetyOfficerNote": "أضف جميع مسؤولي السلامة المعينين لهذا المقاول. حدد واحداً كجهة اتصال رئيسية.",
-      "syncError": "فشل في حفظ مسؤولي السلامة"
+      "syncError": "فشل في حفظ مسؤولي السلامة",
+      "changeStatus": "تغيير الحالة"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "suspended": "موقوف",
+      "expired": "منتهي الصلاحية"
     }
   },
   "hsseDashboard": {
