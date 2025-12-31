@@ -21,7 +21,7 @@ export interface ContractorCompanyStats {
   
   // Distribution data
   statusDistribution: { name: string; value: number; fill: string }[];
-  cityDistribution: { city: string; count: number }[];
+  statusByBranch: { branch: string; active: number; suspended: number; inactive: number; expired: number }[];
   topCompaniesByWorkers: { name: string; approved: number; pending: number; total: number }[];
 }
 
@@ -34,10 +34,10 @@ export function useContractorCompanyStats() {
     queryFn: async (): Promise<ContractorCompanyStats> => {
       if (!tenantId) throw new Error("No tenant ID");
 
-      // Fetch all companies with their status
+      // Fetch all companies with their status and branch
       const { data: companies, error: companiesError } = await supabase
         .from("contractor_companies")
-        .select("id, status, city, contract_end_date, company_name")
+        .select("id, status, contract_end_date, company_name, branch:branches(id, name)")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null);
 
@@ -69,7 +69,8 @@ export function useContractorCompanyStats() {
       const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       let expiringContracts = 0;
 
-      const cityMap = new Map<string, number>();
+      // Branch status distribution
+      const branchStatusMap = new Map<string, { active: number; suspended: number; inactive: number; expired: number }>();
 
       companies?.forEach((company) => {
         const status = company.status as keyof typeof statusCounts;
@@ -85,9 +86,16 @@ export function useContractorCompanyStats() {
           }
         }
 
-        // City distribution
-        const city = company.city || "Unknown";
-        cityMap.set(city, (cityMap.get(city) || 0) + 1);
+        // Branch status distribution
+        const branchData = company.branch as { id: string; name: string } | null;
+        const branchName = branchData?.name || "Unassigned";
+        if (!branchStatusMap.has(branchName)) {
+          branchStatusMap.set(branchName, { active: 0, suspended: 0, inactive: 0, expired: 0 });
+        }
+        const branchStats = branchStatusMap.get(branchName)!;
+        if (status in branchStats) {
+          branchStats[status as keyof typeof branchStats]++;
+        }
       });
 
       // Calculate worker counts based on approval_status
@@ -126,10 +134,10 @@ export function useContractorCompanyStats() {
         { name: "Expired", value: statusCounts.expired, fill: "hsl(27 96% 61%)" },
       ].filter(item => item.value > 0);
 
-      // City distribution for bar chart
-      const cityDistribution = Array.from(cityMap.entries())
-        .map(([city, count]) => ({ city, count }))
-        .sort((a, b) => b.count - a.count)
+      // Status by branch for stacked bar chart
+      const statusByBranch = Array.from(branchStatusMap.entries())
+        .map(([branch, counts]) => ({ branch, ...counts }))
+        .sort((a, b) => (b.active + b.suspended + b.inactive + b.expired) - (a.active + a.suspended + a.inactive + a.expired))
         .slice(0, 10);
 
       // Top companies by workers
@@ -155,7 +163,7 @@ export function useContractorCompanyStats() {
         rejectedWorkers: workerCounts.rejected,
         expiringContracts,
         statusDistribution,
-        cityDistribution,
+        statusByBranch,
         topCompaniesByWorkers,
       };
     },
