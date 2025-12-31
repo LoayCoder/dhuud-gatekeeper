@@ -92,6 +92,17 @@ const CONTRACTOR_COMPANIES = [
   { name: 'Eastern Province Welding', name_ar: 'لحام المنطقة الشرقية', cr: 'CR-4444555566' },
 ]
 
+const CONTRACTOR_PROJECTS = [
+  { name: 'HVAC Maintenance Program', name_ar: 'برنامج صيانة التكييف', code_prefix: 'HVAC', location: 'Main Manufacturing Plant - All Floors', days_duration: 180 },
+  { name: 'Fire Alarm System Upgrade', name_ar: 'ترقية نظام إنذار الحريق', code_prefix: 'FIRE', location: 'Administration Building', days_duration: 90 },
+  { name: 'Electrical Panel Replacement', name_ar: 'استبدال اللوحات الكهربائية', code_prefix: 'ELEC', location: 'Production Hall A', days_duration: 60 },
+  { name: 'Scaffolding Erection Works', name_ar: 'أعمال تركيب السقالات', code_prefix: 'SCAF', location: 'Warehouse Block 1 - Exterior', days_duration: 45 },
+  { name: 'Tank Cleaning & Inspection', name_ar: 'تنظيف وفحص الخزانات', code_prefix: 'TANK', location: 'Petrochemical Plant - Storage Area', days_duration: 30 },
+  { name: 'Welding & Fabrication Works', name_ar: 'أعمال اللحام والتصنيع', code_prefix: 'WELD', location: 'Maintenance Workshop', days_duration: 120 },
+  { name: 'Painting & Corrosion Protection', name_ar: 'الطلاء والحماية من التآكل', code_prefix: 'PAINT', location: 'Equipment Yard - All Structures', days_duration: 75 },
+  { name: 'Cable Tray Installation', name_ar: 'تركيب حوامل الكابلات', code_prefix: 'CABLE', location: 'New Extension Building', days_duration: 40 },
+]
+
 const WORKER_NAMES = [
   { full: 'Ahmed Al-Rashid', full_ar: 'أحمد الراشد' },
   { full: 'Mohammed Al-Ghamdi', full_ar: 'محمد الغامدي' },
@@ -521,7 +532,7 @@ async function seedAssets(supabase: any, tenantId: string, siteIds: string[], bu
 
 async function seedContractors(supabase: any, tenantId: string, siteIds: string[], userId: string) {
   console.log('Seeding contractors...')
-  const results = { companies: 0, workers: 0 }
+  const results = { companies: 0, workers: 0, projects: 0 }
 
   // Seed contractor companies - match actual schema
   const companyIds: string[] = []
@@ -571,6 +582,46 @@ async function seedContractors(supabase: any, tenantId: string, siteIds: string[
       
       if (!error) results.workers++
       else console.log('Contractor worker insert error:', error)
+    }
+  }
+
+  // Seed contractor projects
+  const statuses = ['planned', 'active', 'active', 'active', 'completed']
+  for (const project of CONTRACTOR_PROJECTS) {
+    const companyId = pickRandom(companyIds)
+    const siteId = siteIds.length > 0 ? pickRandom(siteIds) : null
+    const status = pickRandom(statuses)
+    
+    const startDate = randomPastDateOnly(60)
+    const endDate = new Date(startDate)
+    endDate.setDate(endDate.getDate() + project.days_duration)
+    
+    const projectCode = `TEST-${project.code_prefix}-${Date.now().toString(36).toUpperCase().slice(-4)}`
+    
+    const { error } = await supabase
+      .from('contractor_projects')
+      .insert({
+        tenant_id: tenantId,
+        company_id: companyId,
+        project_code: projectCode,
+        project_name: `TEST - ${project.name}`,
+        project_name_ar: project.name_ar,
+        site_id: siteId,
+        location_description: project.location,
+        start_date: startDate,
+        end_date: endDate.toISOString().split('T')[0],
+        status: status,
+        assigned_workers_count: Math.floor(5 + Math.random() * 20),
+        required_safety_officers: Math.floor(1 + Math.random() * 3),
+        notes: `Test project seeded for ${project.name}`,
+        created_by: userId,
+        geofence_radius_meters: 100,
+      })
+    
+    if (!error) {
+      results.projects++
+    } else {
+      console.log('Contractor project insert error:', error?.message)
     }
   }
 
