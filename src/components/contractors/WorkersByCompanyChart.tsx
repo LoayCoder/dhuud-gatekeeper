@@ -48,32 +48,41 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
   // Truncate long company names
   const chartData = data.map((item) => ({
     ...item,
-    displayName: item.name.length > 15 ? `${item.name.substring(0, 15)}...` : item.name,
+    displayName: item.name.length > 14 ? `${item.name.substring(0, 14)}...` : item.name,
   }));
+
+  const chartHeight = Math.max(280, data.length * 45);
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
-          {t("contractors.charts.workersByCompany", "Workers by Company")}
+          {t("contractors.charts.workersByCompany", "Workers By Company")}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px]">
+        <div style={{ height: `${chartHeight}px` }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 5, right: 30, left: 10, bottom: 30 }}
+              barCategoryGap="20%"
             >
               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="hsl(var(--border))" />
-              <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <XAxis 
+                type="number" 
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={{ stroke: "hsl(var(--border))" }}
+                tickLine={{ stroke: "hsl(var(--border))" }}
+              />
               <YAxis
                 type="category"
                 dataKey="displayName"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }}
                 width={100}
-                stroke="hsl(var(--muted-foreground))"
+                axisLine={false}
+                tickLine={false}
               />
               <Tooltip
                 contentStyle={{
@@ -94,13 +103,14 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
                 }}
               />
               <Legend
-                formatter={(value) => (
-                  <span className="text-xs">
-                    {value === "approved"
-                      ? t("contractors.status.approved", "Approved")
-                      : t("contractors.status.pending", "Pending")}
-                  </span>
-                )}
+                verticalAlign="bottom"
+                wrapperStyle={{ paddingTop: "16px", fontSize: "12px" }}
+                formatter={(value) => {
+                  const label = value === "approved"
+                    ? t("contractors.status.approved", "Approved")
+                    : t("contractors.status.pending", "Pending");
+                  return <span style={{ color: "hsl(var(--foreground))" }}>{String(label)}</span>;
+                }}
               />
               <Bar dataKey="approved" stackId="workers" fill="hsl(142 71% 45%)" radius={[0, 0, 0, 0]} />
               <Bar dataKey="pending" stackId="workers" fill="hsl(45 93% 47%)" radius={[0, 4, 4, 0]} />
