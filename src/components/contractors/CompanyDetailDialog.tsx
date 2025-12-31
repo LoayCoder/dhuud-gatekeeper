@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +26,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
   const { data: safetyOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const sendIdCard = useSendContractorIdCard();
+  const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
 
   if (!company) return null;
 
@@ -38,35 +40,45 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
     return item.name;
   };
 
-  const handleResendSiteRepCard = () => {
+  const handleResendSiteRepCard = async () => {
     if (!details?.contractor_site_rep_name || !details?.contractor_site_rep_phone) return;
     
-    sendIdCard.mutate({
-      company_id: company.id,
-      tenant_id: company.tenant_id,
-      person_type: 'site_rep',
-      person_name: details.contractor_site_rep_name,
-      person_phone: details.contractor_site_rep_phone,
-      person_email: details.contractor_site_rep_email || undefined,
-      company_name: company.company_name,
-      contract_end_date: details.contract_end_date || undefined,
-    });
+    setSendingPersonId('site_rep');
+    try {
+      await sendIdCard.mutateAsync({
+        company_id: company.id,
+        tenant_id: company.tenant_id,
+        person_type: 'site_rep',
+        person_name: details.contractor_site_rep_name,
+        person_phone: details.contractor_site_rep_phone,
+        person_email: details.contractor_site_rep_email || undefined,
+        company_name: company.company_name,
+        contract_end_date: details.contract_end_date || undefined,
+      });
+    } finally {
+      setSendingPersonId(null);
+    }
   };
 
-  const handleResendOfficerCard = (officer: { id: string; name: string; phone?: string | null; email?: string | null }) => {
+  const handleResendOfficerCard = async (officer: { id: string; name: string; phone?: string | null; email?: string | null }) => {
     if (!officer.phone) return;
     
-    sendIdCard.mutate({
-      company_id: company.id,
-      tenant_id: company.tenant_id,
-      person_type: 'safety_officer',
-      safety_officer_id: officer.id,
-      person_name: officer.name,
-      person_phone: officer.phone,
-      person_email: officer.email || undefined,
-      company_name: company.company_name,
-      contract_end_date: details?.contract_end_date || undefined,
-    });
+    setSendingPersonId(officer.id);
+    try {
+      await sendIdCard.mutateAsync({
+        company_id: company.id,
+        tenant_id: company.tenant_id,
+        person_type: 'safety_officer',
+        safety_officer_id: officer.id,
+        person_name: officer.name,
+        person_phone: officer.phone,
+        person_email: officer.email || undefined,
+        company_name: company.company_name,
+        contract_end_date: details?.contract_end_date || undefined,
+      });
+    } finally {
+      setSendingPersonId(null);
+    }
   };
 
   return (
@@ -235,9 +247,9 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                           variant="outline"
                           size="sm"
                           onClick={handleResendSiteRepCard}
-                          disabled={sendIdCard.isPending}
+                          disabled={sendingPersonId === 'site_rep'}
                         >
-                          {sendIdCard.isPending ? (
+                          {sendingPersonId === 'site_rep' ? (
                             <Loader2 className="h-4 w-4 animate-spin me-1" />
                           ) : (
                             <Send className="h-4 w-4 me-1" />
@@ -294,9 +306,9 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                             variant="outline"
                             size="sm"
                             onClick={() => handleResendOfficerCard(officer)}
-                            disabled={sendIdCard.isPending}
+                            disabled={sendingPersonId === officer.id}
                           >
-                            {sendIdCard.isPending ? (
+                            {sendingPersonId === officer.id ? (
                               <Loader2 className="h-4 w-4 animate-spin me-1" />
                             ) : (
                               <Send className="h-4 w-4 me-1" />
