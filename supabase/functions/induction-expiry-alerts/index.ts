@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWhatsAppText, isProviderConfigured } from '../_shared/whatsapp-provider.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,25 +26,22 @@ interface ExpiringInduction {
 }
 
 async function sendWhatsAppNotification(phone: string, message: string): Promise<void> {
-  const wasenderKey = Deno.env.get('WASENDER_API_KEY');
-  if (!wasenderKey || !phone) return;
+  const providerStatus = isProviderConfigured();
+  if (!providerStatus.configured) {
+    console.log(`[WhatsApp] Provider not configured, missing: ${providerStatus.missing.join(', ')}`);
+    return;
+  }
+  if (!phone) return;
 
   try {
-    const response = await fetch('https://api.wasender.net/v1/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${wasenderKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        to: phone.replace(/[^0-9]/g, ''),
-        type: 'text',
-        text: { body: message },
-      }),
-    });
-    console.log(`WhatsApp sent to ${phone}:`, await response.text());
+    const result = await sendWhatsAppText(phone, message);
+    if (result.success) {
+      console.log(`[WhatsApp] Message sent successfully via ${result.provider} to ${phone}`);
+    } else {
+      console.error(`[WhatsApp] Failed to send to ${phone}: ${result.error}`);
+    }
   } catch (error) {
-    console.error('WhatsApp error:', error);
+    console.error('[WhatsApp] Error sending message:', error);
   }
 }
 
