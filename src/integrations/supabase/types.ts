@@ -16766,6 +16766,7 @@ export type Database = {
         Args: { p_branch_id?: string; p_site_id?: string }
         Returns: number
       }
+      get_dept_rep_event_dashboard_stats: { Args: never; Returns: Json }
       get_emergency_notification_recipients: {
         Args: { p_alert_type?: string; p_site_id?: string; p_tenant_id: string }
         Returns: {
