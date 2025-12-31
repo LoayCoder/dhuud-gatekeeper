@@ -14,6 +14,7 @@ import { useSendIdCardsForCompany } from "@/hooks/contractor-management/use-cont
 import { SafetyOfficersList } from "./SafetyOfficersList";
 import { useAuth } from "@/contexts/AuthContext";
 import { Building, Users, Briefcase, Info } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompanyFormDialogProps {
   open: boolean;
@@ -156,14 +157,48 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       await syncSafetyOfficers.mutateAsync({ companyId, officers: safetyOfficers });
     }
 
-    // Send ID cards via WhatsApp for new companies or when contacts have phones
-    if (profile?.tenant_id) {
+    // Send notifications for new companies
+    if (profile?.tenant_id && !isEditing) {
       const hasContactsWithPhones = 
         formData.contractor_site_rep_phone || 
         safetyOfficers.some(o => o.phone);
 
+      // Build recipients list for welcome notification
+      const welcomeRecipients: Array<{ name: string; phone: string; email?: string }> = [];
+      
+      if (formData.contractor_site_rep_phone) {
+        welcomeRecipients.push({
+          name: formData.contractor_site_rep_name,
+          phone: formData.contractor_site_rep_phone,
+          email: formData.contractor_site_rep_email || undefined,
+        });
+      }
+      
+      safetyOfficers.filter(o => o.phone).forEach(o => {
+        welcomeRecipients.push({
+          name: o.name,
+          phone: o.phone,
+          email: o.email || undefined,
+        });
+      });
+
+      // Send welcome notification (in background)
+      if (welcomeRecipients.length > 0) {
+        supabase.functions.invoke('send-contractor-welcome', {
+          body: {
+            tenant_id: profile.tenant_id,
+            company_id: companyId,
+            company_name: formData.company_name,
+            contract_end_date: formData.contract_end_date || undefined,
+            recipients: welcomeRecipients,
+          },
+        }).catch(err => {
+          console.warn('[CompanyFormDialog] Failed to send welcome notification:', err);
+        });
+      }
+
+      // Send ID cards via WhatsApp/Email
       if (hasContactsWithPhones) {
-        // Send ID cards in background (don't block form close)
         sendIdCards.mutate({
           company_id: companyId,
           tenant_id: profile.tenant_id,
