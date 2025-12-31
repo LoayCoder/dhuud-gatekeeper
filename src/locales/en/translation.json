@@ -23,7 +23,10 @@
       "qrCreated": "Access QR code created (WhatsApp not configured)",
       "sendError": "Failed to send ID card: {{error}}",
       "batchSent": "{{count}} ID card(s) sent via WhatsApp",
-      "batchCreated": "{{count}} access code(s) created"
+      "batchCreated": "{{count}} access code(s) created",
+      "resend": "Send ID Card",
+      "resending": "Sending...",
+      "resentSuccess": "ID card resent successfully"
     }
   },
   "hsseDashboard": {

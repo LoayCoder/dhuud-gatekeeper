@@ -4,10 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star } from "lucide-react";
+import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, ShieldCheck, Calendar, Briefcase, User, Building, Star, Send, Loader2 } from "lucide-react";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
+import { useSendContractorIdCard } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
 import { format } from "date-fns";
@@ -23,6 +24,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { t } = useTranslation();
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
   const { data: safetyOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
+  const sendIdCard = useSendContractorIdCard();
 
   if (!company) return null;
 
@@ -34,6 +36,37 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const getLocalizedName = (item: { name: string } | null | undefined) => {
     if (!item) return "-";
     return item.name;
+  };
+
+  const handleResendSiteRepCard = () => {
+    if (!details?.contractor_site_rep_name || !details?.contractor_site_rep_phone) return;
+    
+    sendIdCard.mutate({
+      company_id: company.id,
+      tenant_id: company.tenant_id,
+      person_type: 'site_rep',
+      person_name: details.contractor_site_rep_name,
+      person_phone: details.contractor_site_rep_phone,
+      person_email: details.contractor_site_rep_email || undefined,
+      company_name: company.company_name,
+      contract_end_date: details.contract_end_date || undefined,
+    });
+  };
+
+  const handleResendOfficerCard = (officer: { id: string; name: string; phone?: string | null; email?: string | null }) => {
+    if (!officer.phone) return;
+    
+    sendIdCard.mutate({
+      company_id: company.id,
+      tenant_id: company.tenant_id,
+      person_type: 'safety_officer',
+      safety_officer_id: officer.id,
+      person_name: officer.name,
+      person_phone: officer.phone,
+      person_email: officer.email || undefined,
+      company_name: company.company_name,
+      contract_end_date: details?.contract_end_date || undefined,
+    });
   };
 
   return (
@@ -192,18 +225,35 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
               <CardContent className="space-y-2 text-sm">
                 {details?.contractor_site_rep_name ? (
                   <>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {details.contractor_site_rep_name}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        {details.contractor_site_rep_name}
+                      </div>
+                      {details.contractor_site_rep_phone && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleResendSiteRepCard}
+                          disabled={sendIdCard.isPending}
+                        >
+                          {sendIdCard.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin me-1" />
+                          ) : (
+                            <Send className="h-4 w-4 me-1" />
+                          )}
+                          {t("contractors.idCard.resend", "Send ID Card")}
+                        </Button>
+                      )}
                     </div>
                     {details.contractor_site_rep_phone && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 ps-6">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         {details.contractor_site_rep_phone}
                       </div>
                     )}
                     {details.contractor_site_rep_email && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 ps-6">
                         <Mail className="h-4 w-4 text-muted-foreground" />
                         {details.contractor_site_rep_email}
                       </div>
@@ -228,14 +278,31 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                 {safetyOfficers.length > 0 ? (
                   safetyOfficers.map((officer) => (
                     <div key={officer.id} className="p-3 bg-muted/50 rounded-md space-y-1">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-sm">{officer.name}</span>
-                        {officer.is_primary && (
-                          <Badge variant="secondary" className="text-xs gap-1">
-                            <Star className="h-3 w-3" />
-                            {t("contractors.companies.primary", "Primary")}
-                          </Badge>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium text-sm">{officer.name}</span>
+                          {officer.is_primary && (
+                            <Badge variant="secondary" className="text-xs gap-1">
+                              <Star className="h-3 w-3" />
+                              {t("contractors.companies.primary", "Primary")}
+                            </Badge>
+                          )}
+                        </div>
+                        {officer.phone && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResendOfficerCard(officer)}
+                            disabled={sendIdCard.isPending}
+                          >
+                            {sendIdCard.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin me-1" />
+                            ) : (
+                              <Send className="h-4 w-4 me-1" />
+                            )}
+                            {t("contractors.idCard.resend", "Send ID Card")}
+                          </Button>
                         )}
                       </div>
                       {officer.phone && (
