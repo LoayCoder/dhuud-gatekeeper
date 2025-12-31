@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Palette, Image as ImageIcon, Layout, Upload, Save, Loader2, Sun, Moon } from 'lucide-react';
+import { Image as ImageIcon, Layout, Upload, Save, Loader2, Sun, Moon } from 'lucide-react';
 import { BrandingPreviewPanel } from '@/components/branding/BrandingPreviewPanel';
 import { HslColorPicker } from '@/components/branding/HslColorPicker';
 import { useBrandAssets, AssetType } from '@/hooks/use-brand-assets';
@@ -255,48 +255,11 @@ export default function AdminBranding() {
       </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-        <Tabs defaultValue="visuals" className="w-full" dir={direction}>
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full lg:w-[400px]">
-            <TabsTrigger value="visuals" className="gap-2"><Palette className="h-4 w-4" /> {t('adminBranding.tabs.colors')}</TabsTrigger>
+        <Tabs defaultValue="assets" className="w-full" dir={direction}>
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full lg:w-[300px]">
             <TabsTrigger value="assets" className="gap-2"><ImageIcon className="h-4 w-4" /> {t('adminBranding.tabs.assets')}</TabsTrigger>
             <TabsTrigger value="theme" className="gap-2"><Layout className="h-4 w-4" /> {t('adminBranding.tabs.theme')}</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="visuals" className="w-full">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-start">{t('adminBranding.colors.title')}</CardTitle>
-                <CardDescription className="text-start">{t('adminBranding.colors.description')}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col space-y-8">
-                {/* Light Mode Colors */}
-                <div className="flex flex-col space-y-4 w-full">
-                  <div className="gap-2 text-lg font-semibold flex items-center">
-                    <Sun className="h-5 w-5 text-amber-500" />
-                    <span>{t('adminBranding.colors.lightMode')}</span>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-6 w-full">
-                    <HslColorPicker label={t('adminBranding.colors.primaryColor')} value={brandColorLight} onChange={setBrandColorLight} />
-                    <HslColorPicker label={t('adminBranding.colors.secondaryColor')} value={secondaryColorLight} onChange={setSecondaryColorLight} />
-                  </div>
-                </div>
-
-                <Separator className="w-full" />
-
-                {/* Dark Mode Colors */}
-                <div className="flex flex-col space-y-4 w-full">
-                  <div className="gap-2 text-lg font-semibold flex items-center">
-                    <Moon className="h-5 w-5 text-blue-400" />
-                    <span>{t('adminBranding.colors.darkMode')}</span>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-6 w-full">
-                    <HslColorPicker label={t('adminBranding.colors.primaryColor')} value={brandColorDark} onChange={setBrandColorDark} />
-                    <HslColorPicker label={t('adminBranding.colors.secondaryColor')} value={secondaryColorDark} onChange={setSecondaryColorDark} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="assets" className="w-full">
             <div className="flex flex-col space-y-6">
