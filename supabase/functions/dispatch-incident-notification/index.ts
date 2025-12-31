@@ -125,47 +125,87 @@ async function getPhotosFromStorage(
 ): Promise<string[]> {
   const storagePath = `${tenantId}/${incidentId}/photos`;
   
+  console.log(`[Photo Storage] ========================================`);
+  console.log(`[Photo Storage] === FETCHING PHOTOS FROM STORAGE ===`);
+  console.log(`[Photo Storage] Bucket: incident-attachments`);
+  console.log(`[Photo Storage] Path: ${storagePath}`);
+  console.log(`[Photo Storage] Max photos: ${MAX_PHOTOS_PER_NOTIFICATION}`);
+  
   try {
     const { data: files, error } = await supabase.storage
       .from('incident-attachments')
       .list(storagePath);
     
     if (error) {
-      console.log(`[Dispatch] Storage list error for ${storagePath}:`, error.message);
+      console.error(`[Photo Storage] List error: ${error.message}`);
+      console.log(`[Photo Storage] === RESULT: 0 photos (error) ===`);
       return [];
     }
     
     if (!files?.length) {
-      console.log(`[Dispatch] No photos found in storage: ${storagePath}`);
+      console.log(`[Photo Storage] No files found in path`);
+      console.log(`[Photo Storage] === RESULT: 0 photos (empty) ===`);
       return [];
     }
     
-    console.log(`[Dispatch] Found ${files.length} files in storage: ${storagePath}`);
+    console.log(`[Photo Storage] Raw file count: ${files.length}`);
     
-    // Generate signed URLs for each photo (filter to image files only)
+    // Log each file found with metadata
+    files.forEach((f: any, i: number) => {
+      const fileSize = f.metadata?.size ? `${Math.round(f.metadata.size / 1024)} KB` : 'unknown size';
+      const mimeType = f.metadata?.mimetype || 'unknown type';
+      console.log(`[Photo Storage] File ${i + 1}: ${f.name} (${fileSize}, ${mimeType})`);
+    });
+    
+    // Filter to image files only
+    const imageFiles = files.filter((file: any) => {
+      if (!file.name || file.name.startsWith('.')) return false;
+      return file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+    });
+    
+    console.log(`[Photo Storage] Image files after filtering: ${imageFiles.length}`);
+    
+    // Generate signed URLs for each photo
     const photoUrls: string[] = [];
-    for (const file of files.slice(0, MAX_PHOTOS_PER_NOTIFICATION)) {
-      // Skip non-image files and metadata files
-      if (!file.name || file.name.startsWith('.')) continue;
-      
-      const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-      if (!isImage) continue;
+    for (const file of imageFiles.slice(0, MAX_PHOTOS_PER_NOTIFICATION)) {
+      const fullPath = `${storagePath}/${file.name}`;
+      console.log(`[Photo Storage] Generating signed URL for: ${file.name}`);
       
       const { data: signedUrl, error: urlError } = await supabase.storage
         .from('incident-attachments')
-        .createSignedUrl(`${storagePath}/${file.name}`, 60 * 60); // 1 hour expiry
+        .createSignedUrl(fullPath, 60 * 60); // 1 hour expiry
       
       if (signedUrl?.signedUrl) {
+        console.log(`[Photo Storage] URL generated: ${signedUrl.signedUrl.substring(0, 80)}...`);
+        console.log(`[Photo Storage] URL length: ${signedUrl.signedUrl.length} chars`);
+        console.log(`[Photo Storage] Expires in: 1 hour`);
+        
+        // Validate URL is accessible
+        try {
+          const check = await fetch(signedUrl.signedUrl, { method: 'HEAD' });
+          const contentType = check.headers.get('content-type');
+          const contentLength = check.headers.get('content-length');
+          console.log(`[Photo Storage] URL validation: ${check.ok ? 'ACCESSIBLE' : 'NOT ACCESSIBLE'} (HTTP ${check.status})`);
+          console.log(`[Photo Storage] Content-Type: ${contentType}, Size: ${contentLength ? Math.round(parseInt(contentLength) / 1024) + ' KB' : 'unknown'}`);
+        } catch (checkError) {
+          const errMsg = checkError instanceof Error ? checkError.message : 'Unknown error';
+          console.warn(`[Photo Storage] URL validation failed: ${errMsg}`);
+        }
+        
         photoUrls.push(signedUrl.signedUrl);
-        console.log(`[Dispatch] Generated signed URL for: ${file.name}`);
       } else if (urlError) {
-        console.log(`[Dispatch] Failed to generate URL for ${file.name}:`, urlError.message);
+        console.error(`[Photo Storage] Failed to generate URL for ${file.name}: ${urlError.message}`);
       }
     }
     
+    console.log(`[Photo Storage] === RESULT: ${photoUrls.length} photos ready ===`);
+    console.log(`[Photo Storage] ========================================`);
+    
     return photoUrls;
   } catch (err) {
-    console.error(`[Dispatch] Error fetching photos from storage:`, err);
+    const errMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[Photo Storage] Exception: ${errMsg}`);
+    console.log(`[Photo Storage] === RESULT: 0 photos (exception) ===`);
     return [];
   }
 }
