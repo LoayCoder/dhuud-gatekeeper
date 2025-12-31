@@ -102,7 +102,8 @@ export function useCreateIncident() {
         // Location fields
         site_id: data.site_id || null,
         branch_id: data.branch_id || null,
-        department_id: data.department_id || null,
+        // Auto-assign department from reporter's profile if not explicitly selected
+        department_id: data.department_id || profile?.assigned_department_id || null,
         latitude: data.latitude || null,
         longitude: data.longitude || null,
         // Major event linkage
