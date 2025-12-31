@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { DEFAULT_TILE, DEFAULT_CENTER, BOUNDARY_STYLES } from '@/lib/map-tiles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -75,16 +76,13 @@ export function SiteLocationPicker({
     }
   };
 
-  // Default center (Saudi Arabia)
-  const defaultCenter: L.LatLngExpression = [24.7136, 46.6753];
-
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current) return;
 
     const center: L.LatLngExpression = markerPosition 
       ? [markerPosition.lat, markerPosition.lng] 
-      : defaultCenter;
+      : DEFAULT_CENTER;
 
     mapInstance.current = L.map(mapContainer.current, {
       center,
@@ -92,9 +90,10 @@ export function SiteLocationPicker({
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
+    // Use premium CartoDB tiles for cleaner appearance
+    L.tileLayer(DEFAULT_TILE.url, {
+      attribution: DEFAULT_TILE.attribution,
+      ...DEFAULT_TILE.options,
     }).addTo(mapInstance.current);
 
     tempMarkersRef.current = L.layerGroup().addTo(mapInstance.current);
@@ -170,12 +169,7 @@ export function SiteLocationPicker({
     if (polygonPoints.length >= 3) {
       polygonRef.current = L.polygon(
         polygonPoints.map(p => [p.lat, p.lng] as L.LatLngTuple),
-        {
-          color: '#3b82f6',
-          fillColor: '#3b82f6',
-          fillOpacity: 0.2,
-          weight: 2,
-        }
+        BOUNDARY_STYLES.default
       ).addTo(mapInstance.current);
     } else if (polygonPoints.length > 0 && mode === 'polygon') {
       // Show temp markers for points being drawn

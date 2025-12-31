@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { DEFAULT_TILE } from '@/lib/map-tiles';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,8 +78,10 @@ export function GPSLocationConfirmCard({
       scrollWheelZoom: false,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+    // Use premium CartoDB tiles for cleaner appearance
+    L.tileLayer(DEFAULT_TILE.url, {
+      attribution: DEFAULT_TILE.attribution,
+      ...DEFAULT_TILE.options,
     }).addTo(map);
 
     // Add zoom control in correct position based on RTL
@@ -170,8 +173,9 @@ export function GPSLocationConfirmCard({
       polygonRef.current = L.polygon(polygonCoords, {
         color: isInside ? 'hsl(142, 76%, 36%)' : 'hsl(38, 92%, 50%)',
         fillColor: isInside ? 'hsl(142, 76%, 36%)' : 'hsl(38, 92%, 50%)',
-        fillOpacity: 0.2,
-        weight: 2,
+        fillOpacity: 0.15,
+        weight: 3,
+        dashArray: isInside ? undefined : '5, 5',
       }).addTo(mapRef.current);
     }
 
