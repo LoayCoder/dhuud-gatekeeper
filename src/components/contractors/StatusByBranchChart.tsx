@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -7,6 +7,13 @@ interface StatusByBranchChartProps {
   data: { branch: string; active: number; suspended: number; inactive: number; expired: number }[];
   isLoading: boolean;
 }
+
+const COLORS = {
+  active: "hsl(142 71% 45%)",
+  suspended: "hsl(0 84% 60%)",
+  inactive: "hsl(215 20% 65%)",
+  expired: "hsl(45 93% 47%)",
+};
 
 export function StatusByBranchChart({ data, isLoading }: StatusByBranchChartProps) {
   const { t } = useTranslation();
@@ -29,7 +36,7 @@ export function StatusByBranchChart({ data, isLoading }: StatusByBranchChartProp
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold">
-            {t("contractors.charts.statusByBranch", "Status by Branch")}
+            {t("contractors.charts.statusByBranch", "Status By Branch")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[280px]">
@@ -41,24 +48,38 @@ export function StatusByBranchChart({ data, isLoading }: StatusByBranchChartProp
     );
   }
 
+  const chartHeight = Math.max(280, data.length * 50);
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
-          {t("contractors.charts.statusByBranch", "Status by Branch")}
+          {t("contractors.charts.statusByBranch", "Status By Branch")}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px]">
+        <div style={{ height: `${chartHeight}px` }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <XAxis type="number" tick={{ fontSize: 11 }} />
+            <BarChart 
+              data={data} 
+              layout="vertical" 
+              margin={{ top: 5, right: 30, left: 10, bottom: 30 }}
+              barCategoryGap="20%"
+            >
+              <XAxis 
+                type="number" 
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={{ stroke: "hsl(var(--border))" }}
+                tickLine={{ stroke: "hsl(var(--border))" }}
+              />
               <YAxis 
                 type="category" 
                 dataKey="branch" 
-                tick={{ fontSize: 11 }} 
-                width={80}
-                tickFormatter={(value) => value.length > 12 ? `${value.slice(0, 12)}...` : value}
+                tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} 
+                width={100}
+                tickFormatter={(value) => value.length > 14 ? `${value.slice(0, 14)}...` : value}
+                axisLine={false}
+                tickLine={false}
               />
               <Tooltip
                 contentStyle={{
@@ -67,15 +88,46 @@ export function StatusByBranchChart({ data, isLoading }: StatusByBranchChartProp
                   borderRadius: "var(--radius)",
                   fontSize: "12px",
                 }}
+                formatter={(value: number, name: string) => [
+                  value, 
+                  t(`contractors.status.${name}`, name.charAt(0).toUpperCase() + name.slice(1))
+                ]}
+                labelFormatter={(label) => label}
               />
               <Legend 
-                wrapperStyle={{ fontSize: "11px" }}
-                formatter={(value) => String(t(`contractors.status.${value}`, value))}
+                verticalAlign="bottom"
+                wrapperStyle={{ paddingTop: "16px", fontSize: "12px" }}
+                formatter={(value) => {
+                  const label = t(`contractors.status.${value}`, value.charAt(0).toUpperCase() + value.slice(1));
+                  return <span style={{ color: "hsl(var(--foreground))" }}>{String(label)}</span>;
+                }}
               />
-              <Bar dataKey="active" stackId="a" fill="hsl(142 71% 45%)" name="active" />
-              <Bar dataKey="suspended" stackId="a" fill="hsl(0 84% 60%)" name="suspended" />
-              <Bar dataKey="inactive" stackId="a" fill="hsl(215 16% 47%)" name="inactive" />
-              <Bar dataKey="expired" stackId="a" fill="hsl(27 96% 61%)" name="expired" />
+              <Bar 
+                dataKey="active" 
+                stackId="a" 
+                fill={COLORS.active} 
+                name="active"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar 
+                dataKey="suspended" 
+                stackId="a" 
+                fill={COLORS.suspended} 
+                name="suspended"
+              />
+              <Bar 
+                dataKey="inactive" 
+                stackId="a" 
+                fill={COLORS.inactive} 
+                name="inactive"
+              />
+              <Bar 
+                dataKey="expired" 
+                stackId="a" 
+                fill={COLORS.expired} 
+                name="expired"
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
