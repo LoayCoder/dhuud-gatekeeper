@@ -62,6 +62,7 @@ const IncidentDetail = lazyWithRetry(() => import("./pages/incidents/IncidentDet
 const InvestigationWorkspace = lazyWithRetry(() => import("./pages/incidents/InvestigationWorkspace"));
 const MyActions = lazyWithRetry(() => import("./pages/incidents/MyActions"));
 const HSSEEventDashboard = lazyWithRetry(() => import("./pages/incidents/HSSEEventDashboard"));
+const DeptRepDashboard = lazyWithRetry(() => import("./pages/dept-rep/DeptRepDashboard"));
 
 // Asset pages - lazy loaded with retry
 const AssetDashboard = lazyWithRetry(() => import("./pages/assets/AssetDashboard"));
@@ -274,6 +275,7 @@ const App = () => (
                       <Route path="/incidents/investigate" element={<HSSERoute><InvestigationWorkspace /></HSSERoute>} />
                       <Route path="/incidents/my-actions" element={<MyActions />} />
                       <Route path="/incidents/dashboard" element={<HSSERoute><HSSEEventDashboard /></HSSERoute>} />
+                      <Route path="/dept-rep/dashboard" element={<DeptRepDashboard />} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
                       
                       {/* Visitor Routes */}

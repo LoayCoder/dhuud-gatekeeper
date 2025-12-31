@@ -52,7 +52,7 @@ export function DeptRepEventCard() {
   }
 
   const handleNavigate = () => {
-    navigate('/incidents/investigations');
+    navigate('/dept-rep/dashboard');
   };
 
   return (
