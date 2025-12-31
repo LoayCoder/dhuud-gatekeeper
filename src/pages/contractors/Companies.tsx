@@ -16,7 +16,6 @@ import { CompanyListTable } from "@/components/contractors/CompanyListTable";
 import { CompanyFormDialog } from "@/components/contractors/CompanyFormDialog";
 import { CompanyDetailDialog } from "@/components/contractors/CompanyDetailDialog";
 import { ContractorCompanyKPICards } from "@/components/contractors/ContractorCompanyKPICards";
-import { CompanyStatusChart } from "@/components/contractors/CompanyStatusChart";
 import { WorkersByCompanyChart } from "@/components/contractors/WorkersByCompanyChart";
 import { StatusByBranchChart } from "@/components/contractors/StatusByBranchChart";
 import { useContractorCompanies, ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
@@ -98,12 +97,7 @@ export default function Companies() {
       <ContractorCompanyKPICards stats={stats} isLoading={statsLoading} />
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <CompanyStatusChart
-          data={stats?.statusDistribution || []}
-          totalCompanies={stats?.totalCompanies || 0}
-          isLoading={statsLoading}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <WorkersByCompanyChart
           data={stats?.topCompaniesByWorkers || []}
           isLoading={statsLoading}
