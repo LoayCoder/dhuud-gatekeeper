@@ -16,7 +16,10 @@ import {
   isRTL, 
   getTranslations, 
   replaceVariables,
-  INCIDENT_TRANSLATIONS 
+  INCIDENT_TRANSLATIONS,
+  EVENT_TYPE_LABELS,
+  EVENT_TYPE_EMOJI,
+  getEventTypeLabel
 } from '../_shared/email-translations.ts';
 
 const corsHeaders = {
@@ -268,9 +271,9 @@ function generateWhatsAppMessage(
   const severityLabel = SEVERITY_LABELS[severityLevel]?.[lang] || SEVERITY_LABELS['level_2'][lang];
   const severityEmoji = SEVERITY_EMOJI[severityLevel] || '🟡';
   
-  const eventTypeLabel = incident.event_type === 'observation' 
-    ? t.whatsapp.observation 
-    : t.whatsapp.incident;
+  // Use centralized event type labels with emoji for visual distinction
+  const eventTypeLabel = getEventTypeLabel(incident.event_type, lang, false);
+  const eventTypeEmoji = EVENT_TYPE_EMOJI[incident.event_type] || '📋';
   
   const erpPreamble = isErpOverride ? t.whatsapp.erpAlert + '\n\n' : '';
   const injuryLine = hasInjury ? t.whatsapp.injuriesReported + '\n' : '';
@@ -278,7 +281,7 @@ function generateWhatsAppMessage(
     ? `\n📝 ${incident.description.substring(0, 200)}${incident.description.length > 200 ? '...' : ''}`
     : '';
 
-  return `${erpPreamble}📢 ${t.whatsapp.newEvent.replace('{type}', eventTypeLabel)}: ${incident.title}
+  return `${erpPreamble}${eventTypeEmoji} ${t.whatsapp.newEvent.replace('{type}', eventTypeLabel)}: ${incident.title}
 
 🆔 ${t.whatsapp.reference}: ${incident.reference_id || '-'}
 📍 ${t.whatsapp.location}: ${locationText}
@@ -305,14 +308,14 @@ function generateEmailContent(
   const severityLevelNum = SEVERITY_LEVEL_MAP[severityLevel] || 2;
   const rtl = isRTL(lang);
   
-  const eventTypeLabel = incident.event_type === 'observation' 
-    ? t.email.observation 
-    : t.email.incident;
+  // Use centralized event type labels with emoji for visual distinction
+  const eventTypeLabel = getEventTypeLabel(incident.event_type, lang, false);
+  const eventTypeEmoji = EVENT_TYPE_EMOJI[incident.event_type] || '📋';
 
-  // Subject line
+  // Subject line with event type emoji
   const subject = isErpOverride 
     ? `🚨 ${t.email.emergency}: ${incident.reference_id} - ${incident.title}`
-    : `${severityEmoji} ${eventTypeLabel}: ${incident.reference_id} - ${incident.title}`;
+    : `${eventTypeEmoji} ${eventTypeLabel}: ${incident.reference_id} - ${incident.title}`;
 
   // Severity color
   const severityColor = severityLevelNum >= 4 ? '#dc2626' : severityLevelNum >= 3 ? '#f97316' : '#eab308';
@@ -387,13 +390,13 @@ function generatePushPayload(
   const severityLabel = SEVERITY_LABELS[severityLevel]?.[lang] || SEVERITY_LABELS['level_2'][lang];
   const severityEmoji = SEVERITY_EMOJI[severityLevel] || '🟡';
   
-  const eventTypeLabel = incident.event_type === 'observation' 
-    ? t.push.observation 
-    : t.push.incident;
+  // Use centralized event type labels with emoji for visual distinction
+  const eventTypeLabel = getEventTypeLabel(incident.event_type, lang, false);
+  const eventTypeEmoji = EVENT_TYPE_EMOJI[incident.event_type] || '📋';
 
   const title = isErpOverride 
     ? `🚨 ${t.push.erpAlert}`
-    : `${severityEmoji} ${t.push.newEvent.replace('{type}', eventTypeLabel)}`;
+    : `${eventTypeEmoji} ${t.push.newEvent.replace('{type}', eventTypeLabel)}`;
 
   const body = `${incident.reference_id}: ${incident.title}\n${t.push.severity}: ${severityLabel}`;
 

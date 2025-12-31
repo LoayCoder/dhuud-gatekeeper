@@ -24,8 +24,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Plus, Eye, GripVertical, MessageSquare, Mail, ListFilter } from 'lucide-react';
+import { X, Plus, Eye, GripVertical, MessageSquare, Mail, ListFilter, AlertTriangle } from 'lucide-react';
 import { NotificationTemplate, CreateTemplateInput, ChannelType } from '@/hooks/useNotificationTemplates';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TemplateEditorProps {
   open: boolean;
@@ -565,6 +566,18 @@ export function TemplateEditor({
           {/* Active Variables */}
           <div className="space-y-2">
             <Label>Active Variable Mappings</Label>
+            
+            {/* Event type warning for HSSE categories */}
+            {(formData.category === 'incidents' || formData.category === 'observations') && 
+             !formData.variable_keys.includes('event_type') && (
+              <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700 dark:text-amber-400">
+                  <strong>Recommended:</strong> Add <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">event_type</code> variable to show if this is an Incident, Observation, Near Miss, etc.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.variable_keys.length === 0 ? (
                 <span className="text-sm text-muted-foreground">
@@ -574,6 +587,9 @@ export function TemplateEditor({
                 formData.variable_keys.map((key, index) => (
                   <Badge key={key} variant="secondary" className="gap-1 font-mono">
                     {`{{${index + 1}}}`} = {key}
+                    {key === 'event_type' && (formData.category === 'incidents' || formData.category === 'observations') && (
+                      <span className="text-green-600 dark:text-green-400 ms-1" title="Required for HSSE events">✓</span>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeVariable(key)}
