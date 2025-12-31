@@ -40,6 +40,125 @@ function formatPhoneNumber(phone: string): string {
   return cleaned;
 }
 
+// Generate ID Card SVG
+function generateIdCardSVG(params: {
+  tenantName: string;
+  personName: string;
+  companyName: string;
+  roleDisplay: string;
+  roleDisplayAr: string;
+  validUntil: string;
+  qrToken: string;
+  qrDataUrl: string;
+}): string {
+  const { tenantName, personName, companyName, roleDisplay, roleDisplayAr, validUntil, qrToken, qrDataUrl } = params;
+  
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="600" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d5a87;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8fafc;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Card Background -->
+  <rect x="20" y="20" width="360" height="560" rx="16" fill="url(#cardGrad)" filter="url(#shadow)" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Header -->
+  <rect x="20" y="20" width="360" height="90" rx="16" fill="url(#headerGrad)"/>
+  <rect x="20" y="80" width="360" height="30" fill="url(#headerGrad)"/>
+  
+  <!-- Header Text -->
+  <text x="200" y="55" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">CONTRACTOR ACCESS CARD</text>
+  <text x="200" y="80" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">بطاقة دخول المقاول</text>
+  <text x="200" y="100" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="11">${tenantName}</text>
+  
+  <!-- QR Code Area -->
+  <rect x="100" y="130" width="200" height="200" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <image x="110" y="140" width="180" height="180" href="${qrDataUrl}"/>
+  
+  <!-- Person Info Section -->
+  <rect x="40" y="350" width="320" height="180" rx="8" fill="#f1f5f9"/>
+  
+  <!-- Name -->
+  <text x="200" y="380" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="11">NAME / الاسم</text>
+  <text x="200" y="402" text-anchor="middle" fill="#1e293b" font-family="Arial, sans-serif" font-size="16" font-weight="bold">${personName}</text>
+  
+  <!-- Separator -->
+  <line x1="60" y1="415" x2="340" y2="415" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Company -->
+  <text x="200" y="435" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="11">COMPANY / الشركة</text>
+  <text x="200" y="455" text-anchor="middle" fill="#1e293b" font-family="Arial, sans-serif" font-size="13">${companyName}</text>
+  
+  <!-- Separator -->
+  <line x1="60" y1="468" x2="340" y2="468" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Role Badge -->
+  <rect x="70" y="478" width="260" height="40" rx="20" fill="#059669"/>
+  <text x="200" y="495" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">${roleDisplay}</text>
+  <text x="200" y="510" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Arial, sans-serif" font-size="10">${roleDisplayAr}</text>
+  
+  <!-- Footer -->
+  <rect x="20" y="540" width="360" height="40" rx="0" fill="#f8fafc"/>
+  <rect x="20" y="560" width="360" height="20" rx="0 0 16 16" fill="#f8fafc"/>
+  
+  <!-- Valid Until -->
+  <text x="60" y="558" fill="#64748b" font-family="Arial, sans-serif" font-size="10">Valid Until: ${validUntil}</text>
+  
+  <!-- Access Code -->
+  <text x="340" y="558" text-anchor="end" fill="#1e3a5f" font-family="monospace" font-size="10" font-weight="bold">${qrToken}</text>
+  
+  <!-- Security Strip -->
+  <rect x="20" y="570" width="360" height="10" rx="0 0 16 16" fill="url(#headerGrad)"/>
+</svg>`;
+}
+
+// Generate QR Code as Data URL using external API
+async function generateQRCodeDataUrl(data: string): Promise<string> {
+  try {
+    const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data)}&format=png`);
+    if (!response.ok) throw new Error('QR generation failed');
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    return `data:image/png;base64,${base64}`;
+  } catch (error) {
+    console.error('[ID Card] QR generation error:', error);
+    // Return a placeholder if QR fails
+    return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  }
+}
+
+// Convert SVG to PNG using resvg-wasm
+async function svgToPng(svg: string): Promise<Uint8Array> {
+  // Use external SVG to PNG converter API
+  try {
+    const response = await fetch('https://svg2png.onrender.com/convert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ svg, width: 400, height: 600 })
+    });
+    
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer();
+      return new Uint8Array(arrayBuffer);
+    }
+  } catch (e) {
+    console.log('[ID Card] External converter failed, using SVG directly');
+  }
+  
+  // Fallback: Return SVG as-is encoded
+  return new TextEncoder().encode(svg);
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -80,7 +199,7 @@ serve(async (req) => {
       ? new Date(contract_end_date).toISOString()
       : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Check for existing active QR for this person
+    // Check for existing active QR for this person and deactivate
     const existingQuery = supabase
       .from('contractor_company_access_qr')
       .update({ is_active: false, revoked_at: new Date().toISOString(), revocation_reason: 'Replaced by new card' })
@@ -133,8 +252,11 @@ serve(async (req) => {
 
     // Format role display
     const roleDisplay = person_type === 'site_rep' 
-      ? 'Site Representative / ممثل الموقع' 
-      : 'Safety Officer / مسؤول السلامة';
+      ? 'Site Representative' 
+      : 'Safety Officer';
+    const roleDisplayAr = person_type === 'site_rep' 
+      ? 'ممثل الموقع' 
+      : 'مسؤول السلامة';
 
     // Format validity date
     const validUntilDate = new Date(valid_until).toLocaleDateString('en-GB', {
@@ -143,33 +265,60 @@ serve(async (req) => {
       year: 'numeric'
     });
 
-    // Create text message with QR code link
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr_token)}`;
+    // Generate QR code data URL
+    console.log('[Send ID Card] Generating QR code...');
+    const qrDataUrl = await generateQRCodeDataUrl(qr_token);
+
+    // Generate ID Card SVG
+    console.log('[Send ID Card] Generating ID card image...');
+    const idCardSvg = generateIdCardSVG({
+      tenantName,
+      personName: person_name,
+      companyName: company_name,
+      roleDisplay,
+      roleDisplayAr,
+      validUntil: validUntilDate,
+      qrToken: qr_token,
+      qrDataUrl,
+    });
+
+    // Convert to PNG or use SVG
+    const imageData = await svgToPng(idCardSvg);
+    const isSvg = imageData.length < 10000; // SVG is typically smaller
+    const fileExt = isSvg ? 'svg' : 'png';
+    const mimeType = isSvg ? 'image/svg+xml' : 'image/png';
+
+    // Upload to storage
+    const storagePath = `id-cards/${company_id}/${qr_token}.${fileExt}`;
+    console.log('[Send ID Card] Uploading to storage:', storagePath);
+
+    const { error: uploadError } = await supabase.storage
+      .from('contractor-documents')
+      .upload(storagePath, imageData, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('[Send ID Card] Upload error:', uploadError);
+      // Continue without image - will send text message instead
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('contractor-documents')
+      .getPublicUrl(storagePath);
     
-    const message = `🪪 *${tenantName} - Contractor Access Card*
-بطاقة دخول المقاول
+    const imageUrl = urlData?.publicUrl || null;
+    console.log('[Send ID Card] Image URL:', imageUrl);
 
-━━━━━━━━━━━━━━━━━━
-👤 *Name / الاسم:*
-${person_name}
-
-🏢 *Company / الشركة:*
-${company_name}
-
-💼 *Role / المنصب:*
-${roleDisplay}
-
-📅 *Valid Until / صالحة حتى:*
-${validUntilDate}
-
-🔐 *Access Code / رمز الدخول:*
-\`${qr_token}\`
-━━━━━━━━━━━━━━━━━━
-
-📱 Present this code or QR at the security gate
-قدم هذا الرمز أو QR عند بوابة الأمن
-
-🔗 QR Code: ${qrCodeUrl}`;
+    // Update QR record with image path
+    if (imageUrl) {
+      await supabase
+        .from('contractor_company_access_qr')
+        .update({ card_image_path: storagePath })
+        .eq('id', qrRecord.id);
+    }
 
     // Send via WhatsApp using WaSender
     const wasenderApiKey = Deno.env.get('WASENDER_API_KEY');
@@ -180,8 +329,9 @@ ${validUntilDate}
           success: true,
           qr_record_id: qrRecord.id,
           qr_token,
+          image_url: imageUrl,
           whatsapp_sent: false,
-          message: 'QR code created but WhatsApp not configured'
+          message: 'ID card created but WhatsApp not configured'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -190,23 +340,70 @@ ${validUntilDate}
     const formattedPhone = formatPhoneNumber(person_phone);
     console.log('[Send ID Card] Sending WhatsApp to:', formattedPhone);
 
-    const wasenderResponse = await fetch('https://api.wasender.dev/api/send-message', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${wasenderApiKey}`,
-      },
-      body: JSON.stringify({
-        to: formattedPhone,
-        text: message,
-      }),
-    });
+    // Create caption for the image
+    const caption = `🪪 ${tenantName} - Contractor Access Card
+بطاقة دخول المقاول
 
-    const wasenderResult = await wasenderResponse.json();
-    console.log('[Send ID Card] WaSender response:', JSON.stringify(wasenderResult));
+👤 ${person_name}
+🏢 ${company_name}
+💼 ${roleDisplay} / ${roleDisplayAr}
+📅 Valid until: ${validUntilDate}
+🔐 Code: ${qr_token}
 
-    const whatsappSuccess = wasenderResponse.ok && wasenderResult.success !== false;
-    const messageId = wasenderResult.messageId || wasenderResult.id || null;
+📱 Present this card at the security gate
+قدم هذه البطاقة عند بوابة الأمن`;
+
+    let wasenderResponse;
+    let wasenderResult;
+    let whatsappSuccess = false;
+    let messageId = null;
+
+    // Try sending as image first, fallback to text
+    if (imageUrl) {
+      // Send image message
+      wasenderResponse = await fetch('https://api.wasender.dev/api/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${wasenderApiKey}`,
+        },
+        body: JSON.stringify({
+          to: formattedPhone,
+          imageUrl: imageUrl,
+          caption: caption,
+        }),
+      });
+
+      wasenderResult = await wasenderResponse.json();
+      console.log('[Send ID Card] WaSender image response:', JSON.stringify(wasenderResult));
+      
+      whatsappSuccess = wasenderResponse.ok && wasenderResult.success !== false;
+      messageId = wasenderResult.messageId || wasenderResult.id || null;
+    }
+
+    // Fallback to text message if image fails
+    if (!whatsappSuccess) {
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr_token)}`;
+      const textMessage = `${caption}\n\n🔗 QR Code: ${qrCodeUrl}`;
+
+      wasenderResponse = await fetch('https://api.wasender.dev/api/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${wasenderApiKey}`,
+        },
+        body: JSON.stringify({
+          to: formattedPhone,
+          text: textMessage,
+        }),
+      });
+
+      wasenderResult = await wasenderResponse.json();
+      console.log('[Send ID Card] WaSender text response:', JSON.stringify(wasenderResult));
+      
+      whatsappSuccess = wasenderResponse.ok && wasenderResult.success !== false;
+      messageId = wasenderResult.messageId || wasenderResult.id || null;
+    }
 
     // Update QR record with WhatsApp status
     if (whatsappSuccess) {
@@ -231,6 +428,7 @@ ${validUntilDate}
         company_name,
         whatsapp_sent: whatsappSuccess,
         phone: formattedPhone,
+        image_url: imageUrl,
       },
     });
 
@@ -241,6 +439,7 @@ ${validUntilDate}
         success: true,
         qr_record_id: qrRecord.id,
         qr_token,
+        image_url: imageUrl,
         whatsapp_sent: whatsappSuccess,
         message_id: messageId,
       }),

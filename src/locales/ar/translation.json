@@ -23,7 +23,10 @@
       "qrCreated": "تم إنشاء رمز الوصول (واتساب غير مُعد)",
       "sendError": "فشل في إرسال بطاقة الهوية: {{error}}",
       "batchSent": "تم إرسال {{count}} بطاقة هوية عبر واتساب",
-      "batchCreated": "تم إنشاء {{count}} رمز وصول"
+      "batchCreated": "تم إنشاء {{count}} رمز وصول",
+      "resend": "إرسال البطاقة",
+      "resending": "جاري الإرسال...",
+      "resentSuccess": "تم إعادة إرسال البطاقة بنجاح"
     }
   },
   "hsseDashboard": {
