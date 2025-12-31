@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { DEFAULT_TILE, DEFAULT_CENTER } from "@/lib/map-tiles";
 import { Link } from "react-router-dom";
 
 interface PermitConsoleMapProps {
@@ -51,7 +52,7 @@ const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }
   general: FileWarning,
 };
 
-// Create custom marker icon for permit type
+// Create custom marker icon for permit type with improved visibility
 const createPermitMarkerIcon = (permitCode: string) => {
   const color = permitTypeColors[permitCode] || permitTypeColors.general;
   
@@ -60,26 +61,27 @@ const createPermitMarkerIcon = (permitCode: string) => {
     html: `
       <div style="
         background-color: ${color};
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        border: 4px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: transform 0.2s ease;
       ">
         <div style="
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           background-color: white;
           border-radius: 50%;
         "></div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20],
   });
 };
 
@@ -92,9 +94,6 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPermit, setSelectedPermit] = useState<string | null>(null);
 
-  // Default center (Riyadh, Saudi Arabia)
-  const defaultCenter: [number, number] = [24.7136, 46.6753];
-
   // Filter permits with valid GPS coordinates
   const validPermits = permits.filter(p => p.gps_lat && p.gps_lng);
 
@@ -104,15 +103,15 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
     // Initialize map if not already created
     if (!mapInstance.current) {
       mapInstance.current = L.map(mapContainer.current, {
-        center: defaultCenter,
+        center: DEFAULT_CENTER,
         zoom: 12,
         zoomControl: !isRTL,
       });
 
-      // Add OpenStreetMap tiles (self-hosted compliant)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
+      // Use premium CartoDB tiles for cleaner appearance
+      L.tileLayer(DEFAULT_TILE.url, {
+        attribution: DEFAULT_TILE.attribution,
+        ...DEFAULT_TILE.options,
       }).addTo(mapInstance.current);
 
       // Add zoom control on the correct side for RTL
