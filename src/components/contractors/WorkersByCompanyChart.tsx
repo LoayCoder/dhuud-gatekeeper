@@ -14,8 +14,15 @@ const COLORS = {
   pending: "hsl(45 93% 47%)",
 };
 
+const MAX_LABEL_LENGTH = 22;
+const ROW_HEIGHT = 45;
+const MAX_VISIBLE_ROWS = 6;
+const MIN_Y_AXIS_WIDTH = 120;
+const MAX_Y_AXIS_WIDTH = 180;
+
 export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChartProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   if (isLoading) {
     return (
@@ -51,19 +58,23 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
     );
   }
 
-  // Prepare chart data with truncated names for display
+  // Prepare chart data with smart truncation
   const chartData = data.map((item) => ({
     ...item,
-    shortName: item.name.length > 18 ? `${item.name.substring(0, 18)}...` : item.name,
+    shortName: item.name.length > MAX_LABEL_LENGTH 
+      ? `${item.name.substring(0, MAX_LABEL_LENGTH)}...` 
+      : item.name,
   }));
 
-  // Calculate dynamic height - each bar needs ~40px
-  const rowHeight = 40;
+  // Dynamic Y-axis width based on longest label
+  const longestLabelLength = Math.max(...chartData.map(d => d.shortName.length));
+  const yAxisWidth = Math.min(MAX_Y_AXIS_WIDTH, Math.max(MIN_Y_AXIS_WIDTH, longestLabelLength * 7));
+
+  // Calculate dynamic height
   const minHeight = 200;
-  const maxVisibleRows = 6;
-  const calculatedHeight = chartData.length * rowHeight + 60; // +60 for legend
-  const needsScroll = chartData.length > maxVisibleRows;
-  const containerHeight = needsScroll ? maxVisibleRows * rowHeight + 60 : Math.max(minHeight, calculatedHeight);
+  const calculatedHeight = chartData.length * ROW_HEIGHT + 60;
+  const needsScroll = chartData.length > MAX_VISIBLE_ROWS;
+  const containerHeight = needsScroll ? MAX_VISIBLE_ROWS * ROW_HEIGHT + 60 : Math.max(minHeight, calculatedHeight);
   const chartHeight = calculatedHeight;
 
   const chartContent = (
@@ -73,7 +84,7 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
           data={chartData}
           layout="vertical"
           margin={{ top: 5, right: 30, left: 5, bottom: needsScroll ? 5 : 40 }}
-          barSize={24}
+          barSize={28}
         >
           <XAxis 
             type="number" 
@@ -82,6 +93,7 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
             tickLine={false}
             domain={[0, 'dataMax + 1']}
             allowDecimals={false}
+            reversed={isRTL}
           />
           <YAxis
             type="category"
@@ -90,10 +102,12 @@ export function WorkersByCompanyChart({ data, isLoading }: WorkersByCompanyChart
               fontSize: 11, 
               fill: "hsl(var(--foreground))",
             }}
-            width={130}
+            width={yAxisWidth}
             axisLine={false}
             tickLine={false}
             interval={0}
+            orientation={isRTL ? "right" : "left"}
+            textAnchor={isRTL ? "start" : "end"}
           />
           <Tooltip
             cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
