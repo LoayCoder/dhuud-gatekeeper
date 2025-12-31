@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { DEFAULT_TILE, DEFAULT_CENTER } from '@/lib/map-tiles';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,16 +78,19 @@ export function CommandCenterMap({
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
+    // Default center (can be configured per tenant)
+    const defaultCenter: L.LatLngExpression = [24.7136, 46.6753]; // Riyadh
+
     map.current = L.map(mapContainer.current, {
-      center: DEFAULT_CENTER,
+      center: defaultCenter,
       zoom: 12,
       zoomControl: true,
     });
 
-    // Use premium CartoDB tiles for cleaner appearance
-    L.tileLayer(DEFAULT_TILE.url, {
-      attribution: DEFAULT_TILE.attribution,
-      ...DEFAULT_TILE.options,
+    // Use OpenStreetMap tiles (self-hosted compatible for Zero Trust)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
     }).addTo(map.current);
 
     markersLayer.current = L.layerGroup().addTo(map.current);
@@ -116,9 +118,8 @@ export function CommandCenterMap({
         {
           color,
           fillColor: color,
-          fillOpacity: 0.15,
-          weight: 3,
-          dashArray: '5, 5',
+          fillOpacity: 0.2,
+          weight: 2,
         }
       );
 

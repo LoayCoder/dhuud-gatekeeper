@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { DEFAULT_TILE, DEFAULT_CENTER } from '@/lib/map-tiles';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,17 +28,16 @@ function createAssetMarkerIcon(status: string) {
     html: `
       <div style="
         background: ${color};
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        border: 4px solid white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.2s ease;
       ">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m7.5 4.27 9 5.15"/>
           <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
           <path d="m3.3 7 8.7 5 8.7-5"/>
@@ -47,8 +45,8 @@ function createAssetMarkerIcon(status: string) {
         </svg>
       </div>
     `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 }
 
@@ -87,15 +85,13 @@ export function AssetLocationMap({
     if (!mapRef.current || mapInstance.current) return;
 
     mapInstance.current = L.map(mapRef.current, {
-      center: DEFAULT_CENTER,
+      center: [24.7136, 46.6753], // Default to Riyadh, Saudi Arabia
       zoom: 10,
       zoomControl: true,
     });
 
-    // Use premium CartoDB tiles for cleaner appearance
-    L.tileLayer(DEFAULT_TILE.url, {
-      attribution: DEFAULT_TILE.attribution,
-      ...DEFAULT_TILE.options,
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
     }).addTo(mapInstance.current);
 
     return () => {
