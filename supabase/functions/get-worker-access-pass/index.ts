@@ -12,7 +12,6 @@ interface WorkerAccessResponse {
   created_at: string;
   worker: {
     full_name: string;
-    job_title: string | null;
     nationality: string | null;
     company_name: string | null;
   };
@@ -93,7 +92,6 @@ Deno.serve(async (req) => {
       .from('contractor_workers')
       .select(`
         full_name,
-        job_title,
         nationality,
         company_id
       `)
@@ -163,7 +161,6 @@ Deno.serve(async (req) => {
       created_at: qrData.created_at,
       worker: {
         full_name: workerData?.full_name || 'Unknown Worker',
-        job_title: workerData?.job_title || null,
         nationality: workerData?.nationality || null,
         company_name: companyName,
       },
