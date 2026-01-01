@@ -190,30 +190,34 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
           body: { qr_token: qrToken, tenant_id: tenantId },
         });
 
-        if (error || !data?.valid) {
+        // Edge function returns: { is_valid, worker: { id, full_name, company_name, project_name }, errors, warnings }
+        if (error || !data?.is_valid) {
+          const errorMessages = data?.errors || [];
+          const hasExpired = errorMessages.some((e: string) => e.toLowerCase().includes('expired'));
+          const hasRevoked = errorMessages.some((e: string) => e.toLowerCase().includes('revoked'));
+          
           return {
             type: 'worker',
-            id: data?.worker_id,
-            status: data?.reason === 'expired' ? 'expired' : 
-                   data?.reason === 'revoked' ? 'revoked' : 'invalid',
+            id: data?.worker?.id,
+            status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
             rawCode: code,
             data: {
-              warnings: [data?.reason || error?.message || 'Invalid QR code'],
+              warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR code'],
             },
           };
         }
 
         return {
           type: 'worker',
-          id: data.worker_id,
+          id: data.worker?.id,
           status: 'valid',
           rawCode: code,
           data: {
-            name: data.worker_name,
-            company: data.company_name,
-            projectName: data.project_name,
-            inductionStatus: data.induction_status,
-            expiresAt: data.expires_at,
+            name: data.worker?.full_name,
+            company: data.worker?.company_name,
+            projectName: data.worker?.project_name,
+            inductionStatus: data.warnings?.some((w: string) => w.toLowerCase().includes('induction')) ? 'pending' : 'completed',
+            warnings: data.warnings,
           },
         };
       }
