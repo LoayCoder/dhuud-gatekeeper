@@ -218,6 +218,10 @@ Deno.serve(async (req) => {
     }
 
     // ========== STEP 3: SEND QR CODE VIA WHATSAPP ==========
+    // Wait 30 seconds to avoid WaSender rate limit (Account Protection: 1 msg per 5 sec)
+    console.log('[Onboard] Step 3: Waiting 30 seconds for WhatsApp rate limit...');
+    await new Promise(resolve => setTimeout(resolve, 30000));
+    
     console.log('[Onboard] Step 3: Sending QR code to worker...');
 
     const appUrl = Deno.env.get('APP_URL') || 'https://preview--hssa-b2b-full-bunlde.lovable.app';
