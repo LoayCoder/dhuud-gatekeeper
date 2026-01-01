@@ -154,12 +154,18 @@ Deno.serve(async (req) => {
         // Try to get template first, fallback to hardcoded message
         const durationMin = Math.round((selectedVideo.duration_seconds || 0) / 60);
         
+        // Build the induction portal URL instead of direct video URL
+        const appUrl = Deno.env.get('APP_URL') || 'https://xdlowvfzhvjzbtgvurzj.lovableproject.com';
+        const inductionPortalUrl = `${appUrl}/worker-induction/${induction.id}`;
+        
+        console.log(`[Onboard] Induction portal URL: ${inductionPortalUrl}`);
+        
         const templateResult = await getRenderedTemplate(supabase, tenantId, 'worker_induction_video', {
           worker_name: worker.full_name,
           project_name: project.project_name,
           video_title: selectedVideo.title,
           duration_min: String(durationMin),
-          video_url: selectedVideo.video_url,
+          video_url: inductionPortalUrl,  // Portal URL instead of direct video URL
         });
 
         const message = templateResult.found 
@@ -169,7 +175,7 @@ Deno.serve(async (req) => {
               worker.full_name,
               project.project_name,
               selectedVideo.title,
-              selectedVideo.video_url,
+              inductionPortalUrl,  // Portal URL instead of direct video URL
               durationMin
             );
 
