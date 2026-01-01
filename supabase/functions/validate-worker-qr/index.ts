@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
           .limit(1)
           .single();
 
-        if (!induction || induction.status !== 'completed' || !induction.acknowledged_at) {
+        if (!induction || induction.status !== 'acknowledged' || !induction.acknowledged_at) {
           result.warnings.push('Safety induction not completed');
         } else if (induction.expires_at && new Date(induction.expires_at) < now) {
           result.warnings.push('Safety induction has expired');
@@ -310,7 +310,7 @@ Deno.serve(async (req) => {
         .limit(1)
         .single();
 
-      if (!induction || induction.status !== 'completed' || !induction.acknowledged_at) {
+      if (!induction || induction.status !== 'acknowledged' || !induction.acknowledged_at) {
         result.is_valid = false;
         result.errors.push('Safety induction not completed');
       } else if (induction.expires_at && new Date(induction.expires_at) < now) {
