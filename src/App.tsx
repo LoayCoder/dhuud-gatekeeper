@@ -96,6 +96,7 @@ const VisitorPreRegistration = lazyWithRetry(() => import("./pages/visitors/Visi
 const VisitorCheckpoint = lazyWithRetry(() => import("./pages/visitors/VisitorCheckpoint"));
 const VisitorList = lazyWithRetry(() => import("./pages/visitors/VisitorList"));
 const VisitorPass = lazyWithRetry(() => import("./pages/VisitorPass"));
+const WorkerAccessPass = lazyWithRetry(() => import("./pages/WorkerAccessPass"));
 const BlacklistManagement = lazyWithRetry(() => import("./pages/visitors/BlacklistManagement"));
 
 // Security patrol pages - lazy loaded with retry
@@ -243,6 +244,7 @@ const App = () => (
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<Suspense fallback={<PageLoader />}><MFASetup /></Suspense>} />
                     <Route path="/visitor-pass/:token" element={<VisitorPass />} />
+                    <Route path="/worker-access/:token" element={<WorkerAccessPass />} />
 
                     {/* Home Screen - Simple landing without sidebar */}
                     <Route
