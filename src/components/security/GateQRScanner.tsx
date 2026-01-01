@@ -216,7 +216,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
             name: data.worker?.full_name,
             company: data.worker?.company_name,
             projectName: data.worker?.project_name,
-            inductionStatus: data.warnings?.some((w: string) => w.toLowerCase().includes('induction')) ? 'pending' : 'completed',
+            inductionStatus: data.induction?.status || 'not_started',
+            expiresAt: data.induction?.expires_at,
             warnings: data.warnings,
           },
         };
