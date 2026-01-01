@@ -2202,7 +2202,13 @@
       "scanAgain": "फिर से स्कैन करें",
       "useAnyway": "फिर भी उपयोग करें",
       "instructions": "विज़िटर या श्रमिक के QR कोड पर कैमरा रखें",
-      "unknownFormat": "अज्ञात QR प्रारूप"
+      "unknownFormat": "अज्ञात QR प्रारूप",
+      "qrAlreadyUsed": "यह QR कोड पहले ही उपयोग किया जा चुका है",
+      "used": "पहले से उपयोग किया गया",
+      "workerOnSite": "श्रमिक पहले से साइट पर है",
+      "workerOnSiteDesc": "यह श्रमिक {{time}} बजे प्रवेश किया",
+      "verifyIdentity": "पहचान सत्यापित करें",
+      "onSiteDuration": "{{duration}} से साइट पर"
     },
     "workerVerification": {
       "title": "श्रमिक सत्यापन",

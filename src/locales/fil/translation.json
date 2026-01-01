@@ -2191,7 +2191,13 @@
       "scanAgain": "I-scan Muli",
       "useAnyway": "Gamitin Pa Rin",
       "instructions": "Itutok ang camera sa QR code ng bisita o manggagawa",
-      "unknownFormat": "Hindi kilalang QR format"
+      "unknownFormat": "Hindi kilalang QR format",
+      "qrAlreadyUsed": "Nagamit na ang QR code na ito",
+      "used": "Nagamit Na",
+      "workerOnSite": "Nasa Site na ang Manggagawa",
+      "workerOnSiteDesc": "Pumasok ang manggagawang ito noong {{time}}",
+      "verifyIdentity": "I-verify ang Pagkakakilanlan",
+      "onSiteDuration": "Nasa site ng {{duration}}"
     },
     "workerVerification": {
       "title": "I-verify ang Manggagawa",
