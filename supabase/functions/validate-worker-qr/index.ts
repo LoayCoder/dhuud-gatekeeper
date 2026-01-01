@@ -25,6 +25,11 @@ interface ValidationResult {
     mobile_number?: string;
     tenant_id?: string;
   };
+  induction?: {
+    status: string;
+    expires_at: string | null;
+    acknowledged_at: string | null;
+  };
   errors: string[];
   warnings: string[];
 }
@@ -176,6 +181,15 @@ Deno.serve(async (req) => {
         } else if (induction.expires_at && new Date(induction.expires_at) < now) {
           result.warnings.push('Safety induction has expired');
         }
+
+        // Add induction data to result
+        if (induction) {
+          result.induction = {
+            status: induction.status,
+            expires_at: induction.expires_at,
+            acknowledged_at: induction.acknowledged_at,
+          };
+        }
       } else {
         result.warnings.push('No active project assignment found');
       }
@@ -316,6 +330,15 @@ Deno.serve(async (req) => {
       } else if (induction.expires_at && new Date(induction.expires_at) < now) {
         result.is_valid = false;
         result.errors.push('Safety induction has expired');
+      }
+
+      // Add induction data to result
+      if (induction) {
+        result.induction = {
+          status: induction.status,
+          expires_at: induction.expires_at,
+          acknowledged_at: induction.acknowledged_at,
+        };
       }
 
       // Populate worker info

@@ -269,7 +269,9 @@ export function WorkerVerificationPanel() {
           warnings: result.data?.warnings,
           induction: {
             status: result.data?.inductionStatus === 'acknowledged' ? 'completed' : 
-                   result.data?.inductionStatus === 'sent' ? 'pending' : 'not_started',
+                   result.data?.inductionStatus === 'completed' ? 'completed' :
+                   result.data?.inductionStatus === 'sent' ? 'pending' : 
+                   result.data?.inductionStatus === 'viewed' ? 'pending' : 'not_started',
             expiresAt: result.data?.expiresAt,
           },
           qrValidity: { isValid: true },
