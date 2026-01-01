@@ -1,4 +1,10 @@
 {
+  "security": {
+    "gate": {
+      "alreadyOnSite": "Already On Site",
+      "alreadyOnSiteDesc": "This person is already logged as on-site since {{time}}"
+    }
+  },
   "contractors": {
     "projects": {
       "title": "Contractor Projects",
