@@ -254,3 +254,9 @@ verify_jwt = true
 
 [functions.get-worker-access-pass]
 verify_jwt = false
+
+[functions.get-worker-induction]
+verify_jwt = false
+
+[functions.acknowledge-induction]
+verify_jwt = false

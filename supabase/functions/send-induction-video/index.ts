@@ -225,14 +225,21 @@ Deno.serve(async (req) => {
         .eq('id', inductionId);
     }
 
-    // Generate WhatsApp message
+    // Generate WhatsApp message with portal link
     const durationMin = Math.round((video.duration_seconds || 0) / 60);
+    
+    // Build the induction portal URL
+    const appUrl = Deno.env.get('APP_URL') || 'https://xdlowvfzhvjzbtgvurzj.lovableproject.com';
+    const inductionPortalUrl = inductionRecordId 
+      ? `${appUrl}/worker-induction/${inductionRecordId}`
+      : video.video_url; // Fallback to direct video URL if no induction record
+    
     const whatsappMessage = getLocalizedMessage(
       preferredLang, 
       worker.full_name, 
       projectName, 
       video.title,
-      video.video_url,
+      inductionPortalUrl,
       durationMin
     );
 
