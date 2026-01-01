@@ -157,7 +157,7 @@ export default function VisitorPass() {
             <div className="flex justify-center mb-6">
               <div className="bg-white p-4 rounded-lg shadow-inner">
                 <QRCodeSVG 
-                  value={entry.qr_code_token || token || ''} 
+                  value={`VISITOR:${entry.qr_code_token || token || ''}`} 
                   size={180}
                   level="H"
                 />
