@@ -47,8 +47,7 @@ Deno.serve(async (req) => {
         worker:contractor_workers(
           id,
           full_name,
-          phone_number,
-          email,
+          mobile_number,
           approval_status
         )
       `)
