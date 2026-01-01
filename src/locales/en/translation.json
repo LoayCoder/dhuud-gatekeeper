@@ -1345,6 +1345,8 @@
     "status": "Status",
     "active": "Active",
     "all": "All",
+    "allProjects": "All Projects",
+    "allStatuses": "All Statuses",
     "continue": "Continue",
     "verify": "Verify",
     "done": "Done",
@@ -2171,6 +2173,7 @@
         "dismiss": "Dismiss",
         "noAlerts": "No active alerts"
       },
+      "verifyVisitor": "Verify Visitor",
       "verification": {
         "title": "Verify Visitor",
         "searchPlaceholder": "Search by name, ID, or phone...",
@@ -2183,7 +2186,8 @@
         "blacklisted": "Blacklisted",
         "notFound": "Visitor not found"
       },
-      "activeVisitors": {
+      "activeVisitors": "Active Visitors",
+      "activeVisitorsDetails": {
         "title": "Active Visitors",
         "name": "Name",
         "company": "Company",
@@ -6276,6 +6280,16 @@
       "workers": "Workers",
       "gatePasses": "Gate Passes",
       "inductionVideos": "Induction Videos"
+    },
+    "gatePasses": {
+      "status": {
+        "pendingPm": "Pending PM",
+        "pendingSafety": "Pending Safety",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "completed": "Completed"
+      },
+      "filterByProject": "Filter by Project"
     },
     "companies": {
       "title": "Contractor Companies",
