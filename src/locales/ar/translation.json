@@ -3,6 +3,11 @@
     "gate": {
       "alreadyOnSite": "متواجد بالفعل",
       "alreadyOnSiteDesc": "هذا الشخص مسجل بالفعل في الموقع منذ {{time}}"
+    },
+    "workerScanHistory": {
+      "title": "مسح العمال اليوم",
+      "noScans": "لا يوجد مسح للعمال اليوم",
+      "exitedAt": "خرج"
     }
   },
   "contractors": {

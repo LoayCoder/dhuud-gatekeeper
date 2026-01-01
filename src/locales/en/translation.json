@@ -3,6 +3,11 @@
     "gate": {
       "alreadyOnSite": "Already On Site",
       "alreadyOnSiteDesc": "This person is already logged as on-site since {{time}}"
+    },
+    "workerScanHistory": {
+      "title": "Today's Worker Scans",
+      "noScans": "No worker scans today",
+      "exitedAt": "Exited"
     }
   },
   "contractors": {
