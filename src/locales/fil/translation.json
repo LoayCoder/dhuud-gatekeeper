@@ -1297,6 +1297,9 @@
     "activate": "I-activate",
     "deactivate": "I-deactivate",
     "requiredFields": "Pakipunan ang lahat ng kinakailangang field",
+    "seedTestData": "Magdagdag ng Test Data",
+    "seedSuccess": "Naidagdag ang {{count}} test projects",
+    "seedError": "Hindi naidagdag ang test data",
     "type": "Uri"
   },
   "auth": {
