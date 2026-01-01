@@ -248,3 +248,6 @@ verify_jwt = false
 
 [functions.send-contractor-welcome]
 verify_jwt = false
+
+[functions.onboard-worker]
+verify_jwt = true

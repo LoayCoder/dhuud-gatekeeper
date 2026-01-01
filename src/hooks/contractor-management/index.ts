@@ -8,3 +8,4 @@ export * from "./use-safety-officers";
 export * from "./use-induction-videos";
 export * from "./use-worker-inductions";
 export * from "./use-contractor-portal";
+export * from "./use-worker-onboarding";

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen } from "lucide-react";
+import { Building2, Phone, Globe, Calendar, FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
@@ -15,6 +15,7 @@ import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-inductions";
 import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { useOnboardWorker } from "@/hooks/contractor-management/use-worker-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -34,6 +35,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
   const { data: videos = [] } = useInductionVideos();
   const { data: projects = [] } = useContractorProjects({ companyId: worker?.company_id });
+  const onboardWorker = useOnboardWorker();
 
   // Fetch photo URL
   useEffect(() => {
@@ -252,42 +254,72 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
             </Card>
           </TabsContent>
 
-          <TabsContent value="qr" className="mt-4">
+          <TabsContent value="qr" className="mt-4 space-y-4">
             {worker.approval_status === "approved" ? (
-              <Card>
-                <CardContent className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      {t("contractors.workers.selectProjectForQR", "Select Project for QR Code")}
-                    </label>
-                    <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("contractors.workers.selectProject", "Select a project...")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.project_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {projects.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {t("contractors.workers.noProjects", "No projects assigned to this company")}
-                      </p>
-                    )}
-                  </div>
-                  <WorkerQRCode
-                    workerId={worker.id}
-                    workerName={worker.full_name}
-                    qrData={null}
-                    onGenerateQR={handleGenerateQR}
-                    isGenerating={isGeneratingQR}
-                    disabled={!selectedProjectId}
-                  />
-                </CardContent>
-              </Card>
+              <>
+                {/* Quick Onboard Card */}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <UserCheck className="h-4 w-4" />
+                      {t("contractors.workers.quickOnboard", "Quick Onboard")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      {t("contractors.workers.onboardDescription", "Send induction video and generate QR code in one step.")}
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("contractors.workers.selectProjectForQR", "Select Project")}
+                      </label>
+                      <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("contractors.workers.selectProject", "Select a project...")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.project_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {projects.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          {t("contractors.workers.noProjects", "No projects assigned to this company")}
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: selectedProjectId })}
+                      disabled={!selectedProjectId || onboardWorker.isPending}
+                      className="w-full"
+                    >
+                      {onboardWorker.isPending ? (
+                        <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                      ) : (
+                        <UserCheck className="h-4 w-4 me-2" />
+                      )}
+                      {t("contractors.workers.onboardWorker", "Onboard Worker")}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* QR Code Display */}
+                <Card>
+                  <CardContent className="pt-4">
+                    <WorkerQRCode
+                      workerId={worker.id}
+                      workerName={worker.full_name}
+                      qrData={null}
+                      onGenerateQR={handleGenerateQR}
+                      isGenerating={isGeneratingQR}
+                      disabled={!selectedProjectId}
+                    />
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
