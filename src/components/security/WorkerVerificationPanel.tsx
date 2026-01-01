@@ -341,7 +341,17 @@ export function WorkerVerificationPanel() {
     }
   };
 
-  const getStatusConfig = (status: WorkerVerificationResult['status']) => {
+  const getStatusConfig = (status: WorkerVerificationResult['status'], isOnSite?: boolean) => {
+    // If worker is already on site, show warning/amber style regardless of verification status
+    if (isOnSite) {
+      return {
+        icon: AlertTriangle,
+        color: 'text-amber-600 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-400 dark:border-amber-600',
+        label: t('security.qrScanner.workerOnSite', 'Worker Already On Site'),
+      };
+    }
+    
     switch (status) {
       case 'granted':
         return {
@@ -444,7 +454,7 @@ export function WorkerVerificationPanel() {
 
         {/* Verification Result */}
         {verificationResult && (
-          <Card className={cn('border-2', getStatusConfig(verificationResult.status).bg)}>
+          <Card className={cn('border-2', getStatusConfig(verificationResult.status, verificationResult.isOnSite).bg)}>
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <Avatar className="h-16 w-16">
@@ -460,7 +470,7 @@ export function WorkerVerificationPanel() {
                   {/* Status Header */}
                   <div className="flex items-center gap-2 mb-2">
                     {(() => {
-                      const config = getStatusConfig(verificationResult.status);
+                      const config = getStatusConfig(verificationResult.status, verificationResult.isOnSite);
                       const Icon = config.icon;
                       return (
                         <>
