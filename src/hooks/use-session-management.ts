@@ -44,6 +44,13 @@ export function useSessionManagement() {
   // Register a new session on login
   const registerSession = useCallback(async () => {
     if (isRegistering.current) return;
+    
+    // Don't try to register if not authenticated
+    if (!isAuthenticated || !user?.id) {
+      console.log('User not authenticated, skipping session registration');
+      return;
+    }
+    
     isRegistering.current = true;
 
     try {
@@ -96,10 +103,15 @@ export function useSessionManagement() {
     } finally {
       isRegistering.current = false;
     }
-  }, [getDeviceInfo]);
+  }, [getDeviceInfo, isAuthenticated, user?.id]);
 
   // Validate the current session
   const validateSession = useCallback(async (): Promise<SessionValidationResult> => {
+    // Don't validate if not authenticated
+    if (!isAuthenticated || !user?.id) {
+      return { valid: false, reason: 'not_authenticated' };
+    }
+    
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
     if (!sessionToken) {
       return { valid: false, reason: 'no_token' };
@@ -141,7 +153,7 @@ export function useSessionManagement() {
       console.error('Session validation error:', err);
       return { valid: false, reason: 'network_error' };
     }
-  }, []);
+  }, [isAuthenticated, user?.id]);
 
   // Handle session invalidation (forced logout)
   const handleSessionInvalid = useCallback(async (reason: string, details?: Record<string, string>) => {
@@ -190,6 +202,11 @@ export function useSessionManagement() {
 
   // Send heartbeat to keep session alive
   const sendHeartbeat = useCallback(async () => {
+    // Don't send heartbeat if not authenticated
+    if (!isAuthenticated || !user?.id) {
+      return;
+    }
+    
     const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
     if (!sessionToken) return;
 
@@ -232,7 +249,7 @@ export function useSessionManagement() {
     } catch (err) {
       console.error('Session heartbeat error:', err);
     }
-  }, [handleSessionInvalid]);
+  }, [handleSessionInvalid, isAuthenticated, user?.id]);
 
   // Invalidate session on logout
   const invalidateSession = useCallback(async () => {
