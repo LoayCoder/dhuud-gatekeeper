@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // Fetch worker details
     const { data: worker, error: workerError } = await supabase
       .from('contractor_workers')
-      .select('id, full_name, full_name_ar, phone_number, email, preferred_language')
+      .select('id, full_name, full_name_ar, mobile_number, preferred_language')
       .eq('id', worker_id)
       .is('deleted_at', null)
       .single();
@@ -85,13 +85,13 @@ Deno.serve(async (req) => {
     let whatsappSent = false;
     let emailSent = false;
 
-    // Send via WhatsApp if phone number exists
-    if (worker.phone_number) {
+    // Send via WhatsApp if mobile number exists
+    if (worker.mobile_number) {
       try {
         const wasenderApiKey = Deno.env.get('WASENDER_API_KEY');
         if (wasenderApiKey) {
-          // Format phone number
-          let phone = worker.phone_number.replace(/[\s\-\(\)]/g, '');
+          // Format mobile number
+          let phone = worker.mobile_number.replace(/[\s\-\(\)]/g, '');
           if (!phone.startsWith('+')) {
             if (phone.startsWith('0')) {
               phone = '+966' + phone.substring(1);
@@ -131,85 +131,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send via Email if email exists
-    if (worker.email) {
-      try {
-        const resendApiKey = Deno.env.get('RESEND_API_KEY');
-        const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@dhuud.com';
-        
-        if (resendApiKey) {
-          const subject = isArabic
-            ? `بطاقة هوية العامل - ${tenantName}`
-            : `Worker ID Card - ${tenantName}`;
-
-          const htmlContent = isArabic
-            ? `
-              <div dir="rtl" style="font-family: 'IBM Plex Sans Arabic', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #1a1a1a; text-align: center;">✅ تم إكمال تدريب السلامة</h1>
-                <p>مرحباً ${workerName}،</p>
-                <p>تهانينا! لقد أكملت تدريب السلامة بنجاح.</p>
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h2 style="margin-top: 0;">🆔 بطاقة هوية العامل</h2>
-                  <p><strong>المنشأة:</strong> ${tenantName}</p>
-                  <p><strong>القسم:</strong> ${hsseDept}</p>
-                  <p><strong>المشروع:</strong> ${projectName}</p>
-                </div>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${idCardUrl}" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">عرض بطاقة الهوية</a>
-                </div>
-                <p style="color: #666; font-size: 14px;">يرجى حفظ هذا الرابط وإظهار رمز QR عند البوابة للدخول.</p>
-              </div>
-            `
-            : `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #1a1a1a; text-align: center;">✅ Safety Induction Completed</h1>
-                <p>Hello ${workerName},</p>
-                <p>Congratulations! You have successfully completed your safety induction.</p>
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h2 style="margin-top: 0;">🆔 Worker ID Card</h2>
-                  <p><strong>Facility:</strong> ${tenantName}</p>
-                  <p><strong>Department:</strong> ${hsseDept}</p>
-                  <p><strong>Project:</strong> ${projectName}</p>
-                </div>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${idCardUrl}" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View ID Card</a>
-                </div>
-                <p style="color: #666; font-size: 14px;">Please save this link and show the QR code at the gate for entry.</p>
-              </div>
-            `;
-
-          const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${resendApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: `${tenantName || 'HSSE'} <${fromEmail}>`,
-              to: [worker.email],
-              subject: subject,
-              html: htmlContent,
-            }),
-          });
-
-          if (response.ok) {
-            emailSent = true;
-            console.log('[SendWorkerIdCard] Email sent successfully to:', worker.email);
-          } else {
-            const errorText = await response.text();
-            console.error('[SendWorkerIdCard] Email send error:', errorText);
-          }
-        }
-      } catch (emailErr) {
-        console.error('[SendWorkerIdCard] Email error:', emailErr);
-      }
-    }
+    // Email sending skipped - no email column in contractor_workers table
+    // If email functionality is needed in the future, add email column to contractor_workers
+    console.log('[SendWorkerIdCard] Email notification skipped - email column not available');
 
     // Log notification
     await supabase.from('notification_logs').insert({
       tenant_id: tenant_id,
       channel: whatsappSent ? 'whatsapp' : (emailSent ? 'email' : 'none'),
-      recipient: worker.phone_number || worker.email || worker_id,
+      recipient: worker.mobile_number || worker_id,
       message_type: 'worker_id_card',
       status: (whatsappSent || emailSent) ? 'sent' : 'failed',
       sent_at: new Date().toISOString(),
