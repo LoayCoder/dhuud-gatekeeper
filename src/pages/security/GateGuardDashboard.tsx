@@ -195,7 +195,6 @@ const GateGuardDashboard = () => {
         <TabsContent value="visitors" className="space-y-4 mt-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <VisitorVerificationPanel />
-            <ActiveVisitorsList />
           </div>
         </TabsContent>
 
@@ -203,8 +202,9 @@ const GateGuardDashboard = () => {
         <TabsContent value="workers" className="space-y-4 mt-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <WorkerVerificationPanel />
-            <WorkerScanHistory />
+            <ActiveVisitorsList />
           </div>
+          <WorkerScanHistory />
         </TabsContent>
 
         {/* Gate Passes Tab */}
