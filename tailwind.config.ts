@@ -118,6 +118,15 @@ export default {
 				"0%": { backgroundPosition: "-200% 0" },
 				"100%": { backgroundPosition: "200% 0" },
 			},
+			"scan-line": {
+				"0%": { top: "0%", opacity: "1" },
+				"50%": { top: "calc(100% - 2px)", opacity: "0.5" },
+				"100%": { top: "0%", opacity: "1" },
+			},
+			"pulse-corner": {
+				"0%, 100%": { opacity: "1", transform: "scale(1)" },
+				"50%": { opacity: "0.6", transform: "scale(1.05)" },
+			},
 		},
 		animation: {
 			"accordion-down": "accordion-down 0.2s ease-out",
@@ -125,6 +134,8 @@ export default {
 			"chart-fade-in": "chart-fade-in 0.5s ease-out",
 			"chart-slide-up": "chart-slide-up 0.4s ease-out",
 			shimmer: "shimmer 1.5s ease-in-out infinite",
+			"scan-line": "scan-line 2s ease-in-out infinite",
+			"pulse-corner": "pulse-corner 1.5s ease-in-out infinite",
 		},
     },
   },
