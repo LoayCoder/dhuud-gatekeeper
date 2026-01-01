@@ -2321,7 +2321,14 @@
       "wrongTypeWorker": "هذا رمز QR لعامل. يرجى التبديل إلى علامة تبويب العمال.",
       "wrongTypeVisitor": "هذا رمز QR لزائر. يرجى التبديل إلى علامة تبويب الزوار.",
       "expectedWorkerQR": "امسح رمز QR للعامل",
-      "expectedVisitorQR": "امسح رمز QR للزائر"
+      "expectedVisitorQR": "امسح رمز QR للزائر",
+      "qrAlreadyUsed": "تم استخدام رمز QR هذا بالفعل",
+      "used": "تم الاستخدام",
+      "usedOn": "تم الاستخدام في {{date}}",
+      "workerOnSite": "العامل موجود بالموقع",
+      "workerOnSiteDesc": "دخل هذا العامل الساعة {{time}}",
+      "verifyIdentity": "التحقق من الهوية",
+      "onSiteDuration": "في الموقع منذ {{duration}}"
     },
     "workerVerification": {
       "title": "التحقق من العامل",
@@ -2347,7 +2354,8 @@
       "qrInvalid": "لا يوجد QR صالح",
       "validUntil": "حتى",
       "logWorkerEntry": "تسجيل الدخول",
-      "logWorkerExit": "تسجيل الخروج"
+      "logWorkerExit": "تسجيل الخروج",
+      "identityVerified": "تم تأكيد التحقق من الهوية"
     },
     "contractorAccess": {
       "title": "التحكم في وصول المقاولين",

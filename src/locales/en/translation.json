@@ -2234,7 +2234,14 @@
       "wrongTypeWorker": "This is a Worker QR code. Please switch to the Worker tab.",
       "wrongTypeVisitor": "This is a Visitor QR code. Please switch to the Visitor tab.",
       "expectedWorkerQR": "Scan Worker QR Code",
-      "expectedVisitorQR": "Scan Visitor QR Code"
+      "expectedVisitorQR": "Scan Visitor QR Code",
+      "qrAlreadyUsed": "This QR code has already been used",
+      "used": "Already Used",
+      "usedOn": "Used on {{date}}",
+      "workerOnSite": "Worker Already On Site",
+      "workerOnSiteDesc": "This worker entered at {{time}}",
+      "verifyIdentity": "Verify Identity",
+      "onSiteDuration": "On site for {{duration}}"
     },
     "workerVerification": {
       "title": "Verify Worker",
@@ -2260,7 +2267,8 @@
       "qrInvalid": "No valid QR",
       "validUntil": "until",
       "logWorkerEntry": "Log Entry",
-      "logWorkerExit": "Record Exit"
+      "logWorkerExit": "Record Exit",
+      "identityVerified": "Identity verification confirmed"
     },
     "contractorAccess": {
       "title": "Contractor Access Control",

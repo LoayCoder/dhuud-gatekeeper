@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, WifiOff, Loader2, HardHat, Building2, GraduationCap, Clock, Calendar } from 'lucide-react';
+import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, WifiOff, Loader2, HardHat, Building2, GraduationCap, Clock, Calendar, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useCreateGateEntry, useRecordExit } from '@/hooks/use-gate-entries';
 import { useToast } from '@/hooks/use-toast';
-import { format, differenceInDays, isPast, isFuture, addDays } from 'date-fns';
+import { format, differenceInDays, differenceInMinutes, isPast, isFuture, addDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -40,6 +40,7 @@ interface WorkerVerificationResult {
   };
   warnings?: string[];
   entryId?: string;
+  entryTime?: string;
   isOnSite?: boolean;
 }
 
@@ -207,6 +208,7 @@ export function WorkerVerificationPanel() {
         },
         warnings: warnings.length > 0 ? warnings : undefined,
         entryId: activeEntry?.id,
+        entryTime: activeEntry?.entry_time || undefined,
         isOnSite: !!activeEntry,
       });
     } catch (error) {
@@ -282,6 +284,19 @@ export function WorkerVerificationPanel() {
       // Set search query and trigger search
       setSearchQuery(result.data?.name || result.id);
       
+      // Check if worker is already on site
+      const { data: activeEntry } = await supabase
+        .from('gate_entry_logs')
+        .select('id, entry_time')
+        .eq('tenant_id', profile?.tenant_id || '')
+        .eq('entry_type', 'worker')
+        .ilike('person_name', `%${result.data?.name || ''}%`)
+        .is('exit_time', null)
+        .is('deleted_at', null)
+        .order('entry_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
       if (result.status === 'valid') {
         // Use the data from the scan directly
         setVerificationResult({
@@ -299,6 +314,9 @@ export function WorkerVerificationPanel() {
             expiresAt: result.data?.expiresAt,
           },
           qrValidity: { isValid: true },
+          isOnSite: !!activeEntry,
+          entryId: activeEntry?.id,
+          entryTime: activeEntry?.entry_time || undefined,
         });
       } else {
         setVerificationResult({
@@ -307,6 +325,9 @@ export function WorkerVerificationPanel() {
           name: result.data?.name || result.rawCode,
           warnings: result.data?.warnings || [t('security.qrScanner.invalid', 'Invalid or expired QR code')],
           qrValidity: { isValid: false },
+          isOnSite: !!activeEntry,
+          entryId: activeEntry?.id,
+          entryTime: activeEntry?.entry_time || undefined,
         });
       }
     } else {
@@ -450,7 +471,13 @@ export function WorkerVerificationPanel() {
                         </>
                       );
                     })()}
-                    {verificationResult.isOnSite && (
+                    {verificationResult.isOnSite && verificationResult.entryTime && (
+                      <Badge variant="default" className="ms-auto bg-amber-500 hover:bg-amber-600 text-white">
+                        <Clock className="h-3 w-3 me-1" />
+                        {t('security.gateDashboard.onSite', 'On Site')} - {format(new Date(verificationResult.entryTime), 'HH:mm')}
+                      </Badge>
+                    )}
+                    {verificationResult.isOnSite && !verificationResult.entryTime && (
                       <Badge variant="secondary" className="ms-auto">
                         {t('security.gateDashboard.onSite', 'On Site')}
                       </Badge>
@@ -519,6 +546,43 @@ export function WorkerVerificationPanel() {
                           </span>
                         </p>
                       )}
+                    </div>
+                  )}
+
+                  {/* On-Site Alert with Duration */}
+                  {verificationResult.isOnSite && verificationResult.entryTime && (
+                    <div className="mt-3 p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700">
+                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                        <AlertTriangle className="h-5 w-5 shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">
+                            {t('security.qrScanner.workerOnSite', 'Worker Already On Site')}
+                          </p>
+                          <p className="text-xs mt-0.5">
+                            {t('security.qrScanner.workerOnSiteDesc', 'This worker entered at {{time}}', { 
+                              time: format(new Date(verificationResult.entryTime), 'HH:mm') 
+                            })}
+                            {' • '}
+                            {t('security.qrScanner.onSiteDuration', 'On site for {{duration}}', {
+                              duration: `${Math.floor(differenceInMinutes(new Date(), new Date(verificationResult.entryTime)) / 60)}h ${differenceInMinutes(new Date(), new Date(verificationResult.entryTime)) % 60}m`
+                            })}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0 bg-amber-50 dark:bg-amber-900/50 border-amber-400 hover:bg-amber-200 dark:hover:bg-amber-800"
+                          onClick={() => {
+                            toast({
+                              title: t('security.qrScanner.verifyIdentity', 'Verify Identity'),
+                              description: t('security.workerVerification.identityVerified', 'Identity verification confirmed'),
+                            });
+                          }}
+                        >
+                          <ShieldCheck className="h-4 w-4 me-1" />
+                          {t('security.qrScanner.verifyIdentity', 'Verify Identity')}
+                        </Button>
+                      </div>
                     </div>
                   )}
 

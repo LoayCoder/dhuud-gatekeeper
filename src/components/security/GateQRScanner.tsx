@@ -19,7 +19,7 @@ interface GateQRScannerProps {
 export interface QRScanResult {
   type: 'visitor' | 'worker' | 'unknown';
   id?: string;
-  status: 'valid' | 'invalid' | 'expired' | 'revoked' | 'not_found';
+  status: 'valid' | 'invalid' | 'expired' | 'revoked' | 'not_found' | 'used';
   data?: {
     name?: string;
     company?: string;
@@ -27,6 +27,10 @@ export interface QRScanResult {
     inductionStatus?: string;
     expiresAt?: string;
     warnings?: string[];
+    isOnSite?: boolean;
+    entryTime?: string;
+    entryId?: string;
+    qrUsedAt?: string;
   };
   rawCode: string;
 }
@@ -202,15 +206,31 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     if (code.startsWith('VISITOR:')) {
       const visitorToken = code.replace('VISITOR:', '');
       
-      // Look up visitor by QR token
+      // Look up visitor by QR token - check if already used
       const { data: visitor } = await supabase
         .from('visitors')
-        .select('id, full_name, company_name, qr_code_token')
+        .select('id, full_name, company_name, qr_code_token, qr_used_at')
         .eq('qr_code_token', visitorToken)
         .is('deleted_at', null)
         .maybeSingle();
 
       if (visitor) {
+        // Check if QR was already used (one-time use)
+        if (visitor.qr_used_at) {
+          return {
+            type: 'visitor',
+            id: visitor.id,
+            status: 'used',
+            rawCode: code,
+            data: {
+              name: visitor.full_name,
+              company: visitor.company_name || undefined,
+              qrUsedAt: visitor.qr_used_at,
+              warnings: [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
+            },
+          };
+        }
+        
         return {
           type: 'visitor',
           id: visitor.id,
@@ -394,6 +414,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         return t('security.qrScanner.invalid', 'Invalid');
       case 'not_found':
         return t('security.qrScanner.notFound', 'Not Found');
+      case 'used':
+        return t('security.qrScanner.used', 'Already Used');
       default:
         return status;
     }

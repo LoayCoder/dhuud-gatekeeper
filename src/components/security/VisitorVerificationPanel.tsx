@@ -195,8 +195,27 @@ export function VisitorVerificationPanel() {
   };
 
   // Handle QR scan result
-  const handleQRScanResult = (result: QRScanResult) => {
+  const handleQRScanResult = async (result: QRScanResult) => {
+    // Handle one-time use QR - already used
+    if (result.status === 'used') {
+      setVerificationResult({
+        status: 'denied',
+        name: result.data?.name || result.rawCode,
+        warnings: result.data?.warnings || [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
+      });
+      setSearchQuery(result.data?.name || result.rawCode);
+      return;
+    }
+    
     if (result.status === 'valid' && result.data?.name) {
+      // Mark visitor QR as used
+      if (result.type === 'visitor' && result.id) {
+        await supabase
+          .from('visitors')
+          .update({ qr_used_at: new Date().toISOString() })
+          .eq('id', result.id);
+      }
+      
       setVerificationResult({
         status: 'granted',
         name: result.data.name,

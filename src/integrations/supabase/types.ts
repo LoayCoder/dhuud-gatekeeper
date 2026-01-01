@@ -16080,6 +16080,7 @@ export type Database = {
           phone: string | null
           preferred_language: string | null
           qr_code_token: string
+          qr_used_at: string | null
           tenant_id: string
           whatsapp_sent_at: string | null
         }
@@ -16100,6 +16101,7 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           qr_code_token?: string
+          qr_used_at?: string | null
           tenant_id: string
           whatsapp_sent_at?: string | null
         }
@@ -16120,6 +16122,7 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           qr_code_token?: string
+          qr_used_at?: string | null
           tenant_id?: string
           whatsapp_sent_at?: string | null
         }
