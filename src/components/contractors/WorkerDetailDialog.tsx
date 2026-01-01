@@ -35,7 +35,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
 
   const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
   const { data: videos = [] } = useInductionVideos();
-  const { data: projects = [] } = useContractorProjects({ companyId: worker?.company_id });
+  const { data: allProjects = [] } = useContractorProjects({ companyId: worker?.company_id });
+  // Filter to only show active projects for onboarding
+  const projects = allProjects.filter(p => p.status === 'active');
   const { data: existingQRCode, refetch: refetchQRCode } = useWorkerQRCode(worker?.id || "");
   const onboardWorker = useOnboardWorker();
 
