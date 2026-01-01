@@ -69,7 +69,22 @@ export function useOnboardWorker() {
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to onboard worker");
+      // Map technical errors to user-friendly messages
+      const errorMessage = error.message?.toLowerCase() || '';
+      
+      if (errorMessage.includes('project must be active')) {
+        toast.error("Cannot onboard: The selected project is not active. Please choose an active project.");
+      } else if (errorMessage.includes('worker must be approved')) {
+        toast.error("Cannot onboard: This worker has not been approved yet.");
+      } else if (errorMessage.includes('worker not found')) {
+        toast.error("Worker not found. Please refresh and try again.");
+      } else if (errorMessage.includes('project not found')) {
+        toast.error("Project not found. Please refresh and try again.");
+      } else if (errorMessage.includes('worker does not belong')) {
+        toast.error("This worker is not assigned to the selected project's company.");
+      } else {
+        toast.error(error.message || "Failed to onboard worker. Please try again.");
+      }
     },
   });
 }
