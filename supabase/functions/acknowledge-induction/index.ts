@@ -93,8 +93,8 @@ Deno.serve(async (req) => {
       .from('worker_inductions')
       .update({
         acknowledged_at: now,
-        acknowledgment_method: 'app_button', // Must be one of: 'whatsapp_reply', 'app_button', 'manual'
-        status: 'completed',
+        acknowledgment_method: 'app_button',
+        status: 'acknowledged',
         updated_at: now,
       })
       .eq('id', inductionId);
