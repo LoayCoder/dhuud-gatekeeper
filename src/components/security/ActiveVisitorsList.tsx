@@ -26,7 +26,7 @@ export function ActiveVisitorsList() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
-            {t('security.gateDashboard.activeVisitors', 'Active Visitors')}
+            {t('security.gateDashboard.activeWorkers', 'Active Workers')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -47,7 +47,7 @@ export function ActiveVisitorsList() {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <User className="h-4 w-4" />
-          {t('security.gateDashboard.activeVisitors', 'Active Visitors')}
+          {t('security.gateDashboard.activeWorkers', 'Active Workers')}
           <Badge variant="secondary" className="ms-auto">
             {activeVisitors.length}
           </Badge>
@@ -57,7 +57,7 @@ export function ActiveVisitorsList() {
         {activeVisitors.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>{t('security.gateDashboard.noActiveVisitors', 'No active visitors on site')}</p>
+            <p>{t('security.gateDashboard.noActiveWorkers', 'No active workers on site')}</p>
           </div>
         ) : (
           <ScrollArea className="h-[300px] pe-4">

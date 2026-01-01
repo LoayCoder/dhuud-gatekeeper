@@ -8,6 +8,10 @@
       "title": "Today's Worker Scans",
       "noScans": "No worker scans today",
       "exitedAt": "Exited"
+    },
+    "gateDashboard": {
+      "activeWorkers": "Active Workers",
+      "noActiveWorkers": "No active workers on site"
     }
   },
   "contractors": {

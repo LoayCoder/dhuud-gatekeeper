@@ -8,6 +8,10 @@
       "title": "مسح العمال اليوم",
       "noScans": "لا يوجد مسح للعمال اليوم",
       "exitedAt": "خرج"
+    },
+    "gateDashboard": {
+      "activeWorkers": "العمال النشطون",
+      "noActiveWorkers": "لا يوجد عمال نشطون في الموقع"
     }
   },
   "contractors": {
