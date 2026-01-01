@@ -7700,5 +7700,22 @@
       "rating": "Rating",
       "highRisk": "High/Critical"
     }
+  },
+  "scanner": {
+    "switchCamera": "Switch Camera",
+    "frontCamera": "Front Camera",
+    "backCamera": "Back Camera",
+    "toggleFlash": "Toggle Flash",
+    "pointAtCode": "Point camera at the code",
+    "scanning": "Scanning...",
+    "processing": "Processing...",
+    "cameraPermissionTitle": "Camera Access Required",
+    "cameraPermissionDesc": "Please allow camera access to scan codes",
+    "cameraPermissionDenied": "Camera access denied",
+    "retryCamera": "Retry",
+    "scanSuccessful": "Scan Successful",
+    "scanFailed": "Scan Failed",
+    "scannerError": "Failed to start scanner",
+    "scanCode": "Scan Code"
   }
 }

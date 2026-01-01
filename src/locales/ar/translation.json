@@ -7477,5 +7477,22 @@
       "riskReductionProgress": "تقدم تخفيض المخاطر",
       "noHazards": "لا توجد مخاطر للتحليل"
     }
+  },
+  "scanner": {
+    "switchCamera": "تبديل الكاميرا",
+    "frontCamera": "الكاميرا الأمامية",
+    "backCamera": "الكاميرا الخلفية",
+    "toggleFlash": "تشغيل/إيقاف الفلاش",
+    "pointAtCode": "وجّه الكاميرا نحو الرمز",
+    "scanning": "جاري المسح...",
+    "processing": "جاري المعالجة...",
+    "cameraPermissionTitle": "مطلوب إذن الكاميرا",
+    "cameraPermissionDesc": "يرجى السماح بالوصول للكاميرا لمسح الرموز",
+    "cameraPermissionDenied": "تم رفض الوصول للكاميرا",
+    "retryCamera": "إعادة المحاولة",
+    "scanSuccessful": "تم المسح بنجاح",
+    "scanFailed": "فشل المسح",
+    "scannerError": "فشل في تشغيل الماسح",
+    "scanCode": "مسح الرمز"
   }
 }

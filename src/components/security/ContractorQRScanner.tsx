@@ -1,9 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { QrCode, X } from 'lucide-react';
+import { QrCode } from 'lucide-react';
+import { ScannerDialog } from '@/components/ui/scanner-dialog';
 
 interface ContractorQRScannerProps {
   open: boolean;
@@ -13,93 +10,26 @@ interface ContractorQRScannerProps {
 
 export function ContractorQRScanner({ open, onOpenChange, onScan }: ContractorQRScannerProps) {
   const { t } = useTranslation();
-  const [error, setError] = useState<string | null>(null);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (open && containerRef.current) {
-      const scanner = new Html5Qrcode('qr-reader-contractor');
-      scannerRef.current = scanner;
-
-      scanner
-        .start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-          },
-          (decodedText) => {
-            // Extract contractor code from QR data
-            let code = decodedText;
-            if (decodedText.startsWith('CONTRACTOR:')) {
-              code = decodedText.replace('CONTRACTOR:', '');
-            }
-            onScan(code);
-            stopScanner();
-            onOpenChange(false);
-          },
-          () => {
-            // Ignore scan errors (no QR found in frame)
-          }
-        )
-        .catch((err) => {
-          setError(err.message || 'Failed to start camera');
-        });
-
-      return () => {
-        stopScanner();
-      };
+  const handleScan = (decodedText: string) => {
+    // Extract contractor code from QR data
+    let code = decodedText;
+    if (decodedText.startsWith('CONTRACTOR:')) {
+      code = decodedText.replace('CONTRACTOR:', '');
     }
-  }, [open]);
-
-  const stopScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current
-        .stop()
-        .catch(() => {})
-        .finally(() => {
-          scannerRef.current = null;
-        });
-    }
-  };
-
-  const handleClose = () => {
-    stopScanner();
-    onOpenChange(false);
+    onScan(code);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <QrCode className="h-5 w-5" />
-            {t('security.contractorCheck.scannerTitle')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div
-            id="qr-reader-contractor"
-            ref={containerRef}
-            className="w-full aspect-square rounded-lg overflow-hidden bg-muted"
-          />
-
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-
-          <p className="text-sm text-muted-foreground text-center">
-            {t('security.contractorCheck.scannerDescription')}
-          </p>
-
-          <Button variant="outline" className="w-full" onClick={handleClose}>
-            <X className="h-4 w-4 me-2" />
-            {t('common.cancel')}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ScannerDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      onScan={handleScan}
+      title={t('security.contractorCheck.scannerTitle', 'Scan Contractor QR')}
+      description={t('security.contractorCheck.scannerDescription', 'Point camera at contractor QR code')}
+      icon={<QrCode className="h-5 w-5 text-primary" />}
+      containerId="contractor-qr-scanner"
+      qrboxSize={{ width: 250, height: 250 }}
+    />
   );
 }
