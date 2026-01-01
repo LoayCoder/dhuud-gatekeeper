@@ -163,6 +163,15 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
   }, [stopScanning, onScanResult]);
 
   const verifyQRCode = async (code: string): Promise<QRScanResult> => {
+    // Get tenant_id for validation
+    const { data: userData } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', userData.user?.id || '')
+      .single();
+    const tenantId = profile?.tenant_id;
+    
     // Parse QR code format
     // Expected formats:
     // - WORKER:{worker_id}:{token}
@@ -177,7 +186,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
         
         // Validate worker QR via edge function
         const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
-          body: { worker_id: workerId, qr_token: token },
+          body: { worker_id: workerId, qr_token: token, tenant_id: tenantId },
         });
 
         if (error || !data?.valid) {
