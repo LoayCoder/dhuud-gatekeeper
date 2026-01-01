@@ -23,6 +23,12 @@ interface WorkerAccessResponse {
     emergency_contact_number: string | null;
     emergency_contact_name: string | null;
   };
+  tenant_branding: {
+    logo_light_url: string | null;
+    brand_color: string | null;
+    hsse_department_name: string | null;
+    hsse_department_name_ar: string | null;
+  } | null;
 }
 
 Deno.serve(async (req) => {
@@ -129,13 +135,17 @@ Deno.serve(async (req) => {
       console.error('[get-worker-access-pass] Error fetching project:', projectError);
     }
 
-    // Fetch tenant data
+    // Fetch tenant data with branding
     let tenantData: {
       name: string | null;
       visitor_hsse_instructions_ar: string | null;
       visitor_hsse_instructions_en: string | null;
       emergency_contact_number: string | null;
       emergency_contact_name: string | null;
+      logo_light_url: string | null;
+      brand_color: string | null;
+      hsse_department_name: string | null;
+      hsse_department_name_ar: string | null;
     } | null = null;
 
     if (projectData?.tenant_id) {
@@ -146,7 +156,11 @@ Deno.serve(async (req) => {
           visitor_hsse_instructions_ar,
           visitor_hsse_instructions_en,
           emergency_contact_number,
-          emergency_contact_name
+          emergency_contact_name,
+          logo_light_url,
+          brand_color,
+          hsse_department_name,
+          hsse_department_name_ar
         `)
         .eq('id', projectData.tenant_id)
         .maybeSingle();
@@ -172,6 +186,12 @@ Deno.serve(async (req) => {
         emergency_contact_number: tenantData?.emergency_contact_number || null,
         emergency_contact_name: tenantData?.emergency_contact_name || null,
       },
+      tenant_branding: tenantData ? {
+        logo_light_url: tenantData.logo_light_url || null,
+        brand_color: tenantData.brand_color || null,
+        hsse_department_name: tenantData.hsse_department_name || null,
+        hsse_department_name_ar: tenantData.hsse_department_name_ar || null,
+      } : null,
     };
 
     console.log('[get-worker-access-pass] Successfully fetched access pass for:', workerData?.full_name);

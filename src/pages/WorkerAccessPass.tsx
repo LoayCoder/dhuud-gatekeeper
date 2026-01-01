@@ -37,6 +37,12 @@ interface WorkerAccessData {
     emergency_contact_number: string | null;
     emergency_contact_name: string | null;
   };
+  tenant_branding?: {
+    logo_light_url: string | null;
+    brand_color: string | null;
+    hsse_department_name: string | null;
+    hsse_department_name_ar: string | null;
+  } | null;
 }
 
 export default function WorkerAccessPass() {
@@ -103,26 +109,56 @@ export default function WorkerAccessPass() {
   const isActive = !accessData.is_revoked && !isExpired;
   const worker = accessData.worker;
   const project = accessData.project;
+  const branding = accessData.tenant_branding;
 
   const hsseInstructions = isRTL 
     ? project.hsse_instructions_ar || project.hsse_instructions_en
     : project.hsse_instructions_en || project.hsse_instructions_ar;
 
+  // Get HSSE department name
+  const getHsseDeptName = () => {
+    if (isRTL) {
+      return branding?.hsse_department_name_ar || branding?.hsse_department_name || 'قسم الصحة والسلامة';
+    }
+    return branding?.hsse_department_name || 'HSSE Department';
+  };
+
   // QR code value format for gate scanner
   const qrValue = `WORKER:${accessData.qr_token}`;
+
+  // Dynamic header color based on brand color
+  const headerStyle = branding?.brand_color ? {
+    backgroundColor: branding.brand_color,
+  } : {};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background p-4" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-md mx-auto space-y-4">
         {/* Header Card with QR */}
         <Card className="overflow-hidden">
-          <div className="bg-primary text-primary-foreground p-4 text-center">
-            <HardHat className="h-8 w-8 mx-auto mb-2" />
+          <div 
+            className="bg-primary text-primary-foreground p-4 text-center"
+            style={headerStyle}
+          >
+            {/* Tenant Logo */}
+            {branding?.logo_light_url ? (
+              <img 
+                src={branding.logo_light_url} 
+                alt={project.tenant_name || 'Company'} 
+                className="h-12 mx-auto mb-2 object-contain"
+              />
+            ) : (
+              <HardHat className="h-8 w-8 mx-auto mb-2" />
+            )}
             <h1 className="text-xl font-bold">
               {isRTL ? 'تصريح دخول العامل' : 'Worker Access Pass'}
             </h1>
             <p className="text-primary-foreground/80 text-sm">
               {project.tenant_name || (isRTL ? 'المنشأة' : 'Facility')}
+            </p>
+            {/* HSSE Department Name */}
+            <p className="text-primary-foreground/70 text-xs mt-1">
+              {getHsseDeptName()}
             </p>
           </div>
           

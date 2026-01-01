@@ -44,7 +44,13 @@ Deno.serve(async (req) => {
         video_id,
         project_id,
         tenant_id,
-        worker:contractor_workers(full_name)
+        worker:contractor_workers(
+          id,
+          full_name,
+          phone_number,
+          email,
+          approval_status
+        )
       `)
       .eq('id', inductionId)
       .is('deleted_at', null)
@@ -81,6 +87,7 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date().toISOString();
+    const worker = induction.worker as any;
 
     // Update induction record
     const { error: updateError } = await supabase
@@ -102,7 +109,6 @@ Deno.serve(async (req) => {
     }
 
     // Log to audit table
-    const worker = induction.worker as any;
     await supabase.from('contractor_module_audit_logs').insert({
       tenant_id: induction.tenant_id,
       entity_type: 'worker_induction',
@@ -119,11 +125,112 @@ Deno.serve(async (req) => {
 
     console.log('[AcknowledgeInduction] Success for worker:', worker?.full_name);
 
+    // Generate QR code and send ID card
+    let idCardResult: { success: boolean; qr_token?: string; id_card_url?: string; error?: string } = { success: false };
+    
+    // Only generate ID card for approved workers
+    if (worker?.approval_status === 'approved') {
+      try {
+        console.log('[AcknowledgeInduction] Generating QR code for approved worker:', worker.id);
+        
+        // Generate worker QR code
+        const { data: qrData, error: qrError } = await supabase
+          .from('worker_qr_codes')
+          .select('qr_token')
+          .eq('worker_id', worker.id)
+          .eq('project_id', induction.project_id)
+          .eq('is_revoked', false)
+          .is('deleted_at', null)
+          .gte('valid_until', now)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        let qrToken = qrData?.qr_token;
+
+        // If no valid QR exists, create one
+        if (!qrToken) {
+          const validDays = 30; // Default validity
+          const validUntil = new Date();
+          validUntil.setDate(validUntil.getDate() + validDays);
+
+          const { data: newQr, error: createQrError } = await supabase
+            .from('worker_qr_codes')
+            .insert({
+              worker_id: worker.id,
+              project_id: induction.project_id,
+              tenant_id: induction.tenant_id,
+              valid_until: validUntil.toISOString(),
+              is_revoked: false,
+            })
+            .select('qr_token')
+            .single();
+
+          if (createQrError) {
+            console.error('[AcknowledgeInduction] QR creation error:', createQrError);
+          } else {
+            qrToken = newQr?.qr_token;
+            console.log('[AcknowledgeInduction] Created new QR token:', qrToken);
+
+            // Log QR generation
+            await supabase.from('contractor_module_audit_logs').insert({
+              tenant_id: induction.tenant_id,
+              entity_type: 'worker_qr_code',
+              entity_id: worker.id,
+              action: 'qr_generated_post_induction',
+              new_value: {
+                qr_token: qrToken,
+                project_id: induction.project_id,
+                induction_id: inductionId,
+                generated_at: now,
+              },
+            });
+          }
+        }
+
+        if (qrToken) {
+          const idCardUrl = `https://www.dhuud.com/worker-access/${qrToken}`;
+          idCardResult = { success: true, qr_token: qrToken, id_card_url: idCardUrl };
+          
+          console.log('[AcknowledgeInduction] ID card URL:', idCardUrl);
+
+          // Send ID card via edge function
+          try {
+            const { error: sendError } = await supabase.functions.invoke('send-worker-id-card', {
+              body: {
+                worker_id: worker.id,
+                project_id: induction.project_id,
+                qr_token: qrToken,
+                tenant_id: induction.tenant_id,
+              }
+            });
+
+            if (sendError) {
+              console.error('[AcknowledgeInduction] Send ID card error:', sendError);
+            } else {
+              console.log('[AcknowledgeInduction] ID card sent successfully');
+            }
+          } catch (sendErr) {
+            console.error('[AcknowledgeInduction] Failed to invoke send-worker-id-card:', sendErr);
+          }
+        }
+      } catch (qrErr) {
+        console.error('[AcknowledgeInduction] QR generation error:', qrErr);
+        idCardResult.error = qrErr instanceof Error ? qrErr.message : 'Failed to generate ID card';
+      }
+    } else {
+      console.log('[AcknowledgeInduction] Worker not approved, skipping ID card generation');
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Induction acknowledged successfully',
         acknowledged_at: now,
+        id_card: idCardResult.success ? {
+          url: idCardResult.id_card_url,
+          qr_token: idCardResult.qr_token,
+        } : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

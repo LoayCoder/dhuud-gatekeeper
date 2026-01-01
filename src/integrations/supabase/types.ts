@@ -15422,6 +15422,8 @@ export type Database = {
           favicon_url: string | null
           glass_break_active: boolean | null
           glass_break_expires_at: string | null
+          hsse_department_name: string | null
+          hsse_department_name_ar: string | null
           id: string
           industry: string | null
           last_security_scan_at: string | null
@@ -15478,6 +15480,8 @@ export type Database = {
           favicon_url?: string | null
           glass_break_active?: boolean | null
           glass_break_expires_at?: string | null
+          hsse_department_name?: string | null
+          hsse_department_name_ar?: string | null
           id?: string
           industry?: string | null
           last_security_scan_at?: string | null
@@ -15534,6 +15538,8 @@ export type Database = {
           favicon_url?: string | null
           glass_break_active?: boolean | null
           glass_break_expires_at?: string | null
+          hsse_department_name?: string | null
+          hsse_department_name_ar?: string | null
           id?: string
           industry?: string | null
           last_security_scan_at?: string | null

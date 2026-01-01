@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageLoader } from '@/components/ui/page-loader';
-import { CheckCircle2, AlertCircle, Play, Clock, Building2, User } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Play, Clock, Building2, User, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface InductionData {
@@ -21,6 +21,23 @@ interface InductionData {
   expires_at: string;
   acknowledged_at?: string;
   language: string;
+  // Tenant branding
+  tenant_name?: string;
+  tenant_logo_url?: string;
+  brand_color?: string;
+  hsse_department_name?: string;
+  hsse_department_name_ar?: string;
+}
+
+interface AcknowledgeResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  acknowledged_at?: string;
+  id_card?: {
+    url: string;
+    qr_token: string;
+  } | null;
 }
 
 export default function WorkerInduction() {
@@ -32,6 +49,7 @@ export default function WorkerInduction() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [success, setSuccess] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
+  const [idCardUrl, setIdCardUrl] = useState<string | null>(null);
 
   // Detect language from induction data or browser
   const isArabic = inductionData?.language === 'ar' || 
@@ -79,15 +97,20 @@ export default function WorkerInduction() {
     try {
       setSubmitting(true);
       
-      const { data, error: ackError } = await supabase.functions.invoke('acknowledge-induction', {
+      const { data, error: ackError } = await supabase.functions.invoke<AcknowledgeResponse>('acknowledge-induction', {
         body: { inductionId }
       });
 
       if (ackError) throw ackError;
       
-      if (data.error) {
+      if (data?.error) {
         setError(data.error);
         return;
+      }
+
+      // Check if ID card was generated
+      if (data?.id_card?.url) {
+        setIdCardUrl(data.id_card.url);
       }
 
       setSuccess(true);
@@ -122,6 +145,19 @@ export default function WorkerInduction() {
     return isArabic ? `${mins} دقيقة` : `${mins} min`;
   };
 
+  // Get HSSE department name based on language
+  const getHsseDeptName = () => {
+    if (isArabic) {
+      return inductionData?.hsse_department_name_ar || inductionData?.hsse_department_name || 'قسم الصحة والسلامة';
+    }
+    return inductionData?.hsse_department_name || 'HSSE Department';
+  };
+
+  // Apply brand color if available
+  const brandStyle = inductionData?.brand_color ? {
+    '--brand-color': inductionData.brand_color,
+  } as React.CSSProperties : {};
+
   if (loading) {
     return <PageLoader />;
   }
@@ -146,6 +182,19 @@ export default function WorkerInduction() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md">
+          {/* Tenant Branding Header */}
+          {inductionData?.tenant_logo_url && (
+            <div 
+              className="p-4 text-center border-b"
+              style={inductionData?.brand_color ? { backgroundColor: `${inductionData.brand_color}10` } : {}}
+            >
+              <img 
+                src={inductionData.tenant_logo_url} 
+                alt={inductionData.tenant_name || 'Company'} 
+                className="h-12 mx-auto object-contain"
+              />
+            </div>
+          )}
           <CardContent className="pt-6 text-center">
             <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -168,6 +217,34 @@ export default function WorkerInduction() {
                 </p>
               )}
             </div>
+
+            {/* ID Card notification */}
+            {idCardUrl && (
+              <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <p className="text-sm text-foreground mb-3">
+                  {isArabic 
+                    ? '🆔 تم إرسال بطاقة الهوية الخاصة بك عبر WhatsApp/البريد الإلكتروني'
+                    : '🆔 Your ID Card has been sent via WhatsApp/Email'}
+                </p>
+                <Button 
+                  variant="default" 
+                  className="w-full"
+                  onClick={() => window.open(idCardUrl, '_blank')}
+                >
+                  <ExternalLink className="w-4 h-4 me-2" />
+                  {isArabic ? 'عرض بطاقة الهوية الآن' : 'View ID Card Now'}
+                </Button>
+              </div>
+            )}
+
+            {/* No ID card message */}
+            {!idCardUrl && (
+              <p className="mt-4 text-xs text-muted-foreground">
+                {isArabic 
+                  ? 'سيتم إرسال بطاقة الهوية بعد الموافقة على طلبك'
+                  : 'ID card will be sent after your approval is confirmed'}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -195,9 +272,31 @@ export default function WorkerInduction() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-background p-4" dir={isArabic ? 'rtl' : 'ltr'} style={brandStyle}>
       <div className="max-w-2xl mx-auto space-y-4">
-        {/* Header */}
+        {/* Tenant Branding Header */}
+        {(inductionData.tenant_logo_url || inductionData.tenant_name) && (
+          <Card className="overflow-hidden">
+            <div 
+              className="p-4 text-center"
+              style={inductionData.brand_color ? { backgroundColor: `${inductionData.brand_color}15` } : {}}
+            >
+              {inductionData.tenant_logo_url && (
+                <img 
+                  src={inductionData.tenant_logo_url} 
+                  alt={inductionData.tenant_name || 'Company'} 
+                  className="h-14 mx-auto object-contain mb-2"
+                />
+              )}
+              {inductionData.tenant_name && (
+                <h1 className="text-lg font-bold text-foreground">{inductionData.tenant_name}</h1>
+              )}
+              <p className="text-sm text-muted-foreground">{getHsseDeptName()}</p>
+            </div>
+          </Card>
+        )}
+
+        {/* Induction Header */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -207,19 +306,19 @@ export default function WorkerInduction() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
-              <User className="w-4 h-4 text-muted-foreground" />
+              <User className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium">
                 {isArabic ? (inductionData.worker_name_ar || inductionData.worker_name) : inductionData.worker_name}
               </span>
             </div>
             {inductionData.project_name && (
               <div className="flex items-center gap-2 text-sm">
-                <Building2 className="w-4 h-4 text-muted-foreground" />
+                <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span>{inductionData.project_name}</span>
               </div>
             )}
             <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-muted-foreground" />
+              <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
               <span>{formatDuration(inductionData.duration_seconds)}</span>
             </div>
           </CardContent>
