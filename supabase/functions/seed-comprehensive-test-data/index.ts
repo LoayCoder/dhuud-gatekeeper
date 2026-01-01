@@ -586,7 +586,7 @@ async function seedContractors(supabase: any, tenantId: string, siteIds: string[
   }
 
   // Seed contractor projects
-  const statuses = ['planned', 'active', 'active', 'active', 'completed']
+  const statuses = ['active', 'active', 'active', 'completed', 'suspended']
   for (const project of CONTRACTOR_PROJECTS) {
     const companyId = pickRandom(companyIds)
     const siteId = siteIds.length > 0 ? pickRandom(siteIds) : null

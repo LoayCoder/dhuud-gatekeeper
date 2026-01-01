@@ -1406,7 +1406,10 @@
     "requiredFields": "Please fill all required fields",
     "type": "Type",
     "retry": "Retry",
-    "primary": "Primary"
+    "primary": "Primary",
+    "seedTestData": "Seed Test Data",
+    "seedSuccess": "Seeded {{count}} test projects",
+    "seedError": "Failed to seed test data"
   },
   "assignment": {
     "title": "Work Assignment",
