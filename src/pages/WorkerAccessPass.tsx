@@ -26,7 +26,6 @@ interface WorkerAccessData {
   created_at: string;
   worker: {
     full_name: string;
-    job_title: string | null;
     nationality: string | null;
     company_name: string | null;
   };
@@ -171,17 +170,6 @@ export default function WorkerAccessPass() {
                 </div>
               </div>
 
-              {worker.job_title && (
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <HardHat className="h-5 w-5 text-primary shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      {isRTL ? 'المسمى الوظيفي' : 'Job Title'}
-                    </p>
-                    <p className="font-medium">{worker.job_title}</p>
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                 <Building2 className="h-5 w-5 text-primary shrink-0" />
