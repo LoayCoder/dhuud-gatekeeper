@@ -20,29 +20,24 @@ import {
 import { useTranslation } from "react-i18next";
 
 interface WorkerAccessData {
-  id: string;
   qr_token: string;
   valid_until: string;
   is_revoked: boolean;
   created_at: string;
   worker: {
     full_name: string;
-    nationality: string | null;
     job_title: string | null;
-    company: {
-      company_name: string;
-    } | null;
-  } | null;
+    nationality: string | null;
+    company_name: string | null;
+  };
   project: {
     project_name: string;
-    tenant: {
-      name: string;
-      visitor_hsse_instructions_ar?: string | null;
-      visitor_hsse_instructions_en?: string | null;
-      emergency_contact_number?: string | null;
-      emergency_contact_name?: string | null;
-    } | null;
-  } | null;
+    tenant_name: string | null;
+    hsse_instructions_ar: string | null;
+    hsse_instructions_en: string | null;
+    emergency_contact_number: string | null;
+    emergency_contact_name: string | null;
+  };
 }
 
 export default function WorkerAccessPass() {
@@ -55,36 +50,15 @@ export default function WorkerAccessPass() {
     queryFn: async () => {
       if (!token) throw new Error('No token provided');
       
-      const { data, error } = await supabase
-        .from('worker_qr_codes')
-        .select(`
-          id,
-          qr_token,
-          valid_until,
-          is_revoked,
-          created_at,
-          worker:contractor_workers(
-            full_name,
-            nationality,
-            job_title,
-            company:contractor_companies(company_name)
-          ),
-          project:contractor_projects(
-            project_name,
-            tenant:tenants(
-              name,
-              visitor_hsse_instructions_ar,
-              visitor_hsse_instructions_en,
-              emergency_contact_number,
-              emergency_contact_name
-            )
-          )
-        `)
-        .eq('qr_token', token)
-        .maybeSingle();
+      // Call edge function to bypass RLS (workers are unauthenticated)
+      const { data, error } = await supabase.functions.invoke('get-worker-access-pass', {
+        body: { token }
+      });
       
       if (error) throw error;
-      return data as unknown as WorkerAccessData | null;
+      if (data?.error) throw new Error(data.error);
+      
+      return data as WorkerAccessData;
     },
     enabled: !!token,
   });
@@ -128,13 +102,12 @@ export default function WorkerAccessPass() {
 
   const isExpired = new Date(accessData.valid_until) < new Date();
   const isActive = !accessData.is_revoked && !isExpired;
-  const tenant = accessData.project?.tenant;
   const worker = accessData.worker;
   const project = accessData.project;
 
   const hsseInstructions = isRTL 
-    ? tenant?.visitor_hsse_instructions_ar || tenant?.visitor_hsse_instructions_en
-    : tenant?.visitor_hsse_instructions_en || tenant?.visitor_hsse_instructions_ar;
+    ? project.hsse_instructions_ar || project.hsse_instructions_en
+    : project.hsse_instructions_en || project.hsse_instructions_ar;
 
   // QR code value format for gate scanner
   const qrValue = `WORKER:${accessData.qr_token}`;
@@ -150,7 +123,7 @@ export default function WorkerAccessPass() {
               {isRTL ? 'تصريح دخول العامل' : 'Worker Access Pass'}
             </h1>
             <p className="text-primary-foreground/80 text-sm">
-              {tenant?.name || (isRTL ? 'المنشأة' : 'Facility')}
+              {project.tenant_name || (isRTL ? 'المنشأة' : 'Facility')}
             </p>
           </div>
           
@@ -194,11 +167,11 @@ export default function WorkerAccessPass() {
                   <p className="text-xs text-muted-foreground">
                     {isRTL ? 'اسم العامل' : 'Worker Name'}
                   </p>
-                  <p className="font-medium">{worker?.full_name || '-'}</p>
+                  <p className="font-medium">{worker.full_name}</p>
                 </div>
               </div>
 
-              {worker?.job_title && (
+              {worker.job_title && (
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   <HardHat className="h-5 w-5 text-primary shrink-0" />
                   <div>
@@ -216,7 +189,7 @@ export default function WorkerAccessPass() {
                   <p className="text-xs text-muted-foreground">
                     {isRTL ? 'الشركة' : 'Company'}
                   </p>
-                  <p className="font-medium">{worker?.company?.company_name || '-'}</p>
+                  <p className="font-medium">{worker.company_name || '-'}</p>
                 </div>
               </div>
 
@@ -226,7 +199,7 @@ export default function WorkerAccessPass() {
                   <p className="text-xs text-muted-foreground">
                     {isRTL ? 'المشروع' : 'Project'}
                   </p>
-                  <p className="font-medium">{project?.project_name || '-'}</p>
+                  <p className="font-medium">{project.project_name}</p>
                 </div>
               </div>
 
@@ -263,11 +236,11 @@ export default function WorkerAccessPass() {
         )}
 
         {/* Emergency Contact Card */}
-        {tenant?.emergency_contact_number && (
+        {project.emergency_contact_number && (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardContent className="pt-4">
               <a 
-                href={`tel:${tenant.emergency_contact_number}`}
+                href={`tel:${project.emergency_contact_number}`}
                 className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg hover:bg-destructive/20 transition-colors"
               >
                 <Phone className="h-5 w-5 text-destructive shrink-0" />
@@ -276,11 +249,11 @@ export default function WorkerAccessPass() {
                     {isRTL ? 'اتصال طوارئ' : 'Emergency Contact'}
                   </p>
                   <p className="font-bold text-destructive">
-                    {tenant.emergency_contact_number}
+                    {project.emergency_contact_number}
                   </p>
-                  {tenant.emergency_contact_name && (
+                  {project.emergency_contact_name && (
                     <p className="text-xs text-destructive/70">
-                      {tenant.emergency_contact_name}
+                      {project.emergency_contact_name}
                     </p>
                   )}
                 </div>
