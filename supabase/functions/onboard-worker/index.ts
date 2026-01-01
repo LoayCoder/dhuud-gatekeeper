@@ -1,5 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
+import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
+import { sendWaSenderMediaMessage } from "../_shared/wasender-whatsapp.ts";
+import { getRenderedTemplate } from "../_shared/template-helper.ts";
+import { generateAndUploadQR, getWorkerQRContent } from "../_shared/qr-generator.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,12 +91,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    const preferredLang = worker.preferred_language || 'ar';
+
     // ========== STEP 1: SEND INDUCTION VIDEO ==========
     console.log('[Onboard] Step 1: Sending induction video...');
 
     // Find appropriate video
     let selectedVideo: any = null;
-    const preferredLang = worker.preferred_language || 'en';
 
     if (video_id) {
       const { data: video } = await supabase
@@ -115,6 +119,7 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false });
 
       selectedVideo = videos?.find(v => v.language === preferredLang) 
+        || videos?.find(v => v.language === 'ar') 
         || videos?.find(v => v.language === 'en') 
         || videos?.[0];
     }
@@ -146,22 +151,33 @@ Deno.serve(async (req) => {
       if (!inductionError && induction) {
         inductionResult.inductionId = induction.id;
 
-        // Send WhatsApp message
+        // Try to get template first, fallback to hardcoded message
         const durationMin = Math.round((selectedVideo.duration_seconds || 0) / 60);
-        const message = getLocalizedMessage(
-          preferredLang,
-          worker.full_name,
-          project.project_name,
-          selectedVideo.title,
-          selectedVideo.video_url,
-          durationMin
-        );
+        
+        const templateResult = await getRenderedTemplate(supabase, tenantId, 'worker_induction_video', {
+          worker_name: worker.full_name,
+          project_name: project.project_name,
+          video_title: selectedVideo.title,
+          duration_min: String(durationMin),
+          video_url: selectedVideo.video_url,
+        });
+
+        const message = templateResult.found 
+          ? templateResult.content
+          : getLocalizedInductionMessage(
+              preferredLang,
+              worker.full_name,
+              project.project_name,
+              selectedVideo.title,
+              selectedVideo.video_url,
+              durationMin
+            );
 
         const whatsappResult = await sendWhatsAppText(worker.mobile_number, message);
         inductionResult.success = whatsappResult.success;
         inductionResult.error = whatsappResult.error || null;
 
-        console.log(`[Onboard] Induction sent: ${whatsappResult.success ? 'success' : 'failed'}`);
+        console.log(`[Onboard] Induction sent: ${whatsappResult.success ? 'success' : 'failed'} (template: ${templateResult.found})`);
       } else {
         console.error('Error creating induction record:', inductionError);
         inductionResult.error = 'Failed to create induction record';
@@ -217,26 +233,65 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ========== STEP 3: SEND QR CODE VIA WHATSAPP ==========
-    // Wait 30 seconds to avoid WaSender rate limit (Account Protection: 1 msg per 5 sec)
+    // ========== STEP 3: GENERATE QR IMAGE AND SEND VIA WHATSAPP ==========
+    // Wait 30 seconds to avoid WaSender rate limit
     console.log('[Onboard] Step 3: Waiting 30 seconds for WhatsApp rate limit...');
     await new Promise(resolve => setTimeout(resolve, 30000));
     
-    console.log('[Onboard] Step 3: Sending QR code to worker...');
+    console.log('[Onboard] Step 3: Generating QR image and sending to worker...');
 
-    const appUrl = Deno.env.get('APP_URL') || 'https://preview--hssa-b2b-full-bunlde.lovable.app';
-    const accessUrl = `${appUrl}/worker-access/${qrToken}`;
+    // Generate QR code image and upload to storage
+    const qrContent = getWorkerQRContent(qrToken);
+    const qrFileName = `${qrToken}.gif`;
+    
+    const qrUploadResult = await generateAndUploadQR(supabase, qrContent, qrFileName);
+    
+    let qrWhatsappResult = { success: false, error: 'QR generation failed' as string | undefined };
+    const expiryDate = validUntil.toLocaleDateString('en-GB');
 
-    const qrMessage = getQRCodeMessage(
-      preferredLang,
-      worker.full_name,
-      project.project_name,
-      accessUrl,
-      validUntil
-    );
+    if (qrUploadResult.success && qrUploadResult.publicUrl) {
+      // Get template for QR code message (used as caption)
+      const qrTemplateResult = await getRenderedTemplate(supabase, tenantId, 'worker_qr_code_access', {
+        worker_name: worker.full_name,
+        project_name: project.project_name,
+        expiry_date: expiryDate,
+      });
 
-    const qrWhatsappResult = await sendWhatsAppText(worker.mobile_number, qrMessage);
-    console.log(`[Onboard] QR code sent: ${qrWhatsappResult.success ? 'success' : 'failed'}`);
+      const qrCaption = qrTemplateResult.found 
+        ? qrTemplateResult.content
+        : getLocalizedQRCaption(preferredLang, worker.full_name, project.project_name, expiryDate);
+
+      // Send QR code as image with caption
+      const mediaResult = await sendWaSenderMediaMessage(
+        worker.mobile_number,
+        qrUploadResult.publicUrl,
+        qrCaption,
+        'image'
+      );
+      
+      qrWhatsappResult = { 
+        success: mediaResult.success, 
+        error: mediaResult.error 
+      };
+      
+      console.log(`[Onboard] QR image sent: ${mediaResult.success ? 'success' : 'failed'} (template: ${qrTemplateResult.found})`);
+    } else {
+      // Fallback: send as text with link if QR image generation fails
+      console.log('[Onboard] QR image generation failed, falling back to link...');
+      const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
+      const accessUrl = `${appUrl}/worker-access/${qrToken}`;
+      
+      const fallbackMessage = getLocalizedQRLinkMessage(
+        preferredLang, 
+        worker.full_name, 
+        project.project_name, 
+        accessUrl, 
+        validUntil
+      );
+      
+      const textResult = await sendWhatsAppText(worker.mobile_number, fallbackMessage);
+      qrWhatsappResult = { success: textResult.success, error: textResult.error };
+    }
 
     // ========== STEP 4: LOG AUDIT ==========
     await supabase.from('contractor_module_audit_logs').insert({
@@ -251,6 +306,7 @@ Deno.serve(async (req) => {
         induction_id: inductionResult.inductionId,
         induction_sent: inductionResult.success,
         qr_code_sent: qrWhatsappResult.success,
+        qr_image_url: qrUploadResult.publicUrl,
         video_id: selectedVideo?.id,
       },
     });
@@ -267,6 +323,7 @@ Deno.serve(async (req) => {
         qr_token: qrToken,
         qr_valid_from: validFrom.toISOString(),
         qr_valid_until: validUntil.toISOString(),
+        qr_image_url: qrUploadResult.publicUrl,
         // Induction data
         induction_sent: inductionResult.success,
         induction_id: inductionResult.inductionId,
@@ -285,7 +342,9 @@ Deno.serve(async (req) => {
   }
 });
 
-function getLocalizedMessage(
+// Fallback message functions when templates are not found
+
+function getLocalizedInductionMessage(
   language: string,
   workerName: string,
   projectName: string,
@@ -294,17 +353,34 @@ function getLocalizedMessage(
   durationMin: number
 ): string {
   const messages: Record<string, string> = {
-    ar: `مرحباً ${workerName}،\n\nمطلوب منك إكمال فيديو السلامة التالي قبل بدء العمل في مشروع ${projectName}:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} دقيقة\n🔗 ${videoUrl}\n\nيرجى مشاهدة الفيديو والموافقة على شروط السلامة.`,
-    ur: `السلام علیکم ${workerName}،\n\nآپ کو ${projectName} پروجیکٹ میں کام شروع کرنے سے پہلے درج ذیل حفاظتی ویڈیو مکمل کرنی ہوگی:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} منٹ\n🔗 ${videoUrl}\n\nبراہ کرم ویڈیو دیکھیں اور حفاظتی شرائط سے اتفاق کریں۔`,
-    hi: `नमस्ते ${workerName},\n\n${projectName} प्रोजेक्ट में काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरा करना होगा:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} मिनट\n🔗 ${videoUrl}\n\nकृपया वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
-    fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang sumusunod na safety video bago magsimula ng trabaho sa ${projectName} project:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} minuto\n🔗 ${videoUrl}\n\nMangyaring panoorin ang video at sumang-ayon sa mga safety terms.`,
-    en: `Hello ${workerName},\n\nYou are required to complete the following safety induction video before starting work on ${projectName} project:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} min\n🔗 ${videoUrl}\n\nPlease watch the video and acknowledge the safety terms.`,
+    ar: `مرحباً ${workerName}،\n\nمطلوب منك إكمال فيديو السلامة التالي قبل بدء العمل في مشروع ${projectName}:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} دقيقة\n🔗 ${videoUrl}\n\nيرجى مشاهدة الفيديو والموافقة على شروط السلامة.`,
+    ur: `السلام علیکم ${workerName}،\n\nآپ کو ${projectName} پروجیکٹ میں کام شروع کرنے سے پہلے درج ذیل حفاظتی ویڈیو مکمل کرنی ہوگی:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} منٹ\n🔗 ${videoUrl}\n\nبراہ کرم ویڈیو دیکھیں اور حفاظتی شرائط سے اتفاق کریں۔`,
+    hi: `नमस्ते ${workerName},\n\n${projectName} प्रोजेक्ट में काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरा करना होगा:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} मिनट\n🔗 ${videoUrl}\n\nकृपया वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
+    fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang sumusunod na safety video bago magsimula ng trabaho sa ${projectName} project:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} minuto\n🔗 ${videoUrl}\n\nMangyaring panoorin ang video at sumang-ayon sa mga safety terms.`,
+    en: `Hello ${workerName},\n\nYou are required to complete the following safety induction video before starting work on ${projectName} project:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} min\n🔗 ${videoUrl}\n\nPlease watch the video and acknowledge the safety terms.`,
   };
 
-  return messages[language] || messages.en;
+  return messages[language] || messages.ar;
 }
 
-function getQRCodeMessage(
+function getLocalizedQRCaption(
+  language: string,
+  workerName: string,
+  projectName: string,
+  expiryDate: string
+): string {
+  const messages: Record<string, string> = {
+    ar: `✅ ${workerName}، تم إنشاء رمز QR الخاص بك!\n\n🏗️ المشروع: ${projectName}\n📅 صالح حتى: ${expiryDate}\n\n📱 أظهر رمز QR هذا عند البوابة للدخول.`,
+    ur: `✅ ${workerName}، آپ کا QR کوڈ تیار ہے!\n\n🏗️ پروجیکٹ: ${projectName}\n📅 درست ہے تک: ${expiryDate}\n\n📱 گیٹ پر داخلے کے لیے یہ QR کوڈ دکھائیں۔`,
+    hi: `✅ ${workerName}, आपका QR कोड तैयार है!\n\n🏗️ प्रोजेक्ट: ${projectName}\n📅 वैध तक: ${expiryDate}\n\n📱 गेट पर प्रवेश के लिए यह QR कोड दिखाएं।`,
+    fil: `✅ ${workerName}, handa na ang iyong QR code!\n\n🏗️ Proyekto: ${projectName}\n📅 Valid hanggang: ${expiryDate}\n\n📱 Ipakita ang QR code na ito sa gate para sa pagpasok.`,
+    en: `✅ ${workerName}, your QR code is ready!\n\n🏗️ Project: ${projectName}\n📅 Valid until: ${expiryDate}\n\n📱 Show this QR code at the gate for entry.`,
+  };
+
+  return messages[language] || messages.ar;
+}
+
+function getLocalizedQRLinkMessage(
   language: string,
   workerName: string,
   projectName: string,
@@ -321,5 +397,5 @@ function getQRCodeMessage(
     en: `✅ ${workerName}, your QR code is ready!\n\n🏗️ Project: ${projectName}\n\n🔑 Site Access Link:\n${accessUrl}\n\n📅 Valid until: ${expiryDate}\n\n📱 Open the link and show the QR code at the gate for entry.`,
   };
 
-  return messages[language] || messages.en;
+  return messages[language] || messages.ar;
 }
