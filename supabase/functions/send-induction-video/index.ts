@@ -7,9 +7,21 @@ const corsHeaders = {
 };
 
 interface InductionRequest {
-  worker_id: string;
-  project_id: string;
-  tenant_id: string;
+  // Support both camelCase (frontend) and snake_case formats
+  workerId?: string;
+  worker_id?: string;
+  videoId?: string;
+  video_id?: string;
+  projectId?: string;
+  project_id?: string;
+  tenantId?: string;
+  tenant_id?: string;
+  inductionId?: string;
+  induction_id?: string;
+  mobileNumber?: string;
+  mobile_number?: string;
+  language?: string;
+  isResend?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -22,11 +34,22 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { worker_id, project_id, tenant_id }: InductionRequest = await req.json();
+    const body: InductionRequest = await req.json();
 
-    if (!worker_id || !project_id || !tenant_id) {
+    // Normalize field names (support both camelCase and snake_case)
+    const workerId = body.workerId || body.worker_id;
+    const videoId = body.videoId || body.video_id;
+    const projectId = body.projectId || body.project_id;
+    let tenantId = body.tenantId || body.tenant_id;
+    const inductionId = body.inductionId || body.induction_id;
+    const mobileNumber = body.mobileNumber || body.mobile_number;
+    const language = body.language;
+
+    console.log('[Induction] Request received:', { workerId, videoId, projectId, tenantId, inductionId, mobileNumber, language });
+
+    if (!workerId) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required field: workerId' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -34,8 +57,8 @@ Deno.serve(async (req) => {
     // Get worker details
     const { data: worker, error: workerError } = await supabase
       .from('contractor_workers')
-      .select('full_name, mobile_number, preferred_language, approval_status')
-      .eq('id', worker_id)
+      .select('id, full_name, mobile_number, preferred_language, approval_status, tenant_id')
+      .eq('id', workerId)
       .single();
 
     if (workerError || !worker) {
@@ -46,6 +69,11 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Use worker's tenant_id if not provided
+    if (!tenantId) {
+      tenantId = worker.tenant_id;
+    }
+
     if (worker.approval_status !== 'approved') {
       return new Response(
         JSON.stringify({ error: 'Worker must be approved before sending induction' }),
@@ -53,38 +81,75 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get project details
-    const { data: project, error: projectError } = await supabase
-      .from('contractor_projects')
-      .select('project_name, site_id')
-      .eq('id', project_id)
-      .single();
+    // Determine which video(s) to send
+    let selectedVideos: any[] = [];
+    const preferredLang = language || worker.preferred_language || 'en';
+    let projectName = 'General';
 
-    if (projectError || !project) {
-      console.error('Project not found:', projectError);
-      return new Response(
-        JSON.stringify({ error: 'Project not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (videoId) {
+      // Specific video requested
+      const { data: video, error: videoError } = await supabase
+        .from('induction_videos')
+        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .eq('id', videoId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .single();
 
-    // Find appropriate induction video based on worker's preferred language
-    const { data: videos } = await supabase
-      .from('induction_videos')
-      .select('id, title, video_url, language, duration_minutes, is_mandatory')
-      .eq('tenant_id', tenant_id)
-      .eq('is_active', true)
-      .eq('is_deleted', false)
-      .or(`project_id.eq.${project_id},site_id.eq.${project.site_id},and(project_id.is.null,site_id.is.null)`)
-      .order('is_mandatory', { ascending: false });
+      if (videoError || !video) {
+        console.error('Video not found:', videoError);
+        return new Response(
+          JSON.stringify({ error: 'Induction video not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      selectedVideos = [video];
+    } else if (projectId) {
+      // Get project details and find appropriate videos
+      const { data: project, error: projectError } = await supabase
+        .from('contractor_projects')
+        .select('project_name, site_id')
+        .eq('id', projectId)
+        .single();
 
-    // Filter videos by worker's preferred language, fallback to English
-    const preferredLang = worker.preferred_language || 'en';
-    let selectedVideos = videos?.filter(v => v.language === preferredLang) || [];
-    if (selectedVideos.length === 0) {
-      selectedVideos = videos?.filter(v => v.language === 'en') || [];
-    }
-    if (selectedVideos.length === 0) {
+      if (projectError || !project) {
+        console.error('Project not found:', projectError);
+        return new Response(
+          JSON.stringify({ error: 'Project not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      projectName = project.project_name;
+
+      // Find appropriate induction video based on worker's preferred language
+      const { data: videos } = await supabase
+        .from('induction_videos')
+        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      // Filter videos by worker's preferred language, fallback to English
+      selectedVideos = videos?.filter(v => v.language === preferredLang) || [];
+      if (selectedVideos.length === 0) {
+        selectedVideos = videos?.filter(v => v.language === 'en') || [];
+      }
+      if (selectedVideos.length === 0) {
+        selectedVideos = videos || [];
+      }
+    } else {
+      // No video or project specified, get first available video
+      const { data: videos } = await supabase
+        .from('induction_videos')
+        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
       selectedVideos = videos || [];
     }
 
@@ -95,66 +160,100 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate expiry date (90 days from now)
+    // Calculate expiry date based on video's valid_for_days or default to 365
+    const video = selectedVideos[0];
+    const validForDays = video.valid_for_days || 365;
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 90);
+    expiresAt.setDate(expiresAt.getDate() + validForDays);
 
-    // Create induction records for each required video
-    const inductionRecords = [];
-    for (const video of selectedVideos) {
-      const { data: induction, error: inductionError } = await supabase
+    // Create or update induction record (if not already created by frontend)
+    let inductionRecordId = inductionId;
+    
+    if (!inductionId) {
+      // Check if induction record already exists
+      const { data: existingInduction } = await supabase
         .from('worker_inductions')
-        .insert({
-          worker_id,
-          project_id,
-          video_id: video.id,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          sent_via: 'whatsapp',
-          expires_at: expiresAt.toISOString(),
-          tenant_id,
-        })
-        .select()
+        .select('id')
+        .eq('worker_id', workerId)
+        .eq('video_id', video.id)
+        .is('deleted_at', null)
         .single();
 
-      if (inductionError) {
-        console.error('Error creating induction record:', inductionError);
-        continue;
-      }
+      if (existingInduction) {
+        inductionRecordId = existingInduction.id;
+        // Update status
+        await supabase
+          .from('worker_inductions')
+          .update({ 
+            status: 'sent', 
+            sent_at: new Date().toISOString(),
+            sent_via: 'whatsapp'
+          })
+          .eq('id', inductionRecordId);
+      } else {
+        // Create new induction record
+        const { data: newInduction, error: insertError } = await supabase
+          .from('worker_inductions')
+          .insert({
+            worker_id: workerId,
+            project_id: projectId || null,
+            video_id: video.id,
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+            sent_via: 'whatsapp',
+            expires_at: expiresAt.toISOString(),
+            tenant_id: tenantId,
+          })
+          .select('id')
+          .single();
 
-      inductionRecords.push({
-        induction_id: induction.id,
-        video_title: video.title,
-        video_url: video.video_url,
-        duration_minutes: video.duration_minutes,
-        is_mandatory: video.is_mandatory,
-      });
+        if (insertError) {
+          console.error('Error creating induction record:', insertError);
+        } else {
+          inductionRecordId = newInduction?.id;
+        }
+      }
+    } else {
+      // Update existing induction record
+      await supabase
+        .from('worker_inductions')
+        .update({ 
+          status: 'sent', 
+          sent_at: new Date().toISOString(),
+          sent_via: 'whatsapp'
+        })
+        .eq('id', inductionId);
     }
 
-    // Generate WhatsApp message with video links
-    const videoLinks = inductionRecords
-      .map((r, i) => `${i + 1}. ${r.video_title} (${r.duration_minutes} min)\n${r.video_url}`)
-      .join('\n\n');
-
-    const whatsappMessage = getLocalizedMessage(preferredLang, worker.full_name, project.project_name, videoLinks);
+    // Generate WhatsApp message
+    const durationMin = Math.round((video.duration_seconds || 0) / 60);
+    const whatsappMessage = getLocalizedMessage(
+      preferredLang, 
+      worker.full_name, 
+      projectName, 
+      video.title,
+      video.video_url,
+      durationMin
+    );
 
     // Send via active WhatsApp provider
+    const workerMobile = mobileNumber || worker.mobile_number;
     const activeProvider = getActiveProvider();
-    console.log(`[Induction] Using provider: ${activeProvider}`);
+    console.log(`[Induction] Using provider: ${activeProvider}, sending to: ${workerMobile}`);
     
-    const result = await sendWhatsAppText(worker.mobile_number, whatsappMessage);
+    const result = await sendWhatsAppText(workerMobile, whatsappMessage);
 
     // Log the induction send
     await supabase.from('contractor_module_audit_logs').insert({
-      tenant_id,
+      tenant_id: tenantId,
       entity_type: 'worker_induction',
-      entity_id: worker_id,
-      action: 'induction_videos_sent',
+      entity_id: workerId,
+      action: 'induction_video_sent',
       new_value: {
-        project_id,
-        videos_sent: inductionRecords.length,
+        video_id: video.id,
+        project_id: projectId,
         preferred_language: preferredLang,
-        mobile_number: worker.mobile_number,
+        mobile_number: workerMobile,
         provider: result.provider,
         provider_success: result.success,
         provider_message_id: result.messageId,
@@ -162,7 +261,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(`[Induction] Videos sent to ${worker.full_name} (${worker.mobile_number}) for project ${project.project_name} - ${result.provider} success: ${result.success}`);
+    console.log(`[Induction] Video sent to ${worker.full_name} (${workerMobile}) - ${result.provider} success: ${result.success}`);
 
     if (!result.success) {
       return new Response(
@@ -170,11 +269,10 @@ Deno.serve(async (req) => {
           success: false,
           error: result.error,
           provider: result.provider,
-          message: `Failed to send WhatsApp message to ${worker.mobile_number}`,
+          message: `Failed to send WhatsApp message to ${workerMobile}`,
           worker_name: worker.full_name,
-          project_name: project.project_name,
-          videos_prepared: inductionRecords.length,
-          induction_records: inductionRecords,
+          video_title: video.title,
+          induction_id: inductionRecordId,
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -185,31 +283,38 @@ Deno.serve(async (req) => {
         success: true,
         message_id: result.messageId,
         provider: result.provider,
-        message: `Induction videos sent to ${worker.mobile_number}`,
+        message: `Induction video sent to ${workerMobile}`,
         worker_name: worker.full_name,
-        project_name: project.project_name,
-        videos_sent: inductionRecords.length,
-        induction_records: inductionRecords,
+        video_title: video.title,
+        induction_id: inductionRecordId,
         expires_at: expiresAt.toISOString(),
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error sending induction video:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-function getLocalizedMessage(language: string, workerName: string, projectName: string, videoLinks: string): string {
+function getLocalizedMessage(
+  language: string, 
+  workerName: string, 
+  projectName: string, 
+  videoTitle: string,
+  videoUrl: string,
+  durationMin: number
+): string {
   const messages: Record<string, string> = {
-    ar: `مرحباً ${workerName}،\n\nمطلوب منك إكمال فيديوهات السلامة التالية قبل بدء العمل في مشروع ${projectName}:\n\n${videoLinks}\n\nيرجى مشاهدة جميع الفيديوهات والموافقة على شروط السلامة.`,
-    ur: `السلام علیکم ${workerName}،\n\nآپ کو ${projectName} پروجیکٹ میں کام شروع کرنے سے پہلے درج ذیل حفاظتی ویڈیوز مکمل کرنی ہوں گی:\n\n${videoLinks}\n\nبراہ کرم تمام ویڈیوز دیکھیں اور حفاظتی شرائط سے اتفاق کریں۔`,
-    hi: `नमस्ते ${workerName},\n\n${projectName} प्रोजेक्ट में काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरे करने होंगे:\n\n${videoLinks}\n\nकृपया सभी वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
-    fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang mga sumusunod na safety video bago magsimula ng trabaho sa ${projectName} project:\n\n${videoLinks}\n\nMangyaring panoorin ang lahat ng video at sumang-ayon sa mga safety terms.`,
-    en: `Hello ${workerName},\n\nYou are required to complete the following safety induction videos before starting work on ${projectName} project:\n\n${videoLinks}\n\nPlease watch all videos and acknowledge the safety terms.`,
+    ar: `مرحباً ${workerName}،\n\nمطلوب منك إكمال فيديو السلامة التالي قبل بدء العمل${projectName !== 'General' ? ` في مشروع ${projectName}` : ''}:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} دقيقة\n🔗 ${videoUrl}\n\nيرجى مشاهدة الفيديو والموافقة على شروط السلامة.`,
+    ur: `السلام علیکم ${workerName}،\n\nآپ کو${projectName !== 'General' ? ` ${projectName} پروجیکٹ میں` : ''} کام شروع کرنے سے پہلے درج ذیل حفاظتی ویڈیو مکمل کرنی ہوگی:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} منٹ\n🔗 ${videoUrl}\n\nبراہ کرم ویڈیو دیکھیں اور حفاظتی شرائط سے اتفاق کریں۔`,
+    hi: `नमस्ते ${workerName},\n\n${projectName !== 'General' ? `${projectName} प्रोजेक्ट में ` : ''}काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरा करना होगा:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} मिनट\n🔗 ${videoUrl}\n\nकृपया वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
+    fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang sumusunod na safety video bago magsimula ng trabaho${projectName !== 'General' ? ` sa ${projectName} project` : ''}:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} minuto\n🔗 ${videoUrl}\n\nMangyaring panoorin ang video at sumang-ayon sa mga safety terms.`,
+    en: `Hello ${workerName},\n\nYou are required to complete the following safety induction video before starting work${projectName !== 'General' ? ` on ${projectName} project` : ''}:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} min\n🔗 ${videoUrl}\n\nPlease watch the video and acknowledge the safety terms.`,
   };
 
   return messages[language] || messages.en;
