@@ -16,6 +16,7 @@ import { useWorkerInductions } from "@/hooks/contractor-management/use-worker-in
 import { useInductionVideos } from "@/hooks/contractor-management/use-induction-videos";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
 import { useOnboardWorker } from "@/hooks/contractor-management/use-worker-onboarding";
+import { useWorkerQRCode } from "@/hooks/contractor-management/use-worker-qr-codes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   const { data: inductions = [] } = useWorkerInductions({ workerId: worker?.id });
   const { data: videos = [] } = useInductionVideos();
   const { data: projects = [] } = useContractorProjects({ companyId: worker?.company_id });
+  const { data: existingQRCode, refetch: refetchQRCode } = useWorkerQRCode(worker?.id || "");
   const onboardWorker = useOnboardWorker();
 
   // Fetch photo URL
@@ -292,7 +294,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                       )}
                     </div>
                     <Button 
-                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: selectedProjectId })}
+                      onClick={() => onboardWorker.mutate(
+                        { workerId: worker.id, projectId: selectedProjectId },
+                        { onSuccess: () => refetchQRCode() }
+                      )}
                       disabled={!selectedProjectId || onboardWorker.isPending}
                       className="w-full"
                     >
@@ -312,7 +317,12 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                     <WorkerQRCode
                       workerId={worker.id}
                       workerName={worker.full_name}
-                      qrData={null}
+                      qrData={existingQRCode ? {
+                        token: existingQRCode.qr_token,
+                        expires_at: existingQRCode.expires_at,
+                        is_active: existingQRCode.is_active,
+                        project_name: existingQRCode.project_name,
+                      } : null}
                       onGenerateQR={handleGenerateQR}
                       isGenerating={isGeneratingQR}
                       disabled={!selectedProjectId}
