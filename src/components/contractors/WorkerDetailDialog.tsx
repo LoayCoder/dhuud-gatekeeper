@@ -111,6 +111,12 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
   };
 
   const handleSendInduction = async () => {
+    // Require project selection for induction
+    if (!selectedProjectId) {
+      toast.error(t("contractors.messages.selectProjectForInduction", "Please select a project first"));
+      return;
+    }
+
     setIsSendingInduction(true);
     try {
       // Find the appropriate video for the worker's preferred language
@@ -127,6 +133,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
         body: { 
           workerId: worker.id, 
           videoId: videoToSend.id,
+          projectId: selectedProjectId,
           mobileNumber: worker.mobile_number,
           language: worker.preferred_language,
         },
@@ -403,6 +410,31 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                 <div className="text-sm text-muted-foreground">
                   {t("contractors.induction.description", "Send safety induction video to worker via WhatsApp based on their preferred language.")}
                 </div>
+                
+                {/* Project Selection for Induction */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    {t("contractors.workers.selectProjectForInduction", "Select Project")}
+                  </label>
+                  <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("contractors.workers.selectProject", "Select a project...")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.project_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {projects.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      {t("contractors.workers.noProjects", "No projects assigned to this company")}
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t("contractors.workers.preferredLanguage", "Language")}:</span>
@@ -413,7 +445,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker }: WorkerDetailD
                   <span className="text-muted-foreground">{t("contractors.workers.mobile", "Mobile")}:</span>
                   <span dir="ltr">{worker.mobile_number}</span>
                 </div>
-                <Button onClick={handleSendInduction} disabled={isSendingInduction}>
+                <Button 
+                  onClick={handleSendInduction} 
+                  disabled={isSendingInduction || !selectedProjectId}
+                >
                   <Video className={`h-4 w-4 me-2 ${isSendingInduction ? "animate-pulse" : ""}`} />
                   {latestInduction 
                     ? t("contractors.induction.resend", "Resend Induction Video")
