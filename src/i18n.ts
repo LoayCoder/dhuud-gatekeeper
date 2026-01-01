@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import translations (bundled for Zero Trust compliance)
+// Import translations (bundled for Zero Trust compliance) - v2
 import en from './locales/en/translation.json';
 import ar from './locales/ar/translation.json';
 import ur from './locales/ur/translation.json';
