@@ -178,6 +178,9 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
     }
   }, [stopScanning, onScanResult]);
 
+  // activeTab prop to determine which type of QR is expected (for type validation)
+  // This is passed via context or detected from parent - for now we detect from the code
+
   const verifyQRCode = async (code: string): Promise<QRScanResult> => {
     // Get tenant_id for validation
     const { data: userData } = await supabase.auth.getUser();
@@ -191,9 +194,65 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
     // Parse QR code format
     // Expected formats:
     // - WORKER:{qr_token} - QR token is used to look up worker
-    // - VISITOR:{visitor_id}
-    // - VIS-{reference_id}
+    // - VISITOR:{visitor_token} - Visitor token
+    // - VIS-{reference_id} - Legacy format
 
+    // Handle VISITOR: prefix - return as visitor type
+    if (code.startsWith('VISITOR:')) {
+      const visitorToken = code.replace('VISITOR:', '');
+      
+      // Look up visitor by QR token
+      const { data: visitor } = await supabase
+        .from('visitors')
+        .select('id, full_name, company_name, qr_code_token')
+        .eq('qr_code_token', visitorToken)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (visitor) {
+        return {
+          type: 'visitor',
+          id: visitor.id,
+          status: 'valid',
+          rawCode: code,
+          data: {
+            name: visitor.full_name,
+            company: visitor.company_name || undefined,
+          },
+        };
+      }
+
+      // Also check gate_entry_logs for legacy entries
+      const { data: gateEntry } = await supabase
+        .from('gate_entry_logs')
+        .select('id, person_name, purpose, destination_name, qr_code_token')
+        .eq('qr_code_token', visitorToken)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (gateEntry) {
+        return {
+          type: 'visitor',
+          id: gateEntry.id,
+          status: 'valid',
+          rawCode: code,
+          data: {
+            name: gateEntry.person_name || undefined,
+          },
+        };
+      }
+
+      return {
+        type: 'visitor',
+        status: 'not_found',
+        rawCode: code,
+        data: {
+          warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
+        },
+      };
+    }
+
+    // Handle WORKER: prefix
     if (code.startsWith('WORKER:')) {
       const parts = code.split(':');
       if (parts.length >= 2) {
@@ -240,8 +299,9 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
       }
     }
 
-    if (code.startsWith('VISITOR:') || code.startsWith('VIS-')) {
-      const visitorId = code.replace('VISITOR:', '').replace('VIS-', '');
+    // Handle legacy VIS- format
+    if (code.startsWith('VIS-')) {
+      const visitorId = code.replace('VIS-', '');
       
       // Check visitor in gate logs
       const { data: visitor } = await supabase
@@ -258,7 +318,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
           status: 'valid',
           rawCode: code,
           data: {
-            name: visitor.person_name,
+            name: visitor.person_name || undefined,
           },
         };
       }
@@ -267,6 +327,9 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
         type: 'visitor',
         status: 'not_found',
         rawCode: code,
+        data: {
+          warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
+        },
       };
     }
 

@@ -115,7 +115,7 @@ export default function VisitorPreRegistration() {
             <div className="text-center">
               <p className="font-medium mb-4">{createdVisitor.full_name}</p>
               <div className="inline-block p-4 bg-white rounded-lg">
-                <QRCodeSVG value={createdVisitor.qr_code_token} size={200} />
+                <QRCodeSVG value={`VISITOR:${createdVisitor.qr_code_token}`} size={200} />
               </div>
               <p className="text-sm text-muted-foreground mt-4">
                 {t('visitors.register.qrInstructions')}

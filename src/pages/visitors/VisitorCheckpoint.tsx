@@ -14,6 +14,7 @@ import { useVisitRequests, useCheckInVisitor, useCheckOutVisitor } from '@/hooks
 import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
 import { format } from 'date-fns';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { toast } from 'sonner';
 
 export default function VisitorCheckpoint() {
   const { t } = useTranslation();
@@ -47,7 +48,18 @@ export default function VisitorCheckpoint() {
 
     scanner.render(
       (decodedText) => {
-        setScanResult(decodedText);
+        // Reject worker QR codes - they should use Gate Scanner
+        if (decodedText.startsWith('WORKER:')) {
+          toast.error(t('visitors.checkpoint.wrongQRType', 'This is a Worker QR code. Please use the Gate Scanner for workers.'));
+          return;
+        }
+        
+        // Strip VISITOR: prefix if present, or use raw token for backward compatibility
+        const token = decodedText.startsWith('VISITOR:') 
+          ? decodedText.replace('VISITOR:', '') 
+          : decodedText;
+        
+        setScanResult(token);
         scanner.clear();
       },
       (error) => {

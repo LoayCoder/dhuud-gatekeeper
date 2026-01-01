@@ -39,7 +39,7 @@ export function VisitorDetailDialog({ visitorId, open, onOpenChange }: VisitorDe
             {/* QR Code */}
             <div className="flex justify-center">
               <div className="p-4 bg-white rounded-lg inline-block">
-                <QRCodeSVG value={visitor.qr_code_token} size={180} />
+                <QRCodeSVG value={`VISITOR:${visitor.qr_code_token}`} size={180} />
               </div>
             </div>
 
