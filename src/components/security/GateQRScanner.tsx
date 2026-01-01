@@ -174,37 +174,38 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
     
     // Parse QR code format
     // Expected formats:
-    // - WORKER:{worker_id}:{token}
+    // - WORKER:{qr_token} - QR token is used to look up worker
     // - VISITOR:{visitor_id}
     // - VIS-{reference_id}
 
     if (code.startsWith('WORKER:')) {
       const parts = code.split(':');
       if (parts.length >= 2) {
-        const workerId = parts[1];
-        const token = parts[2] || '';
+        // QR format is WORKER:{qr_token} - the qr_token is in parts[1]
+        const qrToken = parts[1];
         
-        // Validate worker QR via edge function
+        // Validate worker QR via edge function using qr_token
+        // The edge function will look up the worker by qr_token
         const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
-          body: { worker_id: workerId, qr_token: token, tenant_id: tenantId },
+          body: { qr_token: qrToken, tenant_id: tenantId },
         });
 
         if (error || !data?.valid) {
           return {
             type: 'worker',
-            id: workerId,
+            id: data?.worker_id,
             status: data?.reason === 'expired' ? 'expired' : 
                    data?.reason === 'revoked' ? 'revoked' : 'invalid',
             rawCode: code,
             data: {
-              warnings: [data?.reason || 'Invalid QR code'],
+              warnings: [data?.reason || error?.message || 'Invalid QR code'],
             },
           };
         }
 
         return {
           type: 'worker',
-          id: workerId,
+          id: data.worker_id,
           status: 'valid',
           rawCode: code,
           data: {
