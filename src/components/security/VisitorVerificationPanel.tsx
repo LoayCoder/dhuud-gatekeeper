@@ -392,6 +392,7 @@ export function VisitorVerificationPanel() {
           open={isQRScannerOpen}
           onOpenChange={setIsQRScannerOpen}
           onScanResult={handleQRScanResult}
+          expectedType="visitor"
         />
       </CardContent>
     </Card>

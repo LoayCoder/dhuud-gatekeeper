@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Html5Qrcode, Html5QrcodeResult, Html5QrcodeCameraScanConfig } from 'html5-qrcode';
-import { X, Camera, SwitchCamera, Loader2, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { X, Camera, SwitchCamera, Loader2, CheckCircle2, XCircle, AlertTriangle, User, HardHat } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ interface GateQRScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScanResult: (result: QRScanResult) => void;
+  expectedType?: 'worker' | 'visitor';
 }
 
 export interface QRScanResult {
@@ -36,7 +37,7 @@ const SCANNER_CONFIG: Html5QrcodeCameraScanConfig = {
   aspectRatio: 1.0,
 };
 
-export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScannerProps) {
+export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
@@ -414,6 +415,33 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
         </DialogHeader>
 
         <div className="relative">
+          {/* Visual indicator for expected QR type */}
+          {!scanResult && expectedType && (
+            <div className={cn(
+              "flex items-center justify-center gap-2 p-3 mx-4 mb-2 rounded-lg border",
+              expectedType === 'worker' 
+                ? "bg-orange-500/10 border-orange-500/20" 
+                : "bg-blue-500/10 border-blue-500/20"
+            )}>
+              {expectedType === 'worker' ? (
+                <HardHat className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              ) : (
+                <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              )}
+              <div className="text-center">
+                <p className={cn(
+                  "font-medium text-sm",
+                  expectedType === 'worker' ? "text-orange-600 dark:text-orange-400" : "text-blue-600 dark:text-blue-400"
+                )}>
+                  {expectedType === 'worker' 
+                    ? t('security.qrScanner.expectedWorkerQR', 'Scan Worker QR Code')
+                    : t('security.qrScanner.expectedVisitorQR', 'Scan Visitor QR Code')
+                  }
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Scanner container */}
           <div 
             id={scannerContainerId} 
