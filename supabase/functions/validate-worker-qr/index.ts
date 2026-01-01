@@ -206,9 +206,9 @@ Deno.serve(async (req) => {
           id,
           worker_id,
           project_id,
-          is_active,
           valid_from,
           valid_until,
+          is_revoked,
           revoked_at,
           revocation_reason,
           worker:contractor_workers(
@@ -249,15 +249,10 @@ Deno.serve(async (req) => {
       project = qrCode.project as any;
       company = worker?.company as any;
 
-      // Check QR code validity
-      if (!qrCode.is_active) {
+      // Check QR code validity - use is_revoked column (not is_active)
+      if (qrCode.is_revoked || qrCode.revoked_at) {
         result.is_valid = false;
-        result.errors.push('QR code is inactive');
-      }
-
-      if (qrCode.revoked_at) {
-        result.is_valid = false;
-        result.errors.push(`QR code revoked: ${qrCode.revocation_reason || 'Unknown reason'}`);
+        result.errors.push(`QR code has been revoked${qrCode.revocation_reason ? ': ' + qrCode.revocation_reason : ''}`);
       }
 
       if (qrCode.valid_from && new Date(qrCode.valid_from) > now) {
