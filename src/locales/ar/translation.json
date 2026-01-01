@@ -6020,7 +6020,8 @@
       "searchPlaceholder": "البحث بالاسم أو البريد أو الهوية",
       "noVisitors": "لم يتم العثور على زوار",
       "neverVisited": "لم يزر من قبل",
-      "viewQR": "عرض رمز QR"
+      "viewQR": "عرض رمز QR",
+      "resetQR": "إعادة تعيين رمز QR"
     },
     "fields": {
       "name": "الاسم الكامل",

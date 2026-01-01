@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, Edit } from 'lucide-react';
+import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useVisitors, useUpdateVisitor } from '@/hooks/use-visitors';
+import { useVisitors, useUpdateVisitor, useResetVisitorQR } from '@/hooks/use-visitors';
 import { useAddToBlacklist } from '@/hooks/use-security-blacklist';
 import { format } from 'date-fns';
 import { VisitorDetailDialog } from '@/components/visitors/VisitorDetailDialog';
@@ -21,6 +21,7 @@ export default function VisitorList() {
   const { data: visitors, isLoading } = useVisitors({ search: search || undefined });
   const updateVisitor = useUpdateVisitor();
   const addToBlacklist = useAddToBlacklist();
+  const resetVisitorQR = useResetVisitorQR();
 
   const handleDeactivate = async (id: string) => {
     await updateVisitor.mutateAsync({ id, is_active: false });
@@ -122,6 +123,10 @@ export default function VisitorList() {
                             <DropdownMenuItem onClick={() => setSelectedVisitorId(visitor.id)}>
                               <QrCode className="me-2 h-4 w-4" />
                               {t('visitors.list.viewQR')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => resetVisitorQR.mutate(visitor.id)}>
+                              <RefreshCw className="me-2 h-4 w-4" />
+                              {t('visitors.list.resetQR')}
                             </DropdownMenuItem>
                             {visitor.national_id && (
                               <DropdownMenuItem 

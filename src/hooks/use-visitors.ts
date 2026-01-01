@@ -129,6 +129,39 @@ export function useUpdateVisitor() {
   });
 }
 
+export function useResetVisitorQR() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Generate a new QR token and clear qr_used_at
+      const newQrToken = crypto.randomUUID();
+
+      const { data, error } = await supabase
+        .from('visitors')
+        .update({
+          qr_code_token: newQrToken,
+          qr_used_at: null,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visitors'] });
+      queryClient.invalidateQueries({ queryKey: ['visitor'] });
+      toast({ title: 'Visitor QR code reset successfully' });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to reset QR code', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
 export function useVisitorByQRToken(token: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
