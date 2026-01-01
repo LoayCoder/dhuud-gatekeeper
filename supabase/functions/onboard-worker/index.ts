@@ -217,7 +217,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ========== STEP 3: LOG AUDIT ==========
+    // ========== STEP 3: SEND QR CODE VIA WHATSAPP ==========
+    console.log('[Onboard] Step 3: Sending QR code to worker...');
+
+    const appUrl = Deno.env.get('APP_URL') || 'https://preview--hssa-b2b-full-bunlde.lovable.app';
+    const accessUrl = `${appUrl}/worker-access/${qrToken}`;
+
+    const qrMessage = getQRCodeMessage(
+      preferredLang,
+      worker.full_name,
+      project.project_name,
+      accessUrl,
+      validUntil
+    );
+
+    const qrWhatsappResult = await sendWhatsAppText(worker.mobile_number, qrMessage);
+    console.log(`[Onboard] QR code sent: ${qrWhatsappResult.success ? 'success' : 'failed'}`);
+
+    // ========== STEP 4: LOG AUDIT ==========
     await supabase.from('contractor_module_audit_logs').insert({
       tenant_id: tenantId,
       entity_type: 'worker_onboarding',
@@ -229,6 +246,7 @@ Deno.serve(async (req) => {
         qr_code_id: qrCode.id,
         induction_id: inductionResult.inductionId,
         induction_sent: inductionResult.success,
+        qr_code_sent: qrWhatsappResult.success,
         video_id: selectedVideo?.id,
       },
     });
@@ -277,6 +295,26 @@ function getLocalizedMessage(
     hi: `नमस्ते ${workerName},\n\n${projectName} प्रोजेक्ट में काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरा करना होगा:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} मिनट\n🔗 ${videoUrl}\n\nकृपया वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
     fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang sumusunod na safety video bago magsimula ng trabaho sa ${projectName} project:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} minuto\n🔗 ${videoUrl}\n\nMangyaring panoorin ang video at sumang-ayon sa mga safety terms.`,
     en: `Hello ${workerName},\n\nYou are required to complete the following safety induction video before starting work on ${projectName} project:\n\n📹 ${videoTitle}\n⏱️ ${durationMin} min\n🔗 ${videoUrl}\n\nPlease watch the video and acknowledge the safety terms.`,
+  };
+
+  return messages[language] || messages.en;
+}
+
+function getQRCodeMessage(
+  language: string,
+  workerName: string,
+  projectName: string,
+  accessUrl: string,
+  validUntil: Date
+): string {
+  const expiryDate = validUntil.toLocaleDateString('en-GB');
+  
+  const messages: Record<string, string> = {
+    ar: `✅ ${workerName}، تم إنشاء رمز QR الخاص بك!\n\n🏗️ المشروع: ${projectName}\n\n🔑 رابط الدخول للموقع:\n${accessUrl}\n\n📅 صالح حتى: ${expiryDate}\n\n📱 افتح الرابط وأظهر رمز QR عند البوابة للدخول.`,
+    ur: `✅ ${workerName}، آپ کا QR کوڈ تیار ہے!\n\n🏗️ پروجیکٹ: ${projectName}\n\n🔑 سائٹ تک رسائی کا لنک:\n${accessUrl}\n\n📅 درست ہے تک: ${expiryDate}\n\n📱 لنک کھولیں اور گیٹ پر QR کوڈ دکھائیں۔`,
+    hi: `✅ ${workerName}, आपका QR कोड तैयार है!\n\n🏗️ प्रोजेक्ट: ${projectName}\n\n🔑 साइट एक्सेस लिंक:\n${accessUrl}\n\n📅 वैध तक: ${expiryDate}\n\n📱 लिंक खोलें और गेट पर QR कोड दिखाएं।`,
+    fil: `✅ ${workerName}, handa na ang iyong QR code!\n\n🏗️ Proyekto: ${projectName}\n\n🔑 Site access link:\n${accessUrl}\n\n📅 Valid hanggang: ${expiryDate}\n\n📱 Buksan ang link at ipakita ang QR code sa gate.`,
+    en: `✅ ${workerName}, your QR code is ready!\n\n🏗️ Project: ${projectName}\n\n🔑 Site Access Link:\n${accessUrl}\n\n📅 Valid until: ${expiryDate}\n\n📱 Open the link and show the QR code at the gate for entry.`,
   };
 
   return messages[language] || messages.en;
