@@ -1,4 +1,10 @@
 {
+  "security": {
+    "gate": {
+      "alreadyOnSite": "متواجد بالفعل",
+      "alreadyOnSiteDesc": "هذا الشخص مسجل بالفعل في الموقع منذ {{time}}"
+    }
+  },
   "contractors": {
     "projects": {
       "title": "مشاريع المقاولين",

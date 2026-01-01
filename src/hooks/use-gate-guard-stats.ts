@@ -35,28 +35,31 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
     openAlerts,
     hourlyData,
   ] = await Promise.all([
-    // Visitors currently on site (entry but no exit today)
+    // Visitors currently on site (entry_type = 'visitor', no exit today)
     supabase
       .from('gate_entry_logs')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
+      .eq('entry_type', 'visitor')
       .gte('entry_time', todayStr)
       .is('exit_time', null)
       .is('deleted_at', null),
 
-    // Total visitors today
+    // Total visitors today (entry_type = 'visitor')
     supabase
       .from('gate_entry_logs')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
+      .eq('entry_type', 'visitor')
       .gte('entry_time', todayStr)
       .is('deleted_at', null),
 
-    // Active contractor workers on site
+    // Active workers on site (entry_type = 'worker', no exit today)
     supabase
-      .from('contractor_access_logs')
+      .from('gate_entry_logs')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
+      .eq('entry_type', 'worker')
       .gte('entry_time', todayStr)
       .is('exit_time', null)
       .is('deleted_at', null),
@@ -70,10 +73,10 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
       .is('resolved_at', null)
       .is('deleted_at', null),
 
-    // Hourly entry/exit data for today
+    // Hourly entry/exit data for today (all types for trend)
     supabase
       .from('gate_entry_logs')
-      .select('entry_time, exit_time')
+      .select('entry_time, exit_time, entry_type')
       .eq('tenant_id', tenantId)
       .gte('entry_time', todayStr)
       .is('deleted_at', null),
@@ -100,21 +103,38 @@ async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
     hourlyTrend.push({ hour: hourStr, entries, exits });
   }
 
-  // Calculate entry type breakdown
-  const entryTypeCounts: Record<string, number> = {};
+  // Calculate entry type breakdown from actual data
+  let visitorCount = 0;
+  let workerCount = 0;
+  let deliveryCount = 0;
+  let employeeCount = 0;
+  
   hourlyData.data?.forEach(entry => {
-    // Since we don't have entry_type in this query, we'll categorize differently
-    entryTypeCounts['visitors'] = (entryTypeCounts['visitors'] || 0) + 1;
+    const entryWithType = entry as { entry_time: string; exit_time: string | null; entry_type?: string };
+    switch (entryWithType.entry_type) {
+      case 'visitor':
+        visitorCount++;
+        break;
+      case 'worker':
+        workerCount++;
+        break;
+      case 'delivery':
+        deliveryCount++;
+        break;
+      case 'employee':
+        employeeCount++;
+        break;
+    }
   });
 
-  // Add contractor workers count
-  entryTypeCounts['contractors'] = contractorWorkersOnSite.count || 0;
-
   const entryTypeBreakdown: GateGuardStats['entryTypeBreakdown'] = [
-    { type: 'Visitors', count: visitorsToday.count || 0, color: 'hsl(var(--chart-1))' },
-    { type: 'Contractors', count: contractorWorkersOnSite.count || 0, color: 'hsl(var(--chart-2))' },
-  ];
+    { type: 'Visitors', count: visitorCount, color: 'hsl(var(--chart-1))' },
+    { type: 'Workers', count: workerCount, color: 'hsl(var(--chart-2))' },
+    { type: 'Deliveries', count: deliveryCount, color: 'hsl(var(--chart-3))' },
+    { type: 'Employees', count: employeeCount, color: 'hsl(var(--chart-4))' },
+  ].filter(item => item.count > 0);
 
+  // Total on site = visitors on site + workers on site
   const totalOnSite = (visitorsOnSite.count || 0) + (contractorWorkersOnSite.count || 0);
 
   return {

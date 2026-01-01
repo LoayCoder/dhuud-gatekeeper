@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, Bell, WifiOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { useGateEntries, useCreateGateEntry, useRecordExit } from '@/hooks/use-gate-entries';
+import { useCreateGateEntry, useRecordExit } from '@/hooks/use-gate-entries';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,11 +115,37 @@ export function VisitorVerificationPanel() {
   };
 
   const handleLogEntry = async () => {
-    if (!verificationResult) return;
+    if (!verificationResult || !profile?.tenant_id) return;
+    
+    const entryType = verificationResult.type === 'worker' ? 'worker' : 'visitor';
+    
+    // Check for existing active entry to prevent duplicates
+    const { data: existingEntry } = await supabase
+      .from('gate_entry_logs')
+      .select('id, entry_time')
+      .eq('tenant_id', profile.tenant_id)
+      .eq('entry_type', entryType)
+      .ilike('person_name', `%${verificationResult.name}%`)
+      .is('exit_time', null)
+      .is('deleted_at', null)
+      .order('entry_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingEntry) {
+      // Person already on site - show warning and update state
+      setVerificationResult(prev => prev ? { ...prev, isOnSite: true, entryId: existingEntry.id } : null);
+      toast({ 
+        title: t('security.gate.alreadyOnSite', 'Already On Site'),
+        description: t('security.gate.alreadyOnSiteDesc', 'This person is already logged as on-site since {time}', { time: format(new Date(existingEntry.entry_time), 'HH:mm') }),
+        variant: 'default'
+      });
+      return;
+    }
     
     const entryData = {
       person_name: verificationResult.name,
-      entry_type: verificationResult.type === 'worker' ? 'worker' : 'visitor',
+      entry_type: entryType,
       entry_time: new Date().toISOString(),
       purpose: verificationResult.purpose,
       destination_name: verificationResult.host,
