@@ -2310,7 +2310,12 @@
       "scanAgain": "مسح مرة أخرى",
       "useAnyway": "استخدام على أي حال",
       "instructions": "وجّه الكاميرا نحو رمز QR للزائر أو العامل",
-      "unknownFormat": "صيغة QR غير معروفة"
+      "unknownFormat": "صيغة QR غير معروفة",
+      "visitorNotFound": "الزائر غير موجود",
+      "wrongTypeWorker": "هذا رمز QR لعامل. يرجى التبديل إلى علامة تبويب العمال.",
+      "wrongTypeVisitor": "هذا رمز QR لزائر. يرجى التبديل إلى علامة تبويب الزوار.",
+      "expectedWorkerQR": "امسح رمز QR للعامل",
+      "expectedVisitorQR": "امسح رمز QR للزائر"
     },
     "workerVerification": {
       "title": "التحقق من العامل",
@@ -5950,7 +5955,10 @@
       "noValidVisitDescription": "لم يتم العثور على زيارة معتمدة لهذا الزائر",
       "blockedByBlacklist": "الدخول محظور - الزائر في القائمة السوداء",
       "notApproved": "الزيارة غير معتمدة للتسجيل",
-      "scanAnother": "مسح زائر آخر"
+      "scanAnother": "مسح زائر آخر",
+      "wrongQRType": "هذا رمز QR لعامل. يرجى استخدام ماسح البوابة للعمال.",
+      "expectedVisitorQR": "امسح رمز QR للزائر",
+      "visitorQRHint": "يتم قبول رموز QR للزوار فقط هنا"
     },
     "blacklist": {
       "title": "القائمة السوداء الأمنية",

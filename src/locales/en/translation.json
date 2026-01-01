@@ -2223,7 +2223,12 @@
       "scanAgain": "Scan Again",
       "useAnyway": "Use Anyway",
       "instructions": "Point camera at visitor or worker QR code",
-      "unknownFormat": "Unknown QR format"
+      "unknownFormat": "Unknown QR format",
+      "visitorNotFound": "Visitor not found",
+      "wrongTypeWorker": "This is a Worker QR code. Please switch to the Worker tab.",
+      "wrongTypeVisitor": "This is a Visitor QR code. Please switch to the Visitor tab.",
+      "expectedWorkerQR": "Scan Worker QR Code",
+      "expectedVisitorQR": "Scan Visitor QR Code"
     },
     "workerVerification": {
       "title": "Verify Worker",
@@ -6120,7 +6125,10 @@
       "noValidVisitDescription": "No approved visit found for this visitor",
       "blockedByBlacklist": "Entry blocked - visitor is blacklisted",
       "notApproved": "Visit not approved for check-in",
-      "scanAnother": "Scan Another Visitor"
+      "scanAnother": "Scan Another Visitor",
+      "wrongQRType": "This is a Worker QR code. Please use the Gate Scanner for workers.",
+      "expectedVisitorQR": "Scan Visitor QR Code",
+      "visitorQRHint": "Only visitor QR codes are accepted here"
     },
     "blacklist": {
       "title": "Security Blacklist",

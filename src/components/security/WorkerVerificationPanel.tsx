@@ -575,6 +575,7 @@ export function WorkerVerificationPanel() {
           open={isQRScannerOpen}
           onOpenChange={setIsQRScannerOpen}
           onScanResult={handleQRScanResult}
+          expectedType="worker"
         />
       </CardContent>
     </Card>

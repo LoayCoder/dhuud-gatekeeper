@@ -134,7 +134,15 @@ export default function VisitorCheckpoint() {
                   {t('visitors.checkpoint.manualSearch')}
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="scan" className="mt-4">
+              <TabsContent value="scan" className="mt-4 space-y-3">
+                {/* Visual indicator showing expected QR type */}
+                <div className="flex items-center justify-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <User className="h-5 w-5 text-primary" />
+                  <div className="text-center">
+                    <p className="font-medium text-primary">{t('visitors.checkpoint.expectedVisitorQR', 'Scan Visitor QR Code')}</p>
+                    <p className="text-xs text-muted-foreground">{t('visitors.checkpoint.visitorQRHint', 'Only visitor QR codes are accepted here')}</p>
+                  </div>
+                </div>
                 <div id="qr-reader" className="w-full" />
                 {scanResult && !matchingRequest && !qrLoading && (
                   <Alert variant="destructive" className="mt-4">
