@@ -6243,5 +6243,16 @@
       "riskReductionProgress": "जोखिम कमी प्रगति",
       "noHazards": "विश्लेषण के लिए कोई खतरे नहीं"
     }
+  },
+  "security": {
+    "gate": {
+      "alreadyOnSite": "पहले से साइट पर",
+      "alreadyOnSiteDesc": "यह व्यक्ति {{time}} से साइट पर है"
+    },
+    "workerScanHistory": {
+      "title": "आज के वर्कर स्कैन",
+      "noScans": "आज कोई वर्कर स्कैन नहीं",
+      "exitedAt": "बाहर निकला"
+    }
   }
 }
