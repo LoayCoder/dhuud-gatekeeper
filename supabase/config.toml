@@ -260,3 +260,6 @@ verify_jwt = false
 
 [functions.acknowledge-induction]
 verify_jwt = false
+
+[functions.send-worker-id-card]
+verify_jwt = false

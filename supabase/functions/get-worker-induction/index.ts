@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
         acknowledged_at,
         acknowledgment_method,
         expires_at,
+        tenant_id,
         worker:contractor_workers(
           id,
           full_name,
@@ -82,6 +83,30 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Fetch tenant branding
+    let tenantBranding: {
+      name: string | null;
+      logo_light_url: string | null;
+      brand_color: string | null;
+      hsse_department_name: string | null;
+      hsse_department_name_ar: string | null;
+    } | null = null;
+
+    if (induction.tenant_id) {
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select(`
+          name,
+          logo_light_url,
+          brand_color,
+          hsse_department_name,
+          hsse_department_name_ar
+        `)
+        .eq('id', induction.tenant_id)
+        .maybeSingle();
+      tenantBranding = tenant;
+    }
+
     // Type assertions for nested objects
     const worker = induction.worker as any;
     const project = induction.project as any;
@@ -111,9 +136,15 @@ Deno.serve(async (req) => {
       status: induction.status,
       expires_at: induction.expires_at,
       acknowledged_at: induction.acknowledged_at,
+      // Tenant branding
+      tenant_name: tenantBranding?.name || null,
+      tenant_logo_url: tenantBranding?.logo_light_url || null,
+      brand_color: tenantBranding?.brand_color || null,
+      hsse_department_name: tenantBranding?.hsse_department_name || null,
+      hsse_department_name_ar: tenantBranding?.hsse_department_name_ar || null,
     };
 
-    console.log('[GetInduction] Returning data for worker:', worker?.full_name);
+    console.log('[GetInduction] Returning data for worker:', worker?.full_name, 'tenant:', tenantBranding?.name);
 
     return new Response(
       JSON.stringify(response),
