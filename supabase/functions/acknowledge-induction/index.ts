@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       .from('worker_inductions')
       .update({
         acknowledged_at: now,
-        acknowledgment_method: 'web',
+        acknowledgment_method: 'app_button', // Must be one of: 'whatsapp_reply', 'app_button', 'manual'
         status: 'completed',
         updated_at: now,
       })
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         video_id: induction.video_id,
         project_id: induction.project_id,
         acknowledged_at: now,
-        acknowledgment_method: 'web',
+        acknowledgment_method: 'app_button',
       },
     });
 
