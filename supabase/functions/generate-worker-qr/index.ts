@@ -83,13 +83,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify induction is completed
+    // Verify induction is completed (status can be 'completed' or 'acknowledged')
     const { data: induction } = await supabase
       .from('worker_inductions')
       .select('status, acknowledged_at')
       .eq('worker_id', worker_id)
       .eq('project_id', project_id)
-      .eq('status', 'completed')
+      .in('status', ['completed', 'acknowledged'])
       .not('acknowledged_at', 'is', null)
       .limit(1)
       .single();
