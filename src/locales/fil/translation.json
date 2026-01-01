@@ -6232,5 +6232,16 @@
       "riskReductionProgress": "Progreso ng Pagbabawas ng Panganib",
       "noHazards": "Walang panganib na suriin"
     }
+  },
+  "security": {
+    "gate": {
+      "alreadyOnSite": "Nasa Site Na",
+      "alreadyOnSiteDesc": "Ang taong ito ay nasa site na mula {{time}}"
+    },
+    "workerScanHistory": {
+      "title": "Mga Scan ng Worker Ngayon",
+      "noScans": "Walang worker scans ngayon",
+      "exitedAt": "Lumabas"
+    }
   }
 }

@@ -6258,5 +6258,16 @@
       "riskReductionProgress": "خطرے میں کمی کی پیشرفت",
       "noHazards": "تجزیہ کرنے کے لیے کوئی خطرات نہیں"
     }
+  },
+  "security": {
+    "gate": {
+      "alreadyOnSite": "پہلے سے سائٹ پر موجود",
+      "alreadyOnSiteDesc": "یہ شخص {{time}} سے سائٹ پر موجود ہے"
+    },
+    "workerScanHistory": {
+      "title": "آج کے ورکر اسکینز",
+      "noScans": "آج کوئی ورکر اسکین نہیں",
+      "exitedAt": "باہر نکلا"
+    }
   }
 }
