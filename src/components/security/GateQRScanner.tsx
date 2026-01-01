@@ -71,20 +71,17 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
 
       scannerRef.current = new Html5Qrcode(scannerContainerId);
       
-      // Get available cameras
+      // Get available cameras for switching purposes
       Html5Qrcode.getCameras().then((devices) => {
         if (devices && devices.length > 0) {
           setCameras(devices.map(d => ({ id: d.id, label: d.label })));
-          startScanning(devices[0].id);
         }
       }).catch((err) => {
         console.error('Failed to get cameras:', err);
-        toast({
-          title: t('security.qrScanner.cameraError', 'Camera Error'),
-          description: t('security.qrScanner.cameraPermission', 'Please allow camera access'),
-          variant: 'destructive',
-        });
       });
+
+      // Start with back camera preference using facingMode
+      startScanning({ facingMode: 'environment' });
     }
 
     return () => {
@@ -92,12 +89,12 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
     };
   }, [open, isContainerReady]);
 
-  const startScanning = useCallback(async (cameraId: string) => {
+  const startScanning = useCallback(async (cameraIdOrFacingMode: string | { facingMode: string }) => {
     if (!scannerRef.current || isScanning) return;
 
     try {
       await scannerRef.current.start(
-        cameraId,
+        cameraIdOrFacingMode,
         SCANNER_CONFIG,
         onScanSuccess,
         () => {} // Ignore errors during scanning
@@ -105,8 +102,27 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
       setIsScanning(true);
     } catch (error) {
       console.error('Failed to start scanner:', error);
+      // Fallback to first camera if facingMode fails
+      if (typeof cameraIdOrFacingMode === 'object' && cameras.length > 0) {
+        try {
+          await scannerRef.current.start(
+            cameras[0].id,
+            SCANNER_CONFIG,
+            onScanSuccess,
+            () => {}
+          );
+          setIsScanning(true);
+        } catch (fallbackError) {
+          console.error('Fallback camera also failed:', fallbackError);
+          toast({
+            title: t('security.qrScanner.cameraError', 'Camera Error'),
+            description: t('security.qrScanner.cameraPermission', 'Please allow camera access'),
+            variant: 'destructive',
+          });
+        }
+      }
     }
-  }, [isScanning]);
+  }, [isScanning, cameras, toast, t]);
 
   const stopScanning = useCallback(async () => {
     if (scannerRef.current && isScanning) {
@@ -282,8 +298,11 @@ export function GateQRScanner({ open, onOpenChange, onScanResult }: GateQRScanne
 
   const handleRescan = useCallback(async () => {
     setScanResult(null);
-    if (cameras.length > 0) {
+    // If we have a known camera, use it; otherwise use facingMode
+    if (cameras.length > 0 && currentCameraIndex < cameras.length) {
       await startScanning(cameras[currentCameraIndex].id);
+    } else {
+      await startScanning({ facingMode: 'environment' });
     }
   }, [cameras, currentCameraIndex, startScanning]);
 
