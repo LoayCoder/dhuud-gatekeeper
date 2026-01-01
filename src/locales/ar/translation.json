@@ -1,5 +1,28 @@
 {
   "contractors": {
+    "projects": {
+      "title": "مشاريع المقاولين",
+      "description": "إدارة مشاريع المقاولين والتكليفات",
+      "addProject": "إضافة مشروع",
+      "editProject": "تعديل المشروع",
+      "noProjects": "لم يتم العثور على مشاريع",
+      "searchPlaceholder": "البحث في المشاريع...",
+      "company": "الشركة",
+      "selectCompany": "اختر الشركة",
+      "projectManager": "مدير المشروع",
+      "selectManager": "اختر المدير",
+      "details": "التفاصيل",
+      "projectName": "اسم المشروع",
+      "projectCode": "رمز المشروع",
+      "site": "الموقع",
+      "selectSite": "اختر الموقع",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "status": "الحالة",
+      "location": "الموقع",
+      "schedule": "الجدول الزمني",
+      "description": "الوصف"
+    },
     "companies": {
       "contractorSafetyOfficers": "مسؤولو السلامة لدى المقاول",
       "addSafetyOfficer": "إضافة",

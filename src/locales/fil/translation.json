@@ -1,4 +1,29 @@
 {
+  "contractors": {
+    "projects": {
+      "title": "Mga Proyekto ng Kontratista",
+      "description": "Pamahalaan ang mga proyekto at assignment ng kontratista",
+      "addProject": "Magdagdag ng Proyekto",
+      "editProject": "I-edit ang Proyekto",
+      "noProjects": "Walang nahanap na proyekto",
+      "searchPlaceholder": "Maghanap ng mga proyekto...",
+      "company": "Kumpanya",
+      "selectCompany": "Pumili ng kumpanya",
+      "projectManager": "Project Manager",
+      "selectManager": "Pumili ng manager",
+      "details": "Mga Detalye",
+      "projectName": "Pangalan ng Proyekto",
+      "projectCode": "Code ng Proyekto",
+      "site": "Site",
+      "selectSite": "Pumili ng site",
+      "startDate": "Petsa ng Pagsisimula",
+      "endDate": "Petsa ng Pagtatapos",
+      "status": "Katayuan",
+      "location": "Lokasyon",
+      "schedule": "Iskedyul",
+      "description": "Paglalarawan"
+    }
+  },
   "hsseDashboard": {
     "title": "HSSE Event Dashboard",
     "subtitle": "Real-time na visibility sa safety performance at risk analytics",

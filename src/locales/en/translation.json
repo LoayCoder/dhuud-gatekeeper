@@ -1,5 +1,28 @@
 {
   "contractors": {
+    "projects": {
+      "title": "Contractor Projects",
+      "description": "Manage contractor projects and assignments",
+      "addProject": "Add Project",
+      "editProject": "Edit Project",
+      "noProjects": "No projects found",
+      "searchPlaceholder": "Search projects...",
+      "company": "Company",
+      "selectCompany": "Select company",
+      "projectManager": "Project Manager",
+      "selectManager": "Select manager",
+      "details": "Details",
+      "projectName": "Project Name",
+      "projectCode": "Project Code",
+      "site": "Site",
+      "selectSite": "Select site",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "location": "Location",
+      "schedule": "Schedule",
+      "description": "Description"
+    },
     "companies": {
       "contractorSafetyOfficers": "Contractor's Safety Officers",
       "addSafetyOfficer": "Add",

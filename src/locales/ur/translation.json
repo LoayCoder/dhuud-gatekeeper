@@ -1,4 +1,29 @@
 {
+  "contractors": {
+    "projects": {
+      "title": "ٹھیکیدار پروجیکٹس",
+      "description": "ٹھیکیدار پروجیکٹس اور اسائنمنٹس کا انتظام کریں",
+      "addProject": "پروجیکٹ شامل کریں",
+      "editProject": "پروجیکٹ میں ترمیم کریں",
+      "noProjects": "کوئی پروجیکٹ نہیں ملا",
+      "searchPlaceholder": "پروجیکٹس تلاش کریں...",
+      "company": "کمپنی",
+      "selectCompany": "کمپنی منتخب کریں",
+      "projectManager": "پروجیکٹ مینیجر",
+      "selectManager": "مینیجر منتخب کریں",
+      "details": "تفصیلات",
+      "projectName": "پروجیکٹ کا نام",
+      "projectCode": "پروجیکٹ کوڈ",
+      "site": "سائٹ",
+      "selectSite": "سائٹ منتخب کریں",
+      "startDate": "شروع کی تاریخ",
+      "endDate": "اختتام کی تاریخ",
+      "status": "حیثیت",
+      "location": "مقام",
+      "schedule": "شیڈول",
+      "description": "تفصیل"
+    }
+  },
   "hsseDashboard": {
     "title": "HSSE ایونٹ ڈیش بورڈ",
     "subtitle": "حفاظتی کارکردگی اور خطرے کے تجزیات کی حقیقی وقت میں مرئیت",
