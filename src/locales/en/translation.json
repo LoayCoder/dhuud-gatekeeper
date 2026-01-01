@@ -6190,7 +6190,8 @@
       "searchPlaceholder": "Search by name, email, or ID",
       "noVisitors": "No visitors found",
       "neverVisited": "Never visited",
-      "viewQR": "View QR Code"
+      "viewQR": "View QR Code",
+      "resetQR": "Reset QR Code"
     },
     "fields": {
       "name": "Full Name",
