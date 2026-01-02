@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, Bell, WifiOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { GateQRScanner, QRScanResult } from './GateQRScanner';
 import { gateOfflineCache } from '@/lib/gate-offline-cache';
+import { useGateScan } from '@/contexts/GateScanContext';
 
 interface VerificationResult {
   status: 'granted' | 'denied' | 'warning';
@@ -32,11 +33,16 @@ interface VerificationResult {
   type?: 'visitor' | 'worker';
 }
 
-export function VisitorVerificationPanel() {
+interface VisitorVerificationPanelProps {
+  onSwitchTab?: (tab: string) => void;
+}
+
+export function VisitorVerificationPanel({ onSwitchTab }: VisitorVerificationPanelProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
+  const { pendingScanResult, setPendingScanResult, clearPendingScanResult } = useGateScan();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
@@ -46,6 +52,14 @@ export function VisitorVerificationPanel() {
   
   const createEntry = useCreateGateEntry();
   const recordExit = useRecordExit();
+
+  // Process pending scan result from context (when redirected from worker tab)
+  useEffect(() => {
+    if (pendingScanResult && pendingScanResult.type === 'visitor') {
+      processVisitorQRResult(pendingScanResult);
+      clearPendingScanResult();
+    }
+  }, [pendingScanResult]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim() || !profile?.tenant_id) return;
@@ -194,8 +208,8 @@ export function VisitorVerificationPanel() {
     });
   };
 
-  // Handle QR scan result
-  const handleQRScanResult = async (result: QRScanResult) => {
+  // Process visitor QR result (used by both direct scan and pending result)
+  const processVisitorQRResult = async (result: QRScanResult) => {
     // Handle one-time use QR - already used
     if (result.status === 'used') {
       setVerificationResult({
@@ -220,7 +234,7 @@ export function VisitorVerificationPanel() {
         status: 'granted',
         name: result.data.name,
         company: result.data.company,
-        type: result.type === 'worker' ? 'worker' : 'visitor',
+        type: 'visitor',
         warnings: result.data.warnings,
       });
       setSearchQuery(result.data.name);
@@ -238,6 +252,23 @@ export function VisitorVerificationPanel() {
         warnings: result.data?.warnings || [t('security.qrScanner.invalid', 'Invalid or expired QR code')],
       });
     }
+  };
+
+  // Handle QR scan result - detect type and route appropriately
+  const handleQRScanResult = async (result: QRScanResult) => {
+    // Detect worker QR on visitor tab - redirect to worker tab
+    if (result.type === 'worker') {
+      toast({
+        title: t('security.gate.workerDetected', 'Worker QR Detected'),
+        description: t('security.gate.switchingToWorkerTab', 'Switching to Worker verification...'),
+      });
+      setPendingScanResult(result);
+      onSwitchTab?.('workers');
+      return;
+    }
+    
+    // Process as visitor
+    await processVisitorQRResult(result);
   };
 
   const getStatusConfig = (status: VerificationResult['status']) => {
