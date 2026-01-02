@@ -2337,7 +2337,9 @@
       "workerOnSite": "العامل موجود بالموقع",
       "workerOnSiteDesc": "دخل هذا العامل الساعة {{time}}",
       "verifyIdentity": "التحقق من الهوية",
-      "onSiteDuration": "في الموقع منذ {{duration}}"
+      "onSiteDuration": "في الموقع منذ {{duration}}",
+      "blacklisted": "محظور",
+      "visitorBlacklisted": "الدخول محظور - الزائر في القائمة السوداء"
     },
     "workerVerification": {
       "title": "التحقق من العامل",

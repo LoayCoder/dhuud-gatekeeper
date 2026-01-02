@@ -79,12 +79,39 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         try {
         const { data: visitor } = await supabase
             .from('visitors')
-            .select('id, full_name, company_name, qr_code_token, qr_used_at, is_active')
+            .select('id, full_name, company_name, national_id, qr_code_token, qr_used_at, is_active')
             .eq('qr_code_token', visitorToken)
             .eq('is_active', true)
             .maybeSingle();
 
           if (visitor) {
+            // CRITICAL: Check if visitor is on the blacklist
+            if (visitor.national_id && tenantId) {
+              const { data: blacklistEntry } = await supabase
+                .from('security_blacklist')
+                .select('id, reason')
+                .eq('tenant_id', tenantId)
+                .eq('national_id', visitor.national_id)
+                .maybeSingle();
+
+              if (blacklistEntry) {
+                return {
+                  type: 'visitor',
+                  id: visitor.id,
+                  status: 'revoked',
+                  rawCode: code,
+                  data: {
+                    name: visitor.full_name,
+                    company: visitor.company_name || undefined,
+                    warnings: [
+                      t('visitors.checkpoint.blockedByBlacklist', 'Entry blocked - visitor is blacklisted'),
+                      blacklistEntry.reason ? `${t('visitors.blacklist.reason', 'Reason')}: ${blacklistEntry.reason}` : '',
+                    ].filter(Boolean),
+                  },
+                };
+              }
+            }
+
             await gateOfflineCache.cacheVisitorVerification(visitorToken, {
               id: visitor.id,
               full_name: visitor.full_name,

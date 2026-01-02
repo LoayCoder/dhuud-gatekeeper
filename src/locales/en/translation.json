@@ -2277,7 +2277,9 @@
       "workerOnSite": "Worker Already On Site",
       "workerOnSiteDesc": "This worker entered at {{time}}",
       "verifyIdentity": "Verify Identity",
-      "onSiteDuration": "On site for {{duration}}"
+      "onSiteDuration": "On site for {{duration}}",
+      "blacklisted": "BLACKLISTED",
+      "visitorBlacklisted": "Entry blocked - visitor is blacklisted"
     },
     "workerVerification": {
       "title": "Verify Worker",
