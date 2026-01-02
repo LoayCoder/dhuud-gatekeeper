@@ -535,8 +535,10 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             variant: 'default'
           });
         } else {
-          // Fetch host info for visitor notifications
+          // Fetch visitor info and approved visit request for proper integration
           let hostPhone: string | null = null;
+          let visitRequestId: string | null = null;
+          let siteId: string | null = null;
           
           if (scanResult.type === 'visitor' && scanResult.id) {
             // First check visitor record for host_phone
@@ -558,25 +560,28 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               hostPhone = hostProfile?.phone_number || null;
             }
             
-            // If still no host phone, check visit_requests
-            if (!hostPhone) {
-              const { data: visitRequest } = await supabase
-                .from('visit_requests')
-                .select('host_id, profiles:host_id(phone_number)')
-                .eq('visitor_id', scanResult.id)
-                .eq('status', 'approved')
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+            // Find the approved visit_request for this visitor
+            const { data: visitRequest } = await supabase
+              .from('visit_requests')
+              .select('id, host_id, site_id, profiles:host_id(phone_number)')
+              .eq('visitor_id', scanResult.id)
+              .eq('status', 'approved')
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (visitRequest) {
+              visitRequestId = visitRequest.id;
+              siteId = visitRequest.site_id;
               
-              if (visitRequest?.profiles) {
+              if (!hostPhone && visitRequest.profiles) {
                 const hostData = visitRequest.profiles as { phone_number?: string };
                 hostPhone = hostData?.phone_number || null;
               }
             }
           }
           
-          // Create gate entry log with visit reference
+          // Create gate entry log with visit_request_id
           const { data: newEntry, error } = await supabase
             .from('gate_entry_logs')
             .insert({
@@ -586,19 +591,39 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               entry_time: entryTime,
               guard_id: user?.id,
               visitor_id: scanResult.type === 'visitor' ? scanResult.id : null,
+              visit_request_id: visitRequestId,
               visit_reference: visitReference,
               host_mobile: hostPhone,
+              site_id: siteId,
             })
             .select('id')
             .single();
 
           if (error) throw error;
 
-          // Mark visitor QR as used
+          // CRITICAL: Update visit_request status to checked_in
+          if (visitRequestId) {
+            const { error: vrUpdateError } = await supabase
+              .from('visit_requests')
+              .update({ 
+                status: 'checked_in',
+                entry_logged_at: entryTime,
+              })
+              .eq('id', visitRequestId);
+            
+            if (vrUpdateError) {
+              console.error('[GateQR] Failed to update visit_request status:', vrUpdateError);
+            }
+          }
+
+          // Mark visitor QR as used and update last_visit_at
           if (scanResult.type === 'visitor' && scanResult.id) {
             await supabase
               .from('visitors')
-              .update({ qr_used_at: entryTime })
+              .update({ 
+                qr_used_at: entryTime,
+                last_visit_at: entryTime,
+              })
               .eq('id', scanResult.id);
           }
 
@@ -617,6 +642,14 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               entryTime,
               tenantId: profile.tenant_id,
             });
+            
+            // Update host_notified_at on visit_request
+            if (visitRequestId) {
+              await supabase
+                .from('visit_requests')
+                .update({ host_notified_at: entryTime })
+                .eq('id', visitRequestId);
+            }
           } else if (scanResult.type === 'visitor' && !hostPhone) {
             console.log('[GateQR] No host phone available, skipping notification');
           }
