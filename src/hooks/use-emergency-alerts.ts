@@ -9,6 +9,7 @@ export interface EmergencyAlert {
   guard_id: string | null;
   alert_type: 'panic' | 'duress' | 'medical' | 'fire' | 'security_breach';
   priority: 'critical' | 'high' | 'medium' | 'low';
+  status: 'pending' | 'acknowledged' | 'resolved';
   latitude: number | null;
   longitude: number | null;
   accuracy: number | null;
@@ -23,6 +24,10 @@ export interface EmergencyAlert {
   response_time_seconds: number | null;
   notes: string | null;
   created_at: string;
+  photo_evidence_path: string | null;
+  source_type: string | null;
+  source_id: string | null;
+  source_name: string | null;
   guard?: {
     full_name: string | null;
   };
@@ -46,6 +51,7 @@ export function useEmergencyAlerts(statusFilter?: 'active' | 'acknowledged' | 'r
           guard_id,
           alert_type,
           priority,
+          status,
           latitude,
           longitude,
           accuracy,
@@ -60,6 +66,10 @@ export function useEmergencyAlerts(statusFilter?: 'active' | 'acknowledged' | 'r
           response_time_seconds,
           notes,
           created_at,
+          photo_evidence_path,
+          source_type,
+          source_id,
+          source_name,
           guard:profiles!emergency_alerts_guard_id_fkey(full_name),
           acknowledger:profiles!emergency_alerts_acknowledged_by_fkey(full_name),
           resolver:profiles!emergency_alerts_resolved_by_fkey(full_name)
