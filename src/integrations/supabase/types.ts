@@ -4750,12 +4750,16 @@ export type Database = {
           location_description: string | null
           longitude: number | null
           notes: string | null
+          photo_evidence_path: string | null
           priority: string
           resolution_notes: string | null
           resolved_at: string | null
           resolved_by: string | null
           response_time_seconds: number | null
           sla_breach_notified_at: string | null
+          source_id: string | null
+          source_name: string | null
+          source_type: string | null
           tenant_id: string
           triggered_at: string
         }
@@ -4775,12 +4779,16 @@ export type Database = {
           location_description?: string | null
           longitude?: number | null
           notes?: string | null
+          photo_evidence_path?: string | null
           priority?: string
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           response_time_seconds?: number | null
           sla_breach_notified_at?: string | null
+          source_id?: string | null
+          source_name?: string | null
+          source_type?: string | null
           tenant_id: string
           triggered_at?: string
         }
@@ -4800,12 +4808,16 @@ export type Database = {
           location_description?: string | null
           longitude?: number | null
           notes?: string | null
+          photo_evidence_path?: string | null
           priority?: string
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           response_time_seconds?: number | null
           sla_breach_notified_at?: string | null
+          source_id?: string | null
+          source_name?: string | null
+          source_type?: string | null
           tenant_id?: string
           triggered_at?: string
         }
@@ -4833,6 +4845,159 @@ export type Database = {
           },
           {
             foreignKeyName: "emergency_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_protocol_executions: {
+        Row: {
+          alert_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          deleted_at: string | null
+          escalated_at: string | null
+          escalated_to: string | null
+          escalation_reason: string | null
+          id: string
+          notes: string | null
+          protocol_id: string | null
+          started_at: string | null
+          started_by: string | null
+          status: string | null
+          steps_completed: Json | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          notes?: string | null
+          protocol_id?: string | null
+          started_at?: string | null
+          started_by?: string | null
+          status?: string | null
+          steps_completed?: Json | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          notes?: string | null
+          protocol_id?: string | null
+          started_at?: string | null
+          started_by?: string | null
+          status?: string | null
+          steps_completed?: Json | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_protocol_executions_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_response_protocols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_started_by_fkey"
+            columns: ["started_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_response_protocols: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          protocol_name: string
+          protocol_name_ar: string | null
+          sla_minutes: number | null
+          steps: Json
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          protocol_name: string
+          protocol_name_ar?: string | null
+          sla_minutes?: number | null
+          steps?: Json
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          protocol_name?: string
+          protocol_name_ar?: string | null
+          sla_minutes?: number | null
+          steps?: Json
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_response_protocols_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -13585,6 +13750,8 @@ export type Database = {
       security_blacklist: {
         Row: {
           deleted_at: string | null
+          entity_id: string | null
+          entity_type: string | null
           expiry_date: string | null
           full_name: string | null
           id: string
@@ -13603,6 +13770,8 @@ export type Database = {
         }
         Insert: {
           deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
           expiry_date?: string | null
           full_name?: string | null
           id?: string
@@ -13621,6 +13790,8 @@ export type Database = {
         }
         Update: {
           deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
           expiry_date?: string | null
           full_name?: string | null
           id?: string
