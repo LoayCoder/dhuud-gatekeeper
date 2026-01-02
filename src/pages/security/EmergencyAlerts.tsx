@@ -15,7 +15,8 @@ import {
   Timer,
   Download,
   ChevronDown,
-  Settings2
+  Settings2,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
 import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
 import { EmergencySLAConfig } from '@/components/security/EmergencySLAConfig';
+import { ProtocolTemplatesManager } from '@/components/security/ProtocolTemplatesManager';
 import { 
   useEmergencyAlerts, 
   useRealtimeEmergencyAlerts 
@@ -33,8 +35,10 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function EmergencyAlerts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'acknowledged' | 'resolved'>('all');
+  const [showProtocolTemplates, setShowProtocolTemplates] = useState(false);
   
   // Fetch all alerts for stats
   const { data: allAlerts, isLoading, refetch } = useEmergencyAlerts('all');
@@ -82,6 +86,10 @@ export default function EmergencyAlerts() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowProtocolTemplates(true)}>
+            <FileText className="h-4 w-4 me-2" />
+            {isRTL ? 'البروتوكولات' : 'Protocols'}
+          </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 me-2" />
             {t('common.refresh', 'Refresh')}
@@ -89,6 +97,12 @@ export default function EmergencyAlerts() {
           <EmergencyPanicButton variant="compact" />
         </div>
       </div>
+
+      {/* Protocol Templates Manager */}
+      <ProtocolTemplatesManager 
+        open={showProtocolTemplates} 
+        onOpenChange={setShowProtocolTemplates} 
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
