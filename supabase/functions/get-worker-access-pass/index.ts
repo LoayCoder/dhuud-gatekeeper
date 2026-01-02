@@ -29,6 +29,10 @@ interface WorkerAccessResponse {
     hsse_department_name: string | null;
     hsse_department_name_ar: string | null;
   } | null;
+  settings: {
+    allow_download: boolean;
+    allow_share: boolean;
+  };
 }
 
 Deno.serve(async (req) => {
@@ -148,7 +152,10 @@ Deno.serve(async (req) => {
       hsse_department_name_ar: string | null;
     } | null = null;
 
+    let tenantId: string | null = null;
+
     if (projectData?.tenant_id) {
+      tenantId = projectData.tenant_id;
       const { data: tenant } = await supabaseAdmin
         .from('tenants')
         .select(`
@@ -165,6 +172,38 @@ Deno.serve(async (req) => {
         .eq('id', projectData.tenant_id)
         .maybeSingle();
       tenantData = tenant;
+    }
+
+    // Fetch webpage notification settings for this tenant
+    let webpageSettings = {
+      worker_webpage_enabled: true,
+      worker_allow_download: true,
+      worker_allow_share: true,
+    };
+
+    if (tenantId) {
+      const { data: settingsData } = await supabaseAdmin
+        .from('webpage_notification_settings')
+        .select('worker_webpage_enabled, worker_allow_download, worker_allow_share')
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (settingsData) {
+        webpageSettings = settingsData;
+      }
+    }
+
+    // Check if worker pages are disabled
+    if (!webpageSettings.worker_webpage_enabled) {
+      console.log('[get-worker-access-pass] Worker pages disabled for tenant:', tenantId);
+      return new Response(
+        JSON.stringify({ error: 'This page is currently unavailable' }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Build response with only necessary public data
@@ -192,6 +231,10 @@ Deno.serve(async (req) => {
         hsse_department_name: tenantData.hsse_department_name || null,
         hsse_department_name_ar: tenantData.hsse_department_name_ar || null,
       } : null,
+      settings: {
+        allow_download: webpageSettings.worker_allow_download,
+        allow_share: webpageSettings.worker_allow_share,
+      },
     };
 
     console.log('[get-worker-access-pass] Successfully fetched access pass for:', workerData?.full_name);

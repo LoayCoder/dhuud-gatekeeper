@@ -1,11 +1,15 @@
+import { useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 import { 
   User, 
   Building2, 
@@ -15,7 +19,9 @@ import {
   Phone,
   AlertTriangle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Download,
+  Share2
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -43,12 +49,17 @@ interface WorkerAccessData {
     hsse_department_name: string | null;
     hsse_department_name_ar: string | null;
   } | null;
+  settings: {
+    allow_download: boolean;
+    allow_share: boolean;
+  };
 }
 
 export default function WorkerAccessPass() {
   const { token } = useParams<{ token: string }>();
   const { i18n } = useTranslation();
   const isRTL = i18n.language === 'ar' || i18n.language === 'ur';
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   const { data: accessData, isLoading, error } = useQuery({
     queryKey: ['worker-access-pass', token],
@@ -67,6 +78,54 @@ export default function WorkerAccessPass() {
     },
     enabled: !!token,
   });
+
+  const handleDownload = async () => {
+    if (!badgeRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(badgeRef.current, {
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `worker-pass-${accessData?.worker.full_name || 'badge'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success(isRTL ? 'تم حفظ التصريح بنجاح' : 'Pass saved successfully');
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast.error(isRTL ? 'فشل في حفظ التصريح' : 'Failed to save pass');
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareText = isRTL 
+      ? `تصريح دخول العامل: ${accessData?.worker.full_name}`
+      : `Worker Access Pass: ${accessData?.worker.full_name}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        // User cancelled or share failed, copy to clipboard as fallback
+        if ((err as Error).name !== 'AbortError') {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success(isRTL ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success(isRTL ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -110,6 +169,7 @@ export default function WorkerAccessPass() {
   const worker = accessData.worker;
   const project = accessData.project;
   const branding = accessData.tenant_branding;
+  const settings = accessData.settings;
 
   const hsseInstructions = isRTL 
     ? project.hsse_instructions_ar || project.hsse_instructions_en
@@ -135,7 +195,7 @@ export default function WorkerAccessPass() {
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background p-4" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-md mx-auto space-y-4">
         {/* Header Card with QR */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden" ref={badgeRef}>
           <div 
             className="bg-primary text-primary-foreground p-4 text-center"
             style={headerStyle}
@@ -241,6 +301,32 @@ export default function WorkerAccessPass() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Action Buttons */}
+        {(settings.allow_download || settings.allow_share) && (
+          <div className="flex gap-2">
+            {settings.allow_download && (
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={handleDownload}
+              >
+                <Download className="h-4 w-4 me-2" />
+                {isRTL ? 'حفظ التصريح' : 'Save Pass'}
+              </Button>
+            )}
+            {settings.allow_share && (
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={handleShare}
+              >
+                <Share2 className="h-4 w-4 me-2" />
+                {isRTL ? 'مشاركة' : 'Share'}
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Safety Instructions Card */}
         {hsseInstructions && (

@@ -7,13 +7,9 @@ export interface WebpageNotificationSettings {
   id: string;
   tenant_id: string;
   visitor_webpage_enabled: boolean;
-  visitor_message_template: string;
-  visitor_message_template_ar: string;
   visitor_allow_download: boolean;
   visitor_allow_share: boolean;
   worker_webpage_enabled: boolean;
-  worker_message_template: string;
-  worker_message_template_ar: string;
   worker_allow_download: boolean;
   worker_allow_share: boolean;
   created_at: string;
@@ -24,13 +20,9 @@ export type WebpageNotificationSettingsUpdate = Partial<Omit<WebpageNotification
 
 const DEFAULT_SETTINGS: Omit<WebpageNotificationSettings, 'id' | 'tenant_id' | 'created_at' | 'updated_at'> = {
   visitor_webpage_enabled: true,
-  visitor_message_template: 'Welcome {{visitor_name}}! View your visitor badge here: {{badge_url}}',
-  visitor_message_template_ar: 'مرحباً {{visitor_name}}! اطلع على بطاقة الزائر الخاصة بك هنا: {{badge_url}}',
   visitor_allow_download: true,
   visitor_allow_share: true,
   worker_webpage_enabled: true,
-  worker_message_template: 'Your access pass for {{project_name}} is ready: {{pass_url}}',
-  worker_message_template_ar: 'تصريح الدخول الخاص بك لمشروع {{project_name}} جاهز: {{pass_url}}',
   worker_allow_download: true,
   worker_allow_share: true,
 };
@@ -46,7 +38,7 @@ export function useWebpageNotificationSettings() {
 
       const { data, error } = await supabase
         .from('webpage_notification_settings')
-        .select('*')
+        .select('id, tenant_id, visitor_webpage_enabled, visitor_allow_download, visitor_allow_share, worker_webpage_enabled, worker_allow_download, worker_allow_share, created_at, updated_at')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .maybeSingle();

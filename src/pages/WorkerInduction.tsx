@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageLoader } from '@/components/ui/page-loader';
-import { CheckCircle2, AlertCircle, Play, Clock, Building2, User, ExternalLink } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Play, Clock, Building2, User, ExternalLink, Download, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 interface InductionData {
   id: string;
@@ -27,6 +29,11 @@ interface InductionData {
   brand_color?: string;
   hsse_department_name?: string;
   hsse_department_name_ar?: string;
+  // Settings
+  settings?: {
+    allow_download: boolean;
+    allow_share: boolean;
+  };
 }
 
 interface AcknowledgeResponse {
@@ -50,6 +57,7 @@ export default function WorkerInduction() {
   const [success, setSuccess] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
   const [idCardUrl, setIdCardUrl] = useState<string | null>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   // Detect language from induction data or browser
   const isArabic = inductionData?.language === 'ar' || 
@@ -122,6 +130,52 @@ export default function WorkerInduction() {
     }
   };
 
+  const handleDownloadCertificate = async () => {
+    if (!certificateRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(certificateRef.current, {
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `induction-certificate-${inductionData?.worker_name || 'certificate'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success(isArabic ? 'تم حفظ الشهادة بنجاح' : 'Certificate saved successfully');
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast.error(isArabic ? 'فشل في حفظ الشهادة' : 'Failed to save certificate');
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareText = isArabic 
+      ? `شهادة إتمام التدريب: ${inductionData?.worker_name}`
+      : `Induction Completion: ${inductionData?.worker_name}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success(isArabic ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success(isArabic ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+    }
+  };
+
   const getEmbedUrl = (url: string): string => {
     // Convert YouTube URLs to embed format
     if (url.includes('youtube.com/watch')) {
@@ -179,9 +233,11 @@ export default function WorkerInduction() {
   }
 
   if (success) {
+    const settings = inductionData?.settings || { allow_download: true, allow_share: true };
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md" ref={certificateRef}>
           {/* Tenant Branding Header */}
           {inductionData?.tenant_logo_url && (
             <div 
@@ -217,6 +273,32 @@ export default function WorkerInduction() {
                 </p>
               )}
             </div>
+
+            {/* Action Buttons */}
+            {(settings.allow_download || settings.allow_share) && (
+              <div className="flex gap-2 mt-6">
+                {settings.allow_download && (
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={handleDownloadCertificate}
+                  >
+                    <Download className="h-4 w-4 me-2" />
+                    {isArabic ? 'حفظ الشهادة' : 'Save Certificate'}
+                  </Button>
+                )}
+                {settings.allow_share && (
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={handleShare}
+                  >
+                    <Share2 className="h-4 w-4 me-2" />
+                    {isArabic ? 'مشاركة' : 'Share'}
+                  </Button>
+                )}
+              </div>
+            )}
 
             {/* ID Card notification */}
             {idCardUrl && (
