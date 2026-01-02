@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export interface WorkerInduction {
+  id: string;
+  status: string;
+  expires_at: string | null;
+}
+
 export interface ContractorWorker {
   id: string;
   tenant_id: string;
@@ -19,6 +25,7 @@ export interface ContractorWorker {
   rejection_reason: string | null;
   created_at: string;
   company?: { company_name: string } | null;
+  latest_induction?: WorkerInduction | null;
 }
 
 export interface ContractorWorkerFilters {
@@ -42,7 +49,8 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
           id, tenant_id, company_id, full_name, full_name_ar, national_id, nationality,
           mobile_number, photo_path, preferred_language, approval_status, approved_at,
           rejection_reason, created_at,
-          company:contractor_companies(company_name)
+          company:contractor_companies(company_name),
+          latest_induction:worker_inductions(id, status, expires_at)
         `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -56,7 +64,14 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as ContractorWorker[];
+      
+      // Transform latest_induction array to single object (take most recent)
+      return (data || []).map((worker) => ({
+        ...worker,
+        latest_induction: Array.isArray(worker.latest_induction) && worker.latest_induction.length > 0
+          ? worker.latest_induction[0]
+          : null,
+      })) as ContractorWorker[];
     },
     enabled: !!tenantId,
   });
