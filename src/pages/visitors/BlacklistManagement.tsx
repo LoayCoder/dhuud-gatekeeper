@@ -44,7 +44,11 @@ export default function BlacklistManagement() {
   });
 
   const onSubmit = async (values: AddFormValues) => {
-    await addMutation.mutateAsync(values);
+    await addMutation.mutateAsync({
+      full_name: values.full_name,
+      national_id: values.national_id,
+      reason: values.reason,
+    });
     form.reset();
     setAddDialogOpen(false);
   };
