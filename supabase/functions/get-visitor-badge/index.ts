@@ -50,6 +50,13 @@ function maskNationalId(nationalId: string | null): string | null {
   return `****${nationalId.slice(-4)}`;
 }
 
+interface ExpiryWarning {
+  message: string;
+  message_ar: string;
+  expires_at: string;
+  minutes_remaining: number;
+}
+
 interface VisitorBadgeData {
   visitor_name: string;
   company_name: string | null;
@@ -63,6 +70,8 @@ interface VisitorBadgeData {
   status: string;
   is_active: boolean;
   is_expired: boolean;
+  expiry_warning: ExpiryWarning | null;
+  last_scanned_at: string | null;
   tenant_branding: {
     name: string;
     logo_light_url: string | null;
@@ -125,12 +134,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find visitor by QR token - explicit column selection (no SELECT *)
+    // Find visitor by QR token - with soft-delete filtering (HSSA compliance)
     const { data: visitor, error: visitorError } = await supabase
       .from('visitors')
-      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id, is_active')
+      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id, is_active, visit_end_time, expiry_warning_sent_at, last_scanned_at')
       .eq('qr_code_token', token)
       .eq('is_active', true)
+      .is('deleted_at', null) // Soft-delete filter
       .single();
 
     if (visitorError) {
@@ -148,6 +158,28 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Update last_scanned_at and create scan notification
+    const scanTime = new Date().toISOString();
+    await supabase
+      .from('visitors')
+      .update({ last_scanned_at: scanTime })
+      .eq('id', visitor.id);
+
+    // Create scan alert notification for security team
+    await supabase
+      .from('in_app_notifications')
+      .insert({
+        tenant_id: visitor.tenant_id,
+        title: 'Visitor Badge Scanned',
+        title_ar: 'تم مسح بطاقة الزائر',
+        body: `Visitor "${visitor.full_name}" badge was scanned at ${new Date().toLocaleString()}`,
+        body_ar: `تم مسح بطاقة الزائر "${visitor.full_name}" في ${new Date().toLocaleString('ar-SA')}`,
+        type: 'info',
+        target_roles: ['admin', 'security_officer', 'receptionist'],
+      });
+
+    console.log(`[get-visitor-badge] Scan alert created for visitor: ${visitor.full_name}`);
 
     console.log(`[get-visitor-badge] Found visitor: ${visitor.full_name} (tenant: ${visitor.tenant_id})`);
 
@@ -202,9 +234,48 @@ serve(async (req) => {
 
     // Check if visit is still valid (expiration enforcement)
     const now = new Date();
-    const validUntil = request?.valid_until ? new Date(request.valid_until) : null;
+    const visitEndTime = visitor.visit_end_time ? new Date(visitor.visit_end_time) : null;
+    const validUntil = request?.valid_until ? new Date(request.valid_until) : visitEndTime;
     const isExpired = validUntil ? validUntil < now : false;
     const isActive = request?.status === 'approved' && !isExpired;
+
+    // Check for 1-hour expiration warning
+    let expiryWarning = null;
+    if (validUntil && !isExpired) {
+      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+      const isExpiringWithinHour = validUntil <= oneHourFromNow;
+      
+      if (isExpiringWithinHour && !visitor.expiry_warning_sent_at) {
+        const minutesRemaining = Math.round((validUntil.getTime() - now.getTime()) / (60 * 1000));
+        expiryWarning = {
+          message: `Your visitor badge will expire in ${minutesRemaining} minutes`,
+          message_ar: `ستنتهي صلاحية بطاقة الزائر الخاصة بك خلال ${minutesRemaining} دقيقة`,
+          expires_at: validUntil.toISOString(),
+          minutes_remaining: minutesRemaining
+        };
+
+        // Mark warning as sent to prevent duplicates
+        await supabase
+          .from('visitors')
+          .update({ expiry_warning_sent_at: now.toISOString() })
+          .eq('id', visitor.id);
+
+        // Create expiration warning notification
+        await supabase
+          .from('in_app_notifications')
+          .insert({
+            tenant_id: visitor.tenant_id,
+            title: 'Visitor Badge Expiring Soon',
+            title_ar: 'بطاقة الزائر ستنتهي قريباً',
+            body: `Visitor "${visitor.full_name}" badge expires in ${minutesRemaining} minutes`,
+            body_ar: `بطاقة الزائر "${visitor.full_name}" ستنتهي خلال ${minutesRemaining} دقيقة`,
+            type: 'warning',
+            target_roles: ['admin', 'security_officer', 'receptionist'],
+          });
+
+        console.log(`[get-visitor-badge] Expiry warning sent for visitor: ${visitor.full_name}, expires in ${minutesRemaining} minutes`);
+      }
+    }
 
     // Log badge access for audit
     console.log(`[get-visitor-badge] Badge accessed: visitor=${visitor.full_name}, active=${isActive}, expired=${isExpired}, IP=${clientIP}`);
@@ -223,6 +294,8 @@ serve(async (req) => {
       status: isExpired ? 'expired' : (request?.status || 'pending'),
       is_active: isActive,
       is_expired: isExpired,
+      expiry_warning: expiryWarning,
+      last_scanned_at: visitor.last_scanned_at,
       tenant_branding: tenant ? {
         name: tenant.name,
         logo_light_url: tenant.logo_light_url,

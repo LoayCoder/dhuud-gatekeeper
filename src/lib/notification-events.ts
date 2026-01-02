@@ -118,6 +118,31 @@ export async function notifyTicketReply(ticketNumber: number) {
   );
 }
 
+// Visitor notifications
+export async function notifyVisitorBadgeScanned(visitorName: string) {
+  return sendPushNotification(
+    'Visitor Badge Scanned',
+    `Visitor "${visitorName}" badge was scanned at security checkpoint.`,
+    'info'
+  );
+}
+
+export async function notifyVisitorBadgeExpiringSoon(visitorName: string, minutesRemaining: number) {
+  return sendPushNotification(
+    'Visitor Badge Expiring Soon',
+    `Visitor "${visitorName}" badge expires in ${minutesRemaining} minutes.`,
+    'error'
+  );
+}
+
+export async function notifyVisitorBadgeExpired(visitorName: string) {
+  return sendPushNotification(
+    'Visitor Badge Expired',
+    `Visitor "${visitorName}" badge has expired.`,
+    'error'
+  );
+}
+
 // Sync notifications
 export async function notifySyncComplete(itemCount: number) {
   return sendPushNotification(
