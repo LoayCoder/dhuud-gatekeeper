@@ -7479,24 +7479,30 @@
     }
   },
   "scanner": {
+    "scanCode": "مسح الرمز",
     "switchCamera": "تبديل الكاميرا",
     "frontCamera": "الكاميرا الأمامية",
     "backCamera": "الكاميرا الخلفية",
     "toggleFlash": "تشغيل/إيقاف الفلاش",
+    "flashOn": "الفلاش مُفعّل",
+    "flashOff": "الفلاش مُعطّل",
+    "alignCode": "قم بمحاذاة رمز QR داخل الإطار",
     "pointAtCode": "وجّه الكاميرا نحو رمز QR أو الباركود",
     "scanning": "جاري المسح...",
     "processing": "جاري المعالجة...",
+    "verifying": "جاري التحقق...",
+    "pleaseWait": "يرجى الانتظار",
     "cameraPermissionTitle": "مطلوب إذن الكاميرا",
     "cameraPermissionDesc": "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح لمسح الرموز",
     "cameraPermissionDenied": "تم رفض الوصول للكاميرا",
     "retryCamera": "حاول مرة أخرى",
+    "startCamera": "تشغيل الكاميرا",
+    "readyTitle": "جاهز للمسح",
     "scanSuccessful": "تم المسح بنجاح!",
     "scanFailed": "فشل المسح",
-    "scannerError": "فشل في تشغيل الماسح",
-    "scanCode": "مسح الرمز",
-    "alignCode": "قم بمحاذاة رمز QR داخل الإطار",
-    "readyTitle": "جاهز للمسح",
-    "startCamera": "تشغيل الكاميرا",
-    "errorTitle": "خطأ في الماسح"
+    "scanAgain": "مسح مرة أخرى",
+    "useResult": "استخدام النتيجة",
+    "errorTitle": "خطأ في الماسح",
+    "scannerError": "فشل في تشغيل الماسح"
   }
 }

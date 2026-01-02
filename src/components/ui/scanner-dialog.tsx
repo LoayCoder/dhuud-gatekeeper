@@ -24,6 +24,7 @@ interface ScannerDialogProps {
   showCameraSwitch?: boolean;
   showTorchToggle?: boolean;
   className?: string;
+  children?: ReactNode;
 }
 
 export function ScannerDialog({
@@ -39,6 +40,7 @@ export function ScannerDialog({
   showCameraSwitch = true,
   showTorchToggle = true,
   className,
+  children,
 }: ScannerDialogProps) {
   const { t } = useTranslation();
 
@@ -72,30 +74,34 @@ export function ScannerDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Scanner */}
+        {/* Scanner or Custom Children */}
         <div className="p-4">
-          <CameraScanner
-            containerId={containerId}
-            isOpen={open}
-            onScan={handleScan}
-            qrboxSize={qrboxSize}
-            aspectRatio={aspectRatio}
-            showCameraSwitch={showCameraSwitch}
-            showTorchToggle={showTorchToggle}
-          />
+          {children ? children : (
+            <CameraScanner
+              containerId={containerId}
+              isOpen={open}
+              onScan={handleScan}
+              qrboxSize={qrboxSize}
+              aspectRatio={aspectRatio}
+              showCameraSwitch={showCameraSwitch}
+              showTorchToggle={showTorchToggle}
+            />
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 pt-0">
-          <Button 
-            variant="outline" 
-            className="w-full gap-2 rounded-xl h-12 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-300" 
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-            {t('common.cancel', 'Cancel')}
-          </Button>
-        </div>
+        {/* Footer - only show if no children */}
+        {!children && (
+          <div className="p-4 pt-0">
+            <Button 
+              variant="outline" 
+              className="w-full gap-2 rounded-xl h-12 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-300" 
+              onClick={handleClose}
+            >
+              <X className="h-4 w-4" />
+              {t('common.cancel', 'Cancel')}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
