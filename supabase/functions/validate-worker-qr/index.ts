@@ -195,14 +195,16 @@ Deno.serve(async (req) => {
       }
 
       // ========================================
-      // BLACKLIST CHECK - Search Mode
+      // BLACKLIST CHECK - Search Mode (with soft-delete + entity_type compliance)
       // ========================================
       if (worker?.national_id) {
         const { data: blacklistEntry } = await supabase
           .from('security_blacklist')
-          .select('id, reason, listed_at')
+          .select('id, reason, listed_at, entity_type')
           .eq('tenant_id', tenant_id)
           .eq('national_id', worker.national_id.trim())
+          .is('deleted_at', null) // AUDIT: Only check active blacklist entries
+          .or('entity_type.eq.worker,entity_type.eq.contractor,entity_type.is.null') // Include legacy null + worker/contractor
           .maybeSingle();
 
         if (blacklistEntry) {
@@ -333,14 +335,16 @@ Deno.serve(async (req) => {
       }
 
       // ========================================
-      // BLACKLIST CHECK - Check if worker is on security blacklist
+      // BLACKLIST CHECK - QR Token Mode (with soft-delete + entity_type compliance)
       // ========================================
       if (worker?.national_id) {
         const { data: blacklistEntry } = await supabase
           .from('security_blacklist')
-          .select('id, reason, listed_at')
+          .select('id, reason, listed_at, entity_type')
           .eq('tenant_id', tenant_id)
           .eq('national_id', worker.national_id)
+          .is('deleted_at', null) // AUDIT: Only check active blacklist entries
+          .or('entity_type.eq.worker,entity_type.eq.contractor,entity_type.is.null') // Include legacy null + worker/contractor
           .maybeSingle();
 
         if (blacklistEntry) {
