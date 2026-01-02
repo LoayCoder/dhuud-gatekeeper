@@ -527,8 +527,9 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                   {t('scanner.logEntry', 'Log Entry')}
                 </Button>
               ) : (
-                <Button variant="secondary" className="gap-2 h-10" onClick={handleUseAndClose}>
-                  {t('scanner.useResult', 'Use Result')}
+                <Button variant="secondary" className="gap-2 h-10" onClick={handleLogAndScanNext}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t('scanner.acknowledge', 'Acknowledge')}
                 </Button>
               )}
             </div>
