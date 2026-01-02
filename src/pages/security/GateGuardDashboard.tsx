@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter } from 'lucide-react';
@@ -25,10 +25,16 @@ import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/cont
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
 import { cn } from '@/lib/utils';
+import { GateScanProvider } from '@/contexts/GateScanContext';
 
 const GateGuardDashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('visitors');
+  
+  // Callback for switching tabs programmatically (used by verification panels)
+  const handleSwitchTab = useCallback((tab: string) => {
+    setActiveTab(tab);
+  }, []);
   
   // Gate pass sub-tab state
   const [gatePassTab, setGatePassTab] = useState('today');
@@ -123,6 +129,7 @@ const GateGuardDashboard = () => {
   }, [stats]);
 
   return (
+    <GateScanProvider>
     <div className="container mx-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6 space-y-3 sm:space-y-4 min-w-0">
       {/* Offline Status Bar - Important for PWA users */}
       <GateOfflineStatusBar 
@@ -219,7 +226,7 @@ const GateGuardDashboard = () => {
         {/* Visitors Tab */}
         <TabsContent value="visitors" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-            <VisitorVerificationPanel />
+            <VisitorVerificationPanel onSwitchTab={handleSwitchTab} />
             <ActiveVisitorsList />
           </div>
         </TabsContent>
@@ -227,7 +234,7 @@ const GateGuardDashboard = () => {
         {/* Workers Tab */}
         <TabsContent value="workers" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-            <WorkerVerificationPanel />
+            <WorkerVerificationPanel onSwitchTab={handleSwitchTab} />
             <ActiveWorkersList />
           </div>
         </TabsContent>
@@ -329,6 +336,7 @@ const GateGuardDashboard = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </GateScanProvider>
   );
 };
 

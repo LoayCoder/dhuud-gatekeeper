@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, QrCode, UserCheck, UserX, AlertTriangle, LogIn, LogOut, WifiOff, Loader2, HardHat, Building2, GraduationCap, Clock, Calendar, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { GateQRScanner, QRScanResult } from './GateQRScanner';
+import { useGateScan } from '@/contexts/GateScanContext';
 
 interface WorkerVerificationResult {
   status: 'granted' | 'denied' | 'warning';
@@ -44,11 +45,16 @@ interface WorkerVerificationResult {
   isOnSite?: boolean;
 }
 
-export function WorkerVerificationPanel() {
+interface WorkerVerificationPanelProps {
+  onSwitchTab?: (tab: string) => void;
+}
+
+export function WorkerVerificationPanel({ onSwitchTab }: WorkerVerificationPanelProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
+  const { pendingScanResult, setPendingScanResult, clearPendingScanResult } = useGateScan();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [verificationResult, setVerificationResult] = useState<WorkerVerificationResult | null>(null);
@@ -56,6 +62,14 @@ export function WorkerVerificationPanel() {
   
   const createEntry = useCreateGateEntry();
   const recordExit = useRecordExit();
+
+  // Process pending scan result from context (when redirected from visitor tab)
+  useEffect(() => {
+    if (pendingScanResult && pendingScanResult.type === 'worker') {
+      processWorkerQRResult(pendingScanResult);
+      clearPendingScanResult();
+    }
+  }, [pendingScanResult]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim() || !profile?.tenant_id) return;
@@ -278,8 +292,8 @@ export function WorkerVerificationPanel() {
     });
   };
 
-  // Handle QR scan result
-  const handleQRScanResult = async (result: QRScanResult) => {
+  // Process worker QR result (used by both direct scan and pending result)
+  const processWorkerQRResult = async (result: QRScanResult) => {
     if (result.type === 'worker' && result.id) {
       // Set search query and trigger search
       setSearchQuery(result.data?.name || result.id);
@@ -339,6 +353,23 @@ export function WorkerVerificationPanel() {
       });
       setSearchQuery(result.rawCode);
     }
+  };
+
+  // Handle QR scan result - detect type and route appropriately
+  const handleQRScanResult = async (result: QRScanResult) => {
+    // Detect visitor QR on worker tab - redirect to visitor tab
+    if (result.type === 'visitor') {
+      toast({
+        title: t('security.gate.visitorDetected', 'Visitor QR Detected'),
+        description: t('security.gate.switchingToVisitorTab', 'Switching to Visitor verification...'),
+      });
+      setPendingScanResult(result);
+      onSwitchTab?.('visitors');
+      return;
+    }
+    
+    // Process as worker
+    await processWorkerQRResult(result);
   };
 
   const getStatusConfig = (status: WorkerVerificationResult['status'], isOnSite?: boolean) => {
