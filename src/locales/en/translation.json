@@ -6197,7 +6197,7 @@
       "title": "Security Blacklist",
       "description": "Manage restricted visitors",
       "manage": "Manage Blacklist",
-      "warning": "Blacklisted Visitor",
+      "warning": "Blacklisted",
       "reason": "Reason",
       "add": "Add to Blacklist",
       "addTo": "Add to Blacklist",
@@ -6212,7 +6212,15 @@
       "listedAt": "Listed Date",
       "removeTitle": "Remove from Blacklist",
       "removeDescription": "Are you sure you want to remove this person from the blacklist?",
-      "remove": "Remove"
+      "remove": "Remove",
+      "alreadyListed": "Already Blacklisted",
+      "alreadyListedDesc": "This person is already on the security blacklist.",
+      "cannotRegister": "Cannot Register - Blacklisted Person",
+      "blockedMessage": "This person is on the Security Blacklist and cannot be registered for a visit.",
+      "contactSecurity": "Please contact the Security section for assistance and support.",
+      "confirmTitle": "Add to Security Blacklist",
+      "confirmDesc": "This will permanently blacklist this visitor. They will not be able to access any facility and all pending visit requests will be rejected.",
+      "confirm": "Add to Blacklist"
     },
     "register": {
       "title": "Pre-Register Visitor",
@@ -6251,7 +6259,11 @@
       "site": "Destination Site",
       "validFrom": "Valid From",
       "validUntil": "Valid Until",
-      "notes": "Security Notes"
+      "notes": "Security Notes",
+      "startDate": "Start Date",
+      "startTime": "Start Time",
+      "endDate": "End Date",
+      "endTime": "End Time"
     },
     "placeholders": {
       "name": "Enter full name",
