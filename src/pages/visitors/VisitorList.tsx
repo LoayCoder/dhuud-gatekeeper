@@ -5,7 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useVisitors, useUpdateVisitor, useResetVisitorQR } from '@/hooks/use-visitors';
@@ -17,24 +28,37 @@ export default function VisitorList() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedVisitorId, setSelectedVisitorId] = useState<string | null>(null);
+  const [blacklistDialog, setBlacklistDialog] = useState<{
+    open: boolean;
+    visitor: { id: string; full_name: string; national_id: string } | null;
+    reason: string;
+  }>({ open: false, visitor: null, reason: '' });
   
   const { data: visitors, isLoading } = useVisitors({ search: search || undefined });
   const updateVisitor = useUpdateVisitor();
   const addToBlacklist = useAddToBlacklist();
   const resetVisitorQR = useResetVisitorQR();
 
-  const handleDeactivate = async (id: string) => {
-    await updateVisitor.mutateAsync({ id, is_active: false });
+  const handleOpenBlacklistDialog = (visitor: { id: string; full_name: string; national_id: string | null }) => {
+    if (!visitor.national_id) return;
+    setBlacklistDialog({
+      open: true,
+      visitor: { id: visitor.id, full_name: visitor.full_name, national_id: visitor.national_id },
+      reason: '',
+    });
   };
 
-  const handleAddToBlacklist = async (visitor: { id: string; full_name: string; national_id: string | null }) => {
-    if (!visitor.national_id) return;
+  const handleConfirmBlacklist = async () => {
+    if (!blacklistDialog.visitor || !blacklistDialog.reason) return;
+    
     await addToBlacklist.mutateAsync({
-      full_name: visitor.full_name,
-      national_id: visitor.national_id,
-      reason: 'Added from visitor list',
+      full_name: blacklistDialog.visitor.full_name,
+      national_id: blacklistDialog.visitor.national_id,
+      reason: blacklistDialog.reason,
+      visitorId: blacklistDialog.visitor.id,
     });
-    await handleDeactivate(visitor.id);
+    
+    setBlacklistDialog({ open: false, visitor: null, reason: '' });
   };
 
   return (
@@ -84,7 +108,7 @@ export default function VisitorList() {
                   <TableRow>
                     <TableHead>{t('visitors.fields.name')}</TableHead>
                     <TableHead>{t('visitors.fields.company')}</TableHead>
-                    <TableHead>{t('visitors.fields.email')}</TableHead>
+                    <TableHead>{t('visitors.fields.phone', 'Phone')}</TableHead>
                     <TableHead>{t('visitors.fields.nationalId')}</TableHead>
                     <TableHead>{t('visitors.fields.lastVisit')}</TableHead>
                     <TableHead>{t('common.status')}</TableHead>
@@ -96,7 +120,7 @@ export default function VisitorList() {
                     <TableRow key={visitor.id}>
                       <TableCell className="font-medium">{visitor.full_name}</TableCell>
                       <TableCell>{visitor.company_name || '-'}</TableCell>
-                      <TableCell>{visitor.email || '-'}</TableCell>
+                      <TableCell>{visitor.phone || '-'}</TableCell>
                       <TableCell>{visitor.national_id || '-'}</TableCell>
                       <TableCell>
                         {visitor.last_visit_at 
@@ -128,14 +152,17 @@ export default function VisitorList() {
                               <RefreshCw className="me-2 h-4 w-4" />
                               {t('visitors.list.resetQR')}
                             </DropdownMenuItem>
-                            {visitor.national_id && (
-                              <DropdownMenuItem 
-                                onClick={() => handleAddToBlacklist(visitor)}
-                                className="text-destructive"
-                              >
-                                <ShieldAlert className="me-2 h-4 w-4" />
-                                {t('visitors.blacklist.addTo')}
-                              </DropdownMenuItem>
+                            {visitor.national_id && visitor.is_active && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleOpenBlacklistDialog(visitor)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <ShieldAlert className="me-2 h-4 w-4" />
+                                  {t('visitors.blacklist.addTo')}
+                                </DropdownMenuItem>
+                              </>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -154,6 +181,45 @@ export default function VisitorList() {
         open={!!selectedVisitorId}
         onOpenChange={(open) => !open && setSelectedVisitorId(null)}
       />
+
+      {/* Blacklist Confirmation Dialog */}
+      <AlertDialog open={blacklistDialog.open} onOpenChange={(open) => !open && setBlacklistDialog({ open: false, visitor: null, reason: '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <ShieldAlert className="h-5 w-5" />
+              {t('visitors.blacklist.confirmTitle', 'Add to Security Blacklist')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('visitors.blacklist.confirmDesc', 'This will permanently blacklist this visitor. They will not be able to access any facility and all pending visit requests will be rejected.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-2">
+            <p className="text-sm font-medium">
+              {t('visitors.fields.name')}: <span className="font-bold">{blacklistDialog.visitor?.full_name}</span>
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="blacklist-reason-list">{t('visitors.blacklist.reasonLabel', 'Reason for blacklisting')} *</Label>
+              <Input
+                id="blacklist-reason-list"
+                value={blacklistDialog.reason}
+                onChange={(e) => setBlacklistDialog(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder={t('visitors.blacklist.reasonPlaceholder', 'Enter the reason...')}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBlacklist}
+              disabled={!blacklistDialog.reason || addToBlacklist.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {addToBlacklist.isPending ? t('common.loading') : t('visitors.blacklist.confirm', 'Add to Blacklist')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
