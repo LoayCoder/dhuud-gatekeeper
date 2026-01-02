@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Pencil, Eye, ShieldAlert, AlertTriangle } from "lucide-react";
+import { ShieldAlert, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerDetailDialog } from "./WorkerDetailDialog";
+import { WorkerActionsDropdown } from "./WorkerActionsDropdown";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { 
@@ -23,6 +23,9 @@ interface WorkerListTableProps {
   workers: ContractorWorker[];
   isLoading: boolean;
   onEdit: (worker: ContractorWorker) => void;
+  onStatusChange: (worker: ContractorWorker, status: string) => void;
+  onAddToBlacklist: (worker: ContractorWorker) => void;
+  onDelete: (worker: ContractorWorker) => void;
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
   showSelection?: boolean;
@@ -34,6 +37,9 @@ export function WorkerListTable({
   workers, 
   isLoading, 
   onEdit,
+  onStatusChange,
+  onAddToBlacklist,
+  onDelete,
   selectedIds = [],
   onSelectionChange,
   showSelection = false,
@@ -235,14 +241,14 @@ export function WorkerListTable({
                 <TableCell>{getInductionBadge(inductionStatus, daysRemaining)}</TableCell>
                 <TableCell>{getStatusBadge(worker.approval_status)}</TableCell>
                 <TableCell className="text-end">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedWorker(worker)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(worker)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <WorkerActionsDropdown
+                    worker={worker}
+                    onView={() => setSelectedWorker(worker)}
+                    onEdit={() => onEdit(worker)}
+                    onStatusChange={(status) => onStatusChange(worker, status)}
+                    onAddToBlacklist={() => onAddToBlacklist(worker)}
+                    onDelete={() => onDelete(worker)}
+                  />
                 </TableCell>
               </TableRow>
             );

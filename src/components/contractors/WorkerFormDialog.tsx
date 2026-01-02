@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import { ContractorWorker, useCreateContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
+import { ContractorWorker, useCreateContractorWorker, useCheckDuplicateNationalId } from "@/hooks/contractor-management/use-contractor-workers";
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { WorkerPhotoUpload } from "./WorkerPhotoUpload";
+import { toast } from "sonner";
 
 interface WorkerFormDialogProps {
   open: boolean;
@@ -19,12 +20,14 @@ interface WorkerFormDialogProps {
 export function WorkerFormDialog({ open, onOpenChange, worker, companies }: WorkerFormDialogProps) {
   const { t } = useTranslation();
   const createWorker = useCreateContractorWorker();
+  const checkDuplicate = useCheckDuplicateNationalId();
   const isEditing = !!worker;
 
   const [formData, setFormData] = useState({
     company_id: "", full_name: "", national_id: "",
     nationality: "", mobile_number: "", preferred_language: "en", photo_path: "" as string | null,
   });
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
 
   useEffect(() => {
     if (worker) {
@@ -44,9 +47,24 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createWorker.mutateAsync(formData);
-    onOpenChange(false);
+    
+    // Check for duplicate national ID
+    setIsCheckingDuplicate(true);
+    try {
+      const isDuplicate = await checkDuplicate(formData.national_id, worker?.id);
+      if (isDuplicate) {
+        toast.error(t("contractors.workers.duplicateNationalId", "A worker with this National ID already exists"));
+        return;
+      }
+      
+      await createWorker.mutateAsync(formData);
+      onOpenChange(false);
+    } finally {
+      setIsCheckingDuplicate(false);
+    }
   };
+
+  const isPending = createWorker.isPending || isCheckingDuplicate;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,11 +74,11 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
-            <WorkerPhotoUpload
+          <WorkerPhotoUpload
               photoPath={formData.photo_path}
               onPhotoChange={(path) => setFormData({ ...formData, photo_path: path })}
               workerId={worker?.id}
-              disabled={createWorker.isPending}
+              disabled={isPending}
             />
           </div>
           <div className="space-y-2">
@@ -92,7 +110,7 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-            <Button type="submit" disabled={createWorker.isPending}>{t("common.create", "Create")}</Button>
+            <Button type="submit" disabled={isPending}>{t("common.create", "Create")}</Button>
           </div>
         </form>
       </DialogContent>
