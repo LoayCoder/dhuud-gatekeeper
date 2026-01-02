@@ -65,13 +65,29 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Transform latest_induction array to single object (take most recent)
-      return (data || []).map((worker) => ({
-        ...worker,
-        latest_induction: Array.isArray(worker.latest_induction) && worker.latest_induction.length > 0
-          ? worker.latest_induction[0]
-          : null,
-      })) as ContractorWorker[];
+      // Transform latest_induction array to single object (prioritize acknowledged, then most recent)
+      return (data || []).map((worker) => {
+        let bestInduction = null;
+        
+        if (Array.isArray(worker.latest_induction) && worker.latest_induction.length > 0) {
+          // First, try to find an acknowledged induction
+          const acknowledgedInduction = worker.latest_induction.find(
+            (i: any) => i.status === 'acknowledged'
+          );
+          
+          if (acknowledgedInduction) {
+            bestInduction = acknowledgedInduction;
+          } else {
+            // Otherwise, take the first one (most recent)
+            bestInduction = worker.latest_induction[0];
+          }
+        }
+        
+        return {
+          ...worker,
+          latest_induction: bestInduction,
+        };
+      }) as ContractorWorker[];
     },
     enabled: !!tenantId,
   });

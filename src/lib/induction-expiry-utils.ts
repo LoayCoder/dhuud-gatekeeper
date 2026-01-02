@@ -14,7 +14,7 @@ export interface WorkerInduction {
  * Get the expiry status of an induction
  */
 export function getInductionExpiryStatus(induction: WorkerInduction | null): InductionExpiryStatus {
-  if (!induction || induction.status !== 'completed') {
+  if (!induction || induction.status !== 'acknowledged') {
     return 'not_completed';
   }
 
@@ -42,7 +42,7 @@ export function getInductionExpiryStatus(induction: WorkerInduction | null): Ind
  * Returns null if no expiry date or induction not completed
  */
 export function getDaysUntilExpiry(induction: WorkerInduction | null): number | null {
-  if (!induction || induction.status !== 'completed' || !induction.expires_at) {
+  if (!induction || induction.status !== 'acknowledged' || !induction.expires_at) {
     return null;
   }
 
