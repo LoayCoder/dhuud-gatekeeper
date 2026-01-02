@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, QrCode } from 'lucide-react';
+import { X, QrCode, ScanLine } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -53,16 +53,23 @@ export function ScannerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className={cn("sm:max-w-md p-0 gap-0 overflow-hidden", className)}>
-        {/* Header */}
-        <DialogHeader className="p-4 pb-2 border-b bg-muted/30">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            {icon || <QrCode className="h-5 w-5 text-primary" />}
-            {title || t('scanner.scanCode', 'Scan Code')}
+      <DialogContent className={cn(
+        "sm:max-w-lg p-0 gap-0 overflow-hidden rounded-2xl border-0 shadow-2xl bg-gradient-to-b from-background to-muted/30",
+        className
+      )}>
+        {/* Header with gradient */}
+        <DialogHeader className="p-5 pb-3 border-b border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-primary/5">
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
+              {icon || <QrCode className="h-5 w-5 text-primary" />}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span>{title || t('scanner.scanCode', 'Scan Code')}</span>
+              {description && (
+                <span className="text-sm font-normal text-muted-foreground">{description}</span>
+              )}
+            </div>
           </DialogTitle>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
         </DialogHeader>
 
         {/* Scanner */}
@@ -82,10 +89,10 @@ export function ScannerDialog({
         <div className="p-4 pt-0">
           <Button 
             variant="outline" 
-            className="w-full" 
+            className="w-full gap-2 rounded-xl h-12 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-300" 
             onClick={handleClose}
           >
-            <X className="h-4 w-4 me-2" />
+            <X className="h-4 w-4" />
             {t('common.cancel', 'Cancel')}
           </Button>
         </div>

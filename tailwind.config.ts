@@ -120,12 +120,21 @@ export default {
 			},
 			"scan-line": {
 				"0%": { top: "0%", opacity: "1" },
-				"50%": { top: "calc(100% - 2px)", opacity: "0.5" },
+				"50%": { top: "calc(100% - 4px)", opacity: "0.8" },
 				"100%": { top: "0%", opacity: "1" },
+			},
+			"scan-line-horizontal": {
+				"0%": { left: "0%", opacity: "0.3" },
+				"50%": { left: "calc(100% - 2px)", opacity: "0.8" },
+				"100%": { left: "0%", opacity: "0.3" },
 			},
 			"pulse-corner": {
 				"0%, 100%": { opacity: "1", transform: "scale(1)" },
-				"50%": { opacity: "0.6", transform: "scale(1.05)" },
+				"50%": { opacity: "0.5", transform: "scale(1.1)" },
+			},
+			"scanner-glow": {
+				"0%, 100%": { boxShadow: "0 0 20px 4px hsl(var(--primary) / 0.4)" },
+				"50%": { boxShadow: "0 0 40px 8px hsl(var(--primary) / 0.6)" },
 			},
 		},
 		animation: {
@@ -134,8 +143,10 @@ export default {
 			"chart-fade-in": "chart-fade-in 0.5s ease-out",
 			"chart-slide-up": "chart-slide-up 0.4s ease-out",
 			shimmer: "shimmer 1.5s ease-in-out infinite",
-			"scan-line": "scan-line 2s ease-in-out infinite",
+			"scan-line": "scan-line 2.5s ease-in-out infinite",
+			"scan-line-horizontal": "scan-line-horizontal 3s ease-in-out infinite",
 			"pulse-corner": "pulse-corner 1.5s ease-in-out infinite",
+			"scanner-glow": "scanner-glow 2s ease-in-out infinite",
 		},
     },
   },

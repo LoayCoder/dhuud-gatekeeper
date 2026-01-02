@@ -3,7 +3,6 @@ import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   SwitchCamera, 
   Flashlight, 
@@ -11,7 +10,10 @@ import {
   Camera, 
   AlertCircle,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  QrCode,
+  Focus,
+  Zap
 } from 'lucide-react';
 
 export type ScannerStatus = 'idle' | 'scanning' | 'processing' | 'success' | 'error' | 'permission_denied';
@@ -47,6 +49,7 @@ export function CameraScanner({
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [hasTorch, setHasTorch] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
 
@@ -128,8 +131,10 @@ export function CameraScanner({
   }, [containerId, facingMode, qrboxSize, aspectRatio, onScan, onError, stopScanner, t]);
 
   const switchCamera = useCallback(async () => {
+    setIsAnimating(true);
     const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(newFacingMode);
+    setTimeout(() => setIsAnimating(false), 500);
   }, [facingMode]);
 
   const toggleTorch = useCallback(async () => {
@@ -179,7 +184,7 @@ export function CameraScanner({
       {/* Scanner Container */}
       <div 
         className={cn(
-          "relative w-full rounded-xl overflow-hidden bg-muted",
+          "relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 shadow-xl border border-border/50",
           scannerClassName
         )}
       >
@@ -187,128 +192,267 @@ export function CameraScanner({
         <div 
           id={containerId}
           className={cn(
-            "w-full transition-opacity duration-300",
-            status !== 'scanning' && status !== 'success' && 'opacity-0 absolute'
+            "w-full transition-all duration-500",
+            status !== 'scanning' && status !== 'success' && 'opacity-0 absolute',
+            isAnimating && 'scale-95 opacity-50'
           )}
-          style={{ minHeight: status === 'scanning' || status === 'success' ? '300px' : '0' }}
+          style={{ minHeight: status === 'scanning' || status === 'success' ? '320px' : '0' }}
         />
 
-        {/* Scanning Overlay */}
+        {/* Advanced Scanning Overlay */}
         {status === 'scanning' && (
           <div className="absolute inset-0 pointer-events-none">
+            {/* Dark overlay outside viewfinder */}
+            <div 
+              className="absolute inset-0 bg-black/60"
+              style={{
+                maskImage: `radial-gradient(ellipse ${qrboxSize.width * 0.6}px ${qrboxSize.height * 0.6}px at center, transparent 60%, black 100%)`,
+                WebkitMaskImage: `radial-gradient(ellipse ${qrboxSize.width * 0.6}px ${qrboxSize.height * 0.6}px at center, transparent 60%, black 100%)`
+              }}
+            />
+
             {/* Viewfinder Frame */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div 
-                className="relative border-2 border-primary/50 rounded-lg"
+                className="relative"
                 style={{ width: qrboxSize.width, height: qrboxSize.height }}
               >
-                {/* Animated Corners */}
-                <div className="absolute -top-1 -start-1 w-6 h-6 border-t-4 border-s-4 border-primary rounded-tl-lg animate-pulse-corner" />
-                <div className="absolute -top-1 -end-1 w-6 h-6 border-t-4 border-e-4 border-primary rounded-tr-lg animate-pulse-corner" style={{ animationDelay: '0.2s' }} />
-                <div className="absolute -bottom-1 -start-1 w-6 h-6 border-b-4 border-s-4 border-primary rounded-bl-lg animate-pulse-corner" style={{ animationDelay: '0.4s' }} />
-                <div className="absolute -bottom-1 -end-1 w-6 h-6 border-b-4 border-e-4 border-primary rounded-br-lg animate-pulse-corner" style={{ animationDelay: '0.6s' }} />
+                {/* Glowing border effect */}
+                <div className="absolute inset-0 rounded-2xl border-2 border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.3)]" />
+                
+                {/* Animated corner brackets - Top Start */}
+                <div className="absolute -top-1 -start-1 w-10 h-10">
+                  <div className="absolute top-0 start-0 w-full h-1 bg-gradient-to-e from-primary to-primary/50 rounded-full animate-pulse" />
+                  <div className="absolute top-0 start-0 w-1 h-full bg-gradient-to-b from-primary to-primary/50 rounded-full animate-pulse" />
+                  <div className="absolute top-0 start-0 w-3 h-3 bg-primary rounded-full animate-ping opacity-75" style={{ animationDuration: '2s' }} />
+                </div>
+                
+                {/* Top End */}
+                <div className="absolute -top-1 -end-1 w-10 h-10">
+                  <div className="absolute top-0 end-0 w-full h-1 bg-gradient-to-s from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.15s' }} />
+                  <div className="absolute top-0 end-0 w-1 h-full bg-gradient-to-b from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.15s' }} />
+                  <div className="absolute top-0 end-0 w-3 h-3 bg-primary rounded-full animate-ping opacity-75" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                </div>
+                
+                {/* Bottom Start */}
+                <div className="absolute -bottom-1 -start-1 w-10 h-10">
+                  <div className="absolute bottom-0 start-0 w-full h-1 bg-gradient-to-e from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+                  <div className="absolute bottom-0 start-0 w-1 h-full bg-gradient-to-t from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+                  <div className="absolute bottom-0 start-0 w-3 h-3 bg-primary rounded-full animate-ping opacity-75" style={{ animationDuration: '2s', animationDelay: '1s' }} />
+                </div>
+                
+                {/* Bottom End */}
+                <div className="absolute -bottom-1 -end-1 w-10 h-10">
+                  <div className="absolute bottom-0 end-0 w-full h-1 bg-gradient-to-s from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.45s' }} />
+                  <div className="absolute bottom-0 end-0 w-1 h-full bg-gradient-to-t from-primary to-primary/50 rounded-full animate-pulse" style={{ animationDelay: '0.45s' }} />
+                  <div className="absolute bottom-0 end-0 w-3 h-3 bg-primary rounded-full animate-ping opacity-75" style={{ animationDuration: '2s', animationDelay: '1.5s' }} />
+                </div>
 
-                {/* Scan Line */}
-                <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line" />
+                {/* Horizontal Scan Line with glow */}
+                <div 
+                  className="absolute inset-x-0 h-1 animate-scan-line"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, hsl(var(--primary)) 20%, hsl(var(--primary)) 80%, transparent 100%)',
+                    boxShadow: '0 0 20px 4px hsl(var(--primary) / 0.6), 0 0 40px 8px hsl(var(--primary) / 0.3)'
+                  }}
+                />
+                
+                {/* Vertical scan pulse effect */}
+                <div 
+                  className="absolute inset-y-0 w-0.5 animate-[scan-line-horizontal_3s_ease-in-out_infinite]"
+                  style={{
+                    background: 'linear-gradient(180deg, transparent 0%, hsl(var(--primary) / 0.5) 50%, transparent 100%)',
+                    boxShadow: '0 0 10px 2px hsl(var(--primary) / 0.3)'
+                  }}
+                />
+
+                {/* Center focus indicator */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <Focus className="h-8 w-8 text-primary/40 animate-pulse" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grid pattern overlay */}
+                <div 
+                  className="absolute inset-4 opacity-10"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
+                      linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
               </div>
             </div>
 
-            {/* Semi-transparent overlay outside viewfinder */}
-            <div className="absolute inset-0 bg-background/40 backdrop-blur-[1px]" 
-              style={{
-                clipPath: `polygon(
-                  0% 0%, 100% 0%, 100% 100%, 0% 100%,
-                  0% 0%,
-                  calc(50% - ${qrboxSize.width/2}px) calc(50% - ${qrboxSize.height/2}px),
-                  calc(50% - ${qrboxSize.width/2}px) calc(50% + ${qrboxSize.height/2}px),
-                  calc(50% + ${qrboxSize.width/2}px) calc(50% + ${qrboxSize.height/2}px),
-                  calc(50% + ${qrboxSize.width/2}px) calc(50% - ${qrboxSize.height/2}px),
-                  calc(50% - ${qrboxSize.width/2}px) calc(50% - ${qrboxSize.height/2}px)
-                )`
-              }}
-            />
+            {/* Top instruction banner */}
+            <div className="absolute top-4 inset-x-4">
+              <div className="flex items-center justify-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
+                <QrCode className="h-4 w-4 text-primary animate-pulse" />
+                <span className="text-sm font-medium text-white">
+                  {t('scanner.alignCode', 'Align QR code within the frame')}
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom status bar */}
+            <div className="absolute bottom-20 inset-x-4">
+              <div className="flex items-center justify-center gap-3 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs text-white/80">{t('scanner.scanning', 'Scanning...')}</span>
+                </div>
+                <div className="w-px h-4 bg-white/20" />
+                <div className="flex items-center gap-1.5">
+                  <Zap className="h-3 w-3 text-primary" />
+                  <span className="text-xs text-white/80">
+                    {facingMode === 'environment' 
+                      ? t('scanner.backCamera', 'Back Camera')
+                      : t('scanner.frontCamera', 'Front Camera')
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Permission Denied State */}
         {status === 'permission_denied' && (
-          <div className="flex flex-col items-center justify-center gap-4 p-8 min-h-[300px] text-center">
-            <div className="p-4 rounded-full bg-destructive/10">
-              <AlertCircle className="h-10 w-10 text-destructive" />
+          <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[320px] text-center bg-gradient-to-br from-destructive/5 to-destructive/10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 border border-destructive/20">
+                <AlertCircle className="h-12 w-12 text-destructive" />
+              </div>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 {t('scanner.cameraPermissionTitle', 'Camera Access Required')}
               </h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                {t('scanner.cameraPermissionDesc', 'Please allow camera access to scan codes')}
+              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                {t('scanner.cameraPermissionDesc', 'Please allow camera access in your browser settings to scan codes')}
               </p>
             </div>
-            <Button variant="outline" onClick={startScanner}>
-              {t('scanner.retryCamera', 'Retry')}
+            <Button 
+              variant="outline" 
+              onClick={startScanner}
+              className="gap-2 rounded-full px-6"
+            >
+              <Camera className="h-4 w-4" />
+              {t('scanner.retryCamera', 'Try Again')}
             </Button>
           </div>
         )}
 
         {/* Error State */}
         {status === 'error' && (
-          <div className="flex flex-col items-center justify-center gap-4 p-8 min-h-[300px] text-center">
-            <div className="p-4 rounded-full bg-destructive/10">
-              <AlertCircle className="h-10 w-10 text-destructive" />
+          <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[320px] text-center bg-gradient-to-br from-destructive/5 to-destructive/10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 border border-destructive/20">
+                <AlertCircle className="h-12 w-12 text-destructive" />
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button variant="outline" onClick={startScanner}>
-              {t('scanner.retryCamera', 'Retry')}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t('scanner.errorTitle', 'Scanner Error')}
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-xs">{error}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={startScanner}
+              className="gap-2 rounded-full px-6"
+            >
+              <Camera className="h-4 w-4" />
+              {t('scanner.retryCamera', 'Try Again')}
             </Button>
           </div>
         )}
 
         {/* Idle State */}
         {status === 'idle' && (
-          <div className="flex flex-col items-center justify-center gap-4 p-8 min-h-[300px] text-center">
-            <div className="p-4 rounded-full bg-muted-foreground/10">
-              <Camera className="h-10 w-10 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[320px] text-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 rounded-full bg-gradient-to-br from-muted to-muted/50 border border-border">
+                <QrCode className="h-12 w-12 text-muted-foreground" />
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {t('scanner.pointAtCode', 'Point camera at the code')}
-            </p>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t('scanner.readyTitle', 'Ready to Scan')}
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                {t('scanner.pointAtCode', 'Point camera at the QR code or barcode')}
+              </p>
+            </div>
+            <Button 
+              onClick={startScanner}
+              className="gap-2 rounded-full px-6"
+            >
+              <Camera className="h-4 w-4" />
+              {t('scanner.startCamera', 'Start Camera')}
+            </Button>
           </div>
         )}
 
         {/* Processing State */}
         {status === 'processing' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-md z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-4 rounded-full bg-primary/10 border border-primary/20">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+              </div>
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
               {t('scanner.processing', 'Processing...')}
             </p>
           </div>
         )}
 
         {/* Success State */}
-        {status === 'success' && successMessage && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm">
-            <div className="p-4 rounded-full bg-success/10">
-              <CheckCircle2 className="h-10 w-10 text-success" />
+        {status === 'success' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-md z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-green-500/30 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-4 rounded-full bg-green-500/10 border border-green-500/20">
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+              </div>
             </div>
-            <p className="text-sm font-medium text-success">
-              {successMessage || t('scanner.scanSuccessful', 'Scan Successful')}
-            </p>
+            <div className="text-center space-y-1">
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                {t('scanner.scanSuccessful', 'Scan Successful!')}
+              </p>
+              {successMessage && (
+                <p className="text-sm text-muted-foreground">{successMessage}</p>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Camera Controls */}
+        {/* Camera Controls - Floating Action Buttons */}
         {status === 'scanning' && (
-          <div className="absolute bottom-4 end-4 flex flex-col gap-2">
+          <div className="absolute bottom-4 end-4 flex flex-col gap-3 z-20">
             {showCameraSwitch && (
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-12 w-12 rounded-full shadow-lg bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                className={cn(
+                  "h-14 w-14 rounded-full shadow-2xl bg-white/90 dark:bg-black/80 backdrop-blur-md hover:bg-white dark:hover:bg-black/90 border border-white/20 transition-all duration-300",
+                  isAnimating && "animate-spin"
+                )}
                 onClick={switchCamera}
                 aria-label={t('scanner.switchCamera', 'Switch Camera')}
               >
-                <SwitchCamera className="h-5 w-5" />
+                <SwitchCamera className="h-6 w-6 text-foreground" />
               </Button>
             )}
             
@@ -317,51 +461,24 @@ export function CameraScanner({
                 size="icon"
                 variant="secondary"
                 className={cn(
-                  "h-12 w-12 rounded-full shadow-lg backdrop-blur-sm",
+                  "h-14 w-14 rounded-full shadow-2xl backdrop-blur-md border transition-all duration-300",
                   torchEnabled 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                    : "bg-background/80 hover:bg-background/90"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary/50 shadow-[0_0_20px_rgba(var(--primary),0.5)]" 
+                    : "bg-white/90 dark:bg-black/80 hover:bg-white dark:hover:bg-black/90 border-white/20"
                 )}
                 onClick={toggleTorch}
                 aria-label={t('scanner.toggleFlash', 'Toggle Flash')}
               >
                 {torchEnabled ? (
-                  <Flashlight className="h-5 w-5" />
+                  <Flashlight className="h-6 w-6" />
                 ) : (
-                  <FlashlightOff className="h-5 w-5" />
+                  <FlashlightOff className="h-6 w-6 text-foreground" />
                 )}
               </Button>
             )}
           </div>
         )}
       </div>
-
-      {/* Error Alert */}
-      {error && status !== 'permission_denied' && status !== 'error' && (
-        <Alert variant="destructive" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Scanning Instructions */}
-      {status === 'scanning' && (
-        <p className="text-sm text-muted-foreground text-center mt-4">
-          {t('scanner.pointAtCode', 'Point camera at the code')}
-        </p>
-      )}
-
-      {/* Camera Mode Indicator */}
-      {status === 'scanning' && (
-        <div className="flex justify-center mt-2">
-          <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-            {facingMode === 'environment' 
-              ? t('scanner.backCamera', 'Back Camera')
-              : t('scanner.frontCamera', 'Front Camera')
-            }
-          </span>
-        </div>
-      )}
     </div>
   );
 }
