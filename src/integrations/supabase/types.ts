@@ -16003,7 +16003,9 @@ export type Database = {
           approved_by: string | null
           created_at: string | null
           host_id: string
+          host_notified_at: string | null
           id: string
+          qr_issued_at: string | null
           security_notes: string | null
           site_id: string
           status: Database["public"]["Enums"]["visit_status"] | null
@@ -16016,7 +16018,9 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           host_id: string
+          host_notified_at?: string | null
           id?: string
+          qr_issued_at?: string | null
           security_notes?: string | null
           site_id: string
           status?: Database["public"]["Enums"]["visit_status"] | null
@@ -16029,7 +16033,9 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           host_id?: string
+          host_notified_at?: string | null
           id?: string
+          qr_issued_at?: string | null
           security_notes?: string | null
           site_id?: string
           status?: Database["public"]["Enums"]["visit_status"] | null
@@ -16071,6 +16077,10 @@ export type Database = {
           email: string | null
           full_name: string
           gate_entry_method: string | null
+          host_email: string | null
+          host_id: string | null
+          host_name: string | null
+          host_phone: string | null
           id: string
           is_active: boolean | null
           last_visit_at: string | null
@@ -16080,8 +16090,10 @@ export type Database = {
           phone: string | null
           preferred_language: string | null
           qr_code_token: string
+          qr_generated_at: string | null
           qr_used_at: string | null
           tenant_id: string
+          user_type: string | null
           whatsapp_sent_at: string | null
         }
         Insert: {
@@ -16092,6 +16104,10 @@ export type Database = {
           email?: string | null
           full_name: string
           gate_entry_method?: string | null
+          host_email?: string | null
+          host_id?: string | null
+          host_name?: string | null
+          host_phone?: string | null
           id?: string
           is_active?: boolean | null
           last_visit_at?: string | null
@@ -16101,8 +16117,10 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           qr_code_token?: string
+          qr_generated_at?: string | null
           qr_used_at?: string | null
           tenant_id: string
+          user_type?: string | null
           whatsapp_sent_at?: string | null
         }
         Update: {
@@ -16113,6 +16131,10 @@ export type Database = {
           email?: string | null
           full_name?: string
           gate_entry_method?: string | null
+          host_email?: string | null
+          host_id?: string | null
+          host_name?: string | null
+          host_phone?: string | null
           id?: string
           is_active?: boolean | null
           last_visit_at?: string | null
@@ -16122,11 +16144,20 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           qr_code_token?: string
+          qr_generated_at?: string | null
           qr_used_at?: string | null
           tenant_id?: string
+          user_type?: string | null
           whatsapp_sent_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "visitors_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "visitors_tenant_id_fkey"
             columns: ["tenant_id"]

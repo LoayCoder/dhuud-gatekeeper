@@ -14,9 +14,14 @@ interface VisitRequestWithRelations extends VisitRequest {
     id: string;
     full_name: string;
     email: string | null;
+    phone: string | null;
     company_name: string | null;
     national_id: string | null;
     qr_code_token: string;
+    host_name: string | null;
+    host_phone: string | null;
+    host_email: string | null;
+    host_id: string | null;
   } | null;
   site?: {
     id: string;
@@ -43,8 +48,8 @@ export function useVisitRequests(filters?: UseVisitRequestsFilters) {
       let query = supabase
         .from('visit_requests')
         .select(`
-          id, status, valid_from, valid_until, security_notes, created_at, host_id, visitor_id, site_id, tenant_id, approved_by,
-          visitor:visitors(id, full_name, email, company_name, national_id, qr_code_token),
+          id, status, valid_from, valid_until, security_notes, created_at, host_id, visitor_id, site_id, tenant_id, approved_by, qr_issued_at, host_notified_at,
+          visitor:visitors(id, full_name, email, phone, company_name, national_id, qr_code_token, host_name, host_phone, host_email, host_id),
           site:sites(id, name)
         `)
         .eq('tenant_id', tenantId)
@@ -128,27 +133,79 @@ export function useCreateVisitRequest() {
 export function useApproveVisitRequest() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes?: string }) => {
+      // First, get the request details to find visitor and host info
+      const { data: request, error: fetchError } = await supabase
+        .from('visit_requests')
+        .select(`
+          id, visitor_id, host_id, tenant_id, site_id, valid_from, valid_until,
+          visitor:visitors(id, full_name, qr_code_token, host_phone, host_name),
+          host:profiles!visit_requests_host_id_fkey(id, full_name, phone_number),
+          site:sites(id, name)
+        `)
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update the visit request status
       const { data, error } = await supabase
         .from('visit_requests')
         .update({
           status: 'approved',
           approved_by: user?.id,
           security_notes: notes,
+          qr_issued_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Mark QR as generated on the visitor record
+      if (request?.visitor_id) {
+        await supabase
+          .from('visitors')
+          .update({ qr_generated_at: new Date().toISOString() })
+          .eq('id', request.visitor_id);
+      }
+
+      // Send WhatsApp notification to host
+      const hostPhone = request?.visitor?.host_phone;
+      if (hostPhone && profile?.tenant_id) {
+        try {
+          await supabase.functions.invoke('send-gate-whatsapp', {
+            body: {
+              notification_type: 'host_notification',
+              mobile_number: hostPhone,
+              host_mobile: hostPhone,
+              visitor_name: request?.visitor?.full_name || 'A visitor',
+              destination_name: request?.site?.name || 'your location',
+              tenant_id: profile.tenant_id,
+            },
+          });
+
+          // Update host_notified_at
+          await supabase
+            .from('visit_requests')
+            .update({ host_notified_at: new Date().toISOString() })
+            .eq('id', id);
+        } catch (notifyError) {
+          console.error('Failed to send host notification:', notifyError);
+          // Don't throw - approval was successful, notification is secondary
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
-      toast({ title: 'Visit approved' });
+      queryClient.invalidateQueries({ queryKey: ['visitors'] });
+      toast({ title: 'Visit approved and host notified' });
     },
     onError: (error) => {
       toast({ title: 'Failed to approve', description: error.message, variant: 'destructive' });
