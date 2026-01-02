@@ -45,7 +45,7 @@ export function useSecurityBlacklist(filters?: UseBlacklistFilters) {
 
       let query = supabase
         .from('security_blacklist')
-        .select('id, full_name, national_id, reason, listed_at, listed_by')
+        .select('id, full_name, national_id, reason, listed_at, listed_by, entity_type, photo_evidence_paths')
         .eq('tenant_id', tenantId)
         .is('deleted_at', null) // AUDIT: Only fetch non-deleted records
         .order('listed_at', { ascending: false });
@@ -92,6 +92,8 @@ interface AddToBlacklistParams {
   reason: string;
   workerId?: string; // Optional: if provided, will also revoke the worker
   visitorId?: string; // Optional: if provided, will deactivate visitor and reject requests
+  photo_paths?: string[]; // Optional: photo evidence paths
+  entity_type?: 'visitor' | 'worker' | 'contractor'; // Entity type
 }
 
 // Allows partial params for form submission without workerId
@@ -100,6 +102,8 @@ type AddToBlacklistInput = {
   national_id: string;
   reason: string;
   workerId?: string;
+  photo_paths?: string[];
+  entity_type?: 'visitor' | 'worker' | 'contractor';
 };
 
 export function useAddToBlacklist() {
@@ -122,6 +126,8 @@ export function useAddToBlacklist() {
           tenant_id: tenantId,
           listed_by: user?.id,
           listed_at: new Date().toISOString(),
+          photo_evidence_paths: entry.photo_paths || null,
+          entity_type: entry.entity_type || 'visitor',
         })
         .select()
         .single();

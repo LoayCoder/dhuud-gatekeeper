@@ -16294,6 +16294,7 @@ export type Database = {
           nationality: string | null
           passenger_count: number | null
           phone: string | null
+          photo_path: string | null
           preferred_language: string | null
           qr_code_token: string
           qr_generated_at: string | null
@@ -16325,6 +16326,7 @@ export type Database = {
           nationality?: string | null
           passenger_count?: number | null
           phone?: string | null
+          photo_path?: string | null
           preferred_language?: string | null
           qr_code_token?: string
           qr_generated_at?: string | null
@@ -16356,6 +16358,7 @@ export type Database = {
           nationality?: string | null
           passenger_count?: number | null
           phone?: string | null
+          photo_path?: string | null
           preferred_language?: string | null
           qr_code_token?: string
           qr_generated_at?: string | null
