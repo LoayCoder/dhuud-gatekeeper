@@ -20,8 +20,15 @@ export default function MainLayout() {
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <AppSidebar />
         <SidebarInset className="min-w-0 overflow-hidden">
-          {/* Header with Trigger */}
-          <header className="sticky top-0 z-10 bg-background h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row">
+          {/* Header with Trigger - Fixed sticky header with safe-area support for PWA */}
+          <header 
+            className="sticky top-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row"
+            style={{ 
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              // Ensure the header is at least h-16 but adds safe area on top
+              minHeight: 'calc(4rem + env(safe-area-inset-top, 0px))'
+            }}
+          >
             <div className="items-center gap-2 flex flex-row min-w-0">
               <SidebarTrigger className="-ms-1 shrink-0" />
               <Separator orientation="vertical" className="me-2 h-4" />

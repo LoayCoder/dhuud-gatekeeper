@@ -2839,7 +2839,20 @@
     "youAreOffline": "You are offline",
     "pendingChanges": "{{count}} pending changes",
     "syncComplete": "All changes synced",
-    "sync": "Sync"
+    "sync": "Sync",
+    "online": "Online",
+    "offline": "Offline Mode",
+    "lastSync": "Last sync",
+    "pendingSync": "{{count}} pending",
+    "allSynced": "All synced",
+    "usingCached": "Using cached data",
+    "cannotSync": "Cannot Sync",
+    "waitForConnection": "Please wait for internet connection",
+    "syncedEntries": "{{count}} entries synced successfully",
+    "syncPartial": "Partial Sync",
+    "syncFailed": "{{count}} entries failed to sync",
+    "syncError": "Failed to sync data",
+    "syncing": "Syncing..."
   },
   "branding": {
     "title": "Dhuud HSSE Platform",

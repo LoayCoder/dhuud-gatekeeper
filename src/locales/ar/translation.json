@@ -2899,7 +2899,20 @@
     "youAreOffline": "أنت غير متصل بالإنترنت",
     "pendingChanges": "{{count}} تغييرات معلقة",
     "syncComplete": "تمت مزامنة جميع التغييرات",
-    "sync": "مزامنة"
+    "sync": "مزامنة",
+    "online": "متصل",
+    "offline": "وضع عدم الاتصال",
+    "lastSync": "آخر مزامنة",
+    "pendingSync": "{{count}} معلق",
+    "allSynced": "الكل متزامن",
+    "usingCached": "استخدام البيانات المخزنة",
+    "cannotSync": "لا يمكن المزامنة",
+    "waitForConnection": "يرجى انتظار اتصال الإنترنت",
+    "syncedEntries": "تمت مزامنة {{count}} إدخالات بنجاح",
+    "syncPartial": "مزامنة جزئية",
+    "syncFailed": "فشلت مزامنة {{count}} إدخالات",
+    "syncError": "فشل في مزامنة البيانات",
+    "syncing": "جاري المزامنة..."
   },
   "branding": {
     "title": "منصة ذود للصحة والسلامة",

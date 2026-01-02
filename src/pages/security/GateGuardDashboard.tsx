@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter } from 'lucide-react';
@@ -23,6 +23,7 @@ import { GatePassListTable } from '@/components/contractors/GatePassListTable';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
 import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
+import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
 import { cn } from '@/lib/utils';
 
 const GateGuardDashboard = () => {
@@ -111,8 +112,24 @@ const GateGuardDashboard = () => {
     },
   ];
 
+  // Track last sync time
+  const [lastSyncTime, setLastSyncTime] = useState<Date | undefined>(undefined);
+  
+  useEffect(() => {
+    // Update last sync time when stats are fetched
+    if (stats) {
+      setLastSyncTime(new Date());
+    }
+  }, [stats]);
+
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-4">
+      {/* Offline Status Bar - Important for PWA users */}
+      <GateOfflineStatusBar 
+        lastSyncTime={lastSyncTime}
+        onRefresh={handleRefresh}
+      />
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
