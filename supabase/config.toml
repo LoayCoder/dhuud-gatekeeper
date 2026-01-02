@@ -266,3 +266,6 @@ verify_jwt = false
 
 [functions.validate-material-qr]
 verify_jwt = true
+
+[functions.get-visitor-badge]
+verify_jwt = false

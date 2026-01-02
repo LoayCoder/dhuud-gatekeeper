@@ -16,7 +16,7 @@ interface WhatsAppRequest {
   tenant_id: string;
   
   // Notification type
-  notification_type?: 'visitor_welcome' | 'host_notification';
+  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link';
   
   // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;
@@ -24,6 +24,9 @@ interface WhatsAppRequest {
   visit_duration_hours?: number;
   notes?: string;
   entry_id?: string;
+  
+  // For visitor badge link
+  badge_url?: string;
   
   // For host notification
   host_mobile?: string;
@@ -47,6 +50,7 @@ serve(async (req) => {
       notes,
       entry_id,
       host_mobile,
+      badge_url,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -86,7 +90,29 @@ serve(async (req) => {
     let templateSid: string;
     let variables: Record<string, string>;
     
-    if (notification_type === 'host_notification' && host_mobile) {
+    if (notification_type === 'visitor_badge_link') {
+      // Visitor badge link notification after approval
+      console.log(`[WhatsApp] Sending badge link to visitor ${mobile_number}`);
+      
+      recipientPhone = mobile_number;
+      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
+      
+      const fallbackBadgeMessage = `🎫 ${isRTL ? 'بطاقة الزائر جاهزة' : 'Your Visitor Badge is Ready'}\n\n👤 ${visitor_name}\n📍 ${destination_name || 'Reception'}\n\n🔗 ${isRTL ? 'اطلع على بطاقتك' : 'View your badge'}:\n${badge_url}\n\n${isRTL ? 'يرجى إظهار رمز QR عند البوابة' : 'Please show the QR code at the gate'}`;
+      
+      variables = {
+        "1": visitor_name || 'Guest',
+        "2": destination_name || 'Reception',
+        "3": badge_url || '',
+      };
+      
+      // Use text message for badge link (template may not support URL)
+      const result = await sendWhatsAppText(recipientPhone, fallbackBadgeMessage);
+      
+      return new Response(
+        JSON.stringify({ success: result.success, message_id: result.messageId, provider: result.provider }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else if (notification_type === 'host_notification' && host_mobile) {
       // Host notification when visitor arrives
       console.log(`[WhatsApp] Sending host notification to ${host_mobile}`);
       
