@@ -5236,6 +5236,7 @@ export type Database = {
           exit_time: string | null
           gate_id: string | null
           guard_id: string | null
+          host_arrival_notified_at: string | null
           host_mobile: string | null
           host_notified_at: string | null
           id: string
@@ -5253,6 +5254,7 @@ export type Database = {
           site_id: string | null
           tenant_id: string
           visit_duration_hours: number | null
+          visit_reference: string | null
           visitor_id: string | null
           visitor_photo_url: string | null
           whatsapp_sent_at: string | null
@@ -5270,6 +5272,7 @@ export type Database = {
           exit_time?: string | null
           gate_id?: string | null
           guard_id?: string | null
+          host_arrival_notified_at?: string | null
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
@@ -5287,6 +5290,7 @@ export type Database = {
           site_id?: string | null
           tenant_id: string
           visit_duration_hours?: number | null
+          visit_reference?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
@@ -5304,6 +5308,7 @@ export type Database = {
           exit_time?: string | null
           gate_id?: string | null
           guard_id?: string | null
+          host_arrival_notified_at?: string | null
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
@@ -5321,6 +5326,7 @@ export type Database = {
           site_id?: string | null
           tenant_id?: string
           visit_duration_hours?: number | null
+          visit_reference?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
