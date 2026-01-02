@@ -368,25 +368,20 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-lg border-2 border-border bg-background max-h-[90vh] overflow-y-auto">
         {/* Header - Military/Formal Style */}
         <DialogHeader className="p-4 pb-3 border-b-2 border-border bg-muted/50">
-          <DialogTitle className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded bg-primary/10 border border-primary/30">
-                <QrCode className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base font-semibold uppercase tracking-wide">
-                  {t('security.qrScanner.scanQRCode', 'Scan QR Code')}
-                </span>
-                <span className="text-xs text-muted-foreground font-normal">
-                  {scanResult 
-                    ? t('security.qrScanner.scanComplete', 'Scan Complete') 
-                    : t('security.qrScanner.workersAndVisitors', 'Workers & Visitors')}
-                </span>
-              </div>
+          <DialogTitle className="flex items-center gap-3">
+            <div className="p-2 rounded bg-primary/10 border border-primary/30">
+              <QrCode className="h-5 w-5 text-primary" />
             </div>
-            <Button variant="ghost" size="icon" onClick={handleClose} className="rounded h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold uppercase tracking-wide">
+                {t('security.qrScanner.scanQRCode', 'Scan QR Code')}
+              </span>
+              <span className="text-xs text-muted-foreground font-normal">
+                {scanResult 
+                  ? t('security.qrScanner.scanComplete', 'Scan Complete') 
+                  : t('security.qrScanner.workersAndVisitors', 'Workers & Visitors')}
+              </span>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
