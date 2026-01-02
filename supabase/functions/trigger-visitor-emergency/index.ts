@@ -47,38 +47,46 @@ serve(async (req) => {
 
     console.log(`[Emergency] Processing alert for token: ${token.substring(0, 8)}...`);
 
-    // Find the visitor by QR token
-    const { data: visitRequest, error: visitError } = await supabase
-      .from('visit_requests')
-      .select(`
-        id,
-        visitor_id,
-        host_id,
-        host_name,
-        host_phone,
-        destination_name,
-        tenant_id,
-        visitors!inner(id, full_name, phone)
-      `)
+    // Step 1: Find visitor by their qr_code_token (token is on visitors table, not visit_requests)
+    const { data: visitor, error: visitorError } = await supabase
+      .from('visitors')
+      .select('id, full_name, phone, host_name, tenant_id, qr_code_token')
       .eq('qr_code_token', token)
       .is('deleted_at', null)
+      .eq('is_active', true)
       .maybeSingle();
 
-    if (visitError) {
-      console.error(`[Emergency] Database error:`, visitError);
-      throw visitError;
+    if (visitorError) {
+      console.error(`[Emergency] Database error finding visitor:`, visitorError);
+      throw visitorError;
     }
 
-    if (!visitRequest) {
-      console.error(`[Emergency] Token not found: ${token.substring(0, 8)}...`);
+    if (!visitor) {
+      console.error(`[Emergency] Visitor not found for token: ${token.substring(0, 8)}...`);
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid visitor token' }),
+        JSON.stringify({ success: false, error: 'Invalid or expired visitor token' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const visitor = visitRequest.visitors as unknown as { id: string; full_name: string; phone: string };
-    const tenantId = visitRequest.tenant_id;
+    console.log(`[Emergency] Found visitor: ${visitor.full_name} (${visitor.id})`);
+
+    // Step 2: Get the latest approved visit request for this visitor (for host contact info)
+    const { data: visitRequest, error: visitError } = await supabase
+      .from('visit_requests')
+      .select('id, host_id, host_name, host_phone, destination_name, site_id')
+      .eq('visitor_id', visitor.id)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (visitError) {
+      console.error(`[Emergency] Error fetching visit request:`, visitError);
+      // Continue even without visit request - visitor can still trigger emergency
+    }
+
+    const tenantId = visitor.tenant_id;
 
     console.log(`[Emergency] Creating alert for visitor: ${visitor.full_name}`);
 
@@ -114,8 +122,9 @@ serve(async (req) => {
       .eq('id', tenantId)
       .single();
 
-    // Send WhatsApp notification to host
-    if (visitRequest.host_phone) {
+    // Send WhatsApp notification to host (if we have visit request with host phone)
+    const hostPhone = visitRequest?.host_phone;
+    if (hostPhone) {
       try {
         const hostMessage = `🚨 تنبيه طوارئ | Emergency Alert
 
@@ -123,7 +132,7 @@ serve(async (req) => {
 Your visitor needs immediate assistance!
 
 👤 الزائر | Visitor: ${visitor.full_name}
-📍 ${visitRequest.destination_name || 'الموقع غير محدد | Location unknown'}
+📍 ${visitRequest?.destination_name || 'الموقع غير محدد | Location unknown'}
 ${latitude && longitude ? `🗺️ GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : ''}
 ${notes ? `📝 ملاحظات | Notes: ${notes}` : ''}
 
@@ -132,18 +141,20 @@ Please respond immediately or contact security.`;
 
         await supabase.functions.invoke('send-gate-whatsapp', {
           body: {
-            mobile_number: visitRequest.host_phone,
+            mobile_number: hostPhone,
             tenant_id: tenantId,
             notification_type: 'host_notification',
             visitor_name: visitor.full_name,
           }
         });
         
-        console.log(`[Emergency] Host notified: ${visitRequest.host_phone}`);
+        console.log(`[Emergency] Host notified: ${hostPhone}`);
       } catch (whatsappError) {
         console.error(`[Emergency] Failed to notify host:`, whatsappError);
         // Continue even if WhatsApp fails
       }
+    } else {
+      console.log(`[Emergency] No host phone available for notification`);
     }
 
     // Dispatch emergency notification to security team
