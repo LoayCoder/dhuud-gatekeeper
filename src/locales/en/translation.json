@@ -7706,16 +7706,20 @@
     "frontCamera": "Front Camera",
     "backCamera": "Back Camera",
     "toggleFlash": "Toggle Flash",
-    "pointAtCode": "Point camera at the code",
+    "pointAtCode": "Point camera at the QR code or barcode",
     "scanning": "Scanning...",
     "processing": "Processing...",
     "cameraPermissionTitle": "Camera Access Required",
-    "cameraPermissionDesc": "Please allow camera access to scan codes",
+    "cameraPermissionDesc": "Please allow camera access in your browser settings to scan codes",
     "cameraPermissionDenied": "Camera access denied",
-    "retryCamera": "Retry",
-    "scanSuccessful": "Scan Successful",
+    "retryCamera": "Try Again",
+    "scanSuccessful": "Scan Successful!",
     "scanFailed": "Scan Failed",
     "scannerError": "Failed to start scanner",
-    "scanCode": "Scan Code"
+    "scanCode": "Scan Code",
+    "alignCode": "Align QR code within the frame",
+    "readyTitle": "Ready to Scan",
+    "startCamera": "Start Camera",
+    "errorTitle": "Scanner Error"
   }
 }
