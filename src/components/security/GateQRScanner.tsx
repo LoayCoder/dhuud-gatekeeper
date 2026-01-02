@@ -375,6 +375,18 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     }
   }, [scanResult, onScanResult, handleClose]);
 
+  // Log entry and immediately start scanning for next QR code
+  const handleLogAndScanNext = useCallback(() => {
+    if (scanResult) {
+      onScanResult(scanResult);
+      // Instead of closing, start scanning for next QR code
+      setScanResult(null);
+      setIsVerifying(false);
+      setIsScannerActive(true);
+      scannerKeyRef.current += 1;
+    }
+  }, [scanResult, onScanResult]);
+
   const getStatusConfig = (status: QRScanResult['status']) => {
     switch (status) {
       case 'valid':
@@ -510,7 +522,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               </Button>
               
               {scanResult.status === 'valid' ? (
-                <Button className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" onClick={handleUseAndClose}>
+                <Button className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" onClick={handleLogAndScanNext}>
                   <LogIn className="h-4 w-4" />
                   {t('scanner.logEntry', 'Log Entry')}
                 </Button>
