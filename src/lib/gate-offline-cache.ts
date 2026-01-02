@@ -26,6 +26,7 @@ const CACHE_DURATIONS = {
   activeVisitors: 5 * 60 * 1000, // 5 minutes
   gateEntries: 24 * 60 * 60 * 1000, // 24 hours
   workerVerifications: 30 * 60 * 1000, // 30 minutes
+  visitorVerifications: 30 * 60 * 1000, // 30 minutes
   pendingEntries: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -192,6 +193,70 @@ class GateOfflineCache {
       return null;
     } catch (error) {
       console.error('[GateCache] Failed to get worker verification:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cache visitor QR verification result
+   */
+  async cacheVisitorVerification(visitorId: string, result: unknown): Promise<void> {
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction('cache', 'readwrite');
+      const store = tx.objectStore('cache');
+
+      const entry: CachedEntry = {
+        id: `visitor-${visitorId}`,
+        data: result,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + CACHE_DURATIONS.visitorVerifications,
+      };
+
+      await this.promisifyRequest(store.put(entry));
+    } catch (error) {
+      console.error('[GateCache] Failed to cache visitor verification:', error);
+    }
+  }
+
+  /**
+   * Get cached visitor verification
+   */
+  async getVisitorVerification(visitorId: string): Promise<unknown | null> {
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction('cache', 'readonly');
+      const store = tx.objectStore('cache');
+
+      const entry = await this.promisifyRequest<CachedEntry>(store.get(`visitor-${visitorId}`));
+      
+      if (entry && entry.expiresAt > Date.now()) {
+        return { ...entry.data as object, _cachedAt: entry.timestamp };
+      }
+      return null;
+    } catch (error) {
+      console.error('[GateCache] Failed to get visitor verification:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get cache timestamp for a worker verification
+   */
+  async getWorkerCacheTimestamp(workerId: string): Promise<number | null> {
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction('cache', 'readonly');
+      const store = tx.objectStore('cache');
+
+      const entry = await this.promisifyRequest<CachedEntry>(store.get(`worker-${workerId}`));
+      
+      if (entry && entry.expiresAt > Date.now()) {
+        return entry.timestamp;
+      }
+      return null;
+    } catch (error) {
+      console.error('[GateCache] Failed to get worker cache timestamp:', error);
       return null;
     }
   }
