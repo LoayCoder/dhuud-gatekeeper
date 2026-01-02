@@ -5237,6 +5237,7 @@ export type Database = {
           gate_id: string | null
           guard_id: string | null
           host_arrival_notified_at: string | null
+          host_exit_notified_at: string | null
           host_mobile: string | null
           host_notified_at: string | null
           id: string
@@ -5273,6 +5274,7 @@ export type Database = {
           gate_id?: string | null
           guard_id?: string | null
           host_arrival_notified_at?: string | null
+          host_exit_notified_at?: string | null
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
@@ -5309,6 +5311,7 @@ export type Database = {
           gate_id?: string | null
           guard_id?: string | null
           host_arrival_notified_at?: string | null
+          host_exit_notified_at?: string | null
           host_mobile?: string | null
           host_notified_at?: string | null
           id?: string
@@ -13581,6 +13584,7 @@ export type Database = {
       }
       security_blacklist: {
         Row: {
+          deleted_at: string | null
           expiry_date: string | null
           full_name: string | null
           id: string
@@ -13598,6 +13602,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          deleted_at?: string | null
           expiry_date?: string | null
           full_name?: string | null
           id?: string
@@ -13615,6 +13620,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          deleted_at?: string | null
           expiry_date?: string | null
           full_name?: string | null
           id?: string
