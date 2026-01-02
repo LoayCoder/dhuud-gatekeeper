@@ -61,6 +61,21 @@ export function useCheckBlacklist(nationalId: string | undefined) {
   });
 }
 
+interface AddToBlacklistParams {
+  full_name: string;
+  national_id: string;
+  reason: string;
+  workerId?: string; // Optional: if provided, will also revoke the worker
+}
+
+// Allows partial params for form submission without workerId
+type AddToBlacklistInput = {
+  full_name: string;
+  national_id: string;
+  reason: string;
+  workerId?: string;
+};
+
 export function useAddToBlacklist() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,13 +83,16 @@ export function useAddToBlacklist() {
   const tenantId = profile?.tenant_id;
 
   return useMutation({
-    mutationFn: async (entry: Omit<BlacklistInsert, 'tenant_id' | 'listed_by' | 'listed_at'>) => {
+    mutationFn: async (entry: AddToBlacklistParams) => {
       if (!tenantId) throw new Error('No tenant');
 
+      // Add to blacklist
       const { data, error } = await supabase
         .from('security_blacklist')
         .insert({
-          ...entry,
+          full_name: entry.full_name,
+          national_id: entry.national_id,
+          reason: entry.reason,
           tenant_id: tenantId,
           listed_by: user?.id,
           listed_at: new Date().toISOString(),
@@ -83,11 +101,29 @@ export function useAddToBlacklist() {
         .single();
 
       if (error) throw error;
+
+      // If workerId is provided, automatically revoke the worker
+      if (entry.workerId) {
+        const { error: updateError } = await supabase
+          .from('contractor_workers')
+          .update({
+            approval_status: 'revoked',
+            rejection_reason: `Blacklisted: ${entry.reason}`,
+          })
+          .eq('id', entry.workerId)
+          .eq('tenant_id', tenantId);
+
+        if (updateError) {
+          console.error('Failed to revoke worker:', updateError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-blacklist'] });
-      toast({ title: 'Added to blacklist' });
+      queryClient.invalidateQueries({ queryKey: ['contractor-workers'] });
+      toast({ title: 'Added to blacklist and worker revoked' });
     },
     onError: (error) => {
       toast({ title: 'Failed to add to blacklist', description: error.message, variant: 'destructive' });

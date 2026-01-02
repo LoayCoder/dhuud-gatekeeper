@@ -31,6 +31,7 @@ export function AddWorkerToBlacklistDialog({
         full_name: worker.full_name,
         national_id: worker.national_id,
         reason: reason.trim(),
+        workerId: worker.id, // Pass worker ID to also revoke them
       });
     }
     

@@ -18,6 +18,7 @@ import {
   InductionExpiryStatus 
 } from "@/lib/induction-expiry-utils";
 import { formatDate } from "@/lib/date-utils";
+import { getNationalityLabel } from "@/lib/nationalities";
 
 interface WorkerListTableProps {
   workers: ContractorWorker[];
@@ -46,7 +47,8 @@ export function WorkerListTable({
   blacklistedIds = [],
   blacklistReasons = {},
 }: WorkerListTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
 
@@ -95,7 +97,15 @@ export function WorkerListTable({
     return <div className="text-center py-8 text-muted-foreground">{t("contractors.workers.noWorkers", "No workers found")}</div>;
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, isBlacklisted: boolean) => {
+    if (isBlacklisted || status === 'revoked') {
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <ShieldAlert className="h-3 w-3" />
+          {t(`contractors.workerStatus.revoked`, "Revoked")}
+        </Badge>
+      );
+    }
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
       approved: "default", pending: "secondary", rejected: "destructive",
     };
@@ -237,9 +247,9 @@ export function WorkerListTable({
                 </TableCell>
                 <TableCell className="font-mono text-sm">{worker.national_id}</TableCell>
                 <TableCell>{worker.company?.company_name || "-"}</TableCell>
-                <TableCell>{worker.nationality || "-"}</TableCell>
+                <TableCell>{getNationalityLabel(worker.nationality, isRTL ? 'ar' : 'en') || "-"}</TableCell>
                 <TableCell>{getInductionBadge(inductionStatus, daysRemaining)}</TableCell>
-                <TableCell>{getStatusBadge(worker.approval_status)}</TableCell>
+                <TableCell>{getStatusBadge(worker.approval_status, isBlacklisted)}</TableCell>
                 <TableCell className="text-end">
                   <WorkerActionsDropdown
                     worker={worker}
