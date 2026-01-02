@@ -1748,6 +1748,7 @@
     
     "menuAccess": "Menu Access",
     "purchaseRequests": "Purchase Requests",
+    "platformSettings": "Platform Settings",
     "approvalConfig": "Approval Workflows",
     "slaManagement": "SLA Management",
     "slaAnalytics": "SLA Analytics",
@@ -6368,7 +6369,8 @@
       "projects": "Projects",
       "workers": "Workers",
       "gatePasses": "Gate Passes",
-      "inductionVideos": "Induction Videos"
+      "inductionVideos": "Induction Videos",
+      "analytics": "Analytics"
     },
     "gatePasses": {
       "status": {
@@ -6723,7 +6725,8 @@
       "dashboard": "PTW Dashboard",
       "projects": "Project Mobilization",
       "console": "Permit Console",
-      "createPermit": "Create Permit"
+      "createPermit": "Create Permit",
+      "riskAssessments": "Risk Assessments"
     },
     "dashboard": {
       "title": "Permit to Work Dashboard",

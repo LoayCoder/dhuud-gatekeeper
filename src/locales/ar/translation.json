@@ -1869,6 +1869,7 @@
     
     "menuAccess": "صلاحيات القائمة",
     "purchaseRequests": "طلبات الشراء",
+    "platformSettings": "إعدادات المنصة",
     "approvalConfig": "سير عمل الموافقات",
     "slaManagement": "إدارة اتفاقية مستوى الخدمة",
     "slaAnalytics": "تحليلات SLA",
@@ -6173,7 +6174,8 @@
       "projects": "المشاريع",
       "workers": "العمال",
       "gatePasses": "تصاريح البوابة",
-      "inductionVideos": "فيديوهات التعريف"
+      "inductionVideos": "فيديوهات التعريف",
+      "analytics": "التحليلات"
     },
     "companies": {
       "title": "شركات المقاولين",
@@ -6517,7 +6519,8 @@
       "dashboard": "لوحة تصاريح العمل",
       "projects": "تعبئة المشاريع",
       "console": "وحدة التحكم في التصاريح",
-      "createPermit": "إنشاء تصريح"
+      "createPermit": "إنشاء تصريح",
+      "riskAssessments": "تقييمات المخاطر"
     },
     "dashboard": {
       "title": "لوحة تصاريح العمل",
