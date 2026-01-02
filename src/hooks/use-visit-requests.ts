@@ -142,7 +142,7 @@ export function useApproveVisitRequest() {
         .from('visit_requests')
         .select(`
           id, visitor_id, host_id, tenant_id, site_id, valid_from, valid_until,
-          visitor:visitors(id, full_name, qr_code_token, host_phone, host_name),
+          visitor:visitors(id, full_name, phone, qr_code_token, host_phone, host_name),
           host:profiles!visit_requests_host_id_fkey(id, full_name, phone_number),
           site:sites(id, name)
         `)
@@ -174,6 +174,42 @@ export function useApproveVisitRequest() {
           .eq('id', request.visitor_id);
       }
 
+      // Get webpage notification settings
+      const { data: webpageSettings } = await supabase
+        .from('webpage_notification_settings')
+        .select('visitor_webpage_enabled, visitor_message_template, visitor_message_template_ar')
+        .eq('tenant_id', profile?.tenant_id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      const appUrl = window.location.origin;
+      const badgeUrl = `${appUrl}/visitor-badge/${request?.visitor?.qr_code_token}`;
+
+      // Send WhatsApp notification to VISITOR with badge link
+      const visitorPhone = request?.visitor?.phone;
+      if (visitorPhone && profile?.tenant_id && webpageSettings?.visitor_webpage_enabled !== false) {
+        try {
+          await supabase.functions.invoke('send-gate-whatsapp', {
+            body: {
+              notification_type: 'visitor_badge_link',
+              mobile_number: visitorPhone,
+              visitor_name: request?.visitor?.full_name || 'Visitor',
+              badge_url: badgeUrl,
+              destination_name: request?.site?.name || 'Reception',
+              tenant_id: profile.tenant_id,
+            },
+          });
+
+          // Update visitor_notified_at
+          await supabase
+            .from('visit_requests')
+            .update({ visitor_notified_at: new Date().toISOString() })
+            .eq('id', id);
+        } catch (notifyError) {
+          console.error('Failed to send visitor badge notification:', notifyError);
+        }
+      }
+
       // Send WhatsApp notification to host
       const hostPhone = request?.visitor?.host_phone;
       if (hostPhone && profile?.tenant_id) {
@@ -196,7 +232,6 @@ export function useApproveVisitRequest() {
             .eq('id', id);
         } catch (notifyError) {
           console.error('Failed to send host notification:', notifyError);
-          // Don't throw - approval was successful, notification is secondary
         }
       }
 
@@ -205,7 +240,7 @@ export function useApproveVisitRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
       queryClient.invalidateQueries({ queryKey: ['visitors'] });
-      toast({ title: 'Visit approved and host notified' });
+      toast({ title: 'Visit approved and notifications sent' });
     },
     onError: (error) => {
       toast({ title: 'Failed to approve', description: error.message, variant: 'destructive' });

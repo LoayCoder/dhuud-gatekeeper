@@ -16013,6 +16013,7 @@ export type Database = {
           valid_from: string
           valid_until: string
           visitor_id: string
+          visitor_notified_at: string | null
         }
         Insert: {
           approved_by?: string | null
@@ -16028,6 +16029,7 @@ export type Database = {
           valid_from: string
           valid_until: string
           visitor_id: string
+          visitor_notified_at?: string | null
         }
         Update: {
           approved_by?: string | null
@@ -16043,6 +16045,7 @@ export type Database = {
           valid_from?: string
           valid_until?: string
           visitor_id?: string
+          visitor_notified_at?: string | null
         }
         Relationships: [
           {
@@ -16205,6 +16208,68 @@ export type Database = {
           response_status?: number | null
         }
         Relationships: []
+      }
+      webpage_notification_settings: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          tenant_id: string
+          updated_at: string
+          visitor_allow_download: boolean
+          visitor_allow_share: boolean
+          visitor_message_template: string
+          visitor_message_template_ar: string
+          visitor_webpage_enabled: boolean
+          worker_allow_download: boolean
+          worker_allow_share: boolean
+          worker_message_template: string
+          worker_message_template_ar: string
+          worker_webpage_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          tenant_id: string
+          updated_at?: string
+          visitor_allow_download?: boolean
+          visitor_allow_share?: boolean
+          visitor_message_template?: string
+          visitor_message_template_ar?: string
+          visitor_webpage_enabled?: boolean
+          worker_allow_download?: boolean
+          worker_allow_share?: boolean
+          worker_message_template?: string
+          worker_message_template_ar?: string
+          worker_webpage_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+          visitor_allow_download?: boolean
+          visitor_allow_share?: boolean
+          visitor_message_template?: string
+          visitor_message_template_ar?: string
+          visitor_webpage_enabled?: boolean
+          worker_allow_download?: boolean
+          worker_allow_share?: boolean
+          worker_message_template?: string
+          worker_message_template_ar?: string
+          worker_webpage_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webpage_notification_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       witness_attachments: {
         Row: {

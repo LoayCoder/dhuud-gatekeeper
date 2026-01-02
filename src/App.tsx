@@ -96,6 +96,7 @@ const VisitorPreRegistration = lazyWithRetry(() => import("./pages/visitors/Visi
 const VisitorCheckpoint = lazyWithRetry(() => import("./pages/visitors/VisitorCheckpoint"));
 const VisitorList = lazyWithRetry(() => import("./pages/visitors/VisitorList"));
 const VisitorPass = lazyWithRetry(() => import("./pages/VisitorPass"));
+const VisitorBadgePage = lazyWithRetry(() => import("./pages/VisitorBadgePage"));
 const WorkerAccessPass = lazyWithRetry(() => import("./pages/WorkerAccessPass"));
 const WorkerInduction = lazyWithRetry(() => import("./pages/WorkerInduction"));
 const BlacklistManagement = lazyWithRetry(() => import("./pages/visitors/BlacklistManagement"));
@@ -245,6 +246,7 @@ const App = () => (
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<Suspense fallback={<PageLoader />}><MFASetup /></Suspense>} />
                     <Route path="/visitor-pass/:token" element={<VisitorPass />} />
+                    <Route path="/visitor-badge/:token" element={<VisitorBadgePage />} />
                     <Route path="/worker-access/:token" element={<WorkerAccessPass />} />
                     <Route path="/worker-induction/:inductionId" element={<WorkerInduction />} />
 
