@@ -314,6 +314,45 @@ Deno.serve(async (req) => {
         result.errors.push('Worker not authorized for this site');
       }
 
+      // ========================================
+      // BLACKLIST CHECK - Check if worker is on security blacklist
+      // ========================================
+      if (worker?.national_id) {
+        const { data: blacklistEntry } = await supabase
+          .from('security_blacklist')
+          .select('id, reason, listed_at')
+          .eq('tenant_id', tenant_id)
+          .eq('national_id', worker.national_id)
+          .maybeSingle();
+
+        if (blacklistEntry) {
+          result.is_valid = false;
+          result.errors.push(`BLACKLISTED: ${blacklistEntry.reason || 'Security violation'}`);
+          console.log(`[ValidateWorkerQR] Worker ${worker.full_name} is BLACKLISTED: ${blacklistEntry.reason}`);
+        }
+      }
+
+      // ========================================
+      // ZONE ACCESS CHECK - If zone_id provided, validate zone authorization
+      // ========================================
+      if (zone_id && worker?.id) {
+        const { data: zoneAuth } = await supabase
+          .from('worker_zone_authorizations')
+          .select('id, zone:security_zones(zone_name, risk_level)')
+          .eq('worker_id', worker.id)
+          .eq('zone_id', zone_id)
+          .is('deleted_at', null)
+          .maybeSingle();
+
+        if (!zoneAuth) {
+          result.is_valid = false;
+          result.errors.push('Worker not authorized for this zone');
+          console.log(`[ValidateWorkerQR] Worker ${worker.full_name} not authorized for zone ${zone_id}`);
+        } else {
+          console.log(`[ValidateWorkerQR] Worker authorized for zone: ${(zoneAuth.zone as any)?.zone_name}`);
+        }
+      }
+
       // Check induction status
       const { data: induction } = await supabase
         .from('worker_inductions')
@@ -363,13 +402,21 @@ Deno.serve(async (req) => {
     const logEntityId = qrCode?.id || worker?.id;
     const logEntityType = qrCode ? 'worker_qr_code' : 'contractor_worker';
     
+    // Determine if this was a blacklist failure for distinct audit action
+    const isBlacklistFailure = result.errors.some(e => e.startsWith('BLACKLISTED:'));
+    const isZoneFailure = result.errors.some(e => e.includes('not authorized for this zone'));
+    
+    let auditAction = result.is_valid ? 'qr_validated_success' : 'qr_validated_failed';
+    if (isBlacklistFailure) auditAction = 'qr_validation_failed_blacklist';
+    if (isZoneFailure) auditAction = 'qr_validation_failed_zone';
+    
     if (logEntityId) {
       await supabase.from('contractor_module_audit_logs').insert({
         tenant_id,
         entity_type: logEntityType,
         entity_id: logEntityId,
         actor_id: authResult.user.id,
-        action: result.is_valid ? 'qr_validated_success' : 'qr_validated_failed',
+        action: auditAction,
         new_value: {
           worker_id: worker?.id,
           project_id: project?.id || qrCode?.project_id,
@@ -379,6 +426,8 @@ Deno.serve(async (req) => {
           errors: result.errors,
           warnings: result.warnings,
           search_mode: search_mode || false,
+          blacklist_match: isBlacklistFailure,
+          zone_access_denied: isZoneFailure,
         },
       });
     }

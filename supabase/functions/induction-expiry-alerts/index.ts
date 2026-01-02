@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
   try {
     const now = new Date();
-    const warningThresholdDays = 14; // Warn 14 days before expiry
+    const warningThresholdDays = 7; // Warn 7 days before expiry
     const warningDate = new Date(now);
     warningDate.setDate(warningDate.getDate() + warningThresholdDays);
 
