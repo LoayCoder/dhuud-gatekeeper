@@ -18,6 +18,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { GateQRScanner, QRScanResult } from './GateQRScanner';
 import { gateOfflineCache } from '@/lib/gate-offline-cache';
 import { useGateScan } from '@/contexts/GateScanContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface VerificationResult {
   status: 'granted' | 'denied' | 'warning';
@@ -43,6 +44,7 @@ export function VisitorVerificationPanel({ onSwitchTab }: VisitorVerificationPan
   const { toast } = useToast();
   const { isOnline } = useNetworkStatus();
   const { pendingScanResult, setPendingScanResult, clearPendingScanResult } = useGateScan();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
@@ -197,15 +199,73 @@ export function VisitorVerificationPanel({ onSwitchTab }: VisitorVerificationPan
     });
   };
 
-  const handleRecordExit = () => {
-    if (!verificationResult?.entryId) return;
+  const handleRecordExit = async () => {
+    if (!verificationResult?.entryId || !profile?.tenant_id) return;
     
-    recordExit.mutate(verificationResult.entryId, {
-      onSuccess: () => {
-        setVerificationResult(prev => prev ? { ...prev, isOnSite: false } : null);
-        toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+    // First find if there's a linked visit_request for this gate entry
+    const { data: gateEntry } = await supabase
+      .from('gate_entry_logs')
+      .select('id, visit_request_id, person_name, host_mobile')
+      .eq('id', verificationResult.entryId)
+      .single();
+    
+    if (gateEntry?.visit_request_id) {
+      // Update both visit_request and gate_entry_log
+      const now = new Date().toISOString();
+      
+      // Update visit_request status to checked_out
+      await supabase
+        .from('visit_requests')
+        .update({ 
+          status: 'checked_out',
+          exit_logged_at: now,
+        })
+        .eq('id', gateEntry.visit_request_id);
+      
+      // Update gate_entry_log exit time
+      await supabase
+        .from('gate_entry_logs')
+        .update({ exit_time: now })
+        .eq('id', verificationResult.entryId);
+      
+      // Send host departure notification if host phone available
+      if (gateEntry.host_mobile) {
+        try {
+          await supabase.functions.invoke('send-gate-whatsapp', {
+            body: {
+              notification_type: 'host_departure',
+              mobile_number: gateEntry.host_mobile,
+              visitor_name: gateEntry.person_name || 'Visitor',
+              exit_time: now,
+              tenant_id: profile.tenant_id,
+            },
+          });
+          
+          // Update host_exit_notified_at
+          await supabase
+            .from('visit_requests')
+            .update({ host_exit_notified_at: now })
+            .eq('id', gateEntry.visit_request_id);
+        } catch (error) {
+          console.error('[Exit] Failed to notify host:', error);
+        }
       }
-    });
+      
+      setVerificationResult(prev => prev ? { ...prev, isOnSite: false } : null);
+      toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+      
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+    } else {
+      // No visit_request linked, just use the existing recordExit
+      recordExit.mutate(verificationResult.entryId, {
+        onSuccess: () => {
+          setVerificationResult(prev => prev ? { ...prev, isOnSite: false } : null);
+          toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+        }
+      });
+    }
   };
 
   // Process visitor QR result (used by both direct scan and pending result)
