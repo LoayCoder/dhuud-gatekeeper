@@ -24,8 +24,9 @@ export function useVisitors(filters?: UseVisitorsFilters) {
 
       let query = supabase
         .from('visitors')
-        .select('id, full_name, phone, company_name, national_id, qr_code_token, is_active, last_visit_at, created_at, user_type, host_name, host_phone, host_email, host_id, qr_generated_at')
+        .select('id, full_name, phone, company_name, national_id, qr_code_token, is_active, last_visit_at, created_at, user_type, host_name, host_phone, host_email, host_id, qr_generated_at, visit_end_time, deleted_at')
         .eq('tenant_id', tenantId)
+        .is('deleted_at', null) // Soft-delete filter (HSSA compliance)
         .order('created_at', { ascending: false });
 
       if (filters?.search) {
@@ -58,6 +59,7 @@ export function useVisitor(id: string | undefined) {
         .select('*')
         .eq('id', id)
         .eq('tenant_id', tenantId)
+        .is('deleted_at', null) // Soft-delete filter
         .single();
 
       if (error) throw error;
@@ -197,6 +199,7 @@ export function useVisitorByQRToken(token: string | undefined) {
         .select('*')
         .eq('qr_code_token', token)
         .eq('tenant_id', tenantId)
+        .is('deleted_at', null) // Soft-delete filter
         .single();
 
       if (error) throw error;

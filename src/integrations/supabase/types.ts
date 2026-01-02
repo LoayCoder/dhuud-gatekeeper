@@ -16273,8 +16273,10 @@ export type Database = {
           car_plate: string | null
           company_name: string | null
           created_at: string | null
+          deleted_at: string | null
           destination_id: string | null
           email: string | null
+          expiry_warning_sent_at: string | null
           full_name: string
           gate_entry_method: string | null
           host_email: string | null
@@ -16283,6 +16285,7 @@ export type Database = {
           host_phone: string | null
           id: string
           is_active: boolean | null
+          last_scanned_at: string | null
           last_visit_at: string | null
           national_id: string | null
           nationality: string | null
@@ -16294,14 +16297,17 @@ export type Database = {
           qr_used_at: string | null
           tenant_id: string
           user_type: string | null
+          visit_end_time: string | null
           whatsapp_sent_at: string | null
         }
         Insert: {
           car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           destination_id?: string | null
           email?: string | null
+          expiry_warning_sent_at?: string | null
           full_name: string
           gate_entry_method?: string | null
           host_email?: string | null
@@ -16310,6 +16316,7 @@ export type Database = {
           host_phone?: string | null
           id?: string
           is_active?: boolean | null
+          last_scanned_at?: string | null
           last_visit_at?: string | null
           national_id?: string | null
           nationality?: string | null
@@ -16321,14 +16328,17 @@ export type Database = {
           qr_used_at?: string | null
           tenant_id: string
           user_type?: string | null
+          visit_end_time?: string | null
           whatsapp_sent_at?: string | null
         }
         Update: {
           car_plate?: string | null
           company_name?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           destination_id?: string | null
           email?: string | null
+          expiry_warning_sent_at?: string | null
           full_name?: string
           gate_entry_method?: string | null
           host_email?: string | null
@@ -16337,6 +16347,7 @@ export type Database = {
           host_phone?: string | null
           id?: string
           is_active?: boolean | null
+          last_scanned_at?: string | null
           last_visit_at?: string | null
           national_id?: string | null
           nationality?: string | null
@@ -16348,6 +16359,7 @@ export type Database = {
           qr_used_at?: string | null
           tenant_id?: string
           user_type?: string | null
+          visit_end_time?: string | null
           whatsapp_sent_at?: string | null
         }
         Relationships: [
