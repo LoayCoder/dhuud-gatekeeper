@@ -66,6 +66,7 @@ interface AddToBlacklistParams {
   national_id: string;
   reason: string;
   workerId?: string; // Optional: if provided, will also revoke the worker
+  visitorId?: string; // Optional: if provided, will deactivate visitor and reject requests
 }
 
 // Allows partial params for form submission without workerId
@@ -115,6 +116,34 @@ export function useAddToBlacklist() {
 
         if (updateError) {
           console.error('Failed to revoke worker:', updateError);
+        }
+      }
+
+      // If visitorId is provided, deactivate visitor and reject pending requests
+      if (entry.visitorId) {
+        const { error: visitorError } = await supabase
+          .from('visitors')
+          .update({ is_active: false })
+          .eq('id', entry.visitorId)
+          .eq('tenant_id', tenantId);
+
+        if (visitorError) {
+          console.error('Failed to deactivate visitor:', visitorError);
+        }
+
+        // Reject all pending/approved visit requests for this visitor
+        const { error: requestsError } = await supabase
+          .from('visit_requests')
+          .update({ 
+            status: 'rejected',
+            rejection_reason: `Blacklisted: ${entry.reason}`
+          })
+          .eq('visitor_id', entry.visitorId)
+          .eq('tenant_id', tenantId)
+          .in('status', ['pending_security', 'approved']);
+
+        if (requestsError) {
+          console.error('Failed to reject visit requests:', requestsError);
         }
       }
 
