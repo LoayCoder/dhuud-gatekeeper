@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, ShieldX, Clock, MapPin, X, Bell, Zap, AlertCircle } from 'lucide-react';
+import { AlertTriangle, ShieldX, Clock, MapPin, X, Bell, Zap, AlertCircle, IdCard } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import type { GateAlert } from '@/hooks/use-gate-guard-stats';
@@ -125,15 +126,32 @@ export function GateAlertCards({ alerts, onDismiss, onAcknowledge }: GateAlertCa
                         {alert.description}
                       </p>
                       
-                      {/* Person Name */}
-                      {alert.personName && (
-                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
-                          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                            {alert.personName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      {/* Person Name, Photo & ID */}
+                      {(alert.personName || alert.nationalId) && (
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+                          {alert.photoUrl ? (
+                            <Avatar className="h-8 w-8 flex-shrink-0">
+                              <AvatarImage src={alert.photoUrl} alt={alert.personName} />
+                              <AvatarFallback className="text-xs">
+                                {alert.personName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
+                              {alert.personName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <span className="text-sm font-medium block truncate">
+                              {alert.personName}
+                            </span>
+                            {alert.nationalId && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <IdCard className="h-3 w-3" />
+                                {alert.nationalId}
+                              </span>
+                            )}
                           </div>
-                          <span className="text-sm font-medium truncate">
-                            {alert.personName}
-                          </span>
                         </div>
                       )}
                     </div>

@@ -194,6 +194,24 @@ Deno.serve(async (req) => {
         result.warnings.push('No active project assignment found');
       }
 
+      // ========================================
+      // BLACKLIST CHECK - Search Mode
+      // ========================================
+      if (worker?.national_id) {
+        const { data: blacklistEntry } = await supabase
+          .from('security_blacklist')
+          .select('id, reason, listed_at')
+          .eq('tenant_id', tenant_id)
+          .eq('national_id', worker.national_id.trim())
+          .maybeSingle();
+
+        if (blacklistEntry) {
+          result.is_valid = false;
+          result.errors.push(`BLACKLISTED: ${blacklistEntry.reason || 'Security violation'}`);
+          console.log(`[ValidateWorkerQR] Worker ${worker.full_name} is BLACKLISTED (search mode): ${blacklistEntry.reason}`);
+        }
+      }
+
       // Populate worker info
       result.worker = {
         id: worker.id,

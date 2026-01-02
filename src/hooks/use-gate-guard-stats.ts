@@ -20,7 +20,10 @@ export interface GateAlert {
   description: string;
   timestamp: string;
   personName?: string;
+  nationalId?: string;
+  photoUrl?: string;
   actionRequired?: boolean;
+  sourceTable?: 'geofence_alerts' | 'security_blacklist' | 'material_gate_passes';
 }
 
 async function fetchGateGuardStats(tenantId: string): Promise<GateGuardStats> {
@@ -178,18 +181,29 @@ async function fetchGateAlerts(tenantId: string): Promise<GateAlert[]> {
       timestamp: alert.created_at || new Date().toISOString(),
       personName: guardName,
       actionRequired: true,
+      sourceTable: 'geofence_alerts',
     });
   });
 
-  // Fetch recent blacklist entries
+  // Fetch recent blacklist entries with photo and national ID
   const { data: blacklistMatches } = await supabase
     .from('security_blacklist')
-    .select('id, full_name, reason, listed_at')
+    .select('id, full_name, reason, listed_at, national_id, photo_evidence_paths')
     .eq('tenant_id', tenantId)
     .gte('listed_at', subHours(new Date(), 24).toISOString())
     .limit(5);
 
-  blacklistMatches?.forEach(match => {
+  // Process blacklist alerts with photos
+  for (const match of blacklistMatches || []) {
+    let photoUrl: string | undefined;
+    const photoPaths = match.photo_evidence_paths as string[] | null;
+    if (photoPaths && photoPaths.length > 0) {
+      const { data: signedUrl } = await supabase.storage
+        .from('blacklist-evidence')
+        .createSignedUrl(photoPaths[0], 3600);
+      photoUrl = signedUrl?.signedUrl;
+    }
+
     alerts.push({
       id: match.id,
       type: 'blacklist_match',
@@ -198,9 +212,12 @@ async function fetchGateAlerts(tenantId: string): Promise<GateAlert[]> {
       description: match.reason || 'Person is on security blacklist',
       timestamp: match.listed_at || new Date().toISOString(),
       personName: match.full_name,
-      actionRequired: true,
+      nationalId: match.national_id,
+      photoUrl,
+      actionRequired: false, // Blacklist alerts are informational, no acknowledge action
+      sourceTable: 'security_blacklist',
     });
-  });
+  }
 
   // Fetch pending gate pass approvals
   const { data: pendingPasses, count: pendingCount } = await supabase
