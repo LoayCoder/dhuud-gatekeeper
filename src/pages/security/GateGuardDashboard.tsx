@@ -123,7 +123,7 @@ const GateGuardDashboard = () => {
   }, [stats]);
 
   return (
-    <div className="container mx-auto py-4 px-4 md:px-6 space-y-4">
+    <div className="container mx-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6 space-y-3 sm:space-y-4 min-w-0">
       {/* Offline Status Bar - Important for PWA users */}
       <GateOfflineStatusBar 
         lastSyncTime={lastSyncTime}
@@ -131,38 +131,43 @@ const GateGuardDashboard = () => {
       />
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Activity className="h-6 w-6 text-primary" />
-            {t('security.gateDashboard.title', 'Gate Guard Dashboard')}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+            <span className="truncate">{t('security.gateDashboard.title', 'Gate Guard Dashboard')}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {t('security.gateDashboard.description', 'Central control for gate operations')}
           </p>
         </div>
-        <Button variant="outline" onClick={handleRefresh} className="gap-2">
+        <Button 
+          variant="outline" 
+          onClick={handleRefresh} 
+          className="gap-2 w-full sm:w-auto flex-shrink-0"
+          size="sm"
+        >
           <RefreshCw className="h-4 w-4" />
-          {t('common.refresh', 'Refresh')}
+          <span className="sm:inline">{t('common.refresh', 'Refresh')}</span>
         </Button>
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {statCards.map((stat) => (
           <Card key={stat.label} className="overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn('p-2 rounded-lg', stat.bgColor)}>
-                  <stat.icon className={cn('h-5 w-5', stat.color)} />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={cn('p-1.5 sm:p-2 rounded-lg flex-shrink-0', stat.bgColor)}>
+                  <stat.icon className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color)} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   {statsLoading ? (
-                    <Skeleton className="h-7 w-12" />
+                    <Skeleton className="h-6 sm:h-7 w-10 sm:w-12" />
                   ) : (
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{stat.label}</p>
                 </div>
               </div>
             </CardContent>
@@ -174,9 +179,9 @@ const GateGuardDashboard = () => {
       {alerts.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-medium flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-            {t('security.gateDashboard.activeAlerts', 'Active Alerts')}
-            <Badge variant="destructive" className="text-xs">
+            <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+            <span className="truncate">{t('security.gateDashboard.activeAlerts', 'Active Alerts')}</span>
+            <Badge variant="destructive" className="text-xs flex-shrink-0">
               {alerts.length}
             </Badge>
           </h2>
@@ -190,88 +195,92 @@ const GateGuardDashboard = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full md:w-auto md:inline-grid">
-          <TabsTrigger value="visitors" className="gap-1">
-            <Users className="h-4 w-4 hidden sm:block" />
-            {t('security.gateDashboard.tabs.visitors', 'Visitors')}
-          </TabsTrigger>
-          <TabsTrigger value="workers" className="gap-1">
-            <HardHat className="h-4 w-4 hidden sm:block" />
-            {t('security.gateDashboard.tabs.workers', 'Workers')}
-          </TabsTrigger>
-          <TabsTrigger value="gatePasses" className="gap-1">
-            <Truck className="h-4 w-4 hidden sm:block" />
-            {t('security.gateDashboard.tabs.gatePasses', 'Gate Passes')}
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-1">
-            <Activity className="h-4 w-4 hidden sm:block" />
-            {t('security.gateDashboard.tabs.activityLog', 'Activity')}
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-4 min-w-full sm:min-w-0">
+            <TabsTrigger value="visitors" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.visitors', 'Visitors')}
+            </TabsTrigger>
+            <TabsTrigger value="workers" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+              <HardHat className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.workers', 'Workers')}
+            </TabsTrigger>
+            <TabsTrigger value="gatePasses" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+              <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.gatePasses', 'Gate Passes')}
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.activityLog', 'Activity')}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Visitors Tab */}
-        <TabsContent value="visitors" className="space-y-4 mt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
+        <TabsContent value="visitors" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <VisitorVerificationPanel />
             <ActiveVisitorsList />
           </div>
         </TabsContent>
 
         {/* Workers Tab */}
-        <TabsContent value="workers" className="space-y-4 mt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
+        <TabsContent value="workers" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <WorkerVerificationPanel />
             <ActiveWorkersList />
           </div>
-          
         </TabsContent>
 
         {/* Gate Passes Tab */}
-        <TabsContent value="gatePasses" className="space-y-4 mt-4">
+        <TabsContent value="gatePasses" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <Tabs value={gatePassTab} onValueChange={setGatePassTab}>
-            <TabsList className="w-full md:w-auto md:inline-grid grid-cols-3">
-              <TabsTrigger value="today">
-                {t('contractors.gatePasses.todayPasses', "Today's Passes")}
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="gap-1">
-                {t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}
-                {pendingApprovals.length > 0 && (
-                  <Badge variant="secondary" className="ms-1 text-xs">
-                    {pendingApprovals.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="all">
-                {t('contractors.gatePasses.allPasses', 'All Passes')}
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+              <TabsList className="inline-flex w-max sm:w-auto sm:grid sm:grid-cols-3">
+                <TabsTrigger value="today" className="whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                  {t('contractors.gatePasses.todayPasses', "Today's Passes")}
+                </TabsTrigger>
+                <TabsTrigger value="pending" className="gap-1 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                  <span className="hidden sm:inline">{t('contractors.gatePasses.pendingApprovals', 'Pending Approvals')}</span>
+                  <span className="sm:hidden">{t('contractors.gatePasses.pending', 'Pending')}</span>
+                  {pendingApprovals.length > 0 && (
+                    <Badge variant="secondary" className="ms-1 text-[10px] sm:text-xs h-4 sm:h-5 px-1 sm:px-1.5">
+                      {pendingApprovals.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="all" className="whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+                  {t('contractors.gatePasses.allPasses', 'All Passes')}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Today's Passes Sub-Tab */}
-            <TabsContent value="today" className="mt-4">
+            <TabsContent value="today" className="mt-3 sm:mt-4">
               <TodayGatePassesWrapper />
             </TabsContent>
 
             {/* Pending Approvals Sub-Tab */}
-            <TabsContent value="pending" className="mt-4">
+            <TabsContent value="pending" className="mt-3 sm:mt-4">
               <GatePassApprovalQueue passes={pendingApprovals} />
             </TabsContent>
 
             {/* All Passes Sub-Tab */}
-            <TabsContent value="all" className="mt-4 space-y-4">
+            <TabsContent value="all" className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
               {/* Filters Row */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                <div className="relative sm:col-span-2 lg:col-span-1">
                   <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t('contractors.gatePasses.searchPlaceholder', 'Search by reference, material, vehicle...')}
                     value={gatePassSearch}
                     onChange={(e) => setGatePassSearch(e.target.value)}
-                    className="ps-9"
+                    className="ps-9 text-sm"
                   />
                 </div>
                 <Select value={gatePassStatus} onValueChange={setGatePassStatus}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <Filter className="h-4 w-4 me-2" />
+                  <SelectTrigger className="w-full text-sm">
+                    <Filter className="h-4 w-4 me-2 flex-shrink-0" />
                     <SelectValue placeholder={t('common.status', 'Status')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -284,7 +293,7 @@ const GateGuardDashboard = () => {
                   </SelectContent>
                 </Select>
                 <Select value={gatePassProject} onValueChange={setGatePassProject}>
-                  <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectTrigger className="w-full text-sm">
                     <SelectValue placeholder={t('contractors.gatePasses.filterByProject', 'Filter by Project')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -305,7 +314,7 @@ const GateGuardDashboard = () => {
         </TabsContent>
 
         {/* Activity Log Tab */}
-        <TabsContent value="activity" className="space-y-4 mt-4">
+        <TabsContent value="activity" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           {stats && (
             <GateActivityCharts
               hourlyTrend={stats.hourlyTrend}
@@ -313,7 +322,7 @@ const GateGuardDashboard = () => {
             />
           )}
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <GateLogTable />
             </CardContent>
           </Card>
