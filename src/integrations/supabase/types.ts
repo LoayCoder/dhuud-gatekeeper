@@ -16232,6 +16232,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "visit_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "visit_requests_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
