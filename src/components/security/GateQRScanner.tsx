@@ -1,13 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, X, RotateCcw, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ScannerDialog } from '@/components/ui/scanner-dialog';
 import { gateOfflineCache } from '@/lib/gate-offline-cache';
+import { CameraScanner } from '@/components/ui/camera-scanner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
 interface GateQRScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,6 +43,18 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const { toast } = useToast();
   const [isVerifying, setIsVerifying] = useState(false);
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
+  const [isScannerActive, setIsScannerActive] = useState(true);
+  const scannerKeyRef = useRef(0);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setScanResult(null);
+      setIsVerifying(false);
+      setIsScannerActive(true);
+      scannerKeyRef.current += 1;
+    }
+  }, [open]);
 
   const verifyQRCode = async (code: string): Promise<QRScanResult> => {
     const isOnline = navigator.onLine;
@@ -55,7 +69,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         .single();
       tenantId = profile?.tenant_id;
     } catch (error) {
-      // If offline, we can't get tenant_id but can still check cache
       console.warn('[GateQR] Could not get tenant_id, proceeding with cache check');
     }
 
@@ -63,7 +76,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     if (code.startsWith('VISITOR:')) {
       const visitorToken = code.replace('VISITOR:', '');
       
-      // Try online verification first
       if (isOnline) {
         try {
           const { data: visitor } = await supabase
@@ -74,7 +86,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             .maybeSingle();
 
           if (visitor) {
-            // Cache for offline use
             await gateOfflineCache.cacheVisitorVerification(visitorToken, {
               id: visitor.id,
               full_name: visitor.full_name,
@@ -141,7 +152,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         }
       }
       
-      // Offline fallback: Check cache
       const cachedVisitor = await gateOfflineCache.getVisitorVerification(visitorToken) as { 
         id: string; 
         full_name: string; 
@@ -202,7 +212,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       if (parts.length >= 2) {
         const qrToken = parts[1];
         
-        // Try online verification first
         if (isOnline) {
           try {
             const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
@@ -225,7 +234,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               };
             }
 
-            // Cache successful verification for offline use
             await gateOfflineCache.cacheWorkerVerification(qrToken, {
               worker: data.worker,
               induction: data.induction,
@@ -252,7 +260,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           }
         }
         
-        // Offline fallback: Check cache
         const cachedWorker = await gateOfflineCache.getWorkerVerification(qrToken) as {
           worker?: { id: string; full_name: string; company_name?: string; project_name?: string };
           induction?: { status: string; expires_at?: string };
@@ -341,23 +348,19 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   };
 
   const handleScan = useCallback(async (decodedText: string) => {
+    // Prevent duplicate scans while verifying
+    if (isVerifying) return;
+    
     if (navigator.vibrate) {
       navigator.vibrate(100);
     }
 
     setIsVerifying(true);
-    setScanResult(null);
+    setIsScannerActive(false);
 
     try {
       const parsedResult = await verifyQRCode(decodedText);
       setScanResult(parsedResult);
-      
-      if (parsedResult.status === 'valid') {
-        setTimeout(() => {
-          onScanResult(parsedResult);
-          handleClose();
-        }, 1500);
-      }
     } catch (error) {
       console.error('QR verification error:', error);
       setScanResult({
@@ -368,20 +371,30 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     } finally {
       setIsVerifying(false);
     }
-  }, [onScanResult]);
+  }, [isVerifying]);
 
   const handleClose = useCallback(() => {
     setScanResult(null);
     setIsVerifying(false);
+    setIsScannerActive(true);
     onOpenChange(false);
   }, [onOpenChange]);
 
-  const handleRescan = useCallback(() => {
+  const handleScanNext = useCallback(() => {
     setScanResult(null);
     setIsVerifying(false);
+    setIsScannerActive(true);
+    scannerKeyRef.current += 1;
   }, []);
 
   const handleUseResult = useCallback(() => {
+    if (scanResult) {
+      onScanResult(scanResult);
+      // Don't close - allow user to take action and then scan next
+    }
+  }, [scanResult, onScanResult]);
+
+  const handleUseAndClose = useCallback(() => {
     if (scanResult) {
       onScanResult(scanResult);
       handleClose();
@@ -433,148 +446,174 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     }
   };
 
-  // Custom content when we have a result or are verifying
-  if (isVerifying || scanResult) {
-    return (
-      <ScannerDialog
-        open={open}
-        onOpenChange={handleClose}
-        onScan={handleScan}
-        title={expectedType === 'worker' 
-          ? t('security.qrScanner.scanWorkerQR', 'Scan Worker QR')
-          : t('security.qrScanner.scanVisitorQR', 'Scan Visitor QR')
-        }
-        description={expectedType === 'worker'
-          ? t('security.qrScanner.pointAtWorkerQR', 'Point camera at worker QR code')
-          : t('security.qrScanner.pointAtVisitorQR', 'Point camera at visitor QR code')
-        }
-        icon={expectedType === 'worker' 
-          ? <HardHat className="h-5 w-5 text-primary" />
-          : <User className="h-5 w-5 text-primary" />
-        }
-        containerId="gate-qr-scanner"
-        className={cn(
-          scanResult && "sm:max-w-md"
-        )}
-      >
-        {/* Verification Overlay */}
-        {isVerifying && (
-          <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[320px]">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative p-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30">
-                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-2xl border-0 shadow-2xl bg-gradient-to-b from-background to-muted/30 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <DialogHeader className="p-5 pb-3 border-b border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-primary/5">
+          <DialogTitle className="flex items-center justify-between gap-3 text-xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
+                {expectedType === 'worker' 
+                  ? <HardHat className="h-5 w-5 text-primary" />
+                  : <User className="h-5 w-5 text-primary" />
+                }
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span>
+                  {expectedType === 'worker' 
+                    ? t('security.qrScanner.scanWorkerQR', 'Scan Worker QR')
+                    : t('security.qrScanner.scanVisitorQR', 'Scan Visitor QR')
+                  }
+                </span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  {scanResult 
+                    ? t('security.qrScanner.scanComplete', 'Scan Complete')
+                    : t('security.qrScanner.pointAtCode', 'Point camera at QR code')
+                  }
+                </span>
               </div>
             </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold">{t('security.qrScanner.verifying', 'Verifying...')}</h3>
-              <p className="text-sm text-muted-foreground">{t('security.qrScanner.pleaseWait', 'Please wait')}</p>
-            </div>
-          </div>
-        )}
+            <Button variant="ghost" size="icon" onClick={handleClose} className="rounded-full">
+              <X className="h-5 w-5" />
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Result Display */}
+        {/* Scanner Area - Always visible but may be paused */}
+        <div className="p-4 pb-2">
+          {isScannerActive && !isVerifying && (
+            <CameraScanner
+              key={scannerKeyRef.current}
+              containerId="gate-qr-scanner"
+              isOpen={open && isScannerActive}
+              onScan={handleScan}
+              qrboxSize={{ width: 250, height: 250 }}
+              aspectRatio={1.0}
+              showCameraSwitch={true}
+              showTorchToggle={true}
+            />
+          )}
+
+          {/* Verifying State */}
+          {isVerifying && (
+            <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[280px] bg-gradient-to-br from-muted/50 to-muted rounded-2xl border border-border/50">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                <div className="relative p-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30">
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold">{t('security.qrScanner.verifying', 'Verifying...')}</h3>
+                <p className="text-sm text-muted-foreground">{t('security.qrScanner.pleaseWait', 'Please wait')}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Result Display - Shows below scanner when we have a result */}
         {scanResult && !isVerifying && (
-          <div className="flex flex-col items-center justify-center gap-4 p-6 min-h-[320px]">
-            {/* Status Icon with Animation */}
-            <div className="relative">
-              {scanResult.status === 'valid' ? (
-                <>
-                  <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl animate-pulse" />
-                  <div className="relative p-5 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 border-2 border-green-500/30 animate-scale-in">
-                    <CheckCircle2 className="h-12 w-12 text-green-500" />
+          <div className="px-4 pb-4 space-y-4 animate-in slide-in-from-bottom-4 duration-300">
+            {/* Status Card */}
+            <div className={cn(
+              "p-4 rounded-xl border-2",
+              getStatusConfig(scanResult.status).bgColor,
+              getStatusConfig(scanResult.status).borderColor
+            )}>
+              <div className="flex items-start gap-4">
+                {/* Status Icon */}
+                <div className={cn(
+                  "p-3 rounded-full flex-shrink-0",
+                  getStatusConfig(scanResult.status).bgColor
+                )}>
+                  {(() => {
+                    const Icon = getStatusConfig(scanResult.status).icon;
+                    return <Icon className={cn("h-8 w-8", getStatusConfig(scanResult.status).color)} />;
+                  })()}
+                </div>
+                
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge 
+                      variant={scanResult.status === 'valid' ? 'default' : 'destructive'}
+                      className={cn(
+                        scanResult.status === 'valid' && "bg-green-600 hover:bg-green-700",
+                        scanResult.status === 'expired' && "bg-amber-600 hover:bg-amber-700",
+                        scanResult.status === 'used' && "bg-amber-600 hover:bg-amber-700"
+                      )}
+                    >
+                      {scanResult.type === 'worker' && <HardHat className="h-3 w-3 me-1" />}
+                      {scanResult.type === 'visitor' && <User className="h-3 w-3 me-1" />}
+                      {getStatusConfig(scanResult.status).label}
+                    </Badge>
+                    
+                    {scanResult.isOfflineCached && (
+                      <Badge variant="outline" className="text-amber-600 border-amber-400">
+                        <WifiOff className="h-3 w-3 me-1" />
+                        {t('security.qrScanner.offlineData', 'Cached')}
+                      </Badge>
+                    )}
                   </div>
-                </>
-              ) : (
-                <>
-                  <div className={cn("absolute inset-0 rounded-full blur-xl animate-pulse", getStatusConfig(scanResult.status).bgColor)} />
-                  <div className={cn(
-                    "relative p-5 rounded-full border-2 animate-scale-in",
-                    getStatusConfig(scanResult.status).bgColor,
-                    getStatusConfig(scanResult.status).borderColor
-                  )}>
-                    {(() => {
-                      const Icon = getStatusConfig(scanResult.status).icon;
-                      return <Icon className={cn("h-12 w-12", getStatusConfig(scanResult.status).color)} />;
-                    })()}
-                  </div>
-                </>
+                  
+                  {scanResult.data?.name && (
+                    <p className="text-lg font-bold mt-2 truncate">{scanResult.data.name}</p>
+                  )}
+                  
+                  {scanResult.data?.company && (
+                    <p className="text-sm text-muted-foreground truncate">{scanResult.data.company}</p>
+                  )}
+                  
+                  {scanResult.data?.projectName && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                      <ShieldCheck className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{scanResult.data.projectName}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Warnings */}
+              {scanResult.data?.warnings && scanResult.data.warnings.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {scanResult.data.warnings.map((warning, idx) => (
+                    <div 
+                      key={idx} 
+                      className="flex items-start gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-sm"
+                    >
+                      <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                      <span className="text-destructive">{warning}</span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Status Badge */}
-            <Badge 
-              variant={scanResult.status === 'valid' ? 'default' : 'destructive'}
-              className={cn(
-                "text-base px-4 py-1.5 animate-fade-in",
-                scanResult.status === 'valid' && "bg-green-600 hover:bg-green-700",
-                scanResult.status === 'expired' && "bg-amber-600 hover:bg-amber-700",
-                scanResult.status === 'used' && "bg-amber-600 hover:bg-amber-700"
-              )}
-            >
-              {scanResult.type === 'worker' && <HardHat className="h-4 w-4 me-2" />}
-              {scanResult.type === 'visitor' && <User className="h-4 w-4 me-2" />}
-              {getStatusConfig(scanResult.status).label}
-            </Badge>
-            
-            {/* Offline Cache Indicator */}
-            {scanResult.isOfflineCached && (
-              <Badge variant="outline" className="text-sm px-3 py-1 animate-fade-in text-amber-600 border-amber-400">
-                <WifiOff className="h-3 w-3 me-1" />
-                {t('security.qrScanner.offlineData', 'Cached Data')}
-                {scanResult.cachedAt && (
-                  <span className="ms-1 text-muted-foreground">
-                    ({Math.round((Date.now() - scanResult.cachedAt) / 60000)} min ago)
-                  </span>
-                )}
-              </Badge>
-            )}
-
-            {/* Person Info */}
-            {scanResult.data?.name && (
-              <div className="text-center space-y-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                <p className="text-xl font-bold">{scanResult.data.name}</p>
-                {scanResult.data.company && (
-                  <p className="text-sm text-muted-foreground">{scanResult.data.company}</p>
-                )}
-                {scanResult.data.projectName && (
-                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                    <ShieldCheck className="h-3 w-3" />
-                    {scanResult.data.projectName}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Warnings */}
-            {scanResult.data?.warnings && scanResult.data.warnings.length > 0 && (
-              <div className="w-full max-w-xs space-y-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                {scanResult.data.warnings.map((warning, idx) => (
-                  <div 
-                    key={idx} 
-                    className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm"
-                  >
-                    <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-                    <span className="text-destructive">{warning}</span>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 w-full max-w-xs mt-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="grid grid-cols-2 gap-3">
               <Button 
                 variant="outline" 
-                className="flex-1 rounded-xl"
-                onClick={handleRescan}
+                className="gap-2 h-12 rounded-xl"
+                onClick={handleScanNext}
               >
-                <QrCode className="h-4 w-4 me-2" />
-                {t('scanner.scanAgain', 'Scan Again')}
+                <RotateCcw className="h-4 w-4" />
+                {t('scanner.scanNext', 'Scan Next')}
               </Button>
-              {scanResult.status !== 'valid' && (
+              
+              {scanResult.status === 'valid' ? (
                 <Button 
-                  className="flex-1 rounded-xl"
-                  onClick={handleUseResult}
+                  className="gap-2 h-12 rounded-xl bg-green-600 hover:bg-green-700"
+                  onClick={handleUseAndClose}
+                >
+                  <LogIn className="h-4 w-4" />
+                  {t('scanner.logEntry', 'Log Entry')}
+                </Button>
+              ) : (
+                <Button 
+                  variant="secondary"
+                  className="gap-2 h-12 rounded-xl"
+                  onClick={handleUseAndClose}
                 >
                   {t('scanner.useResult', 'Use Result')}
                 </Button>
@@ -582,29 +621,21 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             </div>
           </div>
         )}
-      </ScannerDialog>
-    );
-  }
 
-  // Normal scanner view
-  return (
-    <ScannerDialog
-      open={open}
-      onOpenChange={handleClose}
-      onScan={handleScan}
-      title={expectedType === 'worker' 
-        ? t('security.qrScanner.scanWorkerQR', 'Scan Worker QR')
-        : t('security.qrScanner.scanVisitorQR', 'Scan Visitor QR')
-      }
-      description={expectedType === 'worker'
-        ? t('security.qrScanner.pointAtWorkerQR', 'Point camera at worker QR code')
-        : t('security.qrScanner.pointAtVisitorQR', 'Point camera at visitor QR code')
-      }
-      icon={expectedType === 'worker' 
-        ? <HardHat className="h-5 w-5 text-primary" />
-        : <User className="h-5 w-5 text-primary" />
-      }
-      containerId="gate-qr-scanner"
-    />
+        {/* Close button when scanner is active */}
+        {!scanResult && !isVerifying && (
+          <div className="p-4 pt-0">
+            <Button 
+              variant="outline" 
+              className="w-full gap-2 rounded-xl h-12 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-300" 
+              onClick={handleClose}
+            >
+              <X className="h-4 w-4" />
+              {t('common.cancel', 'Cancel')}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
