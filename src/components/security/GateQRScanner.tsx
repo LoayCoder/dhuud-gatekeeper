@@ -371,20 +371,16 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           <DialogTitle className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded bg-primary/10 border border-primary/30">
-                {expectedType === 'worker' 
-                  ? <HardHat className="h-5 w-5 text-primary" />
-                  : <User className="h-5 w-5 text-primary" />
-                }
+                <QrCode className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-col">
                 <span className="text-base font-semibold uppercase tracking-wide">
-                  {expectedType === 'worker' 
-                    ? t('security.qrScanner.scanWorkerQR', 'Worker QR Scan')
-                    : t('security.qrScanner.scanVisitorQR', 'Visitor QR Scan')
-                  }
+                  {t('security.qrScanner.scanQRCode', 'Scan QR Code')}
                 </span>
                 <span className="text-xs text-muted-foreground font-normal">
-                  {scanResult ? t('security.qrScanner.scanComplete', 'Scan Complete') : t('security.qrScanner.pointAtCode', 'Point at Code')}
+                  {scanResult 
+                    ? t('security.qrScanner.scanComplete', 'Scan Complete') 
+                    : t('security.qrScanner.workersAndVisitors', 'Workers & Visitors')}
                 </span>
               </div>
             </div>
@@ -505,15 +501,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           </div>
         )}
 
-        {/* Close button when scanner active */}
-        {!scanResult && !isVerifying && (
-          <div className="p-3 pt-0">
-            <Button variant="outline" className="w-full gap-2 h-10 border-2" onClick={handleClose}>
-              <X className="h-4 w-4" />
-              {t('common.cancel', 'Cancel')}
-            </Button>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
