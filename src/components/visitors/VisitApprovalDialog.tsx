@@ -174,12 +174,12 @@ export function VisitApprovalDialog({ requestId, open, onOpenChange }: VisitAppr
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">{t('visitors.fields.hostName', 'Host')}:</span>
-                  <p className="font-medium">{request.visitor?.host_name || request.host?.full_name || '-'}</p>
+                  <p className="font-medium">{request.visitor?.host_name || '-'}</p>
                 </div>
-                {(request.visitor?.host_phone || request.host?.phone_number) && (
+                {request.visitor?.host_phone && (
                   <div className="flex items-center gap-1">
                     <Phone className="h-3 w-3 text-muted-foreground" />
-                    <span>{request.visitor?.host_phone || request.host?.phone_number}</span>
+                    <span>{request.visitor?.host_phone}</span>
                   </div>
                 )}
                 {request.visitor?.host_email && (
