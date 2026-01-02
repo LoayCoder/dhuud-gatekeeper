@@ -254,24 +254,39 @@ export function useCloseProtocol() {
       notes?: string;
     }) => {
       const { data: profile } = await supabase.from('profiles').select('id').single();
+      const now = new Date().toISOString();
 
-      const { error } = await supabase
+      // Update protocol execution status
+      const { error: execError } = await supabase
         .from('emergency_protocol_executions')
         .update({
           status: 'closed',
-          completed_at: new Date().toISOString(),
+          completed_at: now,
           completed_by: profile?.id,
           notes,
         })
         .eq('id', executionId);
 
-      if (error) throw error;
+      if (execError) throw execError;
+
+      // Also resolve the emergency alert
+      const { error: alertError } = await supabase
+        .from('emergency_alerts')
+        .update({
+          resolved_at: now,
+          resolved_by: profile?.id,
+          resolution_notes: notes || 'Resolved via protocol execution',
+        })
+        .eq('id', alertId);
+
+      if (alertError) throw alertError;
 
       return { executionId };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['protocol-execution', variables.alertId] });
       queryClient.invalidateQueries({ queryKey: ['emergency-alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['active-emergency-alerts'] });
       toast.success(t('security.emergency.protocolClosed', 'Protocol closed successfully'));
     },
   });
