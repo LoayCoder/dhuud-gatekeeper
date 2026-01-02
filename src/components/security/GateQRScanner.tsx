@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, X, RotateCcw, Camera } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -46,7 +46,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const [isScannerActive, setIsScannerActive] = useState(true);
   const scannerKeyRef = useRef(0);
 
-  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setScanResult(null);
@@ -69,7 +68,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         .single();
       tenantId = profile?.tenant_id;
     } catch (error) {
-      console.warn('[GateQR] Could not get tenant_id, proceeding with cache check');
+      console.warn('[GateQR] Could not get tenant_id');
     }
 
     // Handle VISITOR: prefix
@@ -103,7 +102,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                   name: visitor.full_name,
                   company: visitor.company_name || undefined,
                   qrUsedAt: visitor.qr_used_at,
-                  warnings: [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
+                  warnings: [t('security.qrScanner.qrAlreadyUsed', 'QR code already used')],
                 },
               };
             }
@@ -133,9 +132,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               id: gateEntry.id,
               status: 'valid',
               rawCode: code,
-              data: {
-                name: gateEntry.person_name || undefined,
-              },
+              data: { name: gateEntry.person_name || undefined },
             };
           }
 
@@ -143,52 +140,31 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             type: 'visitor',
             status: 'not_found',
             rawCode: code,
-            data: {
-              warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
-            },
+            data: { warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')] },
           };
         } catch (error) {
-          console.error('[GateQR] Online verification failed, trying cache:', error);
+          console.error('[GateQR] Online verification failed:', error);
         }
       }
       
       const cachedVisitor = await gateOfflineCache.getVisitorVerification(visitorToken) as { 
-        id: string; 
-        full_name: string; 
-        company_name?: string;
-        qr_used_at?: string;
-        _cachedAt?: number;
+        id: string; full_name: string; company_name?: string; qr_used_at?: string; _cachedAt?: number;
       } | null;
       
       if (cachedVisitor) {
-        if (cachedVisitor.qr_used_at) {
-          return {
-            type: 'visitor',
-            id: cachedVisitor.id,
-            status: 'used',
-            rawCode: code,
-            isOfflineCached: true,
-            cachedAt: cachedVisitor._cachedAt,
-            data: {
-              name: cachedVisitor.full_name,
-              company: cachedVisitor.company_name || undefined,
-              qrUsedAt: cachedVisitor.qr_used_at,
-              warnings: [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
-            },
-          };
-        }
-        
         return {
           type: 'visitor',
           id: cachedVisitor.id,
-          status: 'valid',
+          status: cachedVisitor.qr_used_at ? 'used' : 'valid',
           rawCode: code,
           isOfflineCached: true,
           cachedAt: cachedVisitor._cachedAt,
           data: {
             name: cachedVisitor.full_name,
             company: cachedVisitor.company_name || undefined,
-            warnings: [t('security.qrScanner.offlineCachedData', 'Using cached data (offline)')],
+            warnings: cachedVisitor.qr_used_at 
+              ? [t('security.qrScanner.qrAlreadyUsed', 'QR already used')]
+              : [t('security.qrScanner.offlineCachedData', 'Cached data (offline)')],
           },
         };
       }
@@ -197,12 +173,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         type: 'visitor',
         status: 'not_found',
         rawCode: code,
-        data: {
-          warnings: [isOnline 
-            ? t('security.qrScanner.visitorNotFound', 'Visitor not found')
-            : t('security.qrScanner.offlineNoCache', 'No network. Visitor not in offline cache.')
-          ],
-        },
+        data: { warnings: [isOnline ? t('security.qrScanner.visitorNotFound', 'Visitor not found') : t('security.qrScanner.offlineNoCache', 'Offline - not cached')] },
       };
     }
 
@@ -228,9 +199,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                 id: data?.worker?.id,
                 status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
                 rawCode: code,
-                data: {
-                  warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR code'],
-                },
+                data: { warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR'] },
               };
             }
 
@@ -256,7 +225,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               },
             };
           } catch (error) {
-            console.error('[GateQR] Online worker verification failed, trying cache:', error);
+            console.error('[GateQR] Worker verification failed:', error);
           }
         }
         
@@ -282,10 +251,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               projectName: cachedWorker.worker?.project_name,
               inductionStatus: cachedWorker.induction?.status || 'not_started',
               expiresAt: cachedWorker.induction?.expires_at,
-              warnings: [
-                ...(cachedWorker.warnings || []),
-                t('security.qrScanner.offlineCachedData', 'Using cached data (offline)'),
-              ],
+              warnings: [...(cachedWorker.warnings || []), t('security.qrScanner.offlineCachedData', 'Cached (offline)')],
             },
           };
         }
@@ -294,12 +260,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           type: 'worker',
           status: 'not_found',
           rawCode: code,
-          data: {
-            warnings: [isOnline 
-              ? t('security.qrScanner.workerNotFound', 'Worker verification failed')
-              : t('security.qrScanner.offlineNoCache', 'No network. Worker not in offline cache.')
-            ],
-          },
+          data: { warnings: [isOnline ? t('security.qrScanner.workerNotFound', 'Worker not found') : t('security.qrScanner.offlineNoCache', 'Offline - not cached')] },
         };
       }
     }
@@ -321,9 +282,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           id: visitor.id,
           status: 'valid',
           rawCode: code,
-          data: {
-            name: visitor.person_name || undefined,
-          },
+          data: { name: visitor.person_name || undefined },
         };
       }
 
@@ -331,9 +290,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         type: 'visitor',
         status: 'not_found',
         rawCode: code,
-        data: {
-          warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
-        },
+        data: { warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')] },
       };
     }
 
@@ -341,18 +298,15 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       type: 'unknown',
       status: 'not_found',
       rawCode: code,
-      data: {
-        warnings: [t('security.qrScanner.unknownFormat', 'Unknown QR format')],
-      },
+      data: { warnings: [t('security.qrScanner.unknownFormat', 'Unknown QR format')] },
     };
   };
 
   const handleScan = useCallback(async (decodedText: string) => {
-    // Prevent duplicate scans while verifying
     if (isVerifying) return;
     
     if (navigator.vibrate) {
-      navigator.vibrate(100);
+      navigator.vibrate(50);
     }
 
     setIsVerifying(true);
@@ -387,13 +341,6 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     scannerKeyRef.current += 1;
   }, []);
 
-  const handleUseResult = useCallback(() => {
-    if (scanResult) {
-      onScanResult(scanResult);
-      // Don't close - allow user to take action and then scan next
-    }
-  }, [scanResult, onScanResult]);
-
   const handleUseAndClose = useCallback(() => {
     if (scanResult) {
       onScanResult(scanResult);
@@ -404,91 +351,58 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const getStatusConfig = (status: QRScanResult['status']) => {
     switch (status) {
       case 'valid':
-        return {
-          icon: CheckCircle2,
-          color: 'text-green-500',
-          bgColor: 'bg-green-500/10',
-          borderColor: 'border-green-500/30',
-          label: t('security.qrScanner.valid', 'Valid'),
-        };
+        return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-600', label: t('security.qrScanner.valid', 'VALID') };
       case 'expired':
-        return {
-          icon: Clock,
-          color: 'text-amber-500',
-          bgColor: 'bg-amber-500/10',
-          borderColor: 'border-amber-500/30',
-          label: t('security.qrScanner.expired', 'Expired'),
-        };
+        return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-600', label: t('security.qrScanner.expired', 'EXPIRED') };
       case 'revoked':
-        return {
-          icon: XCircle,
-          color: 'text-destructive',
-          bgColor: 'bg-destructive/10',
-          borderColor: 'border-destructive/30',
-          label: t('security.qrScanner.revoked', 'Revoked'),
-        };
+        return { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive', label: t('security.qrScanner.revoked', 'REVOKED') };
       case 'used':
-        return {
-          icon: AlertTriangle,
-          color: 'text-amber-500',
-          bgColor: 'bg-amber-500/10',
-          borderColor: 'border-amber-500/30',
-          label: t('security.qrScanner.used', 'Already Used'),
-        };
+        return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-600', label: t('security.qrScanner.used', 'USED') };
       default:
-        return {
-          icon: XCircle,
-          color: 'text-destructive',
-          bgColor: 'bg-destructive/10',
-          borderColor: 'border-destructive/30',
-          label: t('security.qrScanner.invalid', 'Invalid'),
-        };
+        return { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive', label: t('security.qrScanner.invalid', 'INVALID') };
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-2xl border-0 shadow-2xl bg-gradient-to-b from-background to-muted/30 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <DialogHeader className="p-5 pb-3 border-b border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-primary/5">
-          <DialogTitle className="flex items-center justify-between gap-3 text-xl">
+      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-lg border-2 border-border bg-background max-h-[90vh] overflow-y-auto">
+        {/* Header - Military/Formal Style */}
+        <DialogHeader className="p-4 pb-3 border-b-2 border-border bg-muted/50">
+          <DialogTitle className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
+              <div className="p-2 rounded bg-primary/10 border border-primary/30">
                 {expectedType === 'worker' 
                   ? <HardHat className="h-5 w-5 text-primary" />
                   : <User className="h-5 w-5 text-primary" />
                 }
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span>
+              <div className="flex flex-col">
+                <span className="text-base font-semibold uppercase tracking-wide">
                   {expectedType === 'worker' 
-                    ? t('security.qrScanner.scanWorkerQR', 'Scan Worker QR')
-                    : t('security.qrScanner.scanVisitorQR', 'Scan Visitor QR')
+                    ? t('security.qrScanner.scanWorkerQR', 'Worker QR Scan')
+                    : t('security.qrScanner.scanVisitorQR', 'Visitor QR Scan')
                   }
                 </span>
-                <span className="text-sm font-normal text-muted-foreground">
-                  {scanResult 
-                    ? t('security.qrScanner.scanComplete', 'Scan Complete')
-                    : t('security.qrScanner.pointAtCode', 'Point camera at QR code')
-                  }
+                <span className="text-xs text-muted-foreground font-normal">
+                  {scanResult ? t('security.qrScanner.scanComplete', 'Scan Complete') : t('security.qrScanner.pointAtCode', 'Point at Code')}
                 </span>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleClose} className="rounded-full">
-              <X className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleClose} className="rounded h-8 w-8">
+              <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
         </DialogHeader>
 
-        {/* Scanner Area - Always visible but may be paused */}
-        <div className="p-4 pb-2">
+        {/* Scanner Area */}
+        <div className="p-3">
           {isScannerActive && !isVerifying && (
             <CameraScanner
               key={scannerKeyRef.current}
               containerId="gate-qr-scanner"
               isOpen={open && isScannerActive}
               onScan={handleScan}
-              qrboxSize={{ width: 250, height: 250 }}
+              qrboxSize={{ width: 220, height: 220 }}
               aspectRatio={1.0}
               showCameraSwitch={true}
               showTorchToggle={true}
@@ -497,68 +411,51 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
 
           {/* Verifying State */}
           {isVerifying && (
-            <div className="flex flex-col items-center justify-center gap-6 p-8 min-h-[280px] bg-gradient-to-br from-muted/50 to-muted rounded-2xl border border-border/50">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                <div className="relative p-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30">
-                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                </div>
+            <div className="flex flex-col items-center justify-center gap-4 p-6 min-h-[240px] bg-muted/50 rounded-lg border-2 border-border">
+              <div className="p-4 rounded bg-primary/10 border border-primary/30">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="text-lg font-semibold">{t('security.qrScanner.verifying', 'Verifying...')}</h3>
-                <p className="text-sm text-muted-foreground">{t('security.qrScanner.pleaseWait', 'Please wait')}</p>
+              <div className="text-center">
+                <p className="text-sm font-semibold uppercase tracking-wide">{t('security.qrScanner.verifying', 'Verifying')}</p>
+                <p className="text-xs text-muted-foreground">{t('security.qrScanner.pleaseWait', 'Please wait')}</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Result Display - Shows below scanner when we have a result */}
+        {/* Result Display */}
         {scanResult && !isVerifying && (
-          <div className="px-4 pb-4 space-y-4 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="px-3 pb-3 space-y-3">
             {/* Status Card */}
-            <div className={cn(
-              "p-4 rounded-xl border-2",
-              getStatusConfig(scanResult.status).bgColor,
-              getStatusConfig(scanResult.status).borderColor
-            )}>
-              <div className="flex items-start gap-4">
+            <div className={cn("p-3 rounded-lg border-2", getStatusConfig(scanResult.status).bg, getStatusConfig(scanResult.status).border)}>
+              <div className="flex items-start gap-3">
                 {/* Status Icon */}
-                <div className={cn(
-                  "p-3 rounded-full flex-shrink-0",
-                  getStatusConfig(scanResult.status).bgColor
-                )}>
+                <div className={cn("p-2 rounded", getStatusConfig(scanResult.status).bg)}>
                   {(() => {
                     const Icon = getStatusConfig(scanResult.status).icon;
-                    return <Icon className={cn("h-8 w-8", getStatusConfig(scanResult.status).color)} />;
+                    return <Icon className={cn("h-6 w-6", getStatusConfig(scanResult.status).color)} />;
                   })()}
                 </div>
                 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge 
-                      variant={scanResult.status === 'valid' ? 'default' : 'destructive'}
-                      className={cn(
-                        scanResult.status === 'valid' && "bg-green-600 hover:bg-green-700",
-                        scanResult.status === 'expired' && "bg-amber-600 hover:bg-amber-700",
-                        scanResult.status === 'used' && "bg-amber-600 hover:bg-amber-700"
-                      )}
-                    >
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-wide", getStatusConfig(scanResult.status).color, getStatusConfig(scanResult.status).border)}>
                       {scanResult.type === 'worker' && <HardHat className="h-3 w-3 me-1" />}
                       {scanResult.type === 'visitor' && <User className="h-3 w-3 me-1" />}
                       {getStatusConfig(scanResult.status).label}
                     </Badge>
                     
                     {scanResult.isOfflineCached && (
-                      <Badge variant="outline" className="text-amber-600 border-amber-400">
+                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
                         <WifiOff className="h-3 w-3 me-1" />
-                        {t('security.qrScanner.offlineData', 'Cached')}
+                        CACHED
                       </Badge>
                     )}
                   </div>
                   
                   {scanResult.data?.name && (
-                    <p className="text-lg font-bold mt-2 truncate">{scanResult.data.name}</p>
+                    <p className="text-base font-bold truncate">{scanResult.data.name}</p>
                   )}
                   
                   {scanResult.data?.company && (
@@ -566,8 +463,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                   )}
                   
                   {scanResult.data?.projectName && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                      <ShieldCheck className="h-3 w-3 flex-shrink-0" />
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <ShieldCheck className="h-3 w-3" />
                       <span className="truncate">{scanResult.data.projectName}</span>
                     </p>
                   )}
@@ -576,13 +473,10 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               
               {/* Warnings */}
               {scanResult.data?.warnings && scanResult.data.warnings.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1">
                   {scanResult.data.warnings.map((warning, idx) => (
-                    <div 
-                      key={idx} 
-                      className="flex items-start gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-sm"
-                    >
-                      <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                    <div key={idx} className="flex items-start gap-2 p-2 rounded bg-destructive/10 border border-destructive/20 text-xs">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />
                       <span className="text-destructive">{warning}</span>
                     </div>
                   ))}
@@ -591,30 +485,19 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                variant="outline" 
-                className="gap-2 h-12 rounded-xl"
-                onClick={handleScanNext}
-              >
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="gap-2 h-10" onClick={handleScanNext}>
                 <RotateCcw className="h-4 w-4" />
                 {t('scanner.scanNext', 'Scan Next')}
               </Button>
               
               {scanResult.status === 'valid' ? (
-                <Button 
-                  className="gap-2 h-12 rounded-xl bg-green-600 hover:bg-green-700"
-                  onClick={handleUseAndClose}
-                >
+                <Button className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" onClick={handleUseAndClose}>
                   <LogIn className="h-4 w-4" />
                   {t('scanner.logEntry', 'Log Entry')}
                 </Button>
               ) : (
-                <Button 
-                  variant="secondary"
-                  className="gap-2 h-12 rounded-xl"
-                  onClick={handleUseAndClose}
-                >
+                <Button variant="secondary" className="gap-2 h-10" onClick={handleUseAndClose}>
                   {t('scanner.useResult', 'Use Result')}
                 </Button>
               )}
@@ -622,14 +505,10 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           </div>
         )}
 
-        {/* Close button when scanner is active */}
+        {/* Close button when scanner active */}
         {!scanResult && !isVerifying && (
-          <div className="p-4 pt-0">
-            <Button 
-              variant="outline" 
-              className="w-full gap-2 rounded-xl h-12 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-300" 
-              onClick={handleClose}
-            >
+          <div className="p-3 pt-0">
+            <Button variant="outline" className="w-full gap-2 h-10 border-2" onClick={handleClose}>
               <X className="h-4 w-4" />
               {t('common.cancel', 'Cancel')}
             </Button>
