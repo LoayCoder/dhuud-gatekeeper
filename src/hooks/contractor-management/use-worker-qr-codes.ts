@@ -58,7 +58,17 @@ export function useGenerateWorkerQR() {
         body: { workerId, projectId },
       });
 
-      if (error) throw error;
+      // Handle edge function error response in body
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (error) {
+        // Try to parse error message from edge function response
+        const errorMessage = error.message || "Failed to generate QR code";
+        throw new Error(errorMessage);
+      }
+      
       return data;
     },
     onSuccess: (_, { workerId }) => {
@@ -66,7 +76,7 @@ export function useGenerateWorkerQR() {
       toast.success("QR code generated successfully");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to generate QR code");
     },
   });
 }
