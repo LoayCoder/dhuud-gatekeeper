@@ -1,4 +1,31 @@
 {
+  "scanner": {
+    "scanCode": "Scan Code",
+    "switchCamera": "Switch Camera",
+    "frontCamera": "Front Camera",
+    "backCamera": "Back Camera",
+    "toggleFlash": "Toggle Flash",
+    "flashOn": "Flash On",
+    "flashOff": "Flash Off",
+    "alignCode": "Align QR code within the frame",
+    "pointAtCode": "Point camera at the QR code or barcode",
+    "scanning": "Scanning...",
+    "processing": "Processing...",
+    "verifying": "Verifying...",
+    "pleaseWait": "Please wait",
+    "cameraPermissionTitle": "Camera Access Required",
+    "cameraPermissionDesc": "Please allow camera access in your browser settings to scan codes",
+    "cameraPermissionDenied": "Camera access denied",
+    "retryCamera": "Try Again",
+    "startCamera": "Start Camera",
+    "readyTitle": "Ready to Scan",
+    "scanSuccessful": "Scan Successful",
+    "scanFailed": "Scan Failed",
+    "scanAgain": "Scan Again",
+    "useResult": "Use Result",
+    "errorTitle": "Scanner Error",
+    "scannerError": "Failed to start scanner"
+  },
   "security": {
     "gate": {
       "alreadyOnSite": "Already On Site",
