@@ -16534,6 +16534,67 @@ export type Database = {
           },
         ]
       }
+      worker_zone_authorizations: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          notes: string | null
+          tenant_id: string
+          worker_id: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id: string
+          worker_id: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id?: string
+          worker_id?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_zone_authorizations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_zone_authorizations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_zone_authorizations_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_definitions: {
         Row: {
           category: string

@@ -321,11 +321,15 @@ export function useApproveGatePass() {
         };
         newStatus = "pending_safety_approval";
       } else {
+        // Safety approval - generate QR token and mark as approved
+        const qrToken = crypto.randomUUID();
         updateData = {
           safety_approved_by: user.id,
           safety_approved_at: now,
           safety_notes: notes || null,
           status: "approved",
+          qr_code_token: qrToken,
+          qr_generated_at: now,
         };
         newStatus = "approved";
       }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter } from 'lucide-react';
+import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter, Package } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +15,13 @@ import { VisitorVerificationPanel } from '@/components/security/VisitorVerificat
 import { GateActivityCharts } from '@/components/security/GateActivityCharts';
 import { ActiveVisitorsList } from '@/components/security/ActiveVisitorsList';
 import { ActiveWorkersList } from '@/components/security/ActiveWorkersList';
-
 import { WorkerVerificationPanel } from '@/components/security/WorkerVerificationPanel';
 import { TodayGatePassesWrapper } from '@/components/security/TodayGatePassesWrapper';
 import { GateLogTable } from '@/components/security/GateLogTable';
 import { GatePassListTable } from '@/components/contractors/GatePassListTable';
 import { GatePassApprovalQueue } from '@/components/contractors/GatePassApprovalQueue';
+import { MaterialPassVerificationPanel } from '@/components/security/MaterialPassVerificationPanel';
+import { ZoneSelector } from '@/components/security/ZoneSelector';
 import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
@@ -41,6 +42,9 @@ const GateGuardDashboard = () => {
   const [gatePassSearch, setGatePassSearch] = useState('');
   const [gatePassStatus, setGatePassStatus] = useState('all');
   const [gatePassProject, setGatePassProject] = useState('all');
+  
+  // Zone state for zone-level access control
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGateGuardStats();
   const { data: alerts = [], refetch: refetchAlerts } = useGateAlerts();
@@ -148,15 +152,27 @@ const GateGuardDashboard = () => {
             {t('security.gateDashboard.description', 'Central control for gate operations')}
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh} 
-          className="gap-2 w-full sm:w-auto flex-shrink-0"
-          size="sm"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span className="sm:inline">{t('common.refresh', 'Refresh')}</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Zone Selector for zone-level access control */}
+          <ZoneSelector 
+            onZoneChange={setSelectedZoneId}
+            className="hidden sm:flex"
+          />
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh} 
+            className="gap-2 flex-shrink-0"
+            size="sm"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('common.refresh', 'Refresh')}</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Zone Selector */}
+      <div className="sm:hidden">
+        <ZoneSelector onZoneChange={setSelectedZoneId} />
       </div>
 
       {/* KPI Summary Cards */}
@@ -203,7 +219,7 @@ const GateGuardDashboard = () => {
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-4 min-w-full sm:min-w-0">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 min-w-full sm:min-w-0">
             <TabsTrigger value="visitors" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
               {t('security.gateDashboard.tabs.visitors', 'Visitors')}
@@ -211,6 +227,10 @@ const GateGuardDashboard = () => {
             <TabsTrigger value="workers" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
               <HardHat className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
               {t('security.gateDashboard.tabs.workers', 'Workers')}
+            </TabsTrigger>
+            <TabsTrigger value="material" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
+              <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.material', 'Material')}
             </TabsTrigger>
             <TabsTrigger value="gatePasses" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
               <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
@@ -236,6 +256,14 @@ const GateGuardDashboard = () => {
           <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <WorkerVerificationPanel onSwitchTab={handleSwitchTab} />
             <ActiveWorkersList />
+          </div>
+        </TabsContent>
+
+        {/* Material Tab - NEW */}
+        <TabsContent value="material" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+            <MaterialPassVerificationPanel />
+            <TodayGatePassesWrapper />
           </div>
         </TabsContent>
 
