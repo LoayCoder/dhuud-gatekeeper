@@ -9,6 +9,26 @@
  * - Image payload: { to, text, imageUrl }
  */
 
+// Rate limit retry configuration
+const MAX_RETRIES = 3;
+const DEFAULT_RETRY_DELAY_MS = 5500; // 5.5 seconds (WaSender limit is 5s)
+
+/**
+ * Helper function to delay execution
+ */
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Check if error is a rate limit error
+ */
+function isRateLimitError(status: number, responseData: Record<string, unknown>): boolean {
+  if (status === 429) return true;
+  const errorMessage = String(responseData.error || responseData.message || '').toLowerCase();
+  return errorMessage.includes('account protection') || errorMessage.includes('rate limit');
+}
+
 export interface WaSenderResponse {
   success: boolean;
   messageId?: string;
@@ -53,10 +73,13 @@ function formatPhoneNumber(phone: string): string {
  * Send a text message via WaSender API
  * Endpoint: POST https://wasenderapi.com/api/send-message
  * Payload: { to: "+966...", text: "message" }
+ * 
+ * Includes automatic retry logic for rate limiting (account protection)
  */
 export async function sendWaSenderTextMessage(
   to: string,
-  message: string
+  message: string,
+  retryCount = 0
 ): Promise<WaSenderResponse> {
   const apiKey = Deno.env.get('WASENDER_API_KEY');
 
@@ -70,7 +93,7 @@ export async function sendWaSenderTextMessage(
 
   const formattedPhone = formatPhoneNumber(to);
 
-  console.log(`[WaSender] Sending text message to ${formattedPhone}`);
+  console.log(`[WaSender] Sending text message to ${formattedPhone}${retryCount > 0 ? ` (retry ${retryCount}/${MAX_RETRIES})` : ''}`);
 
   try {
     const payload = {
@@ -93,6 +116,13 @@ export async function sendWaSenderTextMessage(
 
     console.log(`[WaSender] Response status: ${response.status}`);
     console.log(`[WaSender] Response body: ${JSON.stringify(responseData)}`);
+
+    // Check for rate limiting and retry if needed
+    if (isRateLimitError(response.status, responseData) && retryCount < MAX_RETRIES) {
+      console.log(`[WaSender] Rate limited. Waiting ${DEFAULT_RETRY_DELAY_MS}ms before retry ${retryCount + 1}/${MAX_RETRIES}`);
+      await sleep(DEFAULT_RETRY_DELAY_MS);
+      return sendWaSenderTextMessage(to, message, retryCount + 1);
+    }
 
     if (!response.ok || responseData.success === false) {
       console.error('[WaSender] API error:', responseData);
@@ -127,12 +157,14 @@ export async function sendWaSenderTextMessage(
  * Payload: { to: "+966...", text: "caption", imageUrl: "https://..." }
  * 
  * Supported formats: JPEG, PNG. Max size: 5MB
+ * Includes automatic retry logic for rate limiting (account protection)
  */
 export async function sendWaSenderMediaMessage(
   to: string,
   mediaUrl: string,
   caption?: string,
-  mediaType: 'image' | 'video' | 'document' = 'image'
+  mediaType: 'image' | 'video' | 'document' = 'image',
+  retryCount = 0
 ): Promise<WaSenderResponse> {
   const apiKey = Deno.env.get('WASENDER_API_KEY');
 
@@ -226,6 +258,13 @@ export async function sendWaSenderMediaMessage(
     console.log(`[WaSender Media] API Response Status: ${response.status} ${response.statusText}`);
     console.log(`[WaSender Media] API Response Body: ${JSON.stringify(responseData)}`);
     console.log(`[WaSender Media] Request Duration: ${duration}ms`);
+
+    // Check for rate limiting and retry if needed
+    if (isRateLimitError(response.status, responseData) && retryCount < MAX_RETRIES) {
+      console.log(`[WaSender Media] Rate limited. Waiting ${DEFAULT_RETRY_DELAY_MS}ms before retry ${retryCount + 1}/${MAX_RETRIES}`);
+      await sleep(DEFAULT_RETRY_DELAY_MS);
+      return sendWaSenderMediaMessage(to, mediaUrl, caption, mediaType, retryCount + 1);
+    }
 
     if (!response.ok || responseData.success === false) {
       console.error(`[WaSender Media] === FAILED (${duration}ms) ===`);
