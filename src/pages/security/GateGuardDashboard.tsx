@@ -79,12 +79,20 @@ const GateGuardDashboard = () => {
 
   const handleAcknowledgeAlert = async (alertId: string) => {
     try {
-      // Geofence alerts are stored in geofence_alerts table
-      if (alertId && alertId !== 'pending-passes') {
+      // Find the alert to determine its source table
+      const alert = alerts.find(a => a.id === alertId);
+      if (!alert || alertId === 'pending-passes') {
+        refetchAlerts();
+        return;
+      }
+
+      // Only geofence alerts can be acknowledged - blacklist alerts are informational
+      if (alert.sourceTable === 'geofence_alerts') {
         await supabase.from('geofence_alerts')
           .update({ acknowledged_at: new Date().toISOString() })
           .eq('id', alertId);
       }
+      
       refetchAlerts();
     } catch {
       // Silent failure - alerts will refresh on next cycle

@@ -152,6 +152,29 @@ export function WorkerVerificationPanel({ onSwitchTab }: WorkerVerificationPanel
       const warnings: string[] = [];
       let status: WorkerVerificationResult['status'] = 'granted';
 
+      // ========================================
+      // BLACKLIST CHECK - Direct search mode
+      // ========================================
+      const { data: blacklistEntry } = await supabase
+        .from('security_blacklist')
+        .select('id, reason')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('national_id', worker.national_id)
+        .maybeSingle();
+
+      if (blacklistEntry) {
+        setVerificationResult({
+          status: 'denied',
+          workerId: worker.id,
+          name: worker.full_name,
+          nameAr: worker.full_name_ar || undefined,
+          nationalId: worker.national_id,
+          warnings: [t('security.workerVerification.blacklisted', 'BLACKLISTED: {{reason}}', { reason: blacklistEntry.reason || 'Security violation' })],
+        });
+        setIsSearching(false);
+        return;
+      }
+
       // Check approval status
       if (worker.approval_status !== 'approved') {
         warnings.push(t('security.workerVerification.notApproved', 'Worker is not approved'));
