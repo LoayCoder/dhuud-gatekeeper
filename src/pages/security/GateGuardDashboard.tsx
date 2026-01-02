@@ -62,6 +62,31 @@ const GateGuardDashboard = () => {
   const { data: pendingApprovals = [] } = usePendingGatePassApprovals();
   const { data: projects = [] } = useContractorProjects({ status: 'active' });
 
+  // Realtime subscription for live dashboard updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('gate-dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'visit_requests' },
+        () => {
+          refetchStats();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'gate_entry_logs' },
+        () => {
+          refetchStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetchStats]);
+
   const handleRefresh = () => {
     refetchStats();
     refetchAlerts();

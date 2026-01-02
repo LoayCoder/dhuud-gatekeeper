@@ -79,6 +79,7 @@ interface CreateVisitorParams {
   host_name?: string | null;
   host_phone?: string | null;
   host_email?: string | null;
+  photo_path?: string | null;
 }
 
 export function useCreateVisitor() {
@@ -106,6 +107,7 @@ export function useCreateVisitor() {
           host_name: visitor.host_name,
           host_phone: visitor.host_phone,
           host_email: visitor.host_email,
+          photo_path: visitor.photo_path,
           tenant_id: tenantId,
           qr_code_token: qrToken,
           // qr_generated_at remains null until approval

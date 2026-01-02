@@ -6332,6 +6332,10 @@
       "registerAnother": "Register Another",
       "backToDashboard": "Back to Dashboard",
       "submit": "Register & Generate QR",
+      "photo": "Visitor Photo",
+      "photoCaptured": "Photo captured",
+      "photoRequired": "Photo is required for registration",
+      "maxDurationExceeded": "Visit duration exceeds maximum allowed ({{hours}} hours)",
       "form": {
         "title": "Visitor Registration Form"
       },
