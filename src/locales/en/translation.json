@@ -7880,5 +7880,39 @@
     "readyTitle": "Ready to Scan",
     "startCamera": "Start Camera",
     "errorTitle": "Scanner Error"
+  },
+  "webpageSettings": {
+    "title": "Webpage Display Settings",
+    "description": "Control what features appear on public badge and pass pages",
+    "visitors": "Visitors",
+    "workers": "Workers",
+    "visitorBadgePage": "Visitor Badge Page",
+    "visitorBadgeDesc": "Control features available on the visitor digital badge page",
+    "workerPages": "Worker Pages",
+    "workerPagesDesc": "Control features on access pass and induction pages",
+    "pageDisabled": "Page is disabled. Users will see an error message.",
+    "pageFeatures": "Page Features",
+    "downloadButton": "Download Button",
+    "downloadBadgeDesc": "Allow saving badge as image",
+    "downloadPassDesc": "Allow saving pass/certificate as image",
+    "shareButton": "Share Button",
+    "shareBadgeDesc": "Allow sharing badge link",
+    "sharePassDesc": "Allow sharing pass link",
+    "pagePreview": "Page Preview",
+    "openSamplePage": "Open Sample Page",
+    "accessPassPage": "Access Pass Page",
+    "inductionPage": "Induction Page",
+    "saving": "Saving...",
+    "saveSettings": "Save Settings"
+  },
+  "workerPages": {
+    "savePass": "Save Pass",
+    "saveCertificate": "Save Certificate",
+    "share": "Share",
+    "linkCopied": "Link copied to clipboard",
+    "passSaved": "Pass saved successfully",
+    "certificateSaved": "Certificate saved successfully",
+    "saveFailed": "Failed to save",
+    "pageUnavailable": "This page is currently unavailable"
   }
 }

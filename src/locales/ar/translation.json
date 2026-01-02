@@ -7638,5 +7638,39 @@
     "useResult": "استخدام النتيجة",
     "errorTitle": "خطأ في الماسح",
     "scannerError": "فشل في تشغيل الماسح"
+  },
+  "webpageSettings": {
+    "title": "إعدادات عرض الصفحات",
+    "description": "التحكم في الميزات المتاحة على صفحات البطاقات والتصاريح العامة",
+    "visitors": "الزوار",
+    "workers": "العمال",
+    "visitorBadgePage": "صفحة بطاقة الزائر",
+    "visitorBadgeDesc": "التحكم في الميزات المتاحة على صفحة البطاقة الإلكترونية للزائر",
+    "workerPages": "صفحات العمال",
+    "workerPagesDesc": "التحكم في الميزات المتاحة على صفحات التصريح والتدريب",
+    "pageDisabled": "الصفحة معطلة. سيرى المستخدمون رسالة خطأ.",
+    "pageFeatures": "صلاحيات الصفحة",
+    "downloadButton": "زر التحميل",
+    "downloadBadgeDesc": "السماح بحفظ البطاقة كصورة",
+    "downloadPassDesc": "السماح بحفظ التصريح/الشهادة كصورة",
+    "shareButton": "زر المشاركة",
+    "shareBadgeDesc": "السماح بمشاركة رابط البطاقة",
+    "sharePassDesc": "السماح بمشاركة رابط التصريح",
+    "pagePreview": "معاينة الصفحة",
+    "openSamplePage": "فتح صفحة تجريبية",
+    "accessPassPage": "صفحة التصريح",
+    "inductionPage": "صفحة التدريب",
+    "saving": "جاري الحفظ...",
+    "saveSettings": "حفظ الإعدادات"
+  },
+  "workerPages": {
+    "savePass": "حفظ التصريح",
+    "saveCertificate": "حفظ الشهادة",
+    "share": "مشاركة",
+    "linkCopied": "تم نسخ الرابط",
+    "passSaved": "تم حفظ التصريح بنجاح",
+    "certificateSaved": "تم حفظ الشهادة بنجاح",
+    "saveFailed": "فشل في الحفظ",
+    "pageUnavailable": "هذه الصفحة غير متوفرة حالياً"
   }
 }

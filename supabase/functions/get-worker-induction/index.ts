@@ -92,6 +92,13 @@ Deno.serve(async (req) => {
       hsse_department_name_ar: string | null;
     } | null = null;
 
+    // Fetch webpage settings
+    let webpageSettings = {
+      worker_webpage_enabled: true,
+      worker_allow_download: true,
+      worker_allow_share: true,
+    };
+
     if (induction.tenant_id) {
       const { data: tenant } = await supabase
         .from('tenants')
@@ -105,6 +112,27 @@ Deno.serve(async (req) => {
         .eq('id', induction.tenant_id)
         .maybeSingle();
       tenantBranding = tenant;
+
+      // Fetch webpage notification settings
+      const { data: settingsData } = await supabase
+        .from('webpage_notification_settings')
+        .select('worker_webpage_enabled, worker_allow_download, worker_allow_share')
+        .eq('tenant_id', induction.tenant_id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (settingsData) {
+        webpageSettings = settingsData;
+      }
+    }
+
+    // Check if worker pages are disabled
+    if (!webpageSettings.worker_webpage_enabled) {
+      console.log('[GetInduction] Worker pages disabled for tenant:', induction.tenant_id);
+      return new Response(
+        JSON.stringify({ error: 'This page is currently unavailable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Type assertions for nested objects
@@ -142,6 +170,11 @@ Deno.serve(async (req) => {
       brand_color: tenantBranding?.brand_color || null,
       hsse_department_name: tenantBranding?.hsse_department_name || null,
       hsse_department_name_ar: tenantBranding?.hsse_department_name_ar || null,
+      // Settings
+      settings: {
+        allow_download: webpageSettings.worker_allow_download,
+        allow_share: webpageSettings.worker_allow_share,
+      },
     };
 
     console.log('[GetInduction] Returning data for worker:', worker?.full_name, 'tenant:', tenantBranding?.name);
