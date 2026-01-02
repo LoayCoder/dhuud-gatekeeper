@@ -20,7 +20,8 @@ export function useBlacklistNationalIds() {
       const { data, error } = await supabase
         .from('security_blacklist')
         .select('national_id')
-        .eq('tenant_id', tenantId);
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null); // AUDIT: Only fetch non-deleted records
 
       if (error) throw error;
       return new Set(data.map(entry => entry.national_id));
@@ -46,6 +47,7 @@ export function useSecurityBlacklist(filters?: UseBlacklistFilters) {
         .from('security_blacklist')
         .select('id, full_name, national_id, reason, listed_at, listed_by')
         .eq('tenant_id', tenantId)
+        .is('deleted_at', null) // AUDIT: Only fetch non-deleted records
         .order('listed_at', { ascending: false });
 
       if (filters?.search) {
@@ -74,6 +76,7 @@ export function useCheckBlacklist(nationalId: string | undefined) {
         .select('id, full_name, reason, listed_at')
         .eq('tenant_id', tenantId)
         .eq('national_id', nationalId)
+        .is('deleted_at', null) // AUDIT: Only check non-deleted records
         .maybeSingle();
 
       if (error) throw error;
@@ -200,18 +203,26 @@ export function useAddToBlacklist() {
 export function useRemoveFromBlacklist() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // AUDIT COMPLIANCE: Soft delete instead of hard delete
+      // Records are never permanently deleted for audit trail
       const { error } = await supabase
         .from('security_blacklist')
-        .delete()
+        .update({ 
+          deleted_at: new Date().toISOString(),
+        })
         .eq('id', id);
 
       if (error) throw error;
+      
+      console.log(`[Blacklist Audit] Entry ${id} soft-deleted by user ${user?.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-blacklist'] });
+      queryClient.invalidateQueries({ queryKey: ['blacklist-national-ids'] });
       toast({ title: 'Removed from blacklist' });
     },
     onError: (error) => {

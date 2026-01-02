@@ -84,7 +84,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       
       if (isOnline) {
         try {
-        const { data: visitor } = await supabase
+          // Fetch visitor with visit request for expiration check
+          const { data: visitor } = await supabase
             .from('visitors')
             .select('id, full_name, company_name, national_id, qr_code_token, qr_used_at, is_active')
             .eq('qr_code_token', visitorToken)
@@ -92,13 +93,14 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             .maybeSingle();
 
           if (visitor) {
-            // CRITICAL: Check if visitor is on the blacklist
+            // CRITICAL: Check if visitor is on the blacklist (only non-deleted entries)
             if (visitor.national_id && tenantId) {
               const { data: blacklistEntry } = await supabase
                 .from('security_blacklist')
                 .select('id, reason')
                 .eq('tenant_id', tenantId)
                 .eq('national_id', visitor.national_id)
+                .is('deleted_at', null) // AUDIT: Only check active blacklist entries
                 .maybeSingle();
 
               if (blacklistEntry) {
@@ -114,6 +116,35 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                       t('visitors.checkpoint.blockedByBlacklist', 'Entry blocked - visitor is blacklisted'),
                       blacklistEntry.reason ? `${t('visitors.blacklist.reason', 'Reason')}: ${blacklistEntry.reason}` : '',
                     ].filter(Boolean),
+                  },
+                };
+              }
+            }
+
+            // SECURITY: Check visit request expiration
+            const { data: visitRequest } = await supabase
+              .from('visit_requests')
+              .select('id, status, valid_until')
+              .eq('visitor_id', visitor.id)
+              .eq('status', 'approved')
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (visitRequest?.valid_until) {
+              const now = new Date();
+              const validUntil = new Date(visitRequest.valid_until);
+              if (validUntil < now) {
+                return {
+                  type: 'visitor',
+                  id: visitor.id,
+                  status: 'expired',
+                  rawCode: code,
+                  data: {
+                    name: visitor.full_name,
+                    company: visitor.company_name || undefined,
+                    expiresAt: visitRequest.valid_until,
+                    warnings: [t('security.qrScanner.visitExpired', 'Visit has expired')],
                   },
                 };
               }
