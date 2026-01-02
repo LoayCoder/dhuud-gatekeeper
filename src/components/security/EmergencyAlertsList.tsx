@@ -6,13 +6,13 @@ import {
   MapPin, 
   Clock, 
   CheckCircle, 
-  XCircle,
   Loader2,
   AlertOctagon,
   Shield,
   Heart,
   Flame,
-  User
+  User,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,7 @@ import {
   useRealtimeEmergencyAlerts,
   EmergencyAlert,
 } from '@/hooks/use-emergency-alerts';
+import { EmergencyAlertDetailDialog } from './EmergencyAlertDetailDialog';
 import { cn } from '@/lib/utils';
 
 interface EmergencyAlertsListProps {
@@ -51,9 +52,32 @@ export function EmergencyAlertsList({
 }: EmergencyAlertsListProps) {
   const { t } = useTranslation();
   const { data: alerts, isLoading } = useEmergencyAlerts(statusFilter);
+  const [selectedAlert, setSelectedAlert] = useState<EmergencyAlert | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const acknowledge = useAcknowledgeEmergencyAlert();
+  const resolve = useResolveEmergencyAlert();
   useRealtimeEmergencyAlerts();
 
   const displayedAlerts = limit ? alerts?.slice(0, limit) : alerts;
+
+  const handleAlertClick = (alert: EmergencyAlert) => {
+    setSelectedAlert(alert);
+    setDetailDialogOpen(true);
+  };
+
+  const handleAcknowledge = async (alertId: string) => {
+    await acknowledge.mutateAsync(alertId);
+    setDetailDialogOpen(false);
+  };
+
+  const handleResolveFromDetail = (alertId: string) => {
+    setDetailDialogOpen(false);
+    // Find the alert and open resolve dialog through the card
+    const alert = alerts?.find(a => a.id === alertId);
+    if (alert) {
+      setSelectedAlert(alert);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -74,35 +98,50 @@ export function EmergencyAlertsList({
   }
 
   return (
-    <Card>
-      {showHeader && (
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            {t('security.emergencyAlerts', 'Emergency Alerts')}
-          </CardTitle>
-          <CardDescription>
-            {t('security.emergencyAlertsDesc', 'Active and recent emergency alerts')}
-          </CardDescription>
-        </CardHeader>
-      )}
-      <CardContent className="space-y-3">
-        {!displayedAlerts?.length ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <CheckCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>{t('security.noEmergencyAlerts', 'No emergency alerts')}</p>
-          </div>
-        ) : (
-          displayedAlerts.map((alert) => (
-            <EmergencyAlertCard key={alert.id} alert={alert} />
-          ))
+    <>
+      <Card>
+        {showHeader && (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              {t('security.emergencyAlerts', 'Emergency Alerts')}
+            </CardTitle>
+            <CardDescription>
+              {t('security.emergencyAlertsDesc', 'Active and recent emergency alerts')}
+            </CardDescription>
+          </CardHeader>
         )}
-      </CardContent>
-    </Card>
+        <CardContent className="space-y-3">
+          {!displayedAlerts?.length ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CheckCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>{t('security.noEmergencyAlerts', 'No emergency alerts')}</p>
+            </div>
+          ) : (
+            displayedAlerts.map((alert) => (
+              <EmergencyAlertCard 
+                key={alert.id} 
+                alert={alert} 
+                onClick={() => handleAlertClick(alert)}
+              />
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <EmergencyAlertDetailDialog
+        alert={selectedAlert}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        onAcknowledge={handleAcknowledge}
+        onResolve={handleResolveFromDetail}
+        isAcknowledging={acknowledge.isPending}
+      />
+    </>
   );
 }
 
-function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
+function EmergencyAlertCard({ alert, onClick }: { alert: EmergencyAlert; onClick: () => void }) {
   const { t } = useTranslation();
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
@@ -114,6 +153,7 @@ function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
   const isActive = !alert.acknowledged_at && !alert.resolved_at;
   const isAcknowledged = alert.acknowledged_at && !alert.resolved_at;
   const isResolved = !!alert.resolved_at;
+  const hasPhoto = !!alert.photo_evidence_path;
 
   const getAlertIcon = () => {
     switch (alert.alert_type) {
@@ -147,14 +187,21 @@ function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
     setIsFalseAlarm(false);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) return;
+    onClick();
+  };
+
   return (
     <>
       <div
         className={cn(
-          'p-4 rounded-lg border-2 transition-all',
+          'p-4 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md',
           getAlertColor(),
           isActive && 'animate-pulse'
         )}
+        onClick={handleCardClick}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -165,7 +212,7 @@ function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
               {getAlertIcon()}
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold capitalize">
                   {alert.alert_type.replace('_', ' ')}
                 </span>
@@ -183,6 +230,12 @@ function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
                 {alert.is_false_alarm && (
                   <Badge variant="outline">{t('security.falseAlarm', 'False Alarm')}</Badge>
                 )}
+                {hasPhoto && (
+                  <Badge variant="outline" className="gap-1">
+                    <ImageIcon className="h-3 w-3" />
+                    {t('security.photo', 'Photo')}
+                  </Badge>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -190,10 +243,10 @@ function EmergencyAlertCard({ alert }: { alert: EmergencyAlert }) {
                   <Clock className="h-3 w-3" />
                   {format(new Date(alert.triggered_at), 'MMM d, HH:mm')}
                 </span>
-                {alert.guard?.full_name && (
+                {(alert.guard?.full_name || alert.source_name) && (
                   <span className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {alert.guard.full_name}
+                    {alert.guard?.full_name || alert.source_name}
                   </span>
                 )}
                 {alert.latitude && alert.longitude && (
