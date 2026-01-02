@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate, Enums } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export type VisitRequest = Tables<'visit_requests'>;
 export type VisitRequestInsert = TablesInsert<'visit_requests'>;
@@ -263,7 +264,10 @@ export function useCheckInVisitor() {
     mutationFn: async (requestId: string) => {
       const { data, error } = await supabase
         .from('visit_requests')
-        .update({ status: 'checked_in' })
+        .update({ 
+          status: 'checked_in',
+          entry_logged_at: new Date().toISOString(),
+        })
         .eq('id', requestId)
         .select()
         .single();
@@ -298,7 +302,10 @@ export function useCheckOutVisitor() {
     mutationFn: async (requestId: string) => {
       const { data, error } = await supabase
         .from('visit_requests')
-        .update({ status: 'checked_out' })
+        .update({ 
+          status: 'checked_out',
+          exit_logged_at: new Date().toISOString(),
+        })
         .eq('id', requestId)
         .select()
         .single();
@@ -313,6 +320,243 @@ export function useCheckOutVisitor() {
     onError: (error) => {
       toast({ title: 'Check-out failed', description: error.message, variant: 'destructive' });
     },
+  });
+}
+
+// New: Check in visitor with gate log creation
+export function useCheckInVisitorWithGateLog() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      visitRequestId, 
+      visitorId,
+      visitorName,
+      hostPhone,
+      siteId,
+      notifyHost = true,
+    }: { 
+      visitRequestId: string;
+      visitorId: string;
+      visitorName: string;
+      hostPhone?: string;
+      siteId?: string;
+      notifyHost?: boolean;
+    }) => {
+      if (!profile?.tenant_id) throw new Error('No tenant');
+
+      const now = new Date().toISOString();
+
+      // 1. Update visit_request status
+      const { data: visitRequest, error: vrError } = await supabase
+        .from('visit_requests')
+        .update({ 
+          status: 'checked_in',
+          entry_logged_at: now,
+        })
+        .eq('id', visitRequestId)
+        .select()
+        .single();
+
+      if (vrError) throw vrError;
+
+      // 2. Create gate_entry_log
+      const { data: gateEntry, error: geError } = await supabase
+        .from('gate_entry_logs')
+        .insert({
+          tenant_id: profile.tenant_id,
+          person_name: visitorName,
+          entry_type: 'visitor',
+          entry_time: now,
+          site_id: siteId,
+          visitor_id: visitorId,
+          visit_request_id: visitRequestId,
+          guard_id: user?.id,
+        })
+        .select()
+        .single();
+
+      if (geError) throw geError;
+
+      // 3. Update visitor's last_visit_at
+      await supabase
+        .from('visitors')
+        .update({ 
+          last_visit_at: now,
+          qr_used_at: now,
+        })
+        .eq('id', visitorId);
+
+      // 4. Send host arrival notification if enabled
+      if (notifyHost && hostPhone) {
+        try {
+          await supabase.functions.invoke('send-gate-whatsapp', {
+            body: {
+              notification_type: 'host_arrival',
+              mobile_number: hostPhone,
+              visitor_name: visitorName,
+              visit_reference: visitRequestId.slice(0, 8).toUpperCase(),
+              entry_time: now,
+              entry_id: gateEntry.id,
+              tenant_id: profile.tenant_id,
+            },
+          });
+
+          // Update host_notified_at
+          await supabase
+            .from('visit_requests')
+            .update({ host_notified_at: now })
+            .eq('id', visitRequestId);
+        } catch (error) {
+          console.error('[CheckIn] Failed to notify host:', error);
+        }
+      }
+
+      return { visitRequest, gateEntry };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['visitors'] });
+      toast({ title: t('security.gate.entryRecorded', 'Entry recorded successfully') });
+    },
+    onError: (error) => {
+      toast({ 
+        title: t('security.gate.entryFailed', 'Check-in failed'), 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+}
+
+// New: Check out visitor with gate log update
+export function useCheckOutVisitorWithGateLog() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      visitRequestId,
+      gateEntryId,
+      hostPhone,
+      visitorName,
+      notifyHost = true,
+    }: { 
+      visitRequestId: string;
+      gateEntryId: string;
+      hostPhone?: string;
+      visitorName?: string;
+      notifyHost?: boolean;
+    }) => {
+      const now = new Date().toISOString();
+
+      // 1. Update visit_request status
+      const { data: visitRequest, error: vrError } = await supabase
+        .from('visit_requests')
+        .update({ 
+          status: 'checked_out',
+          exit_logged_at: now,
+        })
+        .eq('id', visitRequestId)
+        .select()
+        .single();
+
+      if (vrError) throw vrError;
+
+      // 2. Update gate_entry_log exit time
+      const { data: gateEntry, error: geError } = await supabase
+        .from('gate_entry_logs')
+        .update({ exit_time: now })
+        .eq('id', gateEntryId)
+        .select()
+        .single();
+
+      if (geError) throw geError;
+
+      // 3. Send host departure notification if enabled
+      if (notifyHost && hostPhone && profile?.tenant_id) {
+        try {
+          await supabase.functions.invoke('send-gate-whatsapp', {
+            body: {
+              notification_type: 'host_departure',
+              mobile_number: hostPhone,
+              visitor_name: visitorName || 'Visitor',
+              exit_time: now,
+              tenant_id: profile.tenant_id,
+            },
+          });
+
+          // Update host_exit_notified_at
+          await supabase
+            .from('visit_requests')
+            .update({ host_exit_notified_at: now })
+            .eq('id', visitRequestId);
+        } catch (error) {
+          console.error('[CheckOut] Failed to notify host:', error);
+        }
+      }
+
+      return { visitRequest, gateEntry };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+    },
+    onError: (error) => {
+      toast({ 
+        title: t('security.gate.exitFailed', 'Check-out failed'), 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+}
+
+// New: Find visit request by visitor QR token
+export function useVisitRequestByVisitorToken(token: string | undefined) {
+  return useQuery({
+    queryKey: ['visit-request-by-token', token],
+    queryFn: async () => {
+      if (!token) return null;
+
+      // First find the visitor
+      const { data: visitor, error: visitorError } = await supabase
+        .from('visitors')
+        .select('id, full_name, company_name, phone, host_phone, host_name')
+        .eq('qr_code_token', token)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (visitorError || !visitor) return null;
+
+      // Then find their approved visit request
+      const { data: visitRequest, error: vrError } = await supabase
+        .from('visit_requests')
+        .select(`
+          id, status, valid_from, valid_until, site_id, host_id, 
+          site:sites(id, name)
+        `)
+        .eq('visitor_id', visitor.id)
+        .in('status', ['approved', 'checked_in'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (vrError || !visitRequest) return null;
+
+      return {
+        visitor,
+        visitRequest,
+      };
+    },
+    enabled: !!token,
   });
 }
 

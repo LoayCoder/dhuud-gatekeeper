@@ -7,7 +7,13 @@
   "security": {
     "gate": {
       "alreadyOnSite": "متواجد بالفعل",
-      "alreadyOnSiteDesc": "هذا الشخص مسجل بالفعل في الموقع منذ {{time}}"
+      "alreadyOnSiteDesc": "هذا الشخص مسجل بالفعل في الموقع منذ {{time}}",
+      "entryRecorded": "تم تسجيل الدخول بنجاح",
+      "exitRecorded": "تم تسجيل الخروج بنجاح",
+      "entryFailed": "فشل في تسجيل الدخول",
+      "exitFailed": "فشل في تسجيل الخروج",
+      "hostNotified": "تم إخطار المضيف",
+      "hostNotifiedDesc": "تم إرسال إشعار واتساب إلى المضيف"
     },
     "workerScanHistory": {
       "title": "مسح العمال اليوم",
@@ -16,7 +22,22 @@
     },
     "gateDashboard": {
       "activeWorkers": "العمال النشطون",
-      "noActiveWorkers": "لا يوجد عمال نشطون في الموقع"
+      "noActiveWorkers": "لا يوجد عمال نشطون في الموقع",
+      "tabs": {
+        "visitors": "الزوار",
+        "approvals": "الموافقات",
+        "workers": "العمال",
+        "material": "المواد",
+        "gatePasses": "تصاريح المرور",
+        "activityLog": "النشاط"
+      }
+    },
+    "approvalQueue": {
+      "title": "الموافقات المعلقة",
+      "allClear": "لا يوجد معلق",
+      "noPending": "لا توجد موافقات زوار معلقة",
+      "urgent": "عاجل",
+      "waiting": "بانتظار"
     }
   },
   "contractors": {
@@ -1907,7 +1928,43 @@
     "systemConfig": "إعدادات النظام",
     "platformManagement": "إدارة المنصة",
     "violationSettings": "إعدادات المخالفات",
-    "emergencyInstructions": "تعليمات الطوارئ"
+    "emergencyInstructions": "تعليمات الطوارئ",
+    "visitorSettings": "إعدادات الزوار"
+  },
+  "admin": {
+    "visitors": {
+      "settings": "إعدادات الزوار",
+      "settingsDesc": "تكوين سير عمل إدارة الزوار",
+      "settingsSaved": "تم حفظ الإعدادات",
+      "registration": "التسجيل",
+      "registrationDesc": "تكوين متطلبات تسجيل الزوار",
+      "requirePhoto": "طلب صورة",
+      "requirePhotoDesc": "يجب على الزوار التقاط صورة أثناء التسجيل",
+      "allowMultiple": "السماح بزيارات متعددة نشطة",
+      "allowMultipleDesc": "يمكن لنفس الزائر أن يكون لديه طلبات زيارة متعددة نشطة",
+      "approval": "الموافقة",
+      "approvalDesc": "تكوين سير عمل موافقة الأمن",
+      "requireApproval": "طلب موافقة الأمن",
+      "requireApprovalDesc": "يجب الموافقة على جميع الزيارات من قبل الأمن قبل إصدار رمز QR",
+      "autoApproveInternal": "الموافقة التلقائية على الزوار الداخليين",
+      "autoApproveInternalDesc": "تتم الموافقة تلقائياً على الزوار المسجلين بواسطة مستخدمين داخليين",
+      "timing": "التوقيت",
+      "timingDesc": "تكوين مدة الزيارة وإعدادات انتهاء الصلاحية",
+      "defaultDuration": "مدة الزيارة الافتراضية (ساعات)",
+      "defaultDurationDesc": "مدة الزيارة الافتراضية عند إنشاء زيارات جديدة",
+      "maxDuration": "الحد الأقصى لمدة الزيارة (ساعات)",
+      "maxDurationDesc": "الحد الأقصى المسموح به لمدة الزيارة",
+      "badgeValidHours": "ساعات صلاحية البطاقة",
+      "badgeValidDesc": "مدة صلاحية بطاقة QR بعد الموافقة",
+      "expiryWarning": "تحذير انتهاء الصلاحية (دقائق)",
+      "expiryWarningDesc": "إرسال تحذير قبل انتهاء الزيارة",
+      "notifications": "الإشعارات",
+      "notificationsDesc": "تكوين تفضيلات إشعار المضيف",
+      "notifyArrival": "إخطار المضيف عند الوصول",
+      "notifyArrivalDesc": "إرسال واتساب للمضيف عند تسجيل دخول الزائر في البوابة",
+      "notifyDeparture": "إخطار المضيف عند المغادرة",
+      "notifyDepartureDesc": "إرسال واتساب للمضيف عند خروج الزائر"
+    }
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

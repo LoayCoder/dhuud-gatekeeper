@@ -32,7 +32,13 @@
   "security": {
     "gate": {
       "alreadyOnSite": "Already On Site",
-      "alreadyOnSiteDesc": "This person is already logged as on-site since {{time}}"
+      "alreadyOnSiteDesc": "This person is already logged as on-site since {{time}}",
+      "entryRecorded": "Entry recorded successfully",
+      "exitRecorded": "Exit recorded successfully",
+      "entryFailed": "Failed to record entry",
+      "exitFailed": "Failed to record exit",
+      "hostNotified": "Host notified",
+      "hostNotifiedDesc": "WhatsApp notification sent to host"
     },
     "workerScanHistory": {
       "title": "Today's Worker Scans",
@@ -41,7 +47,22 @@
     },
     "gateDashboard": {
       "activeWorkers": "Active Workers",
-      "noActiveWorkers": "No active workers on site"
+      "noActiveWorkers": "No active workers on site",
+      "tabs": {
+        "visitors": "Visitors",
+        "approvals": "Approvals",
+        "workers": "Workers",
+        "material": "Material",
+        "gatePasses": "Gate Passes",
+        "activityLog": "Activity"
+      }
+    },
+    "approvalQueue": {
+      "title": "Pending Approvals",
+      "allClear": "All Clear",
+      "noPending": "No pending visitor approvals",
+      "urgent": "Urgent",
+      "waiting": "Waiting"
     }
   },
   "contractors": {
@@ -1786,7 +1807,43 @@
     "systemConfig": "System Configuration",
     "platformManagement": "Platform Management",
     "violationSettings": "Violation Settings",
-    "emergencyInstructions": "Emergency Instructions"
+    "emergencyInstructions": "Emergency Instructions",
+    "visitorSettings": "Visitor Settings"
+  },
+  "admin": {
+    "visitors": {
+      "settings": "Visitor Settings",
+      "settingsDesc": "Configure visitor management workflow",
+      "settingsSaved": "Settings saved",
+      "registration": "Registration",
+      "registrationDesc": "Configure visitor registration requirements",
+      "requirePhoto": "Require Photo",
+      "requirePhotoDesc": "Visitors must capture photo during registration",
+      "allowMultiple": "Allow Multiple Active Visits",
+      "allowMultipleDesc": "Same visitor can have multiple active visit requests",
+      "approval": "Approval",
+      "approvalDesc": "Configure security approval workflow",
+      "requireApproval": "Require Security Approval",
+      "requireApprovalDesc": "All visits must be approved by security before QR is issued",
+      "autoApproveInternal": "Auto-Approve Internal Visitors",
+      "autoApproveInternalDesc": "Visitors registered by internal users are auto-approved",
+      "timing": "Timing",
+      "timingDesc": "Configure visit duration and expiry settings",
+      "defaultDuration": "Default Visit Duration (hours)",
+      "defaultDurationDesc": "Default visit duration when creating new visits",
+      "maxDuration": "Maximum Visit Duration (hours)",
+      "maxDurationDesc": "Maximum allowed visit duration",
+      "badgeValidHours": "Badge Valid Hours",
+      "badgeValidDesc": "How long the QR badge remains valid after approval",
+      "expiryWarning": "Expiry Warning (minutes)",
+      "expiryWarningDesc": "Send warning before visit expires",
+      "notifications": "Notifications",
+      "notificationsDesc": "Configure host notification preferences",
+      "notifyArrival": "Notify Host on Arrival",
+      "notifyArrivalDesc": "Send WhatsApp to host when visitor checks in at gate",
+      "notifyDeparture": "Notify Host on Departure",
+      "notifyDepartureDesc": "Send WhatsApp to host when visitor checks out"
+    }
   },
   "actions": {
     "sessionActions": "Session Actions",

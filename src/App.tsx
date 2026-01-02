@@ -191,6 +191,7 @@ const NotificationTemplates = lazyWithRetry(() => import("./pages/admin/Notifica
 const WhatsAppSettingsPage = lazyWithRetry(() => import("./pages/admin/WhatsAppSettingsPage"));
 const WebpageNotificationSettings = lazyWithRetry(() => import("./pages/admin/WebpageNotificationSettings"));
 const EmergencyInstructionsSettings = lazyWithRetry(() => import("./pages/admin/EmergencyInstructionsSettings"));
+const VisitorSettings = lazyWithRetry(() => import("./pages/admin/VisitorSettings"));
 
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
@@ -652,6 +653,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <EmergencyInstructionsSettings />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/visitor-settings"
+                        element={
+                          <AdminRoute>
+                            <VisitorSettings />
                           </AdminRoute>
                         }
                       />

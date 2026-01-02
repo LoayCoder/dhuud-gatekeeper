@@ -16,7 +16,7 @@ interface WhatsAppRequest {
   tenant_id: string;
   
   // Notification type
-  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival';
+  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival' | 'host_departure';
   
   // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;
@@ -32,9 +32,10 @@ interface WhatsAppRequest {
   host_mobile?: string;
   host_name?: string;
   
-  // For host arrival notification
+  // For host arrival/departure notification
   visit_reference?: string;
   entry_time?: string;
+  exit_time?: string;
 }
 
 serve(async (req) => {
@@ -57,6 +58,7 @@ serve(async (req) => {
       badge_url,
       visit_reference,
       entry_time,
+      exit_time,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -96,7 +98,59 @@ serve(async (req) => {
     let templateSid: string;
     let variables: Record<string, string>;
     
-    if (notification_type === 'host_arrival') {
+    if (notification_type === 'host_departure') {
+      // Host departure notification when visitor exits
+      console.log(`[WhatsApp] Sending host departure notification to ${mobile_number}`);
+      
+      // Format exit time for display
+      const formattedTime = exit_time 
+        ? new Date(exit_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      
+      // Bilingual message for host departure
+      const hostDepartureMessage = `👋 مغادرة زائر | Visitor Departure
+
+لقد غادر زائرك المنشأة.
+Your visitor has left the facility.
+
+👤 الزائر | Visitor: ${visitor_name || 'Unknown'}
+⏰ وقت المغادرة | Exit Time: ${formattedTime}
+
+شكراً لاستضافتك.
+Thank you for hosting.`;
+      
+      const result = await sendWhatsAppText(mobile_number, hostDepartureMessage);
+      
+      // Log notification for audit
+      if (result.messageId) {
+        await logNotificationSent({
+          tenant_id,
+          channel: 'whatsapp',
+          provider: result.provider,
+          provider_message_id: result.messageId,
+          to_address: mobile_number,
+          template_name: 'host_departure_notification',
+          status: 'pending',
+          related_entity_type: 'gate_entry',
+          related_entity_id: entry_id || undefined,
+          metadata: {
+            notification_type: 'host_departure',
+            visitor_name,
+            exit_time: formattedTime,
+          }
+        });
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: result.success, 
+          message_id: result.messageId, 
+          provider: result.provider,
+          notification_type: 'host_departure',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else if (notification_type === 'host_arrival') {
       // Host arrival notification when visitor enters gate
       console.log(`[WhatsApp] Sending host arrival notification to ${mobile_number}`);
       
