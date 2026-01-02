@@ -81,24 +81,24 @@ export function GateOfflineStatusBar({ lastSyncTime, onRefresh }: GateOfflineSta
   return (
     <div 
       className={cn(
-        "flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-sm transition-colors",
+        "flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 px-2.5 sm:px-3 py-2 rounded-lg border text-xs sm:text-sm transition-colors",
         isOnline 
           ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
           : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
       )}
     >
       {/* Status indicator */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
         {isOnline ? (
           <>
-            <Wifi className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Wifi className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
             <span className="text-green-700 dark:text-green-300 font-medium">
               {t('offline.online', 'Online')}
             </span>
           </>
         ) : (
           <>
-            <WifiOff className="h-4 w-4 text-amber-600 dark:text-amber-400 animate-pulse" />
+            <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400 animate-pulse flex-shrink-0" />
             <span className="text-amber-700 dark:text-amber-300 font-medium">
               {t('offline.offline', 'Offline Mode')}
             </span>
@@ -107,26 +107,26 @@ export function GateOfflineStatusBar({ lastSyncTime, onRefresh }: GateOfflineSta
 
         {/* Last sync time */}
         {lastSyncTime && (
-          <span className="text-xs text-muted-foreground hidden sm:inline">
-            <Clock className="h-3 w-3 inline me-1" />
-            {t('offline.lastSync', 'Last sync')}: {formatDistanceToNow(lastSyncTime, { addSuffix: true })}
+          <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline-flex items-center">
+            <Clock className="h-3 w-3 me-1 flex-shrink-0" />
+            <span className="truncate">{t('offline.lastSync', 'Last sync')}: {formatDistanceToNow(lastSyncTime, { addSuffix: true })}</span>
           </span>
         )}
       </div>
 
       {/* Pending entries and sync button */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap w-full xs:w-auto justify-end">
         {totalPending > 0 && (
           <Badge 
             variant="secondary" 
             className={cn(
-              "text-xs",
+              "text-[10px] sm:text-xs",
               isOnline 
                 ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                 : "bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100"
             )}
           >
-            <CloudOff className="h-3 w-3 me-1" />
+            <CloudOff className="h-3 w-3 me-1 flex-shrink-0" />
             {t('offline.pendingSync', '{count} pending', { count: totalPending })}
           </Badge>
         )}
@@ -137,24 +137,27 @@ export function GateOfflineStatusBar({ lastSyncTime, onRefresh }: GateOfflineSta
             size="sm" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="h-7 px-2 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
+            className="h-6 sm:h-7 px-2 text-[10px] sm:text-xs text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
           >
             <RefreshCw className={cn("h-3 w-3 me-1", isSyncing && "animate-spin")} />
-            {isSyncing ? t('offline.syncing', 'Syncing...') : t('offline.syncNow', 'Sync Now')}
+            <span className="hidden xs:inline">{isSyncing ? t('offline.syncing', 'Syncing...') : t('offline.syncNow', 'Sync Now')}</span>
+            <span className="xs:hidden">{isSyncing ? '...' : t('offline.sync', 'Sync')}</span>
           </Button>
         )}
 
         {isOnline && totalPending === 0 && (
-          <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-            <Check className="h-3 w-3 me-1" />
-            {t('offline.allSynced', 'All synced')}
+          <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-[10px] sm:text-xs">
+            <Check className="h-3 w-3 me-1 flex-shrink-0" />
+            <span className="hidden xs:inline">{t('offline.allSynced', 'All synced')}</span>
+            <span className="xs:hidden">✓</span>
           </Badge>
         )}
 
         {!isOnline && (
-          <Badge variant="outline" className="text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700">
-            <Download className="h-3 w-3 me-1" />
-            {t('offline.usingCached', 'Using cached data')}
+          <Badge variant="outline" className="text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 text-[10px] sm:text-xs">
+            <Download className="h-3 w-3 me-1 flex-shrink-0" />
+            <span className="hidden sm:inline">{t('offline.usingCached', 'Using cached data')}</span>
+            <span className="sm:hidden">{t('offline.cached', 'Cached')}</span>
           </Badge>
         )}
       </div>
