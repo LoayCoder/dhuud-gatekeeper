@@ -17,9 +17,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw } from 'lucide-react';
+import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useVisitors, useUpdateVisitor, useResetVisitorQR } from '@/hooks/use-visitors';
+import { useResendVisitorInvitation } from '@/hooks/use-visit-requests';
 import { useAddToBlacklist, useBlacklistNationalIds } from '@/hooks/use-security-blacklist';
 import { format } from 'date-fns';
 import { VisitorDetailDialog } from '@/components/visitors/VisitorDetailDialog';
@@ -40,6 +41,7 @@ export default function VisitorList() {
   const updateVisitor = useUpdateVisitor();
   const addToBlacklist = useAddToBlacklist();
   const resetVisitorQR = useResetVisitorQR();
+  const resendInvitation = useResendVisitorInvitation();
 
   const isBlacklisted = (nationalId: string | null) => {
     if (!nationalId || !blacklistedIds) return false;
@@ -181,6 +183,13 @@ export default function VisitorList() {
                               <DropdownMenuItem onClick={() => resetVisitorQR.mutate(visitor.id)}>
                                 <RefreshCw className="me-2 h-4 w-4" />
                                 {t('visitors.list.resetQR')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => resendInvitation.mutate({ visitorId: visitor.id })}
+                                disabled={resendInvitation.isPending || !visitor.is_active}
+                              >
+                                <Send className="me-2 h-4 w-4" />
+                                {t('visitors.list.resendInvitation', 'Resend Invitation')}
                               </DropdownMenuItem>
                               {/* Only show blacklist option if not already blacklisted */}
                               {visitor.national_id && visitor.is_active && !blacklisted && (
