@@ -5,13 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Pencil, Eye, ShieldAlert } from "lucide-react";
+import { Pencil, Eye, ShieldAlert, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerDetailDialog } from "./WorkerDetailDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { 
+  getInductionExpiryStatus, 
+  getDaysUntilExpiry, 
+  InductionExpiryStatus 
+} from "@/lib/induction-expiry-utils";
+import { formatDate } from "@/lib/date-utils";
 
 interface WorkerListTableProps {
   workers: ContractorWorker[];
@@ -90,6 +96,23 @@ export function WorkerListTable({
     return <Badge variant={variants[status] || "secondary"}>{t(`contractors.workerStatus.${status}`, status)}</Badge>;
   };
 
+  const getInductionBadge = (status: InductionExpiryStatus, daysRemaining: number | null) => {
+    switch (status) {
+      case 'expired':
+        return <Badge variant="destructive">{t("contractors.induction.expired", "Expired")}</Badge>;
+      case 'expiring_soon':
+        return (
+          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20">
+            {t("contractors.induction.expiresInDays", "Expires in {{days}}d", { days: daysRemaining })}
+          </Badge>
+        );
+      case 'valid':
+        return <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-500/30">{t("contractors.induction.valid", "Valid")}</Badge>;
+      case 'not_completed':
+        return <Badge variant="secondary">{t("contractors.induction.notCompleted", "Not Completed")}</Badge>;
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -125,6 +148,7 @@ export function WorkerListTable({
             <TableHead>{t("contractors.workers.nationalId", "National ID")}</TableHead>
             <TableHead>{t("contractors.workers.company", "Company")}</TableHead>
             <TableHead>{t("contractors.workers.nationality", "Nationality")}</TableHead>
+            <TableHead>{t("contractors.workers.induction", "Induction")}</TableHead>
             <TableHead>{t("common.status", "Status")}</TableHead>
             <TableHead className="text-end">{t("common.actions", "Actions")}</TableHead>
           </TableRow>
@@ -132,10 +156,19 @@ export function WorkerListTable({
         <TableBody>
           {workers.map((worker, index) => {
             const isBlacklisted = blacklistedIds.includes(worker.national_id);
+            const inductionStatus = getInductionExpiryStatus(worker.latest_induction || null);
+            const daysRemaining = getDaysUntilExpiry(worker.latest_induction || null);
+            const inductionExpiringSoon = inductionStatus === 'expiring_soon';
+            const inductionExpired = inductionStatus === 'expired';
+            
             return (
               <TableRow 
                 key={worker.id}
-                className={cn(isBlacklisted && "bg-destructive/5")}
+                className={cn(
+                  isBlacklisted && "bg-destructive/5",
+                  inductionExpiringSoon && !isBlacklisted && "bg-amber-50/50 dark:bg-amber-950/20",
+                  inductionExpired && !isBlacklisted && "bg-destructive/5"
+                )}
               >
                 <TableCell className="text-muted-foreground text-sm">{index + 1}</TableCell>
                 {showSelection && (
@@ -169,11 +202,37 @@ export function WorkerListTable({
                         </TooltipContent>
                       </Tooltip>
                     )}
+                    {(inductionExpiringSoon || inductionExpired) && !isBlacklisted && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <AlertTriangle className={cn(
+                            "h-4 w-4",
+                            inductionExpired ? "text-destructive" : "text-amber-500"
+                          )} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">
+                            {inductionExpired 
+                              ? t("contractors.induction.expiredWarning", "Induction Expired")
+                              : t("contractors.induction.expiringSoonWarning", "Induction Expiring Soon")
+                            }
+                          </p>
+                          {worker.latest_induction?.expires_at && (
+                            <p className="text-xs">
+                              {t("contractors.induction.expiryDate", "Expires: {{date}}", { 
+                                date: formatDate(worker.latest_induction.expires_at) 
+                              })}
+                            </p>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="font-mono text-sm">{worker.national_id}</TableCell>
                 <TableCell>{worker.company?.company_name || "-"}</TableCell>
                 <TableCell>{worker.nationality || "-"}</TableCell>
+                <TableCell>{getInductionBadge(inductionStatus, daysRemaining)}</TableCell>
                 <TableCell>{getStatusBadge(worker.approval_status)}</TableCell>
                 <TableCell className="text-end">
                   <div className="flex justify-end gap-1">
