@@ -210,31 +210,7 @@ export function useApproveVisitRequest() {
         }
       }
 
-      // Send WhatsApp notification to host
-      const hostPhone = request?.visitor?.host_phone;
-      if (hostPhone && profile?.tenant_id) {
-        try {
-          await supabase.functions.invoke('send-gate-whatsapp', {
-            body: {
-              notification_type: 'host_notification',
-              mobile_number: hostPhone,
-              host_mobile: hostPhone,
-              visitor_name: request?.visitor?.full_name || 'A visitor',
-              destination_name: request?.site?.name || 'your location',
-              tenant_id: profile.tenant_id,
-            },
-          });
-
-          // Update host_notified_at
-          await supabase
-            .from('visit_requests')
-            .update({ host_notified_at: new Date().toISOString() })
-            .eq('id', id);
-        } catch (notifyError) {
-          console.error('Failed to send host notification:', notifyError);
-        }
-      }
-
+      // Host notification removed - host will be notified when visitor QR is scanned at gate
       return data;
     },
     onSuccess: () => {
