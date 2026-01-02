@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User } from 'lucide-react';
+import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,17 +18,9 @@ import { useCreateVisitRequest } from '@/hooks/use-visit-requests';
 import { useSites } from '@/hooks/use-sites';
 import { useProfilesList } from '@/hooks/use-profiles-list';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
 import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-const DURATION_OPTIONS = [
-  { value: '10', label: '10 minutes', minutes: 10 },
-  { value: '30', label: '30 minutes', minutes: 30 },
-  { value: '60', label: '1 hour', minutes: 60 },
-  { value: '120', label: '2 hours', minutes: 120 },
-  { value: '240', label: '4 hours', minutes: 240 },
-  { value: '480', label: '8 hours', minutes: 480 },
-];
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
@@ -36,8 +28,11 @@ const formSchema = z.object({
   company_name: z.string().optional(),
   national_id: z.string().optional(),
   site_id: z.string().min(1, 'Site is required'),
-  valid_from: z.string().min(1, 'Start date is required'),
-  duration_minutes: z.string().min(1, 'Duration is required'),
+  // Separate date and time fields
+  start_date: z.string().min(1, 'Start date is required'),
+  start_time: z.string().min(1, 'Start time is required'),
+  end_date: z.string().min(1, 'End date is required'),
+  end_time: z.string().min(1, 'End time is required'),
   notes: z.string().optional(),
   // User type and host fields
   user_type: z.enum(['internal', 'external']),
@@ -55,9 +50,33 @@ const formSchema = z.object({
 }, {
   message: 'Host information is required',
   path: ['host_id'],
+}).refine((data) => {
+  // Validate end datetime is after start datetime
+  const startDateTime = new Date(`${data.start_date}T${data.start_time}`);
+  const endDateTime = new Date(`${data.end_date}T${data.end_time}`);
+  return endDateTime > startDateTime;
+}, {
+  message: 'End date/time must be after start date/time',
+  path: ['end_time'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// Helper to get current date in YYYY-MM-DD format
+const getCurrentDate = () => new Date().toISOString().split('T')[0];
+
+// Helper to get current time in HH:MM format
+const getCurrentTime = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+};
+
+// Helper to get end date (default: same day)
+const getDefaultEndTime = () => {
+  const now = new Date();
+  now.setHours(now.getHours() + 1);
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+};
 
 export default function VisitorPreRegistration() {
   const { t } = useTranslation();
@@ -79,8 +98,10 @@ export default function VisitorPreRegistration() {
       company_name: '',
       national_id: '',
       site_id: '',
-      valid_from: new Date().toISOString().slice(0, 16),
-      duration_minutes: '60',
+      start_date: getCurrentDate(),
+      start_time: getCurrentTime(),
+      end_date: getCurrentDate(),
+      end_time: getDefaultEndTime(),
       notes: '',
       user_type: 'external',
       host_id: '',
@@ -91,8 +112,12 @@ export default function VisitorPreRegistration() {
   });
 
   const userType = form.watch('user_type');
-  const validFrom = form.watch('valid_from');
   const selectedHostId = form.watch('host_id');
+  const nationalId = form.watch('national_id');
+
+  // Check if visitor is blacklisted
+  const { data: blacklistEntry, isLoading: checkingBlacklist } = useCheckBlacklist(nationalId || undefined);
+  const isBlacklisted = !!blacklistEntry;
 
   // When host is selected from internal users, populate host fields
   useEffect(() => {
@@ -106,36 +131,15 @@ export default function VisitorPreRegistration() {
     }
   }, [selectedHostId, userType, profiles, form]);
 
-  // Calculate available duration options based on valid_from
-  const availableDurations = useMemo(() => {
-    if (!validFrom) return DURATION_OPTIONS;
-    
-    const selectedDate = new Date(validFrom);
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    
-    const remainingMinutes = Math.floor((endOfDay.getTime() - selectedDate.getTime()) / (1000 * 60));
-    
-    return DURATION_OPTIONS.filter(option => option.minutes <= remainingMinutes);
-  }, [validFrom]);
-
-  // Auto-adjust duration when valid_from changes
-  useEffect(() => {
-    const currentDuration = form.getValues('duration_minutes');
-    const isCurrentValid = availableDurations.some(d => d.value === currentDuration);
-    
-    if (!isCurrentValid && availableDurations.length > 0) {
-      // Select the largest available duration
-      const maxDuration = availableDurations[availableDurations.length - 1];
-      form.setValue('duration_minutes', maxDuration.value);
-    }
-  }, [availableDurations, form]);
-
   const onSubmit = async (values: FormValues) => {
+    // Double-check blacklist before submission
+    if (isBlacklisted) {
+      return;
+    }
+
     try {
-      const validFromDate = new Date(values.valid_from);
-      const durationMinutes = parseInt(values.duration_minutes, 10);
-      const validUntilDate = new Date(validFromDate.getTime() + durationMinutes * 60 * 1000);
+      const validFromDate = new Date(`${values.start_date}T${values.start_time}`);
+      const validUntilDate = new Date(`${values.end_date}T${values.end_time}`);
 
       // Create the visitor with host information (QR code generated but not shown until approved)
       const visitor = await createVisitor.mutateAsync({
@@ -155,7 +159,7 @@ export default function VisitorPreRegistration() {
         visitor_id: visitor.id,
         host_id: values.user_type === 'internal' ? values.host_id! : user?.id ?? '',
         site_id: values.site_id,
-        valid_from: values.valid_from,
+        valid_from: validFromDate.toISOString(),
         valid_until: validUntilDate.toISOString(),
         security_notes: values.notes || null,
       });
@@ -349,6 +353,30 @@ export default function VisitorPreRegistration() {
                     )}
                   />
                 </div>
+
+                {/* Blacklist Alert */}
+                {isBlacklisted && (
+                  <Alert variant="destructive" className="border-2">
+                    <ShieldAlert className="h-5 w-5" />
+                    <AlertTitle className="font-bold">
+                      {t('visitors.blacklist.cannotRegister', 'Cannot Register - Blacklisted Person')}
+                    </AlertTitle>
+                    <AlertDescription className="mt-2 space-y-2">
+                      <p>
+                        {t('visitors.blacklist.blockedMessage', 'This person is on the Security Blacklist and cannot be registered for a visit.')}
+                      </p>
+                      {blacklistEntry?.reason && (
+                        <p className="text-sm">
+                          <strong>{t('visitors.blacklist.reason', 'Reason')}:</strong> {blacklistEntry.reason}
+                        </p>
+                      )}
+                      <p className="text-sm font-medium mt-3 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        {t('visitors.blacklist.contactSecurity', 'Please contact the Security section for assistance and support.')}
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               {/* Host Information */}
@@ -433,42 +461,44 @@ export default function VisitorPreRegistration() {
                 )}
               </div>
 
-              {/* Visit Details */}
+              {/* Visit Details with Separate Date/Time Fields */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">{t('visitors.register.sections.visit')}</h3>
+                <FormField
+                  control={form.control}
+                  name="site_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('visitors.fields.site')} *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('visitors.placeholders.site')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sites?.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Start Date/Time Row */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
-                    name="site_id"
+                    name="start_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.site')} *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('visitors.placeholders.site')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sites?.map((site) => (
-                              <SelectItem key={site.id} value={site.id}>
-                                {site.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="valid_from"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('visitors.fields.validFrom')} *</FormLabel>
+                        <FormLabel>{t('visitors.fields.startDate', 'Start Date')} *</FormLabel>
                         <FormControl>
-                          <Input {...field} type="datetime-local" />
+                          <Input {...field} type="date" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -476,34 +506,49 @@ export default function VisitorPreRegistration() {
                   />
                   <FormField
                     control={form.control}
-                    name="duration_minutes"
+                    name="start_time"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.duration', 'Visit Duration')} *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('visitors.placeholders.duration', 'Select duration')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableDurations.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {t(`visitors.duration.${option.value}`, option.label)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {availableDurations.length < DURATION_OPTIONS.length && (
-                          <FormDescription className="text-amber-600">
-                            {t('visitors.duration.limitedByTime', 'Duration options limited by selected start time')}
-                          </FormDescription>
-                        )}
+                        <FormLabel>{t('visitors.fields.startTime', 'Start Time')} *</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="time" />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                {/* End Date/Time Row */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="end_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('visitors.fields.endDate', 'End Date')} *</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="date" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="end_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('visitors.fields.endTime', 'End Time')} *</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="time" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="notes"
@@ -523,7 +568,10 @@ export default function VisitorPreRegistration() {
                 <Button type="button" variant="outline" onClick={() => navigate('/visitors')}>
                   {t('common.cancel')}
                 </Button>
-                <Button type="submit" disabled={createVisitor.isPending || createVisitRequest.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={createVisitor.isPending || createVisitRequest.isPending || isBlacklisted || checkingBlacklist}
+                >
                   <Clock className="me-2 h-4 w-4" />
                   {createVisitor.isPending ? t('common.loading') : t('visitors.register.submitRequest', 'Submit Request')}
                 </Button>

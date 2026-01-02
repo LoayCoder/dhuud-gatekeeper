@@ -7,6 +7,28 @@ import { useAuth } from '@/contexts/AuthContext';
 export type BlacklistEntry = Tables<'security_blacklist'>;
 export type BlacklistInsert = TablesInsert<'security_blacklist'>;
 
+// Hook to fetch all blacklisted national IDs for quick lookup
+export function useBlacklistNationalIds() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ['blacklist-national-ids', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return new Set<string>();
+
+      const { data, error } = await supabase
+        .from('security_blacklist')
+        .select('national_id')
+        .eq('tenant_id', tenantId);
+
+      if (error) throw error;
+      return new Set(data.map(entry => entry.national_id));
+    },
+    enabled: !!tenantId,
+  });
+}
+
 interface UseBlacklistFilters {
   search?: string;
 }
@@ -151,10 +173,25 @@ export function useAddToBlacklist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-blacklist'] });
+      queryClient.invalidateQueries({ queryKey: ['blacklist-national-ids'] });
       queryClient.invalidateQueries({ queryKey: ['contractor-workers'] });
-      toast({ title: 'Added to blacklist and worker revoked' });
+      queryClient.invalidateQueries({ queryKey: ['visitors'] });
+      queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+      toast({ title: 'Added to blacklist' });
     },
     onError: (error) => {
+      // Check for duplicate constraint violation
+      if (error.message.includes('duplicate key') || 
+          error.message.includes('idx_blacklist_identity') ||
+          error.message.includes('unique constraint')) {
+        toast({ 
+          title: 'Already Blacklisted', 
+          description: 'This person is already on the security blacklist.' 
+        });
+        queryClient.invalidateQueries({ queryKey: ['security-blacklist'] });
+        queryClient.invalidateQueries({ queryKey: ['blacklist-national-ids'] });
+        return;
+      }
       toast({ title: 'Failed to add to blacklist', description: error.message, variant: 'destructive' });
     },
   });

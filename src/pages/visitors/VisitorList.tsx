@@ -20,9 +20,10 @@ import { Label } from '@/components/ui/label';
 import { Search, MoreHorizontal, UserPlus, QrCode, ShieldAlert, Eye, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useVisitors, useUpdateVisitor, useResetVisitorQR } from '@/hooks/use-visitors';
-import { useAddToBlacklist } from '@/hooks/use-security-blacklist';
+import { useAddToBlacklist, useBlacklistNationalIds } from '@/hooks/use-security-blacklist';
 import { format } from 'date-fns';
 import { VisitorDetailDialog } from '@/components/visitors/VisitorDetailDialog';
+import { cn } from '@/lib/utils';
 
 export default function VisitorList() {
   const { t } = useTranslation();
@@ -35,9 +36,15 @@ export default function VisitorList() {
   }>({ open: false, visitor: null, reason: '' });
   
   const { data: visitors, isLoading } = useVisitors({ search: search || undefined });
+  const { data: blacklistedIds } = useBlacklistNationalIds();
   const updateVisitor = useUpdateVisitor();
   const addToBlacklist = useAddToBlacklist();
   const resetVisitorQR = useResetVisitorQR();
+
+  const isBlacklisted = (nationalId: string | null) => {
+    if (!nationalId || !blacklistedIds) return false;
+    return blacklistedIds.has(nationalId);
+  };
 
   const handleOpenBlacklistDialog = (visitor: { id: string; full_name: string; national_id: string | null }) => {
     if (!visitor.national_id) return;
@@ -116,59 +123,84 @@ export default function VisitorList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visitors?.map((visitor) => (
-                    <TableRow key={visitor.id}>
-                      <TableCell className="font-medium">{visitor.full_name}</TableCell>
-                      <TableCell>{visitor.company_name || '-'}</TableCell>
-                      <TableCell>{visitor.phone || '-'}</TableCell>
-                      <TableCell>{visitor.national_id || '-'}</TableCell>
-                      <TableCell>
-                        {visitor.last_visit_at 
-                          ? format(new Date(visitor.last_visit_at), 'PP')
-                          : t('visitors.list.neverVisited')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={visitor.is_active ? 'default' : 'secondary'}>
-                          {visitor.is_active ? t('common.active') : t('common.inactive')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedVisitorId(visitor.id)}>
-                              <Eye className="me-2 h-4 w-4" />
-                              {t('common.view')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedVisitorId(visitor.id)}>
-                              <QrCode className="me-2 h-4 w-4" />
-                              {t('visitors.list.viewQR')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => resetVisitorQR.mutate(visitor.id)}>
-                              <RefreshCw className="me-2 h-4 w-4" />
-                              {t('visitors.list.resetQR')}
-                            </DropdownMenuItem>
-                            {visitor.national_id && visitor.is_active && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  onClick={() => handleOpenBlacklistDialog(visitor)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <ShieldAlert className="me-2 h-4 w-4" />
-                                  {t('visitors.blacklist.addTo')}
-                                </DropdownMenuItem>
-                              </>
+                  {visitors?.map((visitor) => {
+                    const blacklisted = isBlacklisted(visitor.national_id);
+                    return (
+                      <TableRow 
+                        key={visitor.id}
+                        className={cn(
+                          blacklisted && "bg-destructive/10 border-s-4 border-s-destructive"
+                        )}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {blacklisted && (
+                              <ShieldAlert className="h-4 w-4 text-destructive flex-shrink-0" />
                             )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            <span className={cn(blacklisted && "text-destructive font-semibold")}>
+                              {visitor.full_name}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{visitor.company_name || '-'}</TableCell>
+                        <TableCell>{visitor.phone || '-'}</TableCell>
+                        <TableCell>{visitor.national_id || '-'}</TableCell>
+                        <TableCell>
+                          {visitor.last_visit_at 
+                            ? format(new Date(visitor.last_visit_at), 'PP')
+                            : t('visitors.list.neverVisited')}
+                        </TableCell>
+                        <TableCell>
+                          {blacklisted ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <ShieldAlert className="h-3 w-3" />
+                              {t('visitors.blacklist.warning', 'Blacklisted')}
+                            </Badge>
+                          ) : (
+                            <Badge variant={visitor.is_active ? 'default' : 'secondary'}>
+                              {visitor.is_active ? t('common.active') : t('common.inactive')}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setSelectedVisitorId(visitor.id)}>
+                                <Eye className="me-2 h-4 w-4" />
+                                {t('common.view')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setSelectedVisitorId(visitor.id)}>
+                                <QrCode className="me-2 h-4 w-4" />
+                                {t('visitors.list.viewQR')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => resetVisitorQR.mutate(visitor.id)}>
+                                <RefreshCw className="me-2 h-4 w-4" />
+                                {t('visitors.list.resetQR')}
+                              </DropdownMenuItem>
+                              {/* Only show blacklist option if not already blacklisted */}
+                              {visitor.national_id && visitor.is_active && !blacklisted && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleOpenBlacklistDialog(visitor)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <ShieldAlert className="me-2 h-4 w-4" />
+                                    {t('visitors.blacklist.addTo')}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
