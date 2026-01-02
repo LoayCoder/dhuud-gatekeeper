@@ -4760,6 +4760,7 @@ export type Database = {
           source_id: string | null
           source_name: string | null
           source_type: string | null
+          status: string
           tenant_id: string
           triggered_at: string
         }
@@ -4789,6 +4790,7 @@ export type Database = {
           source_id?: string | null
           source_name?: string | null
           source_type?: string | null
+          status?: string
           tenant_id: string
           triggered_at?: string
         }
@@ -4818,6 +4820,7 @@ export type Database = {
           source_id?: string | null
           source_name?: string | null
           source_type?: string | null
+          status?: string
           tenant_id?: string
           triggered_at?: string
         }
