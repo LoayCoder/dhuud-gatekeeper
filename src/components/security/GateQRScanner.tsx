@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { gateOfflineCache } from '@/lib/gate-offline-cache';
 import { CameraScanner } from '@/components/ui/camera-scanner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GateQRScannerProps {
   open: boolean;
@@ -41,7 +43,10 @@ export interface QRScanResult {
 export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
   const [isScannerActive, setIsScannerActive] = useState(true);
   const scannerKeyRef = useRef(0);
@@ -375,17 +380,86 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     }
   }, [scanResult, onScanResult, handleClose]);
 
-  // Log entry and immediately start scanning for next QR code
-  const handleLogAndScanNext = useCallback(() => {
-    if (scanResult) {
-      onScanResult(scanResult);
-      // Instead of closing, start scanning for next QR code
-      setScanResult(null);
-      setIsVerifying(false);
-      setIsScannerActive(true);
-      scannerKeyRef.current += 1;
+  // Log entry to database and immediately start scanning for next QR code
+  const handleLogAndScanNext = useCallback(async () => {
+    if (!scanResult || !profile?.tenant_id) return;
+    
+    // Only log entry for valid status
+    if (scanResult.status === 'valid') {
+      setIsLogging(true);
+      try {
+        const entryType = scanResult.type === 'worker' ? 'worker' : 'visitor';
+        
+        // Check for existing active entry to prevent duplicates
+        const { data: existingEntry } = await supabase
+          .from('gate_entry_logs')
+          .select('id, entry_time')
+          .eq('tenant_id', profile.tenant_id)
+          .eq('entry_type', entryType)
+          .ilike('person_name', `%${scanResult.data?.name || ''}%`)
+          .is('exit_time', null)
+          .is('deleted_at', null)
+          .order('entry_time', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingEntry) {
+          toast({ 
+            title: t('security.gate.alreadyOnSite', 'Already On Site'),
+            description: t('security.gate.alreadyOnSiteDesc', 'This person is already on-site'),
+            variant: 'default'
+          });
+        } else {
+          // Create gate entry log
+          const { error } = await supabase
+            .from('gate_entry_logs')
+            .insert({
+              tenant_id: profile.tenant_id,
+              person_name: scanResult.data?.name || 'Unknown',
+              entry_type: entryType,
+              entry_time: new Date().toISOString(),
+              guard_id: user?.id,
+              visitor_id: scanResult.type === 'visitor' ? scanResult.id : null,
+            });
+
+          if (error) throw error;
+
+          // Mark visitor QR as used
+          if (scanResult.type === 'visitor' && scanResult.id) {
+            await supabase
+              .from('visitors')
+              .update({ qr_used_at: new Date().toISOString() })
+              .eq('id', scanResult.id);
+          }
+
+          toast({ 
+            title: t('security.gate.entryRecorded', 'Entry recorded successfully'),
+          });
+
+          // Invalidate queries to refresh active visitors lists
+          queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+          queryClient.invalidateQueries({ queryKey: ['visit-requests'] });
+        }
+      } catch (error) {
+        console.error('Failed to log entry:', error);
+        toast({ 
+          title: t('security.gate.entryFailed', 'Failed to record entry'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLogging(false);
+      }
     }
-  }, [scanResult, onScanResult]);
+
+    // Pass result to parent
+    onScanResult(scanResult);
+    
+    // Start scanning for next QR code
+    setScanResult(null);
+    setIsVerifying(false);
+    setIsScannerActive(true);
+    scannerKeyRef.current += 1;
+  }, [scanResult, onScanResult, profile?.tenant_id, user?.id, queryClient, toast, t]);
 
   const getStatusConfig = (status: QRScanResult['status']) => {
     switch (status) {
@@ -522,8 +596,12 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               </Button>
               
               {scanResult.status === 'valid' ? (
-                <Button className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" onClick={handleLogAndScanNext}>
-                  <LogIn className="h-4 w-4" />
+                <Button 
+                  className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" 
+                  onClick={handleLogAndScanNext}
+                  disabled={isLogging}
+                >
+                  {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                   {t('scanner.logEntry', 'Log Entry')}
                 </Button>
               ) : (

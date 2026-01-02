@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 
 type GateEntryLog = Database['public']['Tables']['gate_entry_logs']['Row'];
@@ -20,6 +21,33 @@ export interface GateEntryFilters {
 export function useGateEntries(filters?: GateEntryFilters) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!tenantId) return;
+
+    const channel = supabase
+      .channel('gate-entries-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'gate_entry_logs',
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        () => {
+          // Invalidate queries to refetch data
+          queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenantId, queryClient]);
 
   return useQuery({
     queryKey: ['gate-entries', tenantId, filters],

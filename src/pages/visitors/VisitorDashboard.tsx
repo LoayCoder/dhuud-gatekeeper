@@ -3,30 +3,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Clock, CheckCircle2, AlertTriangle, UserPlus, QrCode, List, ShieldAlert } from 'lucide-react';
+import { Users, Clock, CheckCircle2, AlertTriangle, UserPlus, QrCode, List, ShieldAlert, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   usePendingSecurityRequests, 
   useTodaysVisitors, 
-  useCurrentlyOnSite,
   useApproveVisitRequest,
   useRejectVisitRequest,
 } from '@/hooks/use-visit-requests';
-import { format } from 'date-fns';
+import { useGateEntries, useRecordExit } from '@/hooks/use-gate-entries';
+import { format, startOfDay, formatDistanceToNow } from 'date-fns';
 import { VisitApprovalDialog } from '@/components/visitors/VisitApprovalDialog';
 import { useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function VisitorDashboard() {
   const { t } = useTranslation();
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingSecurityRequests();
   const { data: todaysVisitors, isLoading: todayLoading } = useTodaysVisitors();
-  const { data: onSiteVisitors, isLoading: onSiteLoading } = useCurrentlyOnSite();
+  
+  // Use gate_entry_logs for on-site visitors (real-time enabled)
+  const today = startOfDay(new Date()).toISOString();
+  const { data: gateEntries, isLoading: onSiteLoading } = useGateEntries({
+    dateFrom: today,
+    entryType: 'visitor',
+    onlyActive: true,
+  });
+  const recordExit = useRecordExit();
   
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   const pendingCount = pendingRequests?.length ?? 0;
   const todayCount = todaysVisitors?.length ?? 0;
-  const onSiteCount = onSiteVisitors?.length ?? 0;
+  const onSiteCount = gateEntries?.length ?? 0;
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
@@ -210,34 +219,58 @@ export default function VisitorDashboard() {
         <TabsContent value="onsite">
           <Card>
             <CardHeader>
-              <CardTitle>{t('visitors.onSite.title')}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                {t('visitors.onSite.title')}
+                <Badge variant="secondary">{onSiteCount}</Badge>
+              </CardTitle>
               <CardDescription>{t('visitors.onSite.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {onSiteLoading ? (
                 <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
-              ) : onSiteVisitors?.length === 0 ? (
+              ) : !gateEntries || gateEntries.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <CheckCircle2 className="mx-auto h-12 w-12 mb-4 opacity-50" />
                   <p>{t('visitors.onSite.noVisitors')}</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {onSiteVisitors?.map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                      <div className="flex-1">
+                <div className="space-y-3">
+                  {gateEntries.map((entry) => (
+                    <div key={entry.id} className="flex items-center gap-3 p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                          {entry.person_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{request.visitor?.full_name}</span>
-                          {getStatusBadge(request.status ?? 'checked_in')}
+                          <span className="font-medium truncate">{entry.person_name || 'Unknown'}</span>
+                          <Badge variant="default" className="bg-green-600">
+                            {t('visitors.status.checkedIn', 'On Site')}
+                          </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {request.site?.name}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{format(new Date(entry.entry_time), 'HH:mm')}</span>
+                          <span className="text-primary">
+                            ({formatDistanceToNow(new Date(entry.entry_time), { addSuffix: false })})
+                          </span>
+                          {entry.destination_name && (
+                            <span>→ {entry.destination_name}</span>
+                          )}
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/security/gate-dashboard?tab=visitors`}>
-                          {t('visitors.actions.checkOut')}
-                        </Link>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => recordExit.mutate(entry.id)}
+                        disabled={recordExit.isPending}
+                        className="gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {t('visitors.actions.checkOut', 'Check Out')}
                       </Button>
                     </div>
                   ))}
