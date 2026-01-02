@@ -24,22 +24,22 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
-  phone: z.string().min(8, 'Valid phone number is required').optional().or(z.literal('')),
-  company_name: z.string().optional(),
-  national_id: z.string().optional(),
+  phone: z.string().min(8, 'Valid phone number is required'),
+  company_name: z.string().min(1, 'Company name is required'),
+  national_id: z.string().min(1, 'National ID is required'),
   site_id: z.string().min(1, 'Site is required'),
   // Separate date and time fields
   start_date: z.string().min(1, 'Start date is required'),
   start_time: z.string().min(1, 'Start time is required'),
   end_date: z.string().min(1, 'End date is required'),
   end_time: z.string().min(1, 'End time is required'),
-  notes: z.string().optional(),
+  notes: z.string().min(1, 'Purpose of visit is required'),
   // User type and host fields
   user_type: z.enum(['internal', 'external']),
   host_id: z.string().optional(),
   host_name: z.string().optional(),
   host_phone: z.string().optional(),
-  host_email: z.string().email().optional().or(z.literal('')),
+  host_email: z.string().email('Valid email is required'),
 }).refine((data) => {
   // For internal users, host_id is required
   if (data.user_type === 'internal') {
@@ -144,14 +144,14 @@ export default function VisitorPreRegistration() {
       // Create the visitor with host information (QR code generated but not shown until approved)
       const visitor = await createVisitor.mutateAsync({
         full_name: values.full_name,
-        phone: values.phone || null,
-        company_name: values.company_name || null,
-        national_id: values.national_id || null,
+        phone: values.phone,
+        company_name: values.company_name,
+        national_id: values.national_id,
         user_type: values.user_type,
         host_id: values.user_type === 'internal' ? values.host_id : null,
         host_name: values.host_name || null,
         host_phone: values.host_phone || null,
-        host_email: values.host_email || null,
+        host_email: values.host_email,
       });
 
       // Create the visit request (pending security approval)
@@ -311,7 +311,7 @@ export default function VisitorPreRegistration() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.phone', 'Mobile Number')}</FormLabel>
+                        <FormLabel>{t('visitors.fields.phone', 'Mobile Number')} *</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -328,7 +328,7 @@ export default function VisitorPreRegistration() {
                     name="company_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.company')}</FormLabel>
+                        <FormLabel>{t('visitors.fields.company')} *</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder={t('visitors.placeholders.company')} />
                         </FormControl>
@@ -341,7 +341,7 @@ export default function VisitorPreRegistration() {
                     name="national_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('visitors.fields.nationalId')}</FormLabel>
+                        <FormLabel>{t('visitors.fields.nationalId')} *</FormLabel>
                         <div className="flex gap-2">
                           <FormControl>
                             <Input {...field} placeholder={t('visitors.placeholders.nationalId')} />
@@ -438,9 +438,9 @@ export default function VisitorPreRegistration() {
                       name="host_email"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>{t('visitors.fields.hostEmail', 'Host Email')}</FormLabel>
+                          <FormLabel>{t('visitors.fields.hostEmail', 'Host Email')} *</FormLabel>
                           <FormControl>
-                            <Input {...field} type="email" placeholder={t('visitors.placeholders.hostEmail', 'Optional email address')} />
+                            <Input {...field} type="email" placeholder={t('visitors.placeholders.hostEmail', 'Enter email address')} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -543,7 +543,7 @@ export default function VisitorPreRegistration() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('visitors.fields.notes')}</FormLabel>
+                      <FormLabel>{t('visitors.fields.notes')} *</FormLabel>
                       <FormControl>
                         <Textarea {...field} placeholder={t('visitors.placeholders.notes')} rows={3} />
                       </FormControl>
