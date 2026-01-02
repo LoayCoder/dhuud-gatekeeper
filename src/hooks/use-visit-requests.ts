@@ -182,8 +182,8 @@ export function useApproveVisitRequest() {
         .is('deleted_at', null)
         .maybeSingle();
 
-      const appUrl = window.location.origin;
-      const badgeUrl = `${appUrl}/visitor-badge/${request?.visitor?.qr_code_token}`;
+      // Pass only qr_code_token - edge function will build correct URL with www.dhuud.com domain
+      const qrToken = request?.visitor?.qr_code_token || '';
 
       // Send WhatsApp notification to VISITOR with badge link
       const visitorPhone = request?.visitor?.phone;
@@ -194,7 +194,7 @@ export function useApproveVisitRequest() {
               notification_type: 'visitor_badge_link',
               mobile_number: visitorPhone,
               visitor_name: request?.visitor?.full_name || 'Visitor',
-              badge_url: badgeUrl,
+              badge_url: qrToken, // Now just the token, edge function builds full URL with correct domain
               destination_name: request?.site?.name || 'Reception',
               tenant_id: profile.tenant_id,
             },
