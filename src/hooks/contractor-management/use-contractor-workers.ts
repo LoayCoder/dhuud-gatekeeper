@@ -256,3 +256,92 @@ export function useBulkRejectWorkers() {
     },
   });
 }
+
+export function useCheckDuplicateNationalId() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return async (nationalId: string, excludeWorkerId?: string): Promise<boolean> => {
+    if (!tenantId || !nationalId) return false;
+
+    let query = supabase
+      .from("contractor_workers")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("national_id", nationalId)
+      .is("deleted_at", null);
+
+    if (excludeWorkerId) {
+      query = query.neq("id", excludeWorkerId);
+    }
+
+    const { data } = await query.maybeSingle();
+    return !!data;
+  };
+}
+
+export function useDeleteContractorWorker() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workerId: string) => {
+      const { error } = await supabase
+        .from("contractor_workers")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", workerId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      toast.success("Worker deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useUpdateWorkerStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ workerId, status, reason }: { workerId: string; status: string; reason?: string }) => {
+      const updates: Record<string, unknown> = {
+        approval_status: status,
+      };
+
+      if (status === "approved") {
+        updates.approved_at = new Date().toISOString();
+        updates.rejection_reason = null;
+      } else if (status === "rejected") {
+        updates.rejection_reason = reason || null;
+        updates.approved_at = null;
+      } else if (status === "pending") {
+        updates.approved_at = null;
+        updates.rejection_reason = null;
+      } else if (status === "revoked") {
+        updates.rejection_reason = reason || null;
+      }
+
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .update(updates)
+        .eq("id", workerId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+      toast.success("Worker status updated");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}

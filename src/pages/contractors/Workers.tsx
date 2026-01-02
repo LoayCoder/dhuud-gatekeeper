@@ -20,11 +20,15 @@ import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImpor
 import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkActionsToolbar";
 import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
 import { AddWorkerToBlacklistDialog } from "@/components/contractors/AddWorkerToBlacklistDialog";
+import { DeleteWorkerDialog } from "@/components/contractors/DeleteWorkerDialog";
+import { ChangeWorkerStatusDialog } from "@/components/contractors/ChangeWorkerStatusDialog";
 import {
   useContractorWorkers,
   usePendingWorkerApprovals,
   useBulkApproveWorkers,
   useBulkRejectWorkers,
+  useDeleteContractorWorker,
+  useUpdateWorkerStatus,
   ContractorWorker,
 } from "@/hooks/contractor-management/use-contractor-workers";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
@@ -42,6 +46,12 @@ export default function Workers() {
   const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const [isBulkRejectOpen, setIsBulkRejectOpen] = useState(false);
   const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
+  
+  // Individual worker action states
+  const [workerToDelete, setWorkerToDelete] = useState<ContractorWorker | null>(null);
+  const [workerToChangeStatus, setWorkerToChangeStatus] = useState<ContractorWorker | null>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string>("");
+  const [workerToBlacklist, setWorkerToBlacklist] = useState<ContractorWorker | null>(null);
 
   const { data: workers = [], isLoading } = useContractorWorkers({
     search: search || undefined,
@@ -56,6 +66,8 @@ export default function Workers() {
   const bulkApprove = useBulkApproveWorkers();
   const bulkReject = useBulkRejectWorkers();
   const addToBlacklist = useAddToBlacklist();
+  const deleteWorker = useDeleteContractorWorker();
+  const updateWorkerStatus = useUpdateWorkerStatus();
 
   // Create blacklist lookup maps
   const blacklistedIds = useMemo(
@@ -104,6 +116,36 @@ export default function Workers() {
         },
       }
     );
+  };
+
+  // Individual worker action handlers
+  const handleStatusChange = (worker: ContractorWorker, status: string) => {
+    setWorkerToChangeStatus(worker);
+    setPendingStatusChange(status);
+  };
+
+  const handleConfirmStatusChange = (status: string, reason?: string) => {
+    if (!workerToChangeStatus) return;
+    updateWorkerStatus.mutate(
+      { workerId: workerToChangeStatus.id, status, reason },
+      {
+        onSuccess: () => {
+          setWorkerToChangeStatus(null);
+          setPendingStatusChange("");
+        },
+      }
+    );
+  };
+
+  const handleAddToBlacklist = (worker: ContractorWorker) => {
+    setWorkerToBlacklist(worker);
+  };
+
+  const handleDeleteWorker = () => {
+    if (!workerToDelete) return;
+    deleteWorker.mutate(workerToDelete.id, {
+      onSuccess: () => setWorkerToDelete(null),
+    });
   };
 
   const showSelection = statusFilter === "pending" || activeTab === "pending";
@@ -206,6 +248,9 @@ export default function Workers() {
                 workers={workers}
                 isLoading={isLoading}
                 onEdit={(worker) => setEditingWorker(worker)}
+                onStatusChange={handleStatusChange}
+                onAddToBlacklist={handleAddToBlacklist}
+                onDelete={(worker) => setWorkerToDelete(worker)}
                 selectedIds={selectedWorkerIds}
                 onSelectionChange={setSelectedWorkerIds}
                 showSelection={showSelection}
@@ -251,9 +296,36 @@ export default function Workers() {
       />
 
       <AddWorkerToBlacklistDialog
-        open={isBlacklistDialogOpen}
-        onOpenChange={setIsBlacklistDialogOpen}
-        workers={selectedWorkers}
+        open={isBlacklistDialogOpen || !!workerToBlacklist}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsBlacklistDialogOpen(false);
+            setWorkerToBlacklist(null);
+          }
+        }}
+        workers={workerToBlacklist ? [workerToBlacklist] : selectedWorkers}
+      />
+
+      <DeleteWorkerDialog
+        open={!!workerToDelete}
+        onOpenChange={(open) => !open && setWorkerToDelete(null)}
+        worker={workerToDelete}
+        onConfirm={handleDeleteWorker}
+        isPending={deleteWorker.isPending}
+      />
+
+      <ChangeWorkerStatusDialog
+        open={!!workerToChangeStatus}
+        onOpenChange={(open) => {
+          if (!open) {
+            setWorkerToChangeStatus(null);
+            setPendingStatusChange("");
+          }
+        }}
+        worker={workerToChangeStatus}
+        initialStatus={pendingStatusChange}
+        onConfirm={handleConfirmStatusChange}
+        isPending={updateWorkerStatus.isPending}
       />
     </div>
   );
