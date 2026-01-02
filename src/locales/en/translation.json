@@ -24,7 +24,10 @@
     "scanAgain": "Scan Again",
     "useResult": "Use Result",
     "errorTitle": "Scanner Error",
-    "scannerError": "Failed to start scanner"
+    "scannerError": "Failed to start scanner",
+    "acknowledge": "Acknowledge",
+    "scanNext": "Scan Next",
+    "logEntry": "Log Entry"
   },
   "security": {
     "gate": {

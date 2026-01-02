@@ -1,4 +1,9 @@
 {
+  "scanner": {
+    "acknowledge": "تأكيد",
+    "scanNext": "المسح التالي",
+    "logEntry": "تسجيل الدخول"
+  },
   "security": {
     "gate": {
       "alreadyOnSite": "متواجد بالفعل",
