@@ -20,6 +20,7 @@ import {
   Shield,
   Heart,
   Flame,
+  FileText,
 } from 'lucide-react';
 import {
   Dialog,
@@ -43,6 +44,11 @@ import {
   getPhotoUrl,
   getAlertTypeArabic,
 } from '@/lib/share-emergency-alert';
+import {
+  useActiveProtocolForAlertType,
+  DEFAULT_PROTOCOL_TEMPLATES,
+} from '@/hooks/use-emergency-protocol-templates';
+import type { ProtocolStep } from '@/hooks/use-emergency-protocols';
 import type { EmergencyAlert } from '@/hooks/use-emergency-alerts';
 
 interface EmergencyAlertDetailDialogProps {
@@ -54,20 +60,10 @@ interface EmergencyAlertDetailDialogProps {
   isAcknowledging?: boolean;
 }
 
-interface ResponseStep {
-  id: string;
-  titleEn: string;
-  titleAr: string;
+interface LocalStepCompletion {
+  order: number;
   completed: boolean;
 }
-
-const DEFAULT_RESPONSE_STEPS: Omit<ResponseStep, 'completed'>[] = [
-  { id: '1', titleEn: 'Locate the person in distress', titleAr: 'تحديد موقع الشخص المحتاج للمساعدة' },
-  { id: '2', titleEn: 'Assess immediate danger level', titleAr: 'تقييم مستوى الخطر الفوري' },
-  { id: '3', titleEn: 'Provide assistance or call backup', titleAr: 'تقديم المساعدة أو طلب الدعم' },
-  { id: '4', titleEn: 'Secure the area', titleAr: 'تأمين المنطقة' },
-  { id: '5', titleEn: 'Document and notify supervisor', titleAr: 'التوثيق وإخطار المشرف' },
-];
 
 export function EmergencyAlertDetailDialog({
   alert,
@@ -83,9 +79,23 @@ export function EmergencyAlertDetailDialog({
   
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
-  const [responseSteps, setResponseSteps] = useState<ResponseStep[]>(
-    DEFAULT_RESPONSE_STEPS.map(step => ({ ...step, completed: false }))
-  );
+  const [completedSteps, setCompletedSteps] = useState<LocalStepCompletion[]>([]);
+
+  // Fetch protocol template from database
+  const { data: protocolTemplate, isLoading: protocolLoading } = useActiveProtocolForAlertType(alert?.alert_type || '');
+
+  // Get steps from template or fallback to defaults
+  const getSteps = (): ProtocolStep[] => {
+    if (protocolTemplate?.steps && protocolTemplate.steps.length > 0) {
+      return protocolTemplate.steps;
+    }
+    // Fallback to default templates
+    const defaultTemplate = DEFAULT_PROTOCOL_TEMPLATES[alert?.alert_type || 'general'] 
+      || DEFAULT_PROTOCOL_TEMPLATES['general'];
+    return defaultTemplate.steps;
+  };
+
+  const steps = getSteps();
 
   // Load photo when dialog opens
   useEffect(() => {
@@ -98,7 +108,7 @@ export function EmergencyAlertDetailDialog({
       setPhotoUrl(null);
     }
     // Reset steps when alert changes
-    setResponseSteps(DEFAULT_RESPONSE_STEPS.map(step => ({ ...step, completed: false })));
+    setCompletedSteps([]);
   }, [open, alert?.photo_evidence_path, alert?.id]);
 
   if (!alert) return null;
@@ -156,15 +166,20 @@ export function EmergencyAlertDetailDialog({
     }
   };
 
-  const toggleStep = (stepId: string) => {
-    setResponseSteps(prev =>
-      prev.map(step =>
-        step.id === stepId ? { ...step, completed: !step.completed } : step
-      )
-    );
+  const toggleStep = (stepOrder: number) => {
+    setCompletedSteps(prev => {
+      const exists = prev.find(s => s.order === stepOrder);
+      if (exists) {
+        return prev.map(s => s.order === stepOrder ? { ...s, completed: !s.completed } : s);
+      }
+      return [...prev, { order: stepOrder, completed: true }];
+    });
   };
 
-  const completedStepsCount = responseSteps.filter(s => s.completed).length;
+  const isStepCompleted = (stepOrder: number) => 
+    completedSteps.find(s => s.order === stepOrder)?.completed ?? false;
+
+  const completedStepsCount = steps.filter(s => isStepCompleted(s.order)).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -304,56 +319,75 @@ export function EmergencyAlertDetailDialog({
           {/* Emergency Response Steps */}
           <div className="space-y-3 border-t pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">
-                {t('security.responseSteps', 'Response Steps')}
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                {protocolTemplate 
+                  ? (isRTL ? protocolTemplate.protocol_name_ar || protocolTemplate.protocol_name : protocolTemplate.protocol_name)
+                  : t('security.responseSteps', 'Response Steps')}
               </Label>
               <Badge variant="outline">
-                {completedStepsCount}/{responseSteps.length}
+                {completedStepsCount}/{steps.length}
               </Badge>
             </div>
             
-            <div className="space-y-2">
-              {responseSteps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={cn(
-                    "flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer",
-                    step.completed ? "bg-green-500/10 border-green-500/30" : "bg-muted/30 hover:bg-muted/50"
-                  )}
-                  onClick={() => toggleStep(step.id)}
-                >
-                  <Checkbox
-                    checked={step.completed}
-                    onCheckedChange={() => toggleStep(step.id)}
-                    className="mt-0.5"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-muted-foreground">
-                        {index + 1}
-                      </span>
-                      {step.completed ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-muted-foreground" />
+            {protocolLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {steps.map((step) => {
+                  const completed = isStepCompleted(step.order);
+                  return (
+                    <div
+                      key={step.order}
+                      className={cn(
+                        "flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer",
+                        completed ? "bg-green-500/10 border-green-500/30" : "bg-muted/30 hover:bg-muted/50"
                       )}
+                      onClick={() => toggleStep(step.order)}
+                    >
+                      <Checkbox
+                        checked={completed}
+                        onCheckedChange={() => toggleStep(step.order)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                            {step.order}
+                          </span>
+                          {completed ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          {step.is_required && (
+                            <Badge variant="outline" className="text-xs px-1 py-0">
+                              {isRTL ? 'مطلوب' : 'Required'}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className={cn(
+                          "text-sm mt-1",
+                          completed && "line-through text-muted-foreground"
+                        )}>
+                          {isRTL ? (step.title_ar || step.title) : step.title}
+                        </p>
+                        {(step.title_ar || step.description_ar) && (
+                          <p className={cn(
+                            "text-xs text-muted-foreground",
+                            completed && "line-through"
+                          )}>
+                            {isRTL ? step.title : (step.title_ar || step.description_ar)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className={cn(
-                      "text-sm mt-1",
-                      step.completed && "line-through text-muted-foreground"
-                    )}>
-                      {isRTL ? step.titleAr : step.titleEn}
-                    </p>
-                    <p className={cn(
-                      "text-xs text-muted-foreground",
-                      step.completed && "line-through"
-                    )}>
-                      {isRTL ? step.titleEn : step.titleAr}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
