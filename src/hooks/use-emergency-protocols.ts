@@ -183,11 +183,11 @@ export function useCompleteProtocolStep() {
         photo_path: photoPath,
       };
 
-      const updatedSteps = [...currentSteps.filter(s => s.step_order !== stepOrder), newStep] as unknown as Record<string, unknown>[];
+      const updatedSteps = [...currentSteps.filter(s => s.step_order !== stepOrder), newStep];
 
       const { error } = await supabase
         .from('emergency_protocol_executions')
-        .update({ steps_completed: updatedSteps })
+        .update({ steps_completed: JSON.parse(JSON.stringify(updatedSteps)) })
         .eq('id', executionId);
 
       if (error) throw error;
@@ -277,19 +277,3 @@ export function useCloseProtocol() {
   });
 }
 
-        .update({ 
-          status: 'resolved',
-          resolved_at: new Date().toISOString(),
-          resolved_by: profile?.id,
-        })
-        .eq('id', alertId);
-
-      return { executionId };
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['protocol-execution', variables.alertId] });
-      queryClient.invalidateQueries({ queryKey: ['emergency-alerts'] });
-      toast.success(t('security.emergency.protocolClosed', 'Protocol closed successfully'));
-    },
-  });
-}

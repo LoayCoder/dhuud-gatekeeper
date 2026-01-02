@@ -25,6 +25,7 @@ import { ZoneSelector } from '@/components/security/ZoneSelector';
 import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
+import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
 import { cn } from '@/lib/utils';
 import { GateScanProvider } from '@/contexts/GateScanContext';
 
@@ -205,6 +206,9 @@ const GateGuardDashboard = () => {
           </Card>
         ))}
       </div>
+
+      {/* Emergency Alert Banner - Top Priority */}
+      <EmergencyAlertBanner className="mb-2" maxVisible={2} />
 
       {/* Alert Cards Section */}
       {alerts.length > 0 && (

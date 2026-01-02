@@ -3,32 +3,38 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Search, Plus, Trash2, ShieldAlert } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, Trash2, ShieldAlert, Users, HardHat, Building2 } from 'lucide-react';
 import { useSecurityBlacklist, useAddToBlacklist, useRemoveFromBlacklist } from '@/hooks/use-security-blacklist';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 
 const addSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
   national_id: z.string().min(1, 'National ID is required'),
   reason: z.string().min(10, 'Reason must be at least 10 characters'),
+  entity_type: z.enum(['visitor', 'worker', 'contractor']).default('visitor'),
 });
 
 type AddFormValues = z.infer<typeof addSchema>;
 
 export default function BlacklistManagement() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [search, setSearch] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [entityFilter, setEntityFilter] = useState<string>('all');
   
   const { data: blacklist, isLoading } = useSecurityBlacklist({ search: search || undefined });
   const addMutation = useAddToBlacklist();
@@ -40,6 +46,7 @@ export default function BlacklistManagement() {
       full_name: '',
       national_id: '',
       reason: '',
+      entity_type: 'visitor',
     },
   });
 
@@ -59,15 +66,38 @@ export default function BlacklistManagement() {
     setDeleteId(null);
   };
 
+  // Filter by entity type
+  const filteredBlacklist = blacklist?.filter(entry => {
+    if (entityFilter === 'all') return true;
+    return (entry as { entity_type?: string }).entity_type === entityFilter;
+  });
+
+  const entityTypeBadge = (type?: string) => {
+    const config = {
+      visitor: { label: isRTL ? 'زائر' : 'Visitor', icon: Users, color: 'bg-blue-500/10 text-blue-600' },
+      worker: { label: isRTL ? 'عامل' : 'Worker', icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
+      contractor: { label: isRTL ? 'مقاول' : 'Contractor', icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
+    };
+    const c = config[type as keyof typeof config] || config.visitor;
+    return (
+      <Badge variant="secondary" className={cn('gap-1', c.color)}>
+        <c.icon className="h-3 w-3" />
+        {c.label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-destructive" />
-            {t('visitors.blacklist.title')}
+            {isRTL ? 'إدارة القائمة السوداء' : 'Blacklist Management'}
           </h1>
-          <p className="text-muted-foreground">{t('visitors.blacklist.description')}</p>
+          <p className="text-muted-foreground">
+            {isRTL ? 'إدارة الزوار والعمال والمقاولين المحظورين' : 'Manage blocked visitors, workers, and contractors'}
+          </p>
         </div>
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
@@ -83,6 +113,28 @@ export default function BlacklistManagement() {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="entity_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{isRTL ? 'نوع الكيان' : 'Entity Type'} *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="visitor">{isRTL ? 'زائر' : 'Visitor'}</SelectItem>
+                          <SelectItem value="worker">{isRTL ? 'عامل' : 'Worker'}</SelectItem>
+                          <SelectItem value="contractor">{isRTL ? 'مقاول' : 'Contractor'}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="full_name"
@@ -136,6 +188,28 @@ export default function BlacklistManagement() {
         </Dialog>
       </div>
 
+      {/* Entity Type Filter Tabs */}
+      <Tabs value={entityFilter} onValueChange={setEntityFilter}>
+        <TabsList>
+          <TabsTrigger value="all" className="gap-2">
+            <ShieldAlert className="h-4 w-4" />
+            {isRTL ? 'الكل' : 'All'}
+          </TabsTrigger>
+          <TabsTrigger value="visitor" className="gap-2">
+            <Users className="h-4 w-4" />
+            {isRTL ? 'زوار' : 'Visitors'}
+          </TabsTrigger>
+          <TabsTrigger value="worker" className="gap-2">
+            <HardHat className="h-4 w-4" />
+            {isRTL ? 'عمال' : 'Workers'}
+          </TabsTrigger>
+          <TabsTrigger value="contractor" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            {isRTL ? 'مقاولون' : 'Contractors'}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -157,7 +231,7 @@ export default function BlacklistManagement() {
         <CardContent>
           {isLoading ? (
             <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
-          ) : blacklist?.length === 0 ? (
+          ) : filteredBlacklist?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <ShieldAlert className="mx-auto h-12 w-12 mb-4 opacity-50" />
               <p>{t('visitors.blacklist.noEntries')}</p>
@@ -167,6 +241,7 @@ export default function BlacklistManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>{isRTL ? 'النوع' : 'Type'}</TableHead>
                     <TableHead>{t('visitors.fields.name')}</TableHead>
                     <TableHead>{t('visitors.fields.nationalId')}</TableHead>
                     <TableHead>{t('visitors.blacklist.reasonLabel')}</TableHead>
@@ -175,8 +250,9 @@ export default function BlacklistManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {blacklist?.map((entry) => (
-                    <TableRow key={entry.id}>
+                  {filteredBlacklist?.map((entry) => (
+                    <TableRow key={entry.id} className="bg-destructive/5 hover:bg-destructive/10">
+                      <TableCell>{entityTypeBadge((entry as { entity_type?: string }).entity_type)}</TableCell>
                       <TableCell className="font-medium">{entry.full_name}</TableCell>
                       <TableCell>{entry.national_id}</TableCell>
                       <TableCell className="max-w-xs truncate">{entry.reason}</TableCell>

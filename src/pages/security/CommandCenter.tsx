@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download } from 'lucide-react';
+import { MapPin, AlertTriangle, Users, Clock, RefreshCw, CheckCircle, Radio, Eye, Shield, FileText, Download, ShieldAlert } from 'lucide-react';
 import { useGuardLocations, useGeofenceAlerts, useAcknowledgeAlert, useResolveAlert } from '@/hooks/use-live-tracking';
 import { useShiftRoster } from '@/hooks/use-shift-roster';
 import { useSecurityZones } from '@/hooks/use-security-zones';
@@ -18,6 +18,9 @@ import { generateShiftReportPDF } from '@/lib/shift-report-pdf';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { SecurityScoreCard } from '@/components/security/SecurityScoreCard';
+import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
+import { Link } from 'react-router-dom';
 
 export default function CommandCenter() {
   const { t } = useTranslation();
@@ -181,8 +184,12 @@ export default function CommandCenter() {
         </div>
       </div>
 
+      {/* Emergency Alert Banner */}
+      <EmergencyAlertBanner />
+
       {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
+        <SecurityScoreCard compact className="md:col-span-1" />
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -227,6 +234,16 @@ export default function CommandCenter() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick Access Links */}
+      <div className="flex gap-3 flex-wrap">
+        <Button variant="outline" asChild>
+          <Link to="/visitors/blacklist" className="gap-2">
+            <ShieldAlert className="h-4 w-4" />
+            {t('security.commandCenter.blacklist', 'Blacklist Management')}
+          </Link>
+        </Button>
       </div>
 
       {/* Map and Alerts */}
