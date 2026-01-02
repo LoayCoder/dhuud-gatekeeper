@@ -17,13 +17,18 @@
     <!-- Preload Critical Resources -->
     <link rel="preload" href="/fonts/Rubik-Arabic.woff2" as="font" type="font/woff2" crossorigin />
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags - Enhanced for full PWA support -->
     <meta name="theme-color" content="#1e3a5f" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Dhuud HSSE" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Dhuud HSSE" />
+    <meta name="msapplication-TileColor" content="#1e3a5f" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="HandheldFriendly" content="true" />
     <link rel="manifest" href="/manifest.json" />
     
     <!-- Apple Touch Icons -->
@@ -32,6 +37,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png" />
     <link rel="apple-touch-icon" sizes="167x167" href="https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png" />
 
+    <!-- Apple Splash Screens - for iOS PWA launch screen -->
+    <meta name="apple-touch-startup-image" content="https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png" />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/IBnrqN3ZqbOOatgmznUCG0U1Voh2/social-images/social-1765232612783-Light Logo.svg">
@@ -39,16 +47,34 @@
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/IBnrqN3ZqbOOatgmznUCG0U1Voh2/social-images/social-1765232612783-Light Logo.svg">
     
-    
-    
-    
-    
     <link rel="icon" type="image/png" href="https://xdlowvfzhvjzbtgvurzj.supabase.co/storage/v1/object/public/branding/9290e913-c735-405c-91c6-141e966011ae/favicon/1764707368310.png">
     <meta property="og:title" content="Dhuud HSSE Platform">
-  <meta name="twitter:title" content="Dhuud HSSE Platform">
-  <meta property="og:description" content="Zero Trust Multi-Tenant HSSE Platform">
-  <meta name="twitter:description" content="Zero Trust Multi-Tenant HSSE Platform">
-</head>
+    <meta name="twitter:title" content="Dhuud HSSE Platform">
+    <meta property="og:description" content="Zero Trust Multi-Tenant HSSE Platform">
+    <meta name="twitter:description" content="Zero Trust Multi-Tenant HSSE Platform">
+
+    <!-- PWA Standalone Mode Detection CSS -->
+    <style>
+      /* Hide address bar UI when running as installed PWA */
+      @media all and (display-mode: standalone) {
+        body {
+          /* Ensure content doesn't overlap with notch/status bar */
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+      }
+      
+      /* Support for iOS Safari web app */
+      @media all and (display-mode: fullscreen) {
+        body {
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+      }
+    </style>
+  </head>
 
   <body>
     <div id="root"></div>
