@@ -77,11 +77,11 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       
       if (isOnline) {
         try {
-          const { data: visitor } = await supabase
+        const { data: visitor } = await supabase
             .from('visitors')
-            .select('id, full_name, company_name, qr_code_token, qr_used_at')
+            .select('id, full_name, company_name, qr_code_token, qr_used_at, is_active')
             .eq('qr_code_token', visitorToken)
-            .is('deleted_at', null)
+            .eq('is_active', true)
             .maybeSingle();
 
           if (visitor) {
