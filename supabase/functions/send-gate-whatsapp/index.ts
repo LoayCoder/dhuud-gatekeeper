@@ -97,7 +97,16 @@ serve(async (req) => {
       recipientPhone = mobile_number;
       templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
       
-      const fallbackBadgeMessage = `🎫 ${isRTL ? 'بطاقة الزائر جاهزة' : 'Your Visitor Badge is Ready'}\n\n👤 ${visitor_name}\n📍 ${destination_name || 'Reception'}\n\n🔗 ${isRTL ? 'اطلع على بطاقتك' : 'View your badge'}:\n${badge_url}\n\n${isRTL ? 'يرجى إظهار رمز QR عند البوابة' : 'Please show the QR code at the gate'}`;
+      const fallbackBadgeMessage = `🎫 بطاقة الزائر جاهزة | Your Visitor Badge is Ready
+
+👤 ${visitor_name}
+📍 ${destination_name || 'الاستقبال | Reception'}
+
+🔗 اطلع على بطاقتك | View your badge:
+${badge_url}
+
+يرجى إظهار رمز QR عند البوابة
+Please show the QR code at the gate`;
       
       variables = {
         "1": visitor_name || 'Guest',
