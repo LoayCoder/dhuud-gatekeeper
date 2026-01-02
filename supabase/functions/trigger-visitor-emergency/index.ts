@@ -71,10 +71,10 @@ serve(async (req) => {
 
     console.log(`[Emergency] Found visitor: ${visitor.full_name} (${visitor.id})`);
 
-    // Step 2: Get the latest approved visit request for this visitor (for host contact info)
+    // Step 2: Get the latest approved visit request for this visitor (for destination info)
     const { data: visitRequest, error: visitError } = await supabase
       .from('visit_requests')
-      .select('id, host_id, host_name, host_phone, destination_name, site_id')
+      .select('id, host_id, destination_name, site_id')
       .eq('visitor_id', visitor.id)
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
@@ -86,24 +86,46 @@ serve(async (req) => {
       // Continue even without visit request - visitor can still trigger emergency
     }
 
+    // Step 3: Get host phone from profiles if we have a host_id
+    let hostPhone: string | null = null;
+    let hostName: string | null = visitor.host_name || null;
+    
+    if (visitRequest?.host_id) {
+      const { data: hostProfile, error: hostError } = await supabase
+        .from('profiles')
+        .select('phone, full_name')
+        .eq('id', visitRequest.host_id)
+        .single();
+      
+      if (!hostError && hostProfile) {
+        hostPhone = hostProfile.phone;
+        hostName = hostProfile.full_name || hostName;
+        console.log(`[Emergency] Found host: ${hostName} (${hostPhone || 'no phone'})`);
+      } else {
+        console.log(`[Emergency] Could not find host profile for host_id: ${visitRequest.host_id}`);
+      }
+    }
+
     const tenantId = visitor.tenant_id;
 
     console.log(`[Emergency] Creating alert for visitor: ${visitor.full_name}`);
 
-    // Create emergency alert
+    // Create emergency alert - using correct column names from schema
     const { data: alert, error: alertError } = await supabase
       .from('emergency_alerts')
       .insert({
         tenant_id: tenantId,
         alert_type: alert_type || 'panic',
-        status: 'pending',
+        priority: 'high',
         latitude,
         longitude,
-        description: notes || `Visitor emergency alert from ${visitor.full_name}`,
+        notes: notes || `Visitor emergency alert from ${visitor.full_name}`,
+        location_description: visitRequest?.destination_name || null,
         source_type: 'visitor',
         source_id: visitor.id,
         source_name: visitor.full_name,
         photo_evidence_path: photo_path,
+        triggered_at: new Date().toISOString(),
       })
       .select('id')
       .single();
@@ -122,8 +144,7 @@ serve(async (req) => {
       .eq('id', tenantId)
       .single();
 
-    // Send WhatsApp notification to host (if we have visit request with host phone)
-    const hostPhone = visitRequest?.host_phone;
+    // Send WhatsApp notification to host (if we have host phone from profiles lookup)
     if (hostPhone) {
       try {
         const hostMessage = `🚨 تنبيه طوارئ | Emergency Alert
