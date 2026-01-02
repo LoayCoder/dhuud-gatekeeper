@@ -67,6 +67,7 @@ import {
   FileText,
   Bell,
   AlertTriangle,
+  Globe,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -515,6 +516,12 @@ export function AppSidebar() {
           icon: BarChart3,
           menuCode: 'contractor_analytics',
         },
+        {
+          title: t('contractors.nav.settings', 'Settings'),
+          url: "/contractors/settings",
+          icon: Settings2,
+          menuCode: 'contractor_settings',
+        },
       ],
     },
     {
@@ -691,10 +698,16 @@ export function AppSidebar() {
                   url: "/admin/notification-logs",
                   icon: Radio,
                   menuCode: 'admin_notification_logs',
-                },
-              ],
-            },
-          ],
+              },
+            ],
+          },
+          {
+            title: t('navigation.webpageNotifications', 'Webpage Notifications'),
+            url: "/admin/webpage-notifications",
+            icon: Globe,
+            menuCode: 'admin_webpage_notifications',
+          },
+        ],
         },
         // Reporting & KPIs Sub-Group
         {
