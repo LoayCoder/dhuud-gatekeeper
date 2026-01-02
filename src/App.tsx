@@ -246,10 +246,10 @@ const App = () => (
                     <Route path="/register" element={<Navigate to="/invite" replace />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/mfa-setup" element={<Suspense fallback={<PageLoader />}><MFASetup /></Suspense>} />
-                    <Route path="/visitor-pass/:token" element={<VisitorPass />} />
-                    <Route path="/visitor-badge/:token" element={<VisitorBadgePage />} />
-                    <Route path="/worker-access/:token" element={<WorkerAccessPass />} />
-                    <Route path="/worker-induction/:inductionId" element={<WorkerInduction />} />
+                    <Route path="/visitor-pass/:token" element={<Suspense fallback={<PageLoader />}><VisitorPass /></Suspense>} />
+                    <Route path="/visitor-badge/:token" element={<Suspense fallback={<PageLoader />}><VisitorBadgePage /></Suspense>} />
+                    <Route path="/worker-access/:token" element={<Suspense fallback={<PageLoader />}><WorkerAccessPass /></Suspense>} />
+                    <Route path="/worker-induction/:inductionId" element={<Suspense fallback={<PageLoader />}><WorkerInduction /></Suspense>} />
 
                     {/* Home Screen - Simple landing without sidebar */}
                     <Route
