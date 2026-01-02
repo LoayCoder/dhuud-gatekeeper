@@ -191,31 +191,84 @@ To contact the visitor, please call directly.`;
       // Visitor badge link notification after approval
       console.log(`[WhatsApp] Sending badge link to visitor ${mobile_number}`);
       
-      recipientPhone = mobile_number;
-      templateSid = TEMPLATE_SIDS.VISITOR_WELCOME;
+      // Use hardcoded domain for correct URL (like worker-access does)
+      const APP_DOMAIN = 'https://www.dhuud.com';
       
-      const fallbackBadgeMessage = `🎫 بطاقة الزائر جاهزة | Your Visitor Badge is Ready
+      // badge_url now contains just the qr_code_token from frontend
+      const qrToken = badge_url || '';
+      const correctBadgeUrl = qrToken ? `${APP_DOMAIN}/visitor-badge/${qrToken}` : '';
+      
+      console.log(`[WhatsApp] Badge URL: ${correctBadgeUrl}`);
+      
+      // Try to fetch template from database
+      let badgeMessage: string;
+      
+      const { data: template } = await supabase
+        .from('notification_templates')
+        .select('content_pattern, variable_keys')
+        .eq('tenant_id', tenant_id)
+        .eq('slug', 'visitor_badge_ready')
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .single();
+      
+      if (template) {
+        // Use template and replace variables
+        badgeMessage = template.content_pattern
+          .replace(/\{\{visitor_name\}\}/g, visitor_name || 'Guest')
+          .replace(/\{\{destination\}\}/g, destination_name || 'الاستقبال | Reception')
+          .replace(/\{\{badge_url\}\}/g, correctBadgeUrl);
+        
+        console.log(`[WhatsApp] Using template 'visitor_badge_ready' for tenant ${tenant_id}`);
+      } else {
+        // Fallback hardcoded message
+        badgeMessage = `🎫 *بطاقة الزائر جاهزة | Your Visitor Badge is Ready*
 
-👤 ${visitor_name}
+👤 ${visitor_name || 'Guest'}
 📍 ${destination_name || 'الاستقبال | Reception'}
 
 🔗 اطلع على بطاقتك | View your badge:
-${badge_url}
+${correctBadgeUrl}
 
 يرجى إظهار رمز QR عند البوابة
 Please show the QR code at the gate`;
+        
+        console.log(`[WhatsApp] Template not found, using fallback message`);
+      }
       
-      variables = {
-        "1": visitor_name || 'Guest',
-        "2": destination_name || 'Reception',
-        "3": badge_url || '',
-      };
+      recipientPhone = mobile_number;
       
-      // Use text message for badge link (template may not support URL)
-      const result = await sendWhatsAppText(recipientPhone, fallbackBadgeMessage);
+      // Use text message for badge link
+      const result = await sendWhatsAppText(recipientPhone, badgeMessage);
+      
+      // Log notification for audit
+      if (result.messageId) {
+        await logNotificationSent({
+          tenant_id,
+          channel: 'whatsapp',
+          provider: result.provider,
+          provider_message_id: result.messageId,
+          to_address: mobile_number,
+          template_name: template ? 'visitor_badge_ready' : 'visitor_badge_fallback',
+          status: 'pending',
+          related_entity_type: 'visitor',
+          metadata: {
+            notification_type: 'visitor_badge_link',
+            visitor_name,
+            destination_name,
+            badge_url: correctBadgeUrl,
+          }
+        });
+      }
       
       return new Response(
-        JSON.stringify({ success: result.success, message_id: result.messageId, provider: result.provider }),
+        JSON.stringify({ 
+          success: result.success, 
+          message_id: result.messageId, 
+          provider: result.provider,
+          badge_url: correctBadgeUrl,
+          used_template: !!template,
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (notification_type === 'host_notification' && host_mobile) {
