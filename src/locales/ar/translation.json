@@ -1107,6 +1107,32 @@
       "granted": "ممنوح",
       "revoked": "مسحوب"
     },
+    "emergencyInstructions": {
+      "title": "تعليمات الطوارئ",
+      "description": "تكوين تفاصيل الاتصال بالطوارئ وتعليمات السلامة للزوار والعمال",
+      "noTenant": "لم يتم العثور على مستأجر لملفك الشخصي",
+      "fetchError": "فشل في تحميل الإعدادات",
+      "saveSuccess": "تم حفظ تعليمات الطوارئ بنجاح",
+      "saveError": "فشل في حفظ الإعدادات",
+      "emergencyContact": "جهة اتصال الطوارئ",
+      "emergencyContactDesc": "جهة اتصال الطوارئ الرئيسية المعروضة على بطاقات الزوار/العمال",
+      "contactName": "اسم جهة الاتصال",
+      "contactNamePlaceholder": "مثال: غرفة التحكم الأمني",
+      "contactNumber": "رقم الاتصال",
+      "contactNumberPlaceholder": "مثال: +966 5x xxx xxxx",
+      "preview": "معاينة",
+      "previewDesc": "كيف تظهر التعليمات على بطاقات الزوار/العمال",
+      "showPreview": "إظهار المعاينة",
+      "hidePreview": "إخفاء المعاينة",
+      "hsseInstructions": "تعليمات السلامة",
+      "hsseInstructionsDesc": "تعليمات السلامة ثنائية اللغة المعروضة على بطاقات وصول الزوار والعمال",
+      "instructionsEn": "التعليمات (الإنجليزية)",
+      "instructionsEnPlaceholder": "مثال: في حالة الطوارئ:\n• توجه إلى أقرب نقطة تجمع\n• اتبع تعليمات أفراد الأمن\n• لا تستخدم المصاعد أثناء الطوارئ",
+      "instructionsAr": "التعليمات (العربية)",
+      "instructionsArPlaceholder": "مثال: في حالة الطوارئ:\n• توجه إلى أقرب نقطة تجمع\n• اتبع تعليمات أفراد الأمن\n• لا تستخدم المصاعد أثناء الطوارئ",
+      "instructionsTip": "استخدم فواصل الأسطر لتحسين قابلية القراءة",
+      "noContent": "لم يتم تكوين معلومات الطوارئ بعد"
+    },
     "manhours": {
       "title": "إدارة ساعات العمل",
       "description": "تسجيل وتتبع ساعات عمل الموظفين والمقاولين لحسابات مؤشرات الأداء",
@@ -1880,7 +1906,8 @@
     "reportingKpis": "التقارير ومؤشرات الأداء",
     "systemConfig": "إعدادات النظام",
     "platformManagement": "إدارة المنصة",
-    "violationSettings": "إعدادات المخالفات"
+    "violationSettings": "إعدادات المخالفات",
+    "emergencyInstructions": "تعليمات الطوارئ"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

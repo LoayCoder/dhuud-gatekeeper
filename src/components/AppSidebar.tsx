@@ -754,7 +754,8 @@ export function AppSidebar() {
                     location.pathname === '/admin/document-settings' ||
                     location.pathname === '/admin/event-categories' ||
                     location.pathname === '/admin/workflow-diagrams' ||
-                    location.pathname === '/admin/manhours',
+                    location.pathname === '/admin/manhours' ||
+                    location.pathname === '/admin/emergency-instructions',
           subItems: [
             {
               title: t('navigation.brandManagement'),
@@ -791,6 +792,12 @@ export function AppSidebar() {
               url: "/admin/platform-settings",
               icon: Settings2,
               menuCode: 'admin_platform_settings',
+            },
+            {
+              title: t('navigation.emergencyInstructions', 'Emergency Instructions'),
+              url: "/admin/emergency-instructions",
+              icon: AlertTriangle,
+              menuCode: 'admin_emergency_instructions',
             },
           ],
         },

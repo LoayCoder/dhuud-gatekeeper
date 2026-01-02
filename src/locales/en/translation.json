@@ -1238,6 +1238,32 @@
       "granted": "Granted",
       "revoked": "Revoked"
     },
+    "emergencyInstructions": {
+      "title": "Emergency Instructions",
+      "description": "Configure emergency contact details and HSSE instructions for visitors and workers",
+      "noTenant": "No tenant found for your profile",
+      "fetchError": "Failed to load settings",
+      "saveSuccess": "Emergency instructions saved successfully",
+      "saveError": "Failed to save settings",
+      "emergencyContact": "Emergency Contact",
+      "emergencyContactDesc": "Primary emergency contact displayed on visitor/worker passes",
+      "contactName": "Contact Name",
+      "contactNamePlaceholder": "e.g., Security Control Room",
+      "contactNumber": "Contact Number",
+      "contactNumberPlaceholder": "e.g., +966 5x xxx xxxx",
+      "preview": "Preview",
+      "previewDesc": "How instructions appear on visitor/worker passes",
+      "showPreview": "Show Preview",
+      "hidePreview": "Hide Preview",
+      "hsseInstructions": "HSSE Instructions",
+      "hsseInstructionsDesc": "Bilingual safety instructions displayed on visitor and worker access passes",
+      "instructionsEn": "Instructions (English)",
+      "instructionsEnPlaceholder": "e.g., In case of emergency:\n• Proceed to the nearest assembly point\n• Follow security personnel instructions\n• Do not use elevators during emergencies",
+      "instructionsAr": "Instructions (Arabic)",
+      "instructionsArPlaceholder": "e.g., في حالة الطوارئ:\n• توجه إلى أقرب نقطة تجمع\n• اتبع تعليمات أفراد الأمن\n• لا تستخدم المصاعد أثناء الطوارئ",
+      "instructionsTip": "Use line breaks for better readability",
+      "noContent": "No emergency information configured yet"
+    },
     "manhours": {
       "title": "Manhours Management",
       "description": "Record and track employee and contractor working hours for KPI calculations",
@@ -1759,7 +1785,8 @@
     "reportingKpis": "Reporting & KPIs",
     "systemConfig": "System Configuration",
     "platformManagement": "Platform Management",
-    "violationSettings": "Violation Settings"
+    "violationSettings": "Violation Settings",
+    "emergencyInstructions": "Emergency Instructions"
   },
   "actions": {
     "sessionActions": "Session Actions",
