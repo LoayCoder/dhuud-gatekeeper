@@ -25,6 +25,8 @@ interface ScannerDialogProps {
   showTorchToggle?: boolean;
   className?: string;
   children?: ReactNode;
+  /** If true, the dialog will NOT close automatically after a scan */
+  keepOpenAfterScan?: boolean;
 }
 
 export function ScannerDialog({
@@ -41,6 +43,7 @@ export function ScannerDialog({
   showTorchToggle = true,
   className,
   children,
+  keepOpenAfterScan = false,
 }: ScannerDialogProps) {
   const { t } = useTranslation();
 
@@ -50,7 +53,9 @@ export function ScannerDialog({
 
   const handleScan = (result: string) => {
     onScan(result);
-    onOpenChange(false);
+    if (!keepOpenAfterScan) {
+      onOpenChange(false);
+    }
   };
 
   return (
