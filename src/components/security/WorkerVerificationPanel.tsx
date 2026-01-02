@@ -153,13 +153,15 @@ export function WorkerVerificationPanel({ onSwitchTab }: WorkerVerificationPanel
       let status: WorkerVerificationResult['status'] = 'granted';
 
       // ========================================
-      // BLACKLIST CHECK - Direct search mode
+      // BLACKLIST CHECK - Direct search mode (with soft-delete + entity_type compliance)
       // ========================================
       const { data: blacklistEntry } = await supabase
         .from('security_blacklist')
-        .select('id, reason')
+        .select('id, reason, entity_type')
         .eq('tenant_id', profile.tenant_id)
         .eq('national_id', worker.national_id)
+        .is('deleted_at', null) // AUDIT: Soft-delete compliance
+        .or('entity_type.eq.worker,entity_type.eq.contractor,entity_type.is.null') // Include legacy null entries
         .maybeSingle();
 
       if (blacklistEntry) {

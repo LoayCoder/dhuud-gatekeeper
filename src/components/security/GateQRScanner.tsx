@@ -41,6 +41,36 @@ export interface QRScanResult {
   cachedAt?: number;
 }
 
+// Audio feedback utility for scan results
+const playAudioFeedback = (type: 'success' | 'warning' | 'error') => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    // Configure frequency based on type
+    oscillator.frequency.value = type === 'success' ? 880 : type === 'warning' ? 440 : 220;
+    oscillator.type = type === 'success' ? 'sine' : 'square';
+    
+    // Short beep with fade out
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.2);
+  } catch (e) {
+    // Audio not supported, fail silently
+    console.log('[GateQR] Audio feedback not available');
+  }
+};
+
+const AUTO_RESET_DELAY_MS = 8000; // 8 seconds auto-reset
+
 export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -51,13 +81,50 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const [isLogging, setIsLogging] = useState(false);
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
   const [isScannerActive, setIsScannerActive] = useState(true);
+  const [autoResetCountdown, setAutoResetCountdown] = useState<number | null>(null);
   const scannerKeyRef = useRef(0);
+  const autoResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear timers on unmount
+  useEffect(() => {
+    return () => {
+      if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, []);
+
+  // Auto-reset timer: prepare for next scan after 8 seconds of inactivity
+  useEffect(() => {
+    if (scanResult && !isLogging && !isVerifying) {
+      // Start countdown
+      setAutoResetCountdown(AUTO_RESET_DELAY_MS / 1000);
+      
+      countdownIntervalRef.current = setInterval(() => {
+        setAutoResetCountdown(prev => prev !== null && prev > 0 ? prev - 1 : null);
+      }, 1000);
+      
+      autoResetTimerRef.current = setTimeout(() => {
+        setScanResult(null);
+        setIsScannerActive(true);
+        scannerKeyRef.current += 1;
+        setAutoResetCountdown(null);
+      }, AUTO_RESET_DELAY_MS);
+      
+      return () => {
+        if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        setAutoResetCountdown(null);
+      };
+    }
+  }, [scanResult, isLogging, isVerifying]);
 
   useEffect(() => {
     if (open) {
       setScanResult(null);
       setIsVerifying(false);
       setIsScannerActive(true);
+      setAutoResetCountdown(null);
       scannerKeyRef.current += 1;
     }
   }, [open]);
@@ -93,14 +160,15 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             .maybeSingle();
 
           if (visitor) {
-            // CRITICAL: Check if visitor is on the blacklist (only non-deleted entries)
+            // CRITICAL: Check if visitor is on the blacklist (only non-deleted entries, correct entity type)
             if (visitor.national_id && tenantId) {
               const { data: blacklistEntry } = await supabase
                 .from('security_blacklist')
-                .select('id, reason')
+                .select('id, reason, entity_type')
                 .eq('tenant_id', tenantId)
                 .eq('national_id', visitor.national_id)
                 .is('deleted_at', null) // AUDIT: Only check active blacklist entries
+                .or('entity_type.eq.visitor,entity_type.is.null') // Include legacy null entries + visitor type
                 .maybeSingle();
 
               if (blacklistEntry) {
@@ -370,6 +438,11 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const handleScan = useCallback(async (decodedText: string) => {
     if (isVerifying) return;
     
+    // Clear any existing auto-reset timer
+    if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoResetCountdown(null);
+    
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
@@ -380,8 +453,18 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     try {
       const parsedResult = await verifyQRCode(decodedText);
       setScanResult(parsedResult);
+      
+      // Play audio feedback based on result status
+      if (parsedResult.status === 'valid') {
+        playAudioFeedback('success');
+      } else if (parsedResult.status === 'expired' || parsedResult.status === 'used') {
+        playAudioFeedback('warning');
+      } else {
+        playAudioFeedback('error');
+      }
     } catch (error) {
       console.error('QR verification error:', error);
+      playAudioFeedback('error');
       setScanResult({
         type: 'unknown',
         status: 'invalid',
@@ -400,6 +483,11 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   }, [onOpenChange]);
 
   const handleScanNext = useCallback(() => {
+    // Clear auto-reset timer when manually triggering next scan
+    if (autoResetTimerRef.current) clearTimeout(autoResetTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoResetCountdown(null);
+    
     setScanResult(null);
     setIsVerifying(false);
     setIsScannerActive(true);
@@ -684,6 +772,13 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                 </div>
               )}
             </div>
+
+            {/* Auto-reset countdown indicator */}
+            {autoResetCountdown !== null && autoResetCountdown > 0 && (
+              <div className="text-xs text-center text-muted-foreground">
+                {t('scanner.autoResetIn', 'Auto-reset in {{seconds}}s', { seconds: autoResetCountdown })}
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
