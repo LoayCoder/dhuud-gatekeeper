@@ -16,7 +16,7 @@ interface WhatsAppRequest {
   tenant_id: string;
   
   // Notification type
-  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link';
+  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival';
   
   // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;
@@ -31,6 +31,10 @@ interface WhatsAppRequest {
   // For host notification
   host_mobile?: string;
   host_name?: string;
+  
+  // For host arrival notification
+  visit_reference?: string;
+  entry_time?: string;
 }
 
 serve(async (req) => {
@@ -51,6 +55,8 @@ serve(async (req) => {
       entry_id,
       host_mobile,
       badge_url,
+      visit_reference,
+      entry_time,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -90,7 +96,98 @@ serve(async (req) => {
     let templateSid: string;
     let variables: Record<string, string>;
     
-    if (notification_type === 'visitor_badge_link') {
+    if (notification_type === 'host_arrival') {
+      // Host arrival notification when visitor enters gate
+      console.log(`[WhatsApp] Sending host arrival notification to ${mobile_number}`);
+      
+      // Check if already notified (prevent duplicates)
+      if (entry_id) {
+        const { data: existingEntry } = await supabase
+          .from('gate_entry_logs')
+          .select('host_arrival_notified_at')
+          .eq('id', entry_id)
+          .single();
+        
+        if (existingEntry?.host_arrival_notified_at) {
+          console.log(`[WhatsApp] Host already notified for entry ${entry_id}, skipping`);
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              already_notified: true,
+              notified_at: existingEntry.host_arrival_notified_at 
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      // Format entry time for display
+      const formattedTime = entry_time 
+        ? new Date(entry_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      
+      // Bilingual message for host arrival
+      const hostArrivalMessage = `📢 وصول زائر | Visitor Arrival
+
+لقد وصل زائرك إلى البوابة وفي الطريق إليك.
+Your visitor has arrived at the gate and is on the way.
+
+👤 الزائر | Visitor: ${visitor_name || 'Unknown'}
+🎫 رقم الزيارة | Reference: ${visit_reference || 'N/A'}
+⏰ وقت الدخول | Entry Time: ${formattedTime}
+
+أنت مسؤول عن سلامة وصحة الزائر خلال الزيارة.
+You are fully responsible for the visitor's safety and health during the visit.
+
+للتواصل مع الزائر، يرجى الاتصال مباشرة.
+To contact the visitor, please call directly.`;
+      
+      const result = await sendWhatsAppText(mobile_number, hostArrivalMessage);
+      
+      // Update entry log with notification timestamp for audit
+      if (entry_id && result.success) {
+        await supabase
+          .from('gate_entry_logs')
+          .update({
+            host_arrival_notified_at: new Date().toISOString(),
+            notification_status: 'host_arrival_sent',
+          })
+          .eq('id', entry_id);
+        
+        console.log(`[WhatsApp] Updated entry ${entry_id} with host_arrival_notified_at`);
+      }
+      
+      // Log notification for audit
+      if (result.messageId) {
+        await logNotificationSent({
+          tenant_id,
+          channel: 'whatsapp',
+          provider: result.provider,
+          provider_message_id: result.messageId,
+          to_address: mobile_number,
+          template_name: 'host_arrival_notification',
+          status: 'pending',
+          related_entity_type: 'gate_entry',
+          related_entity_id: entry_id || undefined,
+          metadata: {
+            notification_type: 'host_arrival',
+            visitor_name,
+            visit_reference,
+            entry_time: formattedTime,
+          }
+        });
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: result.success, 
+          message_id: result.messageId, 
+          provider: result.provider,
+          notification_type: 'host_arrival',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else if (notification_type === 'visitor_badge_link') {
       // Visitor badge link notification after approval
       console.log(`[WhatsApp] Sending badge link to visitor ${mobile_number}`);
       

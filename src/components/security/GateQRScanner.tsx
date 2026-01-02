@@ -11,6 +11,7 @@ import { CameraScanner } from '@/components/ui/camera-scanner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHostArrivalNotification } from '@/hooks/use-host-arrival-notification';
 
 interface GateQRScannerProps {
   open: boolean;
@@ -45,6 +46,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const { toast } = useToast();
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
+  const hostArrivalNotification = useHostArrivalNotification();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
@@ -389,6 +391,10 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       setIsLogging(true);
       try {
         const entryType = scanResult.type === 'worker' ? 'worker' : 'visitor';
+        const entryTime = new Date().toISOString();
+        
+        // Generate unique visit reference
+        const visitReference = `VIS-${Date.now().toString(36).toUpperCase()}`;
         
         // Check for existing active entry to prevent duplicates
         const { data: existingEntry } = await supabase
@@ -410,17 +416,62 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             variant: 'default'
           });
         } else {
-          // Create gate entry log
-          const { error } = await supabase
+          // Fetch host info for visitor notifications
+          let hostPhone: string | null = null;
+          
+          if (scanResult.type === 'visitor' && scanResult.id) {
+            // First check visitor record for host_phone
+            const { data: visitor } = await supabase
+              .from('visitors')
+              .select('host_phone, host_id')
+              .eq('id', scanResult.id)
+              .single();
+            
+            hostPhone = visitor?.host_phone || null;
+            
+            // If no host_phone, try to get from host_id profile
+            if (!hostPhone && visitor?.host_id) {
+              const { data: hostProfile } = await supabase
+                .from('profiles')
+                .select('phone_number')
+                .eq('id', visitor.host_id)
+                .single();
+              hostPhone = hostProfile?.phone_number || null;
+            }
+            
+            // If still no host phone, check visit_requests
+            if (!hostPhone) {
+              const { data: visitRequest } = await supabase
+                .from('visit_requests')
+                .select('host_id, profiles:host_id(phone_number)')
+                .eq('visitor_id', scanResult.id)
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              
+              if (visitRequest?.profiles) {
+                const hostData = visitRequest.profiles as { phone_number?: string };
+                hostPhone = hostData?.phone_number || null;
+              }
+            }
+          }
+          
+          // Create gate entry log with visit reference
+          const { data: newEntry, error } = await supabase
             .from('gate_entry_logs')
             .insert({
               tenant_id: profile.tenant_id,
               person_name: scanResult.data?.name || 'Unknown',
               entry_type: entryType,
-              entry_time: new Date().toISOString(),
+              entry_time: entryTime,
               guard_id: user?.id,
               visitor_id: scanResult.type === 'visitor' ? scanResult.id : null,
-            });
+              visit_reference: visitReference,
+              host_mobile: hostPhone,
+            })
+            .select('id')
+            .single();
 
           if (error) throw error;
 
@@ -428,13 +479,28 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
           if (scanResult.type === 'visitor' && scanResult.id) {
             await supabase
               .from('visitors')
-              .update({ qr_used_at: new Date().toISOString() })
+              .update({ qr_used_at: entryTime })
               .eq('id', scanResult.id);
           }
 
           toast({ 
             title: t('security.gate.entryRecorded', 'Entry recorded successfully'),
           });
+
+          // Send host arrival notification (async, non-blocking)
+          if (hostPhone && newEntry?.id && scanResult.type === 'visitor') {
+            console.log('[GateQR] Sending host arrival notification to:', hostPhone);
+            hostArrivalNotification.mutate({
+              entryId: newEntry.id,
+              visitorName: scanResult.data?.name || 'Visitor',
+              hostPhone,
+              visitReference,
+              entryTime,
+              tenantId: profile.tenant_id,
+            });
+          } else if (scanResult.type === 'visitor' && !hostPhone) {
+            console.log('[GateQR] No host phone available, skipping notification');
+          }
 
           // Invalidate queries to refresh active visitors lists
           queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
@@ -459,7 +525,7 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     setIsVerifying(false);
     setIsScannerActive(true);
     scannerKeyRef.current += 1;
-  }, [scanResult, onScanResult, profile?.tenant_id, user?.id, queryClient, toast, t]);
+  }, [scanResult, onScanResult, profile?.tenant_id, user?.id, queryClient, toast, t, hostArrivalNotification]);
 
   const getStatusConfig = (status: QRScanResult['status']) => {
     switch (status) {
