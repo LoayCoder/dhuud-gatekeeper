@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ScannerDialog } from '@/components/ui/scanner-dialog';
-
+import { gateOfflineCache } from '@/lib/gate-offline-cache';
 interface GateQRScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +32,8 @@ export interface QRScanResult {
     qrUsedAt?: string;
   };
   rawCode: string;
+  isOfflineCached?: boolean;
+  cachedAt?: number;
 }
 
 export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }: GateQRScannerProps) {
@@ -41,36 +43,126 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
 
   const verifyQRCode = async (code: string): Promise<QRScanResult> => {
-    const { data: userData } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', userData.user?.id || '')
-      .single();
-    const tenantId = profile?.tenant_id;
+    const isOnline = navigator.onLine;
+    
+    let tenantId: string | undefined;
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', userData.user?.id || '')
+        .single();
+      tenantId = profile?.tenant_id;
+    } catch (error) {
+      // If offline, we can't get tenant_id but can still check cache
+      console.warn('[GateQR] Could not get tenant_id, proceeding with cache check');
+    }
 
     // Handle VISITOR: prefix
     if (code.startsWith('VISITOR:')) {
       const visitorToken = code.replace('VISITOR:', '');
       
-      const { data: visitor } = await supabase
-        .from('visitors')
-        .select('id, full_name, company_name, qr_code_token, qr_used_at')
-        .eq('qr_code_token', visitorToken)
-        .is('deleted_at', null)
-        .maybeSingle();
+      // Try online verification first
+      if (isOnline) {
+        try {
+          const { data: visitor } = await supabase
+            .from('visitors')
+            .select('id, full_name, company_name, qr_code_token, qr_used_at')
+            .eq('qr_code_token', visitorToken)
+            .is('deleted_at', null)
+            .maybeSingle();
 
-      if (visitor) {
-        if (visitor.qr_used_at) {
+          if (visitor) {
+            // Cache for offline use
+            await gateOfflineCache.cacheVisitorVerification(visitorToken, {
+              id: visitor.id,
+              full_name: visitor.full_name,
+              company_name: visitor.company_name,
+              qr_used_at: visitor.qr_used_at,
+            });
+
+            if (visitor.qr_used_at) {
+              return {
+                type: 'visitor',
+                id: visitor.id,
+                status: 'used',
+                rawCode: code,
+                data: {
+                  name: visitor.full_name,
+                  company: visitor.company_name || undefined,
+                  qrUsedAt: visitor.qr_used_at,
+                  warnings: [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
+                },
+              };
+            }
+            
+            return {
+              type: 'visitor',
+              id: visitor.id,
+              status: 'valid',
+              rawCode: code,
+              data: {
+                name: visitor.full_name,
+                company: visitor.company_name || undefined,
+              },
+            };
+          }
+
+          const { data: gateEntry } = await supabase
+            .from('gate_entry_logs')
+            .select('id, person_name, purpose, destination_name, qr_code_token')
+            .eq('qr_code_token', visitorToken)
+            .is('deleted_at', null)
+            .maybeSingle();
+
+          if (gateEntry) {
+            return {
+              type: 'visitor',
+              id: gateEntry.id,
+              status: 'valid',
+              rawCode: code,
+              data: {
+                name: gateEntry.person_name || undefined,
+              },
+            };
+          }
+
           return {
             type: 'visitor',
-            id: visitor.id,
-            status: 'used',
+            status: 'not_found',
             rawCode: code,
             data: {
-              name: visitor.full_name,
-              company: visitor.company_name || undefined,
-              qrUsedAt: visitor.qr_used_at,
+              warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
+            },
+          };
+        } catch (error) {
+          console.error('[GateQR] Online verification failed, trying cache:', error);
+        }
+      }
+      
+      // Offline fallback: Check cache
+      const cachedVisitor = await gateOfflineCache.getVisitorVerification(visitorToken) as { 
+        id: string; 
+        full_name: string; 
+        company_name?: string;
+        qr_used_at?: string;
+        _cachedAt?: number;
+      } | null;
+      
+      if (cachedVisitor) {
+        if (cachedVisitor.qr_used_at) {
+          return {
+            type: 'visitor',
+            id: cachedVisitor.id,
+            status: 'used',
+            rawCode: code,
+            isOfflineCached: true,
+            cachedAt: cachedVisitor._cachedAt,
+            data: {
+              name: cachedVisitor.full_name,
+              company: cachedVisitor.company_name || undefined,
+              qrUsedAt: cachedVisitor.qr_used_at,
               warnings: [t('security.qrScanner.qrAlreadyUsed', 'This QR code has already been used')],
             },
           };
@@ -78,41 +170,28 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         
         return {
           type: 'visitor',
-          id: visitor.id,
+          id: cachedVisitor.id,
           status: 'valid',
           rawCode: code,
+          isOfflineCached: true,
+          cachedAt: cachedVisitor._cachedAt,
           data: {
-            name: visitor.full_name,
-            company: visitor.company_name || undefined,
+            name: cachedVisitor.full_name,
+            company: cachedVisitor.company_name || undefined,
+            warnings: [t('security.qrScanner.offlineCachedData', 'Using cached data (offline)')],
           },
         };
       }
-
-      const { data: gateEntry } = await supabase
-        .from('gate_entry_logs')
-        .select('id, person_name, purpose, destination_name, qr_code_token')
-        .eq('qr_code_token', visitorToken)
-        .is('deleted_at', null)
-        .maybeSingle();
-
-      if (gateEntry) {
-        return {
-          type: 'visitor',
-          id: gateEntry.id,
-          status: 'valid',
-          rawCode: code,
-          data: {
-            name: gateEntry.person_name || undefined,
-          },
-        };
-      }
-
+      
       return {
         type: 'visitor',
         status: 'not_found',
         rawCode: code,
         data: {
-          warnings: [t('security.qrScanner.visitorNotFound', 'Visitor not found')],
+          warnings: [isOnline 
+            ? t('security.qrScanner.visitorNotFound', 'Visitor not found')
+            : t('security.qrScanner.offlineNoCache', 'No network. Visitor not in offline cache.')
+          ],
         },
       };
     }
@@ -123,38 +202,96 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
       if (parts.length >= 2) {
         const qrToken = parts[1];
         
-        const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
-          body: { qr_token: qrToken, tenant_id: tenantId },
-        });
+        // Try online verification first
+        if (isOnline) {
+          try {
+            const { data, error } = await supabase.functions.invoke('validate-worker-qr', {
+              body: { qr_token: qrToken, tenant_id: tenantId },
+            });
 
-        if (error || !data?.is_valid) {
-          const errorMessages = data?.errors || [];
-          const hasExpired = errorMessages.some((e: string) => e.toLowerCase().includes('expired'));
-          const hasRevoked = errorMessages.some((e: string) => e.toLowerCase().includes('revoked'));
-          
+            if (error || !data?.is_valid) {
+              const errorMessages = data?.errors || [];
+              const hasExpired = errorMessages.some((e: string) => e.toLowerCase().includes('expired'));
+              const hasRevoked = errorMessages.some((e: string) => e.toLowerCase().includes('revoked'));
+              
+              return {
+                type: 'worker',
+                id: data?.worker?.id,
+                status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
+                rawCode: code,
+                data: {
+                  warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR code'],
+                },
+              };
+            }
+
+            // Cache successful verification for offline use
+            await gateOfflineCache.cacheWorkerVerification(qrToken, {
+              worker: data.worker,
+              induction: data.induction,
+              warnings: data.warnings,
+              is_valid: true,
+            });
+
+            return {
+              type: 'worker',
+              id: data.worker?.id,
+              status: 'valid',
+              rawCode: code,
+              data: {
+                name: data.worker?.full_name,
+                company: data.worker?.company_name,
+                projectName: data.worker?.project_name,
+                inductionStatus: data.induction?.status || 'not_started',
+                expiresAt: data.induction?.expires_at,
+                warnings: data.warnings,
+              },
+            };
+          } catch (error) {
+            console.error('[GateQR] Online worker verification failed, trying cache:', error);
+          }
+        }
+        
+        // Offline fallback: Check cache
+        const cachedWorker = await gateOfflineCache.getWorkerVerification(qrToken) as {
+          worker?: { id: string; full_name: string; company_name?: string; project_name?: string };
+          induction?: { status: string; expires_at?: string };
+          warnings?: string[];
+          is_valid?: boolean;
+          _cachedAt?: number;
+        } | null;
+        
+        if (cachedWorker && cachedWorker.is_valid) {
           return {
             type: 'worker',
-            id: data?.worker?.id,
-            status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
+            id: cachedWorker.worker?.id,
+            status: 'valid',
             rawCode: code,
+            isOfflineCached: true,
+            cachedAt: cachedWorker._cachedAt,
             data: {
-              warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR code'],
+              name: cachedWorker.worker?.full_name,
+              company: cachedWorker.worker?.company_name,
+              projectName: cachedWorker.worker?.project_name,
+              inductionStatus: cachedWorker.induction?.status || 'not_started',
+              expiresAt: cachedWorker.induction?.expires_at,
+              warnings: [
+                ...(cachedWorker.warnings || []),
+                t('security.qrScanner.offlineCachedData', 'Using cached data (offline)'),
+              ],
             },
           };
         }
-
+        
         return {
           type: 'worker',
-          id: data.worker?.id,
-          status: 'valid',
+          status: 'not_found',
           rawCode: code,
           data: {
-            name: data.worker?.full_name,
-            company: data.worker?.company_name,
-            projectName: data.worker?.project_name,
-            inductionStatus: data.induction?.status || 'not_started',
-            expiresAt: data.induction?.expires_at,
-            warnings: data.warnings,
+            warnings: [isOnline 
+              ? t('security.qrScanner.workerNotFound', 'Worker verification failed')
+              : t('security.qrScanner.offlineNoCache', 'No network. Worker not in offline cache.')
+            ],
           },
         };
       }
@@ -379,6 +516,19 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               {scanResult.type === 'visitor' && <User className="h-4 w-4 me-2" />}
               {getStatusConfig(scanResult.status).label}
             </Badge>
+            
+            {/* Offline Cache Indicator */}
+            {scanResult.isOfflineCached && (
+              <Badge variant="outline" className="text-sm px-3 py-1 animate-fade-in text-amber-600 border-amber-400">
+                <WifiOff className="h-3 w-3 me-1" />
+                {t('security.qrScanner.offlineData', 'Cached Data')}
+                {scanResult.cachedAt && (
+                  <span className="ms-1 text-muted-foreground">
+                    ({Math.round((Date.now() - scanResult.cachedAt) / 60000)} min ago)
+                  </span>
+                )}
+              </Badge>
+            )}
 
             {/* Person Info */}
             {scanResult.data?.name && (
