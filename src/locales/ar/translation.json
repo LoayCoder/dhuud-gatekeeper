@@ -2308,7 +2308,10 @@
         "pendingPass": "تصريح بوابة معلق",
         "acknowledge": "إقرار",
         "dismiss": "رفض",
-        "noAlerts": "لا توجد تنبيهات نشطة"
+        "noAlerts": "لا توجد تنبيهات نشطة",
+        "hoursRemaining": "{{hours}} س",
+        "minutesRemaining": "{{minutes}} د",
+        "expired": "منتهي"
       },
       "verification": {
         "title": "التحقق من الزائر",
