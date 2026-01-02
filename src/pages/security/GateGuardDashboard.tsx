@@ -15,7 +15,7 @@ import { VisitorVerificationPanel } from '@/components/security/VisitorVerificat
 import { GateActivityCharts } from '@/components/security/GateActivityCharts';
 import { ActiveVisitorsList } from '@/components/security/ActiveVisitorsList';
 import { ActiveWorkersList } from '@/components/security/ActiveWorkersList';
-import { WorkerScanHistory } from '@/components/security/WorkerScanHistory';
+
 import { WorkerVerificationPanel } from '@/components/security/WorkerVerificationPanel';
 import { TodayGatePassesWrapper } from '@/components/security/TodayGatePassesWrapper';
 import { GateLogTable } from '@/components/security/GateLogTable';
@@ -223,7 +223,7 @@ const GateGuardDashboard = () => {
             <WorkerVerificationPanel />
             <ActiveWorkersList />
           </div>
-          <WorkerScanHistory />
+          
         </TabsContent>
 
         {/* Gate Passes Tab */}
