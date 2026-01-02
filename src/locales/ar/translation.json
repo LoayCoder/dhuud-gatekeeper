@@ -6137,6 +6137,10 @@
       "registerAnother": "تسجيل زائر آخر",
       "backToDashboard": "العودة للوحة المعلومات",
       "submit": "تسجيل وإنشاء QR",
+      "photo": "صورة الزائر",
+      "photoCaptured": "تم التقاط الصورة",
+      "photoRequired": "الصورة مطلوبة للتسجيل",
+      "maxDurationExceeded": "مدة الزيارة تتجاوز الحد الأقصى المسموح ({{hours}} ساعات)",
       "form": {
         "title": "نموذج تسجيل الزائر"
       },

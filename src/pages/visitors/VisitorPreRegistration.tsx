@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User, ShieldAlert, Camera } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,7 +20,10 @@ import { useProfilesList } from '@/hooks/use-profiles-list';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCheckBlacklist } from '@/hooks/use-security-blacklist';
 import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
+import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useVisitorWorkflowSettings } from '@/hooks/use-visitor-workflow-settings';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
@@ -81,14 +84,24 @@ const getDefaultEndTime = () => {
 export default function VisitorPreRegistration() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [requestSubmitted, setRequestSubmitted] = useState(false);
   const [submittedVisitorName, setSubmittedVisitorName] = useState('');
+  const [visitorPhoto, setVisitorPhoto] = useState<Blob | null>(null);
   
   const { data: sites } = useSites();
   const { data: profiles } = useProfilesList();
+  const { data: workflowSettings } = useVisitorWorkflowSettings();
   const createVisitor = useCreateVisitor();
   const createVisitRequest = useCreateVisitRequest();
+
+  // Calculate default end time based on workflow settings
+  const getDefaultEndTime = () => {
+    const now = new Date();
+    const hoursToAdd = workflowSettings?.default_duration_hours || 1;
+    now.setHours(now.getHours() + hoursToAdd);
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,6 +123,13 @@ export default function VisitorPreRegistration() {
       host_email: '',
     },
   });
+
+  // Update end time when workflow settings load
+  useEffect(() => {
+    if (workflowSettings?.default_duration_hours) {
+      form.setValue('end_time', getDefaultEndTime());
+    }
+  }, [workflowSettings?.default_duration_hours]);
 
   const userType = form.watch('user_type');
   const selectedHostId = form.watch('host_id');
@@ -137,9 +157,40 @@ export default function VisitorPreRegistration() {
       return;
     }
 
+    // Check if photo is required
+    if (workflowSettings?.require_photo && !visitorPhoto) {
+      return;
+    }
+
     try {
       const validFromDate = new Date(`${values.start_date}T${values.start_time}`);
       const validUntilDate = new Date(`${values.end_date}T${values.end_time}`);
+
+      // Validate max duration if configured
+      if (workflowSettings?.max_visit_duration_hours) {
+        const durationHours = (validUntilDate.getTime() - validFromDate.getTime()) / (1000 * 60 * 60);
+        if (durationHours > workflowSettings.max_visit_duration_hours) {
+          form.setError('end_time', { 
+            message: t('visitors.register.maxDurationExceeded', 'Visit duration exceeds maximum allowed ({{hours}} hours)', { hours: workflowSettings.max_visit_duration_hours })
+          });
+          return;
+        }
+      }
+
+      // Upload photo if captured
+      let photoPath: string | null = null;
+      if (visitorPhoto && profile?.tenant_id) {
+        const fileName = `${profile.tenant_id}/${Date.now()}-${values.national_id}.jpg`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('visitor-photos')
+          .upload(fileName, visitorPhoto, { contentType: 'image/jpeg' });
+        
+        if (uploadError) {
+          console.error('Photo upload failed:', uploadError);
+        } else {
+          photoPath = uploadData.path;
+        }
+      }
 
       // Create the visitor with host information (QR code generated but not shown until approved)
       const visitor = await createVisitor.mutateAsync({
@@ -152,9 +203,13 @@ export default function VisitorPreRegistration() {
         host_name: values.host_name || null,
         host_phone: values.host_phone || null,
         host_email: values.host_email,
+        photo_path: photoPath,
       });
 
-      // Create the visit request (pending security approval)
+      // Determine initial status based on workflow settings
+      const shouldAutoApprove = workflowSettings?.auto_approve_internal && values.user_type === 'internal';
+
+      // Create the visit request
       await createVisitRequest.mutateAsync({
         visitor_id: visitor.id,
         host_id: values.user_type === 'internal' ? values.host_id! : user?.id ?? '',
@@ -162,6 +217,7 @@ export default function VisitorPreRegistration() {
         valid_from: validFromDate.toISOString(),
         valid_until: validUntilDate.toISOString(),
         security_notes: values.notes || null,
+        // Note: status will be set by the mutation, but we could pass auto_approve flag if needed
       });
 
       setSubmittedVisitorName(values.full_name);
@@ -169,6 +225,10 @@ export default function VisitorPreRegistration() {
     } catch (error) {
       // Error is handled by mutation
     }
+  };
+
+  const handlePhotoCapture = (photo: Blob) => {
+    setVisitorPhoto(photo);
   };
 
   const handleIdScan = (scannedValue: string) => {
@@ -366,6 +426,30 @@ export default function VisitorPreRegistration() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Photo Capture - shown when required by workflow settings */}
+                {workflowSettings?.require_photo && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Camera className="h-4 w-4" />
+                      {t('visitors.register.photo', 'Visitor Photo')} *
+                    </Label>
+                    <div className="flex items-center gap-4">
+                      <VisitorPhotoCapture onCapture={handlePhotoCapture} />
+                      {visitorPhoto && (
+                        <span className="text-sm text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-4 w-4" />
+                          {t('visitors.register.photoCaptured', 'Photo captured')}
+                        </span>
+                      )}
+                    </div>
+                    {workflowSettings?.require_photo && !visitorPhoto && (
+                      <p className="text-sm text-destructive">
+                        {t('visitors.register.photoRequired', 'Photo is required for registration')}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Host Information */}
@@ -559,7 +643,13 @@ export default function VisitorPreRegistration() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={createVisitor.isPending || createVisitRequest.isPending || isBlacklisted || checkingBlacklist}
+                  disabled={
+                    createVisitor.isPending || 
+                    createVisitRequest.isPending || 
+                    isBlacklisted || 
+                    checkingBlacklist || 
+                    (workflowSettings?.require_photo && !visitorPhoto)
+                  }
                 >
                   <Clock className="me-2 h-4 w-4" />
                   {createVisitor.isPending ? t('common.loading') : t('visitors.register.submitRequest', 'Submit Request')}
