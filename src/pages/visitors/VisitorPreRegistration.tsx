@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, UserPlus, Clock, CheckCircle2, Building2, User, ShieldAlert } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -359,21 +359,10 @@ export default function VisitorPreRegistration() {
                   <Alert variant="destructive" className="border-2">
                     <ShieldAlert className="h-5 w-5" />
                     <AlertTitle className="font-bold">
-                      {t('visitors.blacklist.cannotRegister', 'Cannot Register - Blacklisted Person')}
+                      {t('visitors.blacklist.cannotRegister', 'Cannot Register')}:
                     </AlertTitle>
-                    <AlertDescription className="mt-2 space-y-2">
-                      <p>
-                        {t('visitors.blacklist.blockedMessage', 'This person is on the Security Blacklist and cannot be registered for a visit.')}
-                      </p>
-                      {blacklistEntry?.reason && (
-                        <p className="text-sm">
-                          <strong>{t('visitors.blacklist.reason', 'Reason')}:</strong> {blacklistEntry.reason}
-                        </p>
-                      )}
-                      <p className="text-sm font-medium mt-3 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" />
-                        {t('visitors.blacklist.contactSecurity', 'Please contact the Security section for assistance and support.')}
-                      </p>
+                    <AlertDescription className="mt-1">
+                      {t('visitors.blacklist.contactSecurity', 'Please contact the Security section for assistance and support.')}
                     </AlertDescription>
                   </Alert>
                 )}

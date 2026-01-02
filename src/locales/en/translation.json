@@ -6215,7 +6215,7 @@
       "remove": "Remove",
       "alreadyListed": "Already Blacklisted",
       "alreadyListedDesc": "This person is already on the security blacklist.",
-      "cannotRegister": "Cannot Register - Blacklisted Person",
+      "cannotRegister": "Cannot Register",
       "blockedMessage": "This person is on the Security Blacklist and cannot be registered for a visit.",
       "contactSecurity": "Please contact the Security section for assistance and support.",
       "confirmTitle": "Add to Security Blacklist",
