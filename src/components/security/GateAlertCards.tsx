@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, ShieldX, Clock, MapPin, X, Bell, Zap, AlertCircle, IdCard } from 'lucide-react';
+import { AlertTriangle, ShieldX, Clock, MapPin, X, Bell, Zap, IdCard } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { differenceInHours, differenceInMinutes, addHours } from 'date-fns';
 import type { GateAlert } from '@/hooks/use-gate-guard-stats';
 
 interface GateAlertCardsProps {
@@ -25,38 +25,43 @@ const alertIcons = {
 
 const alertConfigs = {
   critical: {
-    border: 'border-destructive/50',
-    bg: 'bg-gradient-to-br from-destructive/15 via-destructive/10 to-destructive/5',
-    iconBg: 'bg-destructive/20',
-    iconColor: 'text-destructive',
-    glow: 'shadow-[0_0_20px_-5px] shadow-destructive/30',
-    pulse: true,
+    border: 'border-destructive/40',
+    bg: 'bg-gradient-to-br from-destructive/10 to-destructive/5',
+    avatarBorder: 'ring-2 ring-destructive/50',
   },
   warning: {
-    border: 'border-amber-500/50',
-    bg: 'bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-amber-500/5',
-    iconBg: 'bg-amber-500/20',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    glow: 'shadow-[0_0_15px_-5px] shadow-amber-500/30',
-    pulse: false,
+    border: 'border-amber-500/40',
+    bg: 'bg-gradient-to-br from-amber-500/10 to-amber-500/5',
+    avatarBorder: 'ring-2 ring-amber-500/50',
   },
   info: {
-    border: 'border-primary/50',
-    bg: 'bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5',
-    iconBg: 'bg-primary/20',
-    iconColor: 'text-primary',
-    glow: 'shadow-[0_0_10px_-5px] shadow-primary/20',
-    pulse: false,
+    border: 'border-primary/40',
+    bg: 'bg-gradient-to-br from-primary/10 to-primary/5',
+    avatarBorder: 'ring-2 ring-primary/50',
   },
 };
 
-const badgeVariants = {
-  critical: 'destructive',
-  warning: 'secondary',
-  info: 'outline',
-} as const;
+const getTimeRemaining = (timestamp: string) => {
+  const alertTime = new Date(timestamp);
+  const expiryTime = addHours(alertTime, 24);
+  const now = new Date();
 
-export function GateAlertCards({ alerts, onDismiss, onAcknowledge }: GateAlertCardsProps) {
+  if (now >= expiryTime) return { hours: 0, minutes: 0, expired: true };
+
+  const totalMinutes = differenceInMinutes(expiryTime, now);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return { hours, minutes, expired: false };
+};
+
+const getCountdownStyle = (hours: number) => {
+  if (hours < 2) return 'bg-destructive/20 text-destructive';
+  if (hours < 6) return 'bg-amber-500/20 text-amber-600 dark:text-amber-400';
+  return 'bg-muted text-muted-foreground';
+};
+
+export function GateAlertCards({ alerts, onDismiss }: GateAlertCardsProps) {
   const { t } = useTranslation();
 
   if (alerts.length === 0) {
@@ -65,128 +70,105 @@ export function GateAlertCards({ alerts, onDismiss, onAcknowledge }: GateAlertCa
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex gap-4 pb-3">
+      <div className="flex gap-3 pb-3">
         {alerts.map((alert, index) => {
           const Icon = alertIcons[alert.type] || AlertTriangle;
           const config = alertConfigs[alert.severity];
-          
+          const timeRemaining = getTimeRemaining(alert.timestamp);
+          const initials = alert.personName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
+
+          // Don't render expired alerts
+          if (timeRemaining.expired) return null;
+
           return (
             <Card
               key={alert.id}
               className={cn(
-                'min-w-[300px] max-w-[340px] flex-shrink-0 border-2 overflow-hidden transition-all duration-300 hover:scale-[1.02] animate-fade-in',
+                'min-w-[220px] max-w-[260px] flex-shrink-0 border overflow-hidden transition-all duration-200 hover:shadow-md animate-fade-in',
                 config.border,
-                config.bg,
-                config.glow
+                config.bg
               )}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <CardContent className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {/* Animated Icon */}
-                    <div className={cn(
-                      'relative p-2.5 rounded-xl flex-shrink-0 transition-transform',
-                      config.iconBg
-                    )}>
-                      {config.pulse && (
-                        <div className="absolute inset-0 rounded-xl bg-destructive/30 animate-ping" />
+              <CardContent className="p-3">
+                {/* Top Row: Severity + Countdown + Dismiss */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}
+                      className={cn(
+                        'text-[10px] px-1.5 py-0 h-5 font-semibold uppercase',
+                        alert.severity === 'critical' && 'animate-pulse',
+                        alert.severity === 'warning' && 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border-0'
                       )}
-                      <Icon className={cn('h-5 w-5 relative z-10', config.iconColor)} />
+                    >
+                      {alert.severity === 'critical' && <Zap className="h-2.5 w-2.5 me-0.5" />}
+                      {alert.severity}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Countdown */}
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                      getCountdownStyle(timeRemaining.hours)
+                    )}>
+                      {timeRemaining.hours > 0 
+                        ? t('security.gateDashboard.alerts.hoursRemaining', '{{hours}}h', { hours: timeRemaining.hours })
+                        : t('security.gateDashboard.alerts.minutesRemaining', '{{minutes}}m', { minutes: timeRemaining.minutes })
+                      }
+                    </span>
+
+                    {/* Dismiss */}
+                    {onDismiss && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => onDismiss(alert.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Content: Photo + Info */}
+                <div className="flex gap-3">
+                  {/* Large Photo */}
+                  <Avatar className={cn('h-12 w-12 flex-shrink-0', config.avatarBorder)}>
+                    <AvatarImage src={alert.photoUrl} alt={alert.personName} />
+                    <AvatarFallback className="text-sm font-semibold bg-muted">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Person Info */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    {/* Alert Type */}
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Icon className="h-3 w-3" />
+                      <span className="text-[10px] font-medium truncate">
+                        {alert.title}
+                      </span>
                     </div>
-                    
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      {/* Severity & Time */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge 
-                          variant={badgeVariants[alert.severity]} 
-                          className={cn(
-                            'text-xs font-semibold uppercase tracking-wide',
-                            alert.severity === 'critical' && 'animate-pulse',
-                            alert.severity === 'warning' && 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 border-amber-300'
-                          )}
-                        >
-                          {alert.severity === 'critical' && <Zap className="h-3 w-3 me-1" />}
-                          {alert.severity}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
+
+                    {/* Name */}
+                    <p className="text-sm font-semibold truncate leading-tight">
+                      {alert.personName || t('common.unknown', 'Unknown')}
+                    </p>
+
+                    {/* ID */}
+                    {alert.nationalId && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <IdCard className="h-3 w-3 flex-shrink-0" />
+                        <span className="text-[11px] font-mono truncate">
+                          {alert.nationalId}
                         </span>
                       </div>
-                      
-                      {/* Title */}
-                      <h4 className="font-semibold text-sm leading-tight">
-                        {alert.title}
-                      </h4>
-                      
-                      {/* Description */}
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        {alert.description}
-                      </p>
-                      
-                      {/* Person Name, Photo & ID */}
-                      {(alert.personName || alert.nationalId) && (
-                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
-                          {alert.photoUrl ? (
-                            <Avatar className="h-8 w-8 flex-shrink-0">
-                              <AvatarImage src={alert.photoUrl} alt={alert.personName} />
-                              <AvatarFallback className="text-xs">
-                                {alert.personName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
-                              {alert.personName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <span className="text-sm font-medium block truncate">
-                              {alert.personName}
-                            </span>
-                            {alert.nationalId && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <IdCard className="h-3 w-3" />
-                                {alert.nationalId}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  
-                  {/* Dismiss Button */}
-                  {onDismiss && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 flex-shrink-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-                      onClick={() => onDismiss(alert.id)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
                 </div>
-                
-                {/* Action Button */}
-                {alert.actionRequired && onAcknowledge && (
-                  <div className="mt-3 pt-3 border-t border-border/50">
-                    <Button
-                      size="sm"
-                      variant={alert.severity === 'critical' ? 'destructive' : 'outline'}
-                      className={cn(
-                        'w-full h-9 text-xs font-medium rounded-lg gap-2 transition-all',
-                        alert.severity === 'critical' && 'animate-pulse hover:animate-none'
-                      )}
-                      onClick={() => onAcknowledge(alert.id)}
-                    >
-                      <AlertCircle className="h-3.5 w-3.5" />
-                      {t('security.gateDashboard.alerts.acknowledge', 'Acknowledge & Review')}
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );

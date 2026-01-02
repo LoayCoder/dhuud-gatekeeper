@@ -2244,7 +2244,10 @@
         "pendingPass": "Pending Gate Pass",
         "acknowledge": "Acknowledge",
         "dismiss": "Dismiss",
-        "noAlerts": "No active alerts"
+        "noAlerts": "No active alerts",
+        "hoursRemaining": "{{hours}}h",
+        "minutesRemaining": "{{minutes}}m",
+        "expired": "Expired"
       },
       "verifyVisitor": "Verify Visitor",
       "verification": {
