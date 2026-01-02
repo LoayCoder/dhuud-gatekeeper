@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Trash2, ShieldAlert, Users, HardHat, Building2 } from 'lucide-react';
 import { useSecurityBlacklist, useAddToBlacklist, useRemoveFromBlacklist } from '@/hooks/use-security-blacklist';
@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
+import { BlacklistPhotoUpload, BlacklistPhotoAvatar } from '@/components/security/BlacklistPhotoUpload';
 
 const addSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
@@ -35,6 +36,7 @@ export default function BlacklistManagement() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [entityFilter, setEntityFilter] = useState<string>('all');
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
   
   const { data: blacklist, isLoading } = useSecurityBlacklist({ search: search || undefined });
   const addMutation = useAddToBlacklist();
@@ -55,8 +57,11 @@ export default function BlacklistManagement() {
       full_name: values.full_name,
       national_id: values.national_id,
       reason: values.reason,
+      entity_type: values.entity_type,
+      photo_paths: photoPath ? [photoPath] : undefined,
     });
     form.reset();
+    setPhotoPath(null);
     setAddDialogOpen(false);
   };
 
@@ -66,19 +71,27 @@ export default function BlacklistManagement() {
     setDeleteId(null);
   };
 
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      form.reset();
+      setPhotoPath(null);
+    }
+    setAddDialogOpen(open);
+  };
+
   // Filter by entity type
   const filteredBlacklist = blacklist?.filter(entry => {
     if (entityFilter === 'all') return true;
-    return (entry as { entity_type?: string }).entity_type === entityFilter;
+    return entry.entity_type === entityFilter;
   });
 
-  const entityTypeBadge = (type?: string) => {
+  const entityTypeBadge = (type?: string | null) => {
     const config = {
       visitor: { label: isRTL ? 'زائر' : 'Visitor', icon: Users, color: 'bg-blue-500/10 text-blue-600' },
       worker: { label: isRTL ? 'عامل' : 'Worker', icon: HardHat, color: 'bg-amber-500/10 text-amber-600' },
       contractor: { label: isRTL ? 'مقاول' : 'Contractor', icon: Building2, color: 'bg-purple-500/10 text-purple-600' },
     };
-    const c = config[type as keyof typeof config] || config.visitor;
+    const c = config[(type as keyof typeof config) || 'visitor'] || config.visitor;
     return (
       <Badge variant="secondary" className={cn('gap-1', c.color)}>
         <c.icon className="h-3 w-3" />
@@ -99,20 +112,30 @@ export default function BlacklistManagement() {
             {isRTL ? 'إدارة الزوار والعمال والمقاولين المحظورين' : 'Manage blocked visitors, workers, and contractors'}
           </p>
         </div>
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <Dialog open={addDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button variant="destructive">
               <Plus className="me-2 h-4 w-4" />
               {t('visitors.blacklist.add')}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{t('visitors.blacklist.addTitle')}</DialogTitle>
               <DialogDescription>{t('visitors.blacklist.addDescription')}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Photo Upload */}
+                <div className="space-y-2">
+                  <FormLabel>{isRTL ? 'الصورة' : 'Photo'}</FormLabel>
+                  <BlacklistPhotoUpload
+                    photoPath={photoPath}
+                    onPhotoChange={setPhotoPath}
+                    disabled={addMutation.isPending}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="entity_type"
@@ -175,7 +198,7 @@ export default function BlacklistManagement() {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
                     {t('common.cancel')}
                   </Button>
                   <Button type="submit" variant="destructive" disabled={addMutation.isPending}>
@@ -241,6 +264,7 @@ export default function BlacklistManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">{isRTL ? 'الصورة' : 'Photo'}</TableHead>
                     <TableHead>{isRTL ? 'النوع' : 'Type'}</TableHead>
                     <TableHead>{t('visitors.fields.name')}</TableHead>
                     <TableHead>{t('visitors.fields.nationalId')}</TableHead>
@@ -252,7 +276,13 @@ export default function BlacklistManagement() {
                 <TableBody>
                   {filteredBlacklist?.map((entry) => (
                     <TableRow key={entry.id} className="bg-destructive/5 hover:bg-destructive/10">
-                      <TableCell>{entityTypeBadge((entry as { entity_type?: string }).entity_type)}</TableCell>
+                      <TableCell>
+                        <BlacklistPhotoAvatar
+                          photoPaths={entry.photo_evidence_paths as string[] | null}
+                          name={entry.full_name}
+                        />
+                      </TableCell>
+                      <TableCell>{entityTypeBadge(entry.entity_type)}</TableCell>
                       <TableCell className="font-medium">{entry.full_name}</TableCell>
                       <TableCell>{entry.national_id}</TableCell>
                       <TableCell className="max-w-xs truncate">{entry.reason}</TableCell>

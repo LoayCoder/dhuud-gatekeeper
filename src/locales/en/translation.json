@@ -6253,7 +6253,15 @@
       "contactSecurity": "Please contact the Security section for assistance and support.",
       "confirmTitle": "Add to Security Blacklist",
       "confirmDesc": "This will permanently blacklist this visitor. They will not be able to access any facility and all pending visit requests will be rejected.",
-      "confirm": "Add to Blacklist"
+      "confirm": "Add to Blacklist",
+      "photoUploaded": "Photo uploaded successfully",
+      "photoUploadError": "Failed to upload photo",
+      "cameraError": "Cannot access camera",
+      "uploadPhoto": "Upload",
+      "camera": "Camera",
+      "capture": "Capture",
+      "photoHint": "Max 5MB, JPG/PNG/WebP",
+      "photoPreview": "Photo Preview"
     },
     "register": {
       "title": "Pre-Register Visitor",
