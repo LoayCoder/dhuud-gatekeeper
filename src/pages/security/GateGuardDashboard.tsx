@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter, Package } from 'lucide-react';
+import { RefreshCw, Users, Truck, HardHat, AlertTriangle, Activity, Search, Filter, Package, ClipboardCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGateGuardStats, useGateAlerts } from '@/hooks/use-gate-guard-stats';
+import { usePendingSecurityRequests } from '@/hooks/use-visit-requests';
 import { GateAlertCards } from '@/components/security/GateAlertCards';
 import { VisitorVerificationPanel } from '@/components/security/VisitorVerificationPanel';
+import { VisitorApprovalQueue } from '@/components/security/VisitorApprovalQueue';
 import { GateActivityCharts } from '@/components/security/GateActivityCharts';
 import { ActiveVisitorsList } from '@/components/security/ActiveVisitorsList';
 import { ActiveWorkersList } from '@/components/security/ActiveWorkersList';
@@ -49,6 +51,7 @@ const GateGuardDashboard = () => {
   
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGateGuardStats();
   const { data: alerts = [], refetch: refetchAlerts } = useGateAlerts();
+  const { data: pendingVisitorApprovals = [] } = usePendingSecurityRequests();
   
   // Gate pass data
   const { data: allGatePasses = [], isLoading: passesLoading } = useMaterialGatePasses({
@@ -231,10 +234,19 @@ const GateGuardDashboard = () => {
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 min-w-full sm:min-w-0">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-6 min-w-full sm:min-w-0">
             <TabsTrigger value="visitors" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
               {t('security.gateDashboard.tabs.visitors', 'Visitors')}
+            </TabsTrigger>
+            <TabsTrigger value="approvals" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 relative">
+              <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
+              {t('security.gateDashboard.tabs.approvals', 'Approvals')}
+              {pendingVisitorApprovals.length > 0 && (
+                <Badge variant="destructive" className="ms-1 h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
+                  {pendingVisitorApprovals.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="workers" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
               <HardHat className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
@@ -259,6 +271,14 @@ const GateGuardDashboard = () => {
         <TabsContent value="visitors" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <VisitorVerificationPanel onSwitchTab={handleSwitchTab} />
+            <ActiveVisitorsList />
+          </div>
+        </TabsContent>
+
+        {/* Visitor Approvals Tab - NEW */}
+        <TabsContent value="approvals" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+            <VisitorApprovalQueue />
             <ActiveVisitorsList />
           </div>
         </TabsContent>

@@ -799,6 +799,12 @@ export function AppSidebar() {
               icon: AlertTriangle,
               menuCode: 'admin_emergency_instructions',
             },
+            {
+              title: t('navigation.visitorSettings', 'Visitor Settings'),
+              url: "/admin/visitor-settings",
+              icon: Users,
+              menuCode: 'admin_visitor_settings',
+            },
           ],
         },
         // Platform Management Sub-Group (Super Admin)

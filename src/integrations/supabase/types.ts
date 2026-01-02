@@ -5424,6 +5424,7 @@ export type Database = {
           tenant_id: string
           visit_duration_hours: number | null
           visit_reference: string | null
+          visit_request_id: string | null
           visitor_id: string | null
           visitor_photo_url: string | null
           whatsapp_sent_at: string | null
@@ -5461,6 +5462,7 @@ export type Database = {
           tenant_id: string
           visit_duration_hours?: number | null
           visit_reference?: string | null
+          visit_request_id?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
@@ -5498,6 +5500,7 @@ export type Database = {
           tenant_id?: string
           visit_duration_hours?: number | null
           visit_reference?: string | null
+          visit_request_id?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
@@ -5522,6 +5525,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_visit_request_id_fkey"
+            columns: ["visit_request_id"]
+            isOneToOne: false
+            referencedRelation: "visit_requests"
             referencedColumns: ["id"]
           },
           {
@@ -16188,6 +16198,10 @@ export type Database = {
         Row: {
           approved_by: string | null
           created_at: string | null
+          deleted_at: string | null
+          entry_logged_at: string | null
+          exit_logged_at: string | null
+          host_exit_notified_at: string | null
           host_id: string
           host_notified_at: string | null
           id: string
@@ -16204,6 +16218,10 @@ export type Database = {
         Insert: {
           approved_by?: string | null
           created_at?: string | null
+          deleted_at?: string | null
+          entry_logged_at?: string | null
+          exit_logged_at?: string | null
+          host_exit_notified_at?: string | null
           host_id: string
           host_notified_at?: string | null
           id?: string
@@ -16220,6 +16238,10 @@ export type Database = {
         Update: {
           approved_by?: string | null
           created_at?: string | null
+          deleted_at?: string | null
+          entry_logged_at?: string | null
+          exit_logged_at?: string | null
+          host_exit_notified_at?: string | null
           host_id?: string
           host_notified_at?: string | null
           id?: string
@@ -16267,6 +16289,68 @@ export type Database = {
             columns: ["visitor_id"]
             isOneToOne: false
             referencedRelation: "visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visitor_workflow_settings: {
+        Row: {
+          allow_multiple_active_visits: boolean | null
+          auto_approve_internal: boolean | null
+          badge_valid_hours: number | null
+          created_at: string | null
+          default_duration_hours: number | null
+          deleted_at: string | null
+          expiry_warning_minutes: number | null
+          id: string
+          max_visit_duration_hours: number | null
+          notify_host_on_arrival: boolean | null
+          notify_host_on_departure: boolean | null
+          require_photo: boolean | null
+          require_security_approval: boolean | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allow_multiple_active_visits?: boolean | null
+          auto_approve_internal?: boolean | null
+          badge_valid_hours?: number | null
+          created_at?: string | null
+          default_duration_hours?: number | null
+          deleted_at?: string | null
+          expiry_warning_minutes?: number | null
+          id?: string
+          max_visit_duration_hours?: number | null
+          notify_host_on_arrival?: boolean | null
+          notify_host_on_departure?: boolean | null
+          require_photo?: boolean | null
+          require_security_approval?: boolean | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allow_multiple_active_visits?: boolean | null
+          auto_approve_internal?: boolean | null
+          badge_valid_hours?: number | null
+          created_at?: string | null
+          default_duration_hours?: number | null
+          deleted_at?: string | null
+          expiry_warning_minutes?: number | null
+          id?: string
+          max_visit_duration_hours?: number | null
+          notify_host_on_arrival?: boolean | null
+          notify_host_on_departure?: boolean | null
+          require_photo?: boolean | null
+          require_security_approval?: boolean | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitor_workflow_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
