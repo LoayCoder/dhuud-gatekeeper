@@ -128,12 +128,20 @@ serve(async (req) => {
     // Find visitor by QR token - explicit column selection (no SELECT *)
     const { data: visitor, error: visitorError } = await supabase
       .from('visitors')
-      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id')
+      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id, is_active')
       .eq('qr_code_token', token)
-      .is('deleted_at', null)
+      .eq('is_active', true)
       .single();
 
-    if (visitorError || !visitor) {
+    if (visitorError) {
+      console.error(`[get-visitor-badge] Query error for token: ${token.substring(0, 8)}... from IP: ${clientIP}:`, visitorError.message);
+      return new Response(
+        JSON.stringify({ error: 'Visitor badge not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!visitor) {
       console.error(`[get-visitor-badge] Visitor not found for token: ${token.substring(0, 8)}... from IP: ${clientIP}`);
       return new Response(
         JSON.stringify({ error: 'Visitor badge not found' }),
