@@ -269,3 +269,6 @@ verify_jwt = true
 
 [functions.get-visitor-badge]
 verify_jwt = false
+
+[functions.trigger-visitor-emergency]
+verify_jwt = false

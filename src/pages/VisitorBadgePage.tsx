@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
+import { VisitorEmergencyButton } from "@/components/security/VisitorEmergencyButton";
 
 interface VisitorBadgeData {
   visitor_name: string;
@@ -371,8 +372,18 @@ export default function VisitorBadgePage() {
           </Card>
         )}
 
+        {/* Emergency Button - Fixed at bottom */}
+        <div className="fixed bottom-4 inset-x-4 max-w-md mx-auto z-50">
+          <VisitorEmergencyButton
+            visitorToken={badgeData.qr_token}
+            visitorName={badgeData.visitor_name}
+            emergencyContact={branding?.emergency_contact_number || undefined}
+            className="w-full"
+          />
+        </div>
+
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pb-20">
           {badgeData.settings.allow_download && (
             <Button 
               onClick={handleDownload}
