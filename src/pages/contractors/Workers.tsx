@@ -21,6 +21,7 @@ import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkAct
 import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
 import { AddWorkerToBlacklistDialog } from "@/components/contractors/AddWorkerToBlacklistDialog";
 import { WorkerBulkMessageDialog } from "@/components/contractors/WorkerBulkMessageDialog";
+import { WorkerBulkInductionDialog } from "@/components/contractors/WorkerBulkInductionDialog";
 import { DeleteWorkerDialog } from "@/components/contractors/DeleteWorkerDialog";
 import { ChangeWorkerStatusDialog } from "@/components/contractors/ChangeWorkerStatusDialog";
 import {
@@ -48,6 +49,7 @@ export default function Workers() {
   const [isBulkRejectOpen, setIsBulkRejectOpen] = useState(false);
   const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
   const [isBulkMessageOpen, setIsBulkMessageOpen] = useState(false);
+  const [isBulkInductionOpen, setIsBulkInductionOpen] = useState(false);
   
   // Individual worker action states
   const [workerToDelete, setWorkerToDelete] = useState<ContractorWorker | null>(null);
@@ -243,10 +245,12 @@ export default function Workers() {
                   onReject={() => setIsBulkRejectOpen(true)}
                   onAddToBlacklist={() => setIsBlacklistDialogOpen(true)}
                   onSendMessage={() => setIsBulkMessageOpen(true)}
+                  onSendInduction={() => setIsBulkInductionOpen(true)}
                   onClear={() => setSelectedWorkerIds([])}
                   isApproving={bulkApprove.isPending}
                   showBlacklist={selectedWorkerIds.length > 0}
                   showMessage={selectedWorkerIds.length > 0}
+                  showInduction={selectedWorkerIds.length > 0}
                 />
               )}
               <WorkerListTable
@@ -336,6 +340,12 @@ export default function Workers() {
       <WorkerBulkMessageDialog
         open={isBulkMessageOpen}
         onOpenChange={setIsBulkMessageOpen}
+        workers={selectedWorkers}
+      />
+
+      <WorkerBulkInductionDialog
+        open={isBulkInductionOpen}
+        onOpenChange={setIsBulkInductionOpen}
         workers={selectedWorkers}
       />
     </div>

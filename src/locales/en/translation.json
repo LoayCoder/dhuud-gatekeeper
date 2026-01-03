@@ -112,7 +112,16 @@
       "recipientCount": "{{count}} recipients selected",
       "estimatedTime": "Estimated time: {{minutes}} minutes",
       "sendMessages": "Send Messages",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "bulkInduction": "Send Induction",
+      "bulkInductionTitle": "Send Bulk Induction",
+      "bulkInductionDesc": "Send safety induction video to multiple workers via WhatsApp",
+      "selectProject": "Select Project For Induction",
+      "eligibleWorkers": "Eligible Workers",
+      "noEligibleWorkers": "No eligible workers. Workers must be approved and have a mobile number.",
+      "sendInduction": "Send Induction",
+      "inductionSent": "Inductions sent successfully",
+      "inductionFailed": "Failed to send inductions"
     },
     "projects": {
       "title": "Contractor Projects",

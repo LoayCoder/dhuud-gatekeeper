@@ -281,3 +281,6 @@ verify_jwt = false
 
 [functions.send-worker-bulk-message]
 verify_jwt = true
+
+[functions.send-bulk-induction]
+verify_jwt = true
