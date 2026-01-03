@@ -7,13 +7,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCreateContractorWorker } from "@/hooks/contractor-management";
+import { NATIONALITIES } from "@/lib/nationalities";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
   national_id: z.string().min(5, "National ID is required"),
   mobile_number: z.string().min(8, "Mobile number is required"),
-  nationality: z.string().optional(),
+  nationality: z.string().min(1, "Nationality is required"),
   preferred_language: z.string().default("ar"),
 });
 
@@ -34,8 +36,9 @@ const LANGUAGES = [
 ];
 
 export default function ContractorWorkerForm({ open, onOpenChange, companyId }: ContractorWorkerFormProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const createWorker = useCreateContractorWorker();
+  const isRTL = i18n.dir() === 'rtl';
 
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerSchema),
@@ -69,6 +72,28 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId }: 
             )} />
             <FormField control={form.control} name="mobile_number" render={({ field }) => (
               <FormItem><FormLabel>{t("contractors.workers.mobile", "Mobile Number")} *</FormLabel><FormControl><Input {...field} type="tel" /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="nationality" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("contractors.workers.nationality", "Nationality")} *</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("contractors.workers.selectNationality", "Select nationality")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <ScrollArea className="h-[280px]" dir={isRTL ? 'rtl' : 'ltr'}>
+                      {NATIONALITIES.map((nat) => (
+                        <SelectItem key={nat.code} value={nat.code}>
+                          {isRTL ? nat.name_ar : nat.name}
+                        </SelectItem>
+                      ))}
+                    </ScrollArea>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )} />
             <FormField control={form.control} name="preferred_language" render={({ field }) => (
               <FormItem>
