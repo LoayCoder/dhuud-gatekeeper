@@ -30,27 +30,6 @@ const LANGUAGE_FONTS: Record<string, string> = {
   fil: "'Rubik', sans-serif",
 };
 
-// DHUUD Platform tenant ID - only show dev indicators for this tenant
-const DHUUD_TENANT_ID = '9290e913-c735-405c-91c6-141e966011ae';
-
-// Track whether to show missing translation indicators (set by AuthContext)
-let showMissingIndicator = false;
-
-/**
- * Enable or disable the missing translation indicator.
- * Should only be enabled for DHUUD tenant in development mode.
- */
-export function setMissingTranslationIndicator(tenantId: string | null | undefined) {
-  showMissingIndicator = import.meta.env.DEV && tenantId === DHUUD_TENANT_ID;
-}
-
-/**
- * Check if the current tenant should see missing translation indicators.
- */
-export function shouldShowMissingIndicator(): boolean {
-  return showMissingIndicator;
-}
-
 // Extract readable text from translation key
 // e.g., "common.retry" → "Retry", "incidents.submit_form" → "Submit Form"
 const extractReadableText = (key: string): string => {
@@ -61,23 +40,6 @@ const extractReadableText = (key: string): string => {
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
-
-// Add CSS for missing translation indicator in development
-if (typeof document !== 'undefined' && import.meta.env.DEV) {
-  const style = document.createElement('style');
-  style.id = 'i18n-missing-indicator';
-  style.textContent = `
-    .i18n-missing {
-      background-color: rgba(239, 68, 68, 0.15);
-      border: 1px dashed rgb(239, 68, 68);
-      border-radius: 2px;
-      padding: 0 4px;
-    }
-  `;
-  if (!document.getElementById('i18n-missing-indicator')) {
-    document.head.appendChild(style);
-  }
-}
 
 i18n
   .use(LanguageDetector)
@@ -105,17 +67,10 @@ i18n
     parseMissingKeyHandler: (key: string, defaultValue?: string) => {
       // If a default value was provided, use it
       if (defaultValue && defaultValue !== key) {
-        if (showMissingIndicator) {
-          return `⚠️ ${defaultValue}`;
-        }
         return defaultValue;
       }
       // Otherwise, extract readable text from the key
-      const readableText = extractReadableText(key);
-      if (showMissingIndicator) {
-        return `⚠️ ${readableText}`;
-      }
-      return readableText;
+      return extractReadableText(key);
     },
 
     // Log missing keys in development for debugging
