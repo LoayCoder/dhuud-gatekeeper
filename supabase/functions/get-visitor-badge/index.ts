@@ -57,6 +57,28 @@ interface ExpiryWarning {
   minutes_remaining: number;
 }
 
+interface PageContent {
+  title?: string;
+  subtitle?: string;
+  visitor_name_label?: string;
+  company_label?: string;
+  host_label?: string;
+  destination_label?: string;
+  valid_until_label?: string;
+  status_active?: string;
+  status_inactive?: string;
+  status_expired?: string;
+  safety_title?: string;
+  emergency_title?: string;
+  qr_instruction?: string;
+  save_badge?: string;
+  share?: string;
+  saving?: string;
+  sharing?: string;
+  invalid_badge_title?: string;
+  invalid_badge_message?: string;
+}
+
 interface VisitorBadgeData {
   visitor_name: string;
   company_name: string | null;
@@ -72,6 +94,8 @@ interface VisitorBadgeData {
   is_expired: boolean;
   expiry_warning: ExpiryWarning | null;
   last_scanned_at: string | null;
+  language: string;
+  page_content: PageContent | null;
   tenant_branding: {
     name: string;
     logo_light_url: string | null;
@@ -137,7 +161,7 @@ serve(async (req) => {
     // Find visitor by QR token - with soft-delete filtering (HSSA compliance)
     const { data: visitor, error: visitorError } = await supabase
       .from('visitors')
-      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id, is_active, visit_end_time, expiry_warning_sent_at, last_scanned_at')
+      .select('id, full_name, company_name, national_id, phone, host_name, qr_code_token, tenant_id, is_active, visit_end_time, expiry_warning_sent_at, last_scanned_at, nationality')
       .eq('qr_code_token', token)
       .eq('is_active', true)
       .is('deleted_at', null) // Soft-delete filter
@@ -225,6 +249,46 @@ serve(async (req) => {
       .single();
 
     // Get webpage notification settings
+    // Resolve language from nationality (Visitor: Saudi/Arab -> ar, Others -> en)
+    const nationality = visitor.nationality?.toUpperCase() || '';
+    const ARAB_COUNTRIES = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS'];
+    const resolvedLanguage: string = ARAB_COUNTRIES.includes(nationality) ? 'ar' : 'en';
+    
+    console.log(`[get-visitor-badge] Nationality: ${nationality}, Resolved language: ${resolvedLanguage}`);
+    
+    // Fetch dynamic page content for this language
+    let pageContent: PageContent | null = null;
+    const { data: contentVersion } = await supabase
+      .from('page_content_versions')
+      .select('content')
+      .eq('tenant_id', visitor.tenant_id)
+      .eq('page_type', 'visitor_badge')
+      .eq('language', resolvedLanguage)
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .maybeSingle();
+    
+    if (contentVersion?.content) {
+      pageContent = contentVersion.content as unknown as PageContent;
+      console.log(`[get-visitor-badge] Using dynamic content for language: ${resolvedLanguage}`);
+    } else {
+      // Fallback to English if no content found
+      const { data: fallbackContent } = await supabase
+        .from('page_content_versions')
+        .select('content')
+        .eq('tenant_id', visitor.tenant_id)
+        .eq('page_type', 'visitor_badge')
+        .eq('language', 'en')
+        .eq('status', 'published')
+        .is('deleted_at', null)
+        .maybeSingle();
+      
+      if (fallbackContent?.content) {
+        pageContent = fallbackContent.content as unknown as PageContent;
+        console.log(`[get-visitor-badge] Fallback to English content`);
+      }
+    }
+
     const { data: settings } = await supabase
       .from('webpage_notification_settings')
       .select('visitor_allow_download, visitor_allow_share')
@@ -296,6 +360,8 @@ serve(async (req) => {
       is_expired: isExpired,
       expiry_warning: expiryWarning,
       last_scanned_at: visitor.last_scanned_at,
+      language: resolvedLanguage,
+      page_content: pageContent,
       tenant_branding: tenant ? {
         name: tenant.name,
         logo_light_url: tenant.logo_light_url,

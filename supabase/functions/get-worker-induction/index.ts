@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
           id,
           full_name,
           full_name_ar,
-          preferred_language
+          preferred_language,
+          nationality
         ),
         project:contractor_projects(
           project_name
@@ -140,6 +141,60 @@ Deno.serve(async (req) => {
     const project = induction.project as any;
     const video = induction.video as any;
 
+    // Resolve language from worker nationality
+    const nationality = worker?.nationality?.toUpperCase() || '';
+    const ARAB_COUNTRIES = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS'];
+    let resolvedLanguage = 'en';
+    
+    if (ARAB_COUNTRIES.includes(nationality)) {
+      resolvedLanguage = 'ar';
+    } else if (nationality === 'IN') {
+      resolvedLanguage = 'hi';
+    } else if (nationality === 'PK') {
+      resolvedLanguage = 'ur';
+    } else if (nationality === 'PH') {
+      resolvedLanguage = 'fil';
+    } else if (nationality === 'CN') {
+      resolvedLanguage = 'zh';
+    }
+    
+    console.log(`[GetInduction] Nationality: ${nationality}, Resolved language: ${resolvedLanguage}`);
+    
+    // Fetch dynamic page content for this language
+    let pageContent: Record<string, string> | null = null;
+    if (induction.tenant_id) {
+      const { data: contentVersion } = await supabase
+        .from('page_content_versions')
+        .select('content')
+        .eq('tenant_id', induction.tenant_id)
+        .eq('page_type', 'worker_induction')
+        .eq('language', resolvedLanguage)
+        .eq('status', 'published')
+        .is('deleted_at', null)
+        .maybeSingle();
+      
+      if (contentVersion?.content) {
+        pageContent = contentVersion.content as Record<string, string>;
+        console.log(`[GetInduction] Using dynamic content for language: ${resolvedLanguage}`);
+      } else {
+        // Fallback to English if no content found
+        const { data: fallbackContent } = await supabase
+          .from('page_content_versions')
+          .select('content')
+          .eq('tenant_id', induction.tenant_id)
+          .eq('page_type', 'worker_induction')
+          .eq('language', 'en')
+          .eq('status', 'published')
+          .is('deleted_at', null)
+          .maybeSingle();
+        
+        if (fallbackContent?.content) {
+          pageContent = fallbackContent.content as Record<string, string>;
+          console.log(`[GetInduction] Fallback to English content`);
+        }
+      }
+    }
+
     // Update viewed_at if not already set
     if (!induction.viewed_at) {
       await supabase
@@ -160,7 +215,8 @@ Deno.serve(async (req) => {
       video_title_ar: video?.title_ar,
       video_url: video?.video_url || '',
       duration_seconds: video?.duration_seconds || 0,
-      language: worker?.preferred_language || video?.language || 'en',
+      language: resolvedLanguage,
+      page_content: pageContent,
       status: induction.status,
       expires_at: induction.expires_at,
       acknowledged_at: induction.acknowledged_at,
