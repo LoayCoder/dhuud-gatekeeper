@@ -272,3 +272,6 @@ verify_jwt = false
 
 [functions.trigger-visitor-emergency]
 verify_jwt = false
+
+[functions.translate-page-content]
+verify_jwt = true

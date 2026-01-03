@@ -7914,5 +7914,36 @@
     "certificateSaved": "Certificate saved successfully",
     "saveFailed": "Failed to save",
     "pageUnavailable": "This page is currently unavailable"
+  },
+  "pageEditor": {
+    "title": "Page Content Editor",
+    "description": "Manage page content and AI translations for visitor badges, worker passes, and induction pages",
+    "visitorBadge": "Visitor Badge",
+    "workerPass": "Worker Pass",
+    "workerInduction": "Worker Induction",
+    "mainPage": "Main Page (Source)",
+    "mainPageDesc": "Edit the main page content. This is the source for all translations.",
+    "noMainPage": "No main page created yet. Create one to get started.",
+    "createMainPage": "Create Main Page",
+    "mainPageCreated": "Main page created successfully",
+    "saved": "Changes saved successfully",
+    "published": "Published",
+    "draft": "Draft",
+    "publish": "Publish",
+    "languageTranslation": "Language & AI Translation",
+    "languageTranslationDesc": "Select languages and use AI to create translated versions",
+    "selectLanguages": "Target Languages",
+    "aiTranslate": "AI Create Language Copies",
+    "translatedVersions": "Translated Versions",
+    "exists": "exists",
+    "preview": "Preview",
+    "retranslate": "Re-translate with AI",
+    "noTargetLanguages": "Please select at least one target language",
+    "translationComplete": "Successfully translated to {{count}} languages",
+    "deleteConfirmTitle": "Delete Language Version?",
+    "deleteConfirmDesc": "This will permanently delete this translated version. The main page will not be affected."
+  },
+  "navigation": {
+    "pageContentEditor": "Page Content Editor"
   }
 }

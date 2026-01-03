@@ -68,6 +68,7 @@ import {
   Bell,
   AlertTriangle,
   Globe,
+  Languages,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -706,6 +707,12 @@ export function AppSidebar() {
             url: "/admin/webpage-notifications",
             icon: Globe,
             menuCode: 'admin_webpage_notifications',
+          },
+          {
+            title: t('navigation.pageContentEditor', 'Page Content Editor'),
+            url: "/admin/page-content-editor",
+            icon: Languages,
+            menuCode: 'admin_page_content_editor',
           },
         ],
         },
