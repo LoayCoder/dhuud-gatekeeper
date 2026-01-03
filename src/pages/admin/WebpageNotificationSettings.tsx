@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,11 @@ import {
   Share2, 
   Globe,
   Save,
-  ExternalLink
+  ExternalLink,
+  Languages,
+  FileText
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useWebpageNotificationSettings, useUpdateWebpageNotificationSettings } from "@/hooks/useWebpageNotificationSettings";
 
 export default function WebpageNotificationSettings() {
@@ -79,6 +83,54 @@ export default function WebpageNotificationSettings() {
             : (isRTL ? 'حفظ الإعدادات' : 'Save Settings')}
         </Button>
       </div>
+
+      {/* Page Content Management Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Languages className="h-5 w-5" />
+            {isRTL ? 'إدارة محتوى الصفحات' : 'Page Content Management'}
+          </CardTitle>
+          <CardDescription>
+            {isRTL 
+              ? 'تعديل محتوى الصفحات وإنشاء ترجمات بالذكاء الاصطناعي للزوار والعمال'
+              : 'Edit page content and create AI translations for visitor and worker pages'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {isRTL 
+              ? 'استخدم محرر المحتوى لتخصيص النصوص المعروضة على صفحات البطاقات والتصاريح العامة. يدعم المحرر الترجمة التلقائية بالذكاء الاصطناعي لجميع اللغات المدعومة.'
+              : 'Use the content editor to customize text displayed on public badge and pass pages. The editor supports AI-powered automatic translation for all supported languages.'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'العربية' : 'Arabic'}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'الإنجليزية' : 'English'}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'الأردية' : 'Urdu'}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'الهندية' : 'Hindi'}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'الفلبينية' : 'Filipino'}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {isRTL ? 'الصينية' : 'Chinese'}
+            </Badge>
+          </div>
+          <Button asChild>
+            <Link to="/admin/page-content-editor">
+              <FileText className="h-4 w-4 me-2" />
+              {isRTL ? 'فتح محرر المحتوى' : 'Open Content Editor'}
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="visitor" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">

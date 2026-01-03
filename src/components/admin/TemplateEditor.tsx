@@ -589,9 +589,23 @@ export function TemplateEditor({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="ar">Arabic</SelectItem>
+                  <SelectItem value="ar">العربية (Arabic)</SelectItem>
+                  {/* Show additional languages for non-visitor categories */}
+                  {formData.category !== 'visitors' && (
+                    <>
+                      <SelectItem value="ur">اردو (Urdu)</SelectItem>
+                      <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
+                      <SelectItem value="fil">Filipino</SelectItem>
+                      <SelectItem value="zh">中文 (Chinese)</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
+              {formData.category === 'visitors' && (
+                <p className="text-xs text-muted-foreground">
+                  Visitor templates support Arabic and English only
+                </p>
+              )}
             </div>
           </div>
 
