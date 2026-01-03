@@ -34,6 +34,8 @@ interface InductionData {
     allow_download: boolean;
     allow_share: boolean;
   };
+  // Page content from CMS
+  page_content?: Record<string, string> | null;
 }
 
 interface AcknowledgeResponse {
@@ -62,6 +64,14 @@ export default function WorkerInduction() {
   // Detect language from induction data or browser
   const isArabic = inductionData?.language === 'ar' || 
     (!inductionData && navigator.language.startsWith('ar'));
+
+  // Helper function to get content from page_content with fallback
+  const getContent = (key: string, fallbackEn: string, fallbackAr?: string): string => {
+    if (inductionData?.page_content?.[key]) {
+      return inductionData.page_content[key];
+    }
+    return isArabic ? (fallbackAr || fallbackEn) : fallbackEn;
+  };
 
   useEffect(() => {
     if (inductionId) {

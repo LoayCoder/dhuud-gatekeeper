@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
+import { getRenderedTemplate } from "../_shared/template-helper.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,8 @@ function resolveWorkerLanguage(nationalityCode: string | null | undefined): stri
 interface Video {
   id: string;
   title: string;
+  title_ar: string | null;
+  description: string | null;
   video_url: string;
   language: string;
   duration_seconds: number | null;
@@ -140,14 +143,57 @@ async function sendInductionToWorker(
     const durationMin = Math.round((selectedVideo.duration_seconds || 0) / 60);
     const inductionPortalUrl = `${appUrl}/worker-induction/${inductionRecord.id}`;
 
-    const whatsappMessage = getLocalizedMessage(
-      preferredLang,
-      worker.full_name,
-      project.project_name,
-      selectedVideo.title,
-      inductionPortalUrl,
-      durationMin
+    // Build comprehensive template variables
+    const templateVariables = {
+      worker_name: worker.full_name,
+      worker_name_ar: worker.full_name || '',
+      project_name: project.project_name,
+      video_title: selectedVideo.title,
+      video_title_ar: selectedVideo.title_ar || selectedVideo.title,
+      video_description: selectedVideo.description || '',
+      video_url: selectedVideo.video_url,
+      video_duration: `${durationMin} min`,
+      video_duration_seconds: String(selectedVideo.duration_seconds || 0),
+      video_language: preferredLang,
+      induction_link: inductionPortalUrl,
+      induction_id: inductionRecord.id,
+      induction_expires_at: expiresAt.toISOString().split('T')[0],
+      induction_valid_for_days: String(validForDays),
+      induction_sent_at: new Date().toISOString(),
+      company_name: '',
+      site_name: '',
+      action_link: inductionPortalUrl,
+    };
+
+    // Try language-specific template first
+    const templateSlug = `induction_video_${preferredLang}`;
+    const { content: templateMessage, found } = await getRenderedTemplate(
+      supabase, worker.tenant_id, templateSlug, templateVariables
     );
+
+    let whatsappMessage: string;
+    if (found) {
+      whatsappMessage = templateMessage;
+    } else {
+      // Try English template as fallback
+      const { content: enMessage, found: enFound } = await getRenderedTemplate(
+        supabase, worker.tenant_id, 'induction_video_en', templateVariables
+      );
+      
+      if (enFound) {
+        whatsappMessage = enMessage;
+      } else {
+        // Final fallback to hardcoded messages
+        whatsappMessage = getLocalizedMessage(
+          preferredLang,
+          worker.full_name,
+          project.project_name,
+          selectedVideo.title,
+          inductionPortalUrl,
+          durationMin
+        );
+      }
+    }
 
     // Send WhatsApp message
     const result = await sendWhatsAppText(worker.mobile_number, whatsappMessage);
@@ -295,7 +341,7 @@ Deno.serve(async (req) => {
     // Fetch induction videos
     const { data: videos, error: videosError } = await supabase
       .from("induction_videos")
-      .select("id, title, video_url, language, duration_seconds, valid_for_days")
+      .select("id, title, title_ar, description, video_url, language, duration_seconds, valid_for_days")
       .eq("tenant_id", tenant_id)
       .eq("is_active", true)
       .is("deleted_at", null)

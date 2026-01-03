@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Video, Clock, Users, Send, AlertCircle, Globe } from "lucide-react";
+import { Video, Clock, Users, Send, AlertCircle, Globe, Languages, Info } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -81,6 +81,16 @@ export function WorkerBulkInductionDialog({
     () => Math.ceil((eligibleWorkers.length * 30) / 60),
     [eligibleWorkers.length]
   );
+
+  // Group workers by language for summary
+  const languageGroups = useMemo(() => {
+    const groups: Record<string, number> = {};
+    eligibleWorkers.forEach(worker => {
+      const lang = getWorkerLanguage(worker);
+      groups[lang] = (groups[lang] || 0) + 1;
+    });
+    return groups;
+  }, [eligibleWorkers]);
 
   const handleSendInductions = async () => {
     if (!selectedProjectId || eligibleWorkers.length === 0) return;
@@ -235,6 +245,27 @@ export function WorkerBulkInductionDialog({
             </ScrollArea>
           </div>
 
+          {/* Language Breakdown */}
+          {Object.keys(languageGroups).length > 0 && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Languages className="h-4 w-4" />
+                {t("contractors.workers.languageBreakdown", "Language Breakdown")}
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(languageGroups).map(([lang, count]) => (
+                  <Badge key={lang} variant="secondary" className="text-xs">
+                    {lang}: {count}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("contractors.workers.languageBreakdownDesc", 
+                  "Each worker will receive the induction message in their assigned language")}
+              </p>
+            </div>
+          )}
+
           {/* Delay warning */}
           <Alert>
             <Clock className="h-4 w-4" />
@@ -253,6 +284,15 @@ export function WorkerBulkInductionDialog({
                   time: formatEstimatedTime(eligibleWorkers.length),
                 })}
               </span>
+            </AlertDescription>
+          </Alert>
+
+          {/* Template notice */}
+          <Alert variant="default" className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              {t("contractors.workers.templateNotice", 
+                "Messages use notification templates. Create templates in WhatsApp Templates for each language (e.g., induction_video_ar, induction_video_en).")}
             </AlertDescription>
           </Alert>
 

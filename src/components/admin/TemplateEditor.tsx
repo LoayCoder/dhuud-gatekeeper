@@ -186,6 +186,20 @@ const SYSTEM_VARIABLES = [
   { key: 'alert_message', label: 'Alert Message', labelAr: 'رسالة التنبيه', example: 'License expires in 7 days', category: 'alerts' },
   { key: 'expiry_date', label: 'Expiry Date', labelAr: 'تاريخ الانتهاء', example: '2025-01-02', category: 'alerts' },
   { key: 'escalation_level', label: 'Escalation Level', labelAr: 'مستوى التصعيد', example: 'Level 2', category: 'alerts' },
+  
+  // === Safety Inductions ===
+  { key: 'induction_id', label: 'Induction ID', labelAr: 'رقم التأهيل', example: 'IND-2024-0123', category: 'inductions' },
+  { key: 'induction_link', label: 'Induction Link (Required)', labelAr: 'رابط التأهيل (مطلوب)', example: 'https://app.dhuud.com/worker-induction/abc123', category: 'inductions' },
+  { key: 'video_title', label: 'Video Title', labelAr: 'عنوان الفيديو', example: 'Site Safety Introduction', category: 'inductions' },
+  { key: 'video_title_ar', label: 'Video Title (Arabic)', labelAr: 'عنوان الفيديو بالعربي', example: 'مقدمة السلامة في الموقع', category: 'inductions' },
+  { key: 'video_description', label: 'Video Description', labelAr: 'وصف الفيديو', example: 'Learn about safety procedures...', category: 'inductions' },
+  { key: 'video_url', label: 'Video URL', labelAr: 'رابط الفيديو', example: 'https://youtube.com/watch?v=...', category: 'inductions' },
+  { key: 'video_duration', label: 'Video Duration', labelAr: 'مدة الفيديو', example: '5 minutes', category: 'inductions' },
+  { key: 'video_duration_seconds', label: 'Video Duration (Seconds)', labelAr: 'مدة الفيديو (ثواني)', example: '300', category: 'inductions' },
+  { key: 'video_language', label: 'Video Language', labelAr: 'لغة الفيديو', example: 'English', category: 'inductions' },
+  { key: 'induction_sent_at', label: 'Induction Sent At', labelAr: 'تاريخ إرسال التأهيل', example: '2024-12-26 10:00', category: 'inductions' },
+  { key: 'induction_expires_at', label: 'Induction Expires At', labelAr: 'تاريخ انتهاء التأهيل', example: '2025-12-26', category: 'inductions' },
+  { key: 'induction_valid_for_days', label: 'Valid For (Days)', labelAr: 'صالح لمدة (أيام)', example: '365', category: 'inductions' },
 ];
 
 // Category to variable keys mapping - comprehensive
@@ -237,6 +251,12 @@ const CATEGORY_VARIABLES: Record<string, string[]> = {
     'alert_time', 'alert_type', 'alert_message', 'expiry_date', 'days_remaining', 'escalation_level',
     'title', 'description', 'risk_level', 'site_name', 'action_link'
   ],
+  inductions: [
+    'induction_id', 'induction_link', 'video_title', 'video_title_ar', 'video_description',
+    'video_url', 'video_duration', 'video_duration_seconds', 'video_language',
+    'induction_sent_at', 'induction_expires_at', 'induction_valid_for_days',
+    'worker_name', 'worker_name_ar', 'project_name', 'company_name', 'site_name', 'action_link'
+  ],
 };
 
 // Category labels with icons
@@ -252,6 +272,7 @@ const CATEGORIES = [
   { id: 'assets', label: 'Assets', labelAr: 'الأصول' },
   { id: 'media', label: 'Media/Photos', labelAr: 'الوسائط/الصور' },
   { id: 'alerts', label: 'Alerts & Reminders', labelAr: 'التنبيهات والتذكيرات' },
+  { id: 'inductions', label: 'Safety Inductions', labelAr: 'التأهيل والسلامة' },
 ];
 
 const CHANNEL_OPTIONS: { value: ChannelType; label: string; icon: React.ReactNode }[] = [
