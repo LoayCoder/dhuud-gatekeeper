@@ -126,6 +126,33 @@ export function useHSSENotificationsAdmin() {
         .single();
       
       if (error) throw error;
+
+      // Trigger the send function if publishing immediately with any notification channel enabled
+      if (data.publish_immediately && (
+        data.send_push_notification || 
+        data.send_email_notification || 
+        data.include_workers_on_site || 
+        data.include_visitors_on_site
+      )) {
+        try {
+          console.log('[HSSE] Triggering send-hsse-notification for:', newNotification.id);
+          const { error: sendError } = await supabase.functions.invoke('send-hsse-notification', {
+            body: { 
+              notification_id: newNotification.id,
+              tenant_id: profile.tenant_id,
+            },
+          });
+          if (sendError) {
+            console.error('[HSSE] Send function error:', sendError);
+          } else {
+            console.log('[HSSE] Send function triggered successfully');
+          }
+        } catch (sendError) {
+          console.error('[HSSE] Failed to trigger send function:', sendError);
+          // Don't throw - notification was created, just sending failed
+        }
+      }
+
       return newNotification;
     },
     onSuccess: () => {
@@ -139,12 +166,40 @@ export function useHSSENotificationsAdmin() {
 
   const publishNotification = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
+      // First update the published_at timestamp
+      const { data: notification, error } = await supabase
         .from('hsse_notifications')
         .update({ published_at: new Date().toISOString() })
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .select()
+        .single();
       
       if (error) throw error;
+
+      // Trigger sending if any notification channel is enabled
+      if (notification && (
+        notification.send_push_notification || 
+        notification.send_email_notification || 
+        notification.include_workers_on_site || 
+        notification.include_visitors_on_site
+      )) {
+        try {
+          console.log('[HSSE] Triggering send on publish for:', notificationId);
+          const { error: sendError } = await supabase.functions.invoke('send-hsse-notification', {
+            body: { 
+              notification_id: notificationId,
+              tenant_id: profile?.tenant_id,
+            },
+          });
+          if (sendError) {
+            console.error('[HSSE] Send function error:', sendError);
+          }
+        } catch (sendError) {
+          console.error('[HSSE] Failed to trigger send:', sendError);
+        }
+      }
+
+      return notification;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hsse-notifications-admin'] });
