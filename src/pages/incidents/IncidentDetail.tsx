@@ -35,6 +35,7 @@ import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
 import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
 import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
+import { useQuery } from '@tanstack/react-query';
 
 export default function IncidentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,21 @@ export default function IncidentDetail() {
   const location = useLocation();
   const { data: incident, isLoading } = useIncident(id);
   const { isAdmin, profile } = useAuth();
+
+  // Fetch tenant name for legal evidence metadata
+  const { data: tenantInfo } = useQuery({
+    queryKey: ['tenant-info', profile?.tenant_id],
+    queryFn: async () => {
+      if (!profile?.tenant_id) return null;
+      const { data } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', profile.tenant_id)
+        .single();
+      return data;
+    },
+    enabled: !!profile?.tenant_id
+  });
   
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
@@ -481,6 +497,15 @@ export default function IncidentDetail() {
           <IncidentAttachmentsSection 
             incidentId={id!}
             mediaAttachments={mediaAttachments}
+            incidentMetadata={{
+              referenceId: incident.reference_id,
+              occurredAt: incident.occurred_at,
+              location: incident.location || undefined,
+              branchName: incident.branch?.name,
+              siteName: incident.site?.name,
+              contractorName: incident.related_contractor_company?.company_name,
+              organizationName: tenantInfo?.name,
+            }}
           />
         </CardContent>
       </Card>
