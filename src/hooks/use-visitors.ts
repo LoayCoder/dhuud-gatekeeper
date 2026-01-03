@@ -74,6 +74,7 @@ interface CreateVisitorParams {
   phone?: string | null;
   company_name?: string | null;
   national_id?: string | null;
+  nationality?: string | null;
   user_type?: 'internal' | 'external';
   host_id?: string | null;
   host_name?: string | null;
@@ -102,6 +103,7 @@ export function useCreateVisitor() {
           phone: visitor.phone,
           company_name: visitor.company_name,
           national_id: visitor.national_id,
+          nationality: visitor.nationality,
           user_type: visitor.user_type || 'external',
           host_id: visitor.host_id,
           host_name: visitor.host_name,
