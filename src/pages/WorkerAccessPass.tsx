@@ -23,13 +23,32 @@ import {
   Download,
   Share2
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+
+
+interface PageContent {
+  title?: string;
+  subtitle?: string;
+  worker_name_label?: string;
+  company_label?: string;
+  project_label?: string;
+  valid_until_label?: string;
+  status_active?: string;
+  status_revoked?: string;
+  status_expired?: string;
+  safety_title?: string;
+  emergency_title?: string;
+  qr_instruction?: string;
+  save_pass?: string;
+  share?: string;
+}
 
 interface WorkerAccessData {
   qr_token: string;
   valid_until: string;
   is_revoked: boolean;
   created_at: string;
+  language: string;
+  page_content: PageContent | null;
   worker: {
     full_name: string;
     nationality: string | null;
@@ -57,8 +76,6 @@ interface WorkerAccessData {
 
 export default function WorkerAccessPass() {
   const { token } = useParams<{ token: string }>();
-  const { i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar' || i18n.language === 'ur';
   const badgeRef = useRef<HTMLDivElement>(null);
 
   const { data: accessData, isLoading, error } = useQuery({
@@ -78,6 +95,11 @@ export default function WorkerAccessPass() {
     },
     enabled: !!token,
   });
+
+  // Get language and RTL from API response
+  const language = accessData?.language || 'en';
+  const isRTL = language === 'ar' || language === 'ur';
+  const content = accessData?.page_content;
 
   const handleDownload = async () => {
     if (!badgeRef.current) return;

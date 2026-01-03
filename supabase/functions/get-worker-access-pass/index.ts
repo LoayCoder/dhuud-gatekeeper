@@ -5,11 +5,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface PageContent {
+  title?: string;
+  subtitle?: string;
+  worker_name_label?: string;
+  company_label?: string;
+  project_label?: string;
+  valid_until_label?: string;
+  status_active?: string;
+  status_revoked?: string;
+  status_expired?: string;
+  safety_title?: string;
+  emergency_title?: string;
+  qr_instruction?: string;
+  save_pass?: string;
+  share?: string;
+}
+
 interface WorkerAccessResponse {
   qr_token: string;
   valid_until: string;
   is_revoked: boolean;
   created_at: string;
+  language: string;
+  page_content: PageContent | null;
   worker: {
     full_name: string;
     nationality: string | null;
@@ -206,12 +225,68 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Resolve language from worker nationality
+    const nationality = workerData?.nationality?.toUpperCase() || '';
+    const ARAB_COUNTRIES = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS'];
+    let resolvedLanguage = 'en';
+    
+    if (ARAB_COUNTRIES.includes(nationality)) {
+      resolvedLanguage = 'ar';
+    } else if (nationality === 'IN') {
+      resolvedLanguage = 'hi';
+    } else if (nationality === 'PK') {
+      resolvedLanguage = 'ur';
+    } else if (nationality === 'PH') {
+      resolvedLanguage = 'fil';
+    } else if (nationality === 'CN') {
+      resolvedLanguage = 'zh';
+    }
+    
+    console.log(`[get-worker-access-pass] Nationality: ${nationality}, Resolved language: ${resolvedLanguage}`);
+    
+    // Fetch dynamic page content for this language
+    let pageContent: PageContent | null = null;
+    if (tenantId) {
+      const { data: contentVersion } = await supabaseAdmin
+        .from('page_content_versions')
+        .select('content')
+        .eq('tenant_id', tenantId)
+        .eq('page_type', 'worker_pass')
+        .eq('language', resolvedLanguage)
+        .eq('status', 'published')
+        .is('deleted_at', null)
+        .maybeSingle();
+      
+      if (contentVersion?.content) {
+        pageContent = contentVersion.content as unknown as PageContent;
+        console.log(`[get-worker-access-pass] Using dynamic content for language: ${resolvedLanguage}`);
+      } else {
+        // Fallback to English if no content found
+        const { data: fallbackContent } = await supabaseAdmin
+          .from('page_content_versions')
+          .select('content')
+          .eq('tenant_id', tenantId)
+          .eq('page_type', 'worker_pass')
+          .eq('language', 'en')
+          .eq('status', 'published')
+          .is('deleted_at', null)
+          .maybeSingle();
+        
+        if (fallbackContent?.content) {
+          pageContent = fallbackContent.content as unknown as PageContent;
+          console.log(`[get-worker-access-pass] Fallback to English content`);
+        }
+      }
+    }
+
     // Build response with only necessary public data
     const response: WorkerAccessResponse = {
       qr_token: qrData.qr_token,
       valid_until: qrData.valid_until,
       is_revoked: qrData.is_revoked,
       created_at: qrData.created_at,
+      language: resolvedLanguage,
+      page_content: pageContent,
       worker: {
         full_name: workerData?.full_name || 'Unknown Worker',
         nationality: workerData?.nationality || null,

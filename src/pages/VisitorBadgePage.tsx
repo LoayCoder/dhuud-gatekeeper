@@ -20,11 +20,33 @@ import {
   Share2,
   MapPin
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { VisitorEmergencyButton } from "@/components/security/VisitorEmergencyButton";
+
+interface PageContent {
+  title?: string;
+  subtitle?: string;
+  visitor_name_label?: string;
+  company_label?: string;
+  host_label?: string;
+  destination_label?: string;
+  valid_until_label?: string;
+  status_active?: string;
+  status_inactive?: string;
+  status_expired?: string;
+  safety_title?: string;
+  emergency_title?: string;
+  qr_instruction?: string;
+  save_badge?: string;
+  share?: string;
+  saving?: string;
+  sharing?: string;
+  invalid_badge_title?: string;
+  invalid_badge_message?: string;
+}
 
 interface VisitorBadgeData {
   visitor_name: string;
@@ -38,6 +60,8 @@ interface VisitorBadgeData {
   qr_token: string;
   status: string;
   is_active: boolean;
+  language: string;
+  page_content: PageContent | null;
   tenant_branding: {
     name: string;
     logo_light_url: string | null;
@@ -58,8 +82,6 @@ interface VisitorBadgeData {
 
 export default function VisitorBadgePage() {
   const { token } = useParams<{ token: string }>();
-  const { i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar' || i18n.language === 'ur';
   const badgeRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -81,6 +103,11 @@ export default function VisitorBadgePage() {
     enabled: !!token,
   });
 
+  // Get language and RTL from API response
+  const language = badgeData?.language || 'en';
+  const isRTL = language === 'ar' || language === 'ur';
+  const content = badgeData?.page_content;
+
   const handleDownload = async () => {
     if (!badgeRef.current || !badgeData) return;
     
@@ -97,7 +124,7 @@ export default function VisitorBadgePage() {
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success(isRTL ? 'تم حفظ البطاقة' : 'Badge saved to gallery');
+      toast.success(content?.save_badge || (isRTL ? 'تم حفظ البطاقة' : 'Badge saved to gallery'));
     } catch (err) {
       console.error('Download error:', err);
       toast.error(isRTL ? 'فشل في حفظ البطاقة' : 'Failed to save badge');
@@ -127,13 +154,13 @@ export default function VisitorBadgePage() {
       
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: isRTL ? 'بطاقة الزائر' : 'Visitor Badge',
+          title: content?.title || (isRTL ? 'بطاقة الزائر' : 'Visitor Badge'),
           text: isRTL 
             ? `بطاقة زيارة لـ ${badgeData.visitor_name}` 
             : `Visitor badge for ${badgeData.visitor_name}`,
           files: [file],
         });
-        toast.success(isRTL ? 'تمت المشاركة بنجاح' : 'Shared successfully');
+        toast.success(content?.share || (isRTL ? 'تمت المشاركة بنجاح' : 'Shared successfully'));
       } else {
         // Fallback: copy link to clipboard
         await navigator.clipboard.writeText(window.location.href);

@@ -38,6 +38,28 @@ interface WhatsAppRequest {
   exit_time?: string;
 }
 
+// Resolve language from nationality for visitors (Saudi/Arab -> ar, Others -> en)
+function resolveVisitorLanguage(nationality: string | null): 'ar' | 'en' {
+  if (!nationality) return 'en';
+  const code = nationality.toUpperCase();
+  const ARAB_COUNTRIES = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS'];
+  return ARAB_COUNTRIES.includes(code) ? 'ar' : 'en';
+}
+
+// Resolve language from nationality for workers (extended mapping)
+function resolveWorkerLanguage(nationality: string | null): string {
+  if (!nationality) return 'en';
+  const code = nationality.toUpperCase();
+  const ARAB_COUNTRIES = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS'];
+  
+  if (ARAB_COUNTRIES.includes(code)) return 'ar';
+  if (code === 'IN') return 'hi';
+  if (code === 'PK') return 'ur';
+  if (code === 'PH') return 'fil';
+  if (code === 'CN') return 'zh';
+  return 'en';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -64,6 +86,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Get visitor nationality for language resolution
+    let visitorNationality: string | null = null;
+    if (entry_id) {
+      const { data: entryData } = await supabase
+        .from('gate_entry_logs')
+        .select('visitor_id')
+        .eq('id', entry_id)
+        .single();
+      
+      if (entryData?.visitor_id) {
+        const { data: visitorData } = await supabase
+          .from('visitors')
+          .select('nationality')
+          .eq('id', entryData.visitor_id)
+          .single();
+        visitorNationality = visitorData?.nationality || null;
+      }
+    }
+    
+    // Resolve language from nationality
+    const resolvedLanguage = resolveVisitorLanguage(visitorNationality);
+    console.log(`[WhatsApp] Nationality: ${visitorNationality}, Resolved language: ${resolvedLanguage}`);
     
     // Get tenant info with HSSE settings and emergency contact
     const { data: tenant } = await supabase
@@ -254,17 +299,29 @@ To contact the visitor, please call directly.`;
       
       console.log(`[WhatsApp] Badge URL: ${correctBadgeUrl}`);
       
-      // Try to fetch template from database
+      // Try to fetch template from database based on resolved language
       let badgeMessage: string;
       
-      const { data: template } = await supabase
-        .from('notification_templates')
-        .select('content_pattern, variable_keys')
-        .eq('tenant_id', tenant_id)
-        .eq('slug', 'visitor_badge_ready')
-        .eq('is_active', true)
-        .is('deleted_at', null)
-        .single();
+      // Try language-specific template first, then fallback
+      const templateSlugs = [`visitor_badge_ready_${resolvedLanguage}`, 'visitor_badge_ready'];
+      let template = null;
+      
+      for (const slug of templateSlugs) {
+        const { data: templateData } = await supabase
+          .from('notification_templates')
+          .select('content_pattern, variable_keys')
+          .eq('tenant_id', tenant_id)
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .is('deleted_at', null)
+          .single();
+        
+        if (templateData) {
+          template = templateData;
+          console.log(`[WhatsApp] Using template '${slug}' for tenant ${tenant_id}`);
+          break;
+        }
+      }
       
       if (template) {
         // Use template and replace variables
@@ -272,10 +329,8 @@ To contact the visitor, please call directly.`;
           .replace(/\{\{visitor_name\}\}/g, visitor_name || 'Guest')
           .replace(/\{\{destination\}\}/g, destination_name || 'الاستقبال | Reception')
           .replace(/\{\{badge_url\}\}/g, correctBadgeUrl);
-        
-        console.log(`[WhatsApp] Using template 'visitor_badge_ready' for tenant ${tenant_id}`);
       } else {
-        // Fallback hardcoded message
+        // Fallback bilingual message (Arabic first per requirements)
         badgeMessage = `🎫 *بطاقة الزائر جاهزة | Your Visitor Badge is Ready*
 
 👤 ${visitor_name || 'Guest'}
@@ -287,7 +342,7 @@ ${correctBadgeUrl}
 يرجى إظهار رمز QR عند البوابة
 Please show the QR code at the gate`;
         
-        console.log(`[WhatsApp] Template not found, using fallback message`);
+        console.log(`[WhatsApp] Template not found, using fallback bilingual message`);
       }
       
       recipientPhone = mobile_number;
