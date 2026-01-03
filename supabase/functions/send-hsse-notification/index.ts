@@ -381,6 +381,23 @@ serve(async (req) => {
       }
     }
 
+    // Send to workers/visitors on-site if enabled (WhatsApp)
+    if (notification.include_workers_on_site || notification.include_visitors_on_site) {
+      console.log('Triggering external notifications (workers/visitors)...');
+      try {
+        const extResult = await supabase.functions.invoke('send-hsse-notification-external', {
+          body: {
+            notification_id: notification.id,
+            include_workers: notification.include_workers_on_site || false,
+            include_visitors: notification.include_visitors_on_site || false,
+          },
+        });
+        console.log('External notifications triggered:', extResult);
+      } catch (extError) {
+        console.error('Failed to trigger external notifications:', extError);
+      }
+    }
+
     console.log(`HSSE notification ${notification_id} processed: ${emailsSent} emails sent, ${emailsFailed} failed`);
 
     return new Response(JSON.stringify({
