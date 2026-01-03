@@ -291,10 +291,19 @@ serve(async (req) => {
 
     const { data: settings } = await supabase
       .from('webpage_notification_settings')
-      .select('visitor_allow_download, visitor_allow_share')
+      .select('visitor_webpage_enabled, visitor_allow_download, visitor_allow_share')
       .eq('tenant_id', visitor.tenant_id)
       .is('deleted_at', null)
-      .single();
+      .maybeSingle();
+
+    // Check if visitor pages are disabled
+    if (settings && settings.visitor_webpage_enabled === false) {
+      console.log(`[get-visitor-badge] Visitor pages disabled for tenant: ${visitor.tenant_id}`);
+      return new Response(
+        JSON.stringify({ error: 'This page is currently unavailable' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Check if visit is still valid (expiration enforcement)
     const now = new Date();
