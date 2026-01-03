@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldAlert, AlertTriangle } from "lucide-react";
+import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
@@ -129,6 +129,27 @@ export function WorkerListTable({
     }
   };
 
+  const getWorkerTypeBadge = (workerType: string | undefined) => {
+    switch (workerType) {
+      case 'site_representative':
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800 gap-1">
+            <Building className="h-3 w-3" />
+            {t("contractors.workers.siteRep", "Site Rep")}
+          </Badge>
+        );
+      case 'safety_officer':
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800 gap-1">
+            <ShieldCheck className="h-3 w-3" />
+            {t("contractors.workers.safetyOfficer", "Safety Officer")}
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -159,8 +180,9 @@ export function WorkerListTable({
                 />
               </TableHead>
             )}
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead></TableHead>
             <TableHead>{t("contractors.workers.name", "Name")}</TableHead>
+            <TableHead>{t("contractors.workers.role", "Role")}</TableHead>
             <TableHead>{t("contractors.workers.nationalId", "National ID")}</TableHead>
             <TableHead>{t("contractors.workers.company", "Company")}</TableHead>
             <TableHead>{t("contractors.workers.nationality", "Nationality")}</TableHead>
@@ -245,10 +267,14 @@ export function WorkerListTable({
                     )}
                   </div>
                 </TableCell>
+                <TableCell>
+                  {getWorkerTypeBadge(worker.worker_type)}
+                </TableCell>
                 <TableCell className="font-mono text-sm">{worker.national_id}</TableCell>
                 <TableCell>{worker.company?.company_name || "-"}</TableCell>
                 <TableCell>{getNationalityLabel(worker.nationality, isRTL ? 'ar' : 'en') || "-"}</TableCell>
                 <TableCell>{getInductionBadge(inductionStatus, daysRemaining)}</TableCell>
+                <TableCell>{getStatusBadge(worker.approval_status, isBlacklisted)}</TableCell>
                 <TableCell>{getStatusBadge(worker.approval_status, isBlacklisted)}</TableCell>
                 <TableCell className="text-end">
                   <WorkerActionsDropdown
