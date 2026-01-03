@@ -61,16 +61,20 @@ serve(async (req) => {
 
 CRITICAL RULES:
 1. Translate the content from ${sourceLangName} to ${targetLangName}
-2. PRESERVE all variable placeholders exactly as they appear (e.g., {{worker_name}}, {{company_name}}, {{date}})
-3. PRESERVE all numbered placeholders exactly as they appear (e.g., {{1}}, {{2}}, {{3}})
-4. Do NOT translate variable names or numbers inside {{ }}
-5. Maintain the same tone and formality level
-6. Use appropriate ${isRTL ? "RTL" : "LTR"} punctuation and formatting
-7. For Arabic/Urdu, ensure proper RTL text structure
-8. Return ONLY a valid JSON object with the same keys as the input
+2. YOU MUST INCLUDE ALL KEYS from the input JSON in your output - do not skip any fields
+3. PRESERVE all variable placeholders exactly as they appear (e.g., {{worker_name}}, {{company_name}}, {{date}})
+4. PRESERVE all numbered placeholders exactly as they appear (e.g., {{1}}, {{2}}, {{3}})
+5. Do NOT translate variable names or numbers inside {{ }}
+6. If a field is empty or has minimal content, still include it in the output with an appropriate translation
+7. Maintain the same tone and formality level
+8. Use appropriate ${isRTL ? "RTL" : "LTR"} punctuation and formatting
+9. For Arabic/Urdu, ensure proper RTL text structure
+10. Return ONLY a valid JSON object with EXACTLY the same keys as the input
+
+REQUIRED: Your output must have the exact same number of keys as the input (${Object.keys(content).length} keys).
 
 INPUT FORMAT: JSON object with field names as keys and text to translate as values
-OUTPUT FORMAT: Same JSON structure with translated values`;
+OUTPUT FORMAT: Same JSON structure with translated values (must contain all ${Object.keys(content).length} keys)`;
 
       const userPrompt = `Translate this content to ${targetLangName}. Return ONLY valid JSON:
 
@@ -117,8 +121,32 @@ ${JSON.stringify(content, null, 2)}`;
 
       try {
         const translatedContent = JSON.parse(jsonStr);
+        
+        // Validate all keys are present
+        const inputKeys = Object.keys(content);
+        const outputKeys = Object.keys(translatedContent);
+        const missingKeys = inputKeys.filter(key => !outputKeys.includes(key));
+
+        console.log(`[Translate] Input: ${inputKeys.length} keys, Output: ${outputKeys.length} keys`);
+
+        if (missingKeys.length > 0) {
+          console.error(`[Translate] Missing keys in ${targetLang}:`, missingKeys);
+          console.warn(`[Translate] Copying ${missingKeys.length} missing keys from source as fallback`);
+          
+          // Copy missing keys from source content as fallback
+          missingKeys.forEach(key => {
+            translatedContent[key] = content[key];
+          });
+        }
+
+        // Also check for extra keys (should not happen, but log if it does)
+        const extraKeys = outputKeys.filter(key => !inputKeys.includes(key));
+        if (extraKeys.length > 0) {
+          console.warn(`[Translate] Extra keys in ${targetLang}:`, extraKeys);
+        }
+
         translations[targetLang] = translatedContent;
-        console.log(`[Translate] Successfully translated to ${targetLang}`);
+        console.log(`[Translate] Successfully translated to ${targetLang} (${Object.keys(translatedContent).length} keys)`);
       } catch (parseError) {
         console.error(`[Translate] Failed to parse JSON for ${targetLang}:`, parseError);
         console.error(`[Translate] Raw content:`, rawContent);
