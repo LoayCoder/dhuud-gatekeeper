@@ -505,6 +505,8 @@ export default function IncidentDetail() {
               siteName: incident.site?.name,
               contractorName: incident.related_contractor_company?.company_name,
               organizationName: tenantInfo?.name,
+              latitude: incident.latitude,
+              longitude: incident.longitude,
             }}
           />
         </CardContent>
