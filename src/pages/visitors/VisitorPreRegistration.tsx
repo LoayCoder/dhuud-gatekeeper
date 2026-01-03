@@ -24,12 +24,14 @@ import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useVisitorWorkflowSettings } from '@/hooks/use-visitor-workflow-settings';
 import { supabase } from '@/integrations/supabase/client';
+import { NATIONALITIES } from '@/lib/nationalities';
 
 const formSchema = z.object({
   full_name: z.string().min(2, 'Name is required'),
   phone: z.string().min(8, 'Valid phone number is required'),
   company_name: z.string().min(1, 'Company name is required'),
   national_id: z.string().min(1, 'National ID is required'),
+  nationality: z.string().min(1, 'Nationality is required'),
   site_id: z.string().min(1, 'Site is required'),
   // Separate date and time fields
   start_date: z.string().min(1, 'Start date is required'),
@@ -82,7 +84,8 @@ const getDefaultEndTime = () => {
 };
 
 export default function VisitorPreRegistration() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [requestSubmitted, setRequestSubmitted] = useState(false);
@@ -110,6 +113,7 @@ export default function VisitorPreRegistration() {
       phone: '',
       company_name: '',
       national_id: '',
+      nationality: '',
       site_id: '',
       start_date: getCurrentDate(),
       start_time: getCurrentTime(),
@@ -198,6 +202,7 @@ export default function VisitorPreRegistration() {
         phone: values.phone,
         company_name: values.company_name,
         national_id: values.national_id,
+        nationality: values.nationality,
         user_type: values.user_type,
         host_id: values.user_type === 'internal' ? values.host_id : null,
         host_name: values.host_name || null,
@@ -408,6 +413,30 @@ export default function VisitorPreRegistration() {
                           </FormControl>
                           <VisitorIdScanner onScan={handleIdScan} />
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nationality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('visitors.fields.nationality', 'Nationality')} *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('visitors.placeholders.nationality', 'Select nationality')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {NATIONALITIES.map((nat) => (
+                              <SelectItem key={nat.code} value={nat.code}>
+                                {isRTL ? nat.name_ar : nat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
