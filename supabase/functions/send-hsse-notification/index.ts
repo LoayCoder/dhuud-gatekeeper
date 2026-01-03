@@ -197,6 +197,7 @@ serve(async (req) => {
     }
 
     console.log(`Processing HSSE notification: ${notification.id}, type: ${notification.notification_type}`);
+    console.log(`Notification flags - push: ${notification.send_push_notification}, email: ${notification.send_email_notification}, workers: ${notification.include_workers_on_site}, visitors: ${notification.include_visitors_on_site}`);
 
     // Get tenant info
     const { data: tenant } = await supabase
@@ -382,20 +383,28 @@ serve(async (req) => {
     }
 
     // Send to workers/visitors on-site if enabled (WhatsApp)
+    console.log('Checking external notification flags:', {
+      include_workers_on_site: notification.include_workers_on_site,
+      include_visitors_on_site: notification.include_visitors_on_site,
+      shouldTrigger: notification.include_workers_on_site || notification.include_visitors_on_site,
+    });
+    
     if (notification.include_workers_on_site || notification.include_visitors_on_site) {
       console.log('Triggering external notifications (workers/visitors)...');
       try {
         const extResult = await supabase.functions.invoke('send-hsse-notification-external', {
           body: {
             notification_id: notification.id,
-            include_workers: notification.include_workers_on_site || false,
-            include_visitors: notification.include_visitors_on_site || false,
+            include_workers: notification.include_workers_on_site === true,
+            include_visitors: notification.include_visitors_on_site === true,
           },
         });
-        console.log('External notifications triggered:', extResult);
+        console.log('External notifications triggered:', JSON.stringify(extResult));
       } catch (extError) {
         console.error('Failed to trigger external notifications:', extError);
       }
+    } else {
+      console.log('Skipping external notifications - neither workers nor visitors enabled');
     }
 
     console.log(`HSSE notification ${notification_id} processed: ${emailsSent} emails sent, ${emailsFailed} failed`);
