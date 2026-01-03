@@ -59,7 +59,8 @@
       "languageBreakdown": "زبان کی تقسیم",
       "languageBreakdownDesc": "ہر کارکن کو اپنی مقررہ زبان میں انڈکشن پیغام ملے گا",
       "templateNotice": "پیغامات نوٹیفکیشن ٹیمپلیٹس استعمال کرتے ہیں۔ ہر زبان کے لیے واٹس ایپ ٹیمپلیٹس میں ٹیمپلیٹس بنائیں۔",
-      "messageDelayTitle": "پیغام کی تاخیر"
+      "messageDelayTitle": "پیغام کی تاخیر",
+      "noPendingApprovals": "کوئی زیر التوا منظوری نہیں"
     },
     "projects": {
       "title": "ٹھیکیدار پروجیکٹس",
@@ -1413,7 +1414,14 @@
     "seedTestData": "ٹیسٹ ڈیٹا شامل کریں",
     "seedSuccess": "{{count}} ٹیسٹ پروجیکٹس شامل ہو گئے",
     "seedError": "ٹیسٹ ڈیٹا شامل کرنے میں ناکام",
-    "type": "قسم"
+    "type": "قسم",
+    "retry": "دوبارہ کوشش کریں",
+    "primary": "بنیادی",
+    "submitted": "جمع کرایا گیا",
+    "approve": "منظور کریں",
+    "reject": "مسترد کریں",
+    "current": "(موجودہ)",
+    "reason": "وجہ"
   },
   "auth": {
     "signIn": "سائن ان",

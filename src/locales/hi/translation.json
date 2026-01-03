@@ -59,7 +59,8 @@
       "languageBreakdown": "भाषा वितरण",
       "languageBreakdownDesc": "प्रत्येक श्रमिक को उनकी निर्धारित भाषा में इंडक्शन संदेश मिलेगा",
       "templateNotice": "संदेश अधिसूचना टेम्पलेट का उपयोग करते हैं। प्रत्येक भाषा के लिए WhatsApp टेम्पलेट बनाएं।",
-      "messageDelayTitle": "संदेश विलंब"
+      "messageDelayTitle": "संदेश विलंब",
+      "noPendingApprovals": "कोई लंबित अनुमोदन नहीं"
     },
     "projects": {
       "title": "ठेकेदार परियोजनाएं",
@@ -1413,7 +1414,14 @@
     "seedTestData": "टेस्ट डेटा जोड़ें",
     "seedSuccess": "{{count}} टेस्ट प्रोजेक्ट जोड़े गए",
     "seedError": "टेस्ट डेटा जोड़ने में विफल",
-    "type": "प्रकार"
+    "type": "प्रकार",
+    "retry": "पुनः प्रयास करें",
+    "primary": "प्राथमिक",
+    "submitted": "जमा किया गया",
+    "approve": "स्वीकृत करें",
+    "reject": "अस्वीकार करें",
+    "current": "(वर्तमान)",
+    "reason": "कारण"
   },
   "auth": {
     "signIn": "साइन इन करें",
