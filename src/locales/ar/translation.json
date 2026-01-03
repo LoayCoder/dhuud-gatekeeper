@@ -100,7 +100,8 @@
       "languageBreakdown": "توزيع اللغات",
       "languageBreakdownDesc": "سيتلقى كل عامل رسالة التأهيل بلغته المحددة",
       "templateNotice": "تستخدم الرسائل قوالب الإشعارات. أنشئ قوالب في قوالب واتساب لكل لغة (مثل induction_video_ar, induction_video_en).",
-      "messageDelayTitle": "تأخير الرسائل"
+      "messageDelayTitle": "تأخير الرسائل",
+      "noPendingApprovals": "لا توجد موافقات معلقة"
     },
     "projects": {
       "title": "مشاريع المقاولين",
@@ -1470,7 +1471,12 @@
     "seedError": "فشل في إضافة البيانات التجريبية",
     "type": "النوع",
     "retry": "إعادة المحاولة",
-    "primary": "الأساسي"
+    "primary": "الأساسي",
+    "submitted": "تم الإرسال",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "current": "(الحالي)",
+    "reason": "السبب"
   },
   "assignment": {
     "title": "تعيين العمل",

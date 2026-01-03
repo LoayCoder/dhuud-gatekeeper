@@ -125,7 +125,8 @@
       "languageBreakdown": "Language Breakdown",
       "languageBreakdownDesc": "Each worker will receive the induction message in their assigned language",
       "templateNotice": "Messages use notification templates. Create templates in WhatsApp Templates for each language (e.g., induction_video_ar, induction_video_en).",
-      "messageDelayTitle": "Message Delay"
+      "messageDelayTitle": "Message Delay",
+      "noPendingApprovals": "No pending approvals"
     },
     "projects": {
       "title": "Contractor Projects",
@@ -1601,6 +1602,11 @@
     "type": "Type",
     "retry": "Retry",
     "primary": "Primary",
+    "submitted": "Submitted",
+    "approve": "Approve",
+    "reject": "Reject",
+    "current": "(current)",
+    "reason": "Reason",
     "seedTestData": "Seed Test Data",
     "seedSuccess": "Seeded {{count}} test projects",
     "seedError": "Failed to seed test data"
