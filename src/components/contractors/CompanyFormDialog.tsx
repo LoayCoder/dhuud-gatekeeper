@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { ContractorCompany, useCreateContractorCompany, useUpdateContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useBranches, useDepartments, useSections, useClientRepresentatives } from "@/hooks/contractor-management/use-contractor-company-details";
-import { useContractorSafetyOfficers, useSyncContractorSafetyOfficers, SafetyOfficerFormData } from "@/hooks/contractor-management/use-contractor-safety-officers";
+import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
 import { useSendIdCardsForCompany } from "@/hooks/contractor-management/use-contractor-id-cards";
-import { SafetyOfficersList } from "./SafetyOfficersList";
+import { useSyncPersonnelToWorkers } from "@/hooks/contractor-management/use-sync-personnel-to-workers";
+import { SiteRepWorkerForm, SiteRepFormData } from "./SiteRepWorkerForm";
+import { SafetyOfficerFullFormList, SafetyOfficerFullFormData } from "./SafetyOfficerFullForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building, Users, Briefcase, Info } from "lucide-react";
+import { Building, Users, Briefcase, Info, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CompanyFormDialogProps {
@@ -35,9 +37,6 @@ interface FormData {
   contract_start_date: string;
   contract_end_date: string;
   total_workers: number;
-  contractor_site_rep_name: string;
-  contractor_site_rep_phone: string;
-  contractor_site_rep_email: string;
   client_site_rep_id: string;
   assigned_branch_id: string;
   assigned_department_id: string;
@@ -57,26 +56,38 @@ const initialFormData: FormData = {
   contract_start_date: "",
   contract_end_date: "",
   total_workers: 0,
-  contractor_site_rep_name: "",
-  contractor_site_rep_phone: "",
-  contractor_site_rep_email: "",
   client_site_rep_id: "",
   assigned_branch_id: "",
   assigned_department_id: "",
   assigned_section_id: "",
 };
 
+const initialSiteRepData: SiteRepFormData = {
+  full_name: "",
+  national_id: "",
+  mobile_number: "",
+  nationality: "",
+  photo_path: null,
+  phone: "",
+  email: "",
+};
+
+const STEPS = ["basic", "scope", "assignment", "personnel"] as const;
+type Step = typeof STEPS[number];
+
 export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDialogProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const createCompany = useCreateContractorCompany();
   const updateCompany = useUpdateContractorCompany();
-  const syncSafetyOfficers = useSyncContractorSafetyOfficers();
+  const syncPersonnel = useSyncPersonnelToWorkers();
   const sendIdCards = useSendIdCardsForCompany();
   const isEditing = !!company;
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [safetyOfficers, setSafetyOfficers] = useState<SafetyOfficerFormData[]>([]);
+  const [siteRepData, setSiteRepData] = useState<SiteRepFormData>(initialSiteRepData);
+  const [safetyOfficers, setSafetyOfficers] = useState<SafetyOfficerFullFormData[]>([]);
+  const [currentStep, setCurrentStep] = useState<Step>("basic");
 
   // Fetch dropdown data
   const { data: branches = [] } = useBranches();
@@ -100,17 +111,27 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         contract_start_date: (company as any).contract_start_date || "",
         contract_end_date: (company as any).contract_end_date || "",
         total_workers: (company as any).total_workers || 0,
-        contractor_site_rep_name: (company as any).contractor_site_rep_name || "",
-        contractor_site_rep_phone: (company as any).contractor_site_rep_phone || "",
-        contractor_site_rep_email: (company as any).contractor_site_rep_email || "",
         client_site_rep_id: (company as any).client_site_rep_id || "",
         assigned_branch_id: (company as any).assigned_branch_id || "",
         assigned_department_id: (company as any).assigned_department_id || "",
         assigned_section_id: (company as any).assigned_section_id || "",
       });
+      // Load existing site rep data
+      setSiteRepData({
+        full_name: (company as any).contractor_site_rep_name || "",
+        national_id: (company as any).contractor_site_rep_national_id || "",
+        mobile_number: (company as any).contractor_site_rep_mobile || "",
+        nationality: (company as any).contractor_site_rep_nationality || "",
+        photo_path: (company as any).contractor_site_rep_photo || null,
+        phone: (company as any).contractor_site_rep_phone || "",
+        email: (company as any).contractor_site_rep_email || "",
+      });
+      setCurrentStep("basic");
     } else if (!open) {
       setFormData(initialFormData);
+      setSiteRepData(initialSiteRepData);
       setSafetyOfficers([]);
+      setCurrentStep("basic");
     }
   }, [company, open]);
 
@@ -119,13 +140,33 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     if (existingOfficers.length > 0 && open) {
       setSafetyOfficers(existingOfficers.map(o => ({
         id: o.id,
-        name: o.name,
+        full_name: o.name, // Map from legacy name field
+        national_id: (o as any).national_id || "",
+        mobile_number: (o as any).mobile_number || o.phone || "",
+        nationality: (o as any).nationality || "",
+        photo_path: (o as any).photo_path || null,
         phone: o.phone || "",
         email: o.email || "",
         is_primary: o.is_primary,
       })));
     }
   }, [existingOfficers, open]);
+
+  const currentStepIndex = STEPS.indexOf(currentStep);
+  const isFirstStep = currentStepIndex === 0;
+  const isLastStep = currentStepIndex === STEPS.length - 1;
+
+  const goToNextStep = () => {
+    if (!isLastStep) {
+      setCurrentStep(STEPS[currentStepIndex + 1]);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    if (!isFirstStep) {
+      setCurrentStep(STEPS[currentStepIndex - 1]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,8 +179,11 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       assigned_section_id: formData.assigned_section_id || null,
       contract_start_date: formData.contract_start_date || null,
       contract_end_date: formData.contract_end_date || null,
-      // Update safety_officers_count based on actual officers
       safety_officers_count: safetyOfficers.length,
+      // Site rep fields for backward compatibility
+      contractor_site_rep_name: siteRepData.full_name,
+      contractor_site_rep_phone: siteRepData.phone,
+      contractor_site_rep_email: siteRepData.email,
     };
 
     let companyId: string;
@@ -152,32 +196,37 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       companyId = result.id;
     }
 
-    // Sync safety officers
-    if (safetyOfficers.length > 0 || existingOfficers.length > 0) {
-      await syncSafetyOfficers.mutateAsync({ companyId, officers: safetyOfficers });
+    // Sync site rep and safety officers to contractor_workers table
+    if (profile?.tenant_id) {
+      await syncPersonnel.mutateAsync({
+        companyId,
+        tenantId: profile.tenant_id,
+        siteRep: siteRepData.full_name && siteRepData.national_id ? siteRepData : null,
+        safetyOfficers: safetyOfficers.filter(o => o.full_name && o.national_id),
+      });
     }
 
     // Send notifications for new companies
     if (profile?.tenant_id && !isEditing) {
       const hasContactsWithPhones = 
-        formData.contractor_site_rep_phone || 
-        safetyOfficers.some(o => o.phone);
+        siteRepData.mobile_number || 
+        safetyOfficers.some(o => o.mobile_number);
 
       // Build recipients list for welcome notification
       const welcomeRecipients: Array<{ name: string; phone: string; email?: string }> = [];
       
-      if (formData.contractor_site_rep_phone) {
+      if (siteRepData.mobile_number) {
         welcomeRecipients.push({
-          name: formData.contractor_site_rep_name,
-          phone: formData.contractor_site_rep_phone,
-          email: formData.contractor_site_rep_email || undefined,
+          name: siteRepData.full_name,
+          phone: siteRepData.mobile_number,
+          email: siteRepData.email || undefined,
         });
       }
       
-      safetyOfficers.filter(o => o.phone).forEach(o => {
+      safetyOfficers.filter(o => o.mobile_number).forEach(o => {
         welcomeRecipients.push({
-          name: o.name,
-          phone: o.phone,
+          name: o.full_name,
+          phone: o.mobile_number,
           email: o.email || undefined,
         });
       });
@@ -204,17 +253,17 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
           tenant_id: profile.tenant_id,
           company_name: formData.company_name,
           contract_end_date: formData.contract_end_date || undefined,
-          site_rep: formData.contractor_site_rep_phone ? {
-            name: formData.contractor_site_rep_name,
-            phone: formData.contractor_site_rep_phone,
-            email: formData.contractor_site_rep_email || undefined,
+          site_rep: siteRepData.mobile_number ? {
+            name: siteRepData.full_name,
+            phone: siteRepData.mobile_number,
+            email: siteRepData.email || undefined,
           } : undefined,
           safety_officers: safetyOfficers
-            .filter(o => o.phone)
+            .filter(o => o.mobile_number)
             .map(o => ({
               id: o.id,
-              name: o.name,
-              phone: o.phone,
+              name: o.full_name,
+              phone: o.mobile_number,
               email: o.email || undefined,
             })),
         });
@@ -238,7 +287,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
-          <Tabs defaultValue="basic" className="mt-4">
+          <Tabs value={currentStep} onValueChange={(v) => setCurrentStep(v as Step)} className="mt-4">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic" className="text-xs">
                 <Info className="h-4 w-4 me-1" />
@@ -441,38 +490,14 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
 
             {/* Personnel Tab */}
             <TabsContent value="personnel" className="mt-4 space-y-6">
-              {/* Contractor Site Representative */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm">{t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.name", "Name")}</Label>
-                    <Input 
-                      value={formData.contractor_site_rep_name} 
-                      onChange={(e) => handleChange("contractor_site_rep_name", e.target.value)}
-                      placeholder={t("contractors.companies.repName", "Representative name")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.phone", "Phone")}</Label>
-                    <Input 
-                      value={formData.contractor_site_rep_phone} 
-                      onChange={(e) => handleChange("contractor_site_rep_phone", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">{t("common.email", "Email")}</Label>
-                    <Input 
-                      type="email"
-                      value={formData.contractor_site_rep_email} 
-                      onChange={(e) => handleChange("contractor_site_rep_email", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Contractor Site Representative - Full Form */}
+              <SiteRepWorkerForm 
+                data={siteRepData}
+                onChange={setSiteRepData}
+              />
 
-              {/* Contractor Safety Officers List */}
-              <SafetyOfficersList 
+              {/* Contractor Safety Officers List - Full Form */}
+              <SafetyOfficerFullFormList 
                 officers={safetyOfficers} 
                 onChange={setSafetyOfficers} 
               />
@@ -499,13 +524,29 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-2 pt-6 border-t mt-6">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel", "Cancel")}
-            </Button>
-            <Button type="submit" disabled={createCompany.isPending || updateCompany.isPending}>
-              {isEditing ? t("common.save", "Save") : t("common.create", "Create")}
-            </Button>
+          <div className="flex justify-between gap-2 pt-6 border-t mt-6">
+            <div>
+              {!isFirstStep && (
+                <Button type="button" variant="outline" onClick={goToPreviousStep}>
+                  {t("common.previous", "Previous")}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {t("common.cancel", "Cancel")}
+              </Button>
+              {isLastStep ? (
+                <Button type="submit" disabled={createCompany.isPending || updateCompany.isPending || syncPersonnel.isPending}>
+                  {isEditing ? t("common.save", "Save") : t("common.create", "Create")}
+                </Button>
+              ) : (
+                <Button type="button" onClick={goToNextStep}>
+                  {t("common.next", "Next")}
+                  <ChevronRight className="h-4 w-4 ms-1" />
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </DialogContent>

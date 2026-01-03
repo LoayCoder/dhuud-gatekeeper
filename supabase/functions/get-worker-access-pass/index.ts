@@ -33,6 +33,7 @@ interface WorkerAccessResponse {
     full_name: string;
     nationality: string | null;
     company_name: string | null;
+    worker_type: string | null; // 'worker' | 'site_representative' | 'safety_officer'
   };
   project: {
     project_name: string;
@@ -116,13 +117,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch worker data
+    // Fetch worker data including worker_type
     const { data: workerData, error: workerError } = await supabaseAdmin
       .from('contractor_workers')
       .select(`
         full_name,
         nationality,
-        company_id
+        company_id,
+        worker_type
       `)
       .eq('id', qrData.worker_id)
       .is('deleted_at', null)
@@ -291,6 +293,7 @@ Deno.serve(async (req) => {
         full_name: workerData?.full_name || 'Unknown Worker',
         nationality: workerData?.nationality || null,
         company_name: companyName,
+        worker_type: workerData?.worker_type || 'worker',
       },
       project: {
         project_name: projectData?.project_name || 'Unknown Project',

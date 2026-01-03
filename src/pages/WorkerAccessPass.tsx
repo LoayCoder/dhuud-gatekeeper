@@ -21,7 +21,8 @@ import {
   CheckCircle2,
   XCircle,
   Download,
-  Share2
+  Share2,
+  ShieldCheck
 } from "lucide-react";
 
 
@@ -53,6 +54,7 @@ interface WorkerAccessData {
     full_name: string;
     nationality: string | null;
     company_name: string | null;
+    worker_type: string | null;
   };
   project: {
     project_name: string;
@@ -246,6 +248,31 @@ export default function WorkerAccessPass() {
           </div>
           
           <CardContent className="pt-6">
+            {/* Worker Role Badge */}
+            {worker.worker_type && worker.worker_type !== 'worker' && (
+              <div className="flex justify-center mb-4">
+                <Badge 
+                  className={`text-sm px-4 py-1.5 font-bold ${
+                    worker.worker_type === 'site_representative' 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {worker.worker_type === 'site_representative' ? (
+                    <>
+                      <Building2 className="h-4 w-4 me-1.5" />
+                      {isRTL ? 'ممثل الموقع' : 'SITE REPRESENTATIVE'}
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="h-4 w-4 me-1.5" />
+                      {isRTL ? 'مسؤول السلامة' : 'SAFETY OFFICER'}
+                    </>
+                  )}
+                </Badge>
+              </div>
+            )}
+            
             {/* Status Badge */}
             <div className="flex justify-center mb-4">
               {accessData.is_revoked ? (

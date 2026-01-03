@@ -24,6 +24,8 @@ export interface ContractorWorker {
   approved_at: string | null;
   rejection_reason: string | null;
   created_at: string;
+  worker_type?: string; // 'worker' | 'site_representative' | 'safety_officer'
+  safety_officer_id?: string | null;
   company?: { company_name: string } | null;
   latest_induction?: WorkerInduction | null;
 }
@@ -48,7 +50,7 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
         .select(`
           id, tenant_id, company_id, full_name, full_name_ar, national_id, nationality,
           mobile_number, photo_path, preferred_language, approval_status, approved_at,
-          rejection_reason, created_at,
+          rejection_reason, created_at, worker_type, safety_officer_id,
           company:contractor_companies(company_name),
           latest_induction:worker_inductions(id, status, expires_at)
         `)

@@ -4004,8 +4004,10 @@ export type Database = {
           photo_path: string | null
           preferred_language: string
           rejection_reason: string | null
+          safety_officer_id: string | null
           tenant_id: string
           updated_at: string
+          worker_type: string | null
         }
         Insert: {
           approval_status?: string
@@ -4024,8 +4026,10 @@ export type Database = {
           photo_path?: string | null
           preferred_language?: string
           rejection_reason?: string | null
+          safety_officer_id?: string | null
           tenant_id: string
           updated_at?: string
+          worker_type?: string | null
         }
         Update: {
           approval_status?: string
@@ -4044,8 +4048,10 @@ export type Database = {
           photo_path?: string | null
           preferred_language?: string
           rejection_reason?: string | null
+          safety_officer_id?: string | null
           tenant_id?: string
           updated_at?: string
+          worker_type?: string | null
         }
         Relationships: [
           {
@@ -4067,6 +4073,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_safety_officer_id_fkey"
+            columns: ["safety_officer_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_safety_officers"
             referencedColumns: ["id"]
           },
           {
