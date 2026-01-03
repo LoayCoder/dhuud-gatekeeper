@@ -30,6 +30,27 @@ const LANGUAGE_FONTS: Record<string, string> = {
   fil: "'Rubik', sans-serif",
 };
 
+// DHUUD Platform tenant ID - only show dev indicators for this tenant
+const DHUUD_TENANT_ID = '9290e913-c735-405c-91c6-141e966011ae';
+
+// Track whether to show missing translation indicators (set by AuthContext)
+let showMissingIndicator = false;
+
+/**
+ * Enable or disable the missing translation indicator.
+ * Should only be enabled for DHUUD tenant in development mode.
+ */
+export function setMissingTranslationIndicator(tenantId: string | null | undefined) {
+  showMissingIndicator = import.meta.env.DEV && tenantId === DHUUD_TENANT_ID;
+}
+
+/**
+ * Check if the current tenant should see missing translation indicators.
+ */
+export function shouldShowMissingIndicator(): boolean {
+  return showMissingIndicator;
+}
+
 // Extract readable text from translation key
 // e.g., "common.retry" → "Retry", "incidents.submit_form" → "Submit Form"
 const extractReadableText = (key: string): string => {
@@ -80,10 +101,10 @@ i18n
     returnEmptyString: false,
     
     // Transform missing keys into readable text for users
-    // In dev mode, wrap with indicator span for easy spotting
+    // In dev mode for DHUUD tenant, show indicator for easy spotting
     parseMissingKeyHandler: (key: string) => {
       const readableText = extractReadableText(key);
-      if (import.meta.env.DEV) {
+      if (showMissingIndicator) {
         return `⚠️ ${readableText}`;
       }
       return readableText;
