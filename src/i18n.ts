@@ -100,9 +100,17 @@ i18n
     saveMissing: true,
     returnEmptyString: false,
     
-    // Transform missing keys into readable text for users
-    // In dev mode for DHUUD tenant, show indicator for easy spotting
-    parseMissingKeyHandler: (key: string) => {
+    // When a default value is provided in t(), use it instead of transforming the key
+    // This ensures t("key", "Default Text") returns "Default Text" when key is missing
+    parseMissingKeyHandler: (key: string, defaultValue?: string) => {
+      // If a default value was provided, use it
+      if (defaultValue && defaultValue !== key) {
+        if (showMissingIndicator) {
+          return `⚠️ ${defaultValue}`;
+        }
+        return defaultValue;
+      }
+      // Otherwise, extract readable text from the key
       const readableText = extractReadableText(key);
       if (showMissingIndicator) {
         return `⚠️ ${readableText}`;
