@@ -62,11 +62,12 @@ serve(async (req) => {
 CRITICAL RULES:
 1. Translate the content from ${sourceLangName} to ${targetLangName}
 2. PRESERVE all variable placeholders exactly as they appear (e.g., {{worker_name}}, {{company_name}}, {{date}})
-3. Do NOT translate variable names inside {{ }}
-4. Maintain the same tone and formality level
-5. Use appropriate ${isRTL ? "RTL" : "LTR"} punctuation and formatting
-6. For Arabic/Urdu, ensure proper RTL text structure
-7. Return ONLY a valid JSON object with the same keys as the input
+3. PRESERVE all numbered placeholders exactly as they appear (e.g., {{1}}, {{2}}, {{3}})
+4. Do NOT translate variable names or numbers inside {{ }}
+5. Maintain the same tone and formality level
+6. Use appropriate ${isRTL ? "RTL" : "LTR"} punctuation and formatting
+7. For Arabic/Urdu, ensure proper RTL text structure
+8. Return ONLY a valid JSON object with the same keys as the input
 
 INPUT FORMAT: JSON object with field names as keys and text to translate as values
 OUTPUT FORMAT: Same JSON structure with translated values`;
