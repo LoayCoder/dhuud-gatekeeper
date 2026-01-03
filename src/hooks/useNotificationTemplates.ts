@@ -137,3 +137,47 @@ export function useDeleteTemplate() {
     },
   });
 }
+
+export function useBulkDeleteTemplates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('notification_templates')
+        .update({ deleted_at: new Date().toISOString() })
+        .in('id', ids);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-templates'] });
+      toast.success('Templates deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete templates: ${error.message}`);
+    },
+  });
+}
+
+export function useBulkUpdateTemplateStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids, is_active }: { ids: string[]; is_active: boolean }) => {
+      const { error } = await supabase
+        .from('notification_templates')
+        .update({ is_active })
+        .in('id', ids);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-templates'] });
+      toast.success('Templates updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update templates: ${error.message}`);
+    },
+  });
+}
