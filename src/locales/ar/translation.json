@@ -152,6 +152,22 @@
       "resend": "إرسال البطاقة",
       "resending": "جاري الإرسال...",
       "resentSuccess": "تم إعادة إرسال البطاقة بنجاح"
+    },
+    "workerStatus": {
+      "pending": "قيد الانتظار",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
+      "suspended": "موقوف",
+      "revoked": "ملغى"
+    },
+    "induction": {
+      "expired": "منتهي الصلاحية",
+      "expiresInDays": "ينتهي خلال {{days}} أيام",
+      "valid": "ساري",
+      "notCompleted": "غير مكتمل",
+      "expiredWarning": "انتهت صلاحية التعريف",
+      "expiringSoonWarning": "التعريف سينتهي قريباً",
+      "expiryDate": "ينتهي: {{date}}"
     }
   },
   "hsseDashboard": {

@@ -177,6 +177,22 @@
       "resend": "Send ID Card",
       "resending": "Sending...",
       "resentSuccess": "ID card resent successfully"
+    },
+    "workerStatus": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "suspended": "Suspended",
+      "revoked": "Revoked"
+    },
+    "induction": {
+      "expired": "Expired",
+      "expiresInDays": "Expires in {{days}} days",
+      "valid": "Valid",
+      "notCompleted": "Not Completed",
+      "expiredWarning": "Induction Expired",
+      "expiringSoonWarning": "Induction Expiring Soon",
+      "expiryDate": "Expires: {{date}}"
     }
   },
   "hsseDashboard": {

@@ -41,6 +41,23 @@ const extractReadableText = (key: string): string => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
+// Add CSS for missing translation indicator in development
+if (typeof document !== 'undefined' && import.meta.env.DEV) {
+  const style = document.createElement('style');
+  style.id = 'i18n-missing-indicator';
+  style.textContent = `
+    .i18n-missing {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px dashed rgb(239, 68, 68);
+      border-radius: 2px;
+      padding: 0 4px;
+    }
+  `;
+  if (!document.getElementById('i18n-missing-indicator')) {
+    document.head.appendChild(style);
+  }
+}
+
 i18n
   .use(LanguageDetector)
   .init({
@@ -63,8 +80,13 @@ i18n
     returnEmptyString: false,
     
     // Transform missing keys into readable text for users
+    // In dev mode, wrap with indicator span for easy spotting
     parseMissingKeyHandler: (key: string) => {
-      return extractReadableText(key);
+      const readableText = extractReadableText(key);
+      if (import.meta.env.DEV) {
+        return `⚠️ ${readableText}`;
+      }
+      return readableText;
     },
 
     // Log missing keys in development for debugging
