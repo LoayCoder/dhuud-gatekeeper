@@ -61,16 +61,17 @@ export default function WorkerInduction() {
   const [idCardUrl, setIdCardUrl] = useState<string | null>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
 
-  // Detect language from induction data or browser
-  const isArabic = inductionData?.language === 'ar' || 
-    (!inductionData && navigator.language.startsWith('ar'));
+  // Get language and RTL status from induction data
+  const language = inductionData?.language || 'en';
+  const isRTL = language === 'ar' || language === 'ur';
 
-  // Helper function to get content from page_content with fallback
-  const getContent = (key: string, fallbackEn: string, fallbackAr?: string): string => {
+  // Helper function to get content from page_content with English fallback
+  // The API provides localized content in page_content, so we always use it when available
+  const getContent = (key: string, fallbackEn: string): string => {
     if (inductionData?.page_content?.[key]) {
       return inductionData.page_content[key];
     }
-    return isArabic ? (fallbackAr || fallbackEn) : fallbackEn;
+    return fallbackEn;
   };
 
   useEffect(() => {
@@ -103,7 +104,7 @@ export default function WorkerInduction() {
       }
     } catch (err) {
       console.error('Error fetching induction:', err);
-      setError(isArabic ? 'فشل في تحميل بيانات التدريب' : 'Failed to load induction data');
+      setError('Failed to load induction data');
     } finally {
       setLoading(false);
     }
@@ -134,7 +135,7 @@ export default function WorkerInduction() {
       setSuccess(true);
     } catch (err) {
       console.error('Error acknowledging induction:', err);
-      setError(isArabic ? 'فشل في تأكيد الإقرار' : 'Failed to submit acknowledgment');
+      setError('Failed to submit acknowledgment');
     } finally {
       setSubmitting(false);
     }
@@ -155,18 +156,16 @@ export default function WorkerInduction() {
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success(isArabic ? 'تم حفظ الشهادة بنجاح' : 'Certificate saved successfully');
+      toast.success(getContent('certificate_saved', 'Certificate saved successfully'));
     } catch (err) {
       console.error('Download failed:', err);
-      toast.error(isArabic ? 'فشل في حفظ الشهادة' : 'Failed to save certificate');
+      toast.error(getContent('certificate_save_failed', 'Failed to save certificate'));
     }
   };
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
-    const shareText = isArabic 
-      ? `شهادة إتمام التدريب: ${inductionData?.worker_name}`
-      : `Induction Completion: ${inductionData?.worker_name}`;
+    const shareText = `${getContent('share_title', 'Induction Completion')}: ${inductionData?.worker_name}`;
     
     if (navigator.share) {
       try {
@@ -177,12 +176,12 @@ export default function WorkerInduction() {
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(shareUrl);
-          toast.success(isArabic ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+          toast.success(getContent('link_copied', 'Link copied to clipboard'));
         }
       }
     } else {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success(isArabic ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+      toast.success(getContent('link_copied', 'Link copied to clipboard'));
     }
   };
 
@@ -206,15 +205,16 @@ export default function WorkerInduction() {
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    return isArabic ? `${mins} دقيقة` : `${mins} min`;
+    const minLabel = getContent('minutes_label', 'min');
+    return `${mins} ${minLabel}`;
   };
 
   // Get HSSE department name based on language
   const getHsseDeptName = () => {
-    if (isArabic) {
-      return inductionData?.hsse_department_name_ar || inductionData?.hsse_department_name || 'قسم الصحة والسلامة';
+    if (isRTL && inductionData?.hsse_department_name_ar) {
+      return inductionData.hsse_department_name_ar;
     }
-    return inductionData?.hsse_department_name || 'HSSE Department';
+    return inductionData?.hsse_department_name || getContent('hsse_department', 'HSSE Department');
   };
 
   // Apply brand color if available
@@ -228,12 +228,12 @@ export default function WorkerInduction() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              {getContent('error_title', 'Error', 'خطأ')}
+              {getContent('error_title', 'Error')}
             </h2>
             <p className="text-muted-foreground">{error}</p>
           </CardContent>
@@ -246,7 +246,7 @@ export default function WorkerInduction() {
     const settings = inductionData?.settings || { allow_download: true, allow_share: true };
     
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md" ref={certificateRef}>
           {/* Tenant Branding Header */}
           {inductionData?.tenant_logo_url && (
@@ -264,22 +264,18 @@ export default function WorkerInduction() {
           <CardContent className="pt-6 text-center">
             <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              {getContent('success_title', 'Success!', 'تم بنجاح!')}
+              {getContent('success_title', 'Success!')}
             </h2>
             <p className="text-muted-foreground mb-4">
-              {getContent('success_message', 
-                'Safety induction completed successfully. You can now start work.',
-                'تم إكمال تدريب السلامة بنجاح. يمكنك الآن بدء العمل.')}
+              {getContent('success_message', 'Safety induction completed successfully. You can now start work.')}
             </p>
             <div className="bg-green-50 dark:bg-green-950 rounded-lg p-4 mt-4">
               <p className="text-sm text-green-700 dark:text-green-300">
-                {isArabic 
-                  ? `العامل: ${inductionData?.worker_name_ar || inductionData?.worker_name}`
-                  : `Worker: ${inductionData?.worker_name}`}
+                {getContent('worker_label', 'Worker')}: {inductionData?.worker_name}
               </p>
               {inductionData?.project_name && (
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  {isArabic ? `المشروع: ${inductionData.project_name}` : `Project: ${inductionData.project_name}`}
+                  {getContent('project_label', 'Project')}: {inductionData.project_name}
                 </p>
               )}
             </div>
@@ -294,7 +290,7 @@ export default function WorkerInduction() {
                     onClick={handleDownloadCertificate}
                   >
                     <Download className="h-4 w-4 me-2" />
-                    {getContent('save_certificate', 'Save Certificate', 'حفظ الشهادة')}
+                    {getContent('save_certificate', 'Save Certificate')}
                   </Button>
                 )}
                 {settings.allow_share && (
@@ -304,7 +300,7 @@ export default function WorkerInduction() {
                     onClick={handleShare}
                   >
                     <Share2 className="h-4 w-4 me-2" />
-                    {getContent('share', 'Share', 'مشاركة')}
+                    {getContent('share', 'Share')}
                   </Button>
                 )}
               </div>
@@ -314,9 +310,7 @@ export default function WorkerInduction() {
             {idCardUrl && (
               <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
                 <p className="text-sm text-foreground mb-3">
-                  {getContent('id_card_sent', 
-                    '🆔 Your ID Card has been sent via WhatsApp/Email',
-                    '🆔 تم إرسال بطاقة الهوية الخاصة بك عبر WhatsApp/البريد الإلكتروني')}
+                  {getContent('id_card_sent', '🆔 Your ID Card has been sent via WhatsApp/Email')}
                 </p>
                 <Button 
                   variant="default" 
@@ -324,7 +318,7 @@ export default function WorkerInduction() {
                   onClick={() => window.open(idCardUrl, '_blank')}
                 >
                   <ExternalLink className="w-4 h-4 me-2" />
-                  {getContent('view_id_card', 'View ID Card Now', 'عرض بطاقة الهوية الآن')}
+                  {getContent('view_id_card', 'View ID Card Now')}
                 </Button>
               </div>
             )}
@@ -332,9 +326,7 @@ export default function WorkerInduction() {
             {/* No ID card message */}
             {!idCardUrl && (
               <p className="mt-4 text-xs text-muted-foreground">
-                {getContent('id_card_pending', 
-                  'ID card will be sent after your approval is confirmed',
-                  'سيتم إرسال بطاقة الهوية بعد الموافقة على طلبك')}
+                {getContent('id_card_pending', 'ID card will be sent after your approval is confirmed')}
               </p>
             )}
           </CardContent>
@@ -345,17 +337,15 @@ export default function WorkerInduction() {
 
   if (!inductionData) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              {getContent('not_found_title', 'Induction Not Found', 'لم يتم العثور على التدريب')}
+              {getContent('not_found_title', 'Induction Not Found')}
             </h2>
             <p className="text-muted-foreground">
-              {getContent('not_found_message', 
-                'This induction link is invalid or has expired.',
-                'رابط التدريب غير صالح أو منتهي الصلاحية.')}
+              {getContent('not_found_message', 'This induction link is invalid or has expired.')}
             </p>
           </CardContent>
         </Card>
@@ -364,7 +354,7 @@ export default function WorkerInduction() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4" dir={isArabic ? 'rtl' : 'ltr'} style={brandStyle}>
+    <div className="min-h-screen bg-background p-4" dir={isRTL ? 'rtl' : 'ltr'} style={brandStyle}>
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Tenant Branding Header */}
         {(inductionData.tenant_logo_url || inductionData.tenant_name) && (
@@ -393,14 +383,14 @@ export default function WorkerInduction() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Play className="w-5 h-5 text-primary" />
-              {getContent('page_title', 'Safety Induction', 'تدريب السلامة')}
+              {getContent('page_title', 'Safety Induction')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
               <User className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="font-medium">
-                {isArabic ? (inductionData.worker_name_ar || inductionData.worker_name) : inductionData.worker_name}
+                {inductionData.worker_name}
               </span>
             </div>
             {inductionData.project_name && (
@@ -420,7 +410,7 @@ export default function WorkerInduction() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
-              {isArabic ? (inductionData.video_title_ar || inductionData.video_title) : inductionData.video_title}
+              {getContent('video_title', inductionData.video_title)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -440,15 +430,13 @@ export default function WorkerInduction() {
         <Card className="border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-base text-primary">
-              {getContent('acknowledgment_title', 'Safety Acknowledgment', 'إقرار السلامة')}
+              {getContent('acknowledgment_title', 'Safety Acknowledgment')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                {getContent('acknowledgment_warning', 
-                  'Please watch the entire video and then agree to the terms below.',
-                  'يرجى مشاهدة الفيديو بالكامل ثم الموافقة على الشروط أدناه.')}
+                {getContent('acknowledgment_warning', 'Please watch the entire video and then agree to the terms below.')}
               </p>
             </div>
 
@@ -466,9 +454,7 @@ export default function WorkerInduction() {
                   acknowledged ? "text-foreground" : "text-muted-foreground"
                 )}
               >
-                {getContent('acknowledgment_text', 
-                  'I confirm that I have watched the entire safety video, understand all required safety procedures, and agree to comply with them.',
-                  'أقر بأنني شاهدت فيديو السلامة بالكامل وأفهم جميع إجراءات السلامة المطلوبة وأوافق على الالتزام بها.')}
+                {getContent('acknowledgment_text', 'I confirm that I have watched the entire safety video, understand all required safety procedures, and agree to comply with them.')}
               </label>
             </div>
 
@@ -479,17 +465,15 @@ export default function WorkerInduction() {
               size="lg"
             >
               {submitting 
-                ? (isArabic ? 'جارٍ الإرسال...' : 'Submitting...') 
-                : getContent('submit_button', 'Confirm Acknowledgment', 'تأكيد الإقرار')}
+                ? getContent('submitting', 'Submitting...') 
+                : getContent('submit_button', 'Confirm Acknowledgment')}
             </Button>
           </CardContent>
         </Card>
 
         {/* Footer */}
         <p className="text-xs text-center text-muted-foreground">
-          {getContent('footer_text', 
-            'This induction is required for workplace safety compliance',
-            'هذا التدريب مطلوب للسلامة في موقع العمل')}
+          {getContent('footer_text', 'This induction is required for workplace safety compliance')}
         </p>
       </div>
     </div>

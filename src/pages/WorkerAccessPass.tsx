@@ -101,6 +101,11 @@ export default function WorkerAccessPass() {
   const isRTL = language === 'ar' || language === 'ur';
   const content = accessData?.page_content;
 
+  // Helper function to get content from page_content with English fallback
+  const getContent = (key: keyof PageContent, fallbackEn: string): string => {
+    return content?.[key] || fallbackEn;
+  };
+
   const handleDownload = async () => {
     if (!badgeRef.current) return;
     
@@ -116,18 +121,16 @@ export default function WorkerAccessPass() {
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success(isRTL ? 'تم حفظ التصريح بنجاح' : 'Pass saved successfully');
+      toast.success(getContent('save_pass', 'Pass saved successfully'));
     } catch (err) {
       console.error('Download failed:', err);
-      toast.error(isRTL ? 'فشل في حفظ التصريح' : 'Failed to save pass');
+      toast.error('Failed to save pass');
     }
   };
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
-    const shareText = isRTL 
-      ? `تصريح دخول العامل: ${accessData?.worker.full_name}`
-      : `Worker Access Pass: ${accessData?.worker.full_name}`;
+    const shareText = `${getContent('title', 'Worker Access Pass')}: ${accessData?.worker.full_name}`;
     
     if (navigator.share) {
       try {
@@ -139,13 +142,13 @@ export default function WorkerAccessPass() {
         // User cancelled or share failed, copy to clipboard as fallback
         if ((err as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(shareUrl);
-          toast.success(isRTL ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+          toast.success('Link copied to clipboard');
         }
       }
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      toast.success(isRTL ? 'تم نسخ الرابط' : 'Link copied to clipboard');
+      toast.success('Link copied to clipboard');
     }
   };
 
@@ -173,12 +176,10 @@ export default function WorkerAccessPass() {
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold text-destructive mb-2">
-              {isRTL ? 'تصريح غير صالح' : 'Invalid Access Pass'}
+              Invalid Access Pass
             </h2>
             <p className="text-muted-foreground">
-              {isRTL 
-                ? 'لم يتم العثور على تصريح العامل أو تم إلغاؤه'
-                : 'Worker access pass not found or has been revoked'}
+              Worker access pass not found or has been revoked
             </p>
           </CardContent>
         </Card>
@@ -199,8 +200,8 @@ export default function WorkerAccessPass() {
 
   // Get HSSE department name
   const getHsseDeptName = () => {
-    if (isRTL) {
-      return branding?.hsse_department_name_ar || branding?.hsse_department_name || 'قسم الصحة والسلامة';
+    if (isRTL && branding?.hsse_department_name_ar) {
+      return branding.hsse_department_name_ar;
     }
     return branding?.hsse_department_name || 'HSSE Department';
   };
@@ -233,10 +234,10 @@ export default function WorkerAccessPass() {
               <HardHat className="h-8 w-8 mx-auto mb-2" />
             )}
             <h1 className="text-xl font-bold">
-              {isRTL ? 'تصريح دخول العامل' : 'Worker Access Pass'}
+              {getContent('title', 'Worker Access Pass')}
             </h1>
             <p className="text-primary-foreground/80 text-sm">
-              {project.tenant_name || (isRTL ? 'المنشأة' : 'Facility')}
+              {project.tenant_name || 'Facility'}
             </p>
             {/* HSSE Department Name */}
             <p className="text-primary-foreground/70 text-xs mt-1">
@@ -250,17 +251,17 @@ export default function WorkerAccessPass() {
               {accessData.is_revoked ? (
                 <Badge variant="destructive" className="text-sm px-4 py-1">
                   <XCircle className="h-4 w-4 me-1" />
-                  {isRTL ? 'ملغي' : 'Revoked'}
+                  {getContent('status_revoked', 'Revoked')}
                 </Badge>
               ) : isExpired ? (
                 <Badge variant="secondary" className="text-sm px-4 py-1 bg-amber-500 text-white hover:bg-amber-600">
                   <AlertTriangle className="h-4 w-4 me-1" />
-                  {isRTL ? 'منتهي الصلاحية' : 'Expired'}
+                  {getContent('status_expired', 'Expired')}
                 </Badge>
               ) : (
                 <Badge variant="default" className="text-sm px-4 py-1 bg-green-500 hover:bg-green-600">
                   <CheckCircle2 className="h-4 w-4 me-1" />
-                  {isRTL ? 'نشط' : 'Active'}
+                  {getContent('status_active', 'Active')}
                 </Badge>
               )}
             </div>
@@ -282,7 +283,7 @@ export default function WorkerAccessPass() {
                 <User className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {isRTL ? 'اسم العامل' : 'Worker Name'}
+                    {getContent('worker_name_label', 'Worker Name')}
                   </p>
                   <p className="font-medium">{worker.full_name}</p>
                 </div>
@@ -293,7 +294,7 @@ export default function WorkerAccessPass() {
                 <Building2 className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {isRTL ? 'الشركة' : 'Company'}
+                    {getContent('company_label', 'Company')}
                   </p>
                   <p className="font-medium">{worker.company_name || '-'}</p>
                 </div>
@@ -303,7 +304,7 @@ export default function WorkerAccessPass() {
                 <HardHat className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {isRTL ? 'المشروع' : 'Project'}
+                    {getContent('project_label', 'Project')}
                   </p>
                   <p className="font-medium">{project.project_name}</p>
                 </div>
@@ -313,7 +314,7 @@ export default function WorkerAccessPass() {
                 <Clock className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {isRTL ? 'صالح حتى' : 'Valid Until'}
+                    {getContent('valid_until_label', 'Valid Until')}
                   </p>
                   <p className={`font-medium ${isExpired ? 'text-destructive' : ''}`}>
                     {format(new Date(accessData.valid_until), 'PPp')}
@@ -334,7 +335,7 @@ export default function WorkerAccessPass() {
                 onClick={handleDownload}
               >
                 <Download className="h-4 w-4 me-2" />
-                {isRTL ? 'حفظ التصريح' : 'Save Pass'}
+                {getContent('save_pass', 'Save Pass')}
               </Button>
             )}
             {settings.allow_share && (
@@ -344,7 +345,7 @@ export default function WorkerAccessPass() {
                 onClick={handleShare}
               >
                 <Share2 className="h-4 w-4 me-2" />
-                {isRTL ? 'مشاركة' : 'Share'}
+                {getContent('share', 'Share')}
               </Button>
             )}
           </div>
@@ -356,7 +357,7 @@ export default function WorkerAccessPass() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-400">
                 <Shield className="h-5 w-5" />
-                {isRTL ? 'تعليمات السلامة' : 'Safety Instructions'}
+                {getContent('safety_title', 'Safety Instructions')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -378,7 +379,7 @@ export default function WorkerAccessPass() {
                 <Phone className="h-5 w-5 text-destructive shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs text-destructive/70">
-                    {isRTL ? 'اتصال طوارئ' : 'Emergency Contact'}
+                    {getContent('emergency_title', 'Emergency Contact')}
                   </p>
                   <p className="font-bold text-destructive">
                     {project.emergency_contact_number}
@@ -396,9 +397,7 @@ export default function WorkerAccessPass() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground pt-2">
-          {isRTL 
-            ? 'يرجى إظهار رمز QR هذا عند البوابة للدخول'
-            : 'Please present this QR code at the gate for entry'}
+          {getContent('qr_instruction', 'Please present this QR code at the gate for entry')}
         </p>
       </div>
     </div>
