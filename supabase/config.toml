@@ -278,3 +278,6 @@ verify_jwt = true
 
 [functions.send-hsse-notification-external]
 verify_jwt = false
+
+[functions.send-worker-bulk-message]
+verify_jwt = true

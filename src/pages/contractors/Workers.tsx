@@ -20,6 +20,7 @@ import { WorkerBulkImportDialog } from "@/components/contractors/WorkerBulkImpor
 import { WorkerBulkActionsToolbar } from "@/components/contractors/WorkerBulkActionsToolbar";
 import { BulkRejectDialog } from "@/components/contractors/BulkRejectDialog";
 import { AddWorkerToBlacklistDialog } from "@/components/contractors/AddWorkerToBlacklistDialog";
+import { WorkerBulkMessageDialog } from "@/components/contractors/WorkerBulkMessageDialog";
 import { DeleteWorkerDialog } from "@/components/contractors/DeleteWorkerDialog";
 import { ChangeWorkerStatusDialog } from "@/components/contractors/ChangeWorkerStatusDialog";
 import {
@@ -46,6 +47,7 @@ export default function Workers() {
   const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const [isBulkRejectOpen, setIsBulkRejectOpen] = useState(false);
   const [isBlacklistDialogOpen, setIsBlacklistDialogOpen] = useState(false);
+  const [isBulkMessageOpen, setIsBulkMessageOpen] = useState(false);
   
   // Individual worker action states
   const [workerToDelete, setWorkerToDelete] = useState<ContractorWorker | null>(null);
@@ -148,7 +150,8 @@ export default function Workers() {
     });
   };
 
-  const showSelection = statusFilter === "pending" || activeTab === "pending";
+  // Always enable selection for bulk actions (messaging, approve, reject)
+  const showSelection = true;
 
   return (
     <div className="space-y-6">
@@ -239,9 +242,11 @@ export default function Workers() {
                   onApprove={handleBulkApprove}
                   onReject={() => setIsBulkRejectOpen(true)}
                   onAddToBlacklist={() => setIsBlacklistDialogOpen(true)}
+                  onSendMessage={() => setIsBulkMessageOpen(true)}
                   onClear={() => setSelectedWorkerIds([])}
                   isApproving={bulkApprove.isPending}
                   showBlacklist={selectedWorkerIds.length > 0}
+                  showMessage={selectedWorkerIds.length > 0}
                 />
               )}
               <WorkerListTable
@@ -326,6 +331,12 @@ export default function Workers() {
         initialStatus={pendingStatusChange}
         onConfirm={handleConfirmStatusChange}
         isPending={updateWorkerStatus.isPending}
+      />
+
+      <WorkerBulkMessageDialog
+        open={isBulkMessageOpen}
+        onOpenChange={setIsBulkMessageOpen}
+        workers={selectedWorkers}
       />
     </div>
   );
