@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface MediaAttachment {
   url: string;
@@ -14,10 +15,22 @@ interface MediaAttachment {
   name: string;
 }
 
+// Metadata for legal evidence filenames
+export interface IncidentMetadata {
+  referenceId?: string;
+  occurredAt?: string;
+  location?: string;
+  branchName?: string;
+  siteName?: string;
+  contractorName?: string;
+  organizationName?: string;
+}
+
 interface IncidentAttachmentsSectionProps {
   incidentId: string;
   mediaAttachments?: MediaAttachment[] | null;
   compact?: boolean;
+  incidentMetadata?: IncidentMetadata;
 }
 
 interface StorageFile {
@@ -28,10 +41,64 @@ interface StorageFile {
   createdAt: string;
 }
 
+// Sanitize text for safe filenames
+const sanitizeFilename = (text: string): string => {
+  return text
+    .replace(/[/\\:*?"<>|]/g, '') // Remove invalid chars
+    .replace(/\s+/g, '-')          // Replace spaces with dashes
+    .substring(0, 50);             // Limit length
+};
+
+// Generate descriptive filename for legal evidence
+const generateEvidenceFilename = (
+  originalName: string,
+  metadata?: IncidentMetadata
+): string => {
+  if (!metadata) return originalName;
+
+  const ext = originalName.split('.').pop() || 'jpg';
+  const parts: string[] = [];
+
+  // Reference ID (e.g., OBS-2026-0001)
+  if (metadata.referenceId) {
+    parts.push(metadata.referenceId);
+  }
+
+  // Timestamp (e.g., 2026-01-03_22-23)
+  if (metadata.occurredAt) {
+    try {
+      const date = new Date(metadata.occurredAt);
+      parts.push(format(date, 'yyyy-MM-dd_HH-mm'));
+    } catch {
+      // Skip if date parsing fails
+    }
+  }
+
+  // Location (branch/site or location text)
+  const locationText = metadata.branchName || metadata.siteName || metadata.location;
+  if (locationText) {
+    parts.push(sanitizeFilename(locationText));
+  }
+
+  // Contractor name (when applicable)
+  if (metadata.contractorName) {
+    parts.push(sanitizeFilename(metadata.contractorName));
+  }
+
+  // Organization name
+  if (metadata.organizationName) {
+    parts.push(sanitizeFilename(metadata.organizationName));
+  }
+
+  // Combine with underscore separator
+  return parts.length > 0 ? `${parts.join('_')}.${ext}` : originalName;
+};
+
 export function IncidentAttachmentsSection({ 
   incidentId, 
   mediaAttachments,
-  compact = false 
+  compact = false,
+  incidentMetadata
 }: IncidentAttachmentsSectionProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
@@ -126,15 +193,17 @@ export function IncidentAttachmentsSection({
   };
 
   // Proper download handler for cross-origin files (signed URLs)
-  const handleDownload = async (url: string, filename: string) => {
+  // Uses metadata to generate legal evidence filename
+  const handleDownload = async (url: string, originalFilename: string) => {
     try {
+      const evidenceFilename = generateEvidenceFilename(originalFilename, incidentMetadata);
       const response = await fetch(url);
       if (!response.ok) throw new Error('Download failed');
       const blob = await response.blob();
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = filename;
+      link.download = evidenceFilename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
