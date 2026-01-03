@@ -281,6 +281,22 @@ serve(async (req) => {
     let visitorsSent = 0;
     let messagesFailed = 0;
     const errors: string[] = [];
+    const deliveryLogs: Array<{
+      tenant_id: string;
+      notification_id: string;
+      channel: string;
+      recipient_type: string;
+      recipient_address: string;
+      recipient_name: string | null;
+      recipient_language: string;
+      status: string;
+      provider: string;
+      provider_message_id: string | null;
+      error_message: string | null;
+      sent_at: string | null;
+      failed_at: string | null;
+      metadata: Record<string, unknown>;
+    }> = [];
 
     for (const recipient of recipients) {
       const lang = resolveLanguage(recipient.nationality);
@@ -306,19 +322,93 @@ serve(async (req) => {
             visitorsSent++;
           }
           console.log(`WhatsApp sent to ${recipient.phone}`);
+          deliveryLogs.push({
+            tenant_id: notification.tenant_id,
+            notification_id: notification.id,
+            channel: 'whatsapp',
+            recipient_type: recipient.type,
+            recipient_address: recipient.phone,
+            recipient_name: recipient.name,
+            recipient_language: lang,
+            status: 'sent',
+            provider: 'wasender',
+            provider_message_id: result.messageId || null,
+            error_message: null,
+            sent_at: new Date().toISOString(),
+            failed_at: null,
+            metadata: { 
+              nationality: recipient.nationality, 
+              priority: notification.priority, 
+              category: notification.category 
+            },
+          });
         } else {
           messagesFailed++;
           errors.push(`${recipient.phone}: ${result.error}`);
           console.error(`Failed to send WhatsApp to ${recipient.phone}:`, result.error);
+          deliveryLogs.push({
+            tenant_id: notification.tenant_id,
+            notification_id: notification.id,
+            channel: 'whatsapp',
+            recipient_type: recipient.type,
+            recipient_address: recipient.phone,
+            recipient_name: recipient.name,
+            recipient_language: lang,
+            status: 'failed',
+            provider: 'wasender',
+            provider_message_id: null,
+            error_message: result.error || 'Unknown error',
+            sent_at: null,
+            failed_at: new Date().toISOString(),
+            metadata: { 
+              nationality: recipient.nationality, 
+              priority: notification.priority, 
+              category: notification.category 
+            },
+          });
         }
       } catch (err) {
         messagesFailed++;
-        errors.push(`${recipient.phone}: ${err}`);
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        errors.push(`${recipient.phone}: ${errorMsg}`);
         console.error(`Error sending WhatsApp to ${recipient.phone}:`, err);
+        deliveryLogs.push({
+          tenant_id: notification.tenant_id,
+          notification_id: notification.id,
+          channel: 'whatsapp',
+          recipient_type: recipient.type,
+          recipient_address: recipient.phone,
+          recipient_name: recipient.name,
+          recipient_language: lang,
+          status: 'failed',
+          provider: 'wasender',
+          provider_message_id: null,
+          error_message: errorMsg,
+          sent_at: null,
+          failed_at: new Date().toISOString(),
+          metadata: { 
+            nationality: recipient.nationality, 
+            priority: notification.priority, 
+            category: notification.category 
+          },
+        });
       }
 
       // Small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Insert delivery logs
+    if (deliveryLogs.length > 0) {
+      const { error: logError } = await supabase
+        .from('hsse_notification_delivery_logs')
+        .insert(deliveryLogs);
+      
+      if (logError) {
+        console.error('Failed to insert delivery logs:', logError);
+      } else {
+        console.log(`Inserted ${deliveryLogs.length} delivery logs`);
+      }
     }
 
     // Update notification record with send stats

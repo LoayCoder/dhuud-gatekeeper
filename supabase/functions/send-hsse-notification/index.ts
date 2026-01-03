@@ -262,6 +262,23 @@ serve(async (req) => {
     let emailsSent = 0;
     let emailsFailed = 0;
     const errors: string[] = [];
+    const deliveryLogs: Array<{
+      tenant_id: string;
+      notification_id: string;
+      channel: string;
+      recipient_type: string;
+      recipient_id: string;
+      recipient_address: string;
+      recipient_name: string | null;
+      recipient_language: string;
+      status: string;
+      provider: string;
+      provider_message_id: string | null;
+      error_message: string | null;
+      sent_at: string | null;
+      failed_at: string | null;
+      metadata: Record<string, unknown>;
+    }> = [];
 
     // Send emails to each user in their preferred language
     for (const user of targetUsers || []) {
@@ -337,15 +354,80 @@ serve(async (req) => {
         if (result.success) {
           emailsSent++;
           console.log(`Email sent to ${email}`);
+          deliveryLogs.push({
+            tenant_id: notification.tenant_id,
+            notification_id: notification.id,
+            channel: 'email',
+            recipient_type: 'employee',
+            recipient_id: user.id,
+            recipient_address: email,
+            recipient_name: user.full_name,
+            recipient_language: lang,
+            status: 'sent',
+            provider: 'resend',
+            provider_message_id: null,
+            error_message: null,
+            sent_at: new Date().toISOString(),
+            failed_at: null,
+            metadata: { priority: notification.priority, category: notification.category },
+          });
         } else {
           emailsFailed++;
           errors.push(`${email}: ${result.error}`);
           console.error(`Failed to send email to ${email}:`, result.error);
+          deliveryLogs.push({
+            tenant_id: notification.tenant_id,
+            notification_id: notification.id,
+            channel: 'email',
+            recipient_type: 'employee',
+            recipient_id: user.id,
+            recipient_address: email,
+            recipient_name: user.full_name,
+            recipient_language: lang,
+            status: 'failed',
+            provider: 'resend',
+            provider_message_id: null,
+            error_message: result.error || 'Unknown error',
+            sent_at: null,
+            failed_at: new Date().toISOString(),
+            metadata: { priority: notification.priority, category: notification.category },
+          });
         }
       } catch (emailError) {
         emailsFailed++;
-        errors.push(`${email}: ${emailError}`);
+        const errorMsg = emailError instanceof Error ? emailError.message : String(emailError);
+        errors.push(`${email}: ${errorMsg}`);
         console.error(`Error sending email to ${email}:`, emailError);
+        deliveryLogs.push({
+          tenant_id: notification.tenant_id,
+          notification_id: notification.id,
+          channel: 'email',
+          recipient_type: 'employee',
+          recipient_id: user.id,
+          recipient_address: email,
+          recipient_name: user.full_name,
+          recipient_language: lang,
+          status: 'failed',
+          provider: 'resend',
+          provider_message_id: null,
+          error_message: errorMsg,
+          sent_at: null,
+          failed_at: new Date().toISOString(),
+          metadata: { priority: notification.priority, category: notification.category },
+        });
+      }
+    }
+
+    // Insert delivery logs
+    if (deliveryLogs.length > 0) {
+      const { error: logError } = await supabase
+        .from('hsse_notification_delivery_logs')
+        .insert(deliveryLogs);
+      
+      if (logError) {
+        console.error('Failed to insert delivery logs:', logError);
+      } else {
+        console.log(`Inserted ${deliveryLogs.length} delivery logs`);
       }
     }
 

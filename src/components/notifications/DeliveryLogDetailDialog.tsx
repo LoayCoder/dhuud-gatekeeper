@@ -36,6 +36,19 @@ const SEVERITY_COLORS: Record<string, string> = {
   'level_5': 'bg-red-200 text-red-800',
 };
 
+const HSSE_PRIORITY_COLORS: Record<string, string> = {
+  'critical': 'bg-red-100 text-red-700',
+  'high': 'bg-orange-100 text-orange-700',
+  'medium': 'bg-yellow-100 text-yellow-700',
+  'low': 'bg-emerald-100 text-emerald-700',
+};
+
+const RECIPIENT_TYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  'employee': { en: 'Employee', ar: 'موظف' },
+  'worker': { en: 'Worker', ar: 'عامل' },
+  'visitor': { en: 'Visitor', ar: 'زائر' },
+};
+
 export function DeliveryLogDetailDialog({ 
   log, 
   open, 
@@ -67,10 +80,15 @@ export function DeliveryLogDetailDialog({
             {/* Status & Source */}
             <div className="flex items-center justify-between">
               <DeliveryStatusBadge status={log.status} size="md" />
-              <Badge variant={log.source === 'incident' ? 'default' : 'secondary'}>
+              <Badge 
+                variant={log.source === 'incident' ? 'default' : log.source === 'hsse' ? 'outline' : 'secondary'}
+                className={log.source === 'hsse' ? 'border-amber-500 text-amber-700' : ''}
+              >
                 {log.source === 'incident' 
                   ? (isRTL ? 'إشعار حادثة' : 'Incident Alert')
-                  : (isRTL ? 'إشعار يدوي' : 'Manual Notification')
+                  : log.source === 'hsse'
+                    ? (isRTL ? 'تنبيه صحة وسلامة' : 'HSSE Alert')
+                    : (isRTL ? 'إشعار يدوي' : 'Manual Notification')
                 }
               </Badge>
             </div>
@@ -137,6 +155,68 @@ export function DeliveryLogDetailDialog({
                           <Shield className="h-3 w-3 me-1" />
                           {isRTL ? 'تجاوز ERP' : 'ERP Override'}
                         </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* HSSE-specific details */}
+            {log.source === 'hsse' && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    {isRTL ? 'تفاصيل الصحة والسلامة' : 'HSSE Details'}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {log.recipient_type && (
+                      <div>
+                        <span className="text-muted-foreground">{isRTL ? 'نوع المستلم:' : 'Recipient Type:'}</span>
+                        <span className="ms-2 font-medium">
+                          {isRTL 
+                            ? RECIPIENT_TYPE_LABELS[log.recipient_type]?.ar 
+                            : RECIPIENT_TYPE_LABELS[log.recipient_type]?.en
+                          }
+                        </span>
+                      </div>
+                    )}
+
+                    {log.recipient_name && (
+                      <div>
+                        <span className="text-muted-foreground">{isRTL ? 'الاسم:' : 'Name:'}</span>
+                        <span className="ms-2 font-medium">{log.recipient_name}</span>
+                      </div>
+                    )}
+
+                    {log.recipient_language && (
+                      <div>
+                        <span className="text-muted-foreground">{isRTL ? 'اللغة:' : 'Language:'}</span>
+                        <span className="ms-2 font-medium uppercase">{log.recipient_language}</span>
+                      </div>
+                    )}
+
+                    {log.hsse_priority && (
+                      <div>
+                        <span className="text-muted-foreground">{isRTL ? 'الأولوية:' : 'Priority:'}</span>
+                        <Badge 
+                          className={`ms-2 ${HSSE_PRIORITY_COLORS[log.hsse_priority] || 'bg-gray-100 text-gray-700'}`}
+                          variant="secondary"
+                        >
+                          {log.hsse_priority.charAt(0).toUpperCase() + log.hsse_priority.slice(1)}
+                        </Badge>
+                      </div>
+                    )}
+
+                    {log.hsse_category && (
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">{isRTL ? 'الفئة:' : 'Category:'}</span>
+                        <span className="ms-2 font-medium capitalize">
+                          {log.hsse_category.replace(/_/g, ' ')}
+                        </span>
                       </div>
                     )}
                   </div>
