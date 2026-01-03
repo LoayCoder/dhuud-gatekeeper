@@ -16,10 +16,12 @@ interface BulkInductionRequest {
 interface Worker {
   id: string;
   full_name: string;
+  full_name_ar: string | null;
   mobile_number: string;
   preferred_language: string;
   nationality: string;
   tenant_id: string;
+  company_id: string | null;
 }
 
 // Arab countries that get Arabic for workers
@@ -146,7 +148,7 @@ async function sendInductionToWorker(
     // Build comprehensive template variables
     const templateVariables = {
       worker_name: worker.full_name,
-      worker_name_ar: worker.full_name || '',
+      worker_name_ar: worker.full_name_ar || worker.full_name,
       project_name: project.project_name,
       video_title: selectedVideo.title,
       video_title_ar: selectedVideo.title_ar || selectedVideo.title,
@@ -160,6 +162,7 @@ async function sendInductionToWorker(
       induction_expires_at: expiresAt.toISOString().split('T')[0],
       induction_valid_for_days: String(validForDays),
       induction_sent_at: new Date().toISOString(),
+      induction_status: 'pending',
       company_name: '',
       site_name: '',
       action_link: inductionPortalUrl,
@@ -317,7 +320,7 @@ Deno.serve(async (req) => {
     // Fetch workers (only approved with mobile numbers)
     const { data: workers, error: workersError } = await supabase
       .from("contractor_workers")
-      .select("id, full_name, mobile_number, preferred_language, nationality, tenant_id")
+      .select("id, full_name, full_name_ar, mobile_number, preferred_language, nationality, tenant_id, company_id")
       .in("id", worker_ids)
       .eq("tenant_id", tenant_id)
       .eq("approval_status", "approved")
