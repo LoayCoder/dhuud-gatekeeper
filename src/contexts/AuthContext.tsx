@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
-import i18n, { setMissingTranslationIndicator } from '@/i18n';
+import i18n from '@/i18n';
 import { useProfileEmailWatcher } from '@/hooks/use-profile-email-watcher';
 
 // Prevent HMR from creating multiple contexts
@@ -67,9 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (data) {
       setProfile(data);
-      
-      // Enable missing translation indicator for DHUUD tenant only
-      setMissingTranslationIndicator(data.tenant_id);
       
       // Apply user's preferred language if set
       if (data.preferred_language && data.preferred_language !== i18n.language) {
