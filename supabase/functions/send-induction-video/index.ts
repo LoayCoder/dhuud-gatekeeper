@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       // Specific video requested
       const { data: video, error: videoError } = await supabase
         .from('induction_videos')
-        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .select('id, title, title_ar, description, video_url, language, duration_seconds, valid_for_days')
         .eq('id', videoId)
         .eq('is_active', true)
         .is('deleted_at', null)
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       // Find appropriate induction video based on worker's preferred language
       const { data: videos } = await supabase
         .from('induction_videos')
-        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .select('id, title, title_ar, description, video_url, language, duration_seconds, valid_for_days')
         .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .is('deleted_at', null)
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       // No video or project specified, get first available video
       const { data: videos } = await supabase
         .from('induction_videos')
-        .select('id, title, video_url, language, duration_seconds, valid_for_days')
+        .select('id, title, title_ar, description, video_url, language, duration_seconds, valid_for_days')
         .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .is('deleted_at', null)
@@ -241,8 +241,8 @@ Deno.serve(async (req) => {
       worker_name_ar: worker.full_name || '',
       project_name: projectName,
       video_title: video.title,
-      video_title_ar: video.title || '',
-      video_description: '',
+      video_title_ar: video.title_ar || video.title,
+      video_description: video.description || '',
       video_url: video.video_url,
       video_duration: `${durationMin} min`,
       video_duration_seconds: String(video.duration_seconds || 0),
@@ -252,6 +252,7 @@ Deno.serve(async (req) => {
       induction_expires_at: expiresAt.toISOString().split('T')[0],
       induction_valid_for_days: String(validForDays),
       induction_sent_at: new Date().toISOString(),
+      induction_status: 'pending',
       company_name: '',
       site_name: '',
       action_link: inductionPortalUrl,

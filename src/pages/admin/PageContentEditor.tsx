@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Languages, 
   Sparkles, 
@@ -21,7 +23,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
-  Globe
+  Globe,
+  Video,
+  ExternalLink,
+  Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePageContentVersions, type PageType, type PageStatus } from '@/hooks/usePageContentVersions';
@@ -116,6 +121,7 @@ const DEFAULT_CONTENT: Record<PageType, Record<string, string>> = {
 
 export default function PageContentEditor() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
   const { profile } = useAuth();
   
@@ -337,6 +343,32 @@ export default function PageContentEditor() {
 
         {pageTypes.map((pt) => (
           <TabsContent key={pt.value} value={pt.value} className="space-y-6 mt-6">
+            {/* Induction Videos Link Card - only for worker_induction */}
+            {pt.value === 'worker_induction' && (
+              <Alert variant="default" className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                <Video className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-2">
+                  <div>
+                    <span className="font-medium">
+                      {t('pageEditor.videoContentManagement', 'Video Content Management')}
+                    </span>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t('pageEditor.videoContentDesc', 
+                        'Induction video titles, descriptions, and language variants are managed in the Induction Videos module.')}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto w-fit text-blue-600 dark:text-blue-400"
+                    onClick={() => navigate('/contractors/induction-videos')}
+                  >
+                    <ExternalLink className="h-3 w-3 me-1" />
+                    {t('pageEditor.goToInductionVideos', 'Go to Induction Videos')}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Main Page Editor */}
               <Card>
