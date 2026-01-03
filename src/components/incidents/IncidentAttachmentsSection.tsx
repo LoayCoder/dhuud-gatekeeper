@@ -15,7 +15,7 @@ interface MediaAttachment {
   name: string;
 }
 
-// Metadata for legal evidence filenames
+// Metadata for legal evidence filenames and watermarks
 export interface IncidentMetadata {
   referenceId?: string;
   occurredAt?: string;
@@ -24,6 +24,8 @@ export interface IncidentMetadata {
   siteName?: string;
   contractorName?: string;
   organizationName?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface IncidentAttachmentsSectionProps {
@@ -192,14 +194,152 @@ export function IncidentAttachmentsSection({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  // Add legal evidence watermark (white info box) to image
+  const addEvidenceWatermark = async (
+    blob: Blob,
+    metadata: IncidentMetadata,
+    language: 'ar' | 'en'
+  ): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        
+        if (!ctx) {
+          resolve(blob);
+          return;
+        }
+
+        const { width, height } = img;
+        
+        // Calculate info box dimensions
+        const fontSize = Math.max(Math.min(width * 0.022, 20), 11);
+        const lineHeight = fontSize * 1.5;
+        const padding = Math.max(width * 0.02, 12);
+        
+        // Count lines needed
+        let lineCount = 0;
+        if (metadata.referenceId) lineCount++;
+        if (metadata.occurredAt) lineCount++;
+        if (metadata.branchName || metadata.siteName || metadata.location) lineCount++;
+        if (metadata.latitude && metadata.longitude) lineCount++;
+        if (metadata.contractorName) lineCount++;
+        if (metadata.organizationName) lineCount++;
+        
+        const boxHeight = lineCount > 0 ? (lineCount * lineHeight) + (padding * 2) : 0;
+        
+        // Canvas size: original image + info box
+        canvas.width = width;
+        canvas.height = height + boxHeight;
+        
+        // Draw original image
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        if (lineCount > 0) {
+          // Draw white info box at bottom
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, height, width, boxHeight);
+          
+          // Draw border line at top of box
+          ctx.strokeStyle = '#E5E7EB';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, height);
+          ctx.lineTo(width, height);
+          ctx.stroke();
+          
+          // Setup text style
+          ctx.fillStyle = '#1F2937';
+          const isRTL = language === 'ar';
+          ctx.textAlign = isRTL ? 'right' : 'left';
+          const textX = isRTL ? width - padding : padding;
+          let currentY = height + padding + fontSize;
+          
+          // Reference ID (bold)
+          if (metadata.referenceId) {
+            ctx.font = `700 ${fontSize * 1.1}px "IBM Plex Sans Arabic", system-ui, sans-serif`;
+            ctx.fillText(metadata.referenceId, textX, currentY);
+            currentY += lineHeight;
+          }
+          
+          ctx.font = `500 ${fontSize}px "IBM Plex Sans Arabic", system-ui, sans-serif`;
+          
+          // Timestamp
+          if (metadata.occurredAt) {
+            const date = new Date(metadata.occurredAt);
+            const label = language === 'ar' ? 'التاريخ: ' : 'Date: ';
+            const formatted = date.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
+              year: 'numeric', month: 'short', day: 'numeric',
+              hour: '2-digit', minute: '2-digit', hour12: true
+            });
+            ctx.fillText(label + formatted, textX, currentY);
+            currentY += lineHeight;
+          }
+          
+          // Location (branch/site)
+          const locationText = metadata.branchName || metadata.siteName || metadata.location;
+          if (locationText) {
+            const label = language === 'ar' ? 'الموقع: ' : 'Location: ';
+            ctx.fillText(label + locationText, textX, currentY);
+            currentY += lineHeight;
+          }
+          
+          // GPS coordinates
+          if (metadata.latitude && metadata.longitude) {
+            const label = language === 'ar' ? 'إحداثيات GPS: ' : 'GPS: ';
+            const latDir = metadata.latitude >= 0 ? 'N' : 'S';
+            const lngDir = metadata.longitude >= 0 ? 'E' : 'W';
+            const coords = `${Math.abs(metadata.latitude).toFixed(6)}°${latDir}, ${Math.abs(metadata.longitude).toFixed(6)}°${lngDir}`;
+            ctx.fillText(label + coords, textX, currentY);
+            currentY += lineHeight;
+          }
+          
+          // Contractor name
+          if (metadata.contractorName) {
+            const label = language === 'ar' ? 'المقاول: ' : 'Contractor: ';
+            ctx.fillText(label + metadata.contractorName, textX, currentY);
+            currentY += lineHeight;
+          }
+          
+          // Organization name
+          if (metadata.organizationName) {
+            ctx.fillText(metadata.organizationName, textX, currentY);
+          }
+        }
+        
+        // Convert to blob
+        canvas.toBlob((newBlob) => {
+          resolve(newBlob || blob);
+        }, 'image/jpeg', 0.95);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(blob);
+      };
+
+      img.src = URL.createObjectURL(blob);
+    });
+  };
+
   // Proper download handler for cross-origin files (signed URLs)
-  // Uses metadata to generate legal evidence filename
+  // Adds legal evidence watermark for images and generates descriptive filename
   const handleDownload = async (url: string, originalFilename: string) => {
     try {
       const evidenceFilename = generateEvidenceFilename(originalFilename, incidentMetadata);
       const response = await fetch(url);
       if (!response.ok) throw new Error('Download failed');
-      const blob = await response.blob();
+      let blob = await response.blob();
+      
+      // Apply evidence watermark for images only
+      if (blob.type.startsWith('image/') && incidentMetadata) {
+        const language = i18n.language?.startsWith('ar') ? 'ar' : 'en';
+        blob = await addEvidenceWatermark(blob, incidentMetadata, language);
+      }
+      
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
