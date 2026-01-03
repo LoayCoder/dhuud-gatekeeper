@@ -82,6 +82,14 @@ export function WorkerBulkInductionDialog({
     [eligibleWorkers.length]
   );
 
+  // Get worker's language - use preferred_language if set (and not 'en'), otherwise resolve from nationality
+  const getWorkerLanguage = (worker: ContractorWorker): string => {
+    if (worker.preferred_language && worker.preferred_language !== 'en') {
+      return worker.preferred_language.toUpperCase();
+    }
+    return resolveWorkerLanguage(worker.nationality).toUpperCase();
+  };
+
   // Group workers by language for summary
   const languageGroups = useMemo(() => {
     const groups: Record<string, number> = {};
@@ -139,13 +147,6 @@ export function WorkerBulkInductionDialog({
       .slice(0, 2);
   };
 
-  // Get worker's language - use preferred_language if set (and not 'en'), otherwise resolve from nationality
-  const getWorkerLanguage = (worker: ContractorWorker): string => {
-    if (worker.preferred_language && worker.preferred_language !== 'en') {
-      return worker.preferred_language.toUpperCase();
-    }
-    return resolveWorkerLanguage(worker.nationality).toUpperCase();
-  };
 
   // Format estimated time for display
   const formatEstimatedTime = (workerCount: number): string => {
