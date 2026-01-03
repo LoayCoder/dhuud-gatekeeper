@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, ExternalLink, Clock, Tag, Printer } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, Building2, ExternalLink, Clock, Tag, Printer } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -393,6 +393,23 @@ export default function IncidentDetail() {
           </CardHeader>
           <CardContent>
             <Badge variant="secondary">{incident.special_event.name}</Badge>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Report Against Contractor - for negative observations */}
+      {incident.related_contractor_company && (
+        <Card className="border-amber-500/50">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2 text-amber-600 dark:text-amber-500">
+              <Building2 className="h-4 w-4" />
+              {t('quickObservation.reportAgainstContractor', 'Report Against Contractor')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Badge variant="secondary" className="text-sm">
+              {incident.related_contractor_company.company_name}
+            </Badge>
           </CardContent>
         </Card>
       )}
