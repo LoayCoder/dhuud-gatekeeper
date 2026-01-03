@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,8 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Languages } from "lucide-react";
 import { InductionVideo, useCreateInductionVideo, useUpdateInductionVideo } from "@/hooks/contractor-management/use-induction-videos";
+import { useInductionTranslation } from "@/hooks/contractor-management/use-induction-translation";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -40,6 +41,9 @@ const LANGUAGES = [
   { code: "hi", label: "हिंदी" },
   { code: "fil", label: "Filipino" },
 ];
+
+// Default source language for translation
+const SOURCE_LANGUAGE = "en";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -70,6 +74,7 @@ export function InductionVideoFormDialog({
 
   const createMutation = useCreateInductionVideo();
   const updateMutation = useUpdateInductionVideo();
+  const { translate, isTranslating } = useInductionTranslation();
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<FormValues>({
@@ -127,6 +132,31 @@ export function InductionVideoFormDialog({
     }
   };
 
+  // Handle AI translation
+  const handleTranslate = async () => {
+    const currentTitle = form.getValues("title");
+    const currentDescription = form.getValues("description");
+    const targetLanguage = form.getValues("language");
+
+    const result = await translate(
+      { title: currentTitle, description: currentDescription },
+      SOURCE_LANGUAGE,
+      targetLanguage
+    );
+
+    if (result) {
+      form.setValue("title", result.title, { shouldValidate: true });
+      if (result.description) {
+        form.setValue("description", result.description, { shouldValidate: true });
+      }
+    }
+  };
+
+  // Check if translation is available
+  const selectedLanguage = form.watch("language");
+  const titleValue = form.watch("title");
+  const canTranslate = selectedLanguage !== SOURCE_LANGUAGE && titleValue?.trim();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -154,30 +184,53 @@ export function InductionVideoFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("common.language", "Language")} *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex items-end gap-2">
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>{t("common.language", "Language")} *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang.code} value={lang.code}>
+                            {lang.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleTranslate}
+                disabled={!canTranslate || isTranslating}
+                className="mb-[2px]"
+              >
+                {isTranslating ? (
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                ) : (
+                  <Languages className="h-4 w-4 me-2 rtl:rotate-0" />
+                )}
+                {t("contractors.induction.translate", "Translate")}
+              </Button>
+            </div>
+
+            {canTranslate && (
+              <p className="text-xs text-muted-foreground -mt-2">
+                {t("contractors.induction.translateHint", "Click 'Translate' to auto-translate Title and Description from English to the selected language")}
+              </p>
+            )}
 
             <FormField
               control={form.control}
