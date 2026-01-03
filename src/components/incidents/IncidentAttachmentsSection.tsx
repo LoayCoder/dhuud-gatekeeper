@@ -216,12 +216,10 @@ export function IncidentAttachmentsSection({
               key={`${attachment.source}-${index}`}
               className="relative group rounded-lg border bg-muted/30 overflow-hidden"
             >
-              {/* Thumbnail/Preview */}
-              <a 
-                href={attachment.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block aspect-video"
+              {/* Thumbnail/Preview - Click to download */}
+              <div 
+                className="block aspect-video cursor-pointer"
+                onClick={() => handleDownload(attachment.url, attachment.name)}
               >
                 {isImage ? (
                   <img 
@@ -243,9 +241,9 @@ export function IncidentAttachmentsSection({
                   </div>
                 )}
 
-                {/* Hover overlay */}
+                {/* Hover overlay - Download icon */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <ExternalLink className="h-6 w-6 text-white" />
+                  <Download className="h-6 w-6 text-white" />
                 </div>
 
                 {/* Video play indicator */}
@@ -256,7 +254,7 @@ export function IncidentAttachmentsSection({
                     </div>
                   </div>
                 )}
-              </a>
+              </div>
 
               {/* File info footer */}
               <div className="p-2 space-y-1">
@@ -264,15 +262,26 @@ export function IncidentAttachmentsSection({
                   <p className="text-xs font-medium truncate flex-1" title={attachment.name}>
                     {attachment.name}
                   </p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 shrink-0"
-                    onClick={() => handleDownload(attachment.url, attachment.name)}
-                    title={t('incidents.downloadFile', 'Download')}
-                  >
-                    <Download className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0"
+                      onClick={() => window.open(attachment.url, '_blank')}
+                      title={t('common.view', 'View')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0"
+                      onClick={() => handleDownload(attachment.url, attachment.name)}
+                      title={t('incidents.downloadFile', 'Download')}
+                    >
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Badge 
