@@ -87,7 +87,16 @@
       "recipientCount": "تم تحديد {{count}} مستلم",
       "estimatedTime": "الوقت المتوقع: {{minutes}} دقيقة",
       "sendMessages": "إرسال الرسائل",
-      "sending": "جاري الإرسال..."
+      "sending": "جاري الإرسال...",
+      "bulkInduction": "إرسال التعريف",
+      "bulkInductionTitle": "إرسال التعريف الجماعي",
+      "bulkInductionDesc": "إرسال فيديو التعريف بالسلامة لعدة عمال عبر واتساب",
+      "selectProject": "اختر المشروع للتعريف",
+      "eligibleWorkers": "العمال المؤهلون",
+      "noEligibleWorkers": "لا يوجد عمال مؤهلون. يجب أن يكون العمال موافقاً عليهم ولديهم رقم جوال.",
+      "sendInduction": "إرسال التعريف",
+      "inductionSent": "تم إرسال التعريفات بنجاح",
+      "inductionFailed": "فشل في إرسال التعريفات"
     },
     "projects": {
       "title": "مشاريع المقاولين",

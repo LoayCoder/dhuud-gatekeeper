@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, ShieldBan, MessageSquare } from "lucide-react";
+import { Check, X, ShieldBan, MessageSquare, Video } from "lucide-react";
 
 interface WorkerBulkActionsToolbarProps {
   selectedCount: number;
@@ -9,10 +9,12 @@ interface WorkerBulkActionsToolbarProps {
   onReject: () => void;
   onAddToBlacklist: () => void;
   onSendMessage?: () => void;
+  onSendInduction?: () => void;
   onClear: () => void;
   isApproving?: boolean;
   showBlacklist?: boolean;
   showMessage?: boolean;
+  showInduction?: boolean;
 }
 
 export function WorkerBulkActionsToolbar({
@@ -21,10 +23,12 @@ export function WorkerBulkActionsToolbar({
   onReject,
   onAddToBlacklist,
   onSendMessage,
+  onSendInduction,
   onClear,
   isApproving,
   showBlacklist = false,
   showMessage = false,
+  showInduction = false,
 }: WorkerBulkActionsToolbarProps) {
   const { t } = useTranslation();
 
@@ -42,6 +46,13 @@ export function WorkerBulkActionsToolbar({
         <Button size="sm" variant="secondary" onClick={onSendMessage}>
           <MessageSquare className="h-4 w-4 me-1" />
           {t("contractors.workers.bulkMessage", "Send Message")}
+        </Button>
+      )}
+      
+      {showInduction && onSendInduction && (
+        <Button size="sm" variant="secondary" onClick={onSendInduction}>
+          <Video className="h-4 w-4 me-1" />
+          {t("contractors.workers.bulkInduction", "Send Induction")}
         </Button>
       )}
       
