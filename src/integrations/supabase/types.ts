@@ -10011,6 +10011,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nationality_language_mapping: {
+        Row: {
+          country_name_ar: string
+          country_name_en: string
+          created_at: string
+          display_order: number
+          id: string
+          is_arab_country: boolean
+          nationality_code: string
+          visitor_language: Database["public"]["Enums"]["supported_language"]
+          worker_language: Database["public"]["Enums"]["supported_language"]
+        }
+        Insert: {
+          country_name_ar: string
+          country_name_en: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_arab_country?: boolean
+          nationality_code: string
+          visitor_language?: Database["public"]["Enums"]["supported_language"]
+          worker_language?: Database["public"]["Enums"]["supported_language"]
+        }
+        Update: {
+          country_name_ar?: string
+          country_name_en?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_arab_country?: boolean
+          nationality_code?: string
+          visitor_language?: Database["public"]["Enums"]["supported_language"]
+          worker_language?: Database["public"]["Enums"]["supported_language"]
+        }
+        Relationships: []
+      }
       notification_logs: {
         Row: {
           channel: string
@@ -10432,6 +10468,137 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_content_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          language: Database["public"]["Enums"]["supported_language"] | null
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          page_type: Database["public"]["Enums"]["page_type"]
+          page_version_id: string | null
+          performed_by: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          language?: Database["public"]["Enums"]["supported_language"] | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          page_type: Database["public"]["Enums"]["page_type"]
+          page_version_id?: string | null
+          performed_by?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          language?: Database["public"]["Enums"]["supported_language"] | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          page_type?: Database["public"]["Enums"]["page_type"]
+          page_version_id?: string | null
+          performed_by?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_content_audit_logs_page_version_id_fkey"
+            columns: ["page_version_id"]
+            isOneToOne: false
+            referencedRelation: "page_content_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_content_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_content_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_content_versions: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_main: boolean
+          language: Database["public"]["Enums"]["supported_language"]
+          page_type: Database["public"]["Enums"]["page_type"]
+          status: Database["public"]["Enums"]["page_status"]
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_main?: boolean
+          language: Database["public"]["Enums"]["supported_language"]
+          page_type: Database["public"]["Enums"]["page_type"]
+          status?: Database["public"]["Enums"]["page_status"]
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_main?: boolean
+          language?: Database["public"]["Enums"]["supported_language"]
+          page_type?: Database["public"]["Enums"]["page_type"]
+          status?: Database["public"]["Enums"]["page_status"]
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_content_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_content_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_content_versions_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -18203,6 +18370,8 @@ export type Database = {
         | "api_access"
         | "priority_support"
         | "asset_management"
+      page_status: "draft" | "published"
+      page_type: "visitor_badge" | "worker_pass" | "worker_induction"
       profile_type: "visitor" | "member" | "contractor"
       role_category:
         | "general"
@@ -18246,6 +18415,7 @@ export type Database = {
         | "downgrade"
         | "modify"
         | "cancel"
+      supported_language: "ar" | "en" | "ur" | "hi" | "fil" | "zh"
       tenant_status: "active" | "suspended" | "disabled"
       ticket_category: "billing" | "technical" | "feature_request" | "general"
       ticket_priority: "low" | "medium" | "high" | "urgent"
@@ -18508,6 +18678,8 @@ export const Constants = {
         "priority_support",
         "asset_management",
       ],
+      page_status: ["draft", "published"],
+      page_type: ["visitor_badge", "worker_pass", "worker_induction"],
       profile_type: ["visitor", "member", "contractor"],
       role_category: [
         "general",
@@ -18556,6 +18728,7 @@ export const Constants = {
         "modify",
         "cancel",
       ],
+      supported_language: ["ar", "en", "ur", "hi", "fil", "zh"],
       tenant_status: ["active", "suspended", "disabled"],
       ticket_category: ["billing", "technical", "feature_request", "general"],
       ticket_priority: ["low", "medium", "high", "urgent"],

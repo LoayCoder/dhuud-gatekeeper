@@ -7672,5 +7672,36 @@
     "certificateSaved": "تم حفظ الشهادة بنجاح",
     "saveFailed": "فشل في الحفظ",
     "pageUnavailable": "هذه الصفحة غير متوفرة حالياً"
+  },
+  "pageEditor": {
+    "title": "محرر محتوى الصفحات",
+    "description": "إدارة محتوى الصفحات والترجمة الآلية لبطاقات الزوار وتصاريح العمال وصفحات التدريب",
+    "visitorBadge": "بطاقة الزائر",
+    "workerPass": "تصريح العامل",
+    "workerInduction": "تدريب العامل",
+    "mainPage": "الصفحة الرئيسية (المصدر)",
+    "mainPageDesc": "تحرير محتوى الصفحة الرئيسية. هذه هي مصدر جميع الترجمات.",
+    "noMainPage": "لم يتم إنشاء صفحة رئيسية بعد. أنشئ واحدة للبدء.",
+    "createMainPage": "إنشاء صفحة رئيسية",
+    "mainPageCreated": "تم إنشاء الصفحة الرئيسية بنجاح",
+    "saved": "تم حفظ التغييرات بنجاح",
+    "published": "منشور",
+    "draft": "مسودة",
+    "publish": "نشر",
+    "languageTranslation": "اللغة والترجمة الآلية",
+    "languageTranslationDesc": "حدد اللغات واستخدم الذكاء الاصطناعي لإنشاء نسخ مترجمة",
+    "selectLanguages": "اللغات المستهدفة",
+    "aiTranslate": "إنشاء نسخ لغوية بالذكاء الاصطناعي",
+    "translatedVersions": "النسخ المترجمة",
+    "exists": "موجود",
+    "preview": "معاينة",
+    "retranslate": "إعادة الترجمة بالذكاء الاصطناعي",
+    "noTargetLanguages": "يرجى تحديد لغة مستهدفة واحدة على الأقل",
+    "translationComplete": "تمت الترجمة بنجاح إلى {{count}} لغات",
+    "deleteConfirmTitle": "حذف النسخة اللغوية؟",
+    "deleteConfirmDesc": "سيؤدي هذا إلى حذف هذه النسخة المترجمة نهائياً. لن تتأثر الصفحة الرئيسية."
+  },
+  "navigation": {
+    "pageContentEditor": "محرر محتوى الصفحات"
   }
 }
