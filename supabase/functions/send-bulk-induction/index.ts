@@ -17,7 +17,38 @@ interface Worker {
   full_name: string;
   mobile_number: string;
   preferred_language: string;
+  nationality: string;
   tenant_id: string;
+}
+
+// Arab countries that get Arabic for workers
+const ARAB_COUNTRY_CODES = new Set([
+  'SA', 'AE', 'KW', 'QA', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ',
+  'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'YE', 'PS', 'MR', 'SO'
+]);
+
+// Specific worker language mappings by nationality
+const WORKER_LANGUAGE_MAP: Record<string, string> = {
+  'PK': 'ur',  // Pakistan -> Urdu
+  'IN': 'hi',  // India -> Hindi
+  'PH': 'fil', // Philippines -> Filipino
+  'CN': 'zh',  // China -> Chinese
+};
+
+// Resolve worker language based on nationality
+function resolveWorkerLanguage(nationalityCode: string | null | undefined): string {
+  if (!nationalityCode) return 'en';
+  const code = nationalityCode.toUpperCase();
+  
+  if (ARAB_COUNTRY_CODES.has(code)) {
+    return 'ar';
+  }
+  
+  if (code in WORKER_LANGUAGE_MAP) {
+    return WORKER_LANGUAGE_MAP[code];
+  }
+  
+  return 'en';
 }
 
 interface Video {
@@ -60,7 +91,11 @@ async function sendInductionToWorker(
   appUrl: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const preferredLang = worker.preferred_language || "en";
+    // Resolve language: use preferred_language if set (and not 'en'), otherwise resolve from nationality
+    let preferredLang = worker.preferred_language;
+    if (!preferredLang || preferredLang === 'en') {
+      preferredLang = resolveWorkerLanguage(worker.nationality);
+    }
 
     // Find appropriate video for worker's language
     let selectedVideo = videos.find((v) => v.language === preferredLang);
@@ -236,7 +271,7 @@ Deno.serve(async (req) => {
     // Fetch workers (only approved with mobile numbers)
     const { data: workers, error: workersError } = await supabase
       .from("contractor_workers")
-      .select("id, full_name, mobile_number, preferred_language, tenant_id")
+      .select("id, full_name, mobile_number, preferred_language, nationality, tenant_id")
       .in("id", worker_ids)
       .eq("tenant_id", tenant_id)
       .eq("approval_status", "approved")
