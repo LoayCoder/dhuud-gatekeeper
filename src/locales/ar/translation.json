@@ -7769,5 +7769,17 @@
   },
   "navigation": {
     "pageContentEditor": "محرر محتوى الصفحات"
+  },
+  "templates": {
+    "srNo": "م",
+    "language": "اللغة",
+    "status": "الحالة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
+    "selectedCount": "{{count}} محدد",
+    "deleteMultiple": "حذف القوالب",
+    "deleteMultipleConfirm": "هل أنت متأكد من حذف {{count}} قوالب؟ لا يمكن التراجع عن هذا الإجراء."
   }
 }

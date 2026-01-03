@@ -8011,5 +8011,17 @@
   },
   "navigation": {
     "pageContentEditor": "Page Content Editor"
+  },
+  "templates": {
+    "srNo": "Sr. #",
+    "language": "Language",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "selectedCount": "{{count}} selected",
+    "deleteMultiple": "Delete Templates",
+    "deleteMultipleConfirm": "Are you sure you want to delete {{count}} templates? This action cannot be undone."
   }
 }
