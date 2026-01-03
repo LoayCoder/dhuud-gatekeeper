@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, X, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, User, HardHat, Loader2, QrCode, ShieldCheck, Clock, WifiOff, LogIn, LogOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHostArrivalNotification } from '@/hooks/use-host-arrival-notification';
+import { WorkerPhotoGallery } from './WorkerPhotoGallery';
+import { GateActionConfirmDialog, GateActionType } from './GateActionConfirmDialog';
+import { format, differenceInMinutes } from 'date-fns';
 
 interface GateQRScannerProps {
   open: boolean;
@@ -35,6 +38,8 @@ export interface QRScanResult {
     entryTime?: string;
     entryId?: string;
     qrUsedAt?: string;
+    nationalId?: string;
+    photoUrl?: string;
   };
   rawCode: string;
   isOfflineCached?: boolean;
@@ -82,6 +87,8 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
   const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
   const [isScannerActive, setIsScannerActive] = useState(true);
   const [autoResetCountdown, setAutoResetCountdown] = useState<number | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<GateActionType>('entry');
   const scannerKeyRef = useRef(0);
   const autoResetTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -332,7 +339,11 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                 id: data?.worker?.id,
                 status: hasExpired ? 'expired' : hasRevoked ? 'revoked' : 'invalid',
                 rawCode: code,
-                data: { warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR'] },
+                data: { 
+                  warnings: errorMessages.length > 0 ? errorMessages : [error?.message || 'Invalid QR'],
+                  name: data?.worker?.full_name,
+                  nationalId: data?.worker?.national_id,
+                },
               };
             }
 
@@ -342,6 +353,28 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               warnings: data.warnings,
               is_valid: true,
             });
+
+            // CRITICAL: Check if worker is already on-site BEFORE returning valid result
+            const { data: activeEntry } = await supabase
+              .from('gate_entry_logs')
+              .select('id, entry_time')
+              .eq('tenant_id', tenantId || '')
+              .eq('entry_type', 'worker')
+              .or(`person_name.ilike.%${data.worker?.full_name}%,worker_id.eq.${data.worker?.id}`)
+              .is('exit_time', null)
+              .is('deleted_at', null)
+              .order('entry_time', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            // Get worker photo URL if available
+            let photoUrl: string | undefined;
+            if (data.worker?.photo_path) {
+              const { data: signedUrl } = await supabase.storage
+                .from('worker-photos')
+                .createSignedUrl(data.worker.photo_path, 3600);
+              photoUrl = signedUrl?.signedUrl;
+            }
 
             return {
               type: 'worker',
@@ -355,6 +388,12 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                 inductionStatus: data.induction?.status || 'not_started',
                 expiresAt: data.induction?.expires_at,
                 warnings: data.warnings,
+                nationalId: data.worker?.national_id,
+                photoUrl,
+                // Include on-site status in scan result
+                isOnSite: !!activeEntry,
+                entryTime: activeEntry?.entry_time,
+                entryId: activeEntry?.id,
               },
             };
           } catch (error) {
@@ -679,7 +718,18 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
     scannerKeyRef.current += 1;
   }, [scanResult, onScanResult, profile?.tenant_id, user?.id, queryClient, toast, t, hostArrivalNotification]);
 
-  const getStatusConfig = (status: QRScanResult['status']) => {
+  const getStatusConfig = (status: QRScanResult['status'], isOnSite?: boolean) => {
+    // If worker/visitor is already on-site, show amber warning style FIRST
+    if (isOnSite) {
+      return { 
+        icon: AlertTriangle, 
+        color: 'text-amber-600', 
+        bg: 'bg-amber-50 dark:bg-amber-950/30', 
+        border: 'border-amber-500', 
+        label: t('security.qrScanner.alreadyOnSite', 'ALREADY ON SITE') 
+      };
+    }
+    
     switch (status) {
       case 'valid':
         return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-600', label: t('security.qrScanner.valid', 'VALID') };
@@ -693,6 +743,77 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         return { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive', label: t('security.qrScanner.invalid', 'INVALID') };
     }
   };
+
+  // Handle confirmation dialog for gate actions
+  const handleActionRequest = useCallback((action: GateActionType) => {
+    setConfirmAction(action);
+    setConfirmDialogOpen(true);
+  }, []);
+
+  // Handle record exit for on-site workers
+  const handleRecordExit = useCallback(async () => {
+    if (!scanResult?.data?.entryId || !profile?.tenant_id) {
+      setConfirmDialogOpen(false);
+      return;
+    }
+    
+    setIsLogging(true);
+    try {
+      const exitTime = new Date().toISOString();
+      
+      const { error } = await supabase
+        .from('gate_entry_logs')
+        .update({ exit_time: exitTime })
+        .eq('id', scanResult.data.entryId);
+      
+      if (error) throw error;
+
+      // Audit log for exit
+      await supabase.from('contractor_module_audit_logs').insert({
+        tenant_id: profile.tenant_id,
+        entity_type: 'gate_entry_log',
+        entity_id: scanResult.data.entryId,
+        actor_id: user?.id,
+        action: 'worker_exit_recorded',
+        new_value: {
+          worker_id: scanResult.id,
+          worker_name: scanResult.data?.name,
+          exit_time: exitTime,
+          guard_id: user?.id,
+        },
+      });
+
+      toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
+      queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      
+      // Update scan result to reflect exit
+      setScanResult(prev => prev ? {
+        ...prev,
+        data: { ...prev.data, isOnSite: false, entryId: undefined, entryTime: undefined }
+      } : null);
+    } catch (error) {
+      console.error('Failed to record exit:', error);
+      toast({ 
+        title: t('security.gate.exitFailed', 'Failed to record exit'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLogging(false);
+      setConfirmDialogOpen(false);
+    }
+  }, [scanResult, profile?.tenant_id, user?.id, queryClient, toast, t]);
+
+  // Handle confirmed entry action
+  const handleConfirmedEntry = useCallback(async () => {
+    if (!scanResult || !profile?.tenant_id) {
+      setConfirmDialogOpen(false);
+      return;
+    }
+    
+    // Close dialog and proceed with existing log entry logic
+    setConfirmDialogOpen(false);
+    await handleLogAndScanNext();
+  }, [scanResult, profile?.tenant_id, handleLogAndScanNext]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -748,24 +869,24 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
         {/* Result Display */}
         {scanResult && !isVerifying && (
           <div className="px-3 pb-3 space-y-3">
-            {/* Status Card */}
-            <div className={cn("p-3 rounded-lg border-2", getStatusConfig(scanResult.status).bg, getStatusConfig(scanResult.status).border)}>
+            {/* Status Card - Now uses on-site status check */}
+            <div className={cn("p-3 rounded-lg border-2", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).bg, getStatusConfig(scanResult.status, scanResult.data?.isOnSite).border)}>
               <div className="flex items-start gap-3">
                 {/* Status Icon */}
-                <div className={cn("p-2 rounded", getStatusConfig(scanResult.status).bg)}>
+                <div className={cn("p-2 rounded", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).bg)}>
                   {(() => {
-                    const Icon = getStatusConfig(scanResult.status).icon;
-                    return <Icon className={cn("h-6 w-6", getStatusConfig(scanResult.status).color)} />;
+                    const Icon = getStatusConfig(scanResult.status, scanResult.data?.isOnSite).icon;
+                    return <Icon className={cn("h-6 w-6", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).color)} />;
                   })()}
                 </div>
                 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-wide", getStatusConfig(scanResult.status).color, getStatusConfig(scanResult.status).border)}>
+                    <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-wide", getStatusConfig(scanResult.status, scanResult.data?.isOnSite).color, getStatusConfig(scanResult.status, scanResult.data?.isOnSite).border)}>
                       {scanResult.type === 'worker' && <HardHat className="h-3 w-3 me-1" />}
                       {scanResult.type === 'visitor' && <User className="h-3 w-3 me-1" />}
-                      {getStatusConfig(scanResult.status).label}
+                      {getStatusConfig(scanResult.status, scanResult.data?.isOnSite).label}
                     </Badge>
                     
                     {scanResult.isOfflineCached && (
@@ -792,6 +913,27 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
                   )}
                 </div>
               </div>
+
+              {/* On-Site Details Panel */}
+              {scanResult.data?.isOnSite && scanResult.data?.entryTime && (
+                <div className="mt-3 p-2 rounded bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                    <Clock className="h-4 w-4 flex-shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-semibold">
+                        {t('security.qrScanner.enteredAt', 'Entered at {{time}}', { 
+                          time: format(new Date(scanResult.data.entryTime), 'HH:mm') 
+                        })}
+                      </p>
+                      <p className="text-amber-700 dark:text-amber-300">
+                        {t('security.qrScanner.onSiteDuration', 'On site for {{duration}} minutes', { 
+                          duration: differenceInMinutes(new Date(), new Date(scanResult.data.entryTime)) 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Warnings */}
               {scanResult.data?.warnings && scanResult.data.warnings.length > 0 && (
@@ -806,6 +948,17 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               )}
             </div>
 
+            {/* Worker Photo Gallery for identity verification */}
+            {scanResult.type === 'worker' && scanResult.id && (
+              <WorkerPhotoGallery 
+                workerId={scanResult.id}
+                workerName={scanResult.data?.name || ''}
+                primaryPhotoUrl={scanResult.data?.photoUrl}
+                nationalId={scanResult.data?.nationalId}
+                tenantId={profile?.tenant_id}
+              />
+            )}
+
             {/* Auto-reset countdown indicator */}
             {autoResetCountdown !== null && autoResetCountdown > 0 && (
               <div className="text-xs text-center text-muted-foreground">
@@ -813,24 +966,34 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Different for on-site vs new entry */}
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="gap-2 h-10" onClick={handleScanNext}>
                 <RotateCcw className="h-4 w-4" />
                 {t('scanner.scanNext', 'Scan Next')}
               </Button>
               
-              {scanResult.status === 'valid' ? (
+              {/* Show Record Exit for on-site workers, Log Entry for new entries */}
+              {scanResult.data?.isOnSite ? (
+                <Button 
+                  className="gap-2 h-10 bg-amber-600 hover:bg-amber-700 text-white" 
+                  onClick={() => handleActionRequest('exit')}
+                  disabled={isLogging}
+                >
+                  {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                  {t('scanner.recordExit', 'Record Exit')}
+                </Button>
+              ) : scanResult.status === 'valid' ? (
                 <Button 
                   className="gap-2 h-10 bg-green-600 hover:bg-green-700 text-white" 
-                  onClick={handleLogAndScanNext}
+                  onClick={() => handleActionRequest('entry')}
                   disabled={isLogging}
                 >
                   {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                   {t('scanner.logEntry', 'Log Entry')}
                 </Button>
               ) : (
-                <Button variant="secondary" className="gap-2 h-10" onClick={handleLogAndScanNext}>
+                <Button variant="secondary" className="gap-2 h-10" onClick={handleScanNext}>
                   <CheckCircle2 className="h-4 w-4" />
                   {t('scanner.acknowledge', 'Acknowledge')}
                 </Button>
@@ -838,6 +1001,18 @@ export function GateQRScanner({ open, onOpenChange, onScanResult, expectedType }
             </div>
           </div>
         )}
+
+        {/* Confirmation Dialog */}
+        <GateActionConfirmDialog
+          open={confirmDialogOpen}
+          onOpenChange={setConfirmDialogOpen}
+          action={confirmAction}
+          personName={scanResult?.data?.name || 'Unknown'}
+          personType={scanResult?.type === 'worker' ? 'worker' : 'visitor'}
+          entryTime={scanResult?.data?.entryTime ? format(new Date(scanResult.data.entryTime), 'HH:mm') : undefined}
+          isLoading={isLogging}
+          onConfirm={confirmAction === 'exit' ? handleRecordExit : handleConfirmedEntry}
+        />
 
       </DialogContent>
     </Dialog>
