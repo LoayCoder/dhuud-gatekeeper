@@ -31,7 +31,8 @@ import {
   MessageSquare, 
   FileText,
   Zap,
-  BellOff
+  BellOff,
+  ShieldAlert
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -45,6 +46,19 @@ const SEVERITY_COLORS: Record<string, string> = {
   'level_3': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   'level_4': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   'level_5': 'bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+};
+
+const HSSE_PRIORITY_COLORS: Record<string, string> = {
+  'critical': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  'high': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  'medium': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  'low': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+};
+
+const RECIPIENT_TYPE_ICONS: Record<string, string> = {
+  'employee': '👤',
+  'worker': '🔧',
+  'visitor': '👥',
 };
 
 export default function NotificationDeliveryLog() {
@@ -195,6 +209,10 @@ export default function NotificationDeliveryLog() {
                   <TabsTrigger value="all" className="gap-1.5">
                     {isRTL ? 'الكل' : 'All'}
                   </TabsTrigger>
+                  <TabsTrigger value="hsse" className="gap-1.5">
+                    <ShieldAlert className="h-3.5 w-3.5" />
+                    {isRTL ? 'الصحة والسلامة' : 'HSSE'}
+                  </TabsTrigger>
                   <TabsTrigger value="incident" className="gap-1.5">
                     <Zap className="h-3.5 w-3.5" />
                     {isRTL ? 'الحوادث' : 'Incidents'}
@@ -296,17 +314,24 @@ export default function NotificationDeliveryLog() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge 
-                                variant={log.source === 'incident' ? 'default' : 'secondary'}
-                                className="text-xs"
+                                variant={log.source === 'incident' ? 'default' : log.source === 'hsse' ? 'outline' : 'secondary'}
+                                className={`text-xs ${log.source === 'hsse' ? 'border-amber-500 text-amber-700 dark:text-amber-400' : ''}`}
                               >
                                 {log.source === 'incident' 
                                   ? (isRTL ? 'حادثة' : 'Incident')
-                                  : (isRTL ? 'يدوي' : 'Manual')
+                                  : log.source === 'hsse'
+                                    ? (isRTL ? 'صحة وسلامة' : 'HSSE')
+                                    : (isRTL ? 'يدوي' : 'Manual')
                                 }
                               </Badge>
                               {log.stakeholder_role && (
                                 <span className="text-xs text-muted-foreground capitalize truncate max-w-[100px]">
                                   {log.stakeholder_role.replace(/_/g, ' ')}
+                                </span>
+                              )}
+                              {log.source === 'hsse' && log.recipient_type && (
+                                <span className="text-xs" title={log.recipient_type}>
+                                  {RECIPIENT_TYPE_ICONS[log.recipient_type] || ''}
                                 </span>
                               )}
                             </div>
@@ -318,6 +343,13 @@ export default function NotificationDeliveryLog() {
                                 className={`text-xs ${SEVERITY_COLORS[log.severity_level] || ''}`}
                               >
                                 {log.severity_level.replace('level_', 'L')}
+                              </Badge>
+                            ) : log.hsse_priority ? (
+                              <Badge 
+                                variant="secondary"
+                                className={`text-xs ${HSSE_PRIORITY_COLORS[log.hsse_priority] || ''}`}
+                              >
+                                {log.hsse_priority.charAt(0).toUpperCase() + log.hsse_priority.slice(1)}
                               </Badge>
                             ) : (
                               <span className="text-muted-foreground">—</span>

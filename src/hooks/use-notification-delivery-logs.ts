@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { NotificationChannel } from '@/components/notifications/ChannelIcon';
 import type { DeliveryStatus } from '@/components/notifications/DeliveryStatusBadge';
 
-export type NotificationSource = 'manual' | 'incident' | 'all';
+export type NotificationSource = 'manual' | 'incident' | 'hsse' | 'all';
 
 export interface UnifiedNotificationLog {
   id: string;
-  source: 'manual' | 'incident';
+  source: 'manual' | 'incident' | 'hsse';
   channel: NotificationChannel;
   recipient: string;
   subject_or_event: string;
@@ -29,6 +29,13 @@ export interface UnifiedNotificationLog {
   read_at?: string | null;
   is_final?: boolean;
   webhook_events?: unknown[];
+  // HSSE-specific metadata
+  recipient_type?: 'employee' | 'worker' | 'visitor';
+  recipient_name?: string;
+  recipient_language?: string;
+  hsse_priority?: string;
+  hsse_category?: string;
+  notification_title?: string;
 }
 
 export interface DeliveryLogStats {
@@ -165,6 +172,61 @@ export function useNotificationDeliveryLogs(options: UseNotificationDeliveryLogs
         }
       }
 
+      // Fetch from hsse_notification_delivery_logs (HSSE notifications)
+      if (sourceFilter === 'all' || sourceFilter === 'hsse') {
+        let hsseQuery = supabase
+          .from('hsse_notification_delivery_logs')
+          .select(`
+            id, tenant_id, notification_id, channel, recipient_type, 
+            recipient_address, recipient_name, recipient_language,
+            status, provider, provider_message_id, error_message,
+            sent_at, delivered_at, failed_at, created_at, metadata
+          `)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (channelFilter !== 'all') {
+          hsseQuery = hsseQuery.eq('channel', channelFilter);
+        }
+        if (statusFilter !== 'all') {
+          hsseQuery = hsseQuery.eq('status', statusFilter);
+        }
+        if (searchQuery) {
+          hsseQuery = hsseQuery.ilike('recipient_address', `%${searchQuery}%`);
+        }
+
+        const { data: hsseData, error: hsseError } = await hsseQuery;
+
+        if (hsseError) {
+          console.error('Error fetching hsse_notification_delivery_logs:', hsseError);
+        } else if (hsseData) {
+          const normalizedHSSE: UnifiedNotificationLog[] = hsseData.map((log) => {
+            const metadata = (log.metadata || {}) as Record<string, unknown>;
+            return {
+              id: log.id,
+              source: 'hsse' as const,
+              channel: (log.channel || 'email') as NotificationChannel,
+              recipient: log.recipient_address || '',
+              subject_or_event: 'HSSE Alert',
+              status: (log.status || 'pending') as DeliveryStatus,
+              error_message: log.error_message,
+              created_at: log.created_at || '',
+              sent_at: log.sent_at,
+              delivered_at: log.delivered_at,
+              recipient_type: log.recipient_type as 'employee' | 'worker' | 'visitor',
+              recipient_name: log.recipient_name,
+              recipient_language: log.recipient_language,
+              hsse_priority: metadata.priority as string | undefined,
+              hsse_category: metadata.category as string | undefined,
+              provider: log.provider,
+              provider_message_id: log.provider_message_id,
+            };
+          });
+          results.push(...normalizedHSSE);
+        }
+      }
+
       // Sort combined results by created_at
       results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -203,7 +265,7 @@ export function useNotificationDeliveryLogs(options: UseNotificationDeliveryLogs
   useEffect(() => {
     fetchLogs();
 
-    // Subscribe to realtime updates for both tables
+    // Subscribe to realtime updates for all tables
     const channel1 = supabase
       .channel('notification_logs_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notification_logs' }, fetchLogs)
@@ -214,9 +276,15 @@ export function useNotificationDeliveryLogs(options: UseNotificationDeliveryLogs
       .on('postgres_changes', { event: '*', schema: 'public', table: 'auto_notification_logs' }, fetchLogs)
       .subscribe();
 
+    const channel3 = supabase
+      .channel('hsse_delivery_logs_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hsse_notification_delivery_logs' }, fetchLogs)
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel1);
       supabase.removeChannel(channel2);
+      supabase.removeChannel(channel3);
     };
   }, [fetchLogs]);
 

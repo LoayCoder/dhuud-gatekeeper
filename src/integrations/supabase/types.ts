@@ -6660,6 +6660,93 @@ export type Database = {
           },
         ]
       }
+      hsse_notification_delivery_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          deleted_at: string | null
+          delivered_at: string | null
+          error_code: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          metadata: Json | null
+          notification_id: string
+          provider: string | null
+          provider_message_id: string | null
+          recipient_address: string
+          recipient_id: string | null
+          recipient_language: string | null
+          recipient_name: string | null
+          recipient_type: string
+          sent_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_id: string
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient_address: string
+          recipient_id?: string | null
+          recipient_language?: string | null
+          recipient_name?: string | null
+          recipient_type: string
+          sent_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          deleted_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_id?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient_address?: string
+          recipient_id?: string | null
+          recipient_language?: string | null
+          recipient_name?: string | null
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hsse_notification_delivery_logs_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "hsse_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_delivery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hsse_notification_reads: {
         Row: {
           created_at: string
