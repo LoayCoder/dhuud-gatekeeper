@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle, Mail, BarChart3 } from 'lucide-react';
+import { Plus, Bell, Send, Eye, Trash2, CloudSun, Gavel, ShieldAlert, BookOpen, GraduationCap, Users, Building2, MapPin, CheckCircle2, Clock, AlertTriangle, Mail, BarChart3, HardHat, UserCheck, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,8 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
     send_push_notification: true,
     send_email_notification: false,
     publish_immediately: true,
+    include_workers_on_site: false,
+    include_visitors_on_site: false,
   });
 
   const handleSubmit = async () => {
@@ -77,6 +79,8 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
       send_push_notification: true,
       send_email_notification: false,
       publish_immediately: true,
+      include_workers_on_site: false,
+      include_visitors_on_site: false,
     });
   };
 
@@ -289,6 +293,49 @@ function CreateNotificationDialog({ open, onOpenChange }: { open: boolean; onOpe
               {t('hsseNotifications.emailCriticalHint')}
             </p>
           )}
+
+          {/* External Recipients Section */}
+          <div className="space-y-3 border-t pt-4 mt-2">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              <Label className="font-medium">{t('hsseNotifications.externalRecipients', 'External Recipients (WhatsApp)')}</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('hsseNotifications.externalRecipientsHint', 'Workers and visitors on-site will receive notifications via WhatsApp in their preferred language')}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="workers"
+                  checked={formData.include_workers_on_site}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, include_workers_on_site: checked }))}
+                />
+                <Label htmlFor="workers" className="text-sm flex items-center gap-1">
+                  <HardHat className="h-3 w-3" />
+                  {t('hsseNotifications.includeWorkersOnSite', 'Include Workers On-Site')}
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="visitors"
+                  checked={formData.include_visitors_on_site}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, include_visitors_on_site: checked }))}
+                />
+                <Label htmlFor="visitors" className="text-sm flex items-center gap-1">
+                  <UserCheck className="h-3 w-3" />
+                  {t('hsseNotifications.includeVisitorsOnSite', 'Include Visitors On-Site')}
+                </Label>
+              </div>
+            </div>
+
+            {(formData.include_workers_on_site || formData.include_visitors_on_site) && (
+              <p className="text-xs text-muted-foreground bg-green-50 dark:bg-green-950/20 p-2 rounded border border-green-200 dark:border-green-800">
+                {t('hsseNotifications.whatsappDeliveryNote', 'Notifications will be sent via WhatsApp and auto-translated based on nationality')}
+              </p>
+            )}
+          </div>
         </div>
 
         <DialogFooter>

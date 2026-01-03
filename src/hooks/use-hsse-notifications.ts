@@ -23,6 +23,12 @@ export interface HSSENotification {
   expires_at: string | null;
   is_active: boolean;
   send_push_notification: boolean;
+  include_workers_on_site: boolean;
+  include_visitors_on_site: boolean;
+  worker_whatsapp_sent_at: string | null;
+  visitor_whatsapp_sent_at: string | null;
+  worker_messages_sent: number;
+  visitor_messages_sent: number;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +65,8 @@ export interface CreateNotificationData {
   send_push_notification?: boolean;
   send_email_notification?: boolean;
   publish_immediately?: boolean;
+  include_workers_on_site?: boolean;
+  include_visitors_on_site?: boolean;
 }
 
 // Hook for admin notification management
@@ -111,6 +119,8 @@ export function useHSSENotificationsAdmin() {
           send_push_notification: data.send_push_notification ?? true,
           send_email_notification: data.send_email_notification ?? false,
           published_at: data.publish_immediately ? new Date().toISOString() : null,
+          include_workers_on_site: data.include_workers_on_site ?? false,
+          include_visitors_on_site: data.include_visitors_on_site ?? false,
         })
         .select()
         .single();

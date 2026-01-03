@@ -6721,6 +6721,8 @@ export type Database = {
           email_sent_at: string | null
           expires_at: string | null
           id: string
+          include_visitors_on_site: boolean | null
+          include_workers_on_site: boolean | null
           is_active: boolean
           notification_type: Database["public"]["Enums"]["hsse_notification_type"]
           priority: Database["public"]["Enums"]["hsse_notification_priority"]
@@ -6736,6 +6738,10 @@ export type Database = {
           title_ar: string | null
           title_en: string
           updated_at: string
+          visitor_messages_sent: number | null
+          visitor_whatsapp_sent_at: string | null
+          worker_messages_sent: number | null
+          worker_whatsapp_sent_at: string | null
         }
         Insert: {
           body_ar?: string | null
@@ -6748,6 +6754,8 @@ export type Database = {
           email_sent_at?: string | null
           expires_at?: string | null
           id?: string
+          include_visitors_on_site?: boolean | null
+          include_workers_on_site?: boolean | null
           is_active?: boolean
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
@@ -6763,6 +6771,10 @@ export type Database = {
           title_ar?: string | null
           title_en: string
           updated_at?: string
+          visitor_messages_sent?: number | null
+          visitor_whatsapp_sent_at?: string | null
+          worker_messages_sent?: number | null
+          worker_whatsapp_sent_at?: string | null
         }
         Update: {
           body_ar?: string | null
@@ -6775,6 +6787,8 @@ export type Database = {
           email_sent_at?: string | null
           expires_at?: string | null
           id?: string
+          include_visitors_on_site?: boolean | null
+          include_workers_on_site?: boolean | null
           is_active?: boolean
           notification_type?: Database["public"]["Enums"]["hsse_notification_type"]
           priority?: Database["public"]["Enums"]["hsse_notification_priority"]
@@ -6790,6 +6804,10 @@ export type Database = {
           title_ar?: string | null
           title_en?: string
           updated_at?: string
+          visitor_messages_sent?: number | null
+          visitor_whatsapp_sent_at?: string | null
+          worker_messages_sent?: number | null
+          worker_whatsapp_sent_at?: string | null
         }
         Relationships: [
           {
