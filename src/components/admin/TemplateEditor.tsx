@@ -24,7 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Plus, Eye, GripVertical, MessageSquare, Mail, ListFilter, AlertTriangle } from 'lucide-react';
+import { X, Plus, Eye, GripVertical, MessageSquare, Mail, ListFilter, AlertTriangle, Languages, Loader2 } from 'lucide-react';
+import { useTemplateTranslation } from '@/hooks/admin/use-template-translation';
 import { NotificationTemplate, CreateTemplateInput, ChannelType } from '@/hooks/useNotificationTemplates';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -269,6 +270,8 @@ export function TemplateEditor({
   const { i18n } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emailSubjectRef = useRef<HTMLInputElement>(null);
+  const { translate, isTranslating } = useTemplateTranslation();
+  const SOURCE_LANGUAGE = 'en';
   
   const [formData, setFormData] = useState<CreateTemplateInput>({
     slug: '',
@@ -434,6 +437,28 @@ export function TemplateEditor({
     onSave(formData);
   };
 
+  // Handle AI translation
+  const handleTranslate = async () => {
+    const result = await translate(
+      {
+        content_pattern: formData.content_pattern,
+        email_subject: formData.email_subject,
+      },
+      SOURCE_LANGUAGE,
+      formData.language
+    );
+
+    if (result) {
+      setFormData(prev => ({
+        ...prev,
+        content_pattern: result.content_pattern,
+        email_subject: result.email_subject || prev.email_subject,
+      }));
+    }
+  };
+
+  const canTranslate = formData.language !== SOURCE_LANGUAGE && formData.content_pattern.trim().length > 0;
+
   // Handle drag start for variable chips
   const handleDragStart = (e: React.DragEvent, key: string) => {
     e.dataTransfer.setData('text/plain', key);
@@ -580,30 +605,51 @@ export function TemplateEditor({
             )}
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <Select
-                value={formData.language}
-                onValueChange={(value) => setFormData({ ...formData, language: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="ar">العربية (Arabic)</SelectItem>
-                  {/* Show additional languages for non-visitor categories */}
-                  {formData.category !== 'visitors' && (
-                    <>
-                      <SelectItem value="ur">اردو (Urdu)</SelectItem>
-                      <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
-                      <SelectItem value="fil">Filipino</SelectItem>
-                      <SelectItem value="zh">中文 (Chinese)</SelectItem>
-                    </>
+              <div className="flex gap-2">
+                <Select
+                  value={formData.language}
+                  onValueChange={(value) => setFormData({ ...formData, language: value })}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="ar">العربية (Arabic)</SelectItem>
+                    {/* Show additional languages for non-visitor categories */}
+                    {formData.category !== 'visitors' && (
+                      <>
+                        <SelectItem value="ur">اردو (Urdu)</SelectItem>
+                        <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
+                        <SelectItem value="fil">Filipino</SelectItem>
+                        <SelectItem value="zh">中文 (Chinese)</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleTranslate}
+                  disabled={!canTranslate || isTranslating}
+                  title="Translate content to selected language"
+                >
+                  {isTranslating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Languages className="h-4 w-4" />
                   )}
-                </SelectContent>
-              </Select>
+                </Button>
+              </div>
               {formData.category === 'visitors' && (
                 <p className="text-xs text-muted-foreground">
                   Visitor templates support Arabic and English only
+                </p>
+              )}
+              {canTranslate && !isTranslating && (
+                <p className="text-xs text-muted-foreground">
+                  Click the translate button to auto-translate content
                 </p>
               )}
             </div>
