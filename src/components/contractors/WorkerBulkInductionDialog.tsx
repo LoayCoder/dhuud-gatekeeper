@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { useContractorProjects } from "@/hooks/contractor-management/use-contractor-projects";
+import { resolveWorkerLanguage } from "@/lib/language-resolver";
 
 interface WorkerBulkInductionDialogProps {
   open: boolean;
@@ -128,6 +129,14 @@ export function WorkerBulkInductionDialog({
       .slice(0, 2);
   };
 
+  // Get worker's language - use preferred_language if set (and not 'en'), otherwise resolve from nationality
+  const getWorkerLanguage = (worker: ContractorWorker): string => {
+    if (worker.preferred_language && worker.preferred_language !== 'en') {
+      return worker.preferred_language.toUpperCase();
+    }
+    return resolveWorkerLanguage(worker.nationality).toUpperCase();
+  };
+
   const pendingCount = workers.filter((w) => w.approval_status !== "approved").length;
   const noMobileCount = workers.filter(
     (w) => !w.mobile_number || w.mobile_number.trim() === ""
@@ -193,7 +202,7 @@ export function WorkerBulkInductionDialog({
                     <span className="flex-1 truncate">{worker.full_name}</span>
                     <Badge variant="outline" className="text-xs">
                       <Globe className="h-3 w-3 me-1" />
-                      {worker.preferred_language?.toUpperCase() || "EN"}
+                      {getWorkerLanguage(worker)}
                     </Badge>
                     <span className="text-muted-foreground text-xs">{worker.mobile_number}</span>
                   </div>
