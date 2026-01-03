@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendWhatsAppText, getActiveProvider } from "../_shared/whatsapp-provider.ts";
+import { getRenderedTemplate } from "../_shared/template-helper.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -233,15 +234,71 @@ Deno.serve(async (req) => {
     const inductionPortalUrl = inductionRecordId 
       ? `${appUrl}/worker-induction/${inductionRecordId}`
       : video.video_url; // Fallback to direct video URL if no induction record
+
+    // Build comprehensive template variables
+    const templateVariables = {
+      worker_name: worker.full_name,
+      worker_name_ar: worker.full_name || '',
+      project_name: projectName,
+      video_title: video.title,
+      video_title_ar: video.title || '',
+      video_description: '',
+      video_url: video.video_url,
+      video_duration: `${durationMin} min`,
+      video_duration_seconds: String(video.duration_seconds || 0),
+      video_language: preferredLang,
+      induction_link: inductionPortalUrl,
+      induction_id: inductionRecordId || '',
+      induction_expires_at: expiresAt.toISOString().split('T')[0],
+      induction_valid_for_days: String(validForDays),
+      induction_sent_at: new Date().toISOString(),
+      company_name: '',
+      site_name: '',
+      action_link: inductionPortalUrl,
+    };
+
+    // Try language-specific template first (only if tenantId is available)
+    const templateSlug = `induction_video_${preferredLang}`;
+    let whatsappMessage: string;
     
-    const whatsappMessage = getLocalizedMessage(
-      preferredLang, 
-      worker.full_name, 
-      projectName, 
-      video.title,
-      inductionPortalUrl,
-      durationMin
-    );
+    if (tenantId) {
+      const { content: templateMessage, found } = await getRenderedTemplate(
+        supabase, tenantId, templateSlug, templateVariables
+      );
+
+      if (found) {
+        whatsappMessage = templateMessage;
+      } else {
+        // Try English template as fallback
+        const { content: enMessage, found: enFound } = await getRenderedTemplate(
+          supabase, tenantId, 'induction_video_en', templateVariables
+        );
+        
+        if (enFound) {
+          whatsappMessage = enMessage;
+        } else {
+          // Final fallback to hardcoded messages
+          whatsappMessage = getLocalizedMessage(
+            preferredLang, 
+            worker.full_name, 
+            projectName, 
+            video.title,
+            inductionPortalUrl,
+            durationMin
+          );
+        }
+      }
+    } else {
+      // No tenantId, use hardcoded messages
+      whatsappMessage = getLocalizedMessage(
+        preferredLang, 
+        worker.full_name, 
+        projectName, 
+        video.title,
+        inductionPortalUrl,
+        durationMin
+      );
+    }
 
     // Send via active WhatsApp provider
     const workerMobile = mobileNumber || worker.mobile_number;

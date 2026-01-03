@@ -121,7 +121,11 @@
       "noEligibleWorkers": "No eligible workers. Workers must be approved and have a mobile number.",
       "sendInduction": "Send Induction",
       "inductionSent": "Inductions sent successfully",
-      "inductionFailed": "Failed to send inductions"
+      "inductionFailed": "Failed to send inductions",
+      "languageBreakdown": "Language Breakdown",
+      "languageBreakdownDesc": "Each worker will receive the induction message in their assigned language",
+      "templateNotice": "Messages use notification templates. Create templates in WhatsApp Templates for each language (e.g., induction_video_ar, induction_video_en).",
+      "messageDelayTitle": "Message Delay"
     },
     "projects": {
       "title": "Contractor Projects",

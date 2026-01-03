@@ -96,7 +96,11 @@
       "noEligibleWorkers": "لا يوجد عمال مؤهلون. يجب أن يكون العمال موافقاً عليهم ولديهم رقم جوال.",
       "sendInduction": "إرسال التعريف",
       "inductionSent": "تم إرسال التعريفات بنجاح",
-      "inductionFailed": "فشل في إرسال التعريفات"
+      "inductionFailed": "فشل في إرسال التعريفات",
+      "languageBreakdown": "توزيع اللغات",
+      "languageBreakdownDesc": "سيتلقى كل عامل رسالة التأهيل بلغته المحددة",
+      "templateNotice": "تستخدم الرسائل قوالب الإشعارات. أنشئ قوالب في قوالب واتساب لكل لغة (مثل induction_video_ar, induction_video_en).",
+      "messageDelayTitle": "تأخير الرسائل"
     },
     "projects": {
       "title": "مشاريع المقاولين",

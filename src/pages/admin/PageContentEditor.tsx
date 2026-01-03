@@ -72,20 +72,45 @@ const DEFAULT_CONTENT: Record<PageType, Record<string, string>> = {
     share: 'Share',
   },
   worker_induction: {
+    // Page headers
     page_title: 'Safety Induction',
+    page_subtitle: 'Complete the safety video before starting work',
+    
+    // Worker info section
     worker_name_label: 'Worker',
     project_label: 'Project',
+    company_label: 'Company',
+    
+    // Video section
+    video_section_title: 'Induction Video',
     video_duration_label: 'Duration',
+    video_progress_label: 'Progress',
+    watch_instruction: 'Please watch the video completely before proceeding',
+    
+    // Acknowledgment section
     acknowledgment_title: 'Safety Acknowledgment',
     acknowledgment_warning: 'Please watch the entire video and then agree to the terms below.',
     acknowledgment_text: 'I confirm that I have watched the entire safety video, understand all required safety procedures, and agree to comply with them.',
     submit_button: 'Submit Acknowledgment',
+    
+    // Success section
     success_title: 'Success!',
     success_message: 'Safety induction completed successfully. You can now start work.',
+    
+    // Certificate/ID section
     save_certificate: 'Save Certificate',
     share: 'Share',
     id_card_sent: 'Your ID Card has been sent via WhatsApp/Email',
     view_id_card: 'View ID Card Now',
+    id_card_pending: 'ID card will be sent after your approval is confirmed',
+    
+    // Error states
+    error_title: 'Error',
+    not_found_title: 'Induction Not Found',
+    not_found_message: 'This induction link is invalid or has expired.',
+    expired_message: 'This induction link has expired',
+    loading_failed: 'Failed to load induction data',
+    submit_failed: 'Failed to submit acknowledgment',
   },
 };
 
