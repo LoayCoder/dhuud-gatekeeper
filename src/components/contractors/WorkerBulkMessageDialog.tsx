@@ -46,11 +46,19 @@ export function WorkerBulkMessageDialog({
     [workers]
   );
 
-  // Calculate estimated time (30 seconds per message)
-  const estimatedMinutes = useMemo(
-    () => Math.ceil((workersWithMobile.length * 30) / 60),
-    [workersWithMobile.length]
-  );
+  // Format estimated time for display
+  const formatEstimatedTime = (workerCount: number): string => {
+    const totalSeconds = workerCount * 30;
+    if (totalSeconds < 60) {
+      return `${totalSeconds} ${t("common.seconds", "seconds")}`;
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (seconds === 0) {
+      return `${minutes} ${t("common.minutes", "minutes")}`;
+    }
+    return `${minutes} ${t("common.minutes", "minutes")} ${seconds} ${t("common.seconds", "seconds")}`;
+  };
 
   const handleSendMessages = async () => {
     if (!message.trim() || workersWithMobile.length === 0) return;
@@ -165,10 +173,13 @@ export function WorkerBulkMessageDialog({
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription className="flex flex-col gap-1">
+              <span className="font-medium">
+                {t("contractors.workers.messageDelayTitle", "Message Delay")}
+              </span>
               <span>{t("contractors.workers.messageDelay", "Messages will be sent with a 30-second delay between each")}</span>
               <span className="text-xs text-muted-foreground">
-                {t("contractors.workers.estimatedTime", "Estimated time: {{minutes}} minutes", {
-                  minutes: estimatedMinutes,
+                {t("contractors.workers.estimatedTime", "Estimated time: {{time}}", {
+                  time: formatEstimatedTime(workersWithMobile.length),
                 })}
               </span>
             </AlertDescription>

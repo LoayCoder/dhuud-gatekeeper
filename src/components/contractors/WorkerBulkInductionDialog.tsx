@@ -137,6 +137,20 @@ export function WorkerBulkInductionDialog({
     return resolveWorkerLanguage(worker.nationality).toUpperCase();
   };
 
+  // Format estimated time for display
+  const formatEstimatedTime = (workerCount: number): string => {
+    const totalSeconds = workerCount * 30;
+    if (totalSeconds < 60) {
+      return `${totalSeconds} ${t("common.seconds", "seconds")}`;
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (seconds === 0) {
+      return `${minutes} ${t("common.minutes", "minutes")}`;
+    }
+    return `${minutes} ${t("common.minutes", "minutes")} ${seconds} ${t("common.seconds", "seconds")}`;
+  };
+
   const pendingCount = workers.filter((w) => w.approval_status !== "approved").length;
   const noMobileCount = workers.filter(
     (w) => !w.mobile_number || w.mobile_number.trim() === ""
@@ -225,6 +239,9 @@ export function WorkerBulkInductionDialog({
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription className="flex flex-col gap-1">
+              <span className="font-medium">
+                {t("contractors.workers.messageDelayTitle", "Message Delay")}
+              </span>
               <span>
                 {t(
                   "contractors.workers.messageDelay",
@@ -232,8 +249,8 @@ export function WorkerBulkInductionDialog({
                 )}
               </span>
               <span className="text-xs text-muted-foreground">
-                {t("contractors.workers.estimatedTime", "Estimated time: {{minutes}} minutes", {
-                  minutes: estimatedMinutes,
+                {t("contractors.workers.estimatedTime", "Estimated time: {{time}}", {
+                  time: formatEstimatedTime(eligibleWorkers.length),
                 })}
               </span>
             </AlertDescription>
