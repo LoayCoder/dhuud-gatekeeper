@@ -298,78 +298,69 @@ export default function InvestigationWorkspace() {
   const currentOwner = getCurrentOwner();
 
   return (
-    <div className="container py-6 space-y-6 overflow-x-hidden" dir={direction}>
-      {/* Modern Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          {/* Back to Event List Button */}
+    <div className="container max-w-7xl py-8 space-y-8 overflow-x-hidden" dir={direction}>
+      {/* Modern Executive Header */}
+      <div className="space-y-6">
+        {/* Navigation Row */}
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/incidents')}
-            className="gap-2 me-2 shrink-0"
+            className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-            <span className="hidden sm:inline">{t('incidents.backToList', 'Back to Event List')}</span>
+            {t('incidents.backToList', 'Back to Event List')}
           </Button>
-          <div className="p-2 rounded-lg bg-primary/10">
-            <FileSearch className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {t('investigation.title', 'Investigation Workspace')}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {t('investigation.description', 'Investigate incidents, collect evidence, and track corrective actions')}
-            </p>
-          </div>
         </div>
-        <div className="flex items-center gap-2 self-start">
-          {selectedIncidentId && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              className="gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {t('common.refresh', 'Refresh')}
-            </Button>
-          )}
-        </div>
-      </div>
 
-      {/* Current Owner Banner */}
-      {selectedIncidentId && currentOwner && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="py-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <UserCheck className="h-4 w-4 text-primary" />
+        {/* Header Content */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                <FileSearch className="h-7 w-7 text-primary" />
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">
-                  {t('incidents.currentOwner', 'Current Owner')}
-                </p>
-                <p className="font-medium">
-                  {currentOwner.name ? `${currentOwner.name} (${currentOwner.role})` : currentOwner.role}
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {t('investigation.title', 'Investigation Workspace')}
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  {t('investigation.description', 'Investigate incidents, collect evidence, and track corrective actions')}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {/* Incident Selector Card - Enhanced Design */}
-      <Card className="border-2">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground" />
+          {/* Header Actions */}
+          <div className="flex items-center gap-3">
+            {selectedIncidentId && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                {t('common.refresh', 'Refresh')}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Incident Selection Section */}
+      <Card className="border-0 shadow-md bg-gradient-to-br from-card to-muted/20">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-muted">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                </div>
                 {t('investigation.selectIncident', 'Select Incident to Investigate')}
               </CardTitle>
-              <CardDescription className="mt-1">
+              <CardDescription className="text-sm">
                 {viewMode === 'my-pending' 
                   ? t('investigation.showingPendingApprovals', 'Showing incidents pending your action')
                   : t('investigation.showingAllIncidents', 'Showing all open incidents')}
@@ -379,89 +370,115 @@ export default function InvestigationWorkspace() {
               type="single" 
               value={viewMode} 
               onValueChange={(v) => v && setViewMode(v as 'my-pending' | 'all')}
-              className="justify-start bg-muted p-1 rounded-lg"
+              className="justify-start bg-background/80 backdrop-blur-sm p-1.5 rounded-xl border shadow-sm"
             >
               <ToggleGroupItem 
                 value="my-pending" 
-                className="gap-2 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md"
+                className="gap-2 px-4 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-lg transition-all"
               >
                 <ClipboardCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.myPendingApprovals', 'My Pending')}</span>
-                <span className="sm:hidden">{t('investigation.myPending', 'My Pending')}</span>
+                <span className="hidden sm:inline font-medium">{t('investigation.myPendingApprovals', 'My Pending')}</span>
+                <span className="sm:hidden font-medium">{t('investigation.myPending', 'My Pending')}</span>
                 {pendingApprovals && pendingApprovals.length > 0 && (
-                  <Badge variant="destructive" className="ms-1 h-5 min-w-5 px-1.5 text-xs">
+                  <Badge variant="destructive" className="ms-1 h-5 min-w-5 px-1.5 text-xs font-bold">
                     {pendingApprovals.length}
                   </Badge>
                 )}
               </ToggleGroupItem>
               <ToggleGroupItem 
                 value="all" 
-                className="gap-2 text-sm data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md"
+                className="gap-2 px-4 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-lg transition-all"
               >
                 <List className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.allIncidents', 'All Incidents')}</span>
-                <span className="sm:hidden">{t('investigation.all', 'All')}</span>
+                <span className="hidden sm:inline font-medium">{t('investigation.allIncidents', 'All Incidents')}</span>
+                <span className="sm:hidden font-medium">{t('investigation.all', 'All')}</span>
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {isLoadingIncidents ? (
-            <div className="flex items-center gap-2 text-muted-foreground py-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {t('common.loading', 'Loading...')}
+            <div className="flex items-center gap-3 text-muted-foreground py-6">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="font-medium">{t('common.loading', 'Loading...')}</span>
             </div>
           ) : (
             <Select
               value={selectedIncidentId || ''}
               onValueChange={(value) => setSelectedIncidentId(value)}
             >
-              <SelectTrigger className="w-full md:w-[500px] h-12">
-                <SelectValue placeholder={t('investigation.selectIncidentPlaceholder', 'Choose an incident...')} />
+              <SelectTrigger className="w-full lg:w-[600px] h-14 text-base bg-background border-2 hover:border-primary/50 transition-colors">
+                <SelectValue placeholder={t('investigation.selectIncidentPlaceholder', 'Choose an incident to investigate...')} />
               </SelectTrigger>
               <SelectContent dir={direction} className="max-h-[400px]">
                 {displayedIncidents?.length === 0 ? (
-                  <div className="p-4 text-sm text-muted-foreground text-center">
-                    <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    {viewMode === 'my-pending' 
-                      ? t('investigation.noPendingApprovals', 'No incidents pending your approval')
-                      : t('investigation.noIncidents', 'No incidents available for investigation')}
+                  <div className="p-6 text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                      <Search className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {viewMode === 'my-pending' 
+                        ? t('investigation.noPendingApprovals', 'No incidents pending your approval')
+                        : t('investigation.noIncidents', 'No incidents available for investigation')}
+                    </p>
                   </div>
                 ) : (
-                  displayedIncidents?.map((incident) => {
-                    const statusCategory = getStatusCategory(incident.status);
-                    return (
-                      <SelectItem 
-                        key={incident.id} 
-                        value={incident.id}
-                        className={cn(
-                          "py-3 cursor-pointer",
-                          "border-s-4 ps-3",
-                          getStatusBorderColor(incident.status)
-                        )}
-                      >
-                        <div className="flex items-center gap-3 w-full">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs text-muted-foreground">
-                                {incident.reference_id}
-                              </span>
-                              <span className="truncate font-medium">
-                                {incident.title}
-                              </span>
-                            </div>
+                  displayedIncidents?.map((incident) => (
+                    <SelectItem 
+                      key={incident.id} 
+                      value={incident.id}
+                      className={cn(
+                        "py-4 cursor-pointer border-s-4 ps-4 my-1 rounded-e-lg",
+                        getStatusBorderColor(incident.status)
+                      )}
+                    >
+                      <div className="flex items-center gap-4 w-full">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                              {incident.reference_id}
+                            </span>
+                            <span className="truncate font-medium">
+                              {incident.title}
+                            </span>
                           </div>
-                          <IncidentStatusBadge status={incident.status || ''} className="text-xs shrink-0" />
                         </div>
-                      </SelectItem>
-                    );
-                  })
+                        <IncidentStatusBadge status={incident.status || ''} className="text-xs shrink-0" />
+                      </div>
+                    </SelectItem>
+                  ))
                 )}
               </SelectContent>
             </Select>
           )}
         </CardContent>
       </Card>
+
+      {/* Current Owner & Status Bar - Only when incident selected */}
+      {selectedIncidentId && currentOwner && (
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Card className="flex-1 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardContent className="py-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <UserCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {t('incidents.currentOwner', 'Current Owner')}
+                  </p>
+                  <p className="text-lg font-semibold mt-0.5">
+                    {currentOwner.name ? `${currentOwner.name}` : currentOwner.role}
+                  </p>
+                  {currentOwner.name && (
+                    <p className="text-sm text-muted-foreground">{currentOwner.role}</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Investigation Content */}
       {selectedIncidentId && incidentData ? (
@@ -526,106 +543,112 @@ export default function InvestigationWorkspace() {
             </Alert>
           )}
 
-          {/* Tabs - Enhanced Design */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction} className="w-full overflow-hidden">
-            <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/50 p-1 rounded-lg">
-              <TabsTrigger 
-                value="overview" 
-                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('investigation.tabs.overview', 'Overview')}</span>
-              </TabsTrigger>
-              
-              <LockedTabTrigger 
-                value="evidence" 
-                icon={FileSearch} 
-                label={t('investigation.tabs.evidence', 'Evidence')} 
-              />
-              <LockedTabTrigger 
-                value="witnesses" 
-                icon={Users} 
-                label={t('investigation.tabs.witnesses', 'Witnesses')} 
-              />
-              <LockedTabTrigger 
-                value="rca" 
-                icon={Search} 
-                label={t('investigation.tabs.rca', 'RCA')} 
-              />
-              <LockedTabTrigger 
-                value="actions" 
-                icon={ListChecks} 
-                label={t('investigation.tabs.actions', 'Actions')} 
-              />
-            </TabsList>
-
-            <TabsContent value="overview" className="mt-4">
-              <OverviewPanel 
-                incident={selectedIncident} 
-                investigation={investigation ?? null}
-                onRefresh={handleRefresh}
-              />
-            </TabsContent>
-
-            <TabsContent value="evidence" className="mt-4">
-              {investigationAllowed ? (
-                <EvidencePanel 
-                  incidentId={selectedIncidentId} 
-                  incidentStatus={selectedIncident?.status}
-                  canEdit={editAccess.canEdit}
-                />
-              ) : null}
-            </TabsContent>
-
-            <TabsContent value="witnesses" className="mt-4">
-              {investigationAllowed ? (
-                <WitnessPanel 
-                  incidentId={selectedIncidentId} 
-                  incident={selectedIncident} 
-                  incidentStatus={selectedIncident?.status}
-                  canEdit={editAccess.canEdit}
-                />
-              ) : null}
-            </TabsContent>
-
-            <TabsContent value="rca" className="mt-4">
-              {investigationAllowed ? (
-                <RCAPanel 
-                  incidentId={selectedIncidentId} 
-                  incidentStatus={selectedIncident?.status}
-                  incidentTitle={selectedIncident?.title}
-                  incidentDescription={selectedIncident?.description}
-                  incidentSeverity={selectedIncident?.severity}
-                  incidentEventType={selectedIncident?.event_type}
-                  canEdit={editAccess.canEdit}
-                />
-              ) : null}
-            </TabsContent>
-
-            <TabsContent value="actions" className="mt-4 space-y-4">
-              {investigationAllowed ? (
-                <>
-                  {/* Cause Coverage Indicator */}
-                  <CauseCoverageIndicator incidentId={selectedIncidentId} />
+          {/* Investigation Tabs - Modern Design */}
+          <Card className="border-0 shadow-md overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction} className="w-full">
+              <div className="bg-muted/30 border-b px-4 pt-4">
+                <TabsList className="flex flex-wrap h-auto gap-2 w-full bg-transparent p-0">
+                  <TabsTrigger 
+                    value="overview" 
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="hidden sm:inline font-medium">{t('investigation.tabs.overview', 'Overview')}</span>
+                  </TabsTrigger>
                   
-                  {/* Actions List */}
-                  <ActionsPanel 
-                    incidentId={selectedIncidentId} 
-                    incidentStatus={selectedIncident?.status}
-                    canEdit={editAccess.canEdit}
+                  <LockedTabTrigger 
+                    value="evidence" 
+                    icon={FileSearch} 
+                    label={t('investigation.tabs.evidence', 'Evidence')} 
                   />
-                  
-                  {/* Submit Investigation Card - Only for investigator when in progress */}
-                  {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
-                    <SubmitInvestigationCard 
+                  <LockedTabTrigger 
+                    value="witnesses" 
+                    icon={Users} 
+                    label={t('investigation.tabs.witnesses', 'Witnesses')} 
+                  />
+                  <LockedTabTrigger 
+                    value="rca" 
+                    icon={Search} 
+                    label={t('investigation.tabs.rca', 'RCA')} 
+                  />
+                  <LockedTabTrigger 
+                    value="actions" 
+                    icon={ListChecks} 
+                    label={t('investigation.tabs.actions', 'Actions')} 
+                  />
+                </TabsList>
+              </div>
+
+              <div className="p-6">
+                <TabsContent value="overview" className="mt-0">
+                  <OverviewPanel 
+                    incident={selectedIncident} 
+                    investigation={investigation ?? null}
+                    onRefresh={handleRefresh}
+                  />
+                </TabsContent>
+
+                <TabsContent value="evidence" className="mt-0">
+                  {investigationAllowed ? (
+                    <EvidencePanel 
                       incidentId={selectedIncidentId} 
-                      onSubmitted={handleRefresh}
+                      incidentStatus={selectedIncident?.status}
+                      canEdit={editAccess.canEdit}
                     />
-                  )}
-                </>
-              ) : null}
-            </TabsContent>
-          </Tabs>
+                  ) : null}
+                </TabsContent>
+
+                <TabsContent value="witnesses" className="mt-0">
+                  {investigationAllowed ? (
+                    <WitnessPanel 
+                      incidentId={selectedIncidentId} 
+                      incident={selectedIncident} 
+                      incidentStatus={selectedIncident?.status}
+                      canEdit={editAccess.canEdit}
+                    />
+                  ) : null}
+                </TabsContent>
+
+                <TabsContent value="rca" className="mt-0">
+                  {investigationAllowed ? (
+                    <RCAPanel 
+                      incidentId={selectedIncidentId} 
+                      incidentStatus={selectedIncident?.status}
+                      incidentTitle={selectedIncident?.title}
+                      incidentDescription={selectedIncident?.description}
+                      incidentSeverity={selectedIncident?.severity}
+                      incidentEventType={selectedIncident?.event_type}
+                      canEdit={editAccess.canEdit}
+                    />
+                  ) : null}
+                </TabsContent>
+
+                <TabsContent value="actions" className="mt-0 space-y-4">
+                  {investigationAllowed ? (
+                    <>
+                      {/* Cause Coverage Indicator */}
+                      <CauseCoverageIndicator incidentId={selectedIncidentId} />
+                      
+                      {/* Actions List */}
+                      <ActionsPanel 
+                        incidentId={selectedIncidentId} 
+                        incidentStatus={selectedIncident?.status}
+                        canEdit={editAccess.canEdit}
+                      />
+                      
+                      {/* Submit Investigation Card - Only for investigator when in progress */}
+                      {editAccess.canEdit && incidentData?.status === 'investigation_in_progress' && (
+                        <SubmitInvestigationCard 
+                          incidentId={selectedIncidentId} 
+                          onSubmitted={handleRefresh}
+                        />
+                      )}
+                    </>
+                  ) : null}
+                </TabsContent>
+              </div>
+            </Tabs>
+          </Card>
 
           {/* Closure Approval Card - show if closure is pending (either investigation or final) */}
           {(['pending_closure', 'pending_final_closure'] as string[]).includes(incidentData?.status as string) && canApprove && (
