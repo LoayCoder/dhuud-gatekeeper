@@ -180,6 +180,7 @@ const DocumentSettings = lazyWithRetry(() => import("./pages/admin/DocumentSetti
 const TeamPerformance = lazyWithRetry(() => import("./pages/admin/TeamPerformance"));
 const ExecutiveReport = lazyWithRetry(() => import("./pages/admin/ExecutiveReport"));
 const MenuAccessConfig = lazyWithRetry(() => import("./pages/admin/MenuAccessConfig"));
+const UserMenuAccessConfig = lazyWithRetry(() => import("./pages/admin/UserMenuAccessConfig"));
 const WorkflowDiagrams = lazyWithRetry(() => import("./pages/admin/WorkflowDiagrams"));
 const ManhoursManagement = lazyWithRetry(() => import("./pages/admin/ManhoursManagement"));
 const KPITargetsManagement = lazyWithRetry(() => import("./pages/admin/KPITargetsManagement"));
@@ -545,6 +546,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <MenuAccessConfig />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/user-menu-access"
+                        element={
+                          <AdminRoute>
+                            <UserMenuAccessConfig />
                           </AdminRoute>
                         }
                       />
