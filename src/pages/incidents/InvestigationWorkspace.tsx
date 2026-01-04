@@ -55,7 +55,9 @@ import {
   DeptRepIncidentReviewCard,
   SubmitInvestigationCard,
   CauseCoverageIndicator,
-  HSSEEscalationReviewCard
+  HSSEEscalationReviewCard,
+  EscalationAlertBanner,
+  HSSEValidationCard
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
@@ -316,6 +318,14 @@ export default function InvestigationWorkspace() {
         // Show info that observation was upgraded - could show link to new incident
         return null;
 
+      case 'pending_hsse_validation':
+        return (
+          <HSSEValidationCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
       default:
         return null;
     }
@@ -573,6 +583,9 @@ export default function InvestigationWorkspace() {
             incident={incidentData} 
             workflowActors={workflowActors || undefined}
           />
+
+          {/* Escalation Alert Banner - Shows when observation triggered escalation */}
+          <EscalationAlertBanner incident={incidentData} />
 
           {/* Workflow-Specific Cards */}
           {renderWorkflowCards()}
