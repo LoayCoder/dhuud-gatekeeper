@@ -375,6 +375,10 @@
       "detectionError": "Failed to detect event type",
       "fieldsPopulated": "Fields auto-populated from AI analysis"
     },
+    "reportAgainstContractor": "Report Against Contractor",
+    "contractorCompany": "Contractor Company",
+    "selectContractorCompany": "Select contractor company",
+    "contractorViolationNote": "Enable if this incident involves a contractor company violation",
     "site": "Site",
     "selectSite": "Select site",
     "branch": "Branch",

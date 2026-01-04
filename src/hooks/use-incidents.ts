@@ -178,8 +178,8 @@ export function useCreateIncident() {
         }
       }
 
-      // Add related contractor company for negative observations
-      if (isObservation && data.related_contractor_company_id) {
+      // Add related contractor company for negative observations AND incidents
+      if (data.related_contractor_company_id) {
         (insertData as Record<string, unknown>).related_contractor_company_id = data.related_contractor_company_id;
       }
 
