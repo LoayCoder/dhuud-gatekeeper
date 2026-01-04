@@ -241,10 +241,13 @@ export default function HSSEEventDashboard() {
   };
 
   const handleGenerateAIInsights = () => {
-    if (dashboardData && locationData) {
+    console.log("Generate AI Insights clicked", { dashboardData: !!dashboardData, locationData: !!locationData });
+    
+    // Allow generation even if locationData is null - use empty defaults
+    if (dashboardData) {
       const aiContext = {
         ...dashboardData,
-        locationData,
+        locationData: locationData || { by_branch: [], by_department: [] },
         rca_data: rcaData ? {
           total_rcas: rcaData.root_cause_distribution?.length || 0,
           top_categories: rcaData.root_cause_distribution?.slice(0, 5).map((r: any) => r.category) || [],
@@ -264,7 +267,10 @@ export default function HSSEEventDashboard() {
           rate: `${dashboardData.summary?.near_miss_rate || 0}%`,
         },
       };
+      console.log("Calling generateInsights with context", Object.keys(aiContext));
       generateInsights(aiContext);
+    } else {
+      console.warn("Cannot generate insights: dashboardData is null");
     }
   };
 
