@@ -42,7 +42,7 @@ import {
 } from '@/components/inspections/sessions';
 import { useReopenAreaSession } from '@/hooks/use-session-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAreaFindingsCount } from '@/hooks/use-area-findings';
+import { useAreaFindingsCount, useAreaFindings } from '@/hooks/use-area-findings';
 
 function AuditSessionWorkspaceContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -53,6 +53,7 @@ function AuditSessionWorkspaceContent() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showStartConfirmDialog, setShowStartConfirmDialog] = useState(false);
   const [completionMode, setCompletionMode] = useState<'complete' | 'close'>('complete');
   
   const { data: session, isLoading: sessionLoading } = useInspectionSession(sessionId);
@@ -62,6 +63,7 @@ function AuditSessionWorkspaceContent() {
   const { data: progress } = useAuditProgress(sessionId, session?.template_id);
   const { data: ncCounts } = useNCCounts(sessionId, session?.template_id);
   const { data: findingsCount } = useAreaFindingsCount(sessionId);
+  const { data: findings = [] } = useAreaFindings(sessionId);
   const { data: closureStatus, isLoading: closureLoading } = useCanCloseSession(sessionId);
   
   const startSession = useStartAuditSession();
@@ -99,9 +101,14 @@ function AuditSessionWorkspaceContent() {
     try {
       await startSession.mutateAsync(sessionId);
       toast.success(t('audits.sessionStarted'));
+      setShowStartConfirmDialog(false);
     } catch (error: any) {
       toast.error(error.message);
     }
+  };
+
+  const handleStartClick = () => {
+    setShowStartConfirmDialog(true);
   };
 
   const handleCompleteSession = async () => {
@@ -211,7 +218,13 @@ function AuditSessionWorkspaceContent() {
             <SessionExportDropdown
               session={session}
               responses={responses as any}
-              findings={[]}
+              findings={findings.map(f => ({
+                reference_id: f.reference_id,
+                classification: f.classification,
+                risk_level: f.risk_level,
+                status: f.status,
+                description: f.description,
+              }))}
             />
           )}
           {session.status !== 'closed' && (
@@ -253,6 +266,29 @@ function AuditSessionWorkspaceContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Start Session Confirmation Dialog */}
+      <AlertDialog open={showStartConfirmDialog} onOpenChange={setShowStartConfirmDialog}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('audits.confirmStartTitle')}</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>{t('audits.confirmStartDesc')}</p>
+              <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
+                <p><strong>{t('audits.template')}:</strong> {i18n.language === 'ar' && template?.name_ar ? template.name_ar : template?.name}</p>
+                <p><strong>{t('audits.period')}:</strong> {session.period}</p>
+                {session.site && <p><strong>{t('common.site')}:</strong> {session.site.name}</p>}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleStartSession} disabled={startSession.isPending}>
+              {startSession.isPending ? t('common.starting') : t('audits.startAudit')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Session Completion Dialog */}
       <SessionCompletionDialog
@@ -282,7 +318,7 @@ function AuditSessionWorkspaceContent() {
             isLoading={closureLoading}
             onComplete={() => { setCompletionMode('complete'); setShowCompletionDialog(true); }}
             onClose={() => { setCompletionMode('close'); setShowCompletionDialog(true); }}
-            onStart={session.status === 'draft' ? handleStartSession : undefined}
+            onStart={session.status === 'draft' ? handleStartClick : undefined}
             onReopen={session.status === 'closed' ? handleReopenSession : undefined}
             isCompleting={completeSession.isPending}
             isClosing={closeSession.isPending}

@@ -664,7 +664,9 @@ export type Database = {
           gps_lat: number | null
           gps_lng: number | null
           id: string
+          nc_category: string | null
           notes: string | null
+          objective_evidence: string | null
           photo_paths: Json | null
           responded_at: string | null
           responded_by: string | null
@@ -682,7 +684,9 @@ export type Database = {
           gps_lat?: number | null
           gps_lng?: number | null
           id?: string
+          nc_category?: string | null
           notes?: string | null
+          objective_evidence?: string | null
           photo_paths?: Json | null
           responded_at?: string | null
           responded_by?: string | null
@@ -700,7 +704,9 @@ export type Database = {
           gps_lat?: number | null
           gps_lng?: number | null
           id?: string
+          nc_category?: string | null
           notes?: string | null
+          objective_evidence?: string | null
           photo_paths?: Json | null
           responded_at?: string | null
           responded_by?: string | null
