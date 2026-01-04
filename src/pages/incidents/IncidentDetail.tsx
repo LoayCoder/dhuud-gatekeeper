@@ -36,6 +36,11 @@ import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
 import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
 import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
 import { HSSEExpertRejectionReviewCard } from '@/components/investigation/HSSEExpertRejectionReviewCard';
+import { ContractorViolationSection } from '@/components/investigation/ContractorViolationSection';
+import { DeptManagerViolationApprovalCard } from '@/components/investigation/DeptManagerViolationApprovalCard';
+import { ContractControllerApprovalCard } from '@/components/investigation/ContractControllerApprovalCard';
+import { ContractorSiteRepAcknowledgeCard } from '@/components/investigation/ContractorSiteRepAcknowledgeCard';
+import { HSSEViolationReviewCard } from '@/components/investigation/HSSEViolationReviewCard';
 import { useQuery } from '@tanstack/react-query';
 
 export default function IncidentDetail() {
@@ -220,6 +225,23 @@ export default function IncidentDetail() {
       {/* HSSE Expert Rejection Review Card */}
       {incident.event_type === 'observation' && (
         <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
+      )}
+
+      {/* Contractor Violation Approval Cards */}
+      {incident.event_type === 'observation' && incident.related_contractor_company_id && (
+        <>
+          <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
+          <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
+          <ContractorSiteRepAcknowledgeCard incident={incident} onComplete={() => window.location.reload()} />
+          <HSSEViolationReviewCard incident={incident} onComplete={() => window.location.reload()} />
+        </>
+      )}
+
+      {/* Contractor Violation Section (Read-only display when finalized) */}
+      {incident.event_type === 'observation' && 
+       incident.related_contractor_company_id && 
+       (incident as any).violation_final_status && (
+        <ContractorViolationSection incident={incident} isEditable={false} />
       )}
 
       {/* Status and Type Badges - Read-only display (status changes via workflow only) */}

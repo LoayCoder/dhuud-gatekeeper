@@ -7546,6 +7546,31 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at: string | null
+          violation_action_description: string | null
+          violation_contract_controller_approved_at: string | null
+          violation_contract_controller_approved_by: string | null
+          violation_contract_controller_decision: string | null
+          violation_contract_controller_notes: string | null
+          violation_contractor_rep_acknowledged_at: string | null
+          violation_contractor_rep_acknowledged_by: string | null
+          violation_contractor_rep_decision: string | null
+          violation_contractor_rep_notes: string | null
+          violation_dept_manager_approved_at: string | null
+          violation_dept_manager_approved_by: string | null
+          violation_dept_manager_decision: string | null
+          violation_dept_manager_notes: string | null
+          violation_final_status: string | null
+          violation_finalized_at: string | null
+          violation_finalized_by: string | null
+          violation_fine_amount: number | null
+          violation_hsse_decided_at: string | null
+          violation_hsse_decided_by: string | null
+          violation_hsse_decision: string | null
+          violation_hsse_modified_type_id: string | null
+          violation_hsse_notes: string | null
+          violation_occurrence: number | null
+          violation_penalty_type: string | null
+          violation_type_id: string | null
           worker_type: string | null
         }
         Insert: {
@@ -7677,6 +7702,31 @@ export type Database = {
           tenant_id: string
           title: string
           updated_at?: string | null
+          violation_action_description?: string | null
+          violation_contract_controller_approved_at?: string | null
+          violation_contract_controller_approved_by?: string | null
+          violation_contract_controller_decision?: string | null
+          violation_contract_controller_notes?: string | null
+          violation_contractor_rep_acknowledged_at?: string | null
+          violation_contractor_rep_acknowledged_by?: string | null
+          violation_contractor_rep_decision?: string | null
+          violation_contractor_rep_notes?: string | null
+          violation_dept_manager_approved_at?: string | null
+          violation_dept_manager_approved_by?: string | null
+          violation_dept_manager_decision?: string | null
+          violation_dept_manager_notes?: string | null
+          violation_final_status?: string | null
+          violation_finalized_at?: string | null
+          violation_finalized_by?: string | null
+          violation_fine_amount?: number | null
+          violation_hsse_decided_at?: string | null
+          violation_hsse_decided_by?: string | null
+          violation_hsse_decision?: string | null
+          violation_hsse_modified_type_id?: string | null
+          violation_hsse_notes?: string | null
+          violation_occurrence?: number | null
+          violation_penalty_type?: string | null
+          violation_type_id?: string | null
           worker_type?: string | null
         }
         Update: {
@@ -7808,6 +7858,31 @@ export type Database = {
           tenant_id?: string
           title?: string
           updated_at?: string | null
+          violation_action_description?: string | null
+          violation_contract_controller_approved_at?: string | null
+          violation_contract_controller_approved_by?: string | null
+          violation_contract_controller_decision?: string | null
+          violation_contract_controller_notes?: string | null
+          violation_contractor_rep_acknowledged_at?: string | null
+          violation_contractor_rep_acknowledged_by?: string | null
+          violation_contractor_rep_decision?: string | null
+          violation_contractor_rep_notes?: string | null
+          violation_dept_manager_approved_at?: string | null
+          violation_dept_manager_approved_by?: string | null
+          violation_dept_manager_decision?: string | null
+          violation_dept_manager_notes?: string | null
+          violation_final_status?: string | null
+          violation_finalized_at?: string | null
+          violation_finalized_by?: string | null
+          violation_fine_amount?: number | null
+          violation_hsse_decided_at?: string | null
+          violation_hsse_decided_by?: string | null
+          violation_hsse_decision?: string | null
+          violation_hsse_modified_type_id?: string | null
+          violation_hsse_notes?: string | null
+          violation_occurrence?: number | null
+          violation_penalty_type?: string | null
+          violation_type_id?: string | null
           worker_type?: string | null
         }
         Relationships: [
@@ -7977,6 +8052,55 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_contract_controller_approved_by_fkey"
+            columns: ["violation_contract_controller_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_contractor_rep_acknowledged_by_fkey"
+            columns: ["violation_contractor_rep_acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_dept_manager_approved_by_fkey"
+            columns: ["violation_dept_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_finalized_by_fkey"
+            columns: ["violation_finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_hsse_decided_by_fkey"
+            columns: ["violation_hsse_decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_hsse_modified_type_id_fkey"
+            columns: ["violation_hsse_modified_type_id"]
+            isOneToOne: false
+            referencedRelation: "violation_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_type_id_fkey"
+            columns: ["violation_type_id"]
+            isOneToOne: false
+            referencedRelation: "violation_types"
             referencedColumns: ["id"]
           },
         ]
@@ -17611,6 +17735,15 @@ export type Database = {
         Args: { p_asset_id: string }
         Returns: number
       }
+      calculate_contractor_violation_occurrence: {
+        Args: {
+          p_contractor_company_id: string
+          p_exclude_incident_id?: string
+          p_tenant_id: string
+          p_violation_type_id: string
+        }
+        Returns: number
+      }
       calculate_next_inspection_due: {
         Args: {
           p_day_of_month?: number
@@ -17683,6 +17816,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_approve_violation: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: Json
+      }
       can_close_area_session: { Args: { p_session_id: string }; Returns: Json }
       can_close_investigation: {
         Args: { p_incident_id: string }
@@ -17742,6 +17879,33 @@ export type Database = {
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
+      contract_controller_approve_violation: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      contractor_site_rep_acknowledge_violation: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      dept_manager_approve_violation: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       dept_rep_reject_observation: {
         Args: {
           p_incident_id: string
@@ -18249,6 +18413,10 @@ export type Database = {
           user_type: string
         }[]
       }
+      get_violation_details_with_occurrence: {
+        Args: { p_incident_id: string; p_violation_type_id: string }
+        Returns: Json
+      }
       has_asset_management_access: {
         Args: { _user_id: string }
         Returns: boolean
@@ -18280,6 +18448,16 @@ export type Database = {
         Args: {
           p_decision: string
           p_incident_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      hsse_review_violation: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
+          p_modified_violation_type_id?: string
           p_notes?: string
           p_user_id: string
         }
@@ -18377,6 +18555,14 @@ export type Database = {
       }
       soft_delete_evidence: { Args: { p_evidence_id: string }; Returns: string }
       soft_delete_incident: { Args: { p_incident_id: string }; Returns: string }
+      submit_contractor_violation: {
+        Args: {
+          p_incident_id: string
+          p_user_id: string
+          p_violation_type_id: string
+        }
+        Returns: Json
+      }
       toggle_event_category: {
         Args: {
           p_category_id: string
