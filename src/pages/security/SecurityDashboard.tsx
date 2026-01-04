@@ -39,6 +39,8 @@ import { EmergencyAlertsList } from '@/components/security/EmergencyAlertsList';
 import { useActiveEmergencyAlerts, useRealtimeEmergencyAlerts } from '@/hooks/use-emergency-alerts';
 import { GeofenceBreachesChart } from '@/components/security/GeofenceBreachesChart';
 import { TopGuardsWidget } from '@/components/security/TopGuardsWidget';
+import { EnterprisePage } from '@/components/layout/EnterprisePage';
+import { KPIStrip, type KPIItem } from '@/components/ui/kpi-strip';
 
 export default function SecurityDashboard() {
   const { t } = useTranslation();
@@ -48,6 +50,39 @@ export default function SecurityDashboard() {
   useRealtimeEmergencyAlerts();
 
   const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+
+  const kpiItems: KPIItem[] = [
+    {
+      label: t('security.dashboard.activeGuards', 'Active Guards'),
+      value: isLoading ? '...' : stats?.activeGuards ?? 0,
+      icon: Shield,
+      status: 'informational',
+      trend: 'neutral',
+      trendValue: stats?.totalGuards ? `of ${stats.totalGuards} total` : undefined,
+    },
+    {
+      label: t('security.dashboard.visitorsToday', 'Visitors Today'),
+      value: isLoading ? '...' : stats?.visitorsToday ?? 0,
+      icon: Users,
+      status: 'informational',
+      trend: 'neutral',
+      trendValue: stats?.visitorsOnSite ? `${stats.visitorsOnSite} on site` : undefined,
+    },
+    {
+      label: t('security.dashboard.openAlerts', 'Open Alerts'),
+      value: isLoading ? '...' : stats?.openAlerts ?? 0,
+      icon: AlertTriangle,
+      status: (stats?.openAlerts ?? 0) > 0 ? 'critical' : 'completed',
+    },
+    {
+      label: t('security.dashboard.patrolsToday', 'Patrols Today'),
+      value: isLoading ? '...' : stats?.patrolsCompleted ?? 0,
+      icon: Route,
+      status: 'informational',
+      trend: 'neutral',
+      trendValue: stats?.patrolCompletionRate ? `${stats.patrolCompletionRate}% rate` : undefined,
+    },
+  ];
 
   const quickActions = [
     { 
@@ -89,109 +124,20 @@ export default function SecurityDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t('security.dashboard.title', 'Security Dashboard')}
-          </h1>
-          <p className="text-muted-foreground">
-            {t('security.dashboard.subtitle', 'Overview of security operations and real-time status')}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4 me-2" />
-          {t('common.refresh', 'Refresh')}
-        </Button>
-      </div>
+    <EnterprisePage
+      title={t('security.dashboard.title', 'Security Dashboard')}
+      description={t('security.dashboard.subtitle', 'Overview of security operations and real-time status')}
+      secondaryActions={[
+        {
+          label: t('common.refresh', 'Refresh'),
+          onClick: () => refetch(),
+          icon: RefreshCw,
+        },
+      ]}
+    >
+      {/* KPI Strip */}
+      <KPIStrip items={kpiItems} />
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('security.dashboard.activeGuards', 'Active Guards')}
-            </CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{stats?.activeGuards ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('security.dashboard.ofTotal', 'of {{total}} total', { total: stats?.totalGuards ?? 0 })}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('security.dashboard.visitorsToday', 'Visitors Today')}
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{stats?.visitorsToday ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('security.dashboard.currentlyOnSite', '{{count}} currently on site', { count: stats?.visitorsOnSite ?? 0 })}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('security.dashboard.openAlerts', 'Open Alerts')}
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-destructive">{stats?.openAlerts ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('security.dashboard.pendingAcknowledgment', 'pending acknowledgment')}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('security.dashboard.patrolsToday', 'Patrols Today')}
-            </CardTitle>
-            <Route className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{stats?.patrolsCompleted ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t('security.dashboard.completionRate', '{{rate}}% completion rate', { rate: stats?.patrolCompletionRate ?? 0 })}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Quick Actions */}
       <Card>
@@ -381,6 +327,6 @@ export default function SecurityDashboard() {
 
       {/* Floating Panic Button */}
       <EmergencyPanicButton variant="floating" />
-    </div>
+    </EnterprisePage>
   );
 }
