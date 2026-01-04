@@ -7,6 +7,7 @@ import { InvestigatorAssignmentCard } from "./InvestigatorAssignmentCard";
 import { SeverityAdjustmentCard } from "./SeverityAdjustmentCard";
 import { ApprovalWorkflowBanner } from "./ApprovalWorkflowBanner";
 import { LinkedAssetsCard } from "./LinkedAssetsCard";
+import { ContractorPersonnelCard } from "./ContractorPersonnelCard";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import type { Investigation } from "@/hooks/use-investigation";
 
@@ -67,6 +68,14 @@ export function OverviewPanel({ incident, investigation, onRefresh }: OverviewPa
 
       {/* Linked Assets Card */}
       <LinkedAssetsCard incidentId={incident.id} canEdit={!isLocked} />
+
+      {/* Contractor Personnel - Show when incident is linked to a contractor company */}
+      {incident.related_contractor_company_id && (
+        <ContractorPersonnelCard 
+          companyId={incident.related_contractor_company_id}
+          companyName={(incident as any).related_contractor_company?.company_name}
+        />
+      )}
 
       {/* Severity Adjustment - Only for investigator after assignment */}
       {investigation && (
