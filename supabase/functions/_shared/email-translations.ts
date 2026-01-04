@@ -197,6 +197,39 @@ export const WORKFLOW_TRANSLATIONS = {
       actionRequired: "You must add corrective action(s) and approve, or escalate to investigation.",
       button: "Take Action",
     },
+    // Close on Spot notification (L1-L2 observations)
+    close_on_spot: {
+      subject: "Observation Closed on Spot - {reference}",
+      title: "Observation Closed on Spot",
+      body: "Observation <strong>{reference}</strong> has been closed on site by the Department Representative.",
+      closedBy: "Closed By",
+      notes: "Closure Notes",
+      button: "View Observation",
+    },
+    // Final closure confirmation
+    observation_closed: {
+      subject: "Observation Closed - {reference}",
+      title: "Observation Closed",
+      body: "Observation <strong>{reference}</strong> has been reviewed and closed. Thank you for your contribution to workplace safety.",
+      closedAt: "Closed At",
+      button: "View Details",
+    },
+    incident_closed: {
+      subject: "Incident Investigation Closed - {reference}",
+      title: "Investigation Completed",
+      body: "The investigation for incident <strong>{reference}</strong> has been completed and closed.",
+      closedAt: "Closed At",
+      summary: "Summary",
+      button: "View Investigation Report",
+    },
+    // Dept Rep incident review notification
+    dept_rep_incident_review: {
+      subject: "New Incident Requires Your Review - {reference}",
+      title: "Incident Awaiting Your Review",
+      body: "A new incident <strong>{reference}</strong> has been submitted and requires your review as the Department Representative.",
+      eventTitle: "Incident Title",
+      button: "Review Incident",
+    },
   },
   ar: {
     expert_return: {
@@ -255,6 +288,39 @@ export const WORKFLOW_TRANSLATIONS = {
       actionRequired: "يجب عليك إضافة إجراء تصحيحي والموافقة، أو التصعيد للتحقيق.",
       button: "اتخاذ إجراء",
     },
+    // Close on Spot notification (L1-L2 observations)
+    close_on_spot: {
+      subject: "تم إغلاق الملاحظة فوريًا - {reference}",
+      title: "تم إغلاق الملاحظة فوريًا",
+      body: "تم إغلاق الملاحظة <strong>{reference}</strong> في الموقع من قبل ممثل القسم.",
+      closedBy: "أغلقها",
+      notes: "ملاحظات الإغلاق",
+      button: "عرض الملاحظة",
+    },
+    // Final closure confirmation
+    observation_closed: {
+      subject: "تم إغلاق الملاحظة - {reference}",
+      title: "تم إغلاق الملاحظة",
+      body: "تم مراجعة الملاحظة <strong>{reference}</strong> وإغلاقها. شكرًا لمساهمتك في سلامة مكان العمل.",
+      closedAt: "أُغلقت في",
+      button: "عرض التفاصيل",
+    },
+    incident_closed: {
+      subject: "تم إغلاق تحقيق الحادث - {reference}",
+      title: "تم إكمال التحقيق",
+      body: "تم إكمال وإغلاق التحقيق في الحادث <strong>{reference}</strong>.",
+      closedAt: "أُغلق في",
+      summary: "ملخص",
+      button: "عرض تقرير التحقيق",
+    },
+    // Dept Rep incident review notification
+    dept_rep_incident_review: {
+      subject: "حادث جديد يتطلب مراجعتك - {reference}",
+      title: "حادث في انتظار مراجعتك",
+      body: "تم تقديم حادث جديد <strong>{reference}</strong> ويتطلب مراجعتك كممثل القسم.",
+      eventTitle: "عنوان الحادث",
+      button: "مراجعة الحادث",
+    },
   },
   ur: {
     expert_return: {
@@ -291,6 +357,36 @@ export const WORKFLOW_TRANSLATIONS = {
       body: "آپ کو واقعہ <strong>{reference}</strong> کی تحقیقات کے لیے مقرر کیا گیا ہے۔",
       eventTitle: "واقعہ کا عنوان",
       button: "تحقیقات شروع کریں",
+    },
+    close_on_spot: {
+      subject: "مشاہدہ فوری طور پر بند - {reference}",
+      title: "مشاہدہ فوری طور پر بند",
+      body: "مشاہدہ <strong>{reference}</strong> محکمہ نمائندہ نے سائٹ پر بند کر دیا ہے۔",
+      closedBy: "بند کیا گیا",
+      notes: "بندش کے نوٹس",
+      button: "مشاہدہ دیکھیں",
+    },
+    observation_closed: {
+      subject: "مشاہدہ بند - {reference}",
+      title: "مشاہدہ بند",
+      body: "مشاہدہ <strong>{reference}</strong> کا جائزہ لیا گیا اور بند کر دیا گیا۔ کام کی جگہ کی حفاظت میں آپ کی شراکت کا شکریہ۔",
+      closedAt: "بند ہوا",
+      button: "تفصیلات دیکھیں",
+    },
+    incident_closed: {
+      subject: "واقعہ کی تحقیقات بند - {reference}",
+      title: "تحقیقات مکمل",
+      body: "واقعہ <strong>{reference}</strong> کی تحقیقات مکمل اور بند ہو گئی ہیں۔",
+      closedAt: "بند ہوا",
+      summary: "خلاصہ",
+      button: "تحقیقاتی رپورٹ دیکھیں",
+    },
+    dept_rep_incident_review: {
+      subject: "نئے واقعہ کے لیے آپ کے جائزے کی ضرورت ہے - {reference}",
+      title: "واقعہ آپ کے جائزے کے منتظر",
+      body: "ایک نیا واقعہ <strong>{reference}</strong> جمع کرایا گیا ہے اور محکمہ نمائندہ کی حیثیت سے آپ کے جائزے کی ضرورت ہے۔",
+      eventTitle: "واقعہ کا عنوان",
+      button: "واقعہ کا جائزہ لیں",
     },
   },
   hi: {
@@ -329,6 +425,36 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "घटना शीर्षक",
       button: "जांच शुरू करें",
     },
+    close_on_spot: {
+      subject: "अवलोकन तत्काल बंद - {reference}",
+      title: "अवलोकन तत्काल बंद",
+      body: "अवलोकन <strong>{reference}</strong> विभाग प्रतिनिधि द्वारा साइट पर बंद कर दिया गया है।",
+      closedBy: "बंद किया गया",
+      notes: "बंद करने के नोट्स",
+      button: "अवलोकन देखें",
+    },
+    observation_closed: {
+      subject: "अवलोकन बंद - {reference}",
+      title: "अवलोकन बंद",
+      body: "अवलोकन <strong>{reference}</strong> की समीक्षा की गई और बंद कर दिया गया। कार्यस्थल सुरक्षा में आपके योगदान के लिए धन्यवाद।",
+      closedAt: "बंद हुआ",
+      button: "विवरण देखें",
+    },
+    incident_closed: {
+      subject: "घटना जांच बंद - {reference}",
+      title: "जांच पूर्ण",
+      body: "घटना <strong>{reference}</strong> की जांच पूरी और बंद हो गई है।",
+      closedAt: "बंद हुआ",
+      summary: "सारांश",
+      button: "जांच रिपोर्ट देखें",
+    },
+    dept_rep_incident_review: {
+      subject: "नई घटना के लिए आपकी समीक्षा आवश्यक - {reference}",
+      title: "घटना आपकी समीक्षा की प्रतीक्षा में",
+      body: "एक नई घटना <strong>{reference}</strong> जमा की गई है और विभाग प्रतिनिधि के रूप में आपकी समीक्षा की आवश्यकता है।",
+      eventTitle: "घटना शीर्षक",
+      button: "घटना की समीक्षा करें",
+    },
   },
   fil: {
     expert_return: {
@@ -365,6 +491,36 @@ export const WORKFLOW_TRANSLATIONS = {
       body: "Itinalaga ka upang mag-imbestiga sa event <strong>{reference}</strong>.",
       eventTitle: "Pamagat ng Event",
       button: "Simulan ang Imbestigasyon",
+    },
+    close_on_spot: {
+      subject: "Obserbasyon Agad na Isinara - {reference}",
+      title: "Obserbasyon Agad na Isinara",
+      body: "Ang obserbasyon <strong>{reference}</strong> ay isinara sa site ng Kinatawan ng Departamento.",
+      closedBy: "Isinara Ng",
+      notes: "Mga Tala sa Pagsasara",
+      button: "Tingnan ang Obserbasyon",
+    },
+    observation_closed: {
+      subject: "Obserbasyon Sarado - {reference}",
+      title: "Obserbasyon Sarado",
+      body: "Ang obserbasyon <strong>{reference}</strong> ay nasuri at isinara. Salamat sa iyong kontribusyon sa kaligtasan sa trabaho.",
+      closedAt: "Isinara Noong",
+      button: "Tingnan ang Mga Detalye",
+    },
+    incident_closed: {
+      subject: "Imbestigasyon ng Insidente Sarado - {reference}",
+      title: "Imbestigasyon Kumpleto",
+      body: "Ang imbestigasyon para sa insidente <strong>{reference}</strong> ay nakumpleto at isinara.",
+      closedAt: "Isinara Noong",
+      summary: "Buod",
+      button: "Tingnan ang Report ng Imbestigasyon",
+    },
+    dept_rep_incident_review: {
+      subject: "Bagong Insidente Nangangailangan ng Iyong Pagsusuri - {reference}",
+      title: "Insidente na Naghihintay ng Iyong Pagsusuri",
+      body: "Isang bagong insidente <strong>{reference}</strong> ang naisumite at nangangailangan ng iyong pagsusuri bilang Kinatawan ng Departamento.",
+      eventTitle: "Pamagat ng Insidente",
+      button: "Suriin ang Insidente",
     },
   },
 };

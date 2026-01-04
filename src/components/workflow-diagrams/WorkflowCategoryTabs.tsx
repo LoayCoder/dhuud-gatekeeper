@@ -5,7 +5,8 @@ import {
   AlertTriangle, 
   ClipboardCheck, 
   Shield, 
-  Building2 
+  Building2,
+  HardHat
 } from 'lucide-react';
 import { WorkflowCategory, workflowCategories } from '@/lib/workflow-definitions';
 
@@ -20,6 +21,7 @@ const categoryIcons: Record<WorkflowCategory, React.ComponentType<{ className?: 
   inspections: ClipboardCheck,
   compliance: Shield,
   assets: Building2,
+  contractor: HardHat,
 };
 
 export function WorkflowCategoryTabs({ value, onValueChange, className }: WorkflowCategoryTabsProps) {
@@ -34,7 +36,7 @@ export function WorkflowCategoryTabs({ value, onValueChange, className }: Workfl
       dir={direction}
       className={className}
     >
-      <TabsList className="grid grid-cols-4 h-auto p-1">
+      <TabsList className="grid grid-cols-5 h-auto p-1">
         {workflowCategories.map((cat) => {
           const Icon = categoryIcons[cat.id];
           return (
