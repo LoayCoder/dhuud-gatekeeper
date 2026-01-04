@@ -265,7 +265,10 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
         'investigation_closed',
         'closed',
         'dept_rep_rejected',
-        'reporter_dispute'
+        'reporter_dispute',
+        'pending_department_manager_violation_approval',
+        'pending_contract_controller_violation_approval',
+        'contractor_violation_finalized'
       ].includes(status)) {
         steps.push({
           key: 'dept_rep',
@@ -279,6 +282,48 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
           label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
           icon: <ClipboardCheck className="h-4 w-4" />,
           status: 'pending',
+        });
+      }
+      
+      // Contractor Violation Flow for Incidents (if applicable)
+      if (status === 'pending_department_manager_violation_approval') {
+        steps.push({
+          key: 'violation_dept_mgr',
+          label: t('workflow.steps.violationDeptMgr', 'Violation Approval'),
+          icon: <HardHat className="h-4 w-4" />,
+          status: 'current',
+        });
+      } else if (status === 'pending_contract_controller_violation_approval') {
+        steps.push({
+          key: 'violation_dept_mgr',
+          label: t('workflow.steps.violationDeptMgr', 'Violation Approval'),
+          icon: <HardHat className="h-4 w-4" />,
+          status: 'completed',
+        });
+        steps.push({
+          key: 'contract_controller',
+          label: t('workflow.steps.contractController', 'Contract Controller'),
+          icon: <FileCheck className="h-4 w-4" />,
+          status: 'current',
+        });
+      } else if (status === 'contractor_violation_finalized') {
+        steps.push({
+          key: 'violation_dept_mgr',
+          label: t('workflow.steps.violationDeptMgr', 'Violation Approval'),
+          icon: <HardHat className="h-4 w-4" />,
+          status: 'completed',
+        });
+        steps.push({
+          key: 'contract_controller',
+          label: t('workflow.steps.contractController', 'Contract Controller'),
+          icon: <FileCheck className="h-4 w-4" />,
+          status: 'completed',
+        });
+        steps.push({
+          key: 'violation_finalized',
+          label: t('workflow.steps.violationFinalized', 'Violation Finalized'),
+          icon: <AlertTriangle className="h-4 w-4" />,
+          status: 'current',
         });
       }
       
