@@ -27,6 +27,7 @@ import {
   PTWStatsRow,
 } from "@/components/ptw/dashboard";
 import { IntegrationAuditWidget } from "@/components/ptw/dashboard/IntegrationAuditWidget";
+import { EnterprisePage } from "@/components/layout/EnterprisePage";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   hot_work: Flame,
@@ -55,32 +56,22 @@ export default function PTWDashboard() {
   const expiringPermits = stats?.expiringPermits || [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("ptw.dashboard.title", "Permit to Work")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("ptw.dashboard.description", "Manage work permits and project mobilization")}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to="/ptw/mobilization">
-              <ClipboardCheck className="me-2 h-4 w-4" />
-              {t("ptw.nav.mobilization", "Mobilization")}
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link to="/ptw/create">
-              <Plus className="me-2 h-4 w-4" />
-              {t("ptw.nav.createPermit", "New Permit")}
-            </Link>
-          </Button>
-        </div>
-      </div>
+    <EnterprisePage
+      title={t("ptw.dashboard.title", "Permit to Work")}
+      description={t("ptw.dashboard.description", "Manage work permits and project mobilization")}
+      primaryAction={{
+        label: t("ptw.nav.createPermit", "New Permit"),
+        href: "/ptw/create",
+        icon: Plus,
+      }}
+      secondaryActions={[
+        {
+          label: t("ptw.nav.mobilization", "Mobilization"),
+          href: "/ptw/mobilization",
+          icon: ClipboardCheck,
+        },
+      ]}
+    >
 
       {/* Enhanced Stats Row */}
       <PTWStatsRow
@@ -199,6 +190,6 @@ export default function PTWDashboard() {
 
       {/* Integration Audit Widget */}
       <IntegrationAuditWidget limit={10} />
-    </div>
+    </EnterprisePage>
   );
 }
