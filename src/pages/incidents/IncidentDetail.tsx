@@ -32,6 +32,8 @@ import { DeptManagerViolationApprovalCard } from '@/components/investigation/Dep
 import { ContractControllerApprovalCard } from '@/components/investigation/ContractControllerApprovalCard';
 import { ContractorSiteRepAcknowledgeCard } from '@/components/investigation/ContractorSiteRepAcknowledgeCard';
 import { HSSEViolationReviewCard } from '@/components/investigation/HSSEViolationReviewCard';
+import { EscalationAlertBanner } from '@/components/investigation/EscalationAlertBanner';
+import { HSSEObservationValidationCard } from '@/components/investigation/HSSEObservationValidationCard';
 import { useQuery } from '@tanstack/react-query';
 import {
   IncidentDetailHeader,
@@ -224,10 +226,29 @@ export default function IncidentDetail() {
         onDelete={() => setDeleteDialogOpen(true)}
       />
 
+      {/* Escalation Alert Banner */}
+      {(incident as any).requires_escalation && (
+        <EscalationAlertBanner 
+          incident={{
+            id: incident.id,
+            requires_escalation: (incident as any).requires_escalation,
+            escalation_reason: (incident as any).escalation_reason,
+            escalation_level: (incident as any).escalation_level,
+            escalation_triggered_at: (incident as any).escalation_triggered_at,
+            related_contractor_company_id: incident.related_contractor_company_id,
+            contractor_company: (incident as any).contractor_company ? {
+              id: (incident as any).contractor_company.id,
+              company_name: (incident as any).contractor_company.company_name,
+            } : null,
+          }} 
+        />
+      )}
+
       {/* Workflow Approval Cards */}
       {incident.event_type === 'observation' && (
         <>
           <HSSEValidationCard incident={incident} onComplete={() => window.location.reload()} />
+          <HSSEObservationValidationCard incident={incident} onComplete={() => window.location.reload()} />
           <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
           <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
         </>

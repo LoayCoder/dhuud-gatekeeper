@@ -48,3 +48,6 @@ export { DisputeResolutionCard } from './DisputeResolutionCard';
 export { MonitoringCheckCard } from './MonitoringCheckCard';
 export { ContractorDisputeCard } from './ContractorDisputeCard';
 export { ContractorArbitrationView } from './ContractorArbitrationView';
+// Escalation & HSSE Observation Validation
+export { EscalationAlertBanner } from './EscalationAlertBanner';
+export { HSSEObservationValidationCard } from './HSSEObservationValidationCard';
