@@ -1,19 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, FileText, AlertTriangle, Search, MoreHorizontal, Pencil, Trash2, PlayCircle, Lock } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, AlertTriangle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,32 +24,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Lock } from 'lucide-react';
 import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/hooks/use-incidents';
 import { useDeletionPassword } from '@/hooks/use-deletion-password';
 import { useUserRoles } from '@/hooks/use-user-roles';
-import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
-
-const getStatusBadgeVariant = (status: string | null) => {
-  switch (status) {
-    case 'closed': return 'secondary';
-    case 'resolved': return 'default';
-    case 'under_investigation': return 'outline';
-    default: return 'outline';
-  }
-};
+import {
+  IncidentListHeader,
+  IncidentKPIStrip,
+  IncidentFilterPanel,
+  IncidentCardEnhanced,
+  IncidentTableView,
+  type IncidentFilters,
+} from '@/components/incidents/listing';
+import { isWithinInterval, parseISO, isPast, addDays } from 'date-fns';
 
 export default function IncidentList() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: incidents, isLoading, refetch } = useIncidents();
   const { user, isAdmin } = useAuth();
   const { hasRole } = useUserRoles();
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
+  
+  // View mode state (persisted in URL)
+  const viewMode = (searchParams.get('view') as 'cards' | 'table') || 'cards';
+  
+  // Filters state
+  const [filters, setFilters] = useState<IncidentFilters>({
+    search: searchParams.get('search') || '',
+    status: searchParams.get('status') || '',
+    severity: searchParams.get('severity') || '',
+    eventType: searchParams.get('type') || '',
+    branchId: searchParams.get('branch') || '',
+    dateRange: undefined,
+  });
   
   // Regular delete dialog (for non-closed incidents by admin)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -84,12 +89,119 @@ export default function IncidentList() {
     checkAccess();
   }, [user?.id]);
 
-  // Check deletion password status for HSSE managers
   useEffect(() => {
     if (isHSSEManager) {
       checkStatus();
     }
   }, [isHSSEManager, checkStatus]);
+
+  // Filter incidents
+  const filteredIncidents = useMemo(() => {
+    if (!incidents) return [];
+    
+    return incidents.filter((incident) => {
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = 
+          incident.title?.toLowerCase().includes(searchLower) ||
+          incident.reference_id?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      
+      // Status filter
+      if (filters.status && incident.status !== filters.status) return false;
+      
+      // Severity filter
+      if (filters.severity && incident.severity_v2 !== filters.severity) return false;
+      
+      // Event type filter
+      if (filters.eventType && incident.event_type !== filters.eventType) return false;
+      
+      // Branch filter
+      if (filters.branchId && incident.branch_id !== filters.branchId) return false;
+      
+      // Date range filter
+      if (filters.dateRange?.from && incident.occurred_at) {
+        const occurredAt = parseISO(incident.occurred_at);
+        const from = filters.dateRange.from;
+        const to = filters.dateRange.to || filters.dateRange.from;
+        if (!isWithinInterval(occurredAt, { start: from, end: to })) return false;
+      }
+      
+      return true;
+    });
+  }, [incidents, filters]);
+
+  // Calculate KPI stats
+  const kpiStats = useMemo(() => {
+    if (!incidents) return { totalOpen: 0, criticalHigh: 0, overdue: 0, pendingActions: 0 };
+    
+    const openStatuses = ['submitted', 'pending_review', 'expert_screening', 'investigation_in_progress', 'pending_closure'];
+    const criticalSeverities = ['level_4', 'level_5'];
+    
+    const totalOpen = incidents.filter(i => openStatuses.includes(i.status || '')).length;
+    const criticalHigh = incidents.filter(i => criticalSeverities.includes(i.severity_v2 || '')).length;
+    const overdue = incidents.filter(i => {
+      if (!i.occurred_at || ['closed', 'no_investigation_required'].includes(i.status || '')) return false;
+      return isPast(addDays(new Date(i.occurred_at), 7));
+    }).length;
+    const pendingActions = incidents.filter(i => 
+      ['pending_manager_approval', 'pending_dept_rep_approval', 'pending_closure'].includes(i.status || '')
+    ).length;
+    
+    return { totalOpen, criticalHigh, overdue, pendingActions };
+  }, [incidents]);
+
+  // Get unique branches for filter - fetch branches separately
+  const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
+  
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data } = await supabase
+        .from('branches')
+        .select('id, name')
+        .order('name');
+      if (data) setBranches(data);
+    };
+    fetchBranches();
+  }, []);
+
+  const handleViewModeChange = (mode: 'cards' | 'table') => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('view', mode);
+    setSearchParams(newParams);
+  };
+
+  const handleFiltersChange = (newFilters: IncidentFilters) => {
+    setFilters(newFilters);
+    // Update URL params
+    const newParams = new URLSearchParams(searchParams);
+    if (newFilters.search) newParams.set('search', newFilters.search);
+    else newParams.delete('search');
+    if (newFilters.status) newParams.set('status', newFilters.status);
+    else newParams.delete('status');
+    if (newFilters.severity) newParams.set('severity', newFilters.severity);
+    else newParams.delete('severity');
+    if (newFilters.eventType) newParams.set('type', newFilters.eventType);
+    else newParams.delete('type');
+    if (newFilters.branchId) newParams.set('branch', newFilters.branchId);
+    else newParams.delete('branch');
+    setSearchParams(newParams);
+  };
+
+  const handleKPIClick = (filter: string) => {
+    switch (filter) {
+      case 'open':
+        handleFiltersChange({ ...filters, status: 'submitted' });
+        break;
+      case 'critical':
+        handleFiltersChange({ ...filters, severity: 'level_5' });
+        break;
+      default:
+        break;
+    }
+  };
 
   const handleStartInvestigation = async (incidentId: string) => {
     await updateStatus.mutateAsync({ id: incidentId, status: 'investigation_in_progress' });
@@ -101,21 +213,14 @@ export default function IncidentList() {
     setIncidentToDeleteStatus(status);
     
     if (status === 'closed') {
-      // Closed incidents require password dialog
       setPasswordDialogOpen(true);
     } else {
-      // Non-closed incidents use regular confirm dialog
       setDeleteDialogOpen(true);
     }
   };
 
-  // Determine if user can delete an incident
   const canDeleteIncident = (status: string | null) => {
-    if (status === 'closed') {
-      // Only HSSE Manager can delete closed incidents
-      return isHSSEManager;
-    }
-    // Admin can delete non-closed incidents
+    if (status === 'closed') return isHSSEManager;
     return isAdmin;
   };
 
@@ -154,149 +259,97 @@ export default function IncidentList() {
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('pages.hsseEvents.title')}</h1>
-          <p className="text-muted-foreground">{t('pages.hsseEvents.description')}</p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          {hasHSSEAccess && (
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link to="/incidents/investigate" className="gap-2">
-                <Search className="h-4 w-4" />
-                {t('navigation.investigationWorkspace')}
-              </Link>
-            </Button>
-          )}
-          <Button asChild className="w-full sm:w-auto">
-            <Link to="/incidents/report" className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('incidents.reportIncident')}
-            </Link>
-          </Button>
-        </div>
-      </div>
+      {/* Header */}
+      <IncidentListHeader
+        totalCount={incidents?.length || 0}
+        filteredCount={filteredIncidents.length}
+        hasHSSEAccess={hasHSSEAccess}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+      />
 
+      {/* KPI Strip */}
+      <IncidentKPIStrip
+        totalOpen={kpiStats.totalOpen}
+        criticalHigh={kpiStats.criticalHigh}
+        overdue={kpiStats.overdue}
+        pendingActions={kpiStats.pendingActions}
+        onKPIClick={handleKPIClick}
+      />
+
+      {/* Filters */}
+      <IncidentFilterPanel
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        branches={branches}
+      />
+
+      {/* Content */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-32" />
+              <CardContent className="p-4 space-y-3">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-4 w-32" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
                 <Skeleton className="h-4 w-48" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
               </CardContent>
             </Card>
           ))}
         </div>
-      ) : incidents && incidents.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {incidents.map((incident) => (
-            <Card key={incident.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base line-clamp-1 flex-1">
-                    {incident.title}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    {incident.severity_v2 && (
-                      <Badge variant={getSeverityBadgeVariant(incident.severity_v2)}>
-                        {t(`severity.${incident.severity_v2}.label`)}
-                      </Badge>
-                    )}
-                    {hasHSSEAccess && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover">
-                          {incident.status === 'submitted' && (
-                            <DropdownMenuItem onClick={() => handleStartInvestigation(incident.id)}>
-                              <PlayCircle className="h-4 w-4 me-2" />
-                              {t('incidents.startInvestigation')}
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem asChild>
-                            <Link to={`/incidents/${incident.id}`}>
-                              <Pencil className="h-4 w-4 me-2" />
-                              {t('common.view')} {t('common.details')}
-                            </Link>
-                          </DropdownMenuItem>
-                          {canDeleteIncident(incident.status) && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteClick(incident.id, incident.status)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                {incident.status === 'closed' ? (
-                                  <Lock className="h-4 w-4 me-2" />
-                                ) : (
-                                  <Trash2 className="h-4 w-4 me-2" />
-                                )}
-                                {t('incidents.delete')}
-                                {incident.status === 'closed' && (
-                                  <span className="text-xs ms-1">({t('profile.deletionPassword.title')})</span>
-                                )}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </div>
-                <CardDescription className="flex items-center gap-2">
-                  <FileText className="h-3 w-3" />
-                  {incident.reference_id}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  <span>{String(t(`incidents.eventCategories.${incident.event_type}`))}</span>
-                  {incident.event_type === 'incident' && (incident as any).incident_type && (
-                    <>
-                      <span>•</span>
-                      <span className="text-foreground">{String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}</span>
-                    </>
-                  )}
-                  {incident.status && (
-                    <>
-                      <span>•</span>
-                      <Badge variant={getStatusBadgeVariant(incident.status)} className="text-xs">
-                        {t(`incidents.status.${incident.status}`)}
-                      </Badge>
-                    </>
-                  )}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {incident.occurred_at && formatDistanceToNow(new Date(incident.occurred_at), { addSuffix: true })}
-                </div>
-                <Button asChild variant="ghost" size="sm" className="w-full">
-                  <Link to={`/incidents/${incident.id}`}>
-                    {t('common.view')} {t('common.details')}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      ) : filteredIncidents && filteredIncidents.length > 0 ? (
+        viewMode === 'table' ? (
+          <IncidentTableView
+            incidents={filteredIncidents.map(i => ({
+              ...i,
+              incident_type: (i as any).incident_type,
+            }))}
+            hasHSSEAccess={hasHSSEAccess}
+            isAdmin={isAdmin}
+            isHSSEManager={isHSSEManager}
+            onStartInvestigation={handleStartInvestigation}
+            onDelete={handleDeleteClick}
+          />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredIncidents.map((incident) => (
+              <IncidentCardEnhanced
+                key={incident.id}
+                incident={{
+                  ...incident,
+                  incident_type: (incident as any).incident_type,
+                }}
+                hasHSSEAccess={hasHSSEAccess}
+                canDelete={canDeleteIncident(incident.status)}
+                onStartInvestigation={handleStartInvestigation}
+                onDelete={handleDeleteClick}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <Card className="py-12">
           <CardContent className="flex flex-col items-center justify-center text-center">
             <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">{t('common.noData')}</h3>
-            <p className="text-muted-foreground mb-4">{t('incidents.noIncidentsYet')}</p>
-            <Button asChild>
-              <Link to="/incidents/report" className="gap-2">
-                <Plus className="h-4 w-4" />
-                {t('incidents.reportFirstIncident')}
-              </Link>
-            </Button>
+            <p className="text-muted-foreground mb-4">
+              {filters.search || filters.status || filters.severity || filters.eventType || filters.branchId
+                ? t('common.noResultsFound', 'No results match your filters')
+                : t('incidents.noIncidentsYet')}
+            </p>
+            {!filters.search && !filters.status && !filters.severity && (
+              <Button asChild>
+                <Link to="/incidents/report" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t('incidents.reportFirstIncident')}
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
