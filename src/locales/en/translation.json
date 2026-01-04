@@ -6055,7 +6055,55 @@
     "performance": "Performance",
     "slaBreachRate": "SLA Breach Rate",
     "attention": "Requires Attention",
-    "overdueActions": "Overdue Actions"
+    "overdueActions": "Overdue Actions",
+    "avgResolution": "Avg Resolution Time",
+    "completed": "Completed",
+    "ai": {
+      "title": "AI Executive Insights",
+      "analyzing": "Analyzing...",
+      "regenerate": "Regenerate Insights",
+      "maturityScore": "HSSE Maturity Score",
+      "grade": "Grade",
+      "componentBreakdown": "Component Breakdown",
+      "incidentPrevention": "Incident Prevention",
+      "actionEffectiveness": "Action Effectiveness",
+      "kpiPerformance": "KPI Performance",
+      "inspectionRigor": "Inspection Rigor",
+      "observationCulture": "Observation Culture",
+      "riskPosture": "Risk Posture",
+      "riskLevel": {
+        "critical": "Critical",
+        "high": "High",
+        "moderate": "Moderate",
+        "low": "Low"
+      },
+      "trend": {
+        "improving": "Improving",
+        "stable": "Stable",
+        "declining": "Declining"
+      },
+      "kpiHealth": "KPI Health Dashboard",
+      "gapOfTarget": "Gap: {{gap}}",
+      "topPriorities": "Top 5 Priorities",
+      "severity": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "recommendedActions": "Recommended Actions",
+      "expectedImpact": "Expected Impact",
+      "executiveNarrative": "Executive Narrative",
+      "whatHappened": "What Happened",
+      "whyItHappened": "Why It Happened",
+      "whatImproved": "What Improved",
+      "whatNeedsAction": "What Needs Action",
+      "monthComparison": "Month-over-Month Comparison",
+      "metric": "Metric",
+      "change": "Change",
+      "systemicIssues": "Systemic Issues Detected",
+      "recommendation": "Recommendation"
+    }
   },
   "assetManagement": {
     "linkedAssets": "Linked Assets",

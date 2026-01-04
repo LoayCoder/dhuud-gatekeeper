@@ -290,3 +290,6 @@ verify_jwt = false
 
 [functions.monitoring-check-reminder]
 verify_jwt = false
+
+[functions.executive-ai-insights]
+verify_jwt = true
