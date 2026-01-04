@@ -263,6 +263,110 @@ serve(async (req: Request) => {
         }
         break;
       }
+      case "close_on_spot": {
+        // Notify reporter that their observation was closed on spot
+        if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).close_on_spot;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'Reporter' })}</p>
+            <p>${bodyText}</p>
+            ${payload.notes ? `<p><strong>${t.notes}:</strong> ${payload.notes}</p>` : ""}
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#16a34a", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        break;
+      }
+      case "observation_closed": {
+        // Notify reporter that their observation has been closed
+        if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).observation_closed;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'Reporter' })}</p>
+            <p>${bodyText}</p>
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#16a34a", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        break;
+      }
+      case "incident_closed": {
+        // Notify reporter that incident investigation has been closed
+        if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).incident_closed;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'Reporter' })}</p>
+            <p>${bodyText}</p>
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#16a34a", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        break;
+      }
+      case "dept_rep_incident_review": {
+        // Notify dept rep that a new incident requires their review
+        if (incident.approval_manager_id) {
+          const { data: deptRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
+          if (deptRep?.email) {
+            recipients.push(deptRep.email);
+            recipientLang = deptRep.preferred_language || 'en';
+          }
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).dept_rep_incident_review;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: deptRep?.full_name || 'Department Representative' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.eventTitle}:</strong> ${incident.title}</p>
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#f59e0b", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
       default:
         console.log(`Unknown action: ${action}`);
     }
