@@ -57,7 +57,17 @@ import {
   CauseCoverageIndicator,
   HSSEEscalationReviewCard,
   EscalationAlertBanner,
-  HSSEValidationCard
+  HSSEValidationCard,
+  // New incident violation & closure components
+  InvestigatorViolationIdentificationCard,
+  InvestigatorViolationSubmissionCard,
+  IncidentClosurePrerequisitesCard,
+  HSSEIncidentValidationCard,
+  // Gap workflow components
+  LegalReviewCard,
+  DisputeResolutionCard,
+  MonitoringCheckCard,
+  ContractorDisputeCard
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
@@ -218,7 +228,17 @@ export default function InvestigationWorkspace() {
   // Determine if investigation tabs should be enabled
   // Cast to string to handle new enum values not yet in types
   const status = incidentData?.status as string | undefined;
-  const investigationAllowed = status && ['investigation_in_progress', 'pending_closure', 'pending_final_closure', 'investigation_closed', 'closed'].includes(status);
+  const investigationAllowed = status && [
+    'investigation_in_progress', 
+    'pending_closure', 
+    'pending_final_closure', 
+    'investigation_closed', 
+    'closed',
+    'monitoring_30_day',
+    'monitoring_60_day',
+    'monitoring_90_day',
+    'pending_hsse_incident_validation'
+  ].includes(status);
 
   // Filter incidents that need investigation (not closed status)
   const investigableIncidents = incidents?.filter(
@@ -321,6 +341,53 @@ export default function InvestigationWorkspace() {
       case 'pending_hsse_validation':
         return (
           <HSSEValidationCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      // --- NEW INCIDENT WORKFLOW STATUSES ---
+      
+      case 'pending_legal_review':
+        return (
+          <LegalReviewCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'dispute_resolution':
+        return (
+          <DisputeResolutionCard 
+            incident={incidentData}
+            investigation={investigation || undefined}
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'monitoring_30_day':
+      case 'monitoring_60_day':
+      case 'monitoring_90_day':
+        return (
+          <MonitoringCheckCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_contractor_dispute_review':
+        return (
+          <ContractorDisputeCard 
+            incident={incidentData}
+            contractorId={(incidentData as any).related_contractor_company_id}
+            onComplete={handleRefresh} 
+          />
+        );
+
+      case 'pending_final_closure':
+      case 'pending_hsse_incident_validation':
+        return (
+          <HSSEIncidentValidationCard 
             incident={incidentData} 
             onComplete={handleRefresh} 
           />
@@ -589,6 +656,27 @@ export default function InvestigationWorkspace() {
 
           {/* Workflow-Specific Cards */}
           {renderWorkflowCards()}
+
+          {/* Investigator Violation Cards - Show during investigation_in_progress for contractor incidents */}
+          {status === 'investigation_in_progress' && (incidentData as any).related_contractor_company_id && investigation && (
+            <>
+              <InvestigatorViolationIdentificationCard 
+                incident={incidentData}
+                investigation={investigation}
+                onComplete={handleRefresh}
+              />
+              <InvestigatorViolationSubmissionCard 
+                incident={incidentData}
+                investigation={investigation}
+                onComplete={handleRefresh}
+              />
+            </>
+          )}
+
+          {/* Closure Prerequisites Card - Show during final closure stages */}
+          {status && ['pending_final_closure', 'pending_hsse_incident_validation'].includes(status) && (
+            <IncidentClosurePrerequisitesCard incidentId={selectedIncidentId} />
+          )}
 
           {/* Warning if investigation not yet allowed */}
           {!investigationAllowed && (
