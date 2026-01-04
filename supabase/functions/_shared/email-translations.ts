@@ -176,6 +176,27 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "Event Title",
       button: "Start Investigation",
     },
+    // Dept Rep Rejection Workflow
+    dept_rep_reject_observation: {
+      subject: "Observation Rejected - Review Required",
+      title: "Observation Rejection Review",
+      body: "Observation <strong>{reference}</strong> has been rejected by the Department Representative and requires your review.",
+      rejectionReason: "Rejection Reason",
+      button: "Review Rejection",
+    },
+    hsse_approve_rejection: {
+      subject: "Your Rejection Was Approved - {reference}",
+      title: "Rejection Approved",
+      body: "Your rejection of observation <strong>{reference}</strong> has been approved by the HSSE Expert. The observation has been closed.",
+      button: "View Details",
+    },
+    hsse_reject_rejection: {
+      subject: "Action Required - Rejection Not Approved - {reference}",
+      title: "Rejection Not Approved",
+      body: "Your rejection of observation <strong>{reference}</strong> was not approved by the HSSE Expert. You must take action on this observation.",
+      actionRequired: "You must add corrective action(s) and approve, or escalate to investigation.",
+      button: "Take Action",
+    },
   },
   ar: {
     expert_return: {
@@ -212,6 +233,27 @@ export const WORKFLOW_TRANSLATIONS = {
       body: "تم تعيينك للتحقيق في الحدث <strong>{reference}</strong>.",
       eventTitle: "عنوان الحدث",
       button: "بدء التحقيق",
+    },
+    // Dept Rep Rejection Workflow
+    dept_rep_reject_observation: {
+      subject: "تم رفض الملاحظة - مراجعة مطلوبة",
+      title: "مراجعة رفض الملاحظة",
+      body: "تم رفض الملاحظة <strong>{reference}</strong> من قبل ممثل القسم وتتطلب مراجعتك.",
+      rejectionReason: "سبب الرفض",
+      button: "مراجعة الرفض",
+    },
+    hsse_approve_rejection: {
+      subject: "تم الموافقة على رفضك - {reference}",
+      title: "تم الموافقة على الرفض",
+      body: "تم الموافقة على رفضك للملاحظة <strong>{reference}</strong> من قبل خبير الصحة والسلامة. تم إغلاق الملاحظة.",
+      button: "عرض التفاصيل",
+    },
+    hsse_reject_rejection: {
+      subject: "إجراء مطلوب - لم تتم الموافقة على الرفض - {reference}",
+      title: "لم تتم الموافقة على الرفض",
+      body: "لم تتم الموافقة على رفضك للملاحظة <strong>{reference}</strong> من قبل خبير الصحة والسلامة. يجب عليك اتخاذ إجراء بشأن هذه الملاحظة.",
+      actionRequired: "يجب عليك إضافة إجراء تصحيحي والموافقة، أو التصعيد للتحقيق.",
+      button: "اتخاذ إجراء",
     },
   },
   ur: {

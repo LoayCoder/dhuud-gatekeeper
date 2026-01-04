@@ -35,6 +35,7 @@ import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
 import { getSubtypeTranslation } from '@/lib/hsse-translation-utils';
 import { HSSEValidationCard } from '@/components/investigation/HSSEValidationCard';
 import { ObservationClosureGate } from '@/components/investigation/ObservationClosureGate';
+import { HSSEExpertRejectionReviewCard } from '@/components/investigation/HSSEExpertRejectionReviewCard';
 import { useQuery } from '@tanstack/react-query';
 
 export default function IncidentDetail() {
@@ -214,6 +215,11 @@ export default function IncidentDetail() {
       {/* Observation Closure Gate for Level 5 pending final closure */}
       {incident.event_type === 'observation' && (
         <ObservationClosureGate incident={incident} onComplete={() => window.location.reload()} />
+      )}
+
+      {/* HSSE Expert Rejection Review Card */}
+      {incident.event_type === 'observation' && (
+        <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
       )}
 
       {/* Status and Type Badges - Read-only display (status changes via workflow only) */}
