@@ -101,7 +101,9 @@ import {
   CriticalAlertBanner,
   NearMissWidget,
   HeinrichPyramid,
+  DataQualityIndicator,
 } from "@/components/incidents/dashboard";
+import { useHSSEAlerts } from "@/hooks/use-hsse-alerts";
 
 type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd';
 
@@ -190,6 +192,43 @@ export default function HSSEEventDashboard() {
   }, [refetchDashboard, refetchLagging, refetchLeading, refetchResponse, refetchPeople, refetchDays, refetchTrend, refetchComparison]);
 
   const { isConnected, newEventCount, acknowledgeEvents } = useDashboardRealtime(handleRefresh);
+
+  // HSSE Alerts - use existing summary data for alerts
+  const alertIncidents = useMemo(() => {
+    if (!dashboardData) return [];
+    // Build a simplified incidents array from severity data for alert detection
+    const incidents: any[] = [];
+    const criticalCount = dashboardData.by_severity?.level_5 ?? 0;
+    const highCount = dashboardData.by_severity?.level_4 ?? 0;
+    for (let i = 0; i < criticalCount; i++) {
+      incidents.push({ severity: 'critical', created_at: new Date().toISOString() });
+    }
+    for (let i = 0; i < highCount; i++) {
+      incidents.push({ severity: 'high', created_at: new Date().toISOString() });
+    }
+    return incidents;
+  }, [dashboardData]);
+
+  const alertActions = useMemo(() => {
+    if (!dashboardData?.actions) return [];
+    // Build simplified actions array for alert detection
+    const actions: any[] = [];
+    const overdueCount = dashboardData.actions.overdue_actions ?? 0;
+    const openCount = dashboardData.actions.open_actions ?? 0;
+    for (let i = 0; i < overdueCount; i++) {
+      actions.push({ status: 'open', due_date: new Date(Date.now() - 86400000).toISOString() });
+    }
+    for (let i = 0; i < (openCount - overdueCount); i++) {
+      actions.push({ status: 'open', due_date: new Date(Date.now() + 86400000).toISOString() });
+    }
+    return actions;
+  }, [dashboardData]);
+
+  const { alerts: hsseAlerts, hasCritical: hasHSSECritical } = useHSSEAlerts({
+    incidents: alertIncidents,
+    actions: alertActions,
+    inspections: [],
+  });
 
   const handleRefreshAndAcknowledge = () => {
     handleRefresh();
@@ -326,6 +365,15 @@ export default function HSSEEventDashboard() {
               total: dashboardData.actions?.total_actions ?? 0,
               open: dashboardData.actions?.open_actions ?? 0,
             }}
+          />
+        )}
+
+        {/* Data Quality Indicator */}
+        {dashboardData && (
+          <DataQualityIndicator 
+            incidents={alertIncidents}
+            observations={[]}
+            actions={alertActions}
           />
         )}
 
