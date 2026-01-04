@@ -255,25 +255,33 @@ export function AppSidebar() {
               menuCode: 'security_dashboard',
             },
             {
-              title: t('navigation.visitorGatekeeper'),
-              icon: UserCheck,
-              menuCode: 'visitor_gatekeeper',
-              isActive: location.pathname.startsWith("/visitors"),
+              title: t('security.menu.accessControl', 'Access Control'),
+              icon: Shield,
+              menuCode: 'access_control',
+              isActive: location.pathname.startsWith("/security/access-control") || 
+                        location.pathname.startsWith("/security/gate-dashboard") ||
+                        location.pathname.startsWith("/visitors"),
               subItems: [
                 {
-                  title: t('security.visitors.dashboard', 'Visitor Dashboard'),
-                  url: "/visitors",
+                  title: t('security.menu.accessDashboard', 'Access Dashboard'),
+                  url: "/security/access-control",
                   icon: LayoutDashboard,
-                  menuCode: 'visitor_dashboard',
+                  menuCode: 'access_dashboard',
                 },
                 {
-                  title: t('security.visitors.preRegister', 'Pre-Register'),
+                  title: t('security.menu.gateOperations', 'Gate Operations'),
+                  url: "/security/gate-dashboard",
+                  icon: Shield,
+                  menuCode: 'gate_dashboard',
+                },
+                {
+                  title: t('security.visitors.preRegister', 'Pre-Register Visitor'),
                   url: "/visitors/register",
                   icon: Plus,
                   menuCode: 'visitor_register',
                 },
                 {
-                  title: t('security.visitors.list', 'Visitor List'),
+                  title: t('security.visitors.list', 'Visitor Directory'),
                   url: "/visitors/list",
                   icon: List,
                   menuCode: 'visitor_list',
@@ -402,18 +410,6 @@ export function AppSidebar() {
                   menuCode: 'guard_mobile_app',
                 },
               ],
-            },
-            {
-              title: t('security.menu.gateDashboard', 'Gate Dashboard'),
-              url: "/security/gate-dashboard",
-              icon: Shield,
-              menuCode: 'gate_dashboard',
-            },
-            {
-              title: t('security.menu.contractorAccess', 'Contractor Access'),
-              url: "/security/contractor-access",
-              icon: UserCheck,
-              menuCode: 'contractor_access',
             },
             {
               title: t('security.menu.contractorList', 'Legacy Contractors'),

@@ -116,6 +116,7 @@ const CommandCenter = lazyWithRetry(() => import("./pages/security/CommandCenter
 const GuardLocation = lazyWithRetry(() => import("./pages/security/GuardLocation"));
 const SecurityDashboard = lazyWithRetry(() => import("./pages/security/SecurityDashboard"));
 const ContractorAccess = lazyWithRetry(() => import("./pages/security/ContractorAccess"));
+const AccessControlDashboard = lazyWithRetry(() => import("./pages/security/AccessControlDashboard"));
 const GateGuardDashboard = lazyWithRetry(() => import("./pages/security/GateGuardDashboard"));
 const ShiftHandover = lazyWithRetry(() => import("./pages/security/ShiftHandover"));
 const GuardPerformance = lazyWithRetry(() => import("./pages/security/GuardPerformance"));
@@ -286,8 +287,8 @@ const App = () => (
                       <Route path="/incidents/dashboard" element={<HSSERoute><HSSEEventDashboard /></HSSERoute>} />
                       <Route path="/audits" element={<PlaceholderPage titleKey="pages.audits.title" descriptionKey="pages.audits.description" />} />
                       
-                      {/* Visitor Routes */}
-                      <Route path="/visitors" element={<SecurityRoute><VisitorDashboard /></SecurityRoute>} />
+                      {/* Visitor Routes - Redirect to unified access control */}
+                      <Route path="/visitors" element={<Navigate to="/security/access-control?tab=visitors" replace />} />
                       <Route path="/visitors/register" element={<SecurityRoute><VisitorPreRegistration /></SecurityRoute>} />
                       <Route path="/visitors/checkpoint" element={<Navigate to="/security/gate-dashboard" replace />} />
                       <Route path="/visitors/list" element={<SecurityRoute><VisitorList /></SecurityRoute>} />
@@ -307,7 +308,8 @@ const App = () => (
                       <Route path="/security/roster" element={<SecurityRoute><ShiftRoster /></SecurityRoute>} />
                       <Route path="/security/command-center" element={<SecurityRoute><CommandCenter /></SecurityRoute>} />
                       <Route path="/security/my-location" element={<SecurityRoute><GuardLocation /></SecurityRoute>} />
-                      <Route path="/security/contractor-access" element={<SecurityRoute><ContractorAccess /></SecurityRoute>} />
+                      <Route path="/security/contractor-access" element={<Navigate to="/security/access-control?tab=workers" replace />} />
+                      <Route path="/security/access-control" element={<SecurityRoute><AccessControlDashboard /></SecurityRoute>} />
                       <Route path="/security/gate-dashboard" element={<SecurityRoute><GateGuardDashboard /></SecurityRoute>} />
                       <Route path="/security/handover" element={<SecurityRoute><ShiftHandover /></SecurityRoute>} />
                       <Route path="/security/performance" element={<SecurityRoute><GuardPerformance /></SecurityRoute>} />

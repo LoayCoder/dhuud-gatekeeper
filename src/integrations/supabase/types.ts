@@ -5411,6 +5411,7 @@ export type Database = {
       }
       gate_entry_logs: {
         Row: {
+          access_type: string | null
           anpr_confidence: number | null
           anpr_image_path: string | null
           car_plate: string | null
@@ -5437,18 +5438,23 @@ export type Database = {
           person_name: string
           photo_captured_at: string | null
           preferred_language: string | null
+          project_id: string | null
           purpose: string | null
           qr_code_token: string | null
           site_id: string | null
           tenant_id: string
+          validation_errors: Json | null
+          validation_status: string | null
           visit_duration_hours: number | null
           visit_reference: string | null
           visit_request_id: string | null
           visitor_id: string | null
           visitor_photo_url: string | null
           whatsapp_sent_at: string | null
+          worker_id: string | null
         }
         Insert: {
+          access_type?: string | null
           anpr_confidence?: number | null
           anpr_image_path?: string | null
           car_plate?: string | null
@@ -5475,18 +5481,23 @@ export type Database = {
           person_name: string
           photo_captured_at?: string | null
           preferred_language?: string | null
+          project_id?: string | null
           purpose?: string | null
           qr_code_token?: string | null
           site_id?: string | null
           tenant_id: string
+          validation_errors?: Json | null
+          validation_status?: string | null
           visit_duration_hours?: number | null
           visit_reference?: string | null
           visit_request_id?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
+          worker_id?: string | null
         }
         Update: {
+          access_type?: string | null
           anpr_confidence?: number | null
           anpr_image_path?: string | null
           car_plate?: string | null
@@ -5513,16 +5524,20 @@ export type Database = {
           person_name?: string
           photo_captured_at?: string | null
           preferred_language?: string | null
+          project_id?: string | null
           purpose?: string | null
           qr_code_token?: string | null
           site_id?: string | null
           tenant_id?: string
+          validation_errors?: Json | null
+          validation_status?: string | null
           visit_duration_hours?: number | null
           visit_reference?: string | null
           visit_request_id?: string | null
           visitor_id?: string | null
           visitor_photo_url?: string | null
           whatsapp_sent_at?: string | null
+          worker_id?: string | null
         }
         Relationships: [
           {
@@ -5530,6 +5545,13 @@ export type Database = {
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {
@@ -5558,6 +5580,13 @@ export type Database = {
             columns: ["visitor_id"]
             isOneToOne: false
             referencedRelation: "visitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
             referencedColumns: ["id"]
           },
         ]
