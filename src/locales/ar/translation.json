@@ -349,6 +349,8 @@
       "pending_final_closure": "في انتظار الإغلاق النهائي"
     },
     "printReport": "طباعة التقرير",
+    "exportFullLegalReport": "تصدير التقرير القانوني الكامل",
+    "exportWithAuditLogs": "تصدير مع سجل التدقيق",
     "reportTitle": "تقرير التحقيق في الحادث",
     "reportGenerating": "جاري إنشاء التقرير...",
     "reportGenerated": "تم تحميل التقرير بنجاح",

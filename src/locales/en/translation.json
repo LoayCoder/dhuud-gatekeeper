@@ -624,6 +624,8 @@
       "pending_final_closure": "Pending Final Closure"
     },
     "printReport": "Print Report",
+    "exportFullLegalReport": "Export Full Legal Report",
+    "exportWithAuditLogs": "Export with Audit Logs",
     "reportTitle": "Incident Investigation Report",
     "reportGenerating": "Generating report...",
     "reportGenerated": "Report downloaded successfully",
