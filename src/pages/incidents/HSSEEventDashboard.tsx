@@ -98,6 +98,9 @@ import {
   ResidualRiskCard,
   DashboardSection,
   ExecutiveSummaryCard,
+  CriticalAlertBanner,
+  NearMissWidget,
+  HeinrichPyramid,
 } from "@/components/incidents/dashboard";
 
 type DateRange = 'week' | 'month' | '30days' | '90days' | 'ytd';
@@ -309,6 +312,22 @@ export default function HSSEEventDashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Critical Alerts Banner */}
+        {dashboardData && (
+          <CriticalAlertBanner 
+            summary={{
+              critical_count: dashboardData.by_severity?.level_5 ?? 0,
+              high_count: dashboardData.by_severity?.level_4 ?? 0,
+              total_count: dashboardData.summary?.total_events ?? 0,
+            }} 
+            actionStats={{
+              overdue: dashboardData.actions?.overdue_actions ?? 0,
+              total: dashboardData.actions?.total_actions ?? 0,
+              open: dashboardData.actions?.open_actions ?? 0,
+            }}
+          />
+        )}
 
         {/* KPI Alerts Banner */}
         <KPIAlertsBanner alerts={alerts} />
@@ -646,6 +665,25 @@ export default function HSSEEventDashboard() {
           icon={Eye}
           defaultExpanded={false}
         >
+          {/* Near Miss and Heinrich Pyramid Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {dashboardData && (
+              <NearMissWidget 
+                nearMissCount={dashboardData.by_event_type?.near_miss ?? 0}
+                incidentCount={dashboardData.by_event_type?.incident ?? 0}
+              />
+            )}
+            {dashboardData && (
+              <HeinrichPyramid
+                fatalOrMajor={dashboardData.by_severity?.level_5 ?? 0}
+                minorInjuries={(dashboardData.by_severity?.level_4 ?? 0) + (dashboardData.by_severity?.level_3 ?? 0)}
+                nearMisses={dashboardData.by_event_type?.near_miss ?? 0}
+                unsafeActs={((dashboardData.by_subtype as Record<string, number>)?.unsafe_act ?? 0) + ((dashboardData.by_subtype as Record<string, number>)?.unsafe_condition ?? 0)}
+                positiveObservations={((dashboardData.by_subtype as Record<string, number>)?.safe_act ?? 0) + ((dashboardData.by_subtype as Record<string, number>)?.safe_condition ?? 0)}
+              />
+            )}
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {dashboardLoading ? (
               <Card><CardContent className="h-[300px] flex items-center justify-center"><Skeleton className="h-[250px] w-full" /></CardContent></Card>

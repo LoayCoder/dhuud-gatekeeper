@@ -72,6 +72,12 @@ export { DrilldownModal } from './DrilldownModal';
 export { DashboardCacheStatus } from './DashboardCacheStatus';
 export { DataFreshnessBadge } from './DataFreshnessBadge';
 
+// AI & Data Quality
+export { DataQualityIndicator } from './DataQualityIndicator';
+export { CriticalAlertBanner } from './CriticalAlertBanner';
+export { NearMissWidget } from './NearMissWidget';
+export { HeinrichPyramid } from './HeinrichPyramid';
+
 // Skeletons
 export { 
   ParetoChartSkeleton, 
