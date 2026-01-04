@@ -1,7 +1,7 @@
 // Investigation Workspace - Main page for incident investigation
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +23,12 @@ import {
   Eye, 
   RotateCcw,
   FileText,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  UserCheck
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useIncidents, useIncident } from "@/hooks/use-incidents";
 import { useInvestigation } from "@/hooks/use-investigation";
 import { useIncidentClosureEligibility, useIncidentClosureApproval } from "@/hooks/use-incident-closure";
@@ -63,6 +67,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function InvestigationWorkspace() {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlIncidentId = searchParams.get('incident');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(urlIncidentId);
@@ -78,6 +83,21 @@ export default function InvestigationWorkspace() {
   const { data: investigation, refetch: refetchInvestigation } = useInvestigation(selectedIncidentId);
   const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
   const { approveClosureMutation, rejectClosureMutation } = useIncidentClosureApproval(selectedIncidentId || '');
+
+  // Fetch investigator name for current owner display
+  const { data: investigatorInfo } = useQuery({
+    queryKey: ['investigator-info', investigation?.investigator_id],
+    queryFn: async () => {
+      if (!investigation?.investigator_id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', investigation.investigator_id)
+        .single();
+      return data;
+    },
+    enabled: !!investigation?.investigator_id
+  });
   
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
@@ -245,11 +265,53 @@ export default function InvestigationWorkspace() {
     );
   };
 
+  // Get current owner based on incident status
+  const getCurrentOwner = () => {
+    if (!selectedIncident) return null;
+    const status = selectedIncident.status as string;
+    
+    // Status-to-owner mapping
+    if (status === 'submitted' || status === 'pending_review' || status === 'expert_screening') {
+      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
+    }
+    if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
+      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
+    }
+    if (status === 'pending_dept_rep_approval') {
+      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
+    }
+    if (status === 'investigation_in_progress' || status === 'investigation_pending') {
+      return { 
+        role: t('incidents.workflowOwners.investigator', 'Investigator'), 
+        name: investigatorInfo?.full_name || null 
+      };
+    }
+    if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
+      return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
+    }
+    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed') {
+      return null; // No owner when closed
+    }
+    return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
+  };
+
+  const currentOwner = getCurrentOwner();
+
   return (
     <div className="container py-6 space-y-6 overflow-x-hidden" dir={direction}>
       {/* Modern Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
+          {/* Back to Event List Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/incidents')}
+            className="gap-2 me-2 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            <span className="hidden sm:inline">{t('incidents.backToList', 'Back to Event List')}</span>
+          </Button>
           <div className="p-2 rounded-lg bg-primary/10">
             <FileSearch className="h-6 w-6 text-primary" />
           </div>
@@ -262,18 +324,41 @@ export default function InvestigationWorkspace() {
             </p>
           </div>
         </div>
-        {selectedIncidentId && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            className="gap-2 self-start"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {t('common.refresh', 'Refresh')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2 self-start">
+          {selectedIncidentId && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t('common.refresh', 'Refresh')}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Current Owner Banner */}
+      {selectedIncidentId && currentOwner && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <UserCheck className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">
+                  {t('incidents.currentOwner', 'Current Owner')}
+                </p>
+                <p className="font-medium">
+                  {currentOwner.name ? `${currentOwner.name} (${currentOwner.role})` : currentOwner.role}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Incident Selector Card - Enhanced Design */}
       <Card className="border-2">
