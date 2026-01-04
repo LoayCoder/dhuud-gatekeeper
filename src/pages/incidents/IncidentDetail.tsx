@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, Building2, ExternalLink, Clock, Tag, Printer } from 'lucide-react';
+import { ArrowLeft, FileText, MapPin, Calendar, AlertTriangle, MoreHorizontal, Trash2, User, Building, Building2, ExternalLink, Clock, Tag, Printer, History, Scale } from 'lucide-react';
 import { IncidentAttachmentsSection } from '@/components/incidents/IncidentAttachmentsSection';
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,7 +83,7 @@ export default function IncidentDetail() {
     navigate('/incidents');
   };
 
-  const handlePrintReport = async () => {
+  const handlePrintReport = async (options?: { fullLegalMode?: boolean; includeFullAuditLog?: boolean }) => {
     if (!incident || !profile?.tenant_id) return;
     
     // Fetch fresh user for the PDF generation
@@ -102,6 +102,8 @@ export default function IncidentDetail() {
         tenantId: profile.tenant_id,
         userId: user.id,
         language: i18n.language as 'en' | 'ar',
+        fullLegalMode: options?.fullLegalMode,
+        includeFullAuditLog: options?.includeFullAuditLog,
       });
       toast.dismiss();
       toast.success(t('incidents.reportGenerated'));
@@ -189,11 +191,25 @@ export default function IncidentDetail() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={handlePrintReport}
+                onClick={() => handlePrintReport()}
                 disabled={isPrinting}
               >
                 <Printer className="h-4 w-4 me-2" />
                 {t('incidents.printReport')}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handlePrintReport({ fullLegalMode: true })}
+                disabled={isPrinting}
+              >
+                <Scale className="h-4 w-4 me-2" />
+                {t('incidents.exportFullLegalReport', 'Export Full Legal Report')}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handlePrintReport({ includeFullAuditLog: true })}
+                disabled={isPrinting}
+              >
+                <History className="h-4 w-4 me-2" />
+                {t('incidents.exportWithAuditLogs', 'Export with Audit Logs')}
               </DropdownMenuItem>
               {isAdmin && incident.status !== 'closed' && (
                 <>

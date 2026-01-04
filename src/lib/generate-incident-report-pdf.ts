@@ -33,10 +33,26 @@ interface IncidentReportData {
     branch?: { name: string } | null;
     site?: { name: string } | null;
     department_info?: { name: string } | null;
+    // Additional fields for legal document
+    source_observation_id?: string | null;
+    upgraded_to_incident_id?: string | null;
+    upgraded_at?: string | null;
+    upgraded_by?: string | null;
+    approved_by?: string | null;
+    approved_at?: string | null;
+    closure_notes?: string | null;
+    closure_approved_at?: string | null;
+    closure_approved_by?: string | null;
+    related_contractor_company_id?: string | null;
+    confidentiality_level?: string | null;
+    confidentiality_set_by?: string | null;
+    confidentiality_expires_at?: string | null;
   };
   tenantId: string;
   userId: string;
   language?: 'en' | 'ar';
+  fullLegalMode?: boolean; // Include all evidence thumbnails
+  includeFullAuditLog?: boolean; // Include complete audit trail
 }
 
 interface InvestigationData {
@@ -52,6 +68,21 @@ interface EvidenceItem {
   description?: string | null;
   file_name?: string | null;
   created_at?: string | null;
+  storage_path?: string | null;
+  uploaded_by_name?: string | null;
+  is_reviewed?: boolean | null;
+  reviewed_by_name?: string | null;
+  reviewed_at?: string | null;
+  thumbnailBase64?: string | null;
+}
+
+interface ActionEvidenceItem {
+  id: string;
+  action_id: string;
+  file_name: string;
+  description?: string | null;
+  created_at?: string | null;
+  uploaded_by_name?: string | null;
 }
 
 interface WitnessStatement {
@@ -89,6 +120,7 @@ interface CorrectiveAction {
   assigned_user?: { full_name: string } | null;
   department?: { name: string } | null;
   verified_by_user?: { full_name: string } | null;
+  evidence?: ActionEvidenceItem[];
 }
 
 interface AuditLogEntry {
@@ -97,11 +129,42 @@ interface AuditLogEntry {
   actor_role?: string;
   created_at: string;
   details?: string;
+  old_value?: unknown;
+  new_value?: unknown;
 }
 
 interface TenantInfo {
   name: string;
   logo_light_url?: string | null;
+}
+
+interface WorkflowDecision {
+  type: string;
+  decision_by?: string | null;
+  decision_at?: string | null;
+  notes?: string | null;
+  status?: string | null;
+}
+
+interface ContractorViolationData {
+  contractor_company_name?: string | null;
+  violation_category?: string | null;
+  penalty_applied?: string | null;
+  penalty_amount?: number | null;
+  acknowledgment_status?: string | null;
+  acknowledged_at?: string | null;
+  acknowledged_by_name?: string | null;
+}
+
+interface UpgradeHistoryData {
+  source_observation_ref?: string | null;
+  upgraded_to_incident_ref?: string | null;
+  upgraded_by_name?: string | null;
+  upgraded_at?: string | null;
+  escalation_decision?: string | null;
+  escalation_decision_by_name?: string | null;
+  escalation_decision_at?: string | null;
+  escalation_decision_notes?: string | null;
 }
 
 // ============= Data Fetching Functions =============
@@ -124,14 +187,354 @@ async function fetchInvestigationData(incidentId: string): Promise<Investigation
   return data as InvestigationData | null;
 }
 
-async function fetchEvidenceItems(incidentId: string): Promise<EvidenceItem[]> {
+async function fetchEvidenceItems(incidentId: string, includeUploader: boolean = false): Promise<EvidenceItem[]> {
   const { data } = await supabase
     .from('evidence_items')
-    .select('id, evidence_type, description, file_name, created_at')
+    .select('id, evidence_type, description, file_name, created_at, storage_path, uploaded_by, reviewed_by, reviewed_at')
     .eq('incident_id', incidentId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
-  return (data || []) as EvidenceItem[];
+  
+  if (!data) return [];
+  
+  // Fetch uploader and reviewer names if needed
+  const uploaderIds = [...new Set([
+    ...data.map(e => e.uploaded_by).filter(Boolean),
+    ...data.map(e => e.reviewed_by).filter(Boolean)
+  ])] as string[];
+  
+  let profileMap = new Map<string, string>();
+  if (includeUploader && uploaderIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', uploaderIds);
+    profiles?.forEach(p => profileMap.set(p.id, p.full_name));
+  }
+  
+  return data.map(e => ({
+    id: e.id,
+    evidence_type: e.evidence_type,
+    description: e.description,
+    file_name: e.file_name,
+    created_at: e.created_at,
+    storage_path: e.storage_path,
+    uploaded_by_name: e.uploaded_by ? profileMap.get(e.uploaded_by) : null,
+    is_reviewed: !!e.reviewed_by,
+    reviewed_by_name: e.reviewed_by ? profileMap.get(e.reviewed_by) : null,
+    reviewed_at: e.reviewed_at
+  })) as EvidenceItem[];
+}
+
+async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, ActionEvidenceItem[]>> {
+  if (actionIds.length === 0) return new Map();
+  
+  const { data } = await supabase
+    .from('action_evidence')
+    .select('id, action_id, file_name, description, created_at, uploaded_by')
+    .in('action_id', actionIds)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+  
+  if (!data) return new Map();
+  
+  const uploaderIds = [...new Set(data.map(e => e.uploaded_by).filter(Boolean))] as string[];
+  let profileMap = new Map<string, string>();
+  if (uploaderIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', uploaderIds);
+    profiles?.forEach(p => profileMap.set(p.id, p.full_name));
+  }
+  
+  const evidenceByAction = new Map<string, ActionEvidenceItem[]>();
+  data.forEach(e => {
+    const item: ActionEvidenceItem = {
+      id: e.id,
+      action_id: e.action_id,
+      file_name: e.file_name,
+      description: e.description,
+      created_at: e.created_at,
+      uploaded_by_name: e.uploaded_by ? profileMap.get(e.uploaded_by) : null
+    };
+    if (!evidenceByAction.has(e.action_id)) {
+      evidenceByAction.set(e.action_id, []);
+    }
+    evidenceByAction.get(e.action_id)!.push(item);
+  });
+  
+  return evidenceByAction;
+}
+
+async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
+  // Use type casting to bypass TypeScript's strict type checking for dynamic columns
+  const { data: incident } = await supabase
+    .from('incidents')
+    .select(`
+      violation_type_id,
+      violation_penalty_type,
+      violation_fine_amount,
+      violation_contractor_acknowledged_at,
+      violation_contractor_acknowledged_by,
+      related_contractor_company:related_contractor_company_id(name)
+    `)
+    .eq('id', incidentId)
+    .single() as { data: {
+      violation_type_id?: string | null;
+      violation_penalty_type?: string | null;
+      violation_fine_amount?: number | null;
+      violation_contractor_acknowledged_at?: string | null;
+      violation_contractor_acknowledged_by?: string | null;
+      related_contractor_company?: { name: string } | null;
+    } | null };
+  
+  if (!incident || !incident.related_contractor_company) return null;
+  
+  let acknowledgedByName = null;
+  if (incident.violation_contractor_acknowledged_by) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', incident.violation_contractor_acknowledged_by)
+      .single();
+    acknowledgedByName = profile?.full_name;
+  }
+  
+  return {
+    contractor_company_name: incident.related_contractor_company?.name,
+    violation_category: incident.violation_type_id,
+    penalty_applied: incident.violation_penalty_type,
+    penalty_amount: incident.violation_fine_amount,
+    acknowledgment_status: incident.violation_contractor_acknowledged_by ? 'acknowledged' : 'pending',
+    acknowledged_at: incident.violation_contractor_acknowledged_at,
+    acknowledged_by_name: acknowledgedByName
+  };
+}
+
+async function fetchUpgradeHistory(incidentId: string): Promise<UpgradeHistoryData | null> {
+  const { data: incident } = await supabase
+    .from('incidents')
+    .select(`
+      source_observation_id,
+      upgraded_to_incident_id,
+      upgraded_at,
+      upgraded_by,
+      escalation_decision,
+      escalation_decision_by,
+      escalation_decision_at,
+      escalation_decision_notes
+    `)
+    .eq('id', incidentId)
+    .single();
+  
+  if (!incident || (!incident.source_observation_id && !incident.upgraded_to_incident_id)) return null;
+  
+  // Fetch related observation/incident reference IDs
+  let sourceObsRef = null;
+  let upgradedIncRef = null;
+  let upgradedByName = null;
+  let escalationDecisionByName = null;
+  
+  if (incident.source_observation_id) {
+    const { data: sourceObs } = await supabase
+      .from('incidents')
+      .select('reference_id')
+      .eq('id', incident.source_observation_id)
+      .single();
+    sourceObsRef = sourceObs?.reference_id;
+  }
+  
+  if (incident.upgraded_to_incident_id) {
+    const { data: upgradedInc } = await supabase
+      .from('incidents')
+      .select('reference_id')
+      .eq('id', incident.upgraded_to_incident_id)
+      .single();
+    upgradedIncRef = upgradedInc?.reference_id;
+  }
+  
+  const userIds = [incident.upgraded_by, incident.escalation_decision_by].filter(Boolean) as string[];
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', userIds);
+    const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+    upgradedByName = incident.upgraded_by ? profileMap.get(incident.upgraded_by) : null;
+    escalationDecisionByName = incident.escalation_decision_by ? profileMap.get(incident.escalation_decision_by) : null;
+  }
+  
+  return {
+    source_observation_ref: sourceObsRef,
+    upgraded_to_incident_ref: upgradedIncRef,
+    upgraded_by_name: upgradedByName,
+    upgraded_at: incident.upgraded_at,
+    escalation_decision: incident.escalation_decision,
+    escalation_decision_by_name: escalationDecisionByName,
+    escalation_decision_at: incident.escalation_decision_at,
+    escalation_decision_notes: incident.escalation_decision_notes
+  };
+}
+
+async function fetchWorkflowDecisions(incidentId: string): Promise<WorkflowDecision[]> {
+  // Use type casting to bypass TypeScript for dynamic columns
+  const { data: incident } = await supabase
+    .from('incidents')
+    .select(`
+      closure_request_notes,
+      closure_approved_by,
+      closure_approved_at,
+      dept_rep_approved_by,
+      dept_rep_approved_at,
+      dept_rep_notes,
+      expert_screened_by,
+      expert_screened_at,
+      expert_screening_notes,
+      expert_recommendation,
+      approval_manager_id,
+      manager_decision,
+      manager_decision_at,
+      hsse_manager_decision,
+      hsse_manager_decision_by,
+      hsse_manager_justification,
+      escalation_decision,
+      escalation_decision_at,
+      escalation_decision_by,
+      escalation_decision_notes,
+      hsse_validated_by,
+      hsse_validated_at,
+      hsse_validation_notes,
+      hsse_validation_status
+    `)
+    .eq('id', incidentId)
+    .single() as { data: {
+      closure_request_notes?: string | null;
+      closure_approved_by?: string | null;
+      closure_approved_at?: string | null;
+      dept_rep_approved_by?: string | null;
+      dept_rep_approved_at?: string | null;
+      dept_rep_notes?: string | null;
+      expert_screened_by?: string | null;
+      expert_screened_at?: string | null;
+      expert_screening_notes?: string | null;
+      expert_recommendation?: string | null;
+      approval_manager_id?: string | null;
+      manager_decision?: string | null;
+      manager_decision_at?: string | null;
+      hsse_manager_decision?: string | null;
+      hsse_manager_decision_by?: string | null;
+      hsse_manager_justification?: string | null;
+      escalation_decision?: string | null;
+      escalation_decision_at?: string | null;
+      escalation_decision_by?: string | null;
+      escalation_decision_notes?: string | null;
+      hsse_validated_by?: string | null;
+      hsse_validated_at?: string | null;
+      hsse_validation_notes?: string | null;
+      hsse_validation_status?: string | null;
+    } | null };
+  
+  if (!incident) return [];
+  
+  const decisions: WorkflowDecision[] = [];
+  
+  // Collect all user IDs
+  const userIds = [
+    incident.closure_approved_by,
+    incident.dept_rep_approved_by,
+    incident.expert_screened_by,
+    incident.approval_manager_id,
+    incident.hsse_manager_decision_by,
+    incident.escalation_decision_by,
+    incident.hsse_validated_by
+  ].filter(Boolean) as string[];
+  
+  let profileMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', userIds);
+    profiles?.forEach(p => profileMap.set(p.id, p.full_name));
+  }
+  
+  // Dept Rep Approval
+  if (incident.dept_rep_approved_by) {
+    decisions.push({
+      type: 'dept_rep_approval',
+      decision_by: profileMap.get(incident.dept_rep_approved_by),
+      decision_at: incident.dept_rep_approved_at,
+      notes: incident.dept_rep_notes,
+      status: 'approved'
+    });
+  }
+  
+  // HSSE Expert Screening
+  if (incident.expert_screened_by) {
+    decisions.push({
+      type: 'hsse_expert_screening',
+      decision_by: profileMap.get(incident.expert_screened_by),
+      decision_at: incident.expert_screened_at,
+      notes: incident.expert_screening_notes,
+      status: incident.expert_recommendation || 'screened'
+    });
+  }
+  
+  // Manager Decision
+  if (incident.manager_decision && incident.approval_manager_id) {
+    decisions.push({
+      type: 'manager_approval',
+      decision_by: profileMap.get(incident.approval_manager_id),
+      decision_at: incident.manager_decision_at,
+      status: incident.manager_decision
+    });
+  }
+  
+  // HSSE Manager Escalation
+  if (incident.hsse_manager_decision) {
+    decisions.push({
+      type: 'hsse_manager_escalation',
+      decision_by: incident.hsse_manager_decision_by ? profileMap.get(incident.hsse_manager_decision_by) : null,
+      decision_at: null,
+      notes: incident.hsse_manager_justification,
+      status: incident.hsse_manager_decision
+    });
+  }
+  
+  // Escalation Review
+  if (incident.escalation_decision) {
+    decisions.push({
+      type: 'escalation_review',
+      decision_by: incident.escalation_decision_by ? profileMap.get(incident.escalation_decision_by) : null,
+      decision_at: incident.escalation_decision_at,
+      notes: incident.escalation_decision_notes,
+      status: incident.escalation_decision
+    });
+  }
+  
+  // HSSE Validation
+  if (incident.hsse_validated_by) {
+    decisions.push({
+      type: 'hsse_validation',
+      decision_by: profileMap.get(incident.hsse_validated_by),
+      decision_at: incident.hsse_validated_at,
+      notes: incident.hsse_validation_notes,
+      status: incident.hsse_validation_status || 'validated'
+    });
+  }
+  
+  // Closure Approval
+  if (incident.closure_approved_by) {
+    decisions.push({
+      type: 'closure_approval',
+      decision_by: profileMap.get(incident.closure_approved_by),
+      decision_at: incident.closure_approved_at,
+      notes: incident.closure_request_notes
+    });
+  }
+  
+  return decisions;
 }
 
 async function fetchWitnessStatements(incidentId: string): Promise<WitnessStatement[]> {
@@ -172,7 +575,7 @@ async function fetchRCAData(incidentId: string): Promise<RCAData | null> {
   };
 }
 
-async function fetchCorrectiveActions(incidentId: string, fullDetails: boolean): Promise<CorrectiveAction[]> {
+async function fetchCorrectiveActions(incidentId: string, fullDetails: boolean, includeEvidence: boolean = false): Promise<CorrectiveAction[]> {
   const { data } = await supabase
     .from('corrective_actions')
     .select('id, title, description, status, priority, category, action_type, due_date, start_date, completed_date, verified_at, assigned_to, responsible_department_id, verified_by')
@@ -203,6 +606,12 @@ async function fetchCorrectiveActions(incidentId: string, fullDetails: boolean):
   const deptMap = new Map<string, string>();
   departments?.forEach(d => deptMap.set(d.id, d.name));
   
+  // Fetch action evidence if needed
+  let evidenceByAction = new Map<string, ActionEvidenceItem[]>();
+  if (includeEvidence) {
+    evidenceByAction = await fetchActionEvidence(data.map(a => a.id));
+  }
+  
   return data.map(a => ({
     id: a.id,
     title: a.title,
@@ -217,19 +626,20 @@ async function fetchCorrectiveActions(incidentId: string, fullDetails: boolean):
     verified_at: fullDetails ? a.verified_at : undefined,
     assigned_user: a.assigned_to ? { full_name: profileMap.get(a.assigned_to) || 'Unknown' } : null,
     department: a.responsible_department_id ? { name: deptMap.get(a.responsible_department_id) || 'Unknown' } : null,
-    verified_by_user: fullDetails && a.verified_by ? { full_name: profileMap.get(a.verified_by) || 'Unknown' } : null
+    verified_by_user: fullDetails && a.verified_by ? { full_name: profileMap.get(a.verified_by) || 'Unknown' } : null,
+    evidence: evidenceByAction.get(a.id) || []
   })) as CorrectiveAction[];
 }
 
-async function fetchAuditLogs(incidentId: string, accessLevel: ReportAccessLevel): Promise<AuditLogEntry[]> {
+async function fetchAuditLogs(incidentId: string, accessLevel: ReportAccessLevel, fullAuditLog: boolean = false): Promise<AuditLogEntry[]> {
   let query = supabase
     .from('incident_audit_logs')
     .select('action, actor_id, created_at, details, old_value, new_value')
     .eq('incident_id', incidentId)
     .order('created_at', { ascending: true });
   
-  // For managers, filter to allowed actions only
-  if (accessLevel === 'manager') {
+  // For managers (non-full mode), filter to allowed actions only
+  if (accessLevel === 'manager' && !fullAuditLog) {
     query = query.in('action', MANAGER_AUDIT_ACTIONS);
   }
   
@@ -249,7 +659,9 @@ async function fetchAuditLogs(incidentId: string, accessLevel: ReportAccessLevel
     action: formatAuditAction(log.action),
     actor_name: log.actor_id ? profileMap.get(log.actor_id) || 'System' : 'System',
     created_at: log.created_at,
-    details: formatAuditDetails(log)
+    details: formatAuditDetails(log),
+    old_value: log.old_value,
+    new_value: log.new_value
   }));
 }
 
@@ -273,8 +685,6 @@ function formatAuditDetails(log: { action: string; details?: unknown; old_value?
 }
 
 // ============= HTML Builders =============
-// Note: Header and Footer are now rendered per-page by the PDF generator
-// These functions are kept for backwards compatibility but not used in main PDF generation
 
 function getSeverityStyle(severity: string | null | undefined): string {
   switch (severity) {
@@ -356,6 +766,230 @@ function getHSSESubtypeLabel(subtype: string | null | undefined, isRTL: boolean)
   return label ? (isRTL ? label.ar : label.en) : subtype.replace(/_/g, ' ');
 }
 
+function buildLegalDocumentHeader(incident: IncidentReportData['incident'], isRTL: boolean, generatedBy: string): string {
+  const now = new Date();
+  const timestamp = format(now, 'yyyy-MM-dd HH:mm:ss');
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  return `
+    <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px; text-align: center;">
+      <div style="font-size: 10px; letter-spacing: 2px; margin-bottom: 8px; opacity: 0.9;">
+        ${isRTL ? '⚖️ وثيقة قانونية رسمية ⚖️' : '⚖️ OFFICIAL LEGAL DOCUMENT ⚖️'}
+      </div>
+      <h1 style="margin: 0; font-size: 20px; font-weight: 700;">
+        ${isRTL ? 'تقرير الحادث/الملاحظة الشامل' : 'Comprehensive Incident/Observation Report'}
+      </h1>
+      <div style="margin-top: 12px; font-size: 11px; opacity: 0.9;">
+        ${isRTL ? 'تم الإنشاء:' : 'Generated:'} ${timestamp} (${timezone})<br/>
+        ${isRTL ? 'بواسطة:' : 'By:'} ${generatedBy}
+      </div>
+    </div>
+  `;
+}
+
+function buildConfidentialityBanner(incident: IncidentReportData['incident'], isRTL: boolean): string {
+  if (!incident.confidentiality_level || incident.confidentiality_level === 'none') return '';
+  
+  const levelColors: Record<string, string> = {
+    confidential: 'background: #fef2f2; border-color: #dc2626; color: #991b1b;',
+    restricted: 'background: #fffbeb; border-color: #d97706; color: #92400e;',
+    internal: 'background: #f0f9ff; border-color: #0284c7; color: #075985;'
+  };
+  
+  const levelLabels: Record<string, { en: string; ar: string }> = {
+    confidential: { en: 'CONFIDENTIAL', ar: 'سري' },
+    restricted: { en: 'RESTRICTED', ar: 'محدود' },
+    internal: { en: 'INTERNAL ONLY', ar: 'للاستخدام الداخلي فقط' }
+  };
+  
+  const style = levelColors[incident.confidentiality_level] || levelColors.internal;
+  const label = levelLabels[incident.confidentiality_level] || levelLabels.internal;
+  
+  return `
+    <div style="margin-bottom: 16px; padding: 10px 16px; border: 2px solid; border-radius: 6px; text-align: center; font-weight: 600; font-size: 12px; ${style}">
+      🔒 ${isRTL ? label.ar : label.en}
+      ${incident.confidentiality_expires_at ? `<br/><span style="font-size: 10px; font-weight: normal;">${isRTL ? 'ينتهي:' : 'Expires:'} ${format(new Date(incident.confidentiality_expires_at), 'PP')}</span>` : ''}
+    </div>
+  `;
+}
+
+function buildUpgradeHistoryHtml(upgradeHistory: UpgradeHistoryData | null, isRTL: boolean): string {
+  if (!upgradeHistory) return '';
+  
+  const textAlign = isRTL ? 'right' : 'left';
+  
+  let content = '';
+  
+  if (upgradeHistory.source_observation_ref) {
+    content += `
+      <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px;">
+        <div style="font-weight: 600; color: #166534; margin-bottom: 8px;">
+          🔗 ${isRTL ? 'تمت الترقية من ملاحظة' : 'Upgraded from Observation'}
+        </div>
+        <table style="width: 100%; font-size: 12px;">
+          <tr>
+            <td style="padding: 4px; width: 30%; color: #6b7280;">${isRTL ? 'المرجع الأصلي:' : 'Original Reference:'}</td>
+            <td style="padding: 4px; font-weight: 600;">${upgradeHistory.source_observation_ref}</td>
+          </tr>
+          ${upgradeHistory.upgraded_by_name ? `
+          <tr>
+            <td style="padding: 4px; color: #6b7280;">${isRTL ? 'تمت الترقية بواسطة:' : 'Upgraded By:'}</td>
+            <td style="padding: 4px;">${upgradeHistory.upgraded_by_name}</td>
+          </tr>` : ''}
+          ${upgradeHistory.upgraded_at ? `
+          <tr>
+            <td style="padding: 4px; color: #6b7280;">${isRTL ? 'تاريخ الترقية:' : 'Upgraded At:'}</td>
+            <td style="padding: 4px;">${format(new Date(upgradeHistory.upgraded_at), 'PPpp')}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+    `;
+  }
+  
+  if (upgradeHistory.upgraded_to_incident_ref) {
+    content += `
+      <div style="margin-bottom: 16px; padding: 12px; background: #fff7ed; border: 1px solid #f97316; border-radius: 6px;">
+        <div style="font-weight: 600; color: #c2410c; margin-bottom: 8px;">
+          ⬆️ ${isRTL ? 'تمت ترقية هذه الملاحظة إلى حادث' : 'This Observation Was Upgraded to Incident'}
+        </div>
+        <table style="width: 100%; font-size: 12px;">
+          <tr>
+            <td style="padding: 4px; width: 30%; color: #6b7280;">${isRTL ? 'مرجع الحادث:' : 'Incident Reference:'}</td>
+            <td style="padding: 4px; font-weight: 600;">${upgradeHistory.upgraded_to_incident_ref}</td>
+          </tr>
+        </table>
+      </div>
+    `;
+  }
+  
+  if (upgradeHistory.escalation_decision) {
+    content += `
+      <div style="margin-bottom: 16px; padding: 12px; background: #faf5ff; border: 1px solid #a855f7; border-radius: 6px;">
+        <div style="font-weight: 600; color: #7c3aed; margin-bottom: 8px;">
+          📋 ${isRTL ? 'قرار التصعيد' : 'Escalation Decision'}
+        </div>
+        <table style="width: 100%; font-size: 12px;">
+          <tr>
+            <td style="padding: 4px; width: 30%; color: #6b7280;">${isRTL ? 'القرار:' : 'Decision:'}</td>
+            <td style="padding: 4px; font-weight: 600;">${upgradeHistory.escalation_decision.replace(/_/g, ' ')}</td>
+          </tr>
+          ${upgradeHistory.escalation_decision_by_name ? `
+          <tr>
+            <td style="padding: 4px; color: #6b7280;">${isRTL ? 'بواسطة:' : 'By:'}</td>
+            <td style="padding: 4px;">${upgradeHistory.escalation_decision_by_name}</td>
+          </tr>` : ''}
+          ${upgradeHistory.escalation_decision_at ? `
+          <tr>
+            <td style="padding: 4px; color: #6b7280;">${isRTL ? 'التاريخ:' : 'Date:'}</td>
+            <td style="padding: 4px;">${format(new Date(upgradeHistory.escalation_decision_at), 'PPpp')}</td>
+          </tr>` : ''}
+          ${upgradeHistory.escalation_decision_notes ? `
+          <tr>
+            <td style="padding: 4px; color: #6b7280;">${isRTL ? 'الملاحظات:' : 'Notes:'}</td>
+            <td style="padding: 4px;">${upgradeHistory.escalation_decision_notes}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+    `;
+  }
+  
+  if (!content) return '';
+  
+  return `
+    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+      ${isRTL ? 'سجل الترقية/التصعيد' : 'Upgrade/Escalation History'}
+    </h3>
+    ${content}
+  `;
+}
+
+function buildWorkflowDecisionsHtml(decisions: WorkflowDecision[], isRTL: boolean): string {
+  if (decisions.length === 0) return '';
+  
+  const decisionTypeLabels: Record<string, { en: string; ar: string }> = {
+    dept_rep_approval: { en: 'Department Representative Approval', ar: 'موافقة ممثل القسم' },
+    hsse_expert_screening: { en: 'HSSE Expert Screening', ar: 'فحص خبير HSSE' },
+    manager_approval: { en: 'Manager Approval', ar: 'موافقة المدير' },
+    hsse_manager_escalation: { en: 'HSSE Manager Escalation', ar: 'تصعيد مدير HSSE' },
+    escalation_review: { en: 'Escalation Review', ar: 'مراجعة التصعيد' },
+    initial_approval: { en: 'Initial Approval', ar: 'الموافقة الأولية' },
+    closure_approval: { en: 'Closure Approval', ar: 'موافقة الإغلاق' }
+  };
+  
+  return `
+    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+      ${isRTL ? 'قرارات سير العمل' : 'Workflow Decisions'}
+    </h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">${isRTL ? 'نوع القرار' : 'Decision Type'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">${isRTL ? 'القرار/الحالة' : 'Decision/Status'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">${isRTL ? 'بواسطة' : 'By'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">${isRTL ? 'التاريخ' : 'Date'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: start;">${isRTL ? 'الملاحظات' : 'Notes'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${decisions.map(d => {
+          const label = decisionTypeLabels[d.type] || { en: d.type, ar: d.type };
+          return `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd; font-weight: 500;">${isRTL ? label.ar : label.en}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">
+                ${d.status ? `<span style="padding: 2px 8px; border-radius: 4px; font-size: 10px; ${getStatusStyle(d.status)}">${d.status.replace(/_/g, ' ')}</span>` : '-'}
+              </td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.decision_by || '-'}</td>
+              <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 11px;">${d.decision_at ? format(new Date(d.decision_at), 'PP p') : '-'}</td>
+              <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; color: #6b7280;">${d.notes || '-'}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function buildContractorViolationHtml(violation: ContractorViolationData | null, isRTL: boolean): string {
+  if (!violation) return '';
+  
+  return `
+    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+      ${isRTL ? 'تفاصيل مخالفة المقاول' : 'Contractor Violation Details'}
+    </h3>
+    <div style="padding: 12px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px;">
+      <table style="width: 100%; font-size: 12px;">
+        <tr>
+          <td style="padding: 6px; width: 30%; color: #6b7280; font-weight: 500;">${isRTL ? 'شركة المقاولات:' : 'Contractor Company:'}</td>
+          <td style="padding: 6px; font-weight: 600;">${violation.contractor_company_name || '-'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px; color: #6b7280; font-weight: 500;">${isRTL ? 'فئة المخالفة:' : 'Violation Category:'}</td>
+          <td style="padding: 6px;">${violation.violation_category?.replace(/_/g, ' ') || '-'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px; color: #6b7280; font-weight: 500;">${isRTL ? 'العقوبة المطبقة:' : 'Penalty Applied:'}</td>
+          <td style="padding: 6px;">${violation.penalty_applied || '-'}${violation.penalty_amount ? ` (${violation.penalty_amount})` : ''}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px; color: #6b7280; font-weight: 500;">${isRTL ? 'حالة الإقرار:' : 'Acknowledgment Status:'}</td>
+          <td style="padding: 6px;">
+            <span style="padding: 2px 8px; border-radius: 4px; font-size: 10px; ${violation.acknowledgment_status === 'acknowledged' ? 'background: #dcfce7; color: #166534;' : 'background: #fef3c7; color: #92400e;'}">
+              ${violation.acknowledgment_status?.replace(/_/g, ' ') || '-'}
+            </span>
+          </td>
+        </tr>
+        ${violation.acknowledged_by_name ? `
+        <tr>
+          <td style="padding: 6px; color: #6b7280; font-weight: 500;">${isRTL ? 'تم الإقرار بواسطة:' : 'Acknowledged By:'}</td>
+          <td style="padding: 6px;">${violation.acknowledged_by_name}${violation.acknowledged_at ? ` (${format(new Date(violation.acknowledged_at), 'PPp')})` : ''}</td>
+        </tr>
+        ` : ''}
+      </table>
+    </div>
+  `;
+}
+
 function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boolean): string {
   const textAlign = isRTL ? 'right' : 'left';
   
@@ -430,6 +1064,18 @@ function buildBasicInfoHtml(incident: IncidentReportData['incident'], isRTL: boo
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'تفاصيل الموقع' : 'Location Details'}</td>
         <td style="padding: 10px; border: 1px solid #ddd;" colspan="3">${incident.location}</td>
+      </tr>
+      ` : ''}
+      ${incident.latitude && incident.longitude ? `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'الإحداثيات GPS' : 'GPS Coordinates'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;" colspan="3" style="font-family: monospace;">${incident.latitude.toFixed(6)}, ${incident.longitude.toFixed(6)}</td>
+      </tr>
+      ` : ''}
+      ${incident.created_at ? `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; background: #f9fafb; font-weight: 600; text-align: ${textAlign};">${isRTL ? 'تاريخ الإنشاء' : 'Created At'}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;" colspan="3">${format(new Date(incident.created_at), 'PPpp')}</td>
       </tr>
       ` : ''}
     </table>
@@ -509,7 +1155,7 @@ function getActionStatusStyle(status: string): string {
   return 'background: #e2e8f0; color: #475569;';
 }
 
-function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean): string {
+function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean, fullLegalMode: boolean = false): string {
   if (evidence.length === 0) return '';
   
   const textAlign = isRTL ? 'right' : 'left';
@@ -522,10 +1168,12 @@ function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean): string
       <thead>
         <tr style="background: #f5f5f5;">
           <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 5%;">#</th>
-          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 15%;">${isRTL ? 'النوع' : 'Type'}</th>
-          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 25%;">${isRTL ? 'الملف' : 'File'}</th>
-          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 40%;">${isRTL ? 'الوصف' : 'Description'}</th>
-          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'التاريخ' : 'Date'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 12%;">${isRTL ? 'النوع' : 'Type'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 20%;">${isRTL ? 'الملف' : 'File'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 25%;">${isRTL ? 'الوصف' : 'Description'}</th>
+          ${fullLegalMode ? `<th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 15%;">${isRTL ? 'رُفع بواسطة' : 'Uploaded By'}</th>` : ''}
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 13%;">${isRTL ? 'التاريخ' : 'Date'}</th>
+          ${fullLegalMode ? `<th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 10%;">${isRTL ? 'المراجعة' : 'Review'}</th>` : ''}
         </tr>
       </thead>
       <tbody>
@@ -539,7 +1187,16 @@ function buildFullEvidenceHtml(evidence: EvidenceItem[], isRTL: boolean): string
             </td>
             <td style="padding: 8px; border: 1px solid #ddd; word-break: break-word;">${e.file_name || '-'}</td>
             <td style="padding: 8px; border: 1px solid #ddd;">${e.description || '-'}</td>
-            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 11px;">${e.created_at ? format(new Date(e.created_at), 'PP') : '-'}</td>
+            ${fullLegalMode ? `<td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${e.uploaded_by_name || '-'}</td>` : ''}
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 11px;">${e.created_at ? format(new Date(e.created_at), 'PP p') : '-'}</td>
+            ${fullLegalMode ? `
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              ${e.is_reviewed 
+                ? `<span style="color: #16a34a; font-size: 10px;">✓ ${e.reviewed_by_name || ''}</span>`
+                : `<span style="color: #9ca3af; font-size: 10px;">${isRTL ? 'معلق' : 'Pending'}</span>`
+              }
+            </td>
+            ` : ''}
           </tr>
         `).join('')}
       </tbody>
@@ -632,7 +1289,7 @@ function buildFullRCAHtml(rca: RCAData, isRTL: boolean): string {
   `;
 }
 
-function buildFullActionsHtml(actions: CorrectiveAction[], isRTL: boolean): string {
+function buildFullActionsHtml(actions: CorrectiveAction[], isRTL: boolean, includeEvidence: boolean = false): string {
   if (actions.length === 0) return '';
   
   return `
@@ -682,17 +1339,35 @@ function buildFullActionsHtml(actions: CorrectiveAction[], isRTL: boolean): stri
           </div>
           ` : ''}
         </div>
+        ${includeEvidence && a.evidence && a.evidence.length > 0 ? `
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #d1d5db;">
+          <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">
+            📎 ${isRTL ? 'أدلة الإجراء' : 'Action Evidence'} (${a.evidence.length})
+          </div>
+          <ul style="margin: 0; padding-inline-start: 16px; font-size: 11px; color: #4b5563;">
+            ${a.evidence.map(ev => `
+              <li style="margin-bottom: 4px;">
+                ${ev.file_name}
+                ${ev.description ? ` - ${ev.description}` : ''}
+                <span style="color: #9ca3af; margin-inline-start: 4px;">(${ev.created_at ? format(new Date(ev.created_at), 'PP') : '-'})</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+        ` : ''}
       </div>
     `).join('')}
   `;
 }
 
-function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel, isRTL: boolean): string {
+function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel, isRTL: boolean, isFullAuditLog: boolean = false): string {
   if (logs.length === 0) return '';
   
-  const title = accessLevel === 'hsse_full' 
-    ? (isRTL ? 'سجل المراجعة الكامل' : 'Complete Audit Trail')
-    : (isRTL ? 'سجل المراجعة' : 'Audit Log');
+  const title = isFullAuditLog 
+    ? (isRTL ? 'سجل المراجعة الكامل (مسار التدقيق القانوني)' : 'Complete Audit Trail (Legal Audit Log)')
+    : accessLevel === 'hsse_full' 
+      ? (isRTL ? 'سجل المراجعة الكامل' : 'Complete Audit Trail')
+      : (isRTL ? 'سجل المراجعة' : 'Audit Log');
   
   const textAlign = isRTL ? 'right' : 'left';
   
@@ -701,6 +1376,13 @@ function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel
       <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #333; padding-bottom: 8px;">
         ${title}
       </h3>
+      ${isFullAuditLog ? `
+      <div style="margin-bottom: 16px; padding: 10px; background: #f0f9ff; border: 1px solid #0284c7; border-radius: 6px; font-size: 11px; color: #075985;">
+        ${isRTL 
+          ? '⚠️ هذا السجل يحتوي على جميع الإجراءات المنفذة على هذا السجل، بما في ذلك المشاهدات والتعديلات والتحديثات. يُعد هذا السجل وثيقة قانونية لأغراض التدقيق.'
+          : '⚠️ This log contains ALL actions performed on this record, including views, edits, and updates. This serves as a legal audit document for compliance purposes.'}
+      </div>
+      ` : ''}
       <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
         <thead>
           <tr style="background: #f5f5f5;">
@@ -721,6 +1403,9 @@ function buildAuditLogHtml(logs: AuditLogEntry[], accessLevel: ReportAccessLevel
           `).join('')}
         </tbody>
       </table>
+      <div style="margin-top: 16px; font-size: 10px; color: #6b7280; text-align: center;">
+        ${isRTL ? `إجمالي الإدخالات: ${logs.length}` : `Total Entries: ${logs.length}`}
+      </div>
     </div>
   `;
 }
@@ -749,15 +1434,39 @@ function buildInvestigationHtml(investigation: InvestigationData, isRTL: boolean
   `;
 }
 
+function buildDocumentIntegrityFooter(incident: IncidentReportData['incident'], isRTL: boolean): string {
+  const now = new Date();
+  const documentId = `${incident.reference_id || incident.id}-${now.getTime()}`;
+  
+  return `
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #1e3a5f;">
+      <div style="display: flex; justify-content: space-between; font-size: 10px; color: #6b7280;">
+        <div>
+          <strong>${isRTL ? 'معرف الوثيقة:' : 'Document ID:'}</strong> ${documentId}
+        </div>
+        <div>
+          <strong>${isRTL ? 'تم الإنشاء:' : 'Generated:'}</strong> ${format(now, 'yyyy-MM-dd HH:mm:ss')}
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 10px; color: #4b5563; text-align: center;">
+        ${isRTL 
+          ? 'هذه الوثيقة تم إنشاؤها إلكترونياً وتُعتبر سجلاً رسمياً. أي تعديل غير مصرح به يُعد انتهاكاً لسياسة الشركة.'
+          : 'This document was electronically generated and constitutes an official record. Any unauthorized modification is a violation of company policy.'}
+      </div>
+    </div>
+  `;
+}
+
 // ============= Main Export Function =============
 
 export async function generateIncidentReportPDF(data: IncidentReportData): Promise<void> {
-  const { incident, tenantId, userId, language = 'en' } = data;
+  const { incident, tenantId, userId, language = 'en', fullLegalMode = false, includeFullAuditLog = false } = data;
   const isRTL = language === 'ar';
 
   // Determine access level based on user role
   const accessLevel = await getReportAccessLevel(userId);
-  const reportType = accessLevel === 'hsse_full' ? 'full' : 'summary';
+  const isLegalDocument = fullLegalMode || includeFullAuditLog;
+  const reportType = isLegalDocument ? 'legal' : (accessLevel === 'hsse_full' ? 'full' : 'summary');
 
   // Fetch tenant info and document settings
   const [tenantInfo, settings] = await Promise.all([
@@ -771,16 +1480,32 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   // Preload logo with dimensions for proper aspect ratio
   const logoData = logoUrl ? await preloadImageWithDimensions(logoUrl) : null;
 
-  // Define sections based on access level
+  // Fetch current user name for document header
+  const { data: currentUser } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', userId)
+    .single();
+  const generatedByName = currentUser?.full_name || 'Unknown';
+
+  // Define sections based on access level and mode
   const sections = {
+    showLegalHeader: isLegalDocument,
+    showConfidentialityBanner: isLegalDocument,
     showBasicInfo: true,
-    showInvestigation: accessLevel === 'hsse_full',
-    showEvidence: accessLevel === 'hsse_full',
-    showWitnesses: accessLevel === 'hsse_full',
-    showRCA: accessLevel === 'hsse_full',
-    showActionsBasic: accessLevel === 'manager',
-    showActionsFull: accessLevel === 'hsse_full',
-    showAuditLog: true, // Both roles see audit log (filtered for managers)
+    showUpgradeHistory: isLegalDocument || accessLevel === 'hsse_full',
+    showWorkflowDecisions: isLegalDocument || accessLevel === 'hsse_full',
+    showContractorViolation: isLegalDocument || accessLevel === 'hsse_full',
+    showInvestigation: accessLevel === 'hsse_full' || isLegalDocument,
+    showEvidence: accessLevel === 'hsse_full' || isLegalDocument,
+    showWitnesses: accessLevel === 'hsse_full' || isLegalDocument,
+    showRCA: accessLevel === 'hsse_full' || isLegalDocument,
+    showActionsBasic: accessLevel === 'manager' && !isLegalDocument,
+    showActionsFull: accessLevel === 'hsse_full' || isLegalDocument,
+    showAuditLog: true,
+    showDocumentIntegrity: isLegalDocument,
+    includeActionEvidence: fullLegalMode,
+    includeEvidenceUploaders: fullLegalMode,
   };
 
   // Fetch data based on sections needed
@@ -790,18 +1515,21 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   let rca: RCAData | null = null;
   let actions: CorrectiveAction[] = [];
   let auditLogs: AuditLogEntry[] = [];
+  let workflowDecisions: WorkflowDecision[] = [];
+  let contractorViolation: ContractorViolationData | null = null;
+  let upgradeHistory: UpgradeHistoryData | null = null;
 
   // Parallel data fetching
   const fetchPromises: Promise<unknown>[] = [];
 
-  if (sections.showInvestigation || sections.showEvidence || sections.showWitnesses || sections.showRCA) {
+  if (sections.showInvestigation) {
     fetchPromises.push(
       fetchInvestigationData(incident.id).then(r => { investigation = r; })
     );
   }
   if (sections.showEvidence) {
     fetchPromises.push(
-      fetchEvidenceItems(incident.id).then(r => { evidence = r; })
+      fetchEvidenceItems(incident.id, sections.includeEvidenceUploaders).then(r => { evidence = r; })
     );
   }
   if (sections.showWitnesses) {
@@ -816,39 +1544,62 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
   }
   if (sections.showActionsBasic || sections.showActionsFull) {
     fetchPromises.push(
-      fetchCorrectiveActions(incident.id, sections.showActionsFull).then(r => { actions = r; })
+      fetchCorrectiveActions(incident.id, sections.showActionsFull, sections.includeActionEvidence).then(r => { actions = r; })
     );
   }
   if (sections.showAuditLog) {
     fetchPromises.push(
-      fetchAuditLogs(incident.id, accessLevel).then(r => { auditLogs = r; })
+      fetchAuditLogs(incident.id, accessLevel, includeFullAuditLog).then(r => { auditLogs = r; })
+    );
+  }
+  if (sections.showWorkflowDecisions) {
+    fetchPromises.push(
+      fetchWorkflowDecisions(incident.id).then(r => { workflowDecisions = r; })
+    );
+  }
+  if (sections.showContractorViolation && incident.related_contractor_company_id) {
+    fetchPromises.push(
+      fetchContractorViolation(incident.id).then(r => { contractorViolation = r; })
+    );
+  }
+  if (sections.showUpgradeHistory) {
+    fetchPromises.push(
+      fetchUpgradeHistory(incident.id).then(r => { upgradeHistory = r; })
     );
   }
 
   await Promise.all(fetchPromises);
 
-  // Create PDF container - content only (header/footer added per-page by PDF generator)
+  // Create PDF container
   const container = createPDFRenderContainer();
   container.style.direction = isRTL ? 'rtl' : 'ltr';
 
-  // Build HTML content sections (no embedded header/footer)
+  // Build HTML content sections
+  const legalHeaderHtml = sections.showLegalHeader ? buildLegalDocumentHeader(incident, isRTL, generatedByName) : '';
+  const confidentialityBannerHtml = sections.showConfidentialityBanner ? buildConfidentialityBanner(incident, isRTL) : '';
   const basicInfoHtml = buildBasicInfoHtml(incident, isRTL);
+  const upgradeHistoryHtml = sections.showUpgradeHistory ? buildUpgradeHistoryHtml(upgradeHistory, isRTL) : '';
+  const workflowDecisionsHtml = sections.showWorkflowDecisions && workflowDecisions.length > 0 ? buildWorkflowDecisionsHtml(workflowDecisions, isRTL) : '';
+  const contractorViolationHtml = sections.showContractorViolation ? buildContractorViolationHtml(contractorViolation, isRTL) : '';
   const investigationHtml = sections.showInvestigation && investigation ? buildInvestigationHtml(investigation, isRTL) : '';
-  const evidenceHtml = sections.showEvidence ? buildFullEvidenceHtml(evidence, isRTL) : '';
+  const evidenceHtml = sections.showEvidence ? buildFullEvidenceHtml(evidence, isRTL, fullLegalMode) : '';
   const witnessesHtml = sections.showWitnesses ? buildFullWitnessesHtml(witnesses, isRTL) : '';
   const rcaHtml = sections.showRCA && rca ? buildFullRCAHtml(rca, isRTL) : '';
   const actionsHtml = sections.showActionsFull 
-    ? buildFullActionsHtml(actions, isRTL) 
+    ? buildFullActionsHtml(actions, isRTL, sections.includeActionEvidence) 
     : (sections.showActionsBasic ? buildManagerActionsHtml(actions, isRTL) : '');
-  const auditLogHtml = sections.showAuditLog ? buildAuditLogHtml(auditLogs, accessLevel, isRTL) : '';
+  const auditLogHtml = sections.showAuditLog ? buildAuditLogHtml(auditLogs, accessLevel, isRTL, includeFullAuditLog) : '';
+  const documentIntegrityHtml = sections.showDocumentIntegrity ? buildDocumentIntegrityFooter(incident, isRTL) : '';
 
   // Report type badge for title section
-  const reportTypeLabel = accessLevel === 'hsse_full' 
-    ? (isRTL ? 'التقرير الكامل للتحقيق' : 'Full Investigation Report')
-    : (isRTL ? 'تقرير ملخص' : 'Summary Report');
+  const reportTypeLabel = isLegalDocument
+    ? (isRTL ? 'وثيقة قانونية كاملة' : 'Full Legal Document')
+    : accessLevel === 'hsse_full' 
+      ? (isRTL ? 'التقرير الكامل للتحقيق' : 'Full Investigation Report')
+      : (isRTL ? 'تقرير ملخص' : 'Summary Report');
 
-  // Manager restricted notice
-  const restrictedNotice = accessLevel === 'manager' ? `
+  // Manager restricted notice (only for non-legal mode)
+  const restrictedNotice = accessLevel === 'manager' && !isLegalDocument ? `
     <div style="margin: 16px 0; padding: 12px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 6px; font-size: 12px; color: #92400e;">
       ${isRTL 
         ? 'ملاحظة: هذا تقرير ملخص. للحصول على التفاصيل الكاملة بما في ذلك التحقيقات والأدلة وتحليل السبب الجذري، يرجى التواصل مع فريق HSSE.'
@@ -856,9 +1607,13 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
     </div>
   ` : '';
 
-  // Build content-only HTML (no header/footer - they are added per-page)
+  // Build content-only HTML
   container.innerHTML = `
     <div style="font-family: 'Rubik', Arial, sans-serif; color: #333;">
+      ${legalHeaderHtml}
+      ${confidentialityBannerHtml}
+      
+      ${!isLegalDocument ? `
       <div style="text-align: center; margin-bottom: 20px; padding: 14px; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); border-radius: 8px; border: 1px solid #e5e7eb;">
         <p style="margin: 0 0 4px; font-size: 12px; color: #6b7280; font-weight: 500;">${isRTL ? 'عنوان الحدث' : 'Event Title'}</p>
         <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">${incident.title}</h2>
@@ -867,22 +1622,33 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
           ${reportTypeLabel}
         </span>
       </div>
+      ` : `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">${incident.title}</h2>
+        <p style="margin: 6px 0 0; font-size: 13px; color: #6b7280;">${incident.reference_id || ''}</p>
+      </div>
+      `}
       
       ${restrictedNotice}
       ${basicInfoHtml}
+      ${upgradeHistoryHtml}
+      ${workflowDecisionsHtml}
+      ${contractorViolationHtml}
       ${investigationHtml}
       ${evidenceHtml}
       ${witnessesHtml}
       ${rcaHtml}
       ${actionsHtml}
       ${auditLogHtml}
+      ${documentIntegrityHtml}
     </div>
   `;
 
   try {
     // Use branded PDF generator with per-page header, footer, and watermark
+    const filenamePrefix = isLegalDocument ? 'legal' : reportType;
     await generateBrandedPDFFromElement(container, {
-      filename: `incident-${reportType}-report-${incident.reference_id || incident.id}.pdf`,
+      filename: `incident-${filenamePrefix}-report-${incident.reference_id || incident.id}.pdf`,
       margin: 15,
       quality: 2,
       header: {
@@ -903,8 +1669,8 @@ export async function generateIncidentReportPDF(data: IncidentReportData): Promi
         textColor: settings?.footerTextColor || '#6b7280',
       },
       watermark: {
-        text: settings?.watermarkText,
-        enabled: settings?.watermarkEnabled ?? false,
+        text: isLegalDocument ? (isRTL ? 'وثيقة قانونية' : 'LEGAL DOCUMENT') : settings?.watermarkText,
+        enabled: isLegalDocument || (settings?.watermarkEnabled ?? false),
         opacity: settings?.watermarkOpacity ?? 15,
       },
       isRTL: isRTL,
