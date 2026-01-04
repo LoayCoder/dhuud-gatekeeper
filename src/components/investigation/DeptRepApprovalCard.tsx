@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,9 @@ import {
 } from "lucide-react";
 import { useDeptRepApproval, useCanApproveDeptRep } from "@/hooks/use-hsse-workflow";
 import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/hooks/use-observation-rejection";
+import { useSubmitContractorViolation } from "@/hooks/use-contractor-violation";
 import { ActionsPanel } from "./ActionsPanel";
+import { ContractorViolationSection } from "./ContractorViolationSection";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 import {
   Tooltip,
@@ -52,16 +54,28 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   const [showActions, setShowActions] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedViolationTypeId, setSelectedViolationTypeId] = useState<string | null>(
+    (incident as any).violation_type_id || null
+  );
   
   // Use the new can_approve_dept_rep_observation RPC function for observations
   const { data: canApprove } = useCanApproveDeptRep(incident.id);
   const { data: actionsCount = 0, refetch: refetchActionsCount } = useCorrectiveActionsCount(incident.id);
   const deptRepApproval = useDeptRepApproval();
   const deptRepReject = useDeptRepRejectObservation();
+  const submitViolation = useSubmitContractorViolation();
   
   // Check if this is a mandatory action status (returned from HSSE Expert)
   // Using string comparison since the new status values are in DB but not yet in TS types
   const isMandatoryActionStatus = (incident.status as string) === 'pending_dept_rep_mandatory_action';
+  
+  // Check if this is a contractor observation
+  const isContractorObservation = !!incident.related_contractor_company_id;
+  
+  // Handle violation type change from ContractorViolationSection
+  const handleViolationTypeChange = useCallback((violationTypeId: string | null) => {
+    setSelectedViolationTypeId(violationTypeId);
+  }, []);
   
   // Only show for observations in pending_dept_rep_approval or pending_dept_rep_mandatory_action status
   if (!canApprove || incident.event_type !== 'observation') {
@@ -69,19 +83,32 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   }
   
   // Validation: at least 1 corrective action required for approval
-  const canApproveObservation = actionsCount >= 1;
+  // For contractor observations, violation type selection is also required
+  const hasViolationTypeIfRequired = !isContractorObservation || selectedViolationTypeId;
+  const canApproveObservation = actionsCount >= 1 && hasViolationTypeIfRequired;
   
   // Rejection reason validation
   const isRejectionReasonValid = rejectionReason.length >= MIN_REJECTION_REASON_LENGTH;
   
   const handleApproveAndClose = () => {
-    deptRepApproval.mutate({
-      incidentId: incident.id,
-      decision: 'approve',
-      notes,
-    }, {
-      onSuccess: onComplete,
-    });
+    // For contractor observations, submit the violation first
+    if (isContractorObservation && selectedViolationTypeId) {
+      submitViolation.mutate({
+        incidentId: incident.id,
+        violationTypeId: selectedViolationTypeId,
+      }, {
+        onSuccess: onComplete,
+      });
+    } else {
+      // Regular observation approval
+      deptRepApproval.mutate({
+        incidentId: incident.id,
+        decision: 'approve',
+        notes,
+      }, {
+        onSuccess: onComplete,
+      });
+    }
   };
   
   const handleEscalateToInvestigation = () => {
@@ -105,6 +132,8 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
       },
     });
   };
+  
+  const isPending = deptRepApproval.isPending || deptRepReject.isPending || submitViolation.isPending;
 
   return (
     <div className="space-y-4" dir={direction}>
@@ -161,9 +190,18 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             </div>
           )}
           
+          {/* Contractor Violation Section - MANDATORY for contractor observations */}
+          {isContractorObservation && (
+            <ContractorViolationSection
+              incident={incident}
+              onViolationTypeChange={handleViolationTypeChange}
+              isEditable={true}
+            />
+          )}
+          
           {/* Action Count Indicator */}
           <div className={`rounded-lg p-3 flex items-center gap-2 ${
-            canApproveObservation 
+            actionsCount >= 1
               ? 'bg-green-50 border border-green-200 text-green-700' 
               : 'bg-amber-50 border border-amber-200 text-amber-700'
           }`}>
@@ -219,7 +257,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
                 variant="outline"
                 className="flex-1 flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
                 onClick={() => setShowRejectDialog(true)}
-                disabled={deptRepApproval.isPending || deptRepReject.isPending}
+                disabled={isPending}
               >
                 <XCircle className="h-4 w-4" />
                 {t('workflow.deptRepApproval.reject', 'Reject')}
@@ -230,7 +268,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
               variant="outline"
               className="flex-1 flex items-center justify-center gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
               onClick={handleEscalateToInvestigation}
-              disabled={deptRepApproval.isPending || deptRepReject.isPending}
+              disabled={isPending}
             >
               <AlertTriangle className="h-4 w-4" />
               {t('workflow.deptRepApproval.escalate', 'Escalate to Investigation')}
@@ -243,20 +281,28 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
                     <Button
                       className="w-full flex items-center justify-center gap-2"
                       onClick={handleApproveAndClose}
-                      disabled={!canApproveObservation || deptRepApproval.isPending || deptRepReject.isPending}
+                      disabled={!canApproveObservation || isPending}
                     >
-                      {deptRepApproval.isPending ? (
+                      {isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <CheckCircle2 className="h-4 w-4" />
                       )}
-                      {t('workflow.deptRepApproval.approveClose', 'Approve & Close')}
+                      {isContractorObservation 
+                        ? t('workflow.deptRepApproval.submitViolation', 'Submit Violation')
+                        : t('workflow.deptRepApproval.approveClose', 'Approve & Close')
+                      }
                     </Button>
                   </span>
                 </TooltipTrigger>
                 {!canApproveObservation && (
                   <TooltipContent>
-                    <p>{t('workflow.deptRepApproval.approveTooltip', 'Add at least one corrective action to enable approval')}</p>
+                    <p>
+                      {!hasViolationTypeIfRequired
+                        ? t('workflow.deptRepApproval.violationTypeRequired', 'You must select a violation type for contractor observations')
+                        : t('workflow.deptRepApproval.approveTooltip', 'Add at least one corrective action to enable approval')
+                      }
+                    </p>
                   </TooltipContent>
                 )}
               </Tooltip>
