@@ -271,7 +271,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
               disabled={isPending}
             >
               <AlertTriangle className="h-4 w-4" />
-              {t('workflow.deptRepApproval.escalate', 'Escalate to Investigation')}
+              {t('workflow.deptRepApproval.requestHSSEReview', 'Request HSSE Review')}
             </Button>
             
             <TooltipProvider>

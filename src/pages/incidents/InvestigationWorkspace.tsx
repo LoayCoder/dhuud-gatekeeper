@@ -35,7 +35,8 @@ import {
   DeptRepApprovalCard,
   DeptRepIncidentReviewCard,
   SubmitInvestigationCard,
-  CauseCoverageIndicator
+  CauseCoverageIndicator,
+  HSSEEscalationReviewCard
 } from "@/components/investigation";
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -188,6 +189,15 @@ export default function InvestigationWorkspace() {
           />
         );
 
+      case 'pending_hsse_escalation_review':
+        // HSSE Expert reviews escalation request from Dept Rep
+        return (
+          <HSSEEscalationReviewCard 
+            incident={incidentData} 
+            onComplete={handleRefresh} 
+          />
+        );
+
       case 'investigation_pending':
         return (
           <InvestigatorAssignmentStep 
@@ -195,6 +205,10 @@ export default function InvestigationWorkspace() {
             onComplete={handleRefresh} 
           />
         );
+
+      case 'upgraded_to_incident':
+        // Show info that observation was upgraded - could show link to new incident
+        return null;
 
       default:
         return null;

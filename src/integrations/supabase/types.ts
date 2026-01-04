@@ -7451,6 +7451,10 @@ export type Database = {
           description: string
           erp_activated: boolean | null
           escalated_to_hsse_manager_at: string | null
+          escalation_decision: string | null
+          escalation_decision_at: string | null
+          escalation_decision_by: string | null
+          escalation_decision_notes: string | null
           event_type: string
           expert_recommendation: string | null
           expert_rejected_at: string | null
@@ -7540,12 +7544,16 @@ export type Database = {
           severity_pending_approval: boolean | null
           severity_v2: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id: string | null
+          source_observation_id: string | null
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
           subtype: string | null
           tenant_id: string
           title: string
           updated_at: string | null
+          upgraded_at: string | null
+          upgraded_by: string | null
+          upgraded_to_incident_id: string | null
           violation_action_description: string | null
           violation_contract_controller_approved_at: string | null
           violation_contract_controller_approved_by: string | null
@@ -7607,6 +7615,10 @@ export type Database = {
           description: string
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
+          escalation_decision?: string | null
+          escalation_decision_at?: string | null
+          escalation_decision_by?: string | null
+          escalation_decision_notes?: string | null
           event_type: string
           expert_recommendation?: string | null
           expert_rejected_at?: string | null
@@ -7696,12 +7708,16 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id: string
           title: string
           updated_at?: string | null
+          upgraded_at?: string | null
+          upgraded_by?: string | null
+          upgraded_to_incident_id?: string | null
           violation_action_description?: string | null
           violation_contract_controller_approved_at?: string | null
           violation_contract_controller_approved_by?: string | null
@@ -7763,6 +7779,10 @@ export type Database = {
           description?: string
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
+          escalation_decision?: string | null
+          escalation_decision_at?: string | null
+          escalation_decision_by?: string | null
+          escalation_decision_notes?: string | null
           event_type?: string
           expert_recommendation?: string | null
           expert_rejected_at?: string | null
@@ -7852,12 +7872,16 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
           tenant_id?: string
           title?: string
           updated_at?: string | null
+          upgraded_at?: string | null
+          upgraded_by?: string | null
+          upgraded_to_incident_id?: string | null
           violation_action_description?: string | null
           violation_contract_controller_approved_at?: string | null
           violation_contract_controller_approved_by?: string | null
@@ -8041,6 +8065,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_source_observation_id_fkey"
+            columns: ["source_observation_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_special_event_id_fkey"
             columns: ["special_event_id"]
             isOneToOne: false
@@ -8052,6 +8083,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_upgraded_to_incident_id_fkey"
+            columns: ["upgraded_to_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
           {
@@ -18578,6 +18616,15 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: undefined
+      }
+      upgrade_observation_to_incident: {
+        Args: {
+          p_investigator_id: string
+          p_notes?: string
+          p_observation_id: string
+          p_user_id: string
+        }
+        Returns: string
       }
       upsert_notification_matrix_rule:
         | {

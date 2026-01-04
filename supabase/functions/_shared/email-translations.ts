@@ -230,6 +230,34 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "Incident Title",
       button: "Review Incident",
     },
+    // HSSE Escalation Review notifications
+    escalation_submitted: {
+      subject: "Escalation Request Submitted - {reference}",
+      title: "Escalation Awaiting HSSE Review",
+      body: "Observation <strong>{reference}</strong> has been submitted for HSSE escalation review. Please review and decide on the appropriate action.",
+      observationTitle: "Observation Title",
+      button: "Review Escalation",
+    },
+    escalation_reject: {
+      subject: "Escalation Request Rejected - {reference}",
+      title: "Escalation Rejected",
+      body: "Your escalation request for observation <strong>{reference}</strong> has been rejected by the HSSE Expert. The observation remains with you for action.",
+      rejectionReason: "Rejection Reason",
+      button: "Take Action",
+    },
+    escalation_accept_observation: {
+      subject: "Observation Confirmed - {reference}",
+      title: "Observation Accepted",
+      body: "The escalation review for <strong>{reference}</strong> is complete. This case has been confirmed as an observation and will continue through the observation workflow.",
+      button: "View Observation",
+    },
+    escalation_upgraded: {
+      subject: "Observation Upgraded to Incident - {reference}",
+      title: "Upgraded to Incident",
+      body: "Observation <strong>{reference}</strong> has been upgraded to a full incident. A new incident reference has been generated and investigation has been assigned.",
+      newReference: "New Incident Reference",
+      button: "View Incident",
+    },
   },
   ar: {
     expert_return: {
@@ -321,6 +349,34 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "عنوان الحادث",
       button: "مراجعة الحادث",
     },
+    // HSSE Escalation Review notifications
+    escalation_submitted: {
+      subject: "طلب تصعيد مقدم - {reference}",
+      title: "تصعيد في انتظار مراجعة HSSE",
+      body: "تم تقديم الملاحظة <strong>{reference}</strong> لمراجعة تصعيد HSSE. يرجى المراجعة واتخاذ الإجراء المناسب.",
+      observationTitle: "عنوان الملاحظة",
+      button: "مراجعة التصعيد",
+    },
+    escalation_reject: {
+      subject: "تم رفض طلب التصعيد - {reference}",
+      title: "تم رفض التصعيد",
+      body: "تم رفض طلب التصعيد للملاحظة <strong>{reference}</strong> من قبل خبير HSSE. تبقى الملاحظة معك للإجراء.",
+      rejectionReason: "سبب الرفض",
+      button: "اتخاذ إجراء",
+    },
+    escalation_accept_observation: {
+      subject: "تم تأكيد الملاحظة - {reference}",
+      title: "تم قبول الملاحظة",
+      body: "اكتملت مراجعة التصعيد لـ <strong>{reference}</strong>. تم تأكيد هذه الحالة كملاحظة وستستمر في سير عمل الملاحظات.",
+      button: "عرض الملاحظة",
+    },
+    escalation_upgraded: {
+      subject: "تمت ترقية الملاحظة إلى حادث - {reference}",
+      title: "تمت الترقية إلى حادث",
+      body: "تمت ترقية الملاحظة <strong>{reference}</strong> إلى حادث كامل. تم إنشاء مرجع حادث جديد وتم تعيين التحقيق.",
+      newReference: "مرجع الحادث الجديد",
+      button: "عرض الحادث",
+    },
   },
   ur: {
     expert_return: {
@@ -387,6 +443,34 @@ export const WORKFLOW_TRANSLATIONS = {
       body: "ایک نیا واقعہ <strong>{reference}</strong> جمع کرایا گیا ہے اور محکمہ نمائندہ کی حیثیت سے آپ کے جائزے کی ضرورت ہے۔",
       eventTitle: "واقعہ کا عنوان",
       button: "واقعہ کا جائزہ لیں",
+    },
+    // HSSE Escalation Review notifications
+    escalation_submitted: {
+      subject: "تصعید کی درخواست جمع - {reference}",
+      title: "تصعید HSSE جائزے کے منتظر",
+      body: "مشاہدہ <strong>{reference}</strong> HSSE تصعید جائزے کے لیے جمع کرایا گیا ہے۔",
+      observationTitle: "مشاہدہ کا عنوان",
+      button: "تصعید کا جائزہ لیں",
+    },
+    escalation_reject: {
+      subject: "تصعید کی درخواست مسترد - {reference}",
+      title: "تصعید مسترد",
+      body: "مشاہدہ <strong>{reference}</strong> کے لیے آپ کی تصعید کی درخواست HSSE ماہر نے مسترد کر دی ہے۔",
+      rejectionReason: "مسترد کی وجہ",
+      button: "کارروائی کریں",
+    },
+    escalation_accept_observation: {
+      subject: "مشاہدہ کی تصدیق - {reference}",
+      title: "مشاہدہ قبول",
+      body: "<strong>{reference}</strong> کا تصعید جائزہ مکمل ہوا۔ یہ کیس مشاہدہ کے طور پر تصدیق شدہ ہے۔",
+      button: "مشاہدہ دیکھیں",
+    },
+    escalation_upgraded: {
+      subject: "مشاہدہ واقعہ میں اپ گریڈ - {reference}",
+      title: "واقعہ میں اپ گریڈ",
+      body: "مشاہدہ <strong>{reference}</strong> مکمل واقعہ میں اپ گریڈ ہوا۔ نیا واقعہ حوالہ بنایا گیا۔",
+      newReference: "نیا واقعہ حوالہ",
+      button: "واقعہ دیکھیں",
     },
   },
   hi: {
@@ -455,6 +539,34 @@ export const WORKFLOW_TRANSLATIONS = {
       eventTitle: "घटना शीर्षक",
       button: "घटना की समीक्षा करें",
     },
+    // HSSE Escalation Review notifications
+    escalation_submitted: {
+      subject: "एस्केलेशन अनुरोध सबमिट - {reference}",
+      title: "एस्केलेशन HSSE समीक्षा की प्रतीक्षा में",
+      body: "अवलोकन <strong>{reference}</strong> HSSE एस्केलेशन समीक्षा के लिए जमा किया गया है।",
+      observationTitle: "अवलोकन शीर्षक",
+      button: "एस्केलेशन की समीक्षा करें",
+    },
+    escalation_reject: {
+      subject: "एस्केलेशन अनुरोध अस्वीकृत - {reference}",
+      title: "एस्केलेशन अस्वीकृत",
+      body: "अवलोकन <strong>{reference}</strong> के लिए आपका एस्केलेशन अनुरोध HSSE विशेषज्ञ द्वारा अस्वीकार कर दिया गया।",
+      rejectionReason: "अस्वीकृति का कारण",
+      button: "कार्रवाई करें",
+    },
+    escalation_accept_observation: {
+      subject: "अवलोकन की पुष्टि - {reference}",
+      title: "अवलोकन स्वीकृत",
+      body: "<strong>{reference}</strong> की एस्केलेशन समीक्षा पूर्ण। यह केस अवलोकन के रूप में पुष्ट है।",
+      button: "अवलोकन देखें",
+    },
+    escalation_upgraded: {
+      subject: "अवलोकन घटना में अपग्रेड - {reference}",
+      title: "घटना में अपग्रेड",
+      body: "अवलोकन <strong>{reference}</strong> पूर्ण घटना में अपग्रेड हुआ। नया घटना संदर्भ बनाया गया।",
+      newReference: "नया घटना संदर्भ",
+      button: "घटना देखें",
+    },
   },
   fil: {
     expert_return: {
@@ -521,6 +633,34 @@ export const WORKFLOW_TRANSLATIONS = {
       body: "Isang bagong insidente <strong>{reference}</strong> ang naisumite at nangangailangan ng iyong pagsusuri bilang Kinatawan ng Departamento.",
       eventTitle: "Pamagat ng Insidente",
       button: "Suriin ang Insidente",
+    },
+    // HSSE Escalation Review notifications
+    escalation_submitted: {
+      subject: "Naisumite ang Kahilingan sa Escalation - {reference}",
+      title: "Escalation Naghihintay ng HSSE Review",
+      body: "Ang obserbasyon <strong>{reference}</strong> ay naisumite para sa HSSE escalation review.",
+      observationTitle: "Pamagat ng Obserbasyon",
+      button: "Suriin ang Escalation",
+    },
+    escalation_reject: {
+      subject: "Tinanggihan ang Kahilingan sa Escalation - {reference}",
+      title: "Tinanggihan ang Escalation",
+      body: "Ang iyong kahilingan sa escalation para sa obserbasyon <strong>{reference}</strong> ay tinanggihan ng HSSE Expert.",
+      rejectionReason: "Dahilan ng Pagtanggi",
+      button: "Kumilos",
+    },
+    escalation_accept_observation: {
+      subject: "Nakumpirma ang Obserbasyon - {reference}",
+      title: "Tinanggap ang Obserbasyon",
+      body: "Kumpleto ang escalation review para sa <strong>{reference}</strong>. Ang kasong ito ay nakumpirma bilang obserbasyon.",
+      button: "Tingnan ang Obserbasyon",
+    },
+    escalation_upgraded: {
+      subject: "Obserbasyon Na-upgrade sa Insidente - {reference}",
+      title: "Na-upgrade sa Insidente",
+      body: "Ang obserbasyon <strong>{reference}</strong> ay na-upgrade sa buong insidente. Nabuo ang bagong reference ng insidente.",
+      newReference: "Bagong Reference ng Insidente",
+      button: "Tingnan ang Insidente",
     },
   },
 };
