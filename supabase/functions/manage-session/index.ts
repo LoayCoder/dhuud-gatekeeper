@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { getCorsHeaders, handleCorsPrelight } from '../_shared/cors.ts';
+import { getCorsHeaders, handleCorsPrelight, sanitizeObject, getClientIP as sharedGetClientIP } from '../_shared/cors.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -18,29 +18,67 @@ interface GeoIPResponse {
   ip?: string;
 }
 
-// Get IP geolocation using free ip-api.com service
+// Timeout for external API calls (5 seconds)
+const EXTERNAL_API_TIMEOUT_MS = 5000;
+
+// Get IP geolocation using HTTPS ip-api.com service with timeout
 async function getIPGeolocation(ip: string): Promise<GeoIPResponse> {
   try {
     // Skip geolocation for private/local IPs
     if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.') || 
-        ip === '127.0.0.1' || ip === 'localhost' || ip === '::1') {
-      console.log('Skipping geolocation for private IP:', ip);
+        ip === '127.0.0.1' || ip === 'localhost' || ip === '::1' || ip === 'unknown') {
+      console.log('Skipping geolocation for private/local IP:', ip);
       return { ip, country: 'Local', countryCode: 'LOCAL' };
     }
 
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,city`);
-    const data = await response.json();
-    
-    if (data.status === 'success') {
+    // Use AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), EXTERNAL_API_TIMEOUT_MS);
+
+    try {
+      // Use HTTPS endpoint (ip-api.com pro or fallback to http with understanding of limitation)
+      // Note: ip-api.com free tier only supports HTTP, for production use a paid HTTPS service
+      // Using ipapi.co which supports HTTPS on free tier
+      const response = await fetch(
+        `https://ipapi.co/${ip}/json/`,
+        { 
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'HSSE-Platform/1.0'
+          }
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.warn('IP geolocation API returned non-OK status:', response.status);
+        return { ip };
+      }
+
+      const data = await response.json();
+      
+      // ipapi.co response format
+      if (data.error) {
+        console.warn('IP geolocation API error:', data.reason);
+        return { ip };
+      }
+
       return {
-        country: data.country,
-        countryCode: data.countryCode,
+        country: data.country_name,
+        countryCode: data.country_code,
         city: data.city,
         ip
       };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.warn('IP geolocation request timed out for:', ip);
+      } else {
+        console.error('IP geolocation fetch error:', fetchError);
+      }
+      return { ip };
     }
-    console.warn('IP geolocation failed for', ip, ':', data);
-    return { ip };
   } catch (error) {
     console.error('IP geolocation error:', error);
     return { ip };
@@ -58,12 +96,24 @@ function generateSessionToken(): string {
   return `sess_${Date.now()}_${base64}`;
 }
 
-// Get client IP from request
+// Get client IP from request (use shared implementation)
 function getClientIP(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-         req.headers.get('x-real-ip') ||
-         req.headers.get('cf-connecting-ip') ||
-         'unknown';
+  return sharedGetClientIP(req);
+}
+
+// Safely parse JSON with defensive error handling
+async function safeParseJSON<T>(req: Request): Promise<{ data: T | null; error: string | null }> {
+  try {
+    const text = await req.text();
+    if (!text || text.trim() === '') {
+      return { data: null, error: 'Empty request body' };
+    }
+    const data = JSON.parse(text) as T;
+    return { data, error: null };
+  } catch (error) {
+    console.error('JSON parse error:', error);
+    return { data: null, error: 'Invalid JSON in request body' };
+  }
 }
 
 Deno.serve(async (req) => {
@@ -112,7 +162,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body: SessionRequest = await req.json();
+    // Defensive JSON parsing
+    const { data: body, error: parseError } = await safeParseJSON<SessionRequest>(req);
+    if (parseError || !body) {
+      return new Response(
+        JSON.stringify({ success: false, error: parseError || 'Invalid request body' }),
+        { status: 400, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate action
+    const validActions = ['register', 'validate', 'invalidate', 'heartbeat'];
+    if (!body.action || !validActions.includes(body.action)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid or missing action' }),
+        { status: 400, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { action, sessionToken, deviceInfo, userAgent } = body;
 
     const clientIP = getClientIP(req);
@@ -148,6 +215,9 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'register': {
         const newSessionToken = generateSessionToken();
+        
+        // Sanitize device info to prevent XSS
+        const sanitizedDeviceInfo = deviceInfo ? sanitizeObject(deviceInfo as Record<string, unknown>) : {};
         
         // Check current active sessions
         const { data: activeSessions } = await supabaseAdmin
@@ -198,6 +268,11 @@ Deno.serve(async (req) => {
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + sessionTimeoutMinutes);
 
+        // Sanitize user agent
+        const sanitizedUserAgent = userAgent 
+          ? userAgent.substring(0, 500).replace(/<[^>]*>/g, '') 
+          : (req.headers.get('user-agent')?.substring(0, 500) || null);
+
         // Create new session
         const { error: insertError } = await supabaseAdmin
           .from('user_sessions')
@@ -205,11 +280,11 @@ Deno.serve(async (req) => {
             user_id: user.id,
             tenant_id: profile.tenant_id,
             session_token: newSessionToken,
-            device_info: deviceInfo || {},
+            device_info: sanitizedDeviceInfo,
             ip_address: clientIP,
             ip_country: geoData.countryCode || geoData.country,
             ip_city: geoData.city,
-            user_agent: userAgent || req.headers.get('user-agent'),
+            user_agent: sanitizedUserAgent,
             expires_at: expiresAt.toISOString(),
             is_active: true
           });
