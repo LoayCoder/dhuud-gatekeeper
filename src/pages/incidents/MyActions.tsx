@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { KPIStrip, KPIItem } from '@/components/ui/kpi-strip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMyCorrectiveActions, useUpdateMyActionStatus, useMyReportedIncidents } from '@/hooks/use-incidents';
@@ -392,129 +393,84 @@ export default function MyActions() {
     setActiveFilter(activeFilter === filter ? null : filter);
   };
 
+  // Build KPI items for the unified strip
+  const kpiItems: KPIItem[] = [
+    {
+      key: 'overdue',
+      label: t('investigation.overdueActions', 'Overdue'),
+      value: overdueActions.length,
+      icon: AlertTriangle,
+      status: overdueActions.length > 0 ? 'critical' : 'neutral',
+      onClick: () => handleFilterClick('overdue'),
+    },
+    {
+      key: 'soon_overdue',
+      label: t('actions.dueSoon', 'Due Soon'),
+      value: soonOverdueActions.length,
+      icon: Clock,
+      status: soonOverdueActions.length > 0 ? 'pending' : 'neutral',
+      onClick: () => handleFilterClick('soon_overdue'),
+    },
+    {
+      key: 'pending',
+      label: t('investigation.pendingActions', 'Pending'),
+      value: pendingActions.length,
+      icon: AlertCircle,
+      status: pendingActions.length > 0 ? 'pending' : 'neutral',
+      onClick: () => handleFilterClick('pending'),
+    },
+    {
+      key: 'in_progress',
+      label: t('investigation.inProgressActions', 'In Progress'),
+      value: inProgressActions.length,
+      icon: PlayCircle,
+      status: 'informational',
+      onClick: () => handleFilterClick('in_progress'),
+    },
+    {
+      key: 'awaiting_verification',
+      label: t('investigation.awaitingVerification', 'Awaiting'),
+      value: awaitingVerificationActions.length,
+      icon: FileCheck,
+      status: awaitingVerificationActions.length > 0 ? 'pending' : 'neutral',
+      onClick: () => handleFilterClick('awaiting_verification'),
+    },
+    {
+      key: 'closed',
+      label: t('investigation.closedActions', 'Closed'),
+      value: closedActions.length,
+      icon: CheckCircle2,
+      status: 'completed',
+      onClick: () => handleFilterClick('closed'),
+    },
+    {
+      key: 'statements',
+      label: t('investigation.witnesses.pendingStatements', 'Statements'),
+      value: pendingWitness.length,
+      icon: MessageSquare,
+      status: pendingWitness.length > 0 ? 'informational' : 'neutral',
+    },
+    ...(canAccessApprovals ? [{
+      key: 'approvals',
+      label: t('investigation.approvals.pendingApprovals', 'Approvals'),
+      value: totalPendingApprovals,
+      icon: ShieldCheck,
+      status: totalPendingApprovals > 0 ? 'pending' as const : 'neutral' as const,
+    }] : []),
+  ];
+
   return (
     <div className="container py-6 space-y-6" dir={direction}>
+      {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('investigation.myActions', 'My Actions')}</h1>
+          <h1 className="page-title">{t('investigation.myActions', 'My Actions')}</h1>
           <p className="text-muted-foreground">{t('investigation.myActionsDescription', 'View and manage your assigned tasks')}</p>
         </div>
       </div>
 
-      {/* Summary Cards - Compact Design */}
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
-        {/* Overdue Card */}
-        <Card 
-          className={cn(
-            "p-3 border-red-200 dark:border-red-900 cursor-pointer hover:shadow-md transition-shadow",
-            overdueActions.length > 0 && "bg-red-50/50 dark:bg-red-950/20",
-            activeFilter === 'overdue' && "ring-2 ring-red-500"
-          )}
-          onClick={() => handleFilterClick('overdue')}
-        >
-          <div className="flex items-center justify-between">
-            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <span className={cn("text-xl font-bold", overdueActions.length > 0 ? "text-red-600" : "text-muted-foreground")}>{overdueActions.length}</span>
-          </div>
-          <p className="text-xs text-red-600 dark:text-red-400 mt-1 truncate">{t('investigation.overdueActions', 'Overdue')}</p>
-        </Card>
-
-        {/* Due Soon Card */}
-        <Card 
-          className={cn(
-            "p-3 border-yellow-200 dark:border-yellow-900 cursor-pointer hover:shadow-md transition-shadow",
-            soonOverdueActions.length > 0 && "bg-yellow-50/50 dark:bg-yellow-950/20",
-            activeFilter === 'soon_overdue' && "ring-2 ring-yellow-500"
-          )}
-          onClick={() => handleFilterClick('soon_overdue')}
-        >
-          <div className="flex items-center justify-between">
-            <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-            <span className={cn("text-xl font-bold", soonOverdueActions.length > 0 ? "text-yellow-600" : "text-muted-foreground")}>{soonOverdueActions.length}</span>
-          </div>
-          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 truncate">{t('actions.dueSoon', 'Due Soon')}</p>
-        </Card>
-        
-        {/* Pending Card */}
-        <Card 
-          className={cn(
-            "p-3 cursor-pointer hover:shadow-md transition-shadow",
-            activeFilter === 'pending' && "ring-2 ring-amber-500"
-          )}
-          onClick={() => handleFilterClick('pending')}
-        >
-          <div className="flex items-center justify-between">
-            <AlertCircle className="h-4 w-4 text-amber-500" />
-            <span className="text-xl font-bold text-amber-500">{pendingActions.length}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.pendingActions', 'Pending')}</p>
-        </Card>
-
-        {/* In Progress Card */}
-        <Card 
-          className={cn(
-            "p-3 cursor-pointer hover:shadow-md transition-shadow",
-            activeFilter === 'in_progress' && "ring-2 ring-blue-500"
-          )}
-          onClick={() => handleFilterClick('in_progress')}
-        >
-          <div className="flex items-center justify-between">
-            <PlayCircle className="h-4 w-4 text-blue-500" />
-            <span className="text-xl font-bold text-blue-500">{inProgressActions.length}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.inProgressActions', 'In Progress')}</p>
-        </Card>
-
-        {/* Awaiting Verification Card */}
-        <Card 
-          className={cn(
-            "p-3 cursor-pointer hover:shadow-md transition-shadow",
-            activeFilter === 'awaiting_verification' && "ring-2 ring-orange-500"
-          )}
-          onClick={() => handleFilterClick('awaiting_verification')}
-        >
-          <div className="flex items-center justify-between">
-            <FileCheck className="h-4 w-4 text-orange-500" />
-            <span className="text-xl font-bold text-orange-500">{awaitingVerificationActions.length}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.awaitingVerification', 'Awaiting')}</p>
-        </Card>
-
-        {/* Closed Card */}
-        <Card 
-          className={cn(
-            "p-3 cursor-pointer hover:shadow-md transition-shadow",
-          activeFilter === 'closed' && "ring-2 ring-green-500"
-          )}
-          onClick={() => handleFilterClick('closed')}
-        >
-          <div className="flex items-center justify-between">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span className="text-xl font-bold text-green-500">{closedActions.length}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.closedActions', 'Closed')}</p>
-        </Card>
-
-        {/* Pending Statements Card */}
-        <Card className="p-3">
-          <div className="flex items-center justify-between">
-            <MessageSquare className="h-4 w-4 text-purple-500" />
-            <span className="text-xl font-bold text-purple-500">{pendingWitness.length}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.witnesses.pendingStatements', 'Statements')}</p>
-        </Card>
-
-        {/* Pending Approvals Card */}
-        {canAccessApprovals && (
-          <Card className={cn("p-3", totalPendingApprovals > 0 && "border-amber-200 dark:border-amber-900")}>
-            <div className="flex items-center justify-between">
-              <ShieldCheck className="h-4 w-4 text-amber-500" />
-              <span className={cn("text-xl font-bold", totalPendingApprovals > 0 ? "text-amber-500" : "text-muted-foreground")}>{totalPendingApprovals}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 truncate">{t('investigation.approvals.pendingApprovals', 'Approvals')}</p>
-          </Card>
-        )}
-      </div>
+      {/* Summary KPI Strip - Unified Design */}
+      <KPIStrip items={kpiItems} compact />
 
       {/* Active Filter Indicator */}
       {activeFilter && (
