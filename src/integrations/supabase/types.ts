@@ -19041,6 +19041,10 @@ export type Database = {
         Returns: boolean
       }
       can_view_visitor_pii: { Args: never; Returns: boolean }
+      check_incident_closure_prerequisites: {
+        Args: { p_incident_id: string }
+        Returns: Json
+      }
       check_licensed_user_quota: {
         Args: { p_tenant_id: string }
         Returns: Json
@@ -19677,6 +19681,10 @@ export type Database = {
         }
         Returns: Json
       }
+      hsse_validate_incident_closure: {
+        Args: { p_decision: string; p_incident_id: string; p_notes?: string }
+        Returns: Json
+      }
       hsse_validate_observation_closure: {
         Args: {
           p_decision: string
@@ -19701,6 +19709,20 @@ export type Database = {
           p_user_id: string
         }
         Returns: number
+      }
+      investigator_identify_contractor_violation: {
+        Args: {
+          p_contractor_contribution_percentage: number
+          p_evidence_summary?: string
+          p_investigation_id: string
+          p_root_cause_summary: string
+          p_violation_type_id: string
+        }
+        Returns: Json
+      }
+      investigator_submit_contractor_violation: {
+        Args: { p_evidence_summary: string; p_investigation_id: string }
+        Returns: Json
       }
       is_action_assignee_only: {
         Args: { _incident_id: string; _user_id: string }
