@@ -255,44 +255,34 @@ export function AppSidebar() {
               menuCode: 'security_dashboard',
             },
             {
-              title: t('security.menu.accessControl', 'Access Control'),
+              title: t('security.menu.accessDashboard', 'Access Dashboard'),
+              url: "/security/access-control",
+              icon: LayoutDashboard,
+              menuCode: 'access_dashboard',
+            },
+            {
+              title: t('security.menu.gateOperations', 'Gate Operations'),
+              url: "/security/gate-dashboard",
               icon: Shield,
-              menuCode: 'access_control',
-              isActive: location.pathname.startsWith("/security/access-control") || 
-                        location.pathname.startsWith("/security/gate-dashboard") ||
-                        location.pathname.startsWith("/visitors"),
-              subItems: [
-                {
-                  title: t('security.menu.accessDashboard', 'Access Dashboard'),
-                  url: "/security/access-control",
-                  icon: LayoutDashboard,
-                  menuCode: 'access_dashboard',
-                },
-                {
-                  title: t('security.menu.gateOperations', 'Gate Operations'),
-                  url: "/security/gate-dashboard",
-                  icon: Shield,
-                  menuCode: 'gate_dashboard',
-                },
-                {
-                  title: t('security.visitors.preRegister', 'Pre-Register Visitor'),
-                  url: "/visitors/register",
-                  icon: Plus,
-                  menuCode: 'visitor_register',
-                },
-                {
-                  title: t('security.visitors.list', 'Visitor Directory'),
-                  url: "/visitors/list",
-                  icon: List,
-                  menuCode: 'visitor_list',
-                },
-                {
-                  title: t('security.blacklist.title', 'Blacklist Management'),
-                  url: "/security/blacklist",
-                  icon: ShieldAlert,
-                  menuCode: 'security_blacklist',
-                },
-              ],
+              menuCode: 'gate_dashboard',
+            },
+            {
+              title: t('security.visitors.preRegister', 'Pre-Register Visitor'),
+              url: "/visitors/register",
+              icon: Plus,
+              menuCode: 'visitor_register',
+            },
+            {
+              title: t('security.visitors.list', 'Visitor Directory'),
+              url: "/visitors/list",
+              icon: List,
+              menuCode: 'visitor_list',
+            },
+            {
+              title: t('security.blacklist.title', 'Blacklist Management'),
+              url: "/security/blacklist",
+              icon: ShieldAlert,
+              menuCode: 'security_blacklist',
             },
             {
               title: t('navigation.securityPatrols'),
