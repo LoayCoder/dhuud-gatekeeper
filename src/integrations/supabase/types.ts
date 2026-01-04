@@ -4234,7 +4234,7 @@ export type Database = {
           {
             foreignKeyName: "contractor_violation_summary_incident_id_fkey"
             columns: ["incident_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
@@ -18756,6 +18756,15 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: Json
       }
+      check_repeated_contractor_violations: {
+        Args: {
+          p_contractor_company_id: string
+          p_days_lookback?: number
+          p_tenant_id: string
+          p_threshold?: number
+        }
+        Returns: Json
+      }
       check_simops_conflicts: {
         Args: {
           p_end_time: string
@@ -19374,6 +19383,15 @@ export type Database = {
           p_decision: string
           p_incident_id: string
           p_modified_violation_type_id?: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      hsse_validate_observation_closure: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
           p_notes?: string
           p_user_id: string
         }
