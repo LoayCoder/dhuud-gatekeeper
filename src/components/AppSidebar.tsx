@@ -279,10 +279,10 @@ export function AppSidebar() {
                   menuCode: 'visitor_list',
                 },
                 {
-                  title: t('security.visitors.blacklist', 'Blacklist'),
-                  url: "/visitors/blacklist",
+                  title: t('security.blacklist.title', 'Blacklist Management'),
+                  url: "/security/blacklist",
                   icon: ShieldAlert,
-                  menuCode: 'visitor_blacklist',
+                  menuCode: 'security_blacklist',
                 },
               ],
             },

@@ -99,7 +99,7 @@ const VisitorPass = lazyWithRetry(() => import("./pages/VisitorPass"));
 const VisitorBadgePage = lazyWithRetry(() => import("./pages/VisitorBadgePage"));
 const WorkerAccessPass = lazyWithRetry(() => import("./pages/WorkerAccessPass"));
 const WorkerInduction = lazyWithRetry(() => import("./pages/WorkerInduction"));
-const BlacklistManagement = lazyWithRetry(() => import("./pages/visitors/BlacklistManagement"));
+const BlacklistManagement = lazyWithRetry(() => import("./pages/security/BlacklistManagement"));
 
 // Security patrol pages - lazy loaded with retry
 const PatrolDashboard = lazyWithRetry(() => import("./pages/security/PatrolDashboard"));
@@ -291,7 +291,7 @@ const App = () => (
                       <Route path="/visitors/register" element={<SecurityRoute><VisitorPreRegistration /></SecurityRoute>} />
                       <Route path="/visitors/checkpoint" element={<Navigate to="/security/gate-dashboard" replace />} />
                       <Route path="/visitors/list" element={<SecurityRoute><VisitorList /></SecurityRoute>} />
-                      <Route path="/visitors/blacklist" element={<SecurityRoute><BlacklistManagement /></SecurityRoute>} />
+                      <Route path="/visitors/blacklist" element={<Navigate to="/security/blacklist" replace />} />
 
                       {/* Security Routes */}
                       <Route path="/security" element={<SecurityRoute><SecurityDashboard /></SecurityRoute>} />
@@ -315,6 +315,7 @@ const App = () => (
                       <Route path="/security/emergency-alerts" element={<SecurityRoute><EmergencyAlerts /></SecurityRoute>} />
                       <Route path="/security/attendance" element={<SecurityRoute><GuardAttendance /></SecurityRoute>} />
                       <Route path="/security/cctv" element={<SecurityRoute><CCTVManagement /></SecurityRoute>} />
+                      <Route path="/security/blacklist" element={<SecurityRoute><BlacklistManagement /></SecurityRoute>} />
 
                       {/* Contractor Management Routes */}
                       <Route path="/contractors" element={<AdminRoute><ContractorDashboard /></AdminRoute>} />
