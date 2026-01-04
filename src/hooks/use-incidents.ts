@@ -224,14 +224,20 @@ export function useIncidents() {
 
       const { data, error } = await supabase
         .from('incidents')
-        .select('id, reference_id, title, event_type, severity, severity_v2, status, occurred_at, created_at')
+        .select(`
+          id, reference_id, title, event_type, subtype, incident_type,
+          severity, severity_v2, status, occurred_at, created_at,
+          branch_id, site_id, location,
+          branch:branches!branch_id(name),
+          site:sites!site_id(name)
+        `)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .range(0, 99); // Limit to first 100 incidents for performance
 
       if (error) throw error;
-      return data as Incident[];
+      return data;
     },
     enabled: !!profile?.tenant_id,
     staleTime: 2 * 60 * 1000, // 2 minutes before refetch
