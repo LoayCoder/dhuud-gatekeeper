@@ -465,17 +465,33 @@ export function IncidentAttachmentsSection({
                 )}
               </div>
 
-              {/* File info footer */}
-              <div className="p-2 space-y-1">
-                <div className="flex items-start justify-between gap-1">
-                  <p className="text-xs font-medium truncate flex-1" title={attachment.name}>
-                    {attachment.name}
-                  </p>
-                  <div className="flex items-center gap-0.5">
+              {/* File info footer - Fixed Layout */}
+              <div className="p-2 space-y-2">
+                {/* Filename row - full width, separate line */}
+                <p className="text-xs font-medium truncate" title={attachment.name}>
+                  {attachment.name}
+                </p>
+                
+                {/* Actions and metadata row - stacked below */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-1 min-w-0">
+                    <Badge 
+                      variant={attachment.source === 'initial' ? 'outline' : 'secondary'} 
+                      className="text-[10px] px-1.5 py-0 shrink-0"
+                    >
+                      {attachment.source === 'initial' 
+                        ? t('incidents.initialMedia', 'Initial') 
+                        : t('incidents.evidenceFiles', 'Evidence')}
+                    </Badge>
+                    {attachment.size && (
+                      <span className="truncate">{formatFileSize(attachment.size)}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 shrink-0"
+                      className="h-6 w-6"
                       onClick={() => window.open(attachment.url, '_blank')}
                       title={t('common.view', 'View')}
                     >
@@ -484,26 +500,13 @@ export function IncidentAttachmentsSection({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 shrink-0"
+                      className="h-6 w-6"
                       onClick={() => handleDownload(attachment.url, attachment.name)}
                       title={t('incidents.downloadFile', 'Download')}
                     >
                       <Download className="h-3 w-3" />
                     </Button>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Badge 
-                    variant={attachment.source === 'initial' ? 'outline' : 'secondary'} 
-                    className="text-[10px] px-1.5 py-0"
-                  >
-                    {attachment.source === 'initial' 
-                      ? t('incidents.initialMedia', 'Initial') 
-                      : t('incidents.evidenceFiles', 'Evidence')}
-                  </Badge>
-                  {attachment.size && (
-                    <span>{formatFileSize(attachment.size)}</span>
-                  )}
                 </div>
               </div>
             </div>

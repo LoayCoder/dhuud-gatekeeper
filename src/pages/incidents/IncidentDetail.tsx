@@ -65,6 +65,53 @@ export default function IncidentDetail() {
     },
     enabled: !!profile?.tenant_id
   });
+
+  // Fetch investigation data for current owner display
+  const { data: investigation } = useQuery({
+    queryKey: ['investigation-owner', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data } = await supabase
+        .from('investigations')
+        .select('investigator_id, investigator:profiles!investigator_id(full_name)')
+        .eq('incident_id', id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id
+  });
+
+  // Get current owner based on incident status
+  const getCurrentOwner = () => {
+    if (!incident) return null;
+    const status = incident.status as string;
+    
+    if (status === 'submitted' || status === 'pending_review' || status === 'expert_screening') {
+      return { role: t('incidents.workflowOwners.hsse_expert', 'HSSE Expert'), name: null };
+    }
+    if (status === 'pending_manager_approval' || status === 'hsse_manager_escalation') {
+      return { role: t('incidents.workflowOwners.department_manager', 'Department Manager'), name: null };
+    }
+    if (status === 'pending_dept_rep_approval') {
+      return { role: t('incidents.workflowOwners.department_rep', 'Department Representative'), name: null };
+    }
+    if (status === 'investigation_in_progress' || status === 'investigation_pending') {
+      const investigatorName = (investigation?.investigator as any)?.full_name;
+      return { 
+        role: t('incidents.workflowOwners.investigator', 'Investigator'), 
+        name: investigatorName || null 
+      };
+    }
+    if (status === 'pending_closure' || status === 'pending_final_closure' || status === 'observation_actions_pending') {
+      return { role: t('incidents.workflowOwners.hsse_manager', 'HSSE Manager'), name: null };
+    }
+    if (status === 'closed' || status === 'no_investigation_required' || status === 'investigation_closed') {
+      return null;
+    }
+    return { role: t('incidents.workflowOwners.awaiting_assignment', 'Awaiting Assignment'), name: null };
+  };
+
+  const currentOwner = getCurrentOwner();
   
   // Determine back navigation path based on where user came from
   const searchParams = new URLSearchParams(location.search);
@@ -408,6 +455,7 @@ export default function IncidentDetail() {
           <IncidentWorkflowCard
             status={incident.status}
             eventType={incident.event_type}
+            assignedTo={currentOwner ? (currentOwner.name ? `${currentOwner.name} (${currentOwner.role})` : currentOwner.role) : undefined}
           />
 
           {/* Info Sidebar */}
