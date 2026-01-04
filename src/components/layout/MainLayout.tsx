@@ -22,10 +22,11 @@ export default function MainLayout() {
         <SidebarInset className="min-w-0 flex flex-col">
           {/* Header with Trigger - Fixed header with safe-area support for PWA */}
           <header 
-            className="sticky top-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row w-full"
+            className="fixed top-0 inset-inline-end-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 flex flex-row"
             style={{ 
               paddingTop: 'env(safe-area-inset-top, 0px)',
               minHeight: 'calc(4rem + env(safe-area-inset-top, 0px))',
+              insetInlineStart: 'var(--sidebar-width, 16rem)',
             }}
           >
             <div className="items-center gap-2 flex flex-row min-w-0">
@@ -40,9 +41,13 @@ export default function MainLayout() {
             </div>
           </header>
 
-
           {/* Main Page Content */}
-          <main className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-auto">
+          <main 
+            className="flex flex-1 flex-col gap-4 p-4 min-w-0 overflow-auto"
+            style={{
+              paddingTop: 'calc(4rem + env(safe-area-inset-top, 0px) + 1rem)',
+            }}
+          >
             <TrialBanner />
             <HSSEAlertBanner />
             <Outlet />
