@@ -39,3 +39,4 @@ export { PotentialSeverityApprovalCard } from './PotentialSeverityApprovalCard';
 export { HSSEValidationCard } from './HSSEValidationCard';
 export { ObservationClosureGate } from './ObservationClosureGate';
 export { HSSEExpertRejectionReviewCard } from './HSSEExpertRejectionReviewCard';
+export { ContractorPersonnelCard } from './ContractorPersonnelCard';
