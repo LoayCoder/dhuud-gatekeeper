@@ -5,22 +5,44 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   ClipboardList, 
   CheckCircle2, 
   AlertTriangle,
   ArrowRight,
   Loader2,
-  Plus
+  Plus,
+  XCircle,
+  Info
 } from "lucide-react";
 import { useDeptRepApproval, useCanApproveDeptRep } from "@/hooks/use-hsse-workflow";
+import { useCorrectiveActionsCount, useDeptRepRejectObservation } from "@/hooks/use-observation-rejection";
 import { ActionsPanel } from "./ActionsPanel";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DeptRepApprovalCardProps {
   incident: IncidentWithDetails;
   onComplete: () => void;
 }
+
+const MIN_REJECTION_REASON_LENGTH = 20;
 
 export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCardProps) {
   const { t, i18n } = useTranslation();
@@ -28,15 +50,29 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
   
   const [notes, setNotes] = useState("");
   const [showActions, setShowActions] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   
   // Use the new can_approve_dept_rep_observation RPC function for observations
   const { data: canApprove } = useCanApproveDeptRep(incident.id);
+  const { data: actionsCount = 0, refetch: refetchActionsCount } = useCorrectiveActionsCount(incident.id);
   const deptRepApproval = useDeptRepApproval();
+  const deptRepReject = useDeptRepRejectObservation();
   
-  // Only show for observations in pending_dept_rep_approval status
+  // Check if this is a mandatory action status (returned from HSSE Expert)
+  // Using string comparison since the new status values are in DB but not yet in TS types
+  const isMandatoryActionStatus = (incident.status as string) === 'pending_dept_rep_mandatory_action';
+  
+  // Only show for observations in pending_dept_rep_approval or pending_dept_rep_mandatory_action status
   if (!canApprove || incident.event_type !== 'observation') {
     return null;
   }
+  
+  // Validation: at least 1 corrective action required for approval
+  const canApproveObservation = actionsCount >= 1;
+  
+  // Rejection reason validation
+  const isRejectionReasonValid = rejectionReason.length >= MIN_REJECTION_REASON_LENGTH;
   
   const handleApproveAndClose = () => {
     deptRepApproval.mutate({
@@ -55,6 +91,18 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
       notes,
     }, {
       onSuccess: onComplete,
+    });
+  };
+  
+  const handleReject = () => {
+    deptRepReject.mutate({
+      incidentId: incident.id,
+      rejectionReason,
+    }, {
+      onSuccess: () => {
+        setShowRejectDialog(false);
+        onComplete();
+      },
     });
   };
 
@@ -78,6 +126,19 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Mandatory Action Alert - shown when HSSE Expert rejected the rejection */}
+          {isMandatoryActionStatus && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>
+                {t('workflow.deptRepApproval.mandatoryActionRequired', 'Action Required')}
+              </AlertTitle>
+              <AlertDescription>
+                {t('workflow.deptRepApproval.mandatoryActionDescription', 'HSSE Expert rejected your rejection. You must add corrective action(s) and approve, or escalate to investigation.')}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Observation Summary */}
           <div className="rounded-lg bg-muted/50 p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -100,6 +161,21 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             </div>
           )}
           
+          {/* Action Count Indicator */}
+          <div className={`rounded-lg p-3 flex items-center gap-2 ${
+            canApproveObservation 
+              ? 'bg-green-50 border border-green-200 text-green-700' 
+              : 'bg-amber-50 border border-amber-200 text-amber-700'
+          }`}>
+            <Info className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm">
+              {actionsCount === 0 
+                ? t('workflow.deptRepApproval.noActionsWarning', 'You must add at least one corrective action before approving.')
+                : t('workflow.deptRepApproval.actionsCount', '{{count}} corrective action(s) added.', { count: actionsCount })
+              }
+            </span>
+          </div>
+          
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="dept-rep-notes">
@@ -119,7 +195,13 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
-              onClick={() => setShowActions(!showActions)}
+              onClick={() => {
+                setShowActions(!showActions);
+                // Refetch actions count when panel is shown
+                if (!showActions) {
+                  setTimeout(() => refetchActionsCount(), 500);
+                }
+              }}
             >
               <Plus className="h-4 w-4" />
               {showActions 
@@ -131,36 +213,109 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
           
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {/* Reject Button - hidden in mandatory action status */}
+            {!isMandatoryActionStatus && (
+              <Button
+                variant="outline"
+                className="flex-1 flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                onClick={() => setShowRejectDialog(true)}
+                disabled={deptRepApproval.isPending || deptRepReject.isPending}
+              >
+                <XCircle className="h-4 w-4" />
+                {t('workflow.deptRepApproval.reject', 'Reject')}
+              </Button>
+            )}
+            
             <Button
               variant="outline"
               className="flex-1 flex items-center justify-center gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
               onClick={handleEscalateToInvestigation}
-              disabled={deptRepApproval.isPending}
+              disabled={deptRepApproval.isPending || deptRepReject.isPending}
             >
               <AlertTriangle className="h-4 w-4" />
               {t('workflow.deptRepApproval.escalate', 'Escalate to Investigation')}
             </Button>
             
-            <Button
-              className="flex-1 flex items-center justify-center gap-2"
-              onClick={handleApproveAndClose}
-              disabled={deptRepApproval.isPending}
-            >
-              {deptRepApproval.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
-              {t('workflow.deptRepApproval.approveClose', 'Approve & Close')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex-1">
+                    <Button
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={handleApproveAndClose}
+                      disabled={!canApproveObservation || deptRepApproval.isPending || deptRepReject.isPending}
+                    >
+                      {deptRepApproval.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="h-4 w-4" />
+                      )}
+                      {t('workflow.deptRepApproval.approveClose', 'Approve & Close')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!canApproveObservation && (
+                  <TooltipContent>
+                    <p>{t('workflow.deptRepApproval.approveTooltip', 'Add at least one corrective action to enable approval')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardContent>
       </Card>
       
       {/* Corrective Actions Panel - shown when expanded */}
       {showActions && (
-        <ActionsPanel incidentId={incident.id} />
+        <ActionsPanel 
+          incidentId={incident.id} 
+          onActionChange={() => refetchActionsCount()}
+        />
       )}
+      
+      {/* Reject Confirmation Dialog */}
+      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <AlertDialogContent dir={direction}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('workflow.deptRepApproval.rejectDialogTitle', 'Reject Observation?')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('workflow.deptRepApproval.rejectDialogDescription', 'Are you sure you want to reject this observation? It will be sent to the HSSE Expert for final review.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-2 py-4">
+            <Label htmlFor="rejection-reason">
+              {t('workflow.deptRepApproval.rejectionReason', 'Rejection Reason')} *
+            </Label>
+            <Textarea
+              id="rejection-reason"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder={t('workflow.deptRepApproval.rejectionReasonPlaceholder', 'Explain why you are rejecting this observation (min 20 characters)...')}
+              rows={3}
+            />
+            <p className={`text-xs ${rejectionReason.length < MIN_REJECTION_REASON_LENGTH ? 'text-muted-foreground' : 'text-green-600'}`}>
+              {rejectionReason.length}/{MIN_REJECTION_REASON_LENGTH} {t('common.characters', 'characters')}
+            </p>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t('common.cancel', 'Cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleReject}
+              disabled={!isRejectionReasonValid || deptRepReject.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deptRepReject.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              {t('workflow.deptRepApproval.confirmReject', 'Reject Observation')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

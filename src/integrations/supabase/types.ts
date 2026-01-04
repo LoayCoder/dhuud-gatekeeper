@@ -7445,6 +7445,9 @@ export type Database = {
           dept_rep_approved_at: string | null
           dept_rep_approved_by: string | null
           dept_rep_notes: string | null
+          dept_rep_rejected_at: string | null
+          dept_rep_rejected_by: string | null
+          dept_rep_rejection_reason: string | null
           description: string
           erp_activated: boolean | null
           escalated_to_hsse_manager_at: string | null
@@ -7461,6 +7464,10 @@ export type Database = {
           hsse_manager_decision: string | null
           hsse_manager_decision_by: string | null
           hsse_manager_justification: string | null
+          hsse_rejection_decision: string | null
+          hsse_rejection_notes: string | null
+          hsse_rejection_reviewed_at: string | null
+          hsse_rejection_reviewed_by: string | null
           hsse_validated_at: string | null
           hsse_validated_by: string | null
           hsse_validation_notes: string | null
@@ -7509,6 +7516,7 @@ export type Database = {
           recognized_contractor_worker_id: string | null
           recognized_user_id: string | null
           reference_id: string | null
+          rejection_return_count: number | null
           related_contractor_company_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
@@ -7568,6 +7576,9 @@ export type Database = {
           dept_rep_approved_at?: string | null
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
+          dept_rep_rejected_at?: string | null
+          dept_rep_rejected_by?: string | null
+          dept_rep_rejection_reason?: string | null
           description: string
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
@@ -7584,6 +7595,10 @@ export type Database = {
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
+          hsse_rejection_decision?: string | null
+          hsse_rejection_notes?: string | null
+          hsse_rejection_reviewed_at?: string | null
+          hsse_rejection_reviewed_by?: string | null
           hsse_validated_at?: string | null
           hsse_validated_by?: string | null
           hsse_validation_notes?: string | null
@@ -7632,6 +7647,7 @@ export type Database = {
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
           reference_id?: string | null
+          rejection_return_count?: number | null
           related_contractor_company_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -7691,6 +7707,9 @@ export type Database = {
           dept_rep_approved_at?: string | null
           dept_rep_approved_by?: string | null
           dept_rep_notes?: string | null
+          dept_rep_rejected_at?: string | null
+          dept_rep_rejected_by?: string | null
+          dept_rep_rejection_reason?: string | null
           description?: string
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
@@ -7707,6 +7726,10 @@ export type Database = {
           hsse_manager_decision?: string | null
           hsse_manager_decision_by?: string | null
           hsse_manager_justification?: string | null
+          hsse_rejection_decision?: string | null
+          hsse_rejection_notes?: string | null
+          hsse_rejection_reviewed_at?: string | null
+          hsse_rejection_reviewed_by?: string | null
           hsse_validated_at?: string | null
           hsse_validated_by?: string | null
           hsse_validation_notes?: string | null
@@ -7755,6 +7778,7 @@ export type Database = {
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
           reference_id?: string | null
+          rejection_return_count?: number | null
           related_contractor_company_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -7844,6 +7868,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_dept_rep_rejected_by_fkey"
+            columns: ["dept_rep_rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_expert_rejected_by_fkey"
             columns: ["expert_rejected_by"]
             isOneToOne: false
@@ -7860,6 +7891,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
             columns: ["hsse_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_rejection_reviewed_by_fkey"
+            columns: ["hsse_rejection_reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -17659,6 +17697,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_review_hsse_rejection: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_set_confidentiality: {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
@@ -17700,6 +17742,14 @@ export type Database = {
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
+      dept_rep_reject_observation: {
+        Args: {
+          p_incident_id: string
+          p_rejection_reason: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       find_site_by_location: {
         Args: { p_lat: number; p_lng: number; p_tenant_id: string }
         Returns: {
@@ -18226,6 +18276,15 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      hsse_review_rejection: {
+        Args: {
+          p_decision: string
+          p_incident_id: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       incident_is_reporter_editable: {
         Args: { _incident_id: string }
         Returns: boolean
@@ -18358,6 +18417,10 @@ export type Database = {
             }
             Returns: string
           }
+      validate_dept_rep_observation_approval: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: Json
+      }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
@@ -18466,6 +18529,9 @@ export type Database = {
         | "investigation_closed"
         | "pending_final_closure"
         | "pending_hsse_validation"
+        | "pending_hsse_rejection_review"
+        | "pending_dept_rep_mandatory_action"
+        | "closed_rejected_approved_by_hsse"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -18770,6 +18836,9 @@ export const Constants = {
         "investigation_closed",
         "pending_final_closure",
         "pending_hsse_validation",
+        "pending_hsse_rejection_review",
+        "pending_dept_rep_mandatory_action",
+        "closed_rejected_approved_by_hsse",
       ],
       maintenance_frequency: [
         "daily",

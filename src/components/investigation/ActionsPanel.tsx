@@ -61,9 +61,10 @@ interface ActionsPanelProps {
   incidentId: string;
   incidentStatus?: string | null;
   canEdit?: boolean;
+  onActionChange?: () => void;
 }
 
-export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp }: ActionsPanelProps) {
+export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp, onActionChange }: ActionsPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -266,6 +267,8 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
       });
     }
     
+    // Notify parent of action change
+    onActionChange?.();
     handleCloseDialog();
   };
 
@@ -297,6 +300,8 @@ export function ActionsPanel({ incidentId, incidentStatus, canEdit: canEditProp 
     if (!deleteConfirmId) return;
     await deleteAction.mutateAsync({ id: deleteConfirmId, incidentId });
     setDeleteConfirmId(null);
+    // Notify parent of action change
+    onActionChange?.();
   };
 
   const toggleActionExpand = (actionId: string) => {
