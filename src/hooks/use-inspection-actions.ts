@@ -19,8 +19,19 @@ export interface InspectionAction {
   verified_at: string | null;
   verification_notes: string | null;
   created_at: string;
+  // Workflow fields (matching incident actions)
+  completed_date?: string | null;
+  return_count?: number | null;
+  rejection_notes?: string | null;
+  last_return_reason?: string | null;
+  rejected_at?: string | null;
+  started_at?: string | null;
+  progress_notes?: string | null;
+  completion_notes?: string | null;
+  overdue_justification?: string | null;
   // Joined data
   assigned_user?: { full_name: string } | null;
+  rejected_by_profile?: { id: string; full_name: string } | null;
   finding?: { 
     reference_id: string; 
     classification: string;
@@ -73,7 +84,10 @@ export function useMyInspectionActions() {
         .select(`
           id, reference_id, title, description, status, priority, due_date, 
           assigned_to, session_id, source_finding_id,
-          verified_by, verified_at, verification_notes, created_at
+          verified_by, verified_at, verification_notes, created_at,
+          completed_date, return_count, rejection_notes, last_return_reason, rejected_at,
+          started_at, progress_notes, completion_notes, overdue_justification,
+          rejected_by_profile:profiles!corrective_actions_rejected_by_fkey(id, full_name)
         `)
         .eq('assigned_to', user.id)
         .eq('tenant_id', profile.tenant_id)
@@ -238,6 +252,107 @@ export function useUpdateActionStatus() {
     },
     onError: () => {
       toast({ title: t('common.error'), variant: 'destructive' });
+    },
+  });
+}
+
+// Enhanced hook for updating inspection action status with workflow features (matching incident actions)
+export function useUpdateInspectionActionStatus() {
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      status,
+      progressNotes,
+      completionNotes,
+      overdueJustification,
+    }: { 
+      id: string; 
+      status: string;
+      progressNotes?: string;
+      completionNotes?: string;
+      overdueJustification?: string;
+    }) => {
+      const updateData: Record<string, unknown> = { status };
+      
+      // If starting work, set started_at and progress notes
+      if (status === 'in_progress') {
+        updateData.started_at = new Date().toISOString();
+        if (progressNotes) {
+          updateData.progress_notes = progressNotes;
+        }
+      }
+      
+      // If marking as completed, set completion data
+      if (status === 'completed') {
+        updateData.completed_date = new Date().toISOString().split('T')[0];
+        if (completionNotes) {
+          updateData.completion_notes = completionNotes;
+        }
+        if (overdueJustification) {
+          updateData.overdue_justification = overdueJustification;
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from('corrective_actions') as any)
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+      return { id, status };
+    },
+    // Optimistic update: immediately reflect the new status in the UI
+    onMutate: async ({ id, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['my-inspection-actions', user?.id] });
+
+      // Snapshot the previous value
+      const previousActions = queryClient.getQueryData(['my-inspection-actions', user?.id]);
+
+      // Optimistically update to the new status
+      queryClient.setQueryData(['my-inspection-actions', user?.id], (old: unknown[]) =>
+        old?.map((action: Record<string, unknown>) =>
+          action.id === id 
+            ? { 
+                ...action, 
+                status,
+                ...(status === 'in_progress' ? { started_at: new Date().toISOString() } : {}),
+                ...(status === 'completed' ? { completed_date: new Date().toISOString().split('T')[0] } : {}),
+              } 
+            : action
+        )
+      );
+
+      // Return context with the previous value for rollback
+      return { previousActions };
+    },
+    // If mutation fails, rollback to the previous value
+    onError: (error, _variables, context) => {
+      if (context?.previousActions) {
+        queryClient.setQueryData(['my-inspection-actions', user?.id], context.previousActions);
+      }
+      toast({
+        title: t('common.error'),
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+    },
+    // Always refetch after error or success to ensure consistency
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['area-findings'] });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('common.success'),
+        description: t('actions.statusUpdated'),
+      });
     },
   });
 }

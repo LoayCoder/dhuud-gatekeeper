@@ -16,7 +16,7 @@ import { usePendingClosureRequests } from '@/hooks/use-incident-closure';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { usePendingExtensionRequests } from '@/hooks/use-action-extensions';
 import { useUploadActionEvidence } from '@/hooks/use-action-evidence';
-import { useMyInspectionActions } from '@/hooks/use-inspection-actions';
+import { useMyInspectionActions, useUpdateInspectionActionStatus } from '@/hooks/use-inspection-actions';
 import { usePendingWorkerApprovals } from '@/hooks/contractor-management/use-contractor-workers';
 import { usePendingGatePassApprovals } from '@/hooks/contractor-management/use-material-gate-passes';
 import { formatDistanceToNow } from 'date-fns';
@@ -60,6 +60,8 @@ interface ActionForDialog {
   due_date?: string | null;
   priority?: string | null;
   incident_id?: string | null;
+  session_id?: string | null;
+  source?: 'incident' | 'inspection';
 }
 
 export default function MyActions() {
@@ -72,6 +74,7 @@ export default function MyActions() {
   const { data: myReportedIncidents, isLoading: reportedLoading } = useMyReportedIncidents();
   
   const updateStatus = useUpdateMyActionStatus();
+  const updateInspectionStatus = useUpdateInspectionActionStatus();
   const uploadEvidence = useUploadActionEvidence();
   const [selectedWitnessTask, setSelectedWitnessTask] = useState<{ id: string; incident_id: string } | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
@@ -144,6 +147,8 @@ export default function MyActions() {
     
     const actionId = actionDialogAction.id;
     const incidentId = actionDialogAction.incident_id;
+    const sessionId = actionDialogAction.session_id;
+    const isInspectionAction = actionDialogAction.source === 'inspection';
     const mode = actionDialogMode;
     
     // Add to submitting set and close dialog immediately to prevent re-submission
@@ -152,25 +157,37 @@ export default function MyActions() {
     setActionDialogAction(null);
     
     try {
-      // Upload files first if any
+      // Upload files first if any (for both incident and inspection actions)
       for (const file of data.files) {
-        if (incidentId) {
+        // For incident actions, use incident_id; for inspection actions, use session_id as context
+        const contextId = incidentId || sessionId;
+        if (contextId) {
           await uploadEvidence.mutateAsync({
             actionId: actionId,
-            incidentId: incidentId,
+            incidentId: contextId, // Use contextId for both types
             file,
           });
         }
       }
 
-      // Update action status
-      await updateStatus.mutateAsync({
-        id: actionId,
-        status: mode === 'start' ? 'in_progress' : 'completed',
-        progressNotes: mode === 'start' ? data.notes : undefined,
-        completionNotes: mode === 'complete' ? data.notes : undefined,
-        overdueJustification: data.overdueJustification,
-      });
+      // Update action status using the appropriate mutation
+      if (isInspectionAction) {
+        await updateInspectionStatus.mutateAsync({
+          id: actionId,
+          status: mode === 'start' ? 'in_progress' : 'completed',
+          progressNotes: mode === 'start' ? data.notes : undefined,
+          completionNotes: mode === 'complete' ? data.notes : undefined,
+          overdueJustification: data.overdueJustification,
+        });
+      } else {
+        await updateStatus.mutateAsync({
+          id: actionId,
+          status: mode === 'start' ? 'in_progress' : 'completed',
+          progressNotes: mode === 'start' ? data.notes : undefined,
+          completionNotes: mode === 'complete' ? data.notes : undefined,
+          overdueJustification: data.overdueJustification,
+        });
+      }
     } catch (error) {
       // Error is handled by the mutation hooks
     } finally {
@@ -612,11 +629,12 @@ export default function MyActions() {
                   </h3>
                   {displayedActiveActions.map((action) => {
                     const isIncidentAction = action.source === 'incident';
-                    const returnCount = isIncidentAction && 'return_count' in action ? (action.return_count || 0) : 0;
-                    const lastReturnReason = isIncidentAction && 'last_return_reason' in action ? action.last_return_reason : null;
-                    const rejectionNotes = isIncidentAction && 'rejection_notes' in action ? action.rejection_notes : null;
-                    const rejectedByProfile = isIncidentAction && 'rejected_by_profile' in action ? action.rejected_by_profile : null;
-                    const rejectedAt = isIncidentAction && 'rejected_at' in action ? action.rejected_at : null;
+                    // Extract workflow fields - now available for both incident and inspection actions
+                    const returnCount = 'return_count' in action ? (action.return_count || 0) : 0;
+                    const lastReturnReason = 'last_return_reason' in action ? action.last_return_reason : null;
+                    const rejectionNotes = 'rejection_notes' in action ? action.rejection_notes : null;
+                    const rejectedByProfile = 'rejected_by_profile' in action ? action.rejected_by_profile : null;
+                    const rejectedAt = 'rejected_at' in action ? action.rejected_at : null;
                     const incidentId = isIncidentAction && 'incident_id' in action ? action.incident_id : null;
                     const sessionId = !isIncidentAction && 'session_id' in action ? action.session_id : null;
                     
@@ -650,13 +668,12 @@ export default function MyActions() {
                         <CardDescription>{action.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {isIncidentAction && (
-                          <ActionWorkflowTimeline 
-                            currentStatus={action.status} 
-                            returnCount={returnCount}
-                            className="py-2 mb-2"
-                          />
-                        )}
+                        {/* Show workflow timeline for both incident and inspection actions */}
+                        <ActionWorkflowTimeline 
+                          currentStatus={action.status} 
+                          returnCount={returnCount}
+                          className="py-2 mb-2"
+                        />
                         
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                           {action.due_date && (
@@ -701,7 +718,8 @@ export default function MyActions() {
                           )}
                         </div>
                         
-                        {isIncidentAction && action.status === 'returned_for_correction' && (lastReturnReason || rejectionNotes) && (
+                        {/* Show rejection info for both incident and inspection actions */}
+                        {action.status === 'returned_for_correction' && (lastReturnReason || rejectionNotes) && (
                           <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 space-y-1">
                             <div className="flex items-center gap-2 text-destructive font-medium text-sm">
                               <RotateCcw className="h-4 w-4" />
@@ -737,8 +755,8 @@ export default function MyActions() {
                           {(action.status === 'assigned' || action.status === 'returned_for_correction') && !submittingActionIds.has(action.id) && (
                             <Button 
                               size="sm" 
-                              onClick={() => handleStartWork(action)}
-                              disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
+                              onClick={() => handleStartWork({ ...action, source: action.source, session_id: sessionId })}
+                              disabled={(updateStatus.isPending || updateInspectionStatus.isPending) || submittingActionIds.has(action.id)}
                             >
                               <PlayCircle className="h-4 w-4 me-2" />
                               {action.status === 'returned_for_correction' 
@@ -752,18 +770,19 @@ export default function MyActions() {
                             <>
                               <Button 
                                 size="sm"
-                                onClick={() => handleMarkCompleted(action)}
-                                disabled={updateStatus.isPending || submittingActionIds.has(action.id)}
+                                onClick={() => handleMarkCompleted({ ...action, source: action.source, session_id: sessionId })}
+                                disabled={(updateStatus.isPending || updateInspectionStatus.isPending) || submittingActionIds.has(action.id)}
                               >
                                 <CheckCircle2 className="h-4 w-4 me-2" />
                                 {t('investigation.actions.markCompleted', 'Mark Completed')}
                               </Button>
                               
-                              {isIncidentAction && action.due_date && new Date(action.due_date) < new Date() && (
+                              {/* Show extension request for overdue actions (both incident and inspection) */}
+                              {action.due_date && new Date(action.due_date) < new Date() && (
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleRequestExtension(action)}
+                                  onClick={() => handleRequestExtension({ ...action, source: action.source, session_id: sessionId })}
                                 >
                                   <CalendarPlus className="h-4 w-4 me-2" />
                                   {t('actions.requestExtension', 'Request Extension')}
