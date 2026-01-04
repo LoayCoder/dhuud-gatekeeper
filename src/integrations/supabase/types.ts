@@ -3589,6 +3589,102 @@ export type Database = {
           },
         ]
       }
+      contractor_disputes: {
+        Row: {
+          contractor_id: string | null
+          created_at: string | null
+          decision: string | null
+          decision_notes: string | null
+          deleted_at: string | null
+          dispute_reason: string
+          dispute_type: string
+          evidence_attachments: Json | null
+          id: string
+          incident_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          contractor_id?: string | null
+          created_at?: string | null
+          decision?: string | null
+          decision_notes?: string | null
+          deleted_at?: string | null
+          dispute_reason: string
+          dispute_type: string
+          evidence_attachments?: Json | null
+          id?: string
+          incident_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          contractor_id?: string | null
+          created_at?: string | null
+          decision?: string | null
+          decision_notes?: string | null
+          deleted_at?: string | null
+          dispute_reason?: string
+          dispute_type?: string
+          evidence_attachments?: Json | null
+          id?: string
+          incident_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_disputes_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_disputes_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_disputes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_disputes_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_disputes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_documents: {
         Row: {
           company_id: string | null
@@ -7472,6 +7568,14 @@ export type Database = {
           confidentiality_level: string | null
           confidentiality_set_at: string | null
           confidentiality_set_by: string | null
+          contractor_dispute_decision_notes: string | null
+          contractor_dispute_evidence: Json | null
+          contractor_dispute_reason: string | null
+          contractor_dispute_resolved_at: string | null
+          contractor_dispute_reviewed_by: string | null
+          contractor_dispute_status: string | null
+          contractor_dispute_submitted_at: string | null
+          contractor_disputes_violation: boolean | null
           created_at: string | null
           damage_details: Json | null
           deleted_at: string | null
@@ -7484,6 +7588,10 @@ export type Database = {
           dept_rep_rejected_by: string | null
           dept_rep_rejection_reason: string | null
           description: string
+          dispute_category: string | null
+          dispute_evidence_attachments: Json | null
+          dispute_opened_at: string | null
+          dispute_opened_by: string | null
           erp_activated: boolean | null
           escalated_to_hsse_manager_at: string | null
           escalation_decision: string | null
@@ -7519,6 +7627,10 @@ export type Database = {
           injury_details: Json | null
           is_recordable: boolean | null
           latitude: number | null
+          legal_decision: string | null
+          legal_review_notes: string | null
+          legal_reviewed_at: string | null
+          legal_reviewer_id: string | null
           location: string | null
           location_city: string | null
           location_country: string | null
@@ -7531,6 +7643,14 @@ export type Database = {
           manager_decision_at: string | null
           manager_rejection_reason: string | null
           media_attachments: Json | null
+          mediation_completed_at: string | null
+          mediation_decision: string | null
+          mediation_notes: string | null
+          mediator_id: string | null
+          monitoring_check_notes: Json | null
+          monitoring_due_at: string | null
+          monitoring_period_days: number | null
+          monitoring_started_at: string | null
           no_investigation_justification: string | null
           occurred_at: string | null
           original_potential_severity_v2:
@@ -7554,6 +7674,8 @@ export type Database = {
           recognition_type: string | null
           recognized_contractor_worker_id: string | null
           recognized_user_id: string | null
+          recurrence_detected: boolean | null
+          recurrence_incident_id: string | null
           reference_id: string | null
           rejection_return_count: number | null
           related_contractor_company_id: string | null
@@ -7561,6 +7683,7 @@ export type Database = {
           reporter_disputes_rejection: boolean | null
           reporter_id: string | null
           reporter_rejection_confirmed_at: string | null
+          requires_legal_review: boolean | null
           restricted_workdays: number | null
           resubmission_count: number | null
           return_instructions: string | null
@@ -7568,6 +7691,9 @@ export type Database = {
           returned_at: string | null
           returned_by: string | null
           risk_rating: string | null
+          screening_escalated_at: string | null
+          screening_escalation_level: number | null
+          screening_sla_warning_sent_at: string | null
           severity: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at: string | null
           severity_approved_by: string | null
@@ -7636,6 +7762,14 @@ export type Database = {
           confidentiality_level?: string | null
           confidentiality_set_at?: string | null
           confidentiality_set_by?: string | null
+          contractor_dispute_decision_notes?: string | null
+          contractor_dispute_evidence?: Json | null
+          contractor_dispute_reason?: string | null
+          contractor_dispute_resolved_at?: string | null
+          contractor_dispute_reviewed_by?: string | null
+          contractor_dispute_status?: string | null
+          contractor_dispute_submitted_at?: string | null
+          contractor_disputes_violation?: boolean | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -7648,6 +7782,10 @@ export type Database = {
           dept_rep_rejected_by?: string | null
           dept_rep_rejection_reason?: string | null
           description: string
+          dispute_category?: string | null
+          dispute_evidence_attachments?: Json | null
+          dispute_opened_at?: string | null
+          dispute_opened_by?: string | null
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
           escalation_decision?: string | null
@@ -7683,6 +7821,10 @@ export type Database = {
           injury_details?: Json | null
           is_recordable?: boolean | null
           latitude?: number | null
+          legal_decision?: string | null
+          legal_review_notes?: string | null
+          legal_reviewed_at?: string | null
+          legal_reviewer_id?: string | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -7695,6 +7837,14 @@ export type Database = {
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
           media_attachments?: Json | null
+          mediation_completed_at?: string | null
+          mediation_decision?: string | null
+          mediation_notes?: string | null
+          mediator_id?: string | null
+          monitoring_check_notes?: Json | null
+          monitoring_due_at?: string | null
+          monitoring_period_days?: number | null
+          monitoring_started_at?: string | null
           no_investigation_justification?: string | null
           occurred_at?: string | null
           original_potential_severity_v2?:
@@ -7718,6 +7868,8 @@ export type Database = {
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
+          recurrence_detected?: boolean | null
+          recurrence_incident_id?: string | null
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
@@ -7725,6 +7877,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          requires_legal_review?: boolean | null
           restricted_workdays?: number | null
           resubmission_count?: number | null
           return_instructions?: string | null
@@ -7732,6 +7885,9 @@ export type Database = {
           returned_at?: string | null
           returned_by?: string | null
           risk_rating?: string | null
+          screening_escalated_at?: string | null
+          screening_escalation_level?: number | null
+          screening_sla_warning_sent_at?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null
@@ -7800,6 +7956,14 @@ export type Database = {
           confidentiality_level?: string | null
           confidentiality_set_at?: string | null
           confidentiality_set_by?: string | null
+          contractor_dispute_decision_notes?: string | null
+          contractor_dispute_evidence?: Json | null
+          contractor_dispute_reason?: string | null
+          contractor_dispute_resolved_at?: string | null
+          contractor_dispute_reviewed_by?: string | null
+          contractor_dispute_status?: string | null
+          contractor_dispute_submitted_at?: string | null
+          contractor_disputes_violation?: boolean | null
           created_at?: string | null
           damage_details?: Json | null
           deleted_at?: string | null
@@ -7812,6 +7976,10 @@ export type Database = {
           dept_rep_rejected_by?: string | null
           dept_rep_rejection_reason?: string | null
           description?: string
+          dispute_category?: string | null
+          dispute_evidence_attachments?: Json | null
+          dispute_opened_at?: string | null
+          dispute_opened_by?: string | null
           erp_activated?: boolean | null
           escalated_to_hsse_manager_at?: string | null
           escalation_decision?: string | null
@@ -7847,6 +8015,10 @@ export type Database = {
           injury_details?: Json | null
           is_recordable?: boolean | null
           latitude?: number | null
+          legal_decision?: string | null
+          legal_review_notes?: string | null
+          legal_reviewed_at?: string | null
+          legal_reviewer_id?: string | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -7859,6 +8031,14 @@ export type Database = {
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
           media_attachments?: Json | null
+          mediation_completed_at?: string | null
+          mediation_decision?: string | null
+          mediation_notes?: string | null
+          mediator_id?: string | null
+          monitoring_check_notes?: Json | null
+          monitoring_due_at?: string | null
+          monitoring_period_days?: number | null
+          monitoring_started_at?: string | null
           no_investigation_justification?: string | null
           occurred_at?: string | null
           original_potential_severity_v2?:
@@ -7882,6 +8062,8 @@ export type Database = {
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
+          recurrence_detected?: boolean | null
+          recurrence_incident_id?: string | null
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
@@ -7889,6 +8071,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          requires_legal_review?: boolean | null
           restricted_workdays?: number | null
           resubmission_count?: number | null
           return_instructions?: string | null
@@ -7896,6 +8079,9 @@ export type Database = {
           returned_at?: string | null
           returned_by?: string | null
           risk_rating?: string | null
+          screening_escalated_at?: string | null
+          screening_escalation_level?: number | null
+          screening_sla_warning_sent_at?: string | null
           severity?: Database["public"]["Enums"]["severity_level"] | null
           severity_approved_at?: string | null
           severity_approved_by?: string | null
@@ -7988,6 +8174,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_contractor_dispute_reviewed_by_fkey"
+            columns: ["contractor_dispute_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_department_id_fkey"
             columns: ["department_id"]
             isOneToOne: false
@@ -8004,6 +8197,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_dept_rep_rejected_by_fkey"
             columns: ["dept_rep_rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dispute_opened_by_fkey"
+            columns: ["dispute_opened_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -8044,6 +8244,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_legal_reviewer_id_fkey"
+            columns: ["legal_reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_mediator_id_fkey"
+            columns: ["mediator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_patrol_checkpoint_id_fkey"
             columns: ["patrol_checkpoint_id"]
             isOneToOne: false
@@ -8069,6 +8283,13 @@ export type Database = {
             columns: ["recognized_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_recurrence_incident_id_fkey"
+            columns: ["recurrence_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
             referencedColumns: ["id"]
           },
           {
@@ -9500,6 +9721,50 @@ export type Database = {
           },
         ]
       }
+      legal_review_triggers: {
+        Row: {
+          auto_route: boolean | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          tenant_id: string
+          trigger_type: string
+          trigger_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_route?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          tenant_id: string
+          trigger_type: string
+          trigger_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_route?: boolean | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          tenant_id?: string
+          trigger_type?: string
+          trigger_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_review_triggers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_history: {
         Row: {
           browser: string | null
@@ -10363,6 +10628,120 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      monitoring_check_schedule: {
+        Row: {
+          check_type: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          deleted_at: string | null
+          findings: string | null
+          id: string
+          incident_id: string
+          recurrence_found: boolean | null
+          scheduled_date: string
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          check_type?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          findings?: string | null
+          id?: string
+          incident_id: string
+          recurrence_found?: boolean | null
+          scheduled_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          check_type?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          findings?: string | null
+          id?: string
+          incident_id?: string
+          recurrence_found?: boolean | null
+          scheduled_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_check_schedule_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monitoring_check_schedule_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monitoring_check_schedule_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monitoring_period_configs: {
+        Row: {
+          check_interval_days: number
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          monitoring_days: number
+          severity_level: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          check_interval_days?: number
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          monitoring_days?: number
+          severity_level: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          check_interval_days?: number
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          monitoring_days?: number
+          severity_level?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_period_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nationality_language_mapping: {
         Row: {
@@ -14128,6 +14507,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "scan_error_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screening_sla_configs: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          escalation_hours: number
+          id: string
+          is_active: boolean | null
+          max_screening_hours: number
+          severity_level: string
+          tenant_id: string
+          updated_at: string | null
+          warning_hours_before: number
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          escalation_hours?: number
+          id?: string
+          is_active?: boolean | null
+          max_screening_hours?: number
+          severity_level: string
+          tenant_id: string
+          updated_at?: string | null
+          warning_hours_before?: number
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          escalation_hours?: number
+          id?: string
+          is_active?: boolean | null
+          max_screening_hours?: number
+          severity_level?: string
+          tenant_id?: string
+          updated_at?: string | null
+          warning_hours_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_sla_configs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -18540,6 +18966,10 @@ export type Database = {
         Args: { _incident_id: string }
         Returns: boolean
       }
+      initialize_workflow_gap_configs: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       invalidate_other_user_sessions: {
         Args: {
           p_current_session_token: string
@@ -18800,6 +19230,12 @@ export type Database = {
         | "pending_hsse_rejection_review"
         | "pending_dept_rep_mandatory_action"
         | "closed_rejected_approved_by_hsse"
+        | "pending_legal_review"
+        | "dispute_resolution"
+        | "monitoring_30_day"
+        | "monitoring_60_day"
+        | "monitoring_90_day"
+        | "pending_contractor_dispute_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -19107,6 +19543,12 @@ export const Constants = {
         "pending_hsse_rejection_review",
         "pending_dept_rep_mandatory_action",
         "closed_rejected_approved_by_hsse",
+        "pending_legal_review",
+        "dispute_resolution",
+        "monitoring_30_day",
+        "monitoring_60_day",
+        "monitoring_90_day",
+        "pending_contractor_dispute_review",
       ],
       maintenance_frequency: [
         "daily",

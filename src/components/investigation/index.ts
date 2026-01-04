@@ -41,3 +41,9 @@ export { ObservationClosureGate } from './ObservationClosureGate';
 export { HSSEExpertRejectionReviewCard } from './HSSEExpertRejectionReviewCard';
 export { ContractorPersonnelCard } from './ContractorPersonnelCard';
 export { HSSEEscalationReviewCard } from './HSSEEscalationReviewCard';
+// Workflow Gap Components (GAP 1-5)
+export { LegalReviewCard } from './LegalReviewCard';
+export { DisputeResolutionCard } from './DisputeResolutionCard';
+export { MonitoringCheckCard } from './MonitoringCheckCard';
+export { ContractorDisputeCard } from './ContractorDisputeCard';
+export { ContractorArbitrationView } from './ContractorArbitrationView';

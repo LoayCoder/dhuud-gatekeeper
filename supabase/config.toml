@@ -284,3 +284,9 @@ verify_jwt = true
 
 [functions.send-bulk-induction]
 verify_jwt = true
+
+[functions.screening-sla-escalation]
+verify_jwt = false
+
+[functions.monitoring-check-reminder]
+verify_jwt = false
