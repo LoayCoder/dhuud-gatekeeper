@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LucideIcon } from 'lucide-react';
 import { TYPOGRAPHY, SPACING } from '@/styles/design-tokens';
@@ -26,7 +27,8 @@ import { cn } from '@/lib/utils';
 
 interface PageAction {
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
+  href?: string;
   icon?: LucideIcon;
   variant?: 'default' | 'outline' | 'secondary' | 'destructive';
   disabled?: boolean;
@@ -94,6 +96,21 @@ export function EnterprisePage({
           <div className="flex items-center gap-2 flex-shrink-0">
             {secondaryActions?.map((action, index) => {
               const ActionIcon = action.icon;
+              const buttonContent = (
+                <>
+                  {ActionIcon && <ActionIcon className="h-4 w-4 me-2 rtl:rotate-0" />}
+                  {action.label}
+                </>
+              );
+              
+              if (action.href) {
+                return (
+                  <Button key={index} variant={action.variant || 'outline'} size="sm" asChild>
+                    <Link to={action.href}>{buttonContent}</Link>
+                  </Button>
+                );
+              }
+              
               return (
                 <Button
                   key={index}
@@ -102,23 +119,39 @@ export function EnterprisePage({
                   disabled={action.disabled || isLoading}
                   size="sm"
                 >
-                  {ActionIcon && <ActionIcon className="h-4 w-4 me-2 rtl:rotate-0" />}
-                  {action.label}
+                  {buttonContent}
                 </Button>
               );
             })}
             {primaryAction && (
-              <Button
-                variant={primaryAction.variant || 'default'}
-                onClick={primaryAction.onClick}
-                disabled={primaryAction.disabled || isLoading}
-                size="sm"
-              >
-                {primaryAction.icon && (
-                  <primaryAction.icon className="h-4 w-4 me-2 rtl:rotate-0" />
-                )}
-                {primaryAction.label}
-              </Button>
+              (() => {
+                const PrimaryIcon = primaryAction.icon;
+                const buttonContent = (
+                  <>
+                    {PrimaryIcon && <PrimaryIcon className="h-4 w-4 me-2 rtl:rotate-0" />}
+                    {primaryAction.label}
+                  </>
+                );
+                
+                if (primaryAction.href) {
+                  return (
+                    <Button variant={primaryAction.variant || 'default'} size="sm" asChild>
+                      <Link to={primaryAction.href}>{buttonContent}</Link>
+                    </Button>
+                  );
+                }
+                
+                return (
+                  <Button
+                    variant={primaryAction.variant || 'default'}
+                    onClick={primaryAction.onClick}
+                    disabled={primaryAction.disabled || isLoading}
+                    size="sm"
+                  >
+                    {buttonContent}
+                  </Button>
+                );
+              })()
             )}
           </div>
         )}

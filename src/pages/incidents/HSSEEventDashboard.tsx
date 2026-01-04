@@ -318,11 +318,11 @@ export default function HSSEEventDashboard() {
   return (
     <DrilldownProvider>
       <div ref={dashboardRef} className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Header Section */}
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{t('hsseDashboard.title')}</h1>
-            <p className="text-muted-foreground">{t('hsseDashboard.subtitle')}</p>
+            <h1 className="page-title">{t('hsseDashboard.title')}</h1>
+            <p className="text-muted-foreground text-sm">{t('hsseDashboard.subtitle')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <DashboardCacheStatus 
@@ -356,7 +356,7 @@ export default function HSSEEventDashboard() {
               )}
             </Button>
           </div>
-        </div>
+        </header>
 
         {/* Critical Alerts Banner */}
         {dashboardData && (
@@ -387,29 +387,31 @@ export default function HSSEEventDashboard() {
         <KPIAlertsBanner alerts={alerts} />
 
         {/* ========== SECTION 1: Executive Summary (Always Visible) ========== */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Executive Summary Card */}
-          <div className="lg:col-span-2">
-            {dashboardLoading ? (
-              <Card><CardContent className="h-[260px] flex items-center justify-center"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
-            ) : dashboardData ? (
-              <ExecutiveSummaryCard 
-                summary={dashboardData.summary} 
-                actions={dashboardData.actions}
-                trir={laggingData?.trir}
-                ltifr={laggingData?.ltifr}
-                actionClosureRate={leadingData?.action_closure_pct}
-              />
-            ) : null}
+        <section className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Executive Summary Card */}
+            <div className="lg:col-span-2">
+              {dashboardLoading ? (
+                <Card><CardContent className="h-[260px] flex items-center justify-center"><Skeleton className="h-[220px] w-full" /></CardContent></Card>
+              ) : dashboardData ? (
+                <ExecutiveSummaryCard 
+                  summary={dashboardData.summary} 
+                  actions={dashboardData.actions}
+                  trir={laggingData?.trir}
+                  ltifr={laggingData?.ltifr}
+                  actionClosureRate={leadingData?.action_closure_pct}
+                />
+              ) : null}
+            </div>
+            
+            {/* Days Since Counter */}
+            <DaysSinceCounter
+              days={daysSince ?? 0}
+              label={t('kpiDashboard.daysSinceRecordable', 'Days Since Last Recordable Injury')}
+              milestone={100}
+            />
           </div>
-          
-          {/* Days Since Counter */}
-          <DaysSinceCounter
-            days={daysSince ?? 0}
-            label={t('kpiDashboard.daysSinceRecordable', 'Days Since Last Recordable Injury')}
-            milestone={100}
-          />
-        </div>
+        </section>
 
         {/* KPI Trend Cards Row */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
