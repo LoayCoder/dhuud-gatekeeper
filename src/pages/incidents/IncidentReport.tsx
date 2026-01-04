@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
+import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
 import { QuickObservationCard } from '@/components/incidents/QuickObservationCard';
 import {
   AlertDialog,
@@ -85,6 +86,9 @@ const createIncidentFormSchema = (t: (key: string) => string) => z.object({
   has_damage: z.boolean().default(false),
   damage_description: z.string().optional(),
   damage_cost: z.number().optional(),
+  // Report against contractor for incidents
+  is_against_contractor: z.boolean().default(false),
+  related_contractor_company_id: z.string().optional(),
 });
 
 type FormValues = z.infer<ReturnType<typeof createIncidentFormSchema>>;
@@ -169,9 +173,11 @@ export default function IncidentReport() {
   const { data: sites = [], isLoading: sitesLoading } = useTenantSites();
   const { data: branches = [], isLoading: branchesLoading } = useTenantBranches();
   const { data: departments = [], isLoading: departmentsLoading } = useTenantDepartments();
-  
   // Dynamic event categories from database
   const { data: dynamicCategories = [] } = useActiveEventCategories();
+  
+  // Contractor companies for "Report Against Contractor" feature
+  const { data: contractorCompanies = [] } = useContractorCompanies();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(incidentFormSchema),
@@ -197,6 +203,8 @@ export default function IncidentReport() {
       has_damage: false,
       damage_description: '',
       damage_cost: undefined,
+      is_against_contractor: false,
+      related_contractor_company_id: undefined,
     },
   });
 
@@ -206,6 +214,7 @@ export default function IncidentReport() {
   const title = form.watch('title');
   const eventType = form.watch('event_type');
   const incidentType = form.watch('incident_type');
+  const isAgainstContractor = form.watch('is_against_contractor');
   
   // Helper: Is this an observation (simplified workflow)?
   const isObservation = eventType === 'observation';
@@ -1543,6 +1552,59 @@ export default function IncidentReport() {
                     />
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Report Against Contractor - Only for Incidents */}
+              {!isObservation && (
+                <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-amber-600" />
+                      <div>
+                        <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
+                        <p className="text-sm text-muted-foreground">{t('incidents.contractorViolationNote')}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={isAgainstContractor}
+                      onCheckedChange={(checked) => {
+                        form.setValue('is_against_contractor', checked);
+                        if (!checked) {
+                          form.setValue('related_contractor_company_id', undefined);
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {isAgainstContractor && (
+                    <FormField
+                      control={form.control}
+                      name="related_contractor_company_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('incidents.contractorCompany')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} dir={direction}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('incidents.selectContractorCompany')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {contractorCompanies.filter(c => c.status === 'active').map((company) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {i18n.language === 'ar' && company.company_name_ar 
+                                    ? company.company_name_ar 
+                                    : company.company_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
               )}
 
               {/* Injury Details - Only for Incidents */}

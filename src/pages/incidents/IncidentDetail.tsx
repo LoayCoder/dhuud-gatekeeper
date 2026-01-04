@@ -243,8 +243,8 @@ export default function IncidentDetail() {
         <HSSEExpertRejectionReviewCard incident={incident} onComplete={() => window.location.reload()} />
       )}
 
-      {/* Contractor Violation Approval Cards */}
-      {incident.event_type === 'observation' && incident.related_contractor_company_id && (
+      {/* Contractor Violation Approval Cards - For both observations and incidents */}
+      {incident.related_contractor_company_id && (
         <>
           <DeptManagerViolationApprovalCard incident={incident} onComplete={() => window.location.reload()} />
           <ContractControllerApprovalCard incident={incident} onComplete={() => window.location.reload()} />
@@ -254,8 +254,7 @@ export default function IncidentDetail() {
       )}
 
       {/* Contractor Violation Section (Read-only display when finalized) */}
-      {incident.event_type === 'observation' && 
-       incident.related_contractor_company_id && 
+      {incident.related_contractor_company_id && 
        (incident as any).violation_final_status && (
         <ContractorViolationSection incident={incident} isEditable={false} />
       )}
