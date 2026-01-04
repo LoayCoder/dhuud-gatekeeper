@@ -44,7 +44,7 @@ import {
   OverviewPanel, 
   IncidentClosureRequestDialog, 
   IncidentClosureApprovalCard,
-  WorkflowProgressBanner,
+  InvestigationWorkflowStatusCard,
   HSSEExpertScreeningCard,
   ReporterCorrectionBanner,
   RejectionConfirmationCard,
@@ -84,20 +84,105 @@ export default function InvestigationWorkspace() {
   const { data: closureEligibility } = useIncidentClosureEligibility(selectedIncidentId);
   const { approveClosureMutation, rejectClosureMutation } = useIncidentClosureApproval(selectedIncidentId || '');
 
-  // Fetch investigator name for current owner display
-  const { data: investigatorInfo } = useQuery({
-    queryKey: ['investigator-info', investigation?.investigator_id],
+  // Fetch workflow actors for the workflow status card
+  const { data: workflowActors } = useQuery({
+    queryKey: ['workflow-actors', selectedIncidentId],
     queryFn: async () => {
-      if (!investigation?.investigator_id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', investigation.investigator_id)
+      if (!selectedIncidentId) return null;
+      
+      // Fetch incident with basic fields - use separate queries for profiles
+      const { data: incidentData } = await supabase
+        .from('incidents')
+        .select(`
+          id,
+          created_at,
+          reporter_id,
+          dept_rep_approved_by,
+          dept_rep_approved_at,
+          expert_screened_by,
+          expert_screened_at,
+          approval_manager_id,
+          manager_decision_at,
+          hsse_manager_decision_by,
+          closure_approved_by,
+          closure_approved_at
+        `)
+        .eq('id', selectedIncidentId)
         .single();
-      return data;
+      
+      if (!incidentData) return null;
+
+      // Collect all profile IDs to fetch
+      const profileIds = [
+        incidentData.reporter_id,
+        incidentData.dept_rep_approved_by,
+        incidentData.expert_screened_by,
+        incidentData.approval_manager_id,
+        incidentData.hsse_manager_decision_by,
+        incidentData.closure_approved_by
+      ].filter(Boolean) as string[];
+
+      // Fetch all profiles in one query
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+      // Also get investigator info from investigation table
+      const { data: invData } = await supabase
+        .from('investigations')
+        .select('investigator_id')
+        .eq('incident_id', selectedIncidentId)
+        .maybeSingle();
+
+      let investigatorName: string | null = null;
+      if (invData?.investigator_id) {
+        const { data: invProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', invData.investigator_id)
+          .single();
+        investigatorName = invProfile?.full_name || null;
+      }
+      
+      return {
+        submitted_by: {
+          full_name: profileMap.get(incidentData.reporter_id || '') || null,
+          timestamp: incidentData.created_at
+        },
+        dept_rep: {
+          full_name: profileMap.get(incidentData.dept_rep_approved_by || '') || null,
+          timestamp: incidentData.dept_rep_approved_at
+        },
+        expert_screener: {
+          full_name: profileMap.get(incidentData.expert_screened_by || '') || null,
+          timestamp: incidentData.expert_screened_at
+        },
+        manager_approver: {
+          full_name: profileMap.get(incidentData.approval_manager_id || '') || null,
+          timestamp: incidentData.manager_decision_at
+        },
+        hsse_manager: {
+          full_name: profileMap.get(incidentData.hsse_manager_decision_by || '') || null,
+          timestamp: null
+        },
+        investigator: {
+          full_name: investigatorName,
+          timestamp: null
+        },
+        closure_approver: {
+          full_name: profileMap.get(incidentData.closure_approved_by || '') || null,
+          timestamp: incidentData.closure_approved_at
+        }
+      };
     },
-    enabled: !!investigation?.investigator_id
+    enabled: !!selectedIncidentId
   });
+
+  // Get investigator name from workflow actors
+  const investigatorInfo = workflowActors?.investigator;
   
   // Investigation edit access control
   const editAccess = useInvestigationEditAccess(investigation, selectedIncident);
@@ -483,8 +568,11 @@ export default function InvestigationWorkspace() {
       {/* Investigation Content */}
       {selectedIncidentId && incidentData ? (
         <>
-          {/* Workflow Progress Banner */}
-          <WorkflowProgressBanner incident={incidentData} />
+          {/* Workflow Status Card - Modern vertical stepper */}
+          <InvestigationWorkflowStatusCard 
+            incident={incidentData} 
+            workflowActors={workflowActors || undefined}
+          />
 
           {/* Workflow-Specific Cards */}
           {renderWorkflowCards()}
