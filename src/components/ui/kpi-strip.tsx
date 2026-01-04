@@ -13,9 +13,9 @@ import { StatusDot, type StatusType } from '@/components/ui/status-badge';
  * - Click-to-filter functionality (optional)
  */
 
-interface KPIItem {
+export interface KPIItem {
   /** Unique key for the KPI */
-  key: string;
+  key?: string;
   /** Label for the KPI */
   label: string;
   /** Value to display */
@@ -52,8 +52,8 @@ export function KPIStrip({ items, className, compact = false }: KPIStripProps) {
         className
       )}
     >
-      {items.map((item) => (
-        <KPICard key={item.key} item={item} compact={compact} />
+      {items.map((item, index) => (
+        <KPICard key={item.key || `kpi-${index}`} item={item} compact={compact} />
       ))}
     </div>
   );
