@@ -113,7 +113,7 @@ export default function VisitorDashboard() {
           </CardHeader>
           <CardContent>
             <Button variant="outline" size="sm" asChild className="w-full">
-              <Link to="/visitors/blacklist">
+              <Link to="/security/blacklist">
                 {t('visitors.blacklist.manage')}
               </Link>
             </Button>

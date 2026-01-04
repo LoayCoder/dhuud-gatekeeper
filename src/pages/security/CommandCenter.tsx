@@ -239,7 +239,7 @@ export default function CommandCenter() {
       {/* Quick Access Links */}
       <div className="flex gap-3 flex-wrap">
         <Button variant="outline" asChild>
-          <Link to="/visitors/blacklist" className="gap-2">
+          <Link to="/security/blacklist" className="gap-2">
             <ShieldAlert className="h-4 w-4" />
             {t('security.commandCenter.blacklist', 'Blacklist Management')}
           </Link>
