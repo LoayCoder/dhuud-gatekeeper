@@ -16,11 +16,13 @@ import { useExecutiveSummary } from "@/hooks/use-executive-summary";
 import { useExecutiveAIInsights } from "@/hooks/use-executive-ai-insights";
 import { useExecutiveComparison } from "@/hooks/use-executive-comparison";
 import { useKPITargetsAdmin } from "@/hooks/use-kpi-targets-admin";
+import { useDataReconciliation } from "@/hooks/use-data-reconciliation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { generatePDFFromElement, createPDFRenderContainer, removePDFRenderContainer } from "@/lib/pdf-utils";
 import { fetchDocumentSettings } from "@/hooks/use-document-branding";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   HSSEMaturityScoreCard,
   RiskPostureSummary,
@@ -77,7 +79,10 @@ export default function ExecutiveReport() {
   const { data: kpiTargets } = useKPITargetsAdmin();
   const { data: comparisonData, isLoading: comparisonLoading } = useExecutiveComparison(selectedMonthDate);
 
-  // Auto-generate AI insights when data is available
+  // Data Reconciliation for integrity warnings
+  const { issues: reconciliationIssues, warningIssues, qualityScore } = useDataReconciliation({
+    executiveData: data,
+  });
   useEffect(() => {
     if (data && !aiInsights && !aiLoading) {
       generateInsights({
@@ -230,6 +235,20 @@ export default function ExecutiveReport() {
           </Button>
         </div>
       </div>
+
+      {/* Data Quality Warning */}
+      {warningIssues.length > 0 && (
+        <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/5">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{t('dashboard.dataQuality', 'Data Quality')}</AlertTitle>
+          <AlertDescription className="text-sm">
+            {t('dashboard.dataQualityWarning', 'AI analysis accuracy may be affected by incomplete data.')}
+            <span className="ms-2 text-muted-foreground">
+              ({warningIssues.length} {t('common.warnings', 'warnings')})
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* AI Executive Insights Section */}
       {(aiInsights || aiLoading) && (
