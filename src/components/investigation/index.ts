@@ -51,3 +51,8 @@ export { ContractorArbitrationView } from './ContractorArbitrationView';
 // Escalation & HSSE Observation Validation
 export { EscalationAlertBanner } from './EscalationAlertBanner';
 export { HSSEObservationValidationCard } from './HSSEObservationValidationCard';
+// Incident Investigation Violation & Closure Components
+export { InvestigatorViolationIdentificationCard } from './InvestigatorViolationIdentificationCard';
+export { InvestigatorViolationSubmissionCard } from './InvestigatorViolationSubmissionCard';
+export { IncidentClosurePrerequisitesCard } from './IncidentClosurePrerequisitesCard';
+export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
