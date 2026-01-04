@@ -133,21 +133,45 @@ export default function IncidentList() {
     });
   }, [incidents, filters]);
 
-  // Calculate KPI stats
+  // Calculate KPI stats using correct status logic
   const kpiStats = useMemo(() => {
     if (!incidents) return { totalOpen: 0, criticalHigh: 0, overdue: 0, pendingActions: 0 };
     
-    const openStatuses = ['submitted', 'pending_review', 'expert_screening', 'investigation_in_progress', 'pending_closure'];
+    // Closed = truly completed (green)
+    const closedStatuses = ['closed', 'no_investigation_required', 'investigation_closed'];
+    // Rejected = terminal but not successful
+    const rejectedStatuses = ['expert_rejected', 'manager_rejected'];
+    // Critical/Major severities
     const criticalSeverities = ['level_4', 'level_5'];
+    // Action required statuses (pending approvals)
+    const pendingActionStatuses = [
+      'pending_manager_approval', 
+      'pending_dept_rep_approval', 
+      'pending_dept_rep_incident_review',
+      'pending_hsse_escalation_review',
+      'hsse_manager_escalation',
+      'pending_closure', 
+      'pending_final_closure'
+    ];
     
-    const totalOpen = incidents.filter(i => openStatuses.includes(i.status || '')).length;
-    const criticalHigh = incidents.filter(i => criticalSeverities.includes(i.severity_v2 || '')).length;
+    // Open = Everything EXCEPT closed and rejected
+    const totalOpen = incidents.filter(i => 
+      !closedStatuses.includes(i.status || '') && 
+      !rejectedStatuses.includes(i.status || '')
+    ).length;
+    
+    const criticalHigh = incidents.filter(i => 
+      criticalSeverities.includes(i.severity_v2 || '') &&
+      !closedStatuses.includes(i.status || '')
+    ).length;
+    
     const overdue = incidents.filter(i => {
-      if (!i.occurred_at || ['closed', 'no_investigation_required'].includes(i.status || '')) return false;
+      if (!i.occurred_at || closedStatuses.includes(i.status || '')) return false;
       return isPast(addDays(new Date(i.occurred_at), 7));
     }).length;
+    
     const pendingActions = incidents.filter(i => 
-      ['pending_manager_approval', 'pending_dept_rep_approval', 'pending_closure'].includes(i.status || '')
+      pendingActionStatuses.includes(i.status || '')
     ).length;
     
     return { totalOpen, criticalHigh, overdue, pendingActions };

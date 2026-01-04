@@ -30,6 +30,7 @@ import {
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
 import { formatDistanceToNow, format, isPast, addDays } from 'date-fns';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
+import { getStatusBackgroundColor } from '@/lib/incident-status-colors';
 import { cn } from '@/lib/utils';
 
 interface Incident {
@@ -144,7 +145,7 @@ export function IncidentTableView({
                 key={incident.id}
                 className={cn(
                   "hover:bg-muted/50 transition-colors",
-                  isOverdue && "bg-amber-50/50 dark:bg-amber-950/20"
+                  isOverdue ? "bg-amber-50/50 dark:bg-amber-950/20" : getStatusBackgroundColor(incident.status)
                 )}
               >
                 <TableCell>

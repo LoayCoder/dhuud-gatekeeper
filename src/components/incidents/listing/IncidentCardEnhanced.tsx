@@ -26,6 +26,7 @@ import {
 import { IncidentStatusBadge } from '@/components/incidents/IncidentStatusBadge';
 import { formatDistanceToNow, isPast, addDays } from 'date-fns';
 import { getSeverityBadgeVariant } from '@/lib/hsse-severity-levels';
+import { getStatusBorderColor } from '@/lib/incident-status-colors';
 import { cn } from '@/lib/utils';
 
 interface IncidentCardEnhancedProps {
@@ -50,14 +51,15 @@ interface IncidentCardEnhancedProps {
   onDelete?: (id: string, status: string | null) => void;
 }
 
-const getSeverityBorderColor = (severity: string | null): string => {
+// Severity indicator colors for visual reference inside the card
+const getSeverityIndicatorColor = (severity: string | null): string => {
   switch (severity) {
-    case 'level_5': return 'border-s-destructive';
-    case 'level_4': return 'border-s-orange-500';
-    case 'level_3': return 'border-s-amber-500';
-    case 'level_2': return 'border-s-yellow-500';
-    case 'level_1': return 'border-s-green-500';
-    default: return 'border-s-muted';
+    case 'level_5': return 'bg-red-500';
+    case 'level_4': return 'bg-orange-500';
+    case 'level_3': return 'bg-amber-500';
+    case 'level_2': return 'bg-yellow-500';
+    case 'level_1': return 'bg-green-500';
+    default: return 'bg-muted';
   }
 };
 
@@ -79,7 +81,7 @@ export function IncidentCardEnhanced({
     <Card 
       className={cn(
         "group relative overflow-hidden transition-all hover:shadow-lg border-s-4",
-        getSeverityBorderColor(incident.severity_v2),
+        getStatusBorderColor(incident.status),
         isOverdue && "ring-1 ring-amber-500/50"
       )}
     >
