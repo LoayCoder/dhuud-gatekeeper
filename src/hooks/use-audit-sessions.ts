@@ -244,7 +244,8 @@ export function useAuditResponses(sessionId: string | undefined) {
         .select(`
           id, session_id, template_item_id,
           response_value, result, notes, photo_paths,
-          gps_lat, gps_lng, responded_at
+          gps_lat, gps_lng, responded_at,
+          nc_category, objective_evidence
         `)
         .eq('session_id', sessionId)
         .order('created_at');
@@ -259,8 +260,8 @@ export function useAuditResponses(sessionId: string | undefined) {
         result: item.result === 'pass' ? 'conforming' : item.result === 'fail' ? 'non_conforming' : item.result === 'na' ? 'na' : null,
         response_value: item.response_value,
         notes: item.notes,
-        objective_evidence: null, // Stored in notes field
-        nc_category: null, // Will be derived from template item
+        objective_evidence: (item as any).objective_evidence || null,
+        nc_category: (item as any).nc_category || null,
         photo_paths: Array.isArray(item.photo_paths) ? item.photo_paths : [],
         responded_at: item.responded_at,
       })) as AuditResponse[];
@@ -289,11 +290,6 @@ export function useSaveAuditResponse() {
       // Map audit result to area response result
       const mappedResult = input.result === 'conforming' ? 'pass' : input.result === 'non_conforming' ? 'fail' : input.result === 'na' ? 'na' : null;
       
-      // Combine notes and objective evidence
-      const combinedNotes = input.objective_evidence 
-        ? `${input.notes || ''}\n\n[Objective Evidence]: ${input.objective_evidence}`.trim()
-        : input.notes || null;
-      
       // Check if response already exists
       const { data: existing } = await supabase
         .from('area_inspection_responses')
@@ -305,7 +301,9 @@ export function useSaveAuditResponse() {
       const responseData = {
         response_value: input.response_value || null,
         result: mappedResult,
-        notes: combinedNotes,
+        notes: input.notes || null,
+        objective_evidence: input.objective_evidence || null,
+        nc_category: input.result === 'non_conforming' ? (input.nc_category || null) : null,
         photo_paths: input.photo_paths || [],
         responded_by: user.id,
         responded_at: new Date().toISOString(),
@@ -476,7 +474,8 @@ export function useNCCounts(sessionId: string | undefined, templateId: string | 
         const response = responseMap.get(item.id);
         
         if (response?.result === 'non_conforming') {
-          const category = item.nc_category || (item.is_critical ? 'critical' : 'minor');
+          // Use response nc_category if available, otherwise fall back to item defaults
+          const category = response.nc_category || item.nc_category || (item.is_critical ? 'critical' : 'minor');
           if (category === 'critical') critical++;
           else if (category === 'major') major++;
           else minor++;

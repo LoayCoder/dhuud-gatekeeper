@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, X, Minus, Camera, FileText, AlertTriangle, Scale } from 'lucide-react';
+import { Check, X, Minus, Camera, FileText, AlertTriangle, Scale, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,22 +35,43 @@ export function AuditChecklistItem({
   const [photoCount, setPhotoCount] = useState<number>(response?.photo_paths?.length || 0);
   const [showEvidence, setShowEvidence] = useState(false);
   const [showNCDialog, setShowNCDialog] = useState(false);
-  const [selectedNCCategory, setSelectedNCCategory] = useState<'minor' | 'major' | 'critical'>(item.nc_category || 'minor');
+  const [selectedNCCategory, setSelectedNCCategory] = useState<'minor' | 'major' | 'critical'>(
+    response?.nc_category || item.nc_category || 'minor'
+  );
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [currentResponseId, setCurrentResponseId] = useState<string | undefined>(response?.id);
   
   const saveResponse = useSaveAuditResponse();
   
   const question = i18n.language === 'ar' && item.question_ar ? item.question_ar : item.question;
   const instructions = i18n.language === 'ar' && item.instructions_ar ? item.instructions_ar : item.instructions;
   
+  // Update local state when response changes from server
+  useEffect(() => {
+    if (response?.id) {
+      setCurrentResponseId(response.id);
+    }
+    if (response?.nc_category) {
+      setSelectedNCCategory(response.nc_category);
+    }
+  }, [response?.id, response?.nc_category]);
+  
   const saveDebounced = useMemo(() => {
     let timeout: NodeJS.Timeout;
     return (data: Parameters<typeof saveResponse.mutate>[0]) => {
       clearTimeout(timeout);
       setIsSaving(true);
+      setSaveSuccess(false);
       timeout = setTimeout(async () => {
         try {
-          await saveResponse.mutateAsync(data);
+          const result = await saveResponse.mutateAsync(data);
+          // Update the current response ID after successful save
+          if (result?.id) {
+            setCurrentResponseId(result.id);
+          }
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
         } finally {
           setIsSaving(false);
         }
@@ -162,6 +183,12 @@ export function AuditChecklistItem({
                 {t('common.saving')}...
               </span>
             )}
+            {saveSuccess && !isSaving && (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                {t('common.saved')}
+              </span>
+            )}
           </div>
           
           {/* Result Buttons */}
@@ -240,15 +267,20 @@ export function AuditChecklistItem({
                 disabled={isLocked}
               />
               
-              {response?.id && (
-                <InspectionPhotoUpload
-                  responseId={response.id}
-                  sessionId={sessionId}
-                  tenantId={tenantId}
-                  templateItemId={item.id}
-                  onPhotoCountChange={setPhotoCount}
-                  isLocked={isLocked}
-                />
+              {/* Photo upload - use currentResponseId which updates after save */}
+              <InspectionPhotoUpload
+                responseId={currentResponseId || null}
+                sessionId={sessionId}
+                tenantId={tenantId}
+                templateItemId={item.id}
+                onPhotoCountChange={setPhotoCount}
+                isLocked={isLocked}
+              />
+              
+              {!currentResponseId && !isLocked && (
+                <p className="text-xs text-muted-foreground text-center">
+                  {t('inspections.photos.saveFirst')}
+                </p>
               )}
             </CollapsibleContent>
           </Collapsible>
