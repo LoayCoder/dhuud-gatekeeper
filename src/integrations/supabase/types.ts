@@ -4088,6 +4088,179 @@ export type Database = {
           },
         ]
       }
+      contractor_violation_summary: {
+        Row: {
+          contract_controller_decision: string | null
+          contract_controller_decision_at: string | null
+          contract_controller_decision_by: string | null
+          contract_controller_notes: string | null
+          contractor_company_id: string | null
+          contractor_rep_decision: string | null
+          contractor_rep_decision_at: string | null
+          contractor_rep_decision_by: string | null
+          contractor_rep_notes: string | null
+          created_at: string | null
+          deleted_at: string | null
+          dept_manager_decision: string | null
+          dept_manager_decision_at: string | null
+          dept_manager_decision_by: string | null
+          dept_manager_notes: string | null
+          final_status: string | null
+          hsse_decision: string | null
+          hsse_decision_at: string | null
+          hsse_decision_by: string | null
+          hsse_notes: string | null
+          hsse_validated_at: string | null
+          hsse_validated_by: string | null
+          hsse_validation_notes: string | null
+          id: string
+          incident_id: string
+          submitted_at: string | null
+          submitted_by: string | null
+          tenant_id: string
+          updated_at: string | null
+          violation_type_id: string | null
+          was_escalated: boolean | null
+        }
+        Insert: {
+          contract_controller_decision?: string | null
+          contract_controller_decision_at?: string | null
+          contract_controller_decision_by?: string | null
+          contract_controller_notes?: string | null
+          contractor_company_id?: string | null
+          contractor_rep_decision?: string | null
+          contractor_rep_decision_at?: string | null
+          contractor_rep_decision_by?: string | null
+          contractor_rep_notes?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          dept_manager_decision?: string | null
+          dept_manager_decision_at?: string | null
+          dept_manager_decision_by?: string | null
+          dept_manager_notes?: string | null
+          final_status?: string | null
+          hsse_decision?: string | null
+          hsse_decision_at?: string | null
+          hsse_decision_by?: string | null
+          hsse_notes?: string | null
+          hsse_validated_at?: string | null
+          hsse_validated_by?: string | null
+          hsse_validation_notes?: string | null
+          id?: string
+          incident_id: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          violation_type_id?: string | null
+          was_escalated?: boolean | null
+        }
+        Update: {
+          contract_controller_decision?: string | null
+          contract_controller_decision_at?: string | null
+          contract_controller_decision_by?: string | null
+          contract_controller_notes?: string | null
+          contractor_company_id?: string | null
+          contractor_rep_decision?: string | null
+          contractor_rep_decision_at?: string | null
+          contractor_rep_decision_by?: string | null
+          contractor_rep_notes?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          dept_manager_decision?: string | null
+          dept_manager_decision_at?: string | null
+          dept_manager_decision_by?: string | null
+          dept_manager_notes?: string | null
+          final_status?: string | null
+          hsse_decision?: string | null
+          hsse_decision_at?: string | null
+          hsse_decision_by?: string | null
+          hsse_notes?: string | null
+          hsse_validated_at?: string | null
+          hsse_validated_by?: string | null
+          hsse_validation_notes?: string | null
+          id?: string
+          incident_id?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          violation_type_id?: string | null
+          was_escalated?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_violation_summary_contract_controller_decision__fkey"
+            columns: ["contract_controller_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_contractor_company_id_fkey"
+            columns: ["contractor_company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_contractor_rep_decision_by_fkey"
+            columns: ["contractor_rep_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_dept_manager_decision_by_fkey"
+            columns: ["dept_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_hsse_decision_by_fkey"
+            columns: ["hsse_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_hsse_validated_by_fkey"
+            columns: ["hsse_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_violation_type_id_fkey"
+            columns: ["violation_type_id"]
+            isOneToOne: false
+            referencedRelation: "violation_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_workers: {
         Row: {
           approval_status: string
@@ -7555,6 +7728,7 @@ export type Database = {
           branch_id: string | null
           closure_approved_at: string | null
           closure_approved_by: string | null
+          closure_notes: string | null
           closure_rejection_notes: string | null
           closure_request_notes: string | null
           closure_requested_at: string | null
@@ -7598,6 +7772,9 @@ export type Database = {
           escalation_decision_at: string | null
           escalation_decision_by: string | null
           escalation_decision_notes: string | null
+          escalation_level: number | null
+          escalation_reason: string | null
+          escalation_triggered_at: string | null
           event_type: string
           expert_recommendation: string | null
           expert_rejected_at: string | null
@@ -7683,6 +7860,7 @@ export type Database = {
           reporter_disputes_rejection: boolean | null
           reporter_id: string | null
           reporter_rejection_confirmed_at: string | null
+          requires_escalation: boolean | null
           requires_legal_review: boolean | null
           restricted_workdays: number | null
           resubmission_count: number | null
@@ -7749,6 +7927,7 @@ export type Database = {
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
+          closure_notes?: string | null
           closure_rejection_notes?: string | null
           closure_request_notes?: string | null
           closure_requested_at?: string | null
@@ -7792,6 +7971,9 @@ export type Database = {
           escalation_decision_at?: string | null
           escalation_decision_by?: string | null
           escalation_decision_notes?: string | null
+          escalation_level?: number | null
+          escalation_reason?: string | null
+          escalation_triggered_at?: string | null
           event_type: string
           expert_recommendation?: string | null
           expert_rejected_at?: string | null
@@ -7877,6 +8059,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          requires_escalation?: boolean | null
           requires_legal_review?: boolean | null
           restricted_workdays?: number | null
           resubmission_count?: number | null
@@ -7943,6 +8126,7 @@ export type Database = {
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
+          closure_notes?: string | null
           closure_rejection_notes?: string | null
           closure_request_notes?: string | null
           closure_requested_at?: string | null
@@ -7986,6 +8170,9 @@ export type Database = {
           escalation_decision_at?: string | null
           escalation_decision_by?: string | null
           escalation_decision_notes?: string | null
+          escalation_level?: number | null
+          escalation_reason?: string | null
+          escalation_triggered_at?: string | null
           event_type?: string
           expert_recommendation?: string | null
           expert_rejected_at?: string | null
@@ -8071,6 +8258,7 @@ export type Database = {
           reporter_disputes_rejection?: boolean | null
           reporter_id?: string | null
           reporter_rejection_confirmed_at?: string | null
+          requires_escalation?: boolean | null
           requires_legal_review?: boolean | null
           restricted_workdays?: number | null
           resubmission_count?: number | null
@@ -16071,6 +16259,128 @@ export type Database = {
           symbol_ar?: string | null
         }
         Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          related_contractor_id: string | null
+          related_incident_id: string | null
+          related_user_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          target_role: string | null
+          target_user_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          related_contractor_id?: string | null
+          related_incident_id?: string | null
+          related_user_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          target_role?: string | null
+          target_user_id?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          related_contractor_id?: string | null
+          related_incident_id?: string | null
+          related_user_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          target_role?: string | null
+          target_user_id?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_related_contractor_id_fkey"
+            columns: ["related_contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_related_incident_id_fkey"
+            columns: ["related_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_related_user_id_fkey"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_emergency_actions: {
         Row: {
