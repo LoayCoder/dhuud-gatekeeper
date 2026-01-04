@@ -5872,7 +5872,53 @@
     "avgResolution": "متوسط الحل",
     "slaBreachRate": "معدل خرق SLA",
     "attention": "يتطلب الانتباه",
-    "overdueActions": "إجراءات متأخرة"
+    "overdueActions": "إجراءات متأخرة",
+    "ai": {
+      "title": "رؤى الذكاء الاصطناعي التنفيذية",
+      "analyzing": "جاري التحليل...",
+      "regenerate": "إعادة توليد الرؤى",
+      "maturityScore": "درجة نضج HSSE",
+      "grade": "التقدير",
+      "componentBreakdown": "تفاصيل المكونات",
+      "incidentPrevention": "منع الحوادث",
+      "actionEffectiveness": "فعالية الإجراءات",
+      "kpiPerformance": "أداء المؤشرات",
+      "inspectionRigor": "صرامة الفحص",
+      "observationCulture": "ثقافة الملاحظة",
+      "riskPosture": "وضع المخاطر",
+      "riskLevel": {
+        "critical": "حرج",
+        "high": "عالي",
+        "moderate": "متوسط",
+        "low": "منخفض"
+      },
+      "trend": {
+        "improving": "تحسن",
+        "stable": "مستقر",
+        "declining": "تراجع"
+      },
+      "kpiHealth": "لوحة صحة المؤشرات",
+      "gapOfTarget": "الفجوة: {{gap}}",
+      "topPriorities": "أهم 5 أولويات",
+      "severity": {
+        "critical": "حرج",
+        "high": "عالي",
+        "medium": "متوسط",
+        "low": "منخفض"
+      },
+      "recommendedActions": "الإجراءات الموصى بها",
+      "expectedImpact": "التأثير المتوقع",
+      "executiveNarrative": "السرد التنفيذي",
+      "whatHappened": "ماذا حدث",
+      "whyItHappened": "لماذا حدث",
+      "whatImproved": "ما الذي تحسن",
+      "whatNeedsAction": "ما يحتاج إلى إجراء",
+      "monthComparison": "مقارنة شهر بشهر",
+      "metric": "المقياس",
+      "change": "التغيير",
+      "systemicIssues": "المشاكل النظامية المكتشفة",
+      "recommendation": "التوصية"
+    }
   },
   "assetManagement": {
     "linkedAssets": "الأصول المرتبطة",

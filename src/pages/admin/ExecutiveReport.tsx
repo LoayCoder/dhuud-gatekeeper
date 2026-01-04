@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { format, subMonths } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,14 +9,27 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   FileText, Download, Calendar, AlertTriangle, Shield, 
-  ClipboardCheck, CheckCircle, Clock, TrendingUp, TrendingDown
+  ClipboardCheck, CheckCircle, Clock, TrendingUp, TrendingDown,
+  Sparkles, RefreshCw
 } from "lucide-react";
 import { useExecutiveSummary } from "@/hooks/use-executive-summary";
+import { useExecutiveAIInsights } from "@/hooks/use-executive-ai-insights";
+import { useExecutiveComparison } from "@/hooks/use-executive-comparison";
+import { useKPITargetsAdmin } from "@/hooks/use-kpi-targets-admin";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { generatePDFFromElement, createPDFRenderContainer, removePDFRenderContainer } from "@/lib/pdf-utils";
 import { fetchDocumentSettings } from "@/hooks/use-document-branding";
 import { toast } from "sonner";
+import {
+  HSSEMaturityScoreCard,
+  RiskPostureSummary,
+  KPIHealthDashboard,
+  TopPrioritiesSection,
+  StorytellingCard,
+  MonthComparisonTable,
+  SystemicIssuesPanel,
+} from "@/components/executive";
 import {
   PieChart,
   Pie,
@@ -56,7 +69,34 @@ export default function ExecutiveReport() {
   });
 
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
-  const { data, isLoading } = useExecutiveSummary(new Date(selectedMonth));
+  const selectedMonthDate = new Date(selectedMonth);
+  const { data, isLoading } = useExecutiveSummary(selectedMonthDate);
+  
+  // AI Insights
+  const { insights: aiInsights, isLoading: aiLoading, generateInsights } = useExecutiveAIInsights();
+  const { data: kpiTargets } = useKPITargetsAdmin();
+  const { data: comparisonData, isLoading: comparisonLoading } = useExecutiveComparison(selectedMonthDate);
+
+  // Auto-generate AI insights when data is available
+  useEffect(() => {
+    if (data && !aiInsights && !aiLoading) {
+      generateInsights({
+        currentMonth: data,
+        previousMonth: comparisonData?.previousMonth,
+        kpiTargets: kpiTargets,
+      });
+    }
+  }, [data, comparisonData?.previousMonth, kpiTargets]);
+
+  const handleRegenerateInsights = () => {
+    if (data) {
+      generateInsights({
+        currentMonth: data,
+        previousMonth: comparisonData?.previousMonth,
+        kpiTargets: kpiTargets,
+      });
+    }
+  };
 
   const handleGeneratePDF = async () => {
     if (!reportRef.current || !data || !profile?.tenant_id) return;
@@ -151,7 +191,7 @@ export default function ExecutiveReport() {
           <p className="text-muted-foreground">{t('executiveReport.subtitle')}</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-[200px]">
               <Calendar className="h-4 w-4 me-2" />
@@ -166,6 +206,20 @@ export default function ExecutiveReport() {
             </SelectContent>
           </Select>
 
+          <Button
+            variant="outline"
+            onClick={handleRegenerateInsights}
+            disabled={aiLoading || !data}
+            className="gap-2"
+          >
+            {aiLoading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            {aiLoading ? t('common.generating') : t('executiveReport.ai.regenerate')}
+          </Button>
+
           <Button 
             onClick={handleGeneratePDF} 
             disabled={isLoading || isGenerating || !data}
@@ -176,6 +230,66 @@ export default function ExecutiveReport() {
           </Button>
         </div>
       </div>
+
+      {/* AI Executive Insights Section */}
+      {(aiInsights || aiLoading) && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">{t('executiveReport.ai.title')}</h2>
+            {aiLoading && (
+              <Badge variant="secondary" className="animate-pulse">
+                {t('executiveReport.ai.analyzing')}
+              </Badge>
+            )}
+          </div>
+
+          {/* Maturity Score & Risk Posture */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <HSSEMaturityScoreCard 
+              maturityScore={aiInsights?.hsse_maturity_score || null} 
+              isLoading={aiLoading} 
+            />
+            <RiskPostureSummary 
+              riskPosture={aiInsights?.risk_posture || null} 
+              isLoading={aiLoading} 
+            />
+          </div>
+
+          {/* KPI Health Dashboard */}
+          <KPIHealthDashboard 
+            kpiHealth={aiInsights?.kpi_health || []} 
+            isLoading={aiLoading} 
+          />
+
+          {/* Top Priorities */}
+          <TopPrioritiesSection 
+            priorities={aiInsights?.top_priorities || []} 
+            isLoading={aiLoading} 
+          />
+
+          {/* Storytelling Narratives */}
+          <StorytellingCard 
+            narratives={aiInsights?.narratives || null} 
+            isLoading={aiLoading} 
+          />
+
+          {/* Month Comparison */}
+          <MonthComparisonTable 
+            comparisonData={comparisonData || null}
+            selectedMonth={selectedMonthDate}
+            isLoading={comparisonLoading} 
+          />
+
+          {/* Systemic Issues */}
+          <SystemicIssuesPanel 
+            issues={aiInsights?.systemic_issues || []} 
+            isLoading={aiLoading} 
+          />
+        </div>
+      )}
+
+      <Separator className="my-8" />
 
       {/* Report Content */}
       <div ref={reportRef} className="space-y-6 bg-background">
