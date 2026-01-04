@@ -68,12 +68,21 @@ export function useSubmitContractorViolation() {
       const result = data as unknown as { success?: boolean; error?: string };
       if (result?.error) throw new Error(result.error);
       
-      return result;
+      return { ...result, incidentId };
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       toast.success(t('workflow.violation.submitted', 'Contractor violation submitted for approval'));
+      
+      // Send notification to Department Manager
+      try {
+        await supabase.functions.invoke('send-workflow-notification', {
+          body: { incidentId: data.incidentId, action: 'violation_pending_approval' }
+        });
+      } catch (e) {
+        console.error('Failed to send violation notification:', e);
+      }
     },
     onError: (error) => {
       console.error('Error submitting contractor violation:', error);
@@ -132,16 +141,32 @@ export function useDeptManagerViolationApproval() {
       const result = data as unknown as { success?: boolean; error?: string };
       if (result?.error) throw new Error(result.error);
       
-      return result;
+      return { ...result, incidentId, decision, notes };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       
-      if (variables.decision === 'approved') {
+      if (data.decision === 'approved') {
         toast.success(t('workflow.violation.deptManagerApproved', 'Violation approved and routed to next approver'));
+        // Send notification to Contract Controller
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_fine_pending' }
+          });
+        } catch (e) {
+          console.error('Failed to send fine pending notification:', e);
+        }
       } else {
         toast.success(t('workflow.violation.deptManagerRejected', 'Violation rejection sent to HSSE for review'));
+        // Send notification to HSSE for review
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_rejected_review', notes: data.notes }
+          });
+        } catch (e) {
+          console.error('Failed to send rejection notification:', e);
+        }
       }
     },
     onError: (error) => {
@@ -180,16 +205,32 @@ export function useContractControllerApproval() {
       const result = data as unknown as { success?: boolean; error?: string };
       if (result?.error) throw new Error(result.error);
       
-      return result;
+      return { ...result, incidentId, decision, notes };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       
-      if (variables.decision === 'approved') {
+      if (data.decision === 'approved') {
         toast.success(t('workflow.violation.fineApproved', 'Fine approved and violation finalized'));
+        // Send notification to Contractor Site Rep
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_acknowledgment_required' }
+          });
+        } catch (e) {
+          console.error('Failed to send acknowledgment notification:', e);
+        }
       } else {
         toast.success(t('workflow.violation.fineRejected', 'Fine rejection sent to HSSE for review'));
+        // Send notification to HSSE for review
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_rejected_review', notes: data.notes }
+          });
+        } catch (e) {
+          console.error('Failed to send rejection notification:', e);
+        }
       }
     },
     onError: (error) => {
@@ -228,16 +269,32 @@ export function useContractorSiteRepAcknowledge() {
       const result = data as unknown as { success?: boolean; error?: string };
       if (result?.error) throw new Error(result.error);
       
-      return result;
+      return { ...result, incidentId, decision, notes };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       
-      if (variables.decision === 'acknowledged') {
+      if (data.decision === 'acknowledged') {
         toast.success(t('workflow.violation.acknowledged', 'Violation acknowledged and finalized'));
+        // Send finalized notification
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_finalized' }
+          });
+        } catch (e) {
+          console.error('Failed to send finalized notification:', e);
+        }
       } else {
         toast.success(t('workflow.violation.contestSent', 'Contest sent to HSSE for review'));
+        // Send contested notification to HSSE
+        try {
+          await supabase.functions.invoke('send-workflow-notification', {
+            body: { incidentId: data.incidentId, action: 'violation_contested', notes: data.notes }
+          });
+        } catch (e) {
+          console.error('Failed to send contested notification:', e);
+        }
       }
     },
     onError: (error) => {
@@ -279,21 +336,42 @@ export function useHSSEViolationReview() {
       const result = data as unknown as { success?: boolean; error?: string };
       if (result?.error) throw new Error(result.error);
       
-      return result;
+      return { ...result, incidentId, decision, notes };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       queryClient.invalidateQueries({ queryKey: ['incident'] });
       
-      switch (variables.decision) {
+      switch (data.decision) {
         case 'enforce':
           toast.success(t('workflow.violation.enforced', 'Violation enforced'));
+          try {
+            await supabase.functions.invoke('send-workflow-notification', {
+              body: { incidentId: data.incidentId, action: 'violation_finalized' }
+            });
+          } catch (e) {
+            console.error('Failed to send finalized notification:', e);
+          }
           break;
         case 'modify':
           toast.success(t('workflow.violation.modified', 'Violation modified and enforced'));
+          try {
+            await supabase.functions.invoke('send-workflow-notification', {
+              body: { incidentId: data.incidentId, action: 'violation_finalized' }
+            });
+          } catch (e) {
+            console.error('Failed to send finalized notification:', e);
+          }
           break;
         case 'cancel':
           toast.success(t('workflow.violation.cancelled', 'Violation cancelled'));
+          try {
+            await supabase.functions.invoke('send-workflow-notification', {
+              body: { incidentId: data.incidentId, action: 'violation_cancelled', notes: data.notes }
+            });
+          } catch (e) {
+            console.error('Failed to send cancelled notification:', e);
+          }
           break;
       }
     },
