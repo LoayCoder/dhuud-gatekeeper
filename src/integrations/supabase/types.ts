@@ -7720,15 +7720,243 @@ export type Database = {
           },
         ]
       }
+      incident_violation_lifecycle: {
+        Row: {
+          contract_controller_decision_at: string | null
+          contract_controller_id: string | null
+          contract_controller_notes: string | null
+          contract_controller_status: string | null
+          contractor_company_id: string
+          contractor_contribution_percentage: number | null
+          contractor_rep_id: string | null
+          contractor_rep_notes: string | null
+          contractor_rep_response_at: string | null
+          contractor_rep_status: string | null
+          created_at: string
+          deleted_at: string | null
+          dept_manager_decision_at: string | null
+          dept_manager_id: string | null
+          dept_manager_notes: string | null
+          dept_manager_status: string | null
+          dispute_reason: string | null
+          escalated_at: string | null
+          escalation_level: number | null
+          escalation_reason: string | null
+          final_status: string | null
+          finalized_at: string | null
+          finalized_by: string | null
+          hsse_manager_decision_at: string | null
+          hsse_manager_id: string | null
+          hsse_manager_notes: string | null
+          hsse_manager_status: string | null
+          id: string
+          identified_at: string | null
+          identified_by: string | null
+          incident_id: string
+          investigation_id: string
+          penalty_amount: number | null
+          penalty_applied: boolean | null
+          penalty_currency: string | null
+          penalty_percentage: number | null
+          root_cause_summary: string | null
+          submitted_at: string | null
+          submitted_by: string | null
+          tenant_id: string
+          updated_at: string
+          violation_evidence_summary: string | null
+          violation_occurrence: number
+          violation_type_id: string | null
+        }
+        Insert: {
+          contract_controller_decision_at?: string | null
+          contract_controller_id?: string | null
+          contract_controller_notes?: string | null
+          contract_controller_status?: string | null
+          contractor_company_id: string
+          contractor_contribution_percentage?: number | null
+          contractor_rep_id?: string | null
+          contractor_rep_notes?: string | null
+          contractor_rep_response_at?: string | null
+          contractor_rep_status?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          dept_manager_decision_at?: string | null
+          dept_manager_id?: string | null
+          dept_manager_notes?: string | null
+          dept_manager_status?: string | null
+          dispute_reason?: string | null
+          escalated_at?: string | null
+          escalation_level?: number | null
+          escalation_reason?: string | null
+          final_status?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
+          hsse_manager_decision_at?: string | null
+          hsse_manager_id?: string | null
+          hsse_manager_notes?: string | null
+          hsse_manager_status?: string | null
+          id?: string
+          identified_at?: string | null
+          identified_by?: string | null
+          incident_id: string
+          investigation_id: string
+          penalty_amount?: number | null
+          penalty_applied?: boolean | null
+          penalty_currency?: string | null
+          penalty_percentage?: number | null
+          root_cause_summary?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id: string
+          updated_at?: string
+          violation_evidence_summary?: string | null
+          violation_occurrence?: number
+          violation_type_id?: string | null
+        }
+        Update: {
+          contract_controller_decision_at?: string | null
+          contract_controller_id?: string | null
+          contract_controller_notes?: string | null
+          contract_controller_status?: string | null
+          contractor_company_id?: string
+          contractor_contribution_percentage?: number | null
+          contractor_rep_id?: string | null
+          contractor_rep_notes?: string | null
+          contractor_rep_response_at?: string | null
+          contractor_rep_status?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          dept_manager_decision_at?: string | null
+          dept_manager_id?: string | null
+          dept_manager_notes?: string | null
+          dept_manager_status?: string | null
+          dispute_reason?: string | null
+          escalated_at?: string | null
+          escalation_level?: number | null
+          escalation_reason?: string | null
+          final_status?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
+          hsse_manager_decision_at?: string | null
+          hsse_manager_id?: string | null
+          hsse_manager_notes?: string | null
+          hsse_manager_status?: string | null
+          id?: string
+          identified_at?: string | null
+          identified_by?: string | null
+          incident_id?: string
+          investigation_id?: string
+          penalty_amount?: number | null
+          penalty_applied?: boolean | null
+          penalty_currency?: string | null
+          penalty_percentage?: number | null
+          root_cause_summary?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+          violation_evidence_summary?: string | null
+          violation_occurrence?: number
+          violation_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_violation_lifecycle_contract_controller_id_fkey"
+            columns: ["contract_controller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_contractor_company_id_fkey"
+            columns: ["contractor_company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_contractor_rep_id_fkey"
+            columns: ["contractor_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_dept_manager_id_fkey"
+            columns: ["dept_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_finalized_by_fkey"
+            columns: ["finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_hsse_manager_id_fkey"
+            columns: ["hsse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_identified_by_fkey"
+            columns: ["identified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_investigation_id_fkey"
+            columns: ["investigation_id"]
+            isOneToOne: false
+            referencedRelation: "investigations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_violation_type_id_fkey"
+            columns: ["violation_type_id"]
+            isOneToOne: false
+            referencedRelation: "violation_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incidents: {
         Row: {
           ai_analysis_result: Json | null
+          all_actions_verified: boolean | null
           approval_manager_id: string | null
           auto_declassify_to: string | null
           branch_id: string | null
           closure_approved_at: string | null
           closure_approved_by: string | null
           closure_notes: string | null
+          closure_prerequisites_met_at: string | null
           closure_rejection_notes: string | null
           closure_request_notes: string | null
           closure_requested_at: string | null
@@ -7802,6 +8030,9 @@ export type Database = {
           incident_type: string | null
           injury_classification: string | null
           injury_details: Json | null
+          investigation_approved_at: string | null
+          investigation_approved_by: string | null
+          investigation_complete: boolean | null
           is_recordable: boolean | null
           latitude: number | null
           legal_decision: string | null
@@ -7848,6 +8079,7 @@ export type Database = {
           potential_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          ready_for_closure: boolean | null
           recognition_type: string | null
           recognized_contractor_worker_id: string | null
           recognized_user_id: string | null
@@ -7922,12 +8154,14 @@ export type Database = {
         }
         Insert: {
           ai_analysis_result?: Json | null
+          all_actions_verified?: boolean | null
           approval_manager_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
           closure_notes?: string | null
+          closure_prerequisites_met_at?: string | null
           closure_rejection_notes?: string | null
           closure_request_notes?: string | null
           closure_requested_at?: string | null
@@ -8001,6 +8235,9 @@ export type Database = {
           incident_type?: string | null
           injury_classification?: string | null
           injury_details?: Json | null
+          investigation_approved_at?: string | null
+          investigation_approved_by?: string | null
+          investigation_complete?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
           legal_decision?: string | null
@@ -8047,6 +8284,7 @@ export type Database = {
           potential_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          ready_for_closure?: boolean | null
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
@@ -8121,12 +8359,14 @@ export type Database = {
         }
         Update: {
           ai_analysis_result?: Json | null
+          all_actions_verified?: boolean | null
           approval_manager_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
           closure_approved_at?: string | null
           closure_approved_by?: string | null
           closure_notes?: string | null
+          closure_prerequisites_met_at?: string | null
           closure_rejection_notes?: string | null
           closure_request_notes?: string | null
           closure_requested_at?: string | null
@@ -8200,6 +8440,9 @@ export type Database = {
           incident_type?: string | null
           injury_classification?: string | null
           injury_details?: Json | null
+          investigation_approved_at?: string | null
+          investigation_approved_by?: string | null
+          investigation_complete?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
           legal_decision?: string | null
@@ -8246,6 +8489,7 @@ export type Database = {
           potential_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          ready_for_closure?: boolean | null
           recognition_type?: string | null
           recognized_contractor_worker_id?: string | null
           recognized_user_id?: string | null
@@ -8427,6 +8671,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_hsse_validated_by_fkey"
             columns: ["hsse_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_investigation_approved_by_fkey"
+            columns: ["investigation_approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -9627,6 +9878,7 @@ export type Database = {
           assigned_by: string | null
           assignment_notes: string | null
           completed_at: string | null
+          contractor_contribution_percentage: number | null
           contributing_factors: string | null
           contributing_factors_list: Json | null
           created_at: string | null
@@ -9640,6 +9892,7 @@ export type Database = {
           investigator_id: string | null
           review_deadline: string | null
           root_cause: string | null
+          root_cause_contractor_related: boolean | null
           root_causes: Json | null
           sla_escalation_sent_at: string | null
           sla_warning_sent_at: string | null
@@ -9648,6 +9901,12 @@ export type Database = {
           tenant_id: string
           underlying_cause: string | null
           updated_at: string | null
+          violation_evidence_summary: string | null
+          violation_identified: boolean | null
+          violation_occurrence: number | null
+          violation_submitted_at: string | null
+          violation_submitted_by: string | null
+          violation_type_id: string | null
         }
         Insert: {
           ai_summary?: string | null
@@ -9657,6 +9916,7 @@ export type Database = {
           assigned_by?: string | null
           assignment_notes?: string | null
           completed_at?: string | null
+          contractor_contribution_percentage?: number | null
           contributing_factors?: string | null
           contributing_factors_list?: Json | null
           created_at?: string | null
@@ -9670,6 +9930,7 @@ export type Database = {
           investigator_id?: string | null
           review_deadline?: string | null
           root_cause?: string | null
+          root_cause_contractor_related?: boolean | null
           root_causes?: Json | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
@@ -9678,6 +9939,12 @@ export type Database = {
           tenant_id: string
           underlying_cause?: string | null
           updated_at?: string | null
+          violation_evidence_summary?: string | null
+          violation_identified?: boolean | null
+          violation_occurrence?: number | null
+          violation_submitted_at?: string | null
+          violation_submitted_by?: string | null
+          violation_type_id?: string | null
         }
         Update: {
           ai_summary?: string | null
@@ -9687,6 +9954,7 @@ export type Database = {
           assigned_by?: string | null
           assignment_notes?: string | null
           completed_at?: string | null
+          contractor_contribution_percentage?: number | null
           contributing_factors?: string | null
           contributing_factors_list?: Json | null
           created_at?: string | null
@@ -9700,6 +9968,7 @@ export type Database = {
           investigator_id?: string | null
           review_deadline?: string | null
           root_cause?: string | null
+          root_cause_contractor_related?: boolean | null
           root_causes?: Json | null
           sla_escalation_sent_at?: string | null
           sla_warning_sent_at?: string | null
@@ -9708,6 +9977,12 @@ export type Database = {
           tenant_id?: string
           underlying_cause?: string | null
           updated_at?: string | null
+          violation_evidence_summary?: string | null
+          violation_identified?: boolean | null
+          violation_occurrence?: number | null
+          violation_submitted_at?: string | null
+          violation_submitted_by?: string | null
+          violation_type_id?: string | null
         }
         Relationships: [
           {
@@ -9729,6 +10004,20 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_violation_submitted_by_fkey"
+            columns: ["violation_submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_violation_type_id_fkey"
+            columns: ["violation_type_id"]
+            isOneToOne: false
+            referencedRelation: "violation_types"
             referencedColumns: ["id"]
           },
         ]

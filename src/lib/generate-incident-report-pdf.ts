@@ -181,7 +181,7 @@ async function fetchTenantInfo(tenantId: string): Promise<TenantInfo | null> {
 async function fetchInvestigationData(incidentId: string): Promise<InvestigationData | null> {
   const { data } = await supabase
     .from('investigations')
-    .select('investigator:investigator_id(full_name), started_at, completed_at, assignment_notes')
+    .select('investigator:profiles!investigations_investigator_id_fkey(full_name), started_at, completed_at, assignment_notes')
     .eq('incident_id', incidentId)
     .maybeSingle();
   return data as InvestigationData | null;
