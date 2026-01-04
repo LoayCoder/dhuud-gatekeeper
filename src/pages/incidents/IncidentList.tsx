@@ -292,14 +292,16 @@ export default function IncidentList() {
         onViewModeChange={handleViewModeChange}
       />
 
-      {/* KPI Strip */}
-      <IncidentKPIStrip
-        totalOpen={kpiStats.totalOpen}
-        criticalHigh={kpiStats.criticalHigh}
-        overdue={kpiStats.overdue}
-        pendingActions={kpiStats.pendingActions}
-        onKPIClick={handleKPIClick}
-      />
+      {/* Summary Section - KPI Strip */}
+      <section>
+        <IncidentKPIStrip
+          totalOpen={kpiStats.totalOpen}
+          criticalHigh={kpiStats.criticalHigh}
+          overdue={kpiStats.overdue}
+          pendingActions={kpiStats.pendingActions}
+          onKPIClick={handleKPIClick}
+        />
+      </section>
 
       {/* Filters */}
       <IncidentFilterPanel
