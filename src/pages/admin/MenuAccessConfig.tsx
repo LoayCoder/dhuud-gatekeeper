@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Save, RotateCcw, ChevronRight, ChevronDown, Menu, History, Plus, Minus } from 'lucide-react';
+import { Save, RotateCcw, ChevronRight, ChevronDown, Menu, History, Plus, Minus, UserCheck, ArrowRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { format } from 'date-fns';
 
@@ -52,6 +53,7 @@ interface AuditLogEntry {
 export default function MenuAccessConfig() {
   const { t, i18n } = useTranslation();
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const direction = i18n.dir();
   const isRtl = direction === 'rtl';
 
@@ -376,12 +378,24 @@ export default function MenuAccessConfig() {
 
   return (
     <div className="container py-6 space-y-6" dir={direction}>
-      <div className="flex items-center gap-3">
-        <Menu className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-2xl font-bold">{t('admin.menuAccess.title')}</h1>
-          <p className="text-muted-foreground">{t('admin.menuAccess.description')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Menu className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold">{t('admin.menuAccess.title')}</h1>
+            <p className="text-muted-foreground">{t('admin.menuAccess.description')}</p>
+          </div>
         </div>
+        
+        <Button
+          variant="outline"
+          onClick={() => navigate('/admin/user-menu-access')}
+          className="gap-2"
+        >
+          <UserCheck className="h-4 w-4" />
+          {t('admin.menuAccess.goToUserAccess')}
+          <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>

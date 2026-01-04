@@ -16927,6 +16927,98 @@ export type Database = {
         }
         Relationships: []
       }
+      user_menu_access: {
+        Row: {
+          deleted_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          menu_item_id: string
+          notes: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          deleted_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          menu_item_id: string
+          notes?: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          deleted_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          menu_item_id?: string
+          notes?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_menu_access_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_menu_access_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_menu_access_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string | null
+          id: string
+          menu_item_id: string | null
+          menu_item_ids: string[] | null
+          notes: string | null
+          target_user_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          menu_item_id?: string | null
+          menu_item_ids?: string[] | null
+          notes?: string | null
+          target_user_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          menu_item_id?: string | null
+          menu_item_ids?: string[] | null
+          notes?: string | null
+          target_user_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_menu_access_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_role_assignments: {
         Row: {
           assigned_at: string | null
@@ -18852,6 +18944,21 @@ export type Database = {
       get_user_active_session_count: {
         Args: { p_user_id: string }
         Returns: number
+      }
+      get_user_menu_access: {
+        Args: { _user_id: string }
+        Returns: {
+          access_type: string
+          granted_at: string
+          granted_by: string
+          menu_code: string
+          menu_item_id: string
+          menu_name: string
+          menu_name_ar: string
+          notes: string
+          parent_code: string
+          sort_order: number
+        }[]
       }
       get_user_role: {
         Args: { _user_id: string }

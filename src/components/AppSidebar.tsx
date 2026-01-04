@@ -612,6 +612,7 @@ export function AppSidebar() {
           isActive: location.pathname === '/admin/users' || 
                     location.pathname === '/admin/org-structure' ||
                     location.pathname === '/admin/menu-access' ||
+                    location.pathname === '/admin/user-menu-access' ||
                     location.pathname === '/admin/security-audit',
           subItems: [
             {
@@ -631,6 +632,12 @@ export function AppSidebar() {
               url: "/admin/menu-access",
               icon: Menu,
               menuCode: 'admin_menu_access',
+            },
+            {
+              title: t('admin.userMenuAccess.title', 'User Menu Access'),
+              url: "/admin/user-menu-access",
+              icon: UserCheck,
+              menuCode: 'admin_user_menu_access',
             },
             {
               title: t('navigation.securityAudit', 'Security Audit'),
