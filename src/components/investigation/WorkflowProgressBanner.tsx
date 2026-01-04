@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   HardHat,
   FileCheck,
-  Ban
+  Ban,
+  ArrowUpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
@@ -52,7 +53,7 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
     // === OBSERVATION WORKFLOW ===
     if (isObservation) {
       // Step 2: Dept Rep Review
-      if (status === 'pending_dept_rep_approval') {
+      if (status === 'pending_dept_rep_approval' || status === 'pending_dept_rep_mandatory_action') {
         steps.push({
           key: 'dept_rep',
           label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
@@ -68,7 +69,9 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
         'pending_department_manager_violation_approval',
         'pending_contract_controller_violation_approval',
         'contractor_violation_finalized',
-        'pending_hsse_rejection_review'
+        'pending_hsse_rejection_review',
+        'pending_hsse_escalation_review',
+        'upgraded_to_incident'
       ].includes(status)) {
         steps.push({
           key: 'dept_rep',
@@ -82,6 +85,29 @@ export function WorkflowProgressBanner({ incident }: WorkflowProgressBannerProps
           label: t('workflow.steps.deptRepReview', 'Dept Rep Review'),
           icon: <ClipboardCheck className="h-4 w-4" />,
           status: 'pending',
+        });
+      }
+      
+      // HSSE Escalation Review - when Dept Rep escalates
+      if (status === 'pending_hsse_escalation_review') {
+        steps.push({
+          key: 'hsse_escalation_review',
+          label: t('workflow.steps.hsseEscalationReview', 'HSSE Escalation Review'),
+          icon: <Shield className="h-4 w-4" />,
+          status: 'current',
+        });
+      } else if (status === 'upgraded_to_incident') {
+        steps.push({
+          key: 'hsse_escalation_review',
+          label: t('workflow.steps.hsseEscalationReview', 'HSSE Escalation Review'),
+          icon: <Shield className="h-4 w-4" />,
+          status: 'completed',
+        });
+        steps.push({
+          key: 'upgraded',
+          label: t('workflow.steps.upgradedToIncident', 'Upgraded to Incident'),
+          icon: <ArrowUpCircle className="h-4 w-4" />,
+          status: 'current',
         });
       }
       

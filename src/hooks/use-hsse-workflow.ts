@@ -704,8 +704,9 @@ export function useDeptRepApproval() {
           newStatus = 'closed';
         }
       } else {
-        // Escalate to full investigation workflow
-        newStatus = 'pending_manager_approval';
+        // Escalate to HSSE Expert for review (not Manager)
+        // The HSSE Expert will decide: Reject, Accept as Observation, or Upgrade to Incident
+        newStatus = 'pending_hsse_escalation_review';
       }
       
       updateData.status = newStatus;
@@ -744,10 +745,10 @@ export function useDeptRepApproval() {
       queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
       
       toast({
-        title: variables.decision === 'approve' ? "Observation Approved" : "Escalated to Investigation",
+        title: variables.decision === 'approve' ? "Observation Approved" : "Escalation Requested",
         description: variables.decision === 'approve'
           ? "Actions released to assignees. Observation will close when all actions are verified."
-          : "Observation has been escalated for full investigation",
+          : "Observation has been sent to HSSE Expert for escalation review",
       });
     },
     onError: (error) => {

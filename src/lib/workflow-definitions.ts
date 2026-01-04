@@ -45,18 +45,16 @@ export interface WorkflowDefinition {
 }
 
 // ============= COMPLETE OBSERVATION WORKFLOW =============
-// Updated: Full workflow with all actual statuses and notification points
+// Updated: Full workflow with all actual statuses, escalation review, and notification triggers
 export const observationWorkflowComplete: WorkflowDefinition = {
   id: 'observation-complete',
   name: 'Observation Workflow (Complete)',
   nameAr: 'سير عمل الملاحظات (كامل)',
-  description: 'Complete observation workflow with all severity levels, contractor violations, and notification triggers',
-  descriptionAr: 'سير عمل الملاحظات الكامل مع جميع مستويات الخطورة ومخالفات المقاولين ومشغلات الإشعارات',
+  description: 'Complete observation workflow with severity levels, HSSE escalation review, contractor violations, and notifications',
+  descriptionAr: 'سير عمل الملاحظات الكامل مع مستويات الخطورة ومراجعة تصعيد السلامة ومخالفات المقاولين والإشعارات',
   category: 'hsse_events',
   gaps: [
-    'Close on Spot notification not triggered for L1-L2',
-    'Final closure confirmation not sent to reporter',
-    'HSSE Expert notification missing for initial submission',
+    // Gaps have been addressed in latest implementation
   ],
   steps: [
     // === START ===
@@ -68,6 +66,73 @@ export const observationWorkflowComplete: WorkflowDefinition = {
       actor: 'Reporter', 
       actorAr: 'المُبلِّغ',
       dbStatus: 'submitted'
+    },
+    // === NOTIFICATION: HSSE Expert ===
+    { 
+      id: 'notify_hsse', 
+      type: 'notification', 
+      label: 'HSSE Expert Notified', 
+      labelAr: 'إشعار خبير السلامة', 
+      actor: 'System', 
+      actorAr: 'النظام',
+      description: 'Matrix-based notification to relevant HSSE Expert',
+      descriptionAr: 'إشعار مبني على المصفوفة لخبير السلامة المختص',
+      notificationAction: 'observation_submitted'
+    },
+    // === DEPT REP REVIEW ===
+    { 
+      id: 'pending_dept_rep', 
+      type: 'approval', 
+      label: 'Pending Dept Rep Review', 
+      labelAr: 'في انتظار مراجعة ممثل القسم', 
+      actor: 'Dept Rep', 
+      actorAr: 'ممثل القسم',
+      dbStatus: 'pending_dept_rep_approval',
+      notificationAction: 'dept_rep_review_required'
+    },
+    // === DEPT REP DECISION (APPROVE / ESCALATE) ===
+    { 
+      id: 'dept_rep_decision', 
+      type: 'decision', 
+      label: 'Dept Rep Decision', 
+      labelAr: 'قرار ممثل القسم',
+      description: 'Approve with actions OR Request HSSE Review',
+      descriptionAr: 'الموافقة مع الإجراءات أو طلب مراجعة السلامة'
+    },
+    // === HSSE ESCALATION REVIEW (NEW) ===
+    { 
+      id: 'hsse_escalation_review', 
+      type: 'approval', 
+      label: 'HSSE Escalation Review', 
+      labelAr: 'مراجعة تصعيد السلامة', 
+      actor: 'HSSE Expert', 
+      actorAr: 'خبير السلامة',
+      dbStatus: 'pending_hsse_escalation_review',
+      description: 'Reject | Accept as Observation | Upgrade to Incident',
+      descriptionAr: 'رفض | قبول كملاحظة | ترقية إلى حادث',
+      notificationAction: 'escalation_submitted'
+    },
+    // === HSSE ESCALATION DECISION ===
+    { 
+      id: 'hsse_escalation_decision', 
+      type: 'decision', 
+      label: 'Escalation Decision', 
+      labelAr: 'قرار التصعيد',
+      description: '3 options: Reject, Accept, Upgrade',
+      descriptionAr: '3 خيارات: رفض، قبول، ترقية'
+    },
+    // === UPGRADED TO INCIDENT (NEW) ===
+    { 
+      id: 'upgraded_to_incident', 
+      type: 'subprocess', 
+      label: 'Upgraded to Incident', 
+      labelAr: 'تمت الترقية إلى حادث', 
+      actor: 'HSSE Expert', 
+      actorAr: 'خبير السلامة',
+      dbStatus: 'upgraded_to_incident',
+      description: 'New INC reference created, investigation assigned',
+      descriptionAr: 'مرجع INC جديد تم إنشاؤه، تم تعيين التحقيق',
+      notificationAction: 'escalation_upgraded'
     },
     // === NOTIFICATION: HSSE Expert ===
     { 
