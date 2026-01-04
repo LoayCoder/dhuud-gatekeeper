@@ -2,19 +2,38 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Sparkles, Target } from 'lucide-react';
+import { Plus, Sparkles, Target, Brain, RefreshCw } from 'lucide-react';
 import { useKPITargetsAdmin, useSeedDefaultTargets } from '@/hooks/use-kpi-targets-admin';
+import { useKPIEvaluation } from '@/hooks/use-kpi-evaluation';
 import { KPIPageLayout } from '@/components/kpi/KPIPageLayout';
 import { KPITargetCard } from '@/components/kpi/KPITargetCard';
 import { AddKPIDialog } from '@/components/kpi/AddKPIDialog';
+import { KPIPerformanceSummary } from '@/components/kpi/KPIPerformanceSummary';
+import { KPIEvaluationPanel } from '@/components/kpi/KPIEvaluationPanel';
 
 export default function KPITargetsManagement() {
   const { t } = useTranslation();
   const { data: targets, isLoading } = useKPITargetsAdmin();
   const seedMutation = useSeedDefaultTargets();
+  const { evaluations, summary, isLoading: isEvaluating, evaluate } = useKPIEvaluation();
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const hasTargets = targets && targets.length > 0;
+
+  // Mock current values for evaluation (would come from dashboard data in production)
+  const handleEvaluate = () => {
+    if (!targets) return;
+    
+    // Generate mock current values for demonstration
+    const mockCurrentValues: Record<string, number> = {};
+    targets.forEach(target => {
+      // Simulate current values with some variance from target
+      const variance = (Math.random() - 0.5) * 0.4; // -20% to +20%
+      mockCurrentValues[target.kpi_code] = target.target_value * (1 + variance);
+    });
+
+    evaluate({ targets, currentValues: mockCurrentValues });
+  };
 
   return (
     <KPIPageLayout activeTab="targets">
@@ -28,6 +47,21 @@ export default function KPITargetsManagement() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {hasTargets && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEvaluate}
+              disabled={isEvaluating}
+            >
+              {isEvaluating ? (
+                <RefreshCw className="h-4 w-4 me-2 animate-spin" />
+              ) : (
+                <Brain className="h-4 w-4 me-2" />
+              )}
+              {t('kpiAdmin.aiEvaluate', 'AI Evaluate')}
+            </Button>
+          )}
           {!hasTargets && !isLoading && (
             <Button
               variant="outline"
@@ -45,6 +79,20 @@ export default function KPITargetsManagement() {
           </Button>
         </div>
       </div>
+
+      {/* AI Performance Summary */}
+      {summary && (
+        <div className="mb-6">
+          <KPIPerformanceSummary summary={summary} isLoading={isEvaluating} />
+        </div>
+      )}
+
+      {/* AI Evaluation Panel */}
+      {evaluations.length > 0 && (
+        <div className="mb-6">
+          <KPIEvaluationPanel evaluations={evaluations} isLoading={isEvaluating} />
+        </div>
+      )}
 
       {/* Loading state */}
       {isLoading && (

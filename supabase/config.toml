@@ -293,3 +293,6 @@ verify_jwt = false
 
 [functions.executive-ai-insights]
 verify_jwt = true
+
+[functions.kpi-ai-evaluation]
+verify_jwt = true
