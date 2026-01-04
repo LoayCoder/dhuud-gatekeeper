@@ -467,6 +467,308 @@ serve(async (req: Request) => {
         htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
         break;
       }
+      // ============= CONTRACTOR VIOLATION WORKFLOW NOTIFICATIONS =============
+      case "violation_pending_approval": {
+        // Notify Department Manager that violation needs approval
+        if (incident.approval_manager_id) {
+          const { data: deptManager } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", incident.approval_manager_id).single();
+          if (deptManager?.email) {
+            recipients.push(deptManager.email);
+            recipientLang = deptManager.preferred_language || 'en';
+          }
+          
+          // Fetch violation and contractor details
+          const { data: violationData } = await supabase.from("incidents")
+            .select(`
+              violation_type_id,
+              violation_fine_amount,
+              related_contractor_company_id,
+              violation_types!violation_type_id(name, name_ar),
+              contractor_companies!related_contractor_company_id(name, name_ar)
+            `)
+            .eq("id", incidentId).single();
+          
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_pending_approval;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          const violationType = recipientLang === 'ar' 
+            ? (violationData?.violation_types as any)?.name_ar || (violationData?.violation_types as any)?.name
+            : (violationData?.violation_types as any)?.name || 'N/A';
+          const contractorName = recipientLang === 'ar'
+            ? (violationData?.contractor_companies as any)?.name_ar || (violationData?.contractor_companies as any)?.name
+            : (violationData?.contractor_companies as any)?.name || 'N/A';
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #f97316 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: deptManager?.full_name || 'Manager' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.violationType}:</strong> ${violationType}</p>
+              <p><strong>${t.contractor}:</strong> ${contractorName}</p>
+              ${violationData?.violation_fine_amount ? `<p><strong>${t.fineAmount}:</strong> ${violationData.violation_fine_amount} SAR</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#dc2626", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
+      case "violation_fine_pending": {
+        // Notify Contract Controller that fine needs approval
+        const { data: incidentWithContractor } = await supabase.from("incidents")
+          .select(`
+            violation_type_id,
+            violation_fine_amount,
+            related_contractor_company_id,
+            violation_types!violation_type_id(name, name_ar),
+            contractor_companies!related_contractor_company_id(id, name, name_ar, controller_id)
+          `)
+          .eq("id", incidentId).single();
+        
+        const controllerId = (incidentWithContractor?.contractor_companies as any)?.controller_id;
+        if (controllerId) {
+          const { data: controller } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", controllerId).single();
+          if (controller?.email) {
+            recipients.push(controller.email);
+            recipientLang = controller.preferred_language || 'en';
+          }
+          
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_fine_pending;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          const violationType = recipientLang === 'ar' 
+            ? (incidentWithContractor?.violation_types as any)?.name_ar || (incidentWithContractor?.violation_types as any)?.name
+            : (incidentWithContractor?.violation_types as any)?.name || 'N/A';
+          const contractorName = recipientLang === 'ar'
+            ? (incidentWithContractor?.contractor_companies as any)?.name_ar || (incidentWithContractor?.contractor_companies as any)?.name
+            : (incidentWithContractor?.contractor_companies as any)?.name || 'N/A';
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: controller?.full_name || 'Contract Controller' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.violationType}:</strong> ${violationType}</p>
+              <p><strong>${t.contractor}:</strong> ${contractorName}</p>
+              ${incidentWithContractor?.violation_fine_amount ? `<p><strong>${t.fineAmount}:</strong> ${incidentWithContractor.violation_fine_amount} SAR</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#7c3aed", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
+      case "violation_acknowledgment_required": {
+        // Notify Contractor Site Rep that violation needs acknowledgment
+        const { data: incidentData } = await supabase.from("incidents")
+          .select(`
+            violation_type_id,
+            violation_fine_amount,
+            related_contractor_company_id,
+            violation_types!violation_type_id(name, name_ar),
+            contractor_companies!related_contractor_company_id(id, name, name_ar, site_representative_id)
+          `)
+          .eq("id", incidentId).single();
+        
+        const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
+        if (siteRepId) {
+          const { data: siteRep } = await supabase.from("profiles").select("email, full_name, preferred_language").eq("id", siteRepId).single();
+          if (siteRep?.email) {
+            recipients.push(siteRep.email);
+            recipientLang = siteRep.preferred_language || 'en';
+          }
+          
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_acknowledgment_required;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          const violationType = recipientLang === 'ar' 
+            ? (incidentData?.violation_types as any)?.name_ar || (incidentData?.violation_types as any)?.name
+            : (incidentData?.violation_types as any)?.name || 'N/A';
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: siteRep?.full_name || 'Site Representative' })}</p>
+              <p>${bodyText}</p>
+              <p><strong>${t.violationType}:</strong> ${violationType}</p>
+              ${incidentData?.violation_fine_amount ? `<p><strong>${t.fineAmount}:</strong> ${incidentData.violation_fine_amount} SAR</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#f59e0b", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
+      case "violation_contested": {
+        // Notify HSSE Expert that contractor contested
+        const { data: hsseExperts } = await supabase.from("user_roles")
+          .select("user_id, profiles!user_roles_user_id_fkey(email, full_name, preferred_language)")
+          .eq("role", "hsse_expert");
+        
+        if (hsseExperts && hsseExperts.length > 0) {
+          for (const expert of hsseExperts) {
+            const profile = (expert.profiles as any);
+            if (profile?.email) recipients.push(profile.email);
+            if (!recipientLang || recipientLang === 'en') recipientLang = profile?.preferred_language || 'en';
+          }
+          
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_contested;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: 'HSSE Expert' })}</p>
+              <p>${bodyText}</p>
+              ${payload.notes ? `<p><strong>${t.contestReason}:</strong> ${payload.notes}</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#dc2626", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
+      case "violation_rejected_review": {
+        // Notify HSSE that violation or fine was rejected
+        const { data: hsseExperts } = await supabase.from("user_roles")
+          .select("user_id, profiles!user_roles_user_id_fkey(email, full_name, preferred_language)")
+          .eq("role", "hsse_expert");
+        
+        if (hsseExperts && hsseExperts.length > 0) {
+          for (const expert of hsseExperts) {
+            const profile = (expert.profiles as any);
+            if (profile?.email) recipients.push(profile.email);
+            if (!recipientLang || recipientLang === 'en') recipientLang = profile?.preferred_language || 'en';
+          }
+          
+          const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_rejected_review;
+          const common = getCommonTranslations(recipientLang);
+          const rtl = isRTL(recipientLang as SupportedLanguage);
+          
+          subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+          const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+          
+          const content = `
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="color: white; margin: 0;">${t.title}</h2>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>${replaceVariables(common.greeting, { name: 'HSSE Expert' })}</p>
+              <p>${bodyText}</p>
+              ${payload.notes ? `<p><strong>${t.rejectionReason}:</strong> ${payload.notes}</p>` : ""}
+              ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#dc2626", rtl)}
+              <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+            </div>
+          `;
+          htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        }
+        break;
+      }
+      case "violation_finalized": {
+        // Notify all parties (reporter, contractor rep) of final decision
+        if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        
+        // Also notify contractor site rep
+        const { data: incidentData } = await supabase.from("incidents")
+          .select(`
+            violation_fine_amount,
+            contractor_companies!related_contractor_company_id(site_representative_id)
+          `)
+          .eq("id", incidentId).single();
+        
+        const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
+        if (siteRepId) {
+          const { data: siteRep } = await supabase.from("profiles").select("email").eq("id", siteRepId).single();
+          if (siteRep?.email && !recipients.includes(siteRep.email)) recipients.push(siteRep.email);
+        }
+        
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_finalized;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'User' })}</p>
+            <p>${bodyText}</p>
+            ${incidentData?.violation_fine_amount ? `<p><strong>${t.fineAmount}:</strong> ${incidentData.violation_fine_amount} SAR</p>` : ""}
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#16a34a", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        break;
+      }
+      case "violation_cancelled": {
+        // Notify all parties that violation was cancelled
+        if (reporterProfile?.email) recipients.push(reporterProfile.email);
+        
+        // Also notify contractor site rep
+        const { data: incidentData } = await supabase.from("incidents")
+          .select(`contractor_companies!related_contractor_company_id(site_representative_id)`)
+          .eq("id", incidentId).single();
+        
+        const siteRepId = (incidentData?.contractor_companies as any)?.site_representative_id;
+        if (siteRepId) {
+          const { data: siteRep } = await supabase.from("profiles").select("email").eq("id", siteRepId).single();
+          if (siteRep?.email && !recipients.includes(siteRep.email)) recipients.push(siteRep.email);
+        }
+        
+        const t = getTranslations(WORKFLOW_TRANSLATIONS, recipientLang).violation_cancelled;
+        const common = getCommonTranslations(recipientLang);
+        const rtl = isRTL(recipientLang as SupportedLanguage);
+        
+        subject = `[${tenantName}] ${replaceVariables(t.subject, { reference: incident.reference_id })}`;
+        const bodyText = replaceVariables(t.body, { reference: incident.reference_id });
+        
+        const content = `
+          <div style="background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h2 style="color: white; margin: 0;">${t.title}</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p>${replaceVariables(common.greeting, { name: reporterProfile?.full_name || 'User' })}</p>
+            <p>${bodyText}</p>
+            ${payload.notes ? `<p><strong>${t.cancelReason}:</strong> ${payload.notes}</p>` : ""}
+            ${emailButton(t.button, `${appUrl}/incidents/${incidentId}`, "#6b7280", rtl)}
+            <p>${common.signature}<br>${replaceVariables(common.team, { tenant: tenantName })}</p>
+          </div>
+        `;
+        htmlContent = wrapEmailHtml(content, recipientLang, tenantName);
+        break;
+      }
       default:
         console.log(`Unknown action: ${action}`);
     }
