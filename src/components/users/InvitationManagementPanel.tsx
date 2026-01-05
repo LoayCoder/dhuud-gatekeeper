@@ -40,10 +40,12 @@ import {
   AlertTriangle,
   RefreshCw,
   Users,
+  Upload,
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
 import { EditInvitationDialog } from './EditInvitationDialog';
+import { BulkInvitationImportDialog } from './BulkInvitationImportDialog';
 
 interface Invitation {
   id: string;
@@ -73,6 +75,7 @@ export function InvitationManagementPanel() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editingInvitation, setEditingInvitation] = useState<Invitation | null>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   const fetchInvitations = useCallback(async () => {
     if (!profile?.tenant_id) return;
@@ -333,6 +336,17 @@ export function InvitationManagementPanel() {
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBulkImportOpen(true);
+                    }}
+                  >
+                    <Upload className="h-4 w-4 me-2" />
+                    {t('bulkImport.import', 'Bulk Import')}
+                  </Button>
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
@@ -541,6 +555,15 @@ export function InvitationManagementPanel() {
         onOpenChange={(open) => !open && setEditingInvitation(null)}
         onSaved={() => {
           setEditingInvitation(null);
+          fetchInvitations();
+        }}
+      />
+
+      <BulkInvitationImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onSuccess={() => {
+          setBulkImportOpen(false);
           fetchInvitations();
         }}
       />
