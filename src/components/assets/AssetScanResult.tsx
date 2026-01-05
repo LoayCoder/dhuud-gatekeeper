@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AssetScanResultProps {
   assetId: string;
@@ -30,11 +31,14 @@ export interface ScannedAsset {
 export function AssetScanResult({ assetId, onClear, mode = 'navigate', onSelect }: AssetScanResultProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const isArabic = i18n.language === 'ar';
 
   const { data: asset, isLoading, error } = useQuery({
-    queryKey: ['scanned-asset', assetId],
+    queryKey: ['scanned-asset', assetId, profile?.tenant_id],
     queryFn: async () => {
+      if (!profile?.tenant_id) throw new Error('Tenant ID required');
+      
       const { data, error } = await supabase
         .from('hsse_assets')
         .select(`
@@ -49,12 +53,14 @@ export function AssetScanResult({ assetId, onClear, mode = 'navigate', onSelect 
           category:asset_categories(name, name_ar)
         `)
         .eq('id', assetId)
+        .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .single();
 
       if (error) throw error;
       return data as ScannedAsset;
     },
+    enabled: !!profile?.tenant_id,
   });
 
   if (isLoading) {

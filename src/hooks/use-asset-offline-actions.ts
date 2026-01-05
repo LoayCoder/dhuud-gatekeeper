@@ -274,11 +274,15 @@ export function useAssetOfflineCache() {
   const { profile } = useAuth();
 
   const prefetchAsset = useCallback(async (assetId: string) => {
+    if (!profile?.tenant_id) return;
+    
     try {
       const { data } = await supabase
         .from('hsse_assets')
         .select('id, asset_code, name, status, condition_rating, location_description')
         .eq('id', assetId)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
         .single();
 
       if (data) {
@@ -287,7 +291,7 @@ export function useAssetOfflineCache() {
     } catch (error) {
       console.error('Failed to cache asset:', error);
     }
-  }, []);
+  }, [profile?.tenant_id]);
 
   const getCachedAsset = useCallback(async (assetId: string) => {
     const result = await offlineDataCache.get(CACHE_STORES.ASSETS, `asset_${assetId}`);
