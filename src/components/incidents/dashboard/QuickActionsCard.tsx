@@ -22,37 +22,39 @@ interface QuickActionButtonProps {
 }
 
 function QuickActionButton({ icon: Icon, label, count, variant = 'default', onClick }: QuickActionButtonProps) {
-  const bgClass = variant === 'danger' 
-    ? 'bg-gradient-to-br from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10 border-destructive/30' 
-    : variant === 'warning' 
-      ? 'bg-gradient-to-br from-warning/20 to-warning/5 hover:from-warning/30 hover:to-warning/10 border-warning/30 dark:from-warning/20 dark:to-warning/5'
-      : 'bg-gradient-to-br from-card to-muted/30 hover:from-primary/5 hover:to-primary/10 border-border';
+  const variantStyles = {
+    danger: {
+      container: 'bg-destructive/5 hover:bg-destructive/10 border-destructive/20',
+      iconBg: 'bg-destructive/10',
+      iconColor: 'text-destructive',
+    },
+    warning: {
+      container: 'bg-warning/5 hover:bg-warning/10 border-warning/20',
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
+    },
+    default: {
+      container: 'bg-card hover:bg-primary/5 border-border',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+    },
+  };
 
-  const iconClass = variant === 'danger' 
-    ? 'text-destructive' 
-    : variant === 'warning' 
-      ? 'text-warning dark:text-warning' 
-      : 'text-primary';
+  const styles = variantStyles[variant];
 
   return (
     <button 
       onClick={onClick}
-      className={`relative flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md hover:scale-[1.02] ${bgClass}`}
+      className={`relative flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md hover:scale-[1.02] ${styles.container}`}
     >
-      <div className={`p-2 rounded-lg mb-2 ${
-        variant === 'danger' ? 'bg-destructive/10' : 
-        variant === 'warning' ? 'bg-warning/10' : 
-        'bg-primary/10'
-      }`}>
-        <Icon className={`h-5 w-5 ${iconClass}`} />
+      <div className={`p-2 rounded-lg mb-2 ${styles.iconBg}`}>
+        <Icon className={`h-5 w-5 ${styles.iconColor}`} />
       </div>
       <span className="text-sm font-medium text-center">{label}</span>
-      {count !== undefined && (
+      {count !== undefined && count > 0 && (
         <Badge 
-          variant={variant === 'danger' ? 'destructive' : 'default'}
-          className={`absolute -top-2 -end-2 min-w-[20px] h-5 flex items-center justify-center ${
-            variant === 'warning' ? 'bg-warning text-warning-foreground' : ''
-          }`}
+          variant={variant === 'danger' ? 'destructive' : variant === 'warning' ? 'default' : 'secondary'}
+          className="absolute -top-2 -end-2 min-w-[20px] h-5 flex items-center justify-center"
         >
           {count}
         </Badge>
