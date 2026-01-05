@@ -2,107 +2,97 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, User } from 'lucide-react';
-import { OverdueActionsWidget } from '@/components/dashboard/OverdueActionsWidget';
-import { PendingClosureRequestsWidget } from '@/components/dashboard/PendingClosureRequestsWidget';
-import { PTWActivePermitsWidget } from '@/components/dashboard/PTWActivePermitsWidget';
-import { SecurityAlertsSummaryWidget } from '@/components/dashboard/SecurityAlertsSummaryWidget';
-import { InspectionDueWidget } from '@/components/dashboard/InspectionDueWidget';
-import { ContractorStatsWidget } from '@/components/dashboard/ContractorStatsWidget';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
 import { InstallAppCard } from '@/components/dashboard/InstallAppCard';
-import { FleetHealthOverviewWidget } from '@/components/dashboard/FleetHealthOverviewWidget';
-import { AtRiskAssetsWidget } from '@/components/dashboard/AtRiskAssetsWidget';
-import { MaintenanceComplianceWidget } from '@/components/dashboard/MaintenanceComplianceWidget';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/hooks/use-user-roles';
-import { useDashboardStats } from '@/hooks/use-dashboard-stats';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
 import { SectionHeader } from '@/components/ui/section-header';
+import {
+  MyQuickStats,
+  MyActionsWidget,
+  MyVisitorsWidget,
+  MyGatePassesWidget,
+  MyInspectionsWidget,
+} from '@/components/dashboard/personal';
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { hasModule } = useModuleAccess();
-  const { hasRole } = useUserRoles();
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { hasRole, hasRoleInCategory } = useUserRoles();
 
+  // Module access checks
   const hasHSSEAccess = hasModule('hsse_core') || hasModule('incidents');
-  const hasPTWAccess = hasModule('ptw');
   const hasSecurityAccess = hasModule('security');
   const hasInspectionsAccess = hasModule('audits') || hasModule('hsse_core');
-  const hasAssetAccess = hasModule('asset_management');
+
+  // Role-based visibility
+  const isSecurityRole = hasRole('security_guard') || hasRole('security_supervisor') || hasRole('security_manager');
+  const isInspectorRole = hasRole('inspector') || hasRole('auditor') || hasRole('hsse_expert');
+  const isHSSERole = hasRoleInCategory('hsse');
+  const canSeeVisitors = hasSecurityAccess || isSecurityRole;
+  const canSeeGatePasses = hasSecurityAccess;
+  const canSeeInspections = hasInspectionsAccess || isInspectorRole;
+  const canSeeActions = hasHSSEAccess || isHSSERole || hasRole('manager') || hasRole('department_representative');
+
+  // Personalized greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    const name = profile?.full_name?.split(' ')[0] || '';
+    
+    if (hour < 12) {
+      return t('dashboard.greetingMorning', 'Good morning{{name}}', { name: name ? `, ${name}` : '' });
+    } else if (hour < 17) {
+      return t('dashboard.greetingAfternoon', 'Good afternoon{{name}}', { name: name ? `, ${name}` : '' });
+    } else {
+      return t('dashboard.greetingEvening', 'Good evening{{name}}', { name: name ? `, ${name}` : '' });
+    }
+  };
 
   return (
     <EnterprisePage
-      title={t('dashboard.welcomeTitle')}
-      description={t('dashboard.welcomeSubtitle')}
+      title={getGreeting()}
+      description={t('dashboard.personalDescription', 'Your personal command center')}
     >
-      {/* Module Stats Summary */}
+      {/* Section 1: My Quick Stats - KPI Strip */}
       <section className="space-y-3">
-        <SectionHeader title={t('dashboard.operationalOverview', 'Operational Overview')} />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {hasPTWAccess && (
-            <PTWActivePermitsWidget
-              activePermits={stats?.ptw.active_permits || 0}
-              pendingApprovals={stats?.ptw.pending_approvals || 0}
-              expiringToday={stats?.ptw.expiring_today || 0}
-              isLoading={statsLoading}
-            />
-          )}
-          
-          {hasSecurityAccess && (
-            <SecurityAlertsSummaryWidget
-              openAlerts={stats?.security.open_alerts || 0}
-              criticalAlerts={stats?.security.critical_alerts || 0}
-              visitorsOnSite={stats?.security.visitors_on_site || 0}
-              isLoading={statsLoading}
-            />
-          )}
-          
-          {hasInspectionsAccess && (
-            <InspectionDueWidget
-              dueToday={stats?.inspections.due_today || 0}
-              overdue={stats?.inspections.overdue || 0}
-              completedThisWeek={stats?.inspections.completed_this_week || 0}
-              isLoading={statsLoading}
-            />
-          )}
-          
-          <ContractorStatsWidget
-            activeWorkers={stats?.contractors.active_workers || 0}
-            pendingApprovals={stats?.contractors.pending_approvals || 0}
-            expiringInductions={stats?.contractors.expiring_inductions || 0}
-            isLoading={statsLoading}
-          />
-        </div>
+        <SectionHeader title={t('dashboard.personal.overview', 'Overview')} />
+        <MyQuickStats />
       </section>
 
-      {/* Quick Actions and Info Cards */}
+      {/* Section 2: Actions & Quick Actions */}
       <section className="space-y-3">
-        <SectionHeader title={t('dashboard.quickActions', 'Quick Actions')} />
+        <SectionHeader title={t('dashboard.personal.actionsTitle', 'Actions & Tasks')} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {canSeeActions && <MyActionsWidget />}
           <QuickActionsCard />
           <InstallAppCard />
-          
-          <Card variant="flat">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-base">{t('dashboard.userProfile')}</CardTitle>
-              </div>
-              <CardDescription>{t('dashboard.accountInfo')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">{t('auth.email')}</span>
-                <p className="text-sm">{user?.email}</p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </section>
 
-      {/* Security Status */}
+      {/* Section 3: Visitors & Gate Passes (Security related) */}
+      {(canSeeVisitors || canSeeGatePasses) && (
+        <section className="space-y-3">
+          <SectionHeader title={t('dashboard.personal.accessControl', 'Visitors & Access')} />
+          <div className="grid gap-4 md:grid-cols-2">
+            {canSeeVisitors && <MyVisitorsWidget />}
+            {canSeeGatePasses && <MyGatePassesWidget />}
+          </div>
+        </section>
+      )}
+
+      {/* Section 4: My Inspections */}
+      {canSeeInspections && (
+        <section className="space-y-3">
+          <SectionHeader title={t('dashboard.personal.inspections', 'My Inspections')} />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <MyInspectionsWidget />
+          </div>
+        </section>
+      )}
+
+      {/* Security Status Footer */}
       <Card variant="flat" status="completed" className="max-w-sm">
         <CardContent className="flex items-center gap-3 py-4">
           <div className="p-2 rounded-lg bg-success/10">
@@ -115,28 +105,22 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Asset Health Widgets */}
-      {hasAssetAccess && (
-        <section className="space-y-3">
-          <SectionHeader title={t('assets.fleetHealth', 'Asset Health')} />
-          <div className="grid gap-4 md:grid-cols-3">
-            <FleetHealthOverviewWidget />
-            <AtRiskAssetsWidget />
-            <MaintenanceComplianceWidget />
+      {/* User Profile Card */}
+      <Card variant="flat" className="max-w-sm">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base">{t('dashboard.userProfile')}</CardTitle>
           </div>
-        </section>
-      )}
-
-      {/* HSSE-Specific Widgets */}
-      {hasHSSEAccess && (
-        <section className="space-y-3">
-          <SectionHeader title={t('hsseDashboard.actionsRequiringAttention', 'Actions Requiring Attention')} />
-          <div className="grid gap-4 md:grid-cols-2">
-            <OverdueActionsWidget />
-            {(hasRole('hsse_manager') || hasRole('admin')) && <PendingClosureRequestsWidget />}
+          <CardDescription>{t('dashboard.accountInfo')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-muted-foreground">{t('auth.email')}</span>
+            <p className="text-sm">{user?.email}</p>
           </div>
-        </section>
-      )}
+        </CardContent>
+      </Card>
     </EnterprisePage>
   );
 }
