@@ -3325,7 +3325,8 @@
       "contactEmail": "البريد الإلكتروني",
       "contactPhone": "رقم الهاتف",
       "notes": "ملاحظات",
-      "preferredCurrency": "العملة المفضلة"
+      "preferredCurrency": "العملة المفضلة",
+      "templateCodePrefix": "بادئة رمز القالب"
     },
     "selectCurrency": "اختر العملة",
     "placeholders": {
@@ -3340,7 +3341,11 @@
       "contactPerson": "مثال: أحمد محمد",
       "contactEmail": "مثال: ahmed@acme.com",
       "contactPhone": "مثال: +966 50 123 4567",
-      "notes": "ملاحظات داخلية حول هذا المستأجر..."
+      "notes": "ملاحظات داخلية حول هذا المستأجر...",
+      "templateCodePrefix": "مثال: GS"
+    },
+    "descriptions": {
+      "templateCodePrefix": "بادئة اختيارية لرموز قوالب التفتيش المولدة تلقائياً (مثال: GS-ASSET-001)"
     },
     "status": {
       "active": "نشط",
