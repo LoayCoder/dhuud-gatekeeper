@@ -189,6 +189,8 @@ export interface AIAnalysisResult {
   hasDamage: boolean;
   damageDescription?: string;
   estimatedCost?: number;
+  // Immediate actions
+  immediateActions?: string[];
 }
 
 import { supabase } from '@/integrations/supabase/client';
@@ -220,6 +222,7 @@ export async function analyzeIncidentWithAI(description: string): Promise<AIAnal
       hasDamage: data.hasDamage || false,
       damageDescription: data.damageDescription || undefined,
       estimatedCost: data.estimatedCost || undefined,
+      immediateActions: data.immediateActions || [],
     };
   } catch (error) {
     console.error('Error calling analyze-incident:', error);
@@ -280,6 +283,7 @@ function fallbackAnalyzeIncident(description: string): AIAnalysisResult {
     hasDamage,
     damageDescription: undefined,
     estimatedCost: undefined,
+    immediateActions: [],
   };
 }
 
