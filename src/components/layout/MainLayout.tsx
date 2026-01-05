@@ -11,6 +11,7 @@ import { HSSENotificationCenter } from "@/components/notifications/HSSENotificat
 import { MandatoryNotificationDialog } from "@/components/notifications/MandatoryNotificationDialog";
 import { HSSEAlertBanner } from "@/components/dashboard/HSSEAlertBanner";
 import { useDynamicManifest } from "@/hooks/use-dynamic-manifest";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
 export default function MainLayout() {
   const {
@@ -19,6 +20,9 @@ export default function MainLayout() {
   
   // Generate tenant-specific PWA manifest with name "HSSE – [Tenant Name]" and tenant icon
   useDynamicManifest();
+  
+  // Subscribe to realtime notifications for instant in-app updates
+  useRealtimeNotifications();
   
   return <SidebarProvider>
       <div className="flex min-h-screen w-full overflow-x-hidden">

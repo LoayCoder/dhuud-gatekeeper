@@ -417,6 +417,10 @@ async function sendPushToSubscription(
 }
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID().substring(0, 8);
+  console.log(`[${requestId}] ========== Push Notification Request ==========`);
+  console.log(`[${requestId}] Timestamp: ${new Date().toISOString()}`);
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -428,8 +432,10 @@ serve(async (req) => {
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
 
+    console.log(`[${requestId}] VAPID keys configured: public=${!!vapidPublicKey}, private=${!!vapidPrivateKey}`);
+    
     if (!vapidPublicKey || !vapidPrivateKey) {
-      console.error('VAPID keys not configured');
+      console.error(`[${requestId}] VAPID keys not configured`);
       return new Response(
         JSON.stringify({ error: 'Push notifications not configured - VAPID keys missing' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -439,7 +445,15 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { user_ids, tenant_id, payload, notification_type }: RequestBody = await req.json();
 
+    console.log(`[${requestId}] Request params:`, {
+      user_ids: user_ids?.length || 0,
+      tenant_id: tenant_id || 'none',
+      notification_type: notification_type || 'none',
+      title: payload?.title,
+    });
+
     if (!payload || !payload.title || !payload.body) {
+      console.error(`[${requestId}] Missing required payload fields`);
       return new Response(
         JSON.stringify({ error: 'Missing required payload fields (title, body)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -501,14 +515,14 @@ serve(async (req) => {
     }
 
     if (filteredSubscriptions.length === 0) {
-      console.log('No active subscriptions found after filtering');
+      console.log(`[${requestId}] No active subscriptions found after filtering`);
       return new Response(
-        JSON.stringify({ sent: 0, failed: 0, message: 'No active subscriptions' }),
+        JSON.stringify({ sent: 0, failed: 0, message: 'No active subscriptions', requestId }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found ${filteredSubscriptions.length} active subscriptions after preference filtering`);
+    console.log(`[${requestId}] Found ${filteredSubscriptions.length} active subscriptions (filtered from ${subscriptions?.length || 0})`);
 
     // Prepare notification payload
     const notificationPayload = JSON.stringify({
@@ -521,6 +535,8 @@ serve(async (req) => {
       actions: payload.actions,
       requireInteraction: payload.requireInteraction || false,
     });
+
+    console.log(`[${requestId}] Payload size: ${notificationPayload.length} bytes`);
 
     // VAPID subject (must be mailto: or https:)
     const vapidSubject = 'mailto:support@lovable.dev';
@@ -574,7 +590,8 @@ serve(async (req) => {
       console.error('Error cleaning up expired subscriptions:', cleanupError);
     }
 
-    console.log(`Push notification results: ${sent} sent, ${failed} failed`);
+    console.log(`[${requestId}] Push notification results: ${sent} sent, ${failed} failed`);
+    console.log(`[${requestId}] ========== Request Complete ==========`);
 
     return new Response(
       JSON.stringify({
@@ -583,6 +600,7 @@ serve(async (req) => {
         total: filteredSubscriptions.length,
         filtered_by_preferences: notification_type ? (subscriptions?.length || 0) - filteredSubscriptions.length : 0,
         message: `Successfully sent ${sent} notifications, ${failed} failed`,
+        requestId,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
