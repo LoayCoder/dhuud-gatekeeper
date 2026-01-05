@@ -349,9 +349,36 @@ export function usePushSubscription() {
     }
   }, [state.subscription]);
 
+  // Re-activate subscription in database if browser has one but DB may be stale
+  const syncSubscriptionWithDatabase = useCallback(async () => {
+    if (!user?.id || !profile?.tenant_id || !state.subscription) return;
+    
+    const subscriptionJSON = state.subscription.toJSON();
+    console.log('[Push] Syncing subscription with database...');
+    
+    // Re-activate subscription if exists in browser
+    const saved = await saveSubscriptionToDatabase(
+      user.id,
+      profile.tenant_id,
+      subscriptionJSON
+    );
+    
+    if (saved) {
+      console.log('[Push] Subscription synced/reactivated in database');
+    }
+  }, [user?.id, profile?.tenant_id, state.subscription]);
+
+  // Initial check on mount
   useEffect(() => {
     checkSubscription();
   }, [checkSubscription]);
+
+  // Sync subscription with database when user is authenticated and subscription exists
+  useEffect(() => {
+    if (user?.id && profile?.tenant_id && state.subscription && !state.isLoading) {
+      syncSubscriptionWithDatabase();
+    }
+  }, [user?.id, profile?.tenant_id, state.subscription, state.isLoading, syncSubscriptionWithDatabase]);
 
   return {
     ...state,
