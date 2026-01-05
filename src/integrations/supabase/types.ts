@@ -76,6 +76,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "action_evidence_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       action_extension_requests: {
@@ -158,8 +165,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "action_extension_requests_hsse_manager_id_fkey"
+            columns: ["hsse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "action_extension_requests_manager_id_fkey"
             columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_extension_requests_requested_by_fkey"
+            columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -168,7 +196,7 @@ export type Database = {
             foreignKeyName: "action_extension_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -547,6 +575,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "area_inspection_findings_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "area_inspection_findings_corrective_action_id_fkey"
             columns: ["corrective_action_id"]
             isOneToOne: false
@@ -558,6 +593,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_findings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -654,6 +696,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "area_inspection_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       area_inspection_responses: {
@@ -723,6 +772,13 @@ export type Database = {
             columns: ["responded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_inspection_responses_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -806,6 +862,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_approval_configs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_approval_configs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -873,6 +936,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_approval_levels_specific_user_id_fkey"
+            columns: ["specific_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_approval_levels_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -921,6 +991,13 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1080,6 +1157,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_cost_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1246,6 +1330,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "asset_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       asset_failure_predictions: {
@@ -1324,6 +1415,13 @@ export type Database = {
             columns: ["acknowledged_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_failure_predictions_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1512,6 +1610,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_inspections_linked_incident_id_fkey"
             columns: ["linked_incident_id"]
             isOneToOne: false
@@ -1636,6 +1741,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_maintenance_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_maintenance_history_schedule_id_fkey"
             columns: ["schedule_id"]
             isOneToOne: false
@@ -1738,6 +1850,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1883,10 +2002,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_offline_actions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_offline_actions_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_offline_actions_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -1970,6 +2103,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "asset_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       asset_purchase_approvals: {
@@ -2012,6 +2152,13 @@ export type Database = {
             columns: ["approver_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_approvals_approver_id_fkey"
+            columns: ["approver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2142,10 +2289,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_purchase_requests_final_decision_by_fkey"
+            columns: ["final_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_purchase_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_purchase_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2226,6 +2387,13 @@ export type Database = {
             columns: ["scanned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_scan_logs_scanned_by_fkey"
+            columns: ["scanned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2394,6 +2562,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_transfers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_transfers_asset_id_fkey"
             columns: ["asset_id"]
             isOneToOne: false
@@ -2412,6 +2587,13 @@ export type Database = {
             columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2447,6 +2629,13 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_transfers_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2627,6 +2816,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "asset_warranty_claims_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "asset_warranty_claims_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -2711,6 +2907,13 @@ export type Database = {
             columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_notification_logs_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -2957,6 +3160,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cctv_cameras_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cctv_cameras_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -3073,6 +3283,13 @@ export type Database = {
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cctv_events_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -3291,10 +3508,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_access_logs_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_access_logs_guard_id_fkey"
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -3323,6 +3554,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_access_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -3452,6 +3690,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_companies_assigned_client_pm_id_fkey"
+            columns: ["assigned_client_pm_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_companies_assigned_department_id_fkey"
             columns: ["assigned_department_id"]
             isOneToOne: false
@@ -3473,8 +3718,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_companies_client_site_rep_id_fkey"
+            columns: ["client_site_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_companies_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_companies_suspended_by_fkey"
+            columns: ["suspended_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -3483,7 +3749,7 @@ export type Database = {
             foreignKeyName: "contractor_companies_suspended_by_fkey"
             columns: ["suspended_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -3656,6 +3922,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_disputes_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_disputes_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
@@ -3670,10 +3943,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_disputes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_disputes_submitted_by_fkey"
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_disputes_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -3769,10 +4056,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_documents_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -3826,6 +4127,13 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_module_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -3929,10 +4237,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_projects_project_manager_id_fkey"
             columns: ["project_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_projects_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4019,6 +4341,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_representatives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_representatives_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -4030,6 +4359,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_representatives_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -4197,6 +4533,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_violation_summary_contract_controller_decision__fkey"
+            columns: ["contract_controller_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_violation_summary_contractor_company_id_fkey"
             columns: ["contractor_company_id"]
             isOneToOne: false
@@ -4211,10 +4554,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_violation_summary_contractor_rep_decision_by_fkey"
+            columns: ["contractor_rep_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_violation_summary_dept_manager_decision_by_fkey"
             columns: ["dept_manager_decision_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_dept_manager_decision_by_fkey"
+            columns: ["dept_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4225,10 +4582,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_violation_summary_hsse_decision_by_fkey"
+            columns: ["hsse_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_violation_summary_hsse_validated_by_fkey"
             columns: ["hsse_validated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_hsse_validated_by_fkey"
+            columns: ["hsse_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4243,6 +4614,13 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_violation_summary_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4337,6 +4715,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_workers_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -4348,6 +4733,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4469,10 +4861,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractors_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractors_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4641,8 +5047,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "corrective_actions_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "corrective_actions_delegated_by_fkey"
             columns: ["delegated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_delegated_by_fkey"
+            columns: ["delegated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_delegated_verifier_id_fkey"
+            columns: ["delegated_verifier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -4651,7 +5078,7 @@ export type Database = {
             foreignKeyName: "corrective_actions_delegated_verifier_id_fkey"
             columns: ["delegated_verifier_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4673,6 +5100,13 @@ export type Database = {
             columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -4708,6 +5142,13 @@ export type Database = {
             columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_actions_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -4854,6 +5295,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "duty_roster_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "duty_roster_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
@@ -4872,6 +5320,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duty_roster_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -5121,8 +5576,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "emergency_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "emergency_alerts_guard_id_fkey"
             columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -5131,7 +5607,7 @@ export type Database = {
             foreignKeyName: "emergency_alerts_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -5217,10 +5693,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "emergency_protocol_executions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "emergency_protocol_executions_escalated_to_fkey"
             columns: ["escalated_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -5235,6 +5725,13 @@ export type Database = {
             columns: ["started_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_protocol_executions_started_by_fkey"
+            columns: ["started_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -5552,6 +6049,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "evidence_items_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "evidence_items_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -5570,6 +6074,13 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -5817,6 +6328,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "gate_entry_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "gate_entry_logs_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -5852,10 +6370,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "gate_entry_logs_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "gate_entry_logs_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -6020,6 +6552,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gate_pass_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       geofence_alerts: {
@@ -6107,8 +6646,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "geofence_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "geofence_alerts_guard_id_fkey"
             columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -6117,7 +6677,7 @@ export type Database = {
             foreignKeyName: "geofence_alerts_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -6377,10 +6937,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guard_attendance_logs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "guard_attendance_logs_guard_id_fkey"
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_logs_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -6479,6 +7053,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guard_performance_metrics_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "guard_performance_metrics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -6555,6 +7136,13 @@ export type Database = {
             columns: ["guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_tracking_history_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -6802,6 +7390,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "hsse_assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "hsse_assets_floor_zone_id_fkey"
             columns: ["floor_zone_id"]
             isOneToOne: false
@@ -6841,6 +7436,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_assets_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -6973,6 +7575,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notification_acknowledgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -7111,6 +7720,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "hsse_notification_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       hsse_notifications: {
@@ -7219,6 +7835,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hsse_notifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7343,6 +7966,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "hsse_scheduled_notifications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "hsse_scheduled_notifications_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -7397,6 +8027,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_access_list_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_access_list_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
@@ -7411,6 +8048,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_access_list_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_access_list_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -7422,6 +8066,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_access_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -7483,6 +8134,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_asset_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_asset_links_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
@@ -7541,6 +8199,13 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7608,10 +8273,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_confidentiality_audit_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_confidentiality_audit_affected_user_id_fkey"
             columns: ["affected_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_confidentiality_audit_affected_user_id_fkey"
+            columns: ["affected_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7709,6 +8388,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_notification_matrix_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7868,6 +8554,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_violation_lifecycle_contract_controller_id_fkey"
+            columns: ["contract_controller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_violation_lifecycle_contractor_company_id_fkey"
             columns: ["contractor_company_id"]
             isOneToOne: false
@@ -7882,10 +8575,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_violation_lifecycle_contractor_rep_id_fkey"
+            columns: ["contractor_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_violation_lifecycle_dept_manager_id_fkey"
             columns: ["dept_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_dept_manager_id_fkey"
+            columns: ["dept_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7896,8 +8603,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incident_violation_lifecycle_finalized_by_fkey"
+            columns: ["finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incident_violation_lifecycle_hsse_manager_id_fkey"
             columns: ["hsse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_hsse_manager_id_fkey"
+            columns: ["hsse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_identified_by_fkey"
+            columns: ["identified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -7906,7 +8634,7 @@ export type Database = {
             foreignKeyName: "incident_violation_lifecycle_identified_by_fkey"
             columns: ["identified_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -7928,6 +8656,13 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_violation_lifecycle_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8571,6 +9306,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_approval_manager_id_fkey"
+            columns: ["approval_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
@@ -8585,10 +9327,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_closure_approved_by_fkey"
+            columns: ["closure_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_closure_requested_by_fkey"
             columns: ["closure_requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_closure_requested_by_fkey"
+            columns: ["closure_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8599,8 +9355,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_closure_signed_by_fkey"
+            columns: ["closure_signed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_confidentiality_set_by_fkey"
             columns: ["confidentiality_set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_confidentiality_set_by_fkey"
+            columns: ["confidentiality_set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_contractor_dispute_reviewed_by_fkey"
+            columns: ["contractor_dispute_reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -8609,7 +9386,7 @@ export type Database = {
             foreignKeyName: "incidents_contractor_dispute_reviewed_by_fkey"
             columns: ["contractor_dispute_reviewed_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8627,10 +9404,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_dept_rep_approved_by_fkey"
+            columns: ["dept_rep_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_dept_rep_rejected_by_fkey"
             columns: ["dept_rep_rejected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_dept_rep_rejected_by_fkey"
+            columns: ["dept_rep_rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8641,10 +9432,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_dispute_opened_by_fkey"
+            columns: ["dispute_opened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_expert_rejected_by_fkey"
             columns: ["expert_rejected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_expert_rejected_by_fkey"
+            columns: ["expert_rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8655,10 +9460,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_expert_screened_by_fkey"
+            columns: ["expert_screened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
             columns: ["hsse_manager_decision_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_manager_decision_by_fkey"
+            columns: ["hsse_manager_decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8669,10 +9488,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_hsse_rejection_reviewed_by_fkey"
+            columns: ["hsse_rejection_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_hsse_validated_by_fkey"
             columns: ["hsse_validated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_hsse_validated_by_fkey"
+            columns: ["hsse_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8683,8 +9516,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_investigation_approved_by_fkey"
+            columns: ["investigation_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_legal_reviewer_id_fkey"
             columns: ["legal_reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_legal_reviewer_id_fkey"
+            columns: ["legal_reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_mediator_id_fkey"
+            columns: ["mediator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -8693,7 +9547,7 @@ export type Database = {
             foreignKeyName: "incidents_mediator_id_fkey"
             columns: ["mediator_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8718,10 +9572,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_recognized_contractor_worker_id_fkey"
+            columns: ["recognized_contractor_worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_recognized_user_id_fkey"
             columns: ["recognized_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_recognized_user_id_fkey"
+            columns: ["recognized_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8746,10 +9614,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_returned_by_fkey"
             columns: ["returned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_returned_by_fkey"
+            columns: ["returned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8795,10 +9677,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_violation_contract_controller_approved_by_fkey"
+            columns: ["violation_contract_controller_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_violation_contractor_rep_acknowledged_by_fkey"
             columns: ["violation_contractor_rep_acknowledged_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_contractor_rep_acknowledged_by_fkey"
+            columns: ["violation_contractor_rep_acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8809,8 +9705,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incidents_violation_dept_manager_approved_by_fkey"
+            columns: ["violation_dept_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incidents_violation_finalized_by_fkey"
             columns: ["violation_finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_finalized_by_fkey"
+            columns: ["violation_finalized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_violation_hsse_decided_by_fkey"
+            columns: ["violation_hsse_decided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -8819,7 +9736,7 @@ export type Database = {
             foreignKeyName: "incidents_violation_hsse_decided_by_fkey"
             columns: ["violation_hsse_decided_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -8902,6 +9819,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "induction_videos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "induction_videos_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
@@ -8972,6 +9896,13 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -9250,6 +10181,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inspection_schedules_assigned_inspector_id_fkey"
+            columns: ["assigned_inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inspection_schedules_building_id_fkey"
             columns: ["building_id"]
             isOneToOne: false
@@ -9268,6 +10206,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -9376,6 +10321,13 @@ export type Database = {
             columns: ["inspected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_session_assets_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -9527,6 +10479,13 @@ export type Database = {
             columns: ["inspector_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -9807,6 +10766,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inspection_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inspection_templates_inspection_category_id_fkey"
             columns: ["inspection_category_id"]
             isOneToOne: false
@@ -10000,6 +10966,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "investigations_investigator_id_fkey"
+            columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "investigations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -10011,6 +10984,13 @@ export type Database = {
             columns: ["violation_submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigations_violation_submitted_by_fkey"
+            columns: ["violation_submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10208,6 +11188,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_targets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10438,6 +11425,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "maintenance_part_usage_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       maintenance_parts: {
@@ -10531,6 +11525,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_parts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10634,6 +11635,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "manager_team_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "manager_team_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -10645,6 +11653,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_team_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -10733,6 +11748,13 @@ export type Database = {
             columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manhours_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10907,10 +11929,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "material_gate_passes_entry_confirmed_by_fkey"
+            columns: ["entry_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "material_gate_passes_exit_confirmed_by_fkey"
             columns: ["exit_confirmed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_exit_confirmed_by_fkey"
+            columns: ["exit_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10921,10 +11957,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "material_gate_passes_guard_verified_by_fkey"
+            columns: ["guard_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "material_gate_passes_pm_approved_by_fkey"
             columns: ["pm_approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_pm_approved_by_fkey"
+            columns: ["pm_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -10942,6 +11992,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "material_gate_passes_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "material_gate_passes_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
@@ -10953,6 +12010,13 @@ export type Database = {
             columns: ["safety_approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_safety_approved_by_fkey"
+            columns: ["safety_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -11182,6 +12246,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "monitoring_check_schedule_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "monitoring_check_schedule_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
@@ -11374,6 +12445,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notification_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_recipients: {
@@ -11435,6 +12513,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notification_recipients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notification_recipients_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -11446,6 +12531,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_recipients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -11635,6 +12727,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "offline_patrol_checkpoints_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "offline_patrol_checkpoints_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -11758,6 +12857,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "page_content_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "page_content_audit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -11818,6 +12924,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "page_content_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "page_content_versions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -11829,6 +12942,13 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_content_versions_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -11967,8 +13087,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "part_purchase_orders_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "part_purchase_orders_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_purchase_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_purchase_orders_received_by_fkey"
+            columns: ["received_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -11977,7 +13118,7 @@ export type Database = {
             foreignKeyName: "part_purchase_orders_received_by_fkey"
             columns: ["received_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -12044,6 +13185,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_stock_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -12333,6 +13481,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pii_access_logs: {
+        Row: {
+          access_granted: boolean
+          accessed_at: string | null
+          id: string
+          ip_address: string | null
+          record_id: string | null
+          table_name: string
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_granted: boolean
+          accessed_at?: string | null
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          table_name: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_granted?: boolean
+          accessed_at?: string | null
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          table_name?: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       plan_modules: {
         Row: {
@@ -12752,6 +13936,13 @@ export type Database = {
             referencedRelation: "contractor_workers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "project_clearance_execution_witness_id_fkey"
+            columns: ["witness_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       project_safety_officers: {
@@ -12815,6 +14006,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "project_safety_officers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "project_safety_officers_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -12840,6 +14038,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -12896,6 +14101,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "project_worker_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "project_worker_assignments_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -12914,6 +14126,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_worker_assignments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -12961,6 +14180,13 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13050,6 +14276,13 @@ export type Database = {
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_clearance_checks_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13350,6 +14583,13 @@ export type Database = {
             columns: ["tested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_gas_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -13658,6 +14898,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ptw_permits_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ptw_permits_building_id_fkey"
             columns: ["building_id"]
             isOneToOne: false
@@ -13672,8 +14919,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ptw_permits_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ptw_permits_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_endorser_id_fkey"
+            columns: ["endorser_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -13682,7 +14950,7 @@ export type Database = {
             foreignKeyName: "ptw_permits_endorser_id_fkey"
             columns: ["endorser_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13697,6 +14965,13 @@ export type Database = {
             columns: ["issuer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permits_issuer_id_fkey"
+            columns: ["issuer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13841,10 +15116,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ptw_projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ptw_projects_hsse_coordinator_id_fkey"
             columns: ["hsse_coordinator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_hsse_coordinator_id_fkey"
+            columns: ["hsse_coordinator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -13859,6 +15148,13 @@ export type Database = {
             columns: ["project_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_projects_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -14074,6 +15370,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ptw_safety_responses_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ptw_signatures: {
@@ -14132,6 +15435,13 @@ export type Database = {
             columns: ["signer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_signatures_signer_id_fkey"
+            columns: ["signer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -14518,6 +15828,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "risk_assessment_details_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       risk_assessment_team: {
@@ -14583,6 +15900,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_assessment_team_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -14842,6 +16166,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_menu_access_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -15365,6 +16696,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "security_patrol_routes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "security_patrol_routes_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
@@ -15459,10 +16797,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "security_patrols_patrol_officer_id_fkey"
+            columns: ["patrol_officer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "security_patrols_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_patrols_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -15673,6 +17025,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "security_scan_results_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "security_scan_results_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -15819,6 +17178,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "security_zones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "security_zones_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
@@ -15907,10 +17273,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shift_handovers_incoming_guard_id_fkey"
+            columns: ["incoming_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shift_handovers_outgoing_guard_id_fkey"
             columns: ["outgoing_guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_outgoing_guard_id_fkey"
+            columns: ["outgoing_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -16011,8 +17391,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shift_roster_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shift_roster_guard_id_fkey"
             columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_relief_guard_id_fkey"
+            columns: ["relief_guard_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -16021,7 +17422,7 @@ export type Database = {
             foreignKeyName: "shift_roster_relief_guard_id_fkey"
             columns: ["relief_guard_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -16084,6 +17485,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_departments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -16166,6 +17574,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_stakeholders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -16649,6 +18064,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "system_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "system_alerts_related_contractor_id_fkey"
             columns: ["related_contractor_id"]
             isOneToOne: false
@@ -16670,8 +18092,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "system_alerts_related_user_id_fkey"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "system_alerts_resolved_by_fkey"
             columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_target_user_id_fkey"
+            columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -16680,7 +18123,7 @@ export type Database = {
             foreignKeyName: "system_alerts_target_user_id_fkey"
             columns: ["target_user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -17769,6 +19212,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_sessions_invalidated_by_fkey"
+            columns: ["invalidated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -17780,6 +19230,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -17925,10 +19382,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "visit_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "visit_requests_host_id_fkey"
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -17950,6 +19421,13 @@ export type Database = {
             columns: ["visitor_id"]
             isOneToOne: false
             referencedRelation: "visitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_requests_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -18119,6 +19597,13 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -18379,10 +19864,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "witness_statements_assigned_witness_id_fkey"
+            columns: ["assigned_witness_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "witness_statements_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -18400,10 +19899,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "witness_statements_returned_by_fkey"
+            columns: ["returned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "witness_statements_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "witness_statements_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -18502,6 +20015,13 @@ export type Database = {
             referencedRelation: "contractor_workers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "worker_inductions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       worker_qr_codes: {
@@ -18575,6 +20095,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "worker_qr_codes_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "worker_qr_codes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -18586,6 +20113,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_qr_codes_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -18640,6 +20174,13 @@ export type Database = {
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_zone_authorizations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
           {
@@ -18715,6 +20256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workflow_definitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workflow_definitions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -18778,6 +20326,13 @@ export type Database = {
             columns: ["started_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instances_started_by_fkey"
+            columns: ["started_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -18895,6 +20450,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workflow_step_history_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workflow_step_history_instance_id_fkey"
             columns: ["instance_id"]
             isOneToOne: false
@@ -18932,6 +20494,524 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hsse_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_workers_secure: {
+        Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          full_name: string | null
+          full_name_ar: string | null
+          id: string | null
+          mobile_number: string | null
+          national_id: string | null
+          nationality: string | null
+          photo_path: string | null
+          preferred_language: string | null
+          rejection_reason: string | null
+          safety_officer_id: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          worker_type: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name?: string | null
+          full_name_ar?: string | null
+          id?: string | null
+          mobile_number?: never
+          national_id?: never
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          rejection_reason?: string | null
+          safety_officer_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          worker_type?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          full_name?: string | null
+          full_name_ar?: string | null
+          id?: string | null
+          mobile_number?: never
+          national_id?: never
+          nationality?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          rejection_reason?: string | null
+          safety_officer_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          worker_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_safety_officer_id_fkey"
+            columns: ["safety_officer_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_safety_officers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors_secure: {
+        Row: {
+          allowed_sites: string[] | null
+          allowed_zones: string[] | null
+          ban_expires_at: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
+          company_name: string | null
+          contractor_code: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_banned: boolean | null
+          medical_exam_date: string | null
+          medical_exam_expiry: string | null
+          mobile_number: string | null
+          national_id: string | null
+          nationality: string | null
+          permit_expiry_date: string | null
+          permit_number: string | null
+          photo_path: string | null
+          preferred_language: string | null
+          qr_code_data: string | null
+          safety_induction_date: string | null
+          safety_induction_expiry: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          allowed_zones?: string[] | null
+          ban_expires_at?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          company_name?: string | null
+          contractor_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          is_banned?: boolean | null
+          medical_exam_date?: string | null
+          medical_exam_expiry?: string | null
+          mobile_number?: never
+          national_id?: never
+          nationality?: string | null
+          permit_expiry_date?: string | null
+          permit_number?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_data?: string | null
+          safety_induction_date?: string | null
+          safety_induction_expiry?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          allowed_zones?: string[] | null
+          ban_expires_at?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          company_name?: string | null
+          contractor_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          is_banned?: boolean | null
+          medical_exam_date?: string | null
+          medical_exam_expiry?: string | null
+          mobile_number?: never
+          national_id?: never
+          nationality?: string | null
+          permit_expiry_date?: string | null
+          permit_number?: string | null
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_data?: string | null
+          safety_induction_date?: string | null
+          safety_induction_expiry?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractors_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_secure: {
+        Row: {
+          assigned_branch_id: string | null
+          assigned_department_id: string | null
+          assigned_division_id: string | null
+          assigned_section_id: string | null
+          assigned_site_id: string | null
+          avatar_url: string | null
+          contract_end: string | null
+          contract_start: string | null
+          contractor_company_name: string | null
+          contractor_type: Database["public"]["Enums"]["contractor_type"] | null
+          created_at: string | null
+          deleted_at: string | null
+          digest_opt_in: boolean | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          employee_id: string | null
+          full_name: string | null
+          has_login: boolean | null
+          id: string | null
+          is_active: boolean | null
+          is_deleted: boolean | null
+          job_title: string | null
+          membership_end: string | null
+          membership_id: string | null
+          membership_start: string | null
+          phone_number: string | null
+          preferred_language: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
+        }
+        Insert: {
+          assigned_branch_id?: string | null
+          assigned_department_id?: string | null
+          assigned_division_id?: string | null
+          assigned_section_id?: string | null
+          assigned_site_id?: string | null
+          avatar_url?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_company_name?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
+          created_at?: string | null
+          deleted_at?: string | null
+          digest_opt_in?: boolean | null
+          emergency_contact_name?: never
+          emergency_contact_phone?: never
+          employee_id?: string | null
+          full_name?: string | null
+          has_login?: boolean | null
+          id?: string | null
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          job_title?: string | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
+          phone_number?: never
+          preferred_language?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Update: {
+          assigned_branch_id?: string | null
+          assigned_department_id?: string | null
+          assigned_division_id?: string | null
+          assigned_section_id?: string | null
+          assigned_site_id?: string | null
+          avatar_url?: string | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contractor_company_name?: string | null
+          contractor_type?:
+            | Database["public"]["Enums"]["contractor_type"]
+            | null
+          created_at?: string | null
+          deleted_at?: string | null
+          digest_opt_in?: boolean | null
+          emergency_contact_name?: never
+          emergency_contact_phone?: never
+          employee_id?: string | null
+          full_name?: string | null
+          has_login?: boolean | null
+          id?: string | null
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          job_title?: string | null
+          membership_end?: string | null
+          membership_id?: string | null
+          membership_start?: string | null
+          phone_number?: never
+          preferred_language?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_branch_id_fkey"
+            columns: ["assigned_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_department_id_fkey"
+            columns: ["assigned_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_division_id_fkey"
+            columns: ["assigned_division_id"]
+            isOneToOne: false
+            referencedRelation: "divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_section_id_fkey"
+            columns: ["assigned_section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_site_id_fkey"
+            columns: ["assigned_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visitors_secure: {
+        Row: {
+          car_plate: string | null
+          company_name: string | null
+          created_at: string | null
+          deleted_at: string | null
+          destination_id: string | null
+          email: string | null
+          expiry_warning_sent_at: string | null
+          full_name: string | null
+          gate_entry_method: string | null
+          host_email: string | null
+          host_id: string | null
+          host_name: string | null
+          host_phone: string | null
+          id: string | null
+          is_active: boolean | null
+          last_scanned_at: string | null
+          last_visit_at: string | null
+          national_id: string | null
+          nationality: string | null
+          passenger_count: number | null
+          phone: string | null
+          photo_path: string | null
+          preferred_language: string | null
+          qr_code_token: string | null
+          qr_generated_at: string | null
+          qr_used_at: string | null
+          tenant_id: string | null
+          user_type: string | null
+          visit_end_time: string | null
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          car_plate?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          destination_id?: string | null
+          email?: never
+          expiry_warning_sent_at?: string | null
+          full_name?: string | null
+          gate_entry_method?: string | null
+          host_email?: string | null
+          host_id?: string | null
+          host_name?: string | null
+          host_phone?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_scanned_at?: string | null
+          last_visit_at?: string | null
+          national_id?: never
+          nationality?: string | null
+          passenger_count?: number | null
+          phone?: never
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_token?: string | null
+          qr_generated_at?: string | null
+          qr_used_at?: string | null
+          tenant_id?: string | null
+          user_type?: string | null
+          visit_end_time?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          car_plate?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          destination_id?: string | null
+          email?: never
+          expiry_warning_sent_at?: string | null
+          full_name?: string | null
+          gate_entry_method?: string | null
+          host_email?: string | null
+          host_id?: string | null
+          host_name?: string | null
+          host_phone?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_scanned_at?: string | null
+          last_visit_at?: string | null
+          national_id?: never
+          nationality?: string | null
+          passenger_count?: number | null
+          phone?: never
+          photo_path?: string | null
+          preferred_language?: string | null
+          qr_code_token?: string | null
+          qr_generated_at?: string | null
+          qr_used_at?: string | null
+          tenant_id?: string | null
+          user_type?: string | null
+          visit_end_time?: string | null
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitors_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -19058,6 +21138,10 @@ export type Database = {
       }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_pii: {
+        Args: { target_profile_id?: string; target_tenant_id: string }
         Returns: boolean
       }
       can_view_sensitive_profile_data: {

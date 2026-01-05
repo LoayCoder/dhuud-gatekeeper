@@ -1017,7 +1017,7 @@ export default function MyActions() {
                       {/* Status Badge - Full width on mobile */}
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary" className="whitespace-nowrap">
-                          {t(`incidents.status.${incident.status}`, incident.status)}
+                          {String(t(`incidents.status.${incident.status}`, incident.status))}
                         </Badge>
                         {incident.event_type && (
                           <Badge variant="outline" className="whitespace-nowrap">
@@ -1025,8 +1025,8 @@ export default function MyActions() {
                           </Badge>
                         )}
                         {incident.severity && (
-                          <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'} className="whitespace-nowrap">
-                            {t(`investigation.severity.${incident.severity}`, incident.severity)}
+                        <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'} className="whitespace-nowrap">
+                          {String(t(`investigation.severity.${incident.severity}`, incident.severity))}
                           </Badge>
                         )}
                       </div>
