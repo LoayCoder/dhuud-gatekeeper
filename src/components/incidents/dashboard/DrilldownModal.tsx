@@ -116,21 +116,21 @@ export function DrilldownModal() {
                     variant="outline" 
                     className={`text-xs ${EVENT_TYPE_COLORS[event.event_type] || ""}`}
                   >
-                    {t(`hsseDashboard.eventTypes.${event.event_type}`, event.event_type)}
+                    {String(t(`hsseDashboard.eventTypes.${event.event_type}`, event.event_type))}
                   </Badge>
                   {event.severity && (
                     <Badge 
                       variant="outline" 
                       className={`text-xs ${SEVERITY_COLORS[event.severity] || ""}`}
                     >
-                      {t(`severity.${event.severity}`, event.severity)}
+                      {String(t(`severity.${event.severity}`, event.severity))}
                     </Badge>
                   )}
                   <Badge 
                     variant="outline" 
                     className={`text-xs ${STATUS_COLORS[event.status] || ""}`}
                   >
-                    {t(`status.${event.status}`, event.status)}
+                    {String(t(`status.${event.status}`, event.status))}
                   </Badge>
                   <span className="text-xs text-muted-foreground min-w-[80px]">
                     {format(new Date(event.occurred_at), "dd MMM yyyy")}

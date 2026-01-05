@@ -268,8 +268,9 @@ async function fetchActionEvidence(actionIds: string[]): Promise<Map<string, Act
 }
 
 async function fetchContractorViolation(incidentId: string): Promise<ContractorViolationData | null> {
-  // Use type casting to bypass TypeScript's strict type checking for dynamic columns
-  const { data: incident } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { data: incident } = await db
     .from('incidents')
     .select(`
       violation_type_id,
@@ -280,14 +281,7 @@ async function fetchContractorViolation(incidentId: string): Promise<ContractorV
       related_contractor_company:related_contractor_company_id(name)
     `)
     .eq('id', incidentId)
-    .single() as { data: {
-      violation_type_id?: string | null;
-      violation_penalty_type?: string | null;
-      violation_fine_amount?: number | null;
-      violation_contractor_acknowledged_at?: string | null;
-      violation_contractor_acknowledged_by?: string | null;
-      related_contractor_company?: { name: string } | null;
-    } | null };
+    .single();
   
   if (!incident || !incident.related_contractor_company) return null;
   

@@ -17210,12 +17210,15 @@ export type Database = {
           handover_time: string
           id: string
           incoming_guard_id: string | null
+          incoming_signature: string | null
           key_observations: string | null
           next_shift_priorities: string | null
           notes: string | null
           outgoing_guard_id: string
+          outgoing_signature: string | null
           outstanding_issues: Json | null
           shift_date: string
+          signature_timestamp: string | null
           status: string
           tenant_id: string
           updated_at: string
@@ -17231,12 +17234,15 @@ export type Database = {
           handover_time?: string
           id?: string
           incoming_guard_id?: string | null
+          incoming_signature?: string | null
           key_observations?: string | null
           next_shift_priorities?: string | null
           notes?: string | null
           outgoing_guard_id: string
+          outgoing_signature?: string | null
           outstanding_issues?: Json | null
           shift_date?: string
+          signature_timestamp?: string | null
           status?: string
           tenant_id: string
           updated_at?: string
@@ -17252,12 +17258,15 @@ export type Database = {
           handover_time?: string
           id?: string
           incoming_guard_id?: string | null
+          incoming_signature?: string | null
           key_observations?: string | null
           next_shift_priorities?: string | null
           notes?: string | null
           outgoing_guard_id?: string
+          outgoing_signature?: string | null
           outstanding_issues?: Json | null
           shift_date?: string
+          signature_timestamp?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string
@@ -17444,6 +17453,130 @@ export type Database = {
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "security_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_swap_requests: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          notes: string | null
+          original_roster_id: string
+          reason: string
+          requested_at: string
+          requesting_guard_id: string
+          responded_at: string | null
+          status: string
+          supervisor_approved_at: string | null
+          supervisor_id: string | null
+          supervisor_notes: string | null
+          swap_roster_id: string | null
+          target_guard_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          original_roster_id: string
+          reason: string
+          requested_at?: string
+          requesting_guard_id: string
+          responded_at?: string | null
+          status?: string
+          supervisor_approved_at?: string | null
+          supervisor_id?: string | null
+          supervisor_notes?: string | null
+          swap_roster_id?: string | null
+          target_guard_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          original_roster_id?: string
+          reason?: string
+          requested_at?: string
+          requesting_guard_id?: string
+          responded_at?: string | null
+          status?: string
+          supervisor_approved_at?: string | null
+          supervisor_id?: string | null
+          supervisor_notes?: string | null
+          swap_roster_id?: string | null
+          target_guard_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_original_roster_id_fkey"
+            columns: ["original_roster_id"]
+            isOneToOne: false
+            referencedRelation: "shift_roster"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_requesting_guard_id_fkey"
+            columns: ["requesting_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_requesting_guard_id_fkey"
+            columns: ["requesting_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_swap_roster_id_fkey"
+            columns: ["swap_roster_id"]
+            isOneToOne: false
+            referencedRelation: "shift_roster"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_guard_id_fkey"
+            columns: ["target_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_guard_id_fkey"
+            columns: ["target_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

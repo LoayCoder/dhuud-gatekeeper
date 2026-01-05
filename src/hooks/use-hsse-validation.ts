@@ -96,7 +96,9 @@ export function usePendingHSSEValidation() {
   return useQuery({
     queryKey: ['pending-hsse-validation', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const query = db
         .from('incidents')
         .select(`
           id, reference_id, title, description, event_type, subtype,
@@ -108,6 +110,8 @@ export function usePendingHSSEValidation() {
         .eq('status', 'pending_hsse_validation')
         .is('deleted_at', null)
         .order('occurred_at', { ascending: false });
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data || [];
@@ -126,7 +130,9 @@ export function usePendingFinalClosure() {
   return useQuery({
     queryKey: ['pending-final-closure', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const query = db
         .from('incidents')
         .select(`
           id, reference_id, title, description, event_type, subtype,
@@ -139,6 +145,8 @@ export function usePendingFinalClosure() {
         .eq('closure_requires_manager', true)
         .is('deleted_at', null)
         .order('occurred_at', { ascending: false });
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data || [];

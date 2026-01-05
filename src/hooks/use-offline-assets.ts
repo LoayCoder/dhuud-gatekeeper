@@ -57,8 +57,9 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
     setIsCaching(true);
     
     try {
-      // Fetch all assets with their relations
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const query = db
         .from('hsse_assets')
         .select(`
           id,
@@ -86,6 +87,8 @@ export function useOfflineAssets(): UseOfflineAssetsReturn {
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(500);
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

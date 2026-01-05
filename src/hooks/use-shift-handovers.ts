@@ -33,6 +33,9 @@ export interface ShiftHandover {
   next_shift_priorities: string | null;
   attachments: Json;
   notes: string | null;
+  outgoing_signature: string | null;
+  incoming_signature: string | null;
+  signature_timestamp: string | null;
   created_at: string;
   updated_at: string;
   outgoing_guard?: {
@@ -80,6 +83,9 @@ export function useShiftHandovers(dateFilter?: string) {
           next_shift_priorities,
           attachments,
           notes,
+          outgoing_signature,
+          incoming_signature,
+          signature_timestamp,
           created_at,
           updated_at,
           outgoing_guard:profiles!shift_handovers_outgoing_guard_id_fkey(full_name),
@@ -128,6 +134,9 @@ export function usePendingHandovers() {
           next_shift_priorities,
           attachments,
           notes,
+          outgoing_signature,
+          incoming_signature,
+          signature_timestamp,
           created_at,
           updated_at,
           outgoing_guard:profiles!shift_handovers_outgoing_guard_id_fkey(full_name),
@@ -158,6 +167,7 @@ export function useCreateShiftHandover() {
       visitor_info?: string;
       next_shift_priorities?: string;
       notes?: string;
+      outgoing_signature?: string;
     }) => {
       const { data: profile } = await supabase
         .from('profiles')
@@ -177,6 +187,8 @@ export function useCreateShiftHandover() {
         visitor_info: params.visitor_info || null,
         next_shift_priorities: params.next_shift_priorities || null,
         notes: params.notes || null,
+        outgoing_signature: params.outgoing_signature || null,
+        signature_timestamp: params.outgoing_signature ? new Date().toISOString() : null,
       };
 
       const { data, error } = await supabase
@@ -207,7 +219,7 @@ export function useAcknowledgeHandover() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (handoverId: string) => {
+    mutationFn: async (params: { handoverId: string; incoming_signature: string }) => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
@@ -219,8 +231,10 @@ export function useAcknowledgeHandover() {
           incoming_guard_id: profile?.id,
           acknowledged_at: new Date().toISOString(),
           status: 'acknowledged',
+          incoming_signature: params.incoming_signature,
+          signature_timestamp: new Date().toISOString(),
         })
-        .eq('id', handoverId)
+        .eq('id', params.handoverId)
         .select()
         .single();
 
