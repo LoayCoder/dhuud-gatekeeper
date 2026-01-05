@@ -105,9 +105,9 @@ const OBSERVATION_TYPES = [
 // Removed - now using HSSE_SEVERITY_LEVELS from src/lib/hsse-severity-levels.ts
 
 const RISK_RATING_LEVELS = [
-  { value: 'low', labelKey: 'incidents.riskRating.low', color: 'bg-green-500' },
-  { value: 'medium', labelKey: 'incidents.riskRating.medium', color: 'bg-yellow-500' },
-  { value: 'high', labelKey: 'incidents.riskRating.high', color: 'bg-red-500' },
+  { value: 'low', labelKey: 'incidents.riskRating.low', color: 'bg-success' },
+  { value: 'medium', labelKey: 'incidents.riskRating.medium', color: 'bg-warning' },
+  { value: 'high', labelKey: 'incidents.riskRating.high', color: 'bg-destructive' },
 ];
 
 const WIZARD_STEPS = [
@@ -816,8 +816,8 @@ export default function IncidentReport() {
           onClick={() => setReportMode('observation')}
         >
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
-              <Eye className="h-8 w-8 text-yellow-500" />
+            <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+              <Eye className="h-8 w-8 text-warning" />
             </div>
             <div>
               <h3 className="font-semibold text-lg">{t('quickObservation.observationTitle')}</h3>
@@ -836,8 +836,8 @@ export default function IncidentReport() {
           onClick={() => setReportMode('incident')}
         >
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
-              <Siren className="h-8 w-8 text-red-500" />
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center group-hover:bg-destructive/20 transition-colors">
+              <Siren className="h-8 w-8 text-destructive" />
             </div>
             <div>
               <h3 className="font-semibold text-lg">{t('quickObservation.incidentTitle')}</h3>
@@ -1249,7 +1249,7 @@ export default function IncidentReport() {
                         </Select>
                         
                         {autoDetectedSite && !gpsDetectedSite && field.value && (
-                          <FormDescription className="flex items-center gap-1 text-blue-600">
+                          <FormDescription className="flex items-center gap-1 text-info">
                             <Info className="h-3 w-3" />
                             {t('incidents.autoDetectedFromProfile')}
                           </FormDescription>
@@ -1291,13 +1291,13 @@ export default function IncidentReport() {
                           </SelectContent>
                         </Select>
                         {gpsDetectedBranch && field.value && (
-                          <FormDescription className="flex items-center gap-1 text-green-600">
+                          <FormDescription className="flex items-center gap-1 text-success">
                             <CheckCircle2 className="h-3 w-3" />
                             {t('incidents.gpsDetectedFromSite')}
                           </FormDescription>
                         )}
                         {autoDetectedBranch && !gpsDetectedBranch && field.value && (
-                          <FormDescription className="flex items-center gap-1 text-blue-600">
+                          <FormDescription className="flex items-center gap-1 text-info">
                             <Info className="h-3 w-3" />
                             {t('incidents.autoDetectedFromProfile')}
                           </FormDescription>
@@ -1556,10 +1556,10 @@ export default function IncidentReport() {
 
               {/* Report Against Contractor - Only for Incidents */}
               {!isObservation && (
-                <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="space-y-4 p-4 bg-warning/5 border border-warning/20 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-amber-600" />
+                      <Building2 className="h-5 w-5 text-warning" />
                       <div>
                         <span className="font-medium">{t('incidents.reportAgainstContractor')}</span>
                         <p className="text-sm text-muted-foreground">{t('incidents.contractorViolationNote')}</p>
@@ -1612,7 +1612,7 @@ export default function IncidentReport() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                      <AlertTriangle className="h-5 w-5 text-warning" />
                       {t('incidents.injuryDetails')}
                     </CardTitle>
                   </CardHeader>

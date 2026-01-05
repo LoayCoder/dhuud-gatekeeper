@@ -77,16 +77,16 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
   };
 
   return (
-    <Card className="border-amber-500/50 bg-amber-500/5" dir={direction}>
+    <Card className="border-warning/30 bg-warning/5" dir={direction}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-600" />
+            <ShieldAlert className="h-5 w-5 text-warning" />
             <CardTitle className="text-lg">
               {t('workflow.hsseRejectionReview.title', 'Rejection Review Required')}
             </CardTitle>
           </div>
-          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
             {t('workflow.hsseRejectionReview.pendingAction', 'HSSE Review Required')}
           </Badge>
         </div>
@@ -106,7 +106,7 @@ export function HSSEExpertRejectionReviewCard({ incident, onComplete }: HSSEExpe
         </div>
         
         {/* Rejection Details */}
-        <Alert variant="destructive" className="border-red-300 bg-red-50 dark:bg-red-950/30">
+        <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>
             {t('workflow.hsseRejectionReview.rejectionReason', 'Rejection Reason')}

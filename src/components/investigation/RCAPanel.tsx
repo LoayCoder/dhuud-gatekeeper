@@ -363,9 +363,9 @@ export function RCAPanel({
 
         {/* Read-Only Oversight Banner - For non-investigators */}
         {isLocked && !isClosedLocked && !isManuallyLocked && (
-          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
-            <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <AlertDescription className="text-blue-800 dark:text-blue-200">
+          <Alert className="border-info/30 bg-info/5">
+            <Lock className="h-4 w-4 text-info" />
+            <AlertDescription className="text-foreground">
               {t('investigation.readOnlyOversight', 'You are viewing this investigation in read-only mode. Only the assigned investigator can make changes.')}
             </AlertDescription>
           </Alert>
@@ -632,7 +632,7 @@ export function RCAPanel({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {isLocked ? (
               <>
-                <Lock className="h-4 w-4 text-amber-500" />
+                <Lock className="h-4 w-4 text-warning" />
                 <span>{t('investigation.rca.analysisLocked', 'Analysis is locked')}</span>
               </>
             ) : (
@@ -645,7 +645,7 @@ export function RCAPanel({
                 )}
                 {autoSaveStatus === 'saved' && (
                   <>
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span>{t('investigation.rca.autoSaved', 'Auto-saved')}</span>
                   </>
                 )}

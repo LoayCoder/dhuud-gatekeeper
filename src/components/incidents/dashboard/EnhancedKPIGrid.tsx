@@ -57,14 +57,14 @@ function KPIGroup({
         <div className="flex flex-wrap gap-2">
           <Badge 
             variant="outline" 
-            className={`bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 ${onOpenClick ? 'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/50' : ''}`}
+            className={`bg-info/10 text-info border-info/20 ${onOpenClick ? 'cursor-pointer hover:bg-info/20' : ''}`}
             onClick={onOpenClick}
           >
             {t('hsseDashboard.openStatus', 'Open')}: {open}
           </Badge>
           <Badge 
             variant="outline" 
-            className={`bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 ${onClosedClick ? 'cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/50' : ''}`}
+            className={`bg-success/10 text-success border-success/20 ${onClosedClick ? 'cursor-pointer hover:bg-success/20' : ''}`}
             onClick={onClosedClick}
           >
             {t('hsseDashboard.closedStatus', 'Closed')}: {closed}
@@ -93,7 +93,7 @@ export function EnhancedKPIGrid({ summary, actions }: EnhancedKPIGridProps) {
       <KPIGroup
         title={t('hsseDashboard.totalIncidents', 'Incidents')}
         icon={AlertTriangle}
-        iconBg="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+        iconBg="bg-warning/10 text-warning"
         total={summary.total_incidents}
         open={summary.incidents_open || 0}
         closed={summary.incidents_closed || 0}
@@ -106,7 +106,7 @@ export function EnhancedKPIGrid({ summary, actions }: EnhancedKPIGridProps) {
       <KPIGroup
         title={t('hsseDashboard.totalObservations', 'Observations')}
         icon={Eye}
-        iconBg="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+        iconBg="bg-info/10 text-info"
         total={summary.total_observations}
         open={summary.observations_open || 0}
         closed={summary.observations_closed || 0}
@@ -117,7 +117,7 @@ export function EnhancedKPIGrid({ summary, actions }: EnhancedKPIGridProps) {
       <KPIGroup
         title={t('hsseDashboard.totalActions', 'Corrective Actions')}
         icon={ClipboardList}
-        iconBg="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+        iconBg="bg-primary/10 text-primary"
         total={actions.total_actions || 0}
         open={actions.open_actions}
         closed={actions.actions_closed || 0}
@@ -129,7 +129,7 @@ export function EnhancedKPIGrid({ summary, actions }: EnhancedKPIGridProps) {
       <KPIGroup
         title={t('hsseDashboard.totalInvestigationsCount', 'Investigations')}
         icon={Search}
-        iconBg="bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+        iconBg="bg-secondary text-secondary-foreground"
         total={summary.total_investigations || 0}
         open={summary.investigations_open || 0}
         closed={summary.investigations_closed || 0}

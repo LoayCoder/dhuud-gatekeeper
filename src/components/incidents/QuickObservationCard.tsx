@@ -386,19 +386,19 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
         
         {/* Event Mode Active Banner */}
         {activeEvent && (
-          <div className="mx-4 mb-4 rounded-lg border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 p-3">
+          <div className="mx-4 mb-4 rounded-lg border-2 border-info bg-info/5 p-3">
             <div className="flex items-start gap-2">
-              <div className="flex-shrink-0 rounded-full bg-blue-500 p-1.5">
-                <Trophy className="h-4 w-4 text-white" />
+              <div className="flex-shrink-0 rounded-full bg-info p-1.5">
+                <Trophy className="h-4 w-4 text-info-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                <p className="text-xs font-medium text-foreground">
                   {t('specialEvents.eventBannerTitle')}
                 </p>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-300 truncate">
+                <p className="text-sm font-bold text-info truncate">
                   {activeEvent.name}
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {t('specialEvents.eventBannerNote')}
                 </p>
               </div>

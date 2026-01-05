@@ -70,7 +70,7 @@ export function PeopleMetricsCard({ data, isLoading }: PeopleMetricsCardProps) {
               style={{ width: `${data.employee_pct}%` }}
             />
             <div
-              className="bg-amber-500 transition-all"
+              className="bg-warning transition-all"
               style={{ width: `${data.contractor_pct}%` }}
             />
           </div>
@@ -82,7 +82,7 @@ export function PeopleMetricsCard({ data, isLoading }: PeopleMetricsCardProps) {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-2 w-2 rounded-full bg-amber-500" />
+              <div className="h-2 w-2 rounded-full bg-warning" />
               <span className="text-muted-foreground">
                 {t('kpiDashboard.contractors', 'Contractors')}: {data.contractor_pct.toFixed(1)}%
               </span>
@@ -105,9 +105,9 @@ export function PeopleMetricsCard({ data, isLoading }: PeopleMetricsCardProps) {
             </p>
           </div>
 
-          <div className="rounded-lg bg-amber-500/10 p-3">
+          <div className="rounded-lg bg-warning/10 p-3">
             <div className="flex items-center gap-2">
-              <HardHat className="h-4 w-4 text-amber-600" />
+              <HardHat className="h-4 w-4 text-warning" />
               <span className="text-sm font-medium">
                 {t('kpiDashboard.contractors', 'Contractors')}
               </span>

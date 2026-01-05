@@ -22,10 +22,10 @@ const getSeverityColor = (severity: string | null, isActive: boolean): string =>
   if (!isActive) return 'bg-muted';
   switch (severity) {
     case 'level_5': return 'bg-destructive';
-    case 'level_4': return 'bg-orange-500';
-    case 'level_3': return 'bg-amber-500';
-    case 'level_2': return 'bg-yellow-500';
-    case 'level_1': return 'bg-green-500';
+    case 'level_4': return 'bg-warning';
+    case 'level_3': return 'bg-warning/70';
+    case 'level_2': return 'bg-warning/50';
+    case 'level_1': return 'bg-success';
     default: return 'bg-muted';
   }
 };
@@ -84,7 +84,7 @@ export function IncidentRiskPanel({
               {severityTrend === 'higher' ? (
                 <TrendingUp className="h-3 w-3 text-destructive" />
               ) : (
-                <TrendingDown className="h-3 w-3 text-green-500" />
+                <TrendingDown className="h-3 w-3 text-success" />
               )}
             </p>
             <Badge 

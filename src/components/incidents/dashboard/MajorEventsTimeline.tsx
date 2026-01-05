@@ -29,19 +29,19 @@ const severityConfig = {
     borderColor: 'border-s-destructive'
   },
   high: { 
-    color: 'bg-orange-500 text-white', 
+    color: 'bg-warning text-warning-foreground', 
     icon: AlertTriangle,
-    borderColor: 'border-s-orange-500'
+    borderColor: 'border-s-warning'
   },
   medium: { 
-    color: 'bg-yellow-500 text-white', 
+    color: 'bg-warning/70 text-foreground', 
     icon: AlertTriangle,
-    borderColor: 'border-s-yellow-500'
+    borderColor: 'border-s-warning/70'
   },
   low: { 
-    color: 'bg-blue-500 text-white', 
+    color: 'bg-info text-info-foreground', 
     icon: AlertTriangle,
-    borderColor: 'border-s-blue-500'
+    borderColor: 'border-s-info'
   }
 };
 

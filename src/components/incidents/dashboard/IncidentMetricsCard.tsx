@@ -114,30 +114,30 @@ export function IncidentMetricsCard({ startDate, endDate, branchId, siteId }: In
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-green-500/5 border-green-500/20">
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-success/5 border-success/20">
             <div className="flex items-center gap-3">
-              <Leaf className="h-5 w-5 text-green-600" />
+              <Leaf className="h-5 w-5 text-success" />
               <span className="font-medium">{t('kpiDashboard.environmentalIncidents', 'Environmental')}</span>
             </div>
-            <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/30">
+            <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
               {severityData?.environmental ?? 0}
             </Badge>
           </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-blue-500/5 border-blue-500/20">
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-info/5 border-info/20">
             <div className="flex items-center gap-3">
-              <Car className="h-5 w-5 text-blue-600" />
+              <Car className="h-5 w-5 text-info" />
               <span className="font-medium">{t('kpiDashboard.vehicleIncidents', 'Vehicle/Equipment')}</span>
             </div>
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
+            <Badge variant="secondary" className="bg-info/10 text-info border-info/30">
               {severityData?.vehicle_equipment ?? 0}
             </Badge>
           </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-red-500/5 border-red-500/20">
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-destructive/5 border-destructive/20">
             <div className="flex items-center gap-3">
-              <ShieldAlert className="h-5 w-5 text-red-600" />
+              <ShieldAlert className="h-5 w-5 text-destructive" />
               <span className="font-medium">{t('kpiDashboard.securityIncidents', 'Security')}</span>
             </div>
-            <Badge variant="secondary" className="bg-red-500/10 text-red-600 border-red-500/30">
+            <Badge variant="secondary" className="bg-destructive/10 text-destructive border-destructive/30">
               {severityData?.security ?? 0}
             </Badge>
           </div>

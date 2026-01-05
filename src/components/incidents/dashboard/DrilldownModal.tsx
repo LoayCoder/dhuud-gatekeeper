@@ -17,21 +17,21 @@ import { useDrilldownContext } from "@/contexts/DrilldownContext";
 import { useDrilldownEvents } from "@/hooks/use-drilldown-events";
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30",
-  high: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30",
-  medium: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30",
-  low: "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30",
+  critical: "bg-destructive/15 text-destructive border-destructive/30",
+  high: "bg-warning/15 text-warning border-warning/30",
+  medium: "bg-warning/10 text-warning/80 border-warning/20",
+  low: "bg-success/15 text-success border-success/30",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  submitted: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  expert_screening: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
-  pending_manager_approval: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  investigation_in_progress: "bg-cyan-500/15 text-cyan-700 dark:text-cyan-400",
-  pending_closure: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
-  closed: "bg-green-500/15 text-green-700 dark:text-green-400",
-  returned: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
-  rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
+  submitted: "bg-info/15 text-info",
+  expert_screening: "bg-primary/15 text-primary",
+  pending_manager_approval: "bg-warning/15 text-warning",
+  investigation_in_progress: "bg-info/15 text-info",
+  pending_closure: "bg-warning/15 text-warning",
+  closed: "bg-success/15 text-success",
+  returned: "bg-warning/15 text-warning",
+  rejected: "bg-destructive/15 text-destructive",
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {

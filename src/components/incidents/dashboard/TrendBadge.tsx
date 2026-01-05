@@ -26,8 +26,8 @@ export function TrendBadge({ current, previous, invertColors = true }: TrendBadg
     <span
       className={cn(
         "inline-flex items-center gap-0.5 text-xs font-medium",
-        isPositive && "text-green-600 dark:text-green-400",
-        isNegative && "text-red-600 dark:text-red-400",
+        isPositive && "text-success",
+        isNegative && "text-destructive",
         isSteady && "text-muted-foreground"
       )}
     >
