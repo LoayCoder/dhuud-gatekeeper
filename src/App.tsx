@@ -195,6 +195,7 @@ const WebpageNotificationSettings = lazyWithRetry(() => import("./pages/admin/We
 const PageContentEditor = lazyWithRetry(() => import("./pages/admin/PageContentEditor"));
 const EmergencyInstructionsSettings = lazyWithRetry(() => import("./pages/admin/EmergencyInstructionsSettings"));
 const VisitorSettings = lazyWithRetry(() => import("./pages/admin/VisitorSettings"));
+const TrainingCenter = lazyWithRetry(() => import("./pages/admin/TrainingCenter"));
 
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
@@ -690,6 +691,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <AdminSecurityDashboard />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/training-center"
+                        element={
+                          <AdminRoute>
+                            <TrainingCenter />
                           </AdminRoute>
                         }
                       />
