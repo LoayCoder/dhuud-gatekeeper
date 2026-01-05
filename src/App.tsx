@@ -698,9 +698,9 @@ const App = () => (
                       <Route
                         path="/admin/training-center"
                         element={
-                          <AdminRoute>
+                          <ProtectedRoute>
                             <TrainingCenter />
-                          </AdminRoute>
+                          </ProtectedRoute>
                         }
                       />
 
