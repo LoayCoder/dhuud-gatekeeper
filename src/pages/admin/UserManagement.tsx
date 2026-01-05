@@ -40,7 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserFormDialog, UserDetailPopover, UserImportDialog } from "@/components/users";
+import { UserFormDialog, UserDetailPopover, UserImportDialog, InvitationManagementPanel } from "@/components/users";
 import { EmailSyncBanner } from "@/components/users/EmailSyncBanner";
 import { LicensedUserQuotaCard } from "@/components/billing/LicensedUserQuotaCard";
 import { useLicensedUserQuota } from "@/hooks/use-licensed-user-quota";
@@ -269,36 +269,80 @@ export default function UserManagement() {
             role_ids: selectedRoleIds,
           };
           
-          const { error: inviteError } = await supabase.from('invitations').insert({
+          // Determine delivery channel
+          const deliveryChannel = data.delivery_channel || 'email';
+          
+          const { data: invitationData, error: inviteError } = await supabase.from('invitations').insert({
             tenant_id: profile?.tenant_id,
             email: data.email,
             code: inviteCode,
             expires_at: expiresAt.toISOString(),
             metadata: metadata,
-          });
+            full_name: data.full_name,
+            phone_number: data.phone_number || null,
+            delivery_channel: deliveryChannel,
+            delivery_status: 'pending',
+          }).select().single();
           
           if (inviteError) throw inviteError;
           
-          // Send invitation email
-          const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-            body: {
-              email: data.email,
-              code: inviteCode,
-              tenantName: tenant?.name || 'DHUUD Platform',
-              expiresAt: expiresAt.toISOString(),
-              inviteUrl: window.location.origin,
-            },
-          });
+          let emailSent = false;
+          let whatsappSent = false;
           
-          if (emailError) {
-            console.error('Failed to send invitation email:', emailError);
-            toast({ 
-              title: t('userManagement.invitationCreated'),
-              description: t('userManagement.emailFailed'),
+          // Send via email if channel is email or both
+          if (deliveryChannel === 'email' || deliveryChannel === 'both') {
+            const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+              body: {
+                email: data.email,
+                code: inviteCode,
+                tenantName: tenant?.name || 'DHUUD Platform',
+                expiresAt: expiresAt.toISOString(),
+                inviteUrl: window.location.origin,
+              },
             });
+            
+            if (emailError) {
+              console.error('Failed to send invitation email:', emailError);
+            } else {
+              emailSent = true;
+              await supabase.from('invitations')
+                .update({ email_sent_at: new Date().toISOString(), delivery_status: 'sent' })
+                .eq('id', invitationData.id);
+            }
+          }
+          
+          // Send via WhatsApp if channel is whatsapp or both, and phone exists
+          if ((deliveryChannel === 'whatsapp' || deliveryChannel === 'both') && data.phone_number) {
+            const { data: waResult, error: waError } = await supabase.functions.invoke('send-invitation-whatsapp', {
+              body: {
+                invitation_id: invitationData.id,
+                phone_number: data.phone_number,
+                code: inviteCode,
+                tenant_name: tenant?.name || 'DHUUD Platform',
+                expires_at: expiresAt.toISOString(),
+                full_name: data.full_name,
+                invite_url: window.location.origin,
+              },
+            });
+            
+            if (waError || !waResult?.success) {
+              console.error('Failed to send WhatsApp invitation:', waError || waResult?.error);
+            } else {
+              whatsappSent = true;
+            }
+          }
+          
+          // Show appropriate toast
+          if (emailSent && whatsappSent) {
+            toast({ title: t('userManagement.invitationSentBoth', 'Invitation sent via email and WhatsApp') });
+          } else if (emailSent) {
+            toast({ title: t('userManagement.invitationSent', { email: data.email }) });
+          } else if (whatsappSent) {
+            toast({ title: t('userManagement.invitationSentWhatsApp', 'Invitation sent via WhatsApp') });
           } else {
             toast({ 
-              title: t('userManagement.invitationSent', { email: data.email }),
+              title: t('userManagement.invitationCreated'),
+              description: t('userManagement.deliveryFailed', 'Invitation created but delivery failed. You can resend from the pending invitations list.'),
             });
           }
           
@@ -698,6 +742,9 @@ export default function UserManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pending Invitations Panel */}
+      <InvitationManagementPanel />
 
       {/* Bulk Actions Toolbar */}
       {selectedUsers.size > 0 && (
