@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { offlineDataCache, CACHE_STORES } from '@/lib/offline-data-cache';
+import { encryptedStorage } from '@/lib/offline-encryption';
 
 export type OfflineActionType = 'inspection' | 'condition_update' | 'maintenance_log' | 'transfer' | 'scan_log' | 'photo_upload';
 
@@ -22,7 +23,7 @@ export interface OfflineAction {
   sync_error?: string;
 }
 
-const OFFLINE_ACTIONS_KEY = 'asset_offline_actions_queue';
+const OFFLINE_ACTIONS_KEY = 'asset_offline_actions_queue_encrypted';
 
 function getDeviceId(): string {
   let deviceId = localStorage.getItem('device_id');
@@ -59,22 +60,38 @@ export function useAssetOfflineActions() {
   const [queue, setQueue] = useState<OfflineAction[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const isInitialized = useRef(false);
 
-  // Load queue from localStorage
+  // Load queue from encrypted storage
   useEffect(() => {
-    const stored = localStorage.getItem(OFFLINE_ACTIONS_KEY);
-    if (stored) {
+    const loadQueue = async () => {
+      if (isInitialized.current) return;
+      isInitialized.current = true;
+      
       try {
-        setQueue(JSON.parse(stored));
+        const stored = await encryptedStorage.getItem<OfflineAction[]>(OFFLINE_ACTIONS_KEY);
+        if (stored && Array.isArray(stored)) {
+          setQueue(stored);
+        }
       } catch (e) {
-        console.error('Failed to parse offline actions:', e);
+        console.error('Failed to load offline actions:', e);
       }
-    }
+    };
+    loadQueue();
   }, []);
 
-  // Save queue to localStorage on change
+  // Save queue to encrypted storage on change
   useEffect(() => {
-    localStorage.setItem(OFFLINE_ACTIONS_KEY, JSON.stringify(queue));
+    if (!isInitialized.current) return;
+    
+    const saveQueue = async () => {
+      try {
+        await encryptedStorage.setItem(OFFLINE_ACTIONS_KEY, queue);
+      } catch (e) {
+        console.error('Failed to save offline actions:', e);
+      }
+    };
+    saveQueue();
   }, [queue]);
 
   // Monitor online status

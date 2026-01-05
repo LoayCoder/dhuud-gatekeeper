@@ -34,61 +34,62 @@ interface OverdueItem {
 
 export function useAssetDashboardStats() {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   
   return useQuery({
-    queryKey: ["asset-dashboard-stats", profile?.tenant_id],
+    queryKey: ["asset-dashboard-stats", tenantId],
     queryFn: async () => {
-      if (!profile?.tenant_id) throw new Error("No tenant");
+      if (!tenantId) throw new Error("No tenant");
       
+      // Use server-side RPC function for O(1) performance
       const { data, error } = await supabase
-        .from("hsse_assets")
-        .select("status")
-        .eq("tenant_id", profile.tenant_id)
-        .is("deleted_at", null);
+        .rpc('get_asset_dashboard_stats', { p_tenant_id: tenantId });
       
       if (error) throw error;
       
+      const row = (data as Record<string, unknown>[])?.[0] || {};
       const stats: AssetStats = {
-        total: data.length,
-        active: data.filter(a => a.status === "active").length,
-        inactive: data.filter(a => a.status === "retired" || a.status === "out_of_service").length,
-        under_maintenance: data.filter(a => a.status === "under_maintenance").length,
-        decommissioned: data.filter(a => a.status === "missing").length,
+        total: Number(row.total_assets) || 0,
+        active: Number(row.active_count) || 0,
+        inactive: Number(row.inactive_count) || 0,
+        under_maintenance: Number(row.under_maintenance_count) || 0,
+        decommissioned: Number(row.missing_count) || 0,
       };
       
       return stats;
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
 export function useAssetConditionDistribution() {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   
   return useQuery({
-    queryKey: ["asset-condition-distribution", profile?.tenant_id],
+    queryKey: ["asset-condition-distribution", tenantId],
     queryFn: async () => {
-      if (!profile?.tenant_id) throw new Error("No tenant");
+      if (!tenantId) throw new Error("No tenant");
       
       const { data, error } = await supabase
-        .from("hsse_assets")
-        .select("condition_rating")
-        .eq("tenant_id", profile.tenant_id)
-        .is("deleted_at", null);
+        .rpc('get_asset_dashboard_stats', { p_tenant_id: tenantId });
       
       if (error) throw error;
       
+      const row = (data as Record<string, unknown>[])?.[0] || {};
       const distribution: ConditionDistribution = {
-        excellent: data.filter(a => a.condition_rating === "excellent").length,
-        good: data.filter(a => a.condition_rating === "good").length,
-        fair: data.filter(a => a.condition_rating === "fair").length,
-        poor: data.filter(a => a.condition_rating === "poor").length,
-        critical: data.filter(a => a.condition_rating === "critical").length,
+        excellent: Number(row.excellent_condition) || 0,
+        good: Number(row.good_condition) || 0,
+        fair: Number(row.fair_condition) || 0,
+        poor: Number(row.poor_condition) || 0,
+        critical: Number(row.critical_condition) || 0,
       };
       
       return distribution;
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

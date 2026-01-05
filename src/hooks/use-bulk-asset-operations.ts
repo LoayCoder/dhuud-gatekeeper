@@ -49,7 +49,8 @@ export function useBulkStatusChange() {
       return { count: assetIds.length };
     },
     onSuccess: ({ count }) => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets', profile?.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats', profile?.tenant_id] });
       toast.success(t('assets.bulk.statusChangeSuccess', { count }));
     },
     onError: (error) => {
@@ -91,7 +92,8 @@ export function useBulkLocationChange() {
       return { count: assetIds.length };
     },
     onSuccess: ({ count }) => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets', profile?.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats', profile?.tenant_id] });
       toast.success(t('assets.bulk.locationChangeSuccess', { count }));
     },
     onError: (error) => {
@@ -126,7 +128,8 @@ export function useBulkDelete() {
       return { count: assetIds.length };
     },
     onSuccess: ({ count }) => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets', profile?.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['asset-dashboard-stats', profile?.tenant_id] });
       toast.success(t('assets.bulk.deleteSuccess', { count }));
     },
     onError: (error) => {
