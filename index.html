@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    
+    <!-- Early PWA Install Prompt Capture - Must run before React loads -->
+    <script>
+      window.deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.deferredInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-install-available'));
+      });
+    </script>
     <title>Dhuud HSSE Platform</title>
     <meta name="description" content="Zero Trust Multi-Tenant HSSE Platform">
     <meta name="author" content="Dhuud" />

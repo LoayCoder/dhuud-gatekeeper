@@ -5,6 +5,12 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+declare global {
+  interface Window {
+    deferredInstallPrompt: BeforeInstallPromptEvent | null;
+  }
+}
+
 const DISMISS_KEY = 'pwa-install-dismissed-until';
 
 export function usePWAInstall() {
@@ -18,15 +24,12 @@ export function usePWAInstall() {
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
     !(window as any).MSStream;
 
-  // Detect if running in iframe (e.g., Lovable preview)
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
   useEffect(() => {
-    // If running in iframe, definitely NOT installed as standalone PWA
     if (isInIframe) {
       setIsInstalled(false);
     } else {
-      // Only check standalone mode if NOT in iframe
       const isStandalone = 
         window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone === true;
@@ -37,18 +40,35 @@ export function usePWAInstall() {
       }
     }
 
+    // Check if prompt was already captured globally (before React loaded)
+    if (window.deferredInstallPrompt) {
+      setDeferredPrompt(window.deferredInstallPrompt);
+      promptRef.current = window.deferredInstallPrompt;
+      setIsReady(true);
+    }
+
     // Check if dismissed
     const dismissedUntil = localStorage.getItem(DISMISS_KEY);
     if (dismissedUntil && new Date(dismissedUntil) > new Date()) {
       setIsDismissed(true);
     }
 
-    // Listen for beforeinstallprompt
+    // Listen for custom event from global capture
+    const handlePwaAvailable = () => {
+      if (window.deferredInstallPrompt) {
+        setDeferredPrompt(window.deferredInstallPrompt);
+        promptRef.current = window.deferredInstallPrompt;
+        setIsReady(true);
+      }
+    };
+
+    // Listen for beforeinstallprompt (fallback if global didn't catch it)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
       promptRef.current = promptEvent;
+      window.deferredInstallPrompt = promptEvent;
       setIsReady(true);
     };
 
@@ -57,8 +77,10 @@ export function usePWAInstall() {
       setIsInstalled(true);
       setDeferredPrompt(null);
       promptRef.current = null;
+      window.deferredInstallPrompt = null;
     };
 
+    window.addEventListener('pwa-install-available', handlePwaAvailable);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
@@ -66,6 +88,7 @@ export function usePWAInstall() {
     const readyTimer = setTimeout(() => setIsReady(true), 1000);
 
     return () => {
+      window.removeEventListener('pwa-install-available', handlePwaAvailable);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       clearTimeout(readyTimer);
@@ -73,19 +96,23 @@ export function usePWAInstall() {
   }, [isInIframe]);
 
   const promptInstall = useCallback(async () => {
-    const prompt = deferredPrompt || promptRef.current;
+    // Check all possible sources for the prompt
+    const prompt = deferredPrompt || promptRef.current || window.deferredInstallPrompt;
     if (!prompt) return false;
 
     try {
       await prompt.prompt();
       const { outcome } = await prompt.userChoice;
       
+      // Clear all references after use
+      setDeferredPrompt(null);
+      promptRef.current = null;
+      window.deferredInstallPrompt = null;
+      
       if (outcome === 'accepted') {
         setIsInstalled(true);
       }
       
-      setDeferredPrompt(null);
-      promptRef.current = null;
       return outcome === 'accepted';
     } catch (error) {
       console.error('Error prompting install:', error);
@@ -106,9 +133,8 @@ export function usePWAInstall() {
   }, []);
 
   // Show install button if not installed and not dismissed
-  // Even without deferredPrompt, we can show instructions
   const canInstall = !isInstalled && !isDismissed;
-  const canPromptNatively = !!(deferredPrompt || promptRef.current);
+  const canPromptNatively = !!(deferredPrompt || promptRef.current || window.deferredInstallPrompt);
 
   return {
     canInstall,
