@@ -1965,7 +1965,8 @@
     "platformManagement": "إدارة المنصة",
     "violationSettings": "إعدادات المخالفات",
     "emergencyInstructions": "تعليمات الطوارئ",
-    "visitorSettings": "إعدادات الزوار"
+    "visitorSettings": "إعدادات الزوار",
+    "pageContentEditor": "محرر محتوى الصفحات"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",
@@ -7903,9 +7904,6 @@
     "translationComplete": "تمت الترجمة بنجاح إلى {{count}} لغات",
     "deleteConfirmTitle": "حذف النسخة اللغوية؟",
     "deleteConfirmDesc": "سيؤدي هذا إلى حذف هذه النسخة المترجمة نهائياً. لن تتأثر الصفحة الرئيسية."
-  },
-  "navigation": {
-    "pageContentEditor": "محرر محتوى الصفحات"
   },
   "templates": {
     "srNo": "م",
