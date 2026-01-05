@@ -11,6 +11,7 @@ import { useDebounce, useSearchAssetsForLinking } from '@/hooks/use-incident-ass
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SelectedAsset {
   id: string;
@@ -30,6 +31,7 @@ interface AssetSelectionSectionProps {
 
 export function AssetSelectionSection({ selectedAssetId, onAssetSelect }: AssetSelectionSectionProps) {
   const { t, i18n } = useTranslation();
+  const { profile } = useAuth();
   const isArabic = i18n.language === 'ar';
   const direction = i18n.dir();
   
@@ -39,11 +41,11 @@ export function AssetSelectionSection({ selectedAssetId, onAssetSelect }: AssetS
 
   const { data: searchResults, isLoading: isSearching } = useSearchAssetsForLinking(debouncedSearch, []);
 
-  // Fetch selected asset details
+  // Fetch selected asset details - with tenant_id filter for security
   const { data: selectedAsset } = useQuery({
-    queryKey: ['selected-asset-for-incident', selectedAssetId],
+    queryKey: ['selected-asset-for-incident', selectedAssetId, profile?.tenant_id],
     queryFn: async () => {
-      if (!selectedAssetId) return null;
+      if (!selectedAssetId || !profile?.tenant_id) return null;
       const { data, error } = await supabase
         .from('hsse_assets')
         .select(`
@@ -57,18 +59,21 @@ export function AssetSelectionSection({ selectedAssetId, onAssetSelect }: AssetS
           category:asset_categories(name, name_ar)
         `)
         .eq('id', selectedAssetId)
+        .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .single();
 
       if (error) throw error;
       return data as SelectedAsset;
     },
-    enabled: !!selectedAssetId,
+    enabled: !!selectedAssetId && !!profile?.tenant_id,
   });
 
   const handleScanSuccess = async (assetId: string) => {
     setShowScanner(false);
-    // Fetch the asset and select it
+    if (!profile?.tenant_id) return;
+    
+    // Fetch the asset with tenant_id filter for security
     const { data, error } = await supabase
       .from('hsse_assets')
       .select(`
@@ -82,6 +87,7 @@ export function AssetSelectionSection({ selectedAssetId, onAssetSelect }: AssetS
         category:asset_categories(name, name_ar)
       `)
       .eq('id', assetId)
+      .eq('tenant_id', profile.tenant_id)
       .is('deleted_at', null)
       .single();
 
