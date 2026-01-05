@@ -68,7 +68,7 @@ export function InspectionDueWidget({
       <CardContent>
         <div className="flex items-end justify-between">
           <div className="text-3xl font-bold">{totalPending}</div>
-          <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+          <div className="flex items-center gap-1 text-xs text-success">
             <CheckCircle2 className="h-3 w-3" />
             {completedThisWeek} {t('dashboard.widgets.thisWeek', 'this week')}
           </div>

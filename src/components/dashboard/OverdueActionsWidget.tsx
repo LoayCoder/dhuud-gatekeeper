@@ -56,7 +56,7 @@ export function OverdueActionsWidget() {
             {hasOverdueActions ? (
               <AlertTriangle className="h-5 w-5 text-destructive" />
             ) : (
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-success" />
             )}
             <CardTitle className="text-lg">
               {t('dashboard.overdueActions', 'Overdue Actions')}
@@ -119,7 +119,7 @@ export function OverdueActionsWidget() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
-            <CheckCircle2 className="h-10 w-10 text-green-600 mb-2" />
+            <CheckCircle2 className="h-10 w-10 text-success mb-2" />
             <p className="text-sm">{t('dashboard.allActionsOnTrack', 'All actions are on track!')}</p>
           </div>
         )}

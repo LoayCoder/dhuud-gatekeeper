@@ -35,11 +35,11 @@ import { cn } from '@/lib/utils';
 
 const getStatusIcon = (status: string | null) => {
   switch (status) {
-    case 'completed': return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case 'in_progress': return <Clock className="h-4 w-4 text-blue-500" />;
+    case 'completed': return <CheckCircle2 className="h-4 w-4 text-success" />;
+    case 'in_progress': return <Clock className="h-4 w-4 text-info" />;
     case 'verified': return <CheckCircle2 className="h-4 w-4 text-primary" />;
     case 'approved': return <CheckCircle2 className="h-4 w-4 text-primary" />;
-    default: return <AlertCircle className="h-4 w-4 text-amber-500" />;
+    default: return <AlertCircle className="h-4 w-4 text-warning" />;
   }
 };
 
@@ -1086,17 +1086,17 @@ export default function MyActions() {
                 {pendingIncidentApprovals && pendingIncidentApprovals.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      <AlertCircle className="h-5 w-5 text-warning" />
                       {t('investigation.approvals.incidentApprovals', 'Incident Approvals')}
                       <Badge variant="secondary">{pendingIncidentApprovals.length}</Badge>
                     </h3>
                     <div className="space-y-4">
                       {pendingIncidentApprovals.map((incident) => (
-                        <Card key={incident.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                        <Card key={incident.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-center gap-2">
-                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                                <AlertCircle className="h-4 w-4 text-warning" />
                                 <CardTitle className="text-base">{incident.reference_id || incident.id.slice(0, 8)}</CardTitle>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1152,7 +1152,7 @@ export default function MyActions() {
                 {canApproveClosures && pendingClosures && pendingClosures.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <FileCheck className="h-5 w-5 text-amber-500" />
+                      <FileCheck className="h-5 w-5 text-warning" />
                       {t('dashboard.pendingClosures', 'Pending Closure Requests')}
                       <Badge variant="secondary">{pendingClosures.length}</Badge>
                     </h3>
@@ -1160,16 +1160,16 @@ export default function MyActions() {
                       {pendingClosures.map((request) => {
                         const isFinalClosure = request.status === 'pending_final_closure';
                         return (
-                          <Card key={request.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                          <Card key={request.id} className="hover:shadow-md transition-shadow border-warning/30">
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-2">
-                                  <FileCheck className="h-4 w-4 text-amber-500" />
+                                  <FileCheck className="h-4 w-4 text-warning" />
                                   <CardTitle className="text-base">{request.reference_id || request.id.slice(0, 8)}</CardTitle>
                                 </div>
                                 <Badge 
                                   variant={isFinalClosure ? 'default' : 'secondary'} 
-                                  className={isFinalClosure ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}
+                                  className={isFinalClosure ? 'bg-success/10 text-success border-success/30' : ''}
                                 >
                                   {isFinalClosure 
                                     ? t('dashboard.finalClosure', 'Final Closure')
@@ -1213,7 +1213,7 @@ export default function MyActions() {
                 {canApproveSeverity && pendingSeverity && pendingSeverity.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      <AlertTriangle className="h-5 w-5 text-warning" />
                       {t('investigation.approvals.severityChanges', 'Severity Changes')}
                       <Badge variant="secondary">{pendingSeverity.length}</Badge>
                     </h3>
@@ -1229,7 +1229,7 @@ export default function MyActions() {
                 {canApproveSeverity && pendingPotentialSeverity && pendingPotentialSeverity.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-purple-500" />
+                      <AlertTriangle className="h-5 w-5 text-info" />
                       {t('investigation.approvals.potentialSeverityChanges', 'Potential Severity Assessments')}
                       <Badge variant="secondary">{pendingPotentialSeverity.length}</Badge>
                     </h3>
@@ -1323,7 +1323,7 @@ export default function MyActions() {
                 {pendingExtensions && pendingExtensions.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <CalendarPlus className="h-5 w-5 text-amber-500" />
+                      <CalendarPlus className="h-5 w-5 text-warning" />
                       {t('actions.extensionRequests', 'Extension Requests')}
                       <Badge variant="secondary">{pendingExtensions.length}</Badge>
                     </h3>
@@ -1342,17 +1342,17 @@ export default function MyActions() {
                 {canApproveWorkers && pendingWorkers && pendingWorkers.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <HardHat className="h-5 w-5 text-amber-500" />
+                      <HardHat className="h-5 w-5 text-warning" />
                       {t('contractors.workers.pendingApprovals', 'Worker Approvals')}
                       <Badge variant="secondary">{pendingWorkers.length}</Badge>
                     </h3>
                     <div className="space-y-4">
                       {pendingWorkers.map((worker) => (
-                        <Card key={worker.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                        <Card key={worker.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-center gap-2">
-                                <HardHat className="h-4 w-4 text-amber-500" />
+                                <HardHat className="h-4 w-4 text-warning" />
                                 <CardTitle className="text-base">{worker.full_name}</CardTitle>
                               </div>
                               <Badge variant="outline">
@@ -1400,17 +1400,17 @@ export default function MyActions() {
                 {canApproveGatePasses && pendingGatePasses && pendingGatePasses.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Truck className="h-5 w-5 text-amber-500" />
+                      <Truck className="h-5 w-5 text-warning" />
                       {t('contractors.gatePasses.pendingApprovals', 'Gate Pass Approvals')}
                       <Badge variant="secondary">{pendingGatePasses.length}</Badge>
                     </h3>
                     <div className="space-y-4">
                       {pendingGatePasses.map((pass) => (
-                        <Card key={pass.id} className="hover:shadow-md transition-shadow border-amber-200 dark:border-amber-900">
+                        <Card key={pass.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-center gap-2">
-                                <Truck className="h-4 w-4 text-amber-500" />
+                                <Truck className="h-4 w-4 text-warning" />
                                 <CardTitle className="text-base">{pass.reference_number}</CardTitle>
                               </div>
                               <Badge variant={pass.status === 'pending_pm_approval' ? 'secondary' : 'outline'}>

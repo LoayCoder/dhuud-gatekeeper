@@ -40,22 +40,22 @@ export function PendingClosureRequestsWidget() {
 
   return (
     <Card className={cn(
-      hasPendingRequests && "border-amber-500/50 bg-amber-500/5"
+      hasPendingRequests && "border-warning/30 bg-warning/5"
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {hasPendingRequests ? (
-              <FileCheck className="h-5 w-5 text-amber-500" />
+              <FileCheck className="h-5 w-5 text-warning" />
             ) : (
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-success" />
             )}
             <CardTitle className="text-lg">
               {t('dashboard.pendingClosures', 'Pending Closure Requests')}
             </CardTitle>
           </div>
           {hasPendingRequests && (
-            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            <Badge variant="secondary" className="bg-warning/10 text-warning">
               {pendingRequests.length}
             </Badge>
           )}
@@ -88,7 +88,7 @@ export function PendingClosureRequestsWidget() {
                         variant={isFinalClosure ? 'default' : 'secondary'} 
                         className={cn(
                           'text-xs',
-                          isFinalClosure && 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          isFinalClosure && 'bg-success/10 text-success'
                         )}
                       >
                         {isFinalClosure 
@@ -135,7 +135,7 @@ export function PendingClosureRequestsWidget() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
-            <CheckCircle2 className="h-10 w-10 text-green-600 mb-2" />
+            <CheckCircle2 className="h-10 w-10 text-success mb-2" />
             <p className="text-sm">{t('dashboard.noClosuresPending', 'No closures pending approval')}</p>
           </div>
         )}

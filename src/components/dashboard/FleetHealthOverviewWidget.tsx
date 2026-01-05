@@ -41,9 +41,9 @@ export function FleetHealthOverviewWidget() {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600 dark:text-green-400';
-    if (score >= 55) return 'text-yellow-600 dark:text-yellow-400';
-    if (score >= 40) return 'text-orange-600 dark:text-orange-400';
+    if (score >= 70) return 'text-success';
+    if (score >= 55) return 'text-warning';
+    if (score >= 40) return 'text-pending';
     return 'text-destructive';
   };
 
@@ -57,19 +57,19 @@ export function FleetHealthOverviewWidget() {
     { 
       label: t('assetHealth.highRisk'), 
       count: stats.highRiskCount, 
-      color: 'bg-orange-500',
+      color: 'bg-pending',
       percentage: (stats.highRiskCount / stats.totalAssets) * 100
     },
     { 
       label: t('assetHealth.mediumRisk'), 
       count: stats.mediumRiskCount, 
-      color: 'bg-yellow-500',
+      color: 'bg-warning',
       percentage: (stats.mediumRiskCount / stats.totalAssets) * 100
     },
     { 
       label: t('assetHealth.lowRisk'), 
       count: stats.lowRiskCount, 
-      color: 'bg-green-500',
+      color: 'bg-success',
       percentage: (stats.lowRiskCount / stats.totalAssets) * 100
     },
   ];
@@ -126,13 +126,13 @@ export function FleetHealthOverviewWidget() {
             <p className="text-xs text-muted-foreground">{t('assetHealth.totalAssets')}</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+            <p className="text-lg font-semibold text-pending">
               {stats.overdueMaintenance}
             </p>
             <p className="text-xs text-muted-foreground">{t('assetHealth.overdue')}</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+            <p className="text-lg font-semibold text-info">
               {stats.upcomingMaintenance}
             </p>
             <p className="text-xs text-muted-foreground">{t('assetHealth.upcoming')}</p>

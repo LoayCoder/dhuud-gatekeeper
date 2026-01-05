@@ -70,16 +70,16 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
   };
   
   return (
-    <Card className="border-orange-500/50 bg-orange-500/5" dir={direction}>
+    <Card className="border-warning/30 bg-warning/5" dir={direction}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HardHat className="h-5 w-5 text-orange-600" />
+            <HardHat className="h-5 w-5 text-warning" />
             <CardTitle className="text-lg">
               {t('workflow.violation.contractorAcknowledgment', 'Contractor Violation Acknowledgment')}
             </CardTitle>
           </div>
-          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
             {t('workflow.violation.pendingAcknowledgment', 'Pending Acknowledgment')}
           </Badge>
         </div>
@@ -91,7 +91,7 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
         {/* Violation Summary */}
         <div className="rounded-lg bg-muted/50 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-amber-600" />
+            <Building2 className="h-4 w-4 text-warning" />
             <span className="font-medium">
               {incident.related_contractor_company?.company_name}
             </span>
@@ -122,9 +122,9 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
         </div>
         
         {/* Info about what acknowledgment means */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-700">
+        <Alert className="bg-info/10 border-info/30">
+          <Info className="h-4 w-4 text-info" />
+          <AlertDescription className="text-info">
             {t('workflow.violation.acknowledgmentInfo', 'By acknowledging, you accept the violation and commit to the required corrective actions. Contesting will escalate to HSSE for final review.')}
           </AlertDescription>
         </Alert>
@@ -147,7 +147,7 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
         <div className="flex gap-3 pt-2">
           <Button
             variant="outline"
-            className="flex-1 flex items-center justify-center gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
+            className="flex-1 flex items-center justify-center gap-2 text-warning border-warning/30 hover:bg-warning/10"
             onClick={handleContest}
             disabled={acknowledgeViolation.isPending}
           >
@@ -160,7 +160,7 @@ export function ContractorSiteRepAcknowledgeCard({ incident, onComplete }: Contr
           </Button>
           
           <Button
-            className="flex-1 flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700"
+            className="flex-1 flex items-center justify-center gap-2"
             onClick={handleAcknowledge}
             disabled={acknowledgeViolation.isPending}
           >

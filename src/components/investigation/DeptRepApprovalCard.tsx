@@ -137,16 +137,16 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
 
   return (
     <div className="space-y-4" dir={direction}>
-      <Card className="border-blue-500/50 bg-blue-500/5">
+      <Card className="border-info/30 bg-info/5">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-blue-600" />
+              <ClipboardList className="h-5 w-5 text-info" />
               <CardTitle className="text-lg">
                 {t('workflow.deptRepApproval.title', 'Department Representative Review')}
               </CardTitle>
             </div>
-            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+            <Badge variant="outline" className="bg-info/10 text-info border-info/30">
               {t('workflow.deptRepApproval.pendingAction', 'Action Required')}
             </Badge>
           </div>
@@ -180,11 +180,11 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
           
           {/* Expert Screening Notes if available */}
           {(incident as IncidentWithDetails & { expert_screening_notes?: string }).expert_screening_notes && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-              <p className="text-sm font-medium text-amber-800 mb-1">
+            <div className="rounded-lg bg-warning/10 border border-warning/30 p-3">
+              <p className="text-sm font-medium text-warning mb-1">
                 {t('workflow.deptRepApproval.expertNotes', 'HSSE Expert Notes')}:
               </p>
-              <p className="text-sm text-amber-700">
+              <p className="text-sm text-warning/80">
                 {(incident as IncidentWithDetails & { expert_screening_notes?: string }).expert_screening_notes}
               </p>
             </div>
@@ -202,8 +202,8 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
           {/* Action Count Indicator */}
           <div className={`rounded-lg p-3 flex items-center gap-2 ${
             actionsCount >= 1
-              ? 'bg-green-50 border border-green-200 text-green-700' 
-              : 'bg-amber-50 border border-amber-200 text-amber-700'
+              ? 'bg-success/10 border border-success/30 text-success' 
+              : 'bg-warning/10 border border-warning/30 text-warning'
           }`}>
             <Info className="h-4 w-4 flex-shrink-0" />
             <span className="text-sm">
@@ -255,7 +255,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             {!isMandatoryActionStatus && (
               <Button
                 variant="outline"
-                className="flex-1 flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                className="flex-1 flex items-center justify-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
                 onClick={() => setShowRejectDialog(true)}
                 disabled={isPending}
               >
@@ -266,7 +266,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             
             <Button
               variant="outline"
-              className="flex-1 flex items-center justify-center gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
+              className="flex-1 flex items-center justify-center gap-2 text-warning border-warning/30 hover:bg-warning/10"
               onClick={handleEscalateToInvestigation}
               disabled={isPending}
             >
@@ -342,7 +342,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
               placeholder={t('workflow.deptRepApproval.rejectionReasonPlaceholder', 'Explain why you are rejecting this observation (min 20 characters)...')}
               rows={3}
             />
-            <p className={`text-xs ${rejectionReason.length < MIN_REJECTION_REASON_LENGTH ? 'text-muted-foreground' : 'text-green-600'}`}>
+            <p className={`text-xs ${rejectionReason.length < MIN_REJECTION_REASON_LENGTH ? 'text-muted-foreground' : 'text-success'}`}>
               {rejectionReason.length}/{MIN_REJECTION_REASON_LENGTH} {t('common.characters', 'characters')}
             </p>
           </div>
@@ -354,7 +354,7 @@ export function DeptRepApprovalCard({ incident, onComplete }: DeptRepApprovalCar
             <AlertDialogAction
               onClick={handleReject}
               disabled={!isRejectionReasonValid || deptRepReject.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {deptRepReject.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
               {t('workflow.deptRepApproval.confirmReject', 'Reject Observation')}
