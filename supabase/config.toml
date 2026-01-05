@@ -299,3 +299,6 @@ verify_jwt = true
 
 [functions.send-invitation-whatsapp]
 verify_jwt = false
+
+[functions.anpr-recognize]
+verify_jwt = true
