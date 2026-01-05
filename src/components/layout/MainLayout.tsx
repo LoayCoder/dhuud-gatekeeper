@@ -7,15 +7,19 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { TrialBanner } from "@/components/TrialBanner";
 import { OfflineStatusBanner } from "@/components/offline/OfflineStatusBanner";
 import { OfflineStatusBadge } from "@/components/layout/OfflineStatusBadge";
-import { InstallPromptDialog } from "@/components/pwa/InstallPromptDialog";
 import { HSSENotificationCenter } from "@/components/notifications/HSSENotificationCenter";
 import { MandatoryNotificationDialog } from "@/components/notifications/MandatoryNotificationDialog";
 import { HSSEAlertBanner } from "@/components/dashboard/HSSEAlertBanner";
+import { useDynamicManifest } from "@/hooks/use-dynamic-manifest";
 
 export default function MainLayout() {
   const {
     tenantName
   } = useTheme();
+  
+  // Generate tenant-specific PWA manifest with name "HSSE – [Tenant Name]" and tenant icon
+  useDynamicManifest();
+  
   return <SidebarProvider>
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <AppSidebar />
@@ -60,9 +64,6 @@ export default function MainLayout() {
       
       {/* Offline Status Banner - Fixed position */}
       <OfflineStatusBanner />
-      
-      {/* PWA Install Prompt - Auto-shows after login */}
-      <InstallPromptDialog triggerOnLogin={true} />
       
       {/* Mandatory HSSE Notifications - Blocks UI until acknowledged */}
       <MandatoryNotificationDialog />

@@ -23,7 +23,6 @@ import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PageLoader } from "./components/ui/page-loader";
 import { NetworkStatusIndicator } from "./components/NetworkStatusIndicator";
 import { OnlineRetryHandler } from "./components/OnlineRetryHandler";
-import { InstallAppBanner } from "./components/InstallAppBanner";
 import { ServiceWorkerUpdateNotifier } from "./components/ServiceWorkerUpdateNotifier";
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 import { useSwNotificationListener } from "./hooks/use-sw-notification-listener";
@@ -232,7 +231,6 @@ const App = () => (
                   <ErrorBoundary fallback={<SessionFallbackUI />}>
                     <SessionManagementProvider>
                       <SessionTimeoutWarning />
-                    <InstallAppBanner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Legal Pages - Public */}

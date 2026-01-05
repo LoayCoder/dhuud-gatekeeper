@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, User } from 'lucide-react';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
-import { InstallAppCard } from '@/components/dashboard/InstallAppCard';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { EnterprisePage } from '@/components/layout/EnterprisePage';
@@ -67,7 +66,6 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {canSeeActions && <MyActionsWidget />}
           <QuickActionsCard />
-          <InstallAppCard />
         </div>
       </section>
 
