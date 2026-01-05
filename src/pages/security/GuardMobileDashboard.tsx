@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Shield, 
   Route, 
@@ -16,12 +17,15 @@ import {
   CheckCircle,
   Play,
   FileText,
-  Bell
+  Bell,
+  ArrowLeftRight
 } from 'lucide-react';
 import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
 import { GuardQuickActions } from '@/components/security/GuardQuickActions';
 import { QuickIncidentReport } from '@/components/security/QuickIncidentReport';
 import { OfflinePatrolIndicator } from '@/components/security/OfflinePatrolIndicator';
+import { ShiftSwapRequestForm } from '@/components/security/ShiftSwapRequestForm';
+import { ShiftSwapRequestsList } from '@/components/security/ShiftSwapRequestsList';
 import { useOfflinePatrolQueue } from '@/hooks/use-offline-patrol-queue';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -32,7 +36,10 @@ export default function GuardMobileDashboard() {
   const navigate = useNavigate();
   const { isOnline, pendingCount } = useOfflinePatrolQueue();
   const [showIncidentReport, setShowIncidentReport] = useState(false);
+  const [showSwapForm, setShowSwapForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [currentShift, setCurrentShift] = useState<{
+    roster_id: string;
     zone_name: string;
     shift_name: string;
     start_time: string;
@@ -52,6 +59,7 @@ export default function GuardMobileDashboard() {
       const { data } = await supabase
         .from('shift_roster')
         .select(`
+          id,
           security_zones(zone_name),
           security_shifts(name, start_time, end_time)
         `)
@@ -62,6 +70,7 @@ export default function GuardMobileDashboard() {
 
       if (data) {
         setCurrentShift({
+          roster_id: data.id,
           zone_name: (data.security_zones as any)?.zone_name || 'Unknown',
           shift_name: (data.security_shifts as any)?.name || 'Unknown',
           start_time: (data.security_shifts as any)?.start_time || '',
@@ -138,6 +147,18 @@ export default function GuardMobileDashboard() {
     );
   }
 
+  if (showSwapForm && currentShift) {
+    return (
+      <div className="min-h-screen bg-background p-4 pb-24">
+        <ShiftSwapRequestForm
+          originalRosterId={currentShift.roster_id}
+          onSuccess={() => setShowSwapForm(false)}
+          onCancel={() => setShowSwapForm(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Status Bar */}
@@ -169,110 +190,140 @@ export default function GuardMobileDashboard() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* Offline Indicator */}
-        {!isOnline && (
-          <OfflinePatrolIndicator />
-        )}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start px-4 pt-2">
+          <TabsTrigger value="dashboard" className="gap-1">
+            <Shield className="h-4 w-4" />
+            {t('security.guard.dashboard', 'Dashboard')}
+          </TabsTrigger>
+          <TabsTrigger value="swaps" className="gap-1">
+            <ArrowLeftRight className="h-4 w-4" />
+            {t('security.shiftSwap.title', 'Shift Swaps')}
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Current Shift Card */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              {t('security.guard.currentShift', 'Current Shift')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {currentShift ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('security.guard.zone', 'Zone')}</span>
-                  <Badge variant="outline">{currentShift.zone_name}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('security.guard.shift', 'Shift')}</span>
-                  <span className="font-medium">{currentShift.shift_name}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('security.guard.time', 'Time')}</span>
-                  <span className="text-sm">{currentShift.start_time} - {currentShift.end_time}</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t('security.guard.noShift', 'No shift assigned today')}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <TabsContent value="dashboard" className="p-4 space-y-4 mt-0">
+          {/* Offline Indicator */}
+          {!isOnline && (
+            <OfflinePatrolIndicator />
+          )}
 
-        {/* Location Status */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className={cn(
-                  'h-5 w-5',
-                  location ? 'text-green-500' : 'text-muted-foreground'
-                )} />
-                <span className="text-sm">
-                  {location 
-                    ? t('security.guard.locationActive', 'Location Active') 
-                    : t('security.guard.locationInactive', 'Location Unavailable')
-                  }
-                </span>
-              </div>
-              {location && (
-                <CheckCircle className="h-5 w-5 text-green-500" />
+          {/* Current Shift Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  {t('security.guard.currentShift', 'Current Shift')}
+                </div>
+                {currentShift && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowSwapForm(true)}
+                    className="gap-1"
+                  >
+                    <ArrowLeftRight className="h-3 w-3" />
+                    {t('security.shiftSwap.requestSwap', 'Swap')}
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {currentShift ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{t('security.guard.zone', 'Zone')}</span>
+                    <Badge variant="outline">{currentShift.zone_name}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{t('security.guard.shift', 'Shift')}</span>
+                    <span className="font-medium">{currentShift.shift_name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{t('security.guard.time', 'Time')}</span>
+                    <span className="text-sm">{currentShift.start_time} - {currentShift.end_time}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t('security.guard.noShift', 'No shift assigned today')}
+                </p>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Alerts Badge */}
-        {pendingAlerts > 0 && (
-          <Card className="border-destructive/50 bg-destructive/5">
+          {/* Location Status */}
+          <Card>
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  <span className="text-sm font-medium">
-                    {t('security.guard.pendingAlerts', '{{count}} Pending Alerts', { count: pendingAlerts })}
+                  <MapPin className={cn(
+                    'h-5 w-5',
+                    location ? 'text-green-500' : 'text-muted-foreground'
+                  )} />
+                  <span className="text-sm">
+                    {location 
+                      ? t('security.guard.locationActive', 'Location Active') 
+                      : t('security.guard.locationInactive', 'Location Unavailable')
+                    }
                   </span>
                 </div>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => navigate('/security/command-center')}
-                >
-                  {t('common.view', 'View')}
-                </Button>
+                {location && (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Quick Actions Grid */}
-        <div className="pt-2">
-          <h3 className="text-sm font-medium mb-3">{t('security.guard.quickActions', 'Quick Actions')}</h3>
-          <GuardQuickActions 
-            variant="grid"
-            onEmergency={() => {}} // EmergencyPanicButton handles this
-            onIncidentReport={() => setShowIncidentReport(true)}
-          />
-        </div>
+          {/* Alerts Badge */}
+          {pendingAlerts > 0 && (
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <span className="text-sm font-medium">
+                      {t('security.guard.pendingAlerts', '{{count}} Pending Alerts', { count: pendingAlerts })}
+                    </span>
+                  </div>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => navigate('/security/command-center')}
+                  >
+                    {t('common.view', 'View')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Start Patrol Button */}
-        <Button 
-          size="lg" 
-          className="w-full h-14 text-lg gap-3"
-          onClick={() => navigate('/security/patrols/execute')}
-        >
-          <Play className="h-6 w-6" />
-          {t('security.guard.startPatrol', 'Start Patrol')}
-        </Button>
-      </div>
+          {/* Quick Actions Grid */}
+          <div className="pt-2">
+            <h3 className="text-sm font-medium mb-3">{t('security.guard.quickActions', 'Quick Actions')}</h3>
+            <GuardQuickActions 
+              variant="grid"
+              onEmergency={() => {}} // EmergencyPanicButton handles this
+              onIncidentReport={() => setShowIncidentReport(true)}
+            />
+          </div>
+
+          {/* Start Patrol Button */}
+          <Button 
+            size="lg" 
+            className="w-full h-14 text-lg gap-3"
+            onClick={() => navigate('/security/patrols/execute')}
+          >
+            <Play className="h-6 w-6" />
+            {t('security.guard.startPatrol', 'Start Patrol')}
+          </Button>
+        </TabsContent>
+
+        <TabsContent value="swaps" className="p-4 mt-0">
+          <ShiftSwapRequestsList />
+        </TabsContent>
+      </Tabs>
 
       {/* Floating Emergency Button */}
       <EmergencyPanicButton variant="floating" />

@@ -41,7 +41,7 @@ import { AddTrainingRecordDialog } from './AddTrainingRecordDialog';
 import { cn } from '@/lib/utils';
 
 interface GuardTrainingListProps {
-  guardId: string;
+  guardId?: string;
   guardName?: string;
   compact?: boolean;
 }

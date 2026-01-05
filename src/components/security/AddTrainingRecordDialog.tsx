@@ -19,9 +19,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CalendarIcon } from 'lucide-react';
 import { useCreateTrainingRecord, TRAINING_TYPES } from '@/hooks/use-guard-training';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 const trainingSchema = z.object({
+  guard_id: z.string().min(1, 'Select a guard'),
   training_type: z.string().min(1, 'Select a training type'),
   training_name: z.string().min(1, 'Enter training name'),
   training_provider: z.string().optional(),
@@ -39,16 +42,43 @@ type TrainingFormData = z.infer<typeof trainingSchema>;
 interface AddTrainingRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  guardId: string;
+  guardId?: string;
 }
 
 export function AddTrainingRecordDialog({ open, onOpenChange, guardId }: AddTrainingRecordDialogProps) {
   const { t } = useTranslation();
   const createRecord = useCreateTrainingRecord();
 
+  // Get guards list when guardId is not provided
+  const { data: currentProfile } = useQuery({
+    queryKey: ['current-user-profile-training'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      return data;
+    },
+    enabled: !guardId,
+  });
+
+  const { data: guards } = useQuery({
+    queryKey: ['guards-for-training', currentProfile?.tenant_id],
+    queryFn: async () => {
+      if (!currentProfile?.tenant_id) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('tenant_id', currentProfile.tenant_id)
+        .is('deleted_at', null);
+      return data || [];
+    },
+    enabled: !guardId && !!currentProfile?.tenant_id,
+  });
+
   const form = useForm<TrainingFormData>({
     resolver: zodResolver(trainingSchema),
     defaultValues: {
+      guard_id: guardId || '',
       training_type: '',
       training_name: '',
       training_provider: '',
@@ -60,7 +90,7 @@ export function AddTrainingRecordDialog({ open, onOpenChange, guardId }: AddTrai
 
   const onSubmit = async (data: TrainingFormData) => {
     await createRecord.mutateAsync({
-      guard_id: guardId,
+      guard_id: data.guard_id,
       training_type: data.training_type,
       training_name: data.training_name,
       training_provider: data.training_provider || undefined,
@@ -85,6 +115,33 @@ export function AddTrainingRecordDialog({ open, onOpenChange, guardId }: AddTrai
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Guard Selector - only show if guardId not provided */}
+            {!guardId && (
+              <FormField
+                control={form.control}
+                name="guard_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('security.training.guard', 'Guard')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('common.select', 'Select a guard')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {guards?.map(g => (
+                          <SelectItem key={g.id} value={g.id}>
+                            {g.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="training_type"

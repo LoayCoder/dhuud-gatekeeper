@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
 import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
+import { ANPRCaptureWidget } from '@/components/security/ANPRCaptureWidget';
 import { useCreateGateEntry, useSendWhatsAppNotification } from '@/hooks/use-gate-entries';
 import { useSites } from '@/hooks/use-sites';
 import { Car, User, Phone, Building2, MessageSquare, Users } from 'lucide-react';
@@ -232,19 +233,27 @@ export function GateEntryForm() {
                 )}
               />
 
-              {/* Car Plate */}
+              {/* Car Plate with ANPR */}
               <FormField
                 control={form.control}
                 name="car_plate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="md:col-span-2">
                     <FormLabel className="flex items-center gap-1">
                       <Car className="h-4 w-4" />
                       {t('security.gate.carPlate', 'Car Plate')}
                     </FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('security.gate.enterPlate', 'Enter plate number')} {...field} />
-                    </FormControl>
+                    <div className="space-y-2">
+                      <ANPRCaptureWidget 
+                        onPlateRecognized={(plate) => field.onChange(plate)}
+                      />
+                      <FormControl>
+                        <Input 
+                          placeholder={t('security.gate.enterPlate', 'Enter plate number')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

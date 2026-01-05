@@ -26,9 +26,10 @@ import { useQuery } from '@tanstack/react-query';
 
 interface ShiftSwapRequestsListProps {
   showSupervisorView?: boolean;
+  showSupervisorActions?: boolean;
 }
 
-export function ShiftSwapRequestsList({ showSupervisorView }: ShiftSwapRequestsListProps) {
+export function ShiftSwapRequestsList({ showSupervisorView, showSupervisorActions }: ShiftSwapRequestsListProps) {
   const { t } = useTranslation();
   const [selectedRequest, setSelectedRequest] = useState<ShiftSwapRequest | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -171,7 +172,7 @@ export function ShiftSwapRequestsList({ showSupervisorView }: ShiftSwapRequestsL
     </div>
   );
 
-  if (showSupervisorView) {
+  if (showSupervisorView || showSupervisorActions) {
     return (
       <Card>
         <CardHeader>
