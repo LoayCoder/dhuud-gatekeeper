@@ -19510,6 +19510,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_personal_dashboard_stats: { Args: never; Returns: Json }
       get_profile_department_id_bypass: {
         Args: { p_user_id: string }
         Returns: string
