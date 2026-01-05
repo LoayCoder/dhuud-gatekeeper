@@ -4838,6 +4838,7 @@
       "poor": "ضعيف",
       "critical": "حرج"
     },
+    "conditionLabel": "الحالة",
     "criticalityLevels": {
       "low": "منخفض",
       "medium": "متوسط",
