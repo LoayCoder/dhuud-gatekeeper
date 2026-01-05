@@ -69,6 +69,8 @@ import {
   AlertTriangle,
   Globe,
   Languages,
+  GraduationCap,
+  BookOpen,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -856,6 +858,20 @@ export function AppSidebar() {
               menuCode: 'admin_support',
             },
           ],
+        },
+      ],
+    },
+    {
+      title: t('navigation.training', 'Training'),
+      icon: GraduationCap,
+      menuCode: 'training',
+      isActive: location.pathname.startsWith("/admin/training"),
+      items: [
+        {
+          title: t('navigation.trainingCenter', 'Training Center'),
+          url: "/admin/training-center",
+          icon: BookOpen,
+          menuCode: 'training_center',
         },
       ],
     },
