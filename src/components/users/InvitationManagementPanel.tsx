@@ -84,10 +84,10 @@ export function InvitationManagementPanel() {
     try {
       const { data, error } = await supabase
         .from('invitations')
-        .select('id, email, code, expires_at, created_at, delivery_status, delivery_channel, email_sent_at, whatsapp_sent_at, last_send_error, full_name, phone_number, metadata')
+        .select('id, email, code, expires_at, used, created_at, delivery_status, delivery_channel, email_sent_at, whatsapp_sent_at, last_send_error, full_name, phone_number, metadata')
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
-        .is('used_at', null)
+        .eq('used', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
