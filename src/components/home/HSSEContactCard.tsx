@@ -160,7 +160,7 @@ export function HSSEContactCard() {
                         {t('home.call')}
                       </a>
                     </Button>
-                    <Button asChild className="flex-1 bg-green-600 hover:bg-green-700">
+                    <Button asChild className="flex-1 bg-success hover:bg-success/90">
                       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                         <MessageCircle className="h-4 w-4 me-2" />
                         {t('home.whatsapp')}
@@ -182,7 +182,7 @@ export function HSSEContactCard() {
                 {t('home.call')}
               </a>
             </Button>
-            <Button asChild size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
+            <Button asChild size="sm" className="flex-1 bg-success hover:bg-success/90">
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="h-4 w-4 me-2" />
                 {t('home.whatsapp')}

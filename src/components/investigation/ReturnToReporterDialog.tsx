@@ -50,7 +50,7 @@ export function ReturnToReporterDialog({
       <DialogContent className="sm:max-w-[500px]" dir={direction}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <RotateCcw className="h-5 w-5 text-amber-600" />
+            <RotateCcw className="h-5 w-5 text-warning" />
             {t('workflow.return.title', 'Return to Reporter')}
           </DialogTitle>
           <DialogDescription>
@@ -98,7 +98,7 @@ export function ReturnToReporterDialog({
           <Button
             onClick={handleConfirm}
             disabled={!reason.trim() || isLoading}
-            className="bg-amber-600 hover:bg-amber-700"
+            className="bg-warning text-warning-foreground hover:bg-warning/90"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />

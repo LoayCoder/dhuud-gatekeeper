@@ -53,16 +53,16 @@ export function ObservationClosureGate({ incident, onComplete }: ObservationClos
   
   if (!canClose) {
     return (
-      <Card className="border-2 border-yellow-500/50 bg-yellow-500/5">
+      <Card className="border-2 border-warning/30 bg-warning/5">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-yellow-600" />
+            <Lock className="h-5 w-5 text-warning" />
             <CardTitle className="text-lg">{t('workflow.closureGate.lockedTitle')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <Alert variant="default" className="border-warning/30 bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
             <AlertTitle>{t('workflow.closureGate.level5LockedTitle')}</AlertTitle>
             <AlertDescription>
               {t('workflow.closureGate.level5LockedDescription')}
@@ -92,10 +92,10 @@ export function ObservationClosureGate({ incident, onComplete }: ObservationClos
   };
   
   return (
-    <Card className="border-2 border-red-500/50 bg-red-500/5">
+    <Card className="border-2 border-destructive/30 bg-destructive/5">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-red-600" />
+          <Shield className="h-5 w-5 text-destructive" />
           <CardTitle className="text-lg">{t('workflow.closureGate.managerClosureTitle')}</CardTitle>
         </div>
         <CardDescription>

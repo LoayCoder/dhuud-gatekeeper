@@ -43,16 +43,16 @@ export function MaintenanceComplianceWidget() {
   const complianceRate = stats.averageComplianceRate;
   
   const getComplianceColor = (rate: number) => {
-    if (rate >= 90) return 'text-green-600 dark:text-green-400';
-    if (rate >= 70) return 'text-blue-600 dark:text-blue-400';
-    if (rate >= 50) return 'text-yellow-600 dark:text-yellow-400';
+    if (rate >= 90) return 'text-success';
+    if (rate >= 70) return 'text-info';
+    if (rate >= 50) return 'text-warning';
     return 'text-destructive';
   };
 
   const getComplianceBarColor = (rate: number) => {
-    if (rate >= 90) return 'bg-green-500';
-    if (rate >= 70) return 'bg-blue-500';
-    if (rate >= 50) return 'bg-yellow-500';
+    if (rate >= 90) return 'bg-success';
+    if (rate >= 70) return 'bg-info';
+    if (rate >= 50) return 'bg-warning';
     return 'bg-destructive';
   };
 
@@ -61,7 +61,7 @@ export function MaintenanceComplianceWidget() {
   const getTrendIndicator = () => {
     if (netTrend > 0) {
       return (
-        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+        <div className="flex items-center gap-1 text-success">
           <TrendingUp className="h-4 w-4" />
           <span className="text-xs font-medium">{t('assetHealth.improving')}</span>
         </div>
@@ -118,7 +118,7 @@ export function MaintenanceComplianceWidget() {
         <div className="grid grid-cols-3 gap-2 pt-2 border-t">
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
-              <TrendingUp className="h-3.5 w-3.5 text-green-500" />
+              <TrendingUp className="h-3.5 w-3.5 text-success" />
               <span className="text-lg font-semibold">{stats.improvingTrend}</span>
             </div>
             <p className="text-xs text-muted-foreground">{t('assetHealth.improving')}</p>

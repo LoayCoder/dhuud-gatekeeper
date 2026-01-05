@@ -100,23 +100,23 @@ export function IncidentClosureApprovalCard({
 
   return (
     <>
-      <Card className={`border-amber-300 ${isFinalClosure ? 'bg-green-50 dark:bg-green-950/50 border-green-300 dark:border-green-700' : 'bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50'}`}>
+      <Card className={isFinalClosure ? 'bg-success/5 border-success/30' : 'bg-warning/5 border-warning/30'}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className={`h-5 w-5 ${isFinalClosure ? 'text-green-600' : 'text-amber-600'}`} />
-              <CardTitle className={`text-lg ${isFinalClosure ? 'text-green-800 dark:text-green-200' : 'text-amber-800 dark:text-amber-200'}`}>
+              <Clock className={`h-5 w-5 ${isFinalClosure ? 'text-success' : 'text-warning'}`} />
+              <CardTitle className="text-lg">
                 {isFinalClosure
                   ? t('investigation.pendingFinalClosure', 'Pending Final Closure')
                   : t('investigation.pendingInvestigationApproval', 'Pending Investigation Approval')
                 }
               </CardTitle>
             </div>
-            <Badge variant="secondary" className={isFinalClosure ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}>
+            <Badge variant="secondary" className={isFinalClosure ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}>
               {t('investigation.awaitingApproval', 'Awaiting Approval')}
             </Badge>
           </div>
-          <CardDescription className={isFinalClosure ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'}>
+          <CardDescription>
             {isFinalClosure
               ? t('investigation.finalClosureDescription', 'All corrective actions have been verified. Ready for final closure.')
               : t('investigation.investigationApprovalDescription', 'An investigator has submitted the investigation for your approval.')
@@ -126,16 +126,16 @@ export function IncidentClosureApprovalCard({
 
         <CardContent className="space-y-4">
           {/* Request Info */}
-          <div className="rounded-lg bg-white/60 p-3 dark:bg-black/20">
-            <div className={`flex items-center gap-2 text-sm ${isFinalClosure ? 'text-green-800 dark:text-green-200' : 'text-amber-800 dark:text-amber-200'}`}>
+          <div className="rounded-lg bg-background/60 p-3">
+            <div className={`flex items-center gap-2 text-sm ${isFinalClosure ? 'text-success' : 'text-warning'}`}>
               <User className="h-4 w-4" />
               <span className="font-medium">{requesterName || (isFinalClosure ? t('common.system', 'System') : t('common.unknown', 'Unknown'))}</span>
-              <span className={isFinalClosure ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>•</span>
-              <span className={isFinalClosure ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>{requestedTimeAgo}</span>
+              <span>•</span>
+              <span className="text-muted-foreground">{requestedTimeAgo}</span>
             </div>
             
             {requestNotes && (
-              <p className={`mt-2 text-sm italic ${isFinalClosure ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'}`}>
+              <p className="mt-2 text-sm italic text-muted-foreground">
                 "{requestNotes}"
               </p>
             )}
@@ -144,7 +144,7 @@ export function IncidentClosureApprovalCard({
           {/* Action Status */}
           {closureCheck && (
             <div className="text-sm">
-              <span className="text-amber-700 dark:text-amber-300">
+              <span className="text-muted-foreground">
                 {t('investigation.actionStatusLabel', 'Action Status')}:
               </span>{' '}
               <span className="font-medium">
