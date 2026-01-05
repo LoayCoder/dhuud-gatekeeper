@@ -480,6 +480,14 @@ export default function IncidentReport() {
         }
       }
       
+      // Auto-populate immediate actions (1-5 points)
+      if (result.immediateActions && result.immediateActions.length > 0) {
+        const actionsText = result.immediateActions
+          .map((action, i) => `${i + 1}. ${action}`)
+          .join('\n');
+        form.setValue('immediate_actions', actionsText);
+      }
+      
       // Create suggestion object for the AI panel
       const suggestion: AISuggestion = {
         suggestedSeverity: result.severity || 'low',
@@ -500,6 +508,7 @@ export default function IncidentReport() {
       if (result.severity) populatedFields.push(t('incidents.severity'));
       if (result.hasInjury) populatedFields.push(t('incidents.injuryDetails'));
       if (result.hasDamage) populatedFields.push(t('incidents.damageDetails'));
+      if (result.immediateActions?.length) populatedFields.push(t('incidents.immediateActions'));
       
       toast.success(t('incidents.ai.analysisComplete'), {
         description: populatedFields.length > 0 
@@ -529,13 +538,17 @@ export default function IncidentReport() {
   }, [dynamicSubtypes, pendingAISubtype, form]);
 
   const handleRewriteTitle = async () => {
-    if (title.length < 5) return;
+    if (title.length < 5) {
+      toast.info(t('incidents.ai.titleTooShort', 'Please enter at least 5 characters'));
+      return;
+    }
     
     setIsRewritingTitle(true);
     try {
       const result = await incidentAI.translateAndRewrite(title, 'title');
       if (result) {
         form.setValue('title', result);
+        toast.success(t('incidents.ai.titleImproved', 'Title improved with AI'));
       }
     } finally {
       setIsRewritingTitle(false);
@@ -543,13 +556,17 @@ export default function IncidentReport() {
   };
 
   const handleRewriteDescription = async () => {
-    if (description.length < 20) return;
+    if (description.length < 20) {
+      toast.info(t('incidents.ai.descriptionTooShort', 'Please enter at least 20 characters'));
+      return;
+    }
     
     setIsRewritingDesc(true);
     try {
       const result = await incidentAI.translateAndRewrite(description, 'description');
       if (result) {
         form.setValue('description', result);
+        toast.success(t('incidents.ai.descriptionImproved', 'Description improved with AI'));
       }
     } finally {
       setIsRewritingDesc(false);

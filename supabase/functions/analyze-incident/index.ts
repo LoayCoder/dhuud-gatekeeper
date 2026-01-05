@@ -208,7 +208,8 @@ Determine:
 4. Severity level
 5. Key risks identified
 6. Any injuries mentioned (count, description)
-7. Any damage mentioned (description, estimated cost)`
+7. Any damage mentioned (description, estimated cost)
+8. Suggest 1-5 immediate corrective actions that should/could have been taken`
           }
         ],
         tools: [
@@ -276,6 +277,13 @@ Determine:
                   estimatedCost: {
                     type: "number",
                     description: "Estimated damage cost if mentioned (numeric value only, no currency)"
+                  },
+                  immediateActions: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "1-5 immediate corrective actions that should be taken based on the incident. Each action should be concise (1 sentence). Examples: 'Cordoned off the area', 'Provided first aid to injured worker', 'Stopped equipment operation', 'Placed warning signs'. MUST be in English or Arabic ONLY.",
+                    minItems: 1,
+                    maxItems: 5
                   }
                 },
                 required: ["eventType", "subtype", "severity", "keyRisks", "confidence", "hasInjury", "hasDamage"],
@@ -332,7 +340,8 @@ Determine:
         injuryDescription: result.injuryDescription || null,
         hasDamage: result.hasDamage || false,
         damageDescription: result.damageDescription || null,
-        estimatedCost: result.estimatedCost || null
+        estimatedCost: result.estimatedCost || null,
+        immediateActions: result.immediateActions || []
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
