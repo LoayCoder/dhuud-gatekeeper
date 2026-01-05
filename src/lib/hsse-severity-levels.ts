@@ -4,6 +4,13 @@
  * Rule: Choose the highest credible impact across 
  * People / Environment / Asset / Business / Reputation-Security.
  * 
+ * Uses semantic design tokens for consistent theming:
+ * - Level 1 (Low): success
+ * - Level 2 (Minor): warning (light)
+ * - Level 3 (Serious): warning
+ * - Level 4 (Major): destructive
+ * - Level 5 (Catastrophic): destructive (dark)
+ * 
  * Validation Rules (audit-proof):
  * - If ERP activated → severity cannot be less than Level 4
  * - If fatality/permanent impairment → must be Level 5
@@ -41,10 +48,10 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level1.label',
     descriptionKey: 'severity.level1.description',
     examplesKey: 'severity.level1.examples',
-    color: 'hsl(160 84% 39%)', // Emerald-500
-    bgColor: 'bg-emerald-500',
-    textColor: 'text-emerald-700',
-    borderColor: 'border-emerald-500',
+    color: 'hsl(var(--success))',
+    bgColor: 'bg-success',
+    textColor: 'text-success',
+    borderColor: 'border-success',
     badgeVariant: 'outline',
     // Workflow: Allow Close on Spot
     allowCloseOnSpot: true,
@@ -57,10 +64,10 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level2.label',
     descriptionKey: 'severity.level2.description',
     examplesKey: 'severity.level2.examples',
-    color: 'hsl(48 96% 53%)', // Yellow-500
-    bgColor: 'bg-yellow-500',
-    textColor: 'text-yellow-700',
-    borderColor: 'border-yellow-500',
+    color: 'hsl(var(--warning))',
+    bgColor: 'bg-warning/70',
+    textColor: 'text-warning',
+    borderColor: 'border-warning',
     badgeVariant: 'secondary',
     // Workflow: Allow Close on Spot
     allowCloseOnSpot: true,
@@ -73,10 +80,10 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level3.label',
     descriptionKey: 'severity.level3.description',
     examplesKey: 'severity.level3.examples',
-    color: 'hsl(25 95% 53%)', // Orange-500
-    bgColor: 'bg-orange-500',
-    textColor: 'text-orange-700',
-    borderColor: 'border-orange-500',
+    color: 'hsl(var(--warning))',
+    bgColor: 'bg-warning',
+    textColor: 'text-warning',
+    borderColor: 'border-warning',
     badgeVariant: 'secondary',
     // Workflow: Requires HSSE Review
     allowCloseOnSpot: false,
@@ -89,10 +96,10 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level4.label',
     descriptionKey: 'severity.level4.description',
     examplesKey: 'severity.level4.examples',
-    color: 'hsl(0 72% 51%)', // Red-600
-    bgColor: 'bg-red-600',
-    textColor: 'text-red-700',
-    borderColor: 'border-red-600',
+    color: 'hsl(var(--destructive))',
+    bgColor: 'bg-destructive/80',
+    textColor: 'text-destructive',
+    borderColor: 'border-destructive',
     badgeVariant: 'destructive',
     // Workflow: HSSE Review + Blocked until verified
     allowCloseOnSpot: false,
@@ -105,10 +112,10 @@ export const HSSE_SEVERITY_LEVELS: SeverityLevelConfig[] = [
     labelKey: 'severity.level5.label',
     descriptionKey: 'severity.level5.description',
     examplesKey: 'severity.level5.examples',
-    color: 'hsl(0 62% 30%)', // Red-900
-    bgColor: 'bg-red-900',
-    textColor: 'text-red-900',
-    borderColor: 'border-red-900',
+    color: 'hsl(var(--destructive))',
+    bgColor: 'bg-destructive',
+    textColor: 'text-destructive',
+    borderColor: 'border-destructive',
     badgeVariant: 'destructive',
     // Workflow: Manager Closure Only
     allowCloseOnSpot: false,
