@@ -129,13 +129,10 @@ export function useSecurityPatrols(filters: { status?: string; routeId?: string 
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
 
-      let query = supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let query = (supabase as any)
         .from('security_patrols')
-        .select(`
-          *,
-          route:security_patrol_routes(name),
-          guard:profiles!security_patrols_guard_id_fkey(full_name)
-        `)
+        .select('*, route:security_patrol_routes(name), guard:profiles!security_patrols_guard_id_fkey(full_name)')
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
@@ -162,14 +159,10 @@ export function useSecurityPatrol(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
 
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
         .from('security_patrols')
-        .select(`
-          *,
-          route:security_patrol_routes(*, checkpoints:patrol_checkpoints(*)),
-          guard:profiles!security_patrols_guard_id_fkey(full_name),
-          logs:patrol_checkpoint_logs(*)
-        `)
+        .select('*, route:security_patrol_routes(*, checkpoints:patrol_checkpoints(*)), guard:profiles!security_patrols_guard_id_fkey(full_name), logs:patrol_checkpoint_logs(*)')
         .eq('id', id)
         .single();
 

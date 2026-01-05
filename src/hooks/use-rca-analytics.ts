@@ -108,20 +108,10 @@ export function useRCAAnalytics(startDate?: Date, endDate?: Date) {
       const { data: investigations, error: invError } = await investigationsQuery;
       if (invError) throw invError;
 
-      // Fetch major events (level_4 and level_5 severity - Major/Catastrophic)
-      let eventsQuery = supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let eventsQuery = (supabase as any)
         .from('incidents')
-        .select(`
-          id,
-          reference_id,
-          title,
-          severity_v2,
-          occurred_at,
-          status,
-          event_type,
-          location,
-          branches:branch_id(name)
-        `)
+        .select('id, reference_id, title, severity_v2, occurred_at, status, event_type, location, branches:branch_id(name)')
         .is('deleted_at', null)
         .in('severity_v2', ['level_5', 'level_4'])
         .order('occurred_at', { ascending: false })

@@ -409,20 +409,17 @@ export function useMyReportedIncidents() {
     queryFn: async () => {
       if (!user?.id || !profile?.tenant_id) return [];
 
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
         .from('incidents')
-        .select(`
-          id, reference_id, title, status, severity, event_type, created_at, occurred_at,
-          site:sites(id, name),
-          branch:branches(id, name)
-        `)
+        .select('id, reference_id, title, status, severity, event_type, created_at, occurred_at, site:sites(id, name), branch:branches(id, name)')
         .eq('reporter_id', user.id)
         .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user?.id && !!profile?.tenant_id,
   });
