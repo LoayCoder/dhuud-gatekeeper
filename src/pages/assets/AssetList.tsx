@@ -111,7 +111,7 @@ function AssetCard({ asset, onClick, isSelected, onSelect, selectionMode }: Asse
           </div>
           {asset.condition_rating && (
             <div className="flex items-center justify-between text-muted-foreground">
-              <span>{t('assets.condition')}</span>
+              <span>{t('assets.conditionLabel')}</span>
               <Badge variant="outline" className={cn('text-xs', CONDITION_COLORS[asset.condition_rating])}>
                 {t(`assets.conditions.${asset.condition_rating}`)}
               </Badge>

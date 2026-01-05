@@ -5046,6 +5046,7 @@
       "poor": "Poor",
       "critical": "Critical"
     },
+    "conditionLabel": "Condition",
     "criticalityLevels": {
       "low": "Low",
       "medium": "Medium",
