@@ -296,3 +296,6 @@ verify_jwt = true
 
 [functions.kpi-ai-evaluation]
 verify_jwt = true
+
+[functions.send-invitation-whatsapp]
+verify_jwt = false

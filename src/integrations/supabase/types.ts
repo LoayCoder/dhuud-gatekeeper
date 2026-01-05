@@ -10027,34 +10027,55 @@ export type Database = {
           code: string
           created_at: string | null
           deleted_at: string | null
+          delivery_channel: string | null
+          delivery_status: string | null
           email: string
+          email_sent_at: string | null
           expires_at: string
+          full_name: string | null
           id: string
+          last_send_error: string | null
           metadata: Json | null
+          phone_number: string | null
           tenant_id: string
           used: boolean | null
+          whatsapp_sent_at: string | null
         }
         Insert: {
           code: string
           created_at?: string | null
           deleted_at?: string | null
+          delivery_channel?: string | null
+          delivery_status?: string | null
           email: string
+          email_sent_at?: string | null
           expires_at: string
+          full_name?: string | null
           id?: string
+          last_send_error?: string | null
           metadata?: Json | null
+          phone_number?: string | null
           tenant_id: string
           used?: boolean | null
+          whatsapp_sent_at?: string | null
         }
         Update: {
           code?: string
           created_at?: string | null
           deleted_at?: string | null
+          delivery_channel?: string | null
+          delivery_status?: string | null
           email?: string
+          email_sent_at?: string | null
           expires_at?: string
+          full_name?: string | null
           id?: string
+          last_send_error?: string | null
           metadata?: Json | null
+          phone_number?: string | null
           tenant_id?: string
           used?: boolean | null
+          whatsapp_sent_at?: string | null
         }
         Relationships: [
           {

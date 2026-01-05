@@ -49,6 +49,7 @@ const userFormSchema = z.object({
   user_type: z.enum(['employee', 'contractor_longterm', 'contractor_shortterm', 'member', 'visitor']),
   has_login: z.boolean().default(true),
   is_active: z.boolean().default(true),
+  delivery_channel: z.enum(['email', 'whatsapp', 'both']).default('email'),
   // Employee fields
   employee_id: z.string().optional(),
   job_title: z.string().optional(),
@@ -78,6 +79,15 @@ const userFormSchema = z.object({
 }, {
   message: 'Email is required when login is enabled',
   path: ['email'],
+}).refine((data) => {
+  // If delivery_channel includes whatsapp, phone is required
+  if ((data.delivery_channel === 'whatsapp' || data.delivery_channel === 'both') && data.has_login) {
+    return data.phone_number && data.phone_number.length > 0;
+  }
+  return true;
+}, {
+  message: 'Phone number is required for WhatsApp delivery',
+  path: ['phone_number'],
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -121,6 +131,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
       user_type: 'employee',
       has_login: true,
       is_active: true,
+      delivery_channel: 'email',
       employee_id: '',
       job_title: '',
       contractor_company_name: '',
@@ -463,6 +474,57 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 </div>
               )}
             </div>
+
+            {/* Delivery Channel for new users with login */}
+            {!user && hasLogin && (
+              <div className="p-3 border rounded-lg bg-muted/30" dir={direction}>
+                <FormField
+                  control={form.control}
+                  name="delivery_channel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        {t('invitations.deliveryChannel', 'Invitation Delivery')}
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        {t('invitations.deliveryChannelDesc', 'How should the invitation code be sent?')}
+                      </FormDescription>
+                      <Select onValueChange={field.onChange} value={field.value || 'email'} dir={direction}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent dir={direction}>
+                          <SelectItem value="email">
+                            <span className="flex items-center gap-2">
+                              📧 {t('invitations.viaEmail', 'Email Only')}
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="whatsapp">
+                            <span className="flex items-center gap-2">
+                              💬 {t('invitations.viaWhatsApp', 'WhatsApp Only')}
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="both">
+                            <span className="flex items-center gap-2">
+                              📧💬 {t('invitations.viaBoth', 'Email & WhatsApp')}
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {(form.watch('delivery_channel') === 'whatsapp' || form.watch('delivery_channel') === 'both') && !form.watch('phone_number') && (
+                  <p className="text-xs text-warning mt-2 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {t('invitations.phoneRequired', 'Phone number is required for WhatsApp delivery')}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Active Status */}
             <div className="flex items-center gap-4" dir={direction}>
