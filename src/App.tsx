@@ -15,6 +15,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { SessionFallbackUI } from "./components/SessionFallbackUI";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { MenuBasedAdminRoute } from "./components/MenuBasedAdminRoute";
 import { HSSERoute } from "./components/HSSERoute";
 import { SecurityRoute } from "./components/SecurityRoute";
 import MainLayout from "./components/layout/MainLayout";
@@ -401,9 +402,9 @@ const App = () => (
                       <Route
                         path="/admin/org-structure"
                         element={
-                          <AdminRoute>
+                          <MenuBasedAdminRoute menuCode="admin_org">
                             <OrgStructure />
-                          </AdminRoute>
+                          </MenuBasedAdminRoute>
                         }
                       />
                       <Route
