@@ -7068,6 +7068,80 @@ export type Database = {
           },
         ]
       }
+      guard_site_assignments: {
+        Row: {
+          assignment_type: string
+          can_float: boolean | null
+          created_at: string
+          deleted_at: string | null
+          effective_from: string
+          effective_to: string | null
+          guard_id: string
+          id: string
+          is_primary: boolean | null
+          site_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_type?: string
+          can_float?: boolean | null
+          created_at?: string
+          deleted_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          guard_id: string
+          id?: string
+          is_primary?: boolean | null
+          site_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_type?: string
+          can_float?: boolean | null
+          created_at?: string
+          deleted_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          guard_id?: string
+          id?: string
+          is_primary?: boolean | null
+          site_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_site_assignments_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_site_assignments_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_site_assignments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_site_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guard_tracking_history: {
         Row: {
           accuracy: number | null
@@ -7154,6 +7228,149 @@ export type Database = {
           },
           {
             foreignKeyName: "guard_tracking_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_training_records: {
+        Row: {
+          certificate_number: string | null
+          certificate_url: string | null
+          completion_date: string
+          created_at: string
+          deleted_at: string | null
+          expiry_date: string | null
+          guard_id: string
+          id: string
+          notes: string | null
+          passed: boolean | null
+          score: number | null
+          tenant_id: string
+          training_name: string
+          training_provider: string | null
+          training_type: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          completion_date: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          guard_id: string
+          id?: string
+          notes?: string | null
+          passed?: boolean | null
+          score?: number | null
+          tenant_id: string
+          training_name: string
+          training_provider?: string | null
+          training_type: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          completion_date?: string
+          created_at?: string
+          deleted_at?: string | null
+          expiry_date?: string | null
+          guard_id?: string
+          id?: string
+          notes?: string | null
+          passed?: boolean | null
+          score?: number | null
+          tenant_id?: string
+          training_name?: string
+          training_provider?: string | null
+          training_type?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_training_records_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_training_records_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_training_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_training_records_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_training_records_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_training_requirements: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_mandatory: boolean | null
+          renewal_period_months: number | null
+          role_code: string
+          tenant_id: string
+          training_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          renewal_period_months?: number | null
+          role_code: string
+          tenant_id: string
+          training_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          renewal_period_months?: number | null
+          role_code?: string
+          tenant_id?: string
+          training_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_training_requirements_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
