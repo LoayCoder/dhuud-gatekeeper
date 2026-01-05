@@ -8,12 +8,17 @@ import {
   BarChart3,
   MapPin,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  GraduationCap,
+  Building2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GuardPerformanceCard } from '@/components/security/GuardPerformanceCard';
+import { GuardTrainingList } from '@/components/security/GuardTrainingList';
+import { TrainingExpiryAlerts } from '@/components/security/TrainingExpiryAlerts';
+import { GuardSiteAssignments } from '@/components/security/GuardSiteAssignments';
 import { useSecurityTeamStats, useGuardPerformanceSummary } from '@/hooks/use-guard-performance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -214,6 +219,9 @@ export default function GuardPerformance() {
         </Card>
       </div>
 
+      {/* Training Expiry Alerts */}
+      <TrainingExpiryAlerts />
+
       {/* Performance Tabs */}
       <Tabs defaultValue="performance" className="space-y-4">
         <TabsList>
@@ -225,6 +233,14 @@ export default function GuardPerformance() {
             <Award className="h-4 w-4" />
             {t('security.leaderboard', 'Leaderboard')}
           </TabsTrigger>
+          <TabsTrigger value="training" className="gap-2">
+            <GraduationCap className="h-4 w-4" />
+            {t('security.training', 'Training')}
+          </TabsTrigger>
+          <TabsTrigger value="sites" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            {t('security.siteAssignments', 'Sites')}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="performance">
@@ -233,6 +249,14 @@ export default function GuardPerformance() {
 
         <TabsContent value="leaderboard">
           <GuardPerformanceCard showLeaderboard />
+        </TabsContent>
+
+        <TabsContent value="training">
+          <GuardTrainingList />
+        </TabsContent>
+
+        <TabsContent value="sites">
+          <GuardSiteAssignments />
         </TabsContent>
       </Tabs>
     </div>

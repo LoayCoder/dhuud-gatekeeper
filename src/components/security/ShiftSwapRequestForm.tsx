@@ -26,11 +26,12 @@ const swapRequestSchema = z.object({
 type SwapRequestFormData = z.infer<typeof swapRequestSchema>;
 
 interface ShiftSwapRequestFormProps {
+  originalRosterId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function ShiftSwapRequestForm({ onSuccess, onCancel }: ShiftSwapRequestFormProps) {
+export function ShiftSwapRequestForm({ originalRosterId, onSuccess, onCancel }: ShiftSwapRequestFormProps) {
   const { t } = useTranslation();
   const createRequest = useCreateSwapRequest();
   const { data: allRoster } = useShiftRoster();
@@ -87,7 +88,7 @@ export function ShiftSwapRequestForm({ onSuccess, onCancel }: ShiftSwapRequestFo
   const form = useForm<SwapRequestFormData>({
     resolver: zodResolver(swapRequestSchema),
     defaultValues: {
-      original_roster_id: '',
+      original_roster_id: originalRosterId || '',
       target_guard_id: '',
       swap_roster_id: '',
       reason: '',
