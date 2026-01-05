@@ -277,7 +277,37 @@ export function InspectionTemplateForm({
     enabled: !!selectedCategoryId && templateType === 'asset',
   });
   
+  // Check if template code already exists for the tenant
+  const checkDuplicateCode = async (code: string): Promise<boolean> => {
+    if (!profile?.tenant_id) return false;
+    
+    let query = supabase
+      .from('inspection_templates')
+      .select('id')
+      .eq('tenant_id', profile.tenant_id)
+      .eq('code', code)
+      .is('deleted_at', null);
+    
+    // Exclude current template when editing
+    if (template?.id) {
+      query = query.neq('id', template.id);
+    }
+    
+    const { data } = await query.limit(1);
+    return (data?.length ?? 0) > 0;
+  };
+
   const handleSubmit = async (data: TemplateFormData) => {
+    // Check for duplicate code before submission
+    const isDuplicate = await checkDuplicateCode(data.code);
+    if (isDuplicate) {
+      form.setError('code', {
+        type: 'manual',
+        message: t('inspections.form.codeDuplicate', 'This template code already exists'),
+      });
+      return;
+    }
+
     await onSubmit({
       ...data,
       inspection_category_id: data.inspection_category_id || undefined,

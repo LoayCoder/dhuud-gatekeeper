@@ -211,7 +211,14 @@ export function useCreateTemplate() {
       toast.success(t('inspections.templateCreated'));
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      // Handle duplicate key constraint violation
+      if (error.message.includes('duplicate key') || 
+          error.message.includes('unique constraint') ||
+          error.message.includes('inspection_templates_tenant_code_unique')) {
+        toast.error(t('inspections.form.codeDuplicateError', 'A template with this code already exists. Please use a different code.'));
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 }
@@ -257,7 +264,14 @@ export function useUpdateTemplate() {
       toast.success(t('inspections.templateUpdated'));
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      // Handle duplicate key constraint violation
+      if (error.message.includes('duplicate key') || 
+          error.message.includes('unique constraint') ||
+          error.message.includes('inspection_templates_tenant_code_unique')) {
+        toast.error(t('inspections.form.codeDuplicateError', 'A template with this code already exists. Please use a different code.'));
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 }
