@@ -1844,7 +1844,8 @@
     "platformManagement": "Platform Management",
     "violationSettings": "Violation Settings",
     "emergencyInstructions": "Emergency Instructions",
-    "visitorSettings": "Visitor Settings"
+    "visitorSettings": "Visitor Settings",
+    "pageContentEditor": "Page Content Editor"
   },
   "actions": {
     "sessionActions": "Session Actions",
@@ -8147,9 +8148,6 @@
     "translationComplete": "Successfully translated to {{count}} languages",
     "deleteConfirmTitle": "Delete Language Version?",
     "deleteConfirmDesc": "This will permanently delete this translated version. The main page will not be affected."
-  },
-  "navigation": {
-    "pageContentEditor": "Page Content Editor"
   },
   "templates": {
     "srNo": "Sr. #",
