@@ -597,31 +597,38 @@ export default function MyActions() {
                     return (
                     <Card key={action.id} className="hover:shadow-md transition-shadow">
                       <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {getStatusIcon(action.status)}
-                            {action.reference_id && (
-                              <Badge variant="outline" className="font-mono text-xs">
-                                {action.reference_id}
-                              </Badge>
-                            )}
-                            <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
+                        <div className="space-y-3">
+                          {/* Badges - wrap on mobile */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs whitespace-nowrap">
                               {isIncidentAction 
                                 ? t('investigation.source.incident', 'Incident')
                                 : t('investigation.source.inspection', 'Inspection')
                               }
                             </Badge>
-                            <CardTitle className="text-base">{action.title}</CardTitle>
-                          </div>
-                          <div className="flex items-center gap-2">
                             {action.priority && (
-                              <Badge variant={getPriorityBadgeVariant(action.priority)}>
+                              <Badge variant={getPriorityBadgeVariant(action.priority)} className="whitespace-nowrap">
                                 {String(t(`investigation.priority.${action.priority}`, action.priority))}
                               </Badge>
                             )}
                           </div>
+                          
+                          {/* Reference and Title */}
+                          <div className="flex items-start gap-2">
+                            {getStatusIcon(action.status)}
+                            <div className="min-w-0 flex-1">
+                              {action.reference_id && (
+                                <Badge variant="outline" className="font-mono text-xs mb-1.5">
+                                  {action.reference_id}
+                                </Badge>
+                              )}
+                              <CardTitle className="text-base line-clamp-2">{action.title}</CardTitle>
+                              {action.description && (
+                                <CardDescription className="mt-1 line-clamp-2">{action.description}</CardDescription>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <CardDescription>{action.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {/* Show workflow timeline for both incident and inspection actions */}
@@ -647,11 +654,11 @@ export default function MyActions() {
                                   <Badge 
                                     variant="outline"
                                     className={cn(
-                                      "font-medium",
-                                      daysInfo.isOverdue && "bg-red-100 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
-                                      daysInfo.isDueToday && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-                                      daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950/50 dark:text-yellow-400 dark:border-yellow-800",
-                                      !daysInfo.isOverdue && !daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-green-100 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
+                                      "font-medium whitespace-nowrap",
+                                      daysInfo.isOverdue && "bg-destructive/10 text-destructive border-destructive/30",
+                                      daysInfo.isDueToday && "bg-warning/10 text-warning border-warning/30",
+                                      daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-pending/10 text-pending border-pending/30",
+                                      !daysInfo.isOverdue && !daysInfo.isDueSoon && !daysInfo.isDueToday && "bg-success/10 text-success border-success/30"
                                     )}
                                   >
                                     {daysInfo.isDueToday ? (
@@ -780,7 +787,7 @@ export default function MyActions() {
               {displayedClosedActions.length > 0 && (
                 <Collapsible open={showClosedActions} onOpenChange={setShowClosedActions}>
                   <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                     <span className="font-medium">{t('actions.closedActions', 'Closed Actions')}</span>
                     <Badge variant="secondary" className="ms-1">{displayedClosedActions.length}</Badge>
                     <ChevronDown className={cn("h-4 w-4 ms-auto transition-transform", showClosedActions && "rotate-180")} />
@@ -794,28 +801,37 @@ export default function MyActions() {
                       return (
                         <Card key={action.id} className="hover:shadow-md transition-shadow opacity-75">
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                {action.reference_id && (
-                                  <Badge variant="outline" className="font-mono text-xs">
-                                    {action.reference_id}
-                                  </Badge>
-                                )}
-                                <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs">
+                            <div className="space-y-3">
+                              {/* Badges - wrap on mobile */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="default" className="bg-success/10 text-success border-success/30 whitespace-nowrap">
+                                  <CheckCircle2 className="h-3 w-3 me-1" />
+                                  {action.status === 'verified' ? t('investigation.actionStatus.verified', 'Verified') : t('investigation.actionStatus.closed', 'Closed')}
+                                </Badge>
+                                <Badge variant={isIncidentAction ? 'secondary' : 'outline'} className="text-xs whitespace-nowrap">
                                   {isIncidentAction 
                                     ? t('investigation.source.incident', 'Incident')
                                     : t('investigation.source.inspection', 'Inspection')
                                   }
                                 </Badge>
-                                <CardTitle className="text-base">{action.title}</CardTitle>
                               </div>
-                              <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                <CheckCircle2 className="h-3 w-3 me-1" />
-                                {action.status === 'verified' ? t('investigation.actionStatus.verified', 'Verified') : t('investigation.actionStatus.closed', 'Closed')}
-                              </Badge>
+                              
+                              {/* Reference and Title */}
+                              <div className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  {action.reference_id && (
+                                    <Badge variant="outline" className="font-mono text-xs mb-1.5">
+                                      {action.reference_id}
+                                    </Badge>
+                                  )}
+                                  <CardTitle className="text-base line-clamp-2">{action.title}</CardTitle>
+                                  {action.description && (
+                                    <CardDescription className="mt-1 line-clamp-2">{action.description}</CardDescription>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <CardDescription>{action.description}</CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -892,30 +908,38 @@ export default function MyActions() {
                 return (
                 <Card key={statement.id} className={cn("hover:shadow-md transition-shadow", isReturned && "border-destructive/50")}>
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(statement.assignment_status)}
-                        <CardTitle className="text-base">
-                          {t('investigation.witnesses.statementRequest', 'Witness Statement Request')}
-                        </CardTitle>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-3">
+                      {/* Badges - wrap on mobile */}
+                      <div className="flex flex-wrap items-center gap-2">
                         {isReturned && (
-                          <Badge variant="destructive" className="gap-1">
+                          <Badge variant="destructive" className="gap-1 whitespace-nowrap">
                             <RotateCcw className="h-3 w-3" />
                             {t('investigation.witnesses.returnedCount', 'Returned {{count}}x', { count: statement.return_count })}
                           </Badge>
                         )}
-                        <Badge variant={statement.assignment_status === 'pending' ? (isReturned ? 'destructive' : 'secondary') : statement.assignment_status === 'approved' ? 'default' : 'secondary'}>
+                        <Badge 
+                          variant={statement.assignment_status === 'pending' ? (isReturned ? 'destructive' : 'secondary') : statement.assignment_status === 'approved' ? 'default' : 'secondary'}
+                          className="whitespace-nowrap"
+                        >
                           {statement.assignment_status === 'completed' 
                             ? t('investigation.witnesses.status.awaitingReview', 'Awaiting Review')
                             : t(`investigation.witnesses.status.${statement.assignment_status}`, statement.assignment_status || 'pending')}
                         </Badge>
                       </div>
+                      
+                      {/* Title and Description */}
+                      <div className="flex items-start gap-2">
+                        {getStatusIcon(statement.assignment_status)}
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-base line-clamp-2">
+                            {t('investigation.witnesses.statementRequest', 'Witness Statement Request')}
+                          </CardTitle>
+                          <CardDescription className="mt-1 line-clamp-2">
+                            {t('investigation.witnesses.assignedToProvide', 'You have been assigned to provide a witness statement for an incident.')}
+                          </CardDescription>
+                        </div>
+                      </div>
                     </div>
-                    <CardDescription>
-                      {t('investigation.witnesses.assignedToProvide', 'You have been assigned to provide a witness statement for an incident.')}
-                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Return reason banner */}
@@ -988,30 +1012,36 @@ export default function MyActions() {
               {myReportedIncidents.map((incident) => (
                 <Card key={incident.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {getStatusIcon(incident.status)}
-                        {incident.reference_id && (
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {incident.reference_id}
-                          </Badge>
-                        )}
-                        <CardTitle className="text-base">{incident.title}</CardTitle>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {incident.severity && (
-                          <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'}>
-                            {t(`investigation.severity.${incident.severity}`, incident.severity)}
-                          </Badge>
-                        )}
+                    {/* Mobile-first stacked layout */}
+                    <div className="space-y-3">
+                      {/* Status Badge - Full width on mobile */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="whitespace-nowrap">
+                          {t(`incidents.status.${incident.status}`, incident.status)}
+                        </Badge>
                         {incident.event_type && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="whitespace-nowrap">
                             {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
                           </Badge>
                         )}
-                        <Badge variant="secondary">
-                          {t(`incidents.status.${incident.status}`, incident.status)}
-                        </Badge>
+                        {incident.severity && (
+                          <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'} className="whitespace-nowrap">
+                            {t(`investigation.severity.${incident.severity}`, incident.severity)}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {/* Reference ID and Title */}
+                      <div className="flex items-start gap-2">
+                        {getStatusIcon(incident.status)}
+                        <div className="min-w-0 flex-1">
+                          {incident.reference_id && (
+                            <Badge variant="outline" className="font-mono text-xs mb-1.5">
+                              {incident.reference_id}
+                            </Badge>
+                          )}
+                          <CardTitle className="text-base line-clamp-2">{incident.title}</CardTitle>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
@@ -1094,30 +1124,35 @@ export default function MyActions() {
                       {pendingIncidentApprovals.map((incident) => (
                         <Card key={incident.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <AlertCircle className="h-4 w-4 text-warning" />
-                                <CardTitle className="text-base">{incident.reference_id || incident.id.slice(0, 8)}</CardTitle>
-                              </div>
-                              <div className="flex items-center gap-2">
+                            <div className="space-y-3">
+                              {/* Badges - wrap on mobile */}
+                              <div className="flex flex-wrap items-center gap-2">
                                 {incident.severity && (
-                                  <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'}>
+                                  <Badge variant={incident.severity === 'critical' || incident.severity === 'high' ? 'destructive' : 'secondary'} className="whitespace-nowrap">
                                     {t(`investigation.severity.${incident.severity}`, incident.severity)}
                                   </Badge>
                                 )}
                                 {incident.event_type && (
-                                  <Badge variant="outline">
+                                  <Badge variant="outline" className="whitespace-nowrap">
                                     {String(t(`incidents.eventCategories.${incident.event_type}`, incident.event_type))}
                                   </Badge>
                                 )}
                                 {(incident as any).incident_type && (
-                                  <Badge variant="outline">
+                                  <Badge variant="outline" className="whitespace-nowrap">
                                     {String(t(`incidents.incidentTypes.${(incident as any).incident_type}`, (incident as any).incident_type))}
                                   </Badge>
                                 )}
                               </div>
+                              
+                              {/* Reference and Title */}
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-base">{incident.reference_id || incident.id.slice(0, 8)}</CardTitle>
+                                  <CardDescription className="mt-1 line-clamp-2">{incident.title}</CardDescription>
+                                </div>
+                              </div>
                             </div>
-                            <CardDescription>{incident.title}</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -1162,22 +1197,29 @@ export default function MyActions() {
                         return (
                           <Card key={request.id} className="hover:shadow-md transition-shadow border-warning/30">
                             <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-center gap-2">
-                                  <FileCheck className="h-4 w-4 text-warning" />
-                                  <CardTitle className="text-base">{request.reference_id || request.id.slice(0, 8)}</CardTitle>
+                              <div className="space-y-3">
+                                {/* Badge - on its own line on mobile */}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge 
+                                    variant={isFinalClosure ? 'default' : 'secondary'} 
+                                    className={cn("whitespace-nowrap", isFinalClosure && 'bg-success/10 text-success border-success/30')}
+                                  >
+                                    {isFinalClosure 
+                                      ? t('dashboard.finalClosure', 'Final Closure')
+                                      : t('dashboard.investigationApproval', 'Investigation Approval')
+                                    }
+                                  </Badge>
                                 </div>
-                                <Badge 
-                                  variant={isFinalClosure ? 'default' : 'secondary'} 
-                                  className={isFinalClosure ? 'bg-success/10 text-success border-success/30' : ''}
-                                >
-                                  {isFinalClosure 
-                                    ? t('dashboard.finalClosure', 'Final Closure')
-                                    : t('dashboard.investigationApproval', 'Investigation Approval')
-                                  }
-                                </Badge>
+                                
+                                {/* Reference and Title */}
+                                <div className="flex items-start gap-2">
+                                  <FileCheck className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                                  <div className="min-w-0 flex-1">
+                                    <CardTitle className="text-base">{request.reference_id || request.id.slice(0, 8)}</CardTitle>
+                                    <CardDescription className="mt-1 line-clamp-2">{request.title}</CardDescription>
+                                  </div>
+                                </div>
                               </div>
-                              <CardDescription>{request.title}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -1253,28 +1295,35 @@ export default function MyActions() {
                       {pendingApprovals.map((action) => (
                         <Card key={action.id} className="hover:shadow-md transition-shadow">
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                {action.reference_id && (
-                                  <Badge variant="outline" className="font-mono text-xs">
-                                    {action.reference_id}
-                                  </Badge>
-                                )}
-                                <CardTitle className="text-base">{action.title}</CardTitle>
-                              </div>
-                              <div className="flex items-center gap-2">
+                            <div className="space-y-3">
+                              {/* Badges - wrap on mobile */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="whitespace-nowrap">
+                                  {t('investigation.actionStatus.completed', 'Completed')}
+                                </Badge>
                                 {action.priority && (
-                                  <Badge variant={getPriorityBadgeVariant(action.priority)}>
+                                  <Badge variant={getPriorityBadgeVariant(action.priority)} className="whitespace-nowrap">
                                     {t(`investigation.priority.${action.priority}`, action.priority)}
                                   </Badge>
                                 )}
-                                <Badge variant="outline">
-                                  {t('investigation.actionStatus.completed', 'Completed')}
-                                </Badge>
+                              </div>
+                              
+                              {/* Reference and Title */}
+                              <div className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  {action.reference_id && (
+                                    <Badge variant="outline" className="font-mono text-xs mb-1.5">
+                                      {action.reference_id}
+                                    </Badge>
+                                  )}
+                                  <CardTitle className="text-base line-clamp-2">{action.title}</CardTitle>
+                                  {action.description && (
+                                    <CardDescription className="mt-1 line-clamp-2">{action.description}</CardDescription>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            <CardDescription>{action.description}</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -1350,18 +1399,25 @@ export default function MyActions() {
                       {pendingWorkers.map((worker) => (
                         <Card key={worker.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <HardHat className="h-4 w-4 text-warning" />
-                                <CardTitle className="text-base">{worker.full_name}</CardTitle>
+                            <div className="space-y-3">
+                              {/* Badge */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="whitespace-nowrap">
+                                  {t('contractors.workers.pendingApproval', 'Pending Approval')}
+                                </Badge>
                               </div>
-                              <Badge variant="outline">
-                                {t('contractors.workers.pendingApproval', 'Pending Approval')}
-                              </Badge>
+                              
+                              {/* Name and Company */}
+                              <div className="flex items-start gap-2">
+                                <HardHat className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-base line-clamp-2">{worker.full_name}</CardTitle>
+                                  <CardDescription className="mt-1 line-clamp-1">
+                                    {worker.company?.company_name || t('common.unknown', 'Unknown Company')}
+                                  </CardDescription>
+                                </div>
+                              </div>
                             </div>
-                            <CardDescription>
-                              {worker.company?.company_name || t('common.unknown', 'Unknown Company')}
-                            </CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -1408,21 +1464,28 @@ export default function MyActions() {
                       {pendingGatePasses.map((pass) => (
                         <Card key={pass.id} className="hover:shadow-md transition-shadow border-warning/30">
                           <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <Truck className="h-4 w-4 text-warning" />
-                                <CardTitle className="text-base">{pass.reference_number}</CardTitle>
+                            <div className="space-y-3">
+                              {/* Badge */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant={pass.status === 'pending_pm_approval' ? 'secondary' : 'outline'} className="whitespace-nowrap">
+                                  {pass.status === 'pending_pm_approval' 
+                                    ? t('contractors.gatePasses.awaitingPM', 'Awaiting PM')
+                                    : t('contractors.gatePasses.awaitingSafety', 'Awaiting Safety')
+                                  }
+                                </Badge>
                               </div>
-                              <Badge variant={pass.status === 'pending_pm_approval' ? 'secondary' : 'outline'}>
-                                {pass.status === 'pending_pm_approval' 
-                                  ? t('contractors.gatePasses.awaitingPM', 'Awaiting PM')
-                                  : t('contractors.gatePasses.awaitingSafety', 'Awaiting Safety')
-                                }
-                              </Badge>
+                              
+                              {/* Reference and Description */}
+                              <div className="flex items-start gap-2">
+                                <Truck className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-base">{pass.reference_number}</CardTitle>
+                                  <CardDescription className="mt-1 line-clamp-2">
+                                    {pass.material_description}
+                                  </CardDescription>
+                                </div>
+                              </div>
                             </div>
-                            <CardDescription>
-                              {pass.material_description}
-                            </CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
