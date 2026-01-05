@@ -45,6 +45,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Json } from '@/integrations/supabase/types';
+import { exportToExcel, exportToPDF, buildSelectQuery } from '@/lib/asset-report-export';
 
 // Available columns for report
 const AVAILABLE_COLUMNS = [
@@ -226,14 +227,92 @@ export default function AssetReportBuilder() {
     });
   };
 
-  // Export report (placeholder - would generate actual report)
+  // Export report - fetches data and generates file
   const handleExport = async (format: 'excel' | 'pdf') => {
+    if (!profile?.tenant_id) {
+      toast.error(t('common.error'));
+      return;
+    }
+    
     setIsExporting(true);
     try {
-      // TODO: Implement actual export logic using the selected columns and filters
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Build query with selected columns
+      const selectQuery = buildSelectQuery(selectedColumns);
+      
+      // Fetch data using a simple query - filters applied via RPC or post-filter for complex cases
+      const { data: rawData, error } = await supabase
+        .from('hsse_assets')
+        .select(selectQuery)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
+        .order(sortBy || 'asset_code', { ascending: sortOrder === 'asc' })
+        .limit(5000); // Reasonable limit for exports
+      
+      if (error) throw error;
+      
+      // Apply client-side filters for complex filter operators
+      let filteredData = (rawData || []) as unknown as Record<string, unknown>[];
+      
+      filters.forEach(filter => {
+        if (!filter.value && filter.operator !== 'is_null' && filter.operator !== 'not_null') return;
+        
+        filteredData = filteredData.filter(item => {
+          const value = item[filter.field];
+          
+          switch (filter.operator) {
+            case 'eq':
+              return String(value) === filter.value;
+            case 'neq':
+              return String(value) !== filter.value;
+            case 'gt':
+              return Number(value) > Number(filter.value);
+            case 'lt':
+              return Number(value) < Number(filter.value);
+            case 'contains':
+              return String(value || '').toLowerCase().includes(filter.value.toLowerCase());
+            case 'is_null':
+              return value === null || value === undefined;
+            case 'not_null':
+              return value !== null && value !== undefined;
+            default:
+              return true;
+          }
+        });
+      });
+      
+      if (filteredData.length === 0) {
+        toast.warning(t('assets.reports.noData', 'No data to export'));
+        return;
+      }
+      
+      // Prepare column metadata
+      const columnMeta = selectedColumns.map(id => {
+        const col = AVAILABLE_COLUMNS.find(c => c.id === id);
+        return {
+          id,
+          label: col ? t(`assets.fields.${col.id}`, col.label) : id,
+        };
+      });
+      
+      // Generate file
+      const reportTitle = templateName || t('assets.reports.assetReport', 'Asset Report');
+      const blob = format === 'excel'
+        ? await exportToExcel(filteredData, columnMeta, reportTitle)
+        : await exportToPDF(filteredData, columnMeta, reportTitle);
+      
+      // Download file
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `asset-report-${Date.now()}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       toast.success(t('assets.reports.exportSuccess', `Report exported as ${format.toUpperCase()}`));
-    } catch {
+    } catch (error) {
+      console.error('Export error:', error);
       toast.error(t('assets.reports.exportError', 'Failed to export report'));
     } finally {
       setIsExporting(false);

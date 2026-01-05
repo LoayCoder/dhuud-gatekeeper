@@ -19191,6 +19191,30 @@ export type Database = {
           total_active: number
         }[]
       }
+      get_asset_category_distribution: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          asset_count: number
+          category_id: string
+          category_name: string
+          category_name_ar: string
+        }[]
+      }
+      get_asset_dashboard_stats: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          active_count: number
+          critical_condition: number
+          excellent_condition: number
+          fair_condition: number
+          good_condition: number
+          inactive_count: number
+          missing_count: number
+          poor_condition: number
+          total_assets: number
+          under_maintenance_count: number
+        }[]
+      }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_dashboard_module_stats: { Args: never; Returns: Json }

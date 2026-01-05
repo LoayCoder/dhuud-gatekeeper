@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, QrCode, Barcode, Loader2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, QrCode, Barcode, Loader2, AlertCircle, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,14 @@ import { ModuleGate } from '@/components/ModuleGate';
 import { useState, useEffect } from 'react';
 import { useAssetByCode } from '@/hooks/use-asset-by-code';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 /**
  * Auto-format asset code input to AST-YYYY-NNNNN pattern
@@ -41,11 +50,17 @@ function formatAssetCode(input: string): string {
 
 function AssetScannerContent() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [manualCode, setManualCode] = useState('');
   const [searchCode, setSearchCode] = useState<string | null>(null);
   const [manualNotFound, setManualNotFound] = useState(false);
   const [scannedAssetId, setScannedAssetId] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'barcode' | 'qrcode'>('barcode');
+  
+  // Collision detection state
+  const [showCollisionDialog, setShowCollisionDialog] = useState(false);
+  const [collisionAsset, setCollisionAsset] = useState<{ id: string; name: string; code: string } | null>(null);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
 
   // Hook for manual code lookup
   const { data: assetResult, isLoading: isLookingUp } = useAssetByCode(searchCode);
@@ -82,6 +97,26 @@ function AssetScannerContent() {
 
   const handleClearScan = () => {
     setScannedAssetId(null);
+  };
+
+  // Handle collision - navigate to existing asset
+  const handleNavigateToExisting = () => {
+    if (collisionAsset) {
+      navigate(`/assets/${collisionAsset.id}`);
+    }
+    setShowCollisionDialog(false);
+    setCollisionAsset(null);
+    setPendingCode(null);
+  };
+
+  // Handle collision - register as new asset
+  const handleRegisterNew = () => {
+    if (pendingCode) {
+      navigate(`/assets/register?code=${encodeURIComponent(pendingCode)}`);
+    }
+    setShowCollisionDialog(false);
+    setCollisionAsset(null);
+    setPendingCode(null);
   };
 
   return (
@@ -164,16 +199,72 @@ function AssetScannerContent() {
               </Button>
             </div>
             {manualNotFound && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {t('assets.assetNotFoundManual')}
+              <Alert className="border-warning bg-warning/10">
+                <AlertCircle className="h-4 w-4 text-warning" />
+                <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span>{t('assets.assetNotFoundManual', 'Asset not found in system.')}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => navigate(`/assets/register?code=${encodeURIComponent(manualCode)}`)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t('assets.registerNew', 'Register New')}
+                  </Button>
                 </AlertDescription>
               </Alert>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Collision Detection Dialog */}
+      <Dialog open={showCollisionDialog} onOpenChange={setShowCollisionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              {t('assets.assetFound', 'Asset Found')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('assets.collisionDetected', 
+                'An asset with code "{{code}}" already exists in the system.',
+                { code: collisionAsset?.code }
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {collisionAsset && (
+            <Card className="bg-muted/50">
+              <CardContent className="pt-4">
+                <p className="font-medium">{collisionAsset.name}</p>
+                <p className="text-sm text-muted-foreground font-mono">{collisionAsset.code}</p>
+              </CardContent>
+            </Card>
+          )}
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCollisionDialog(false);
+                setCollisionAsset(null);
+                setPendingCode(null);
+              }}
+            >
+              {t('common.cancel', 'Cancel')}
+            </Button>
+            <Button variant="secondary" onClick={handleRegisterNew}>
+              <Plus className="h-4 w-4 me-2" />
+              {t('assets.registerAnyway', 'Register Anyway')}
+            </Button>
+            <Button onClick={handleNavigateToExisting}>
+              {t('assets.viewExisting', 'View Existing Asset')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

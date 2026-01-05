@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Calculator, Trash2, FileDown, Table2 } from 'lucide-react';
+import { ArrowLeft, Calculator, Trash2, FileDown, Table2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,14 +76,52 @@ function AssetDepreciationContent() {
   }
 
   const assetData = asset as any;
-  const purchasePrice = assetData.purchase_price || assetData.purchase_cost || 0;
-  const salvageValue = assetData.salvage_value || 0;
-  const usefulLifeYears = assetData.expected_lifespan_years || 5;
+  const purchasePrice = assetData.purchase_price || assetData.purchase_cost;
+  const salvageValue = assetData.salvage_value;
+  const usefulLifeYears = assetData.expected_lifespan_years;
   const depreciationMethod = assetData.depreciation_method || 'straight_line';
   const startDate = assetData.installation_date || assetData.purchase_date;
 
+  // Validate financial data completeness
+  const hasPurchasePrice = purchasePrice !== null && purchasePrice !== undefined && purchasePrice > 0;
+  const hasUsefulLife = usefulLifeYears !== null && usefulLifeYears !== undefined && usefulLifeYears > 0;
+  const hasValidFinancials = hasPurchasePrice && hasUsefulLife;
+  
+  const missingFields: string[] = [];
+  if (!hasPurchasePrice) missingFields.push(t('assets.fields.purchase_price', 'Purchase Price'));
+  if (!hasUsefulLife) missingFields.push(t('assets.fields.expected_lifespan_years', 'Useful Life'));
+  if (!startDate) missingFields.push(t('assets.fields.installation_date', 'Start Date'));
+  
+  // Use validated values or show warning
+  const validatedPurchasePrice = hasPurchasePrice ? purchasePrice : 0;
+  const validatedSalvageValue = salvageValue ?? 0;
+  const validatedUsefulLife = hasUsefulLife ? usefulLifeYears : 5;
+
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
+      {/* Missing Financial Data Warning */}
+      {!hasValidFinancials && (
+        <Alert variant="destructive" className="border-warning bg-warning/10">
+          <AlertTriangle className="h-5 w-5 text-warning" />
+          <AlertTitle className="text-warning">
+            {t('assets.depreciation.missingFinancials', 'Incomplete Financial Data')}
+          </AlertTitle>
+          <AlertDescription>
+            {t('assets.depreciation.missingFinancialsDesc', 
+              'The following required fields are missing: {{fields}}. Depreciation calculations may be inaccurate. Please update the asset record.',
+              { fields: missingFields.join(', ') }
+            )}
+            <Button 
+              variant="link" 
+              className="h-auto p-0 ms-2 text-warning underline"
+              onClick={() => navigate(`/assets/${id}/edit`)}
+            >
+              {t('assets.editAsset', 'Edit Asset')}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -131,9 +170,9 @@ function AssetDepreciationContent() {
           <GenerateScheduleDialog
             assetId={id!}
             defaultValues={{
-              purchasePrice,
-              salvageValue,
-              usefulLifeYears,
+              purchasePrice: validatedPurchasePrice,
+              salvageValue: validatedSalvageValue,
+              usefulLifeYears: validatedUsefulLife,
               depreciationMethod,
               startDate,
             }}
@@ -146,8 +185,8 @@ function AssetDepreciationContent() {
       {/* Summary Cards */}
       <DepreciationSummaryCard
         schedules={schedules}
-        purchasePrice={purchasePrice}
-        salvageValue={salvageValue}
+        purchasePrice={validatedPurchasePrice}
+        salvageValue={validatedSalvageValue}
         currency={assetData.currency || 'SAR'}
         isLoading={schedulesLoading}
       />

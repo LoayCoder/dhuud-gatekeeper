@@ -120,7 +120,7 @@ export function useAsset(id: string | undefined) {
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset', id],
+    queryKey: ['asset', tenantId, id],
     queryFn: async () => {
       if (!id || !tenantId) return null;
 
@@ -149,8 +149,11 @@ export function useAsset(id: string | undefined) {
 }
 
 export function useAssetCategories() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
   return useQuery({
-    queryKey: ['asset-categories'],
+    queryKey: ['asset-categories', tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('asset_categories')
@@ -270,7 +273,7 @@ export function useUpdateAsset() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      queryClient.invalidateQueries({ queryKey: ['asset', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['asset', profile?.tenant_id, data.id] });
       toast.success(t('assets.updateSuccess'));
     },
     onError: (error) => {
@@ -311,17 +314,18 @@ export function useDeleteAsset() {
 
 export function useAssetPhotos(assetId: string | undefined) {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset-photos', assetId],
+    queryKey: ['asset-photos', tenantId, assetId],
     queryFn: async () => {
-      if (!assetId || !profile?.tenant_id) return [];
+      if (!assetId || !tenantId) return [];
 
       const { data, error } = await supabase
         .from('asset_photos')
         .select('id, storage_path, file_name, is_primary, caption, created_at')
         .eq('asset_id', assetId)
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false });
@@ -329,63 +333,66 @@ export function useAssetPhotos(assetId: string | undefined) {
       if (error) throw error;
       return data;
     },
-    enabled: !!assetId && !!profile?.tenant_id,
+    enabled: !!assetId && !!tenantId,
   });
 }
 
 export function useAssetDocuments(assetId: string | undefined) {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset-documents', assetId],
+    queryKey: ['asset-documents', tenantId, assetId],
     queryFn: async () => {
-      if (!assetId || !profile?.tenant_id) return [];
+      if (!assetId || !tenantId) return [];
 
       const { data, error } = await supabase
         .from('asset_documents')
         .select('id, storage_path, file_name, title, document_type, expiry_date, created_at')
         .eq('asset_id', assetId)
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!assetId && !!profile?.tenant_id,
+    enabled: !!assetId && !!tenantId,
   });
 }
 
 export function useAssetMaintenanceSchedules(assetId: string | undefined) {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset-maintenance', assetId],
+    queryKey: ['asset-maintenance', tenantId, assetId],
     queryFn: async () => {
-      if (!assetId || !profile?.tenant_id) return [];
+      if (!assetId || !tenantId) return [];
 
       const { data, error } = await supabase
         .from('asset_maintenance_schedules')
         .select('*')
         .eq('asset_id', assetId)
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('next_due', { ascending: true });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!assetId && !!profile?.tenant_id,
+    enabled: !!assetId && !!tenantId,
   });
 }
 
 export function useAssetAuditLogs(assetId: string | undefined) {
   const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ['asset-audit-logs', assetId],
+    queryKey: ['asset-audit-logs', tenantId, assetId],
     queryFn: async () => {
-      if (!assetId || !profile?.tenant_id) return [];
+      if (!assetId || !tenantId) return [];
 
       const { data, error } = await supabase
         .from('asset_audit_logs')
@@ -394,14 +401,14 @@ export function useAssetAuditLogs(assetId: string | undefined) {
           actor:profiles!asset_audit_logs_actor_id_fkey(id, full_name)
         `)
         .eq('asset_id', assetId)
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
       return data;
     },
-    enabled: !!assetId && !!profile?.tenant_id,
+    enabled: !!assetId && !!tenantId,
   });
 }
 
