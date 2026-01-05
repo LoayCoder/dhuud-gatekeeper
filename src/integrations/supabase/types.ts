@@ -17212,6 +17212,7 @@ export type Database = {
           system_shutdown_at: string | null
           system_shutdown_by: string | null
           system_shutdown_reason: string | null
+          template_code_prefix: string | null
           trial_end_date: string | null
           trial_start_date: string | null
           updated_at: string | null
@@ -17270,6 +17271,7 @@ export type Database = {
           system_shutdown_at?: string | null
           system_shutdown_by?: string | null
           system_shutdown_reason?: string | null
+          template_code_prefix?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string | null
@@ -17328,6 +17330,7 @@ export type Database = {
           system_shutdown_at?: string | null
           system_shutdown_by?: string | null
           system_shutdown_reason?: string | null
+          template_code_prefix?: string | null
           trial_end_date?: string | null
           trial_start_date?: string | null
           updated_at?: string | null

@@ -3508,7 +3508,8 @@
       "contactEmail": "Contact Email",
       "contactPhone": "Contact Phone",
       "notes": "Notes",
-      "preferredCurrency": "Preferred Currency"
+      "preferredCurrency": "Preferred Currency",
+      "templateCodePrefix": "Template Code Prefix"
     },
     "selectCurrency": "Select currency",
     "placeholders": {
@@ -3523,7 +3524,11 @@
       "contactPerson": "e.g. John Smith",
       "contactEmail": "e.g. john@acme.com",
       "contactPhone": "e.g. +966 50 123 4567",
-      "notes": "Internal notes about this tenant..."
+      "notes": "Internal notes about this tenant...",
+      "templateCodePrefix": "e.g., GS"
+    },
+    "descriptions": {
+      "templateCodePrefix": "Optional prefix for auto-generated inspection template codes (e.g., GS-ASSET-001)"
     },
     "status": {
       "active": "Active",

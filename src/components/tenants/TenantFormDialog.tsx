@@ -42,6 +42,11 @@ const formSchema = z.object({
   contact_phone: z.string().max(20).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
   preferred_currency: z.string().min(1).max(3).default('SAR'),
+  template_code_prefix: z.string()
+    .max(10, 'Prefix must be 10 characters or less')
+    .regex(/^[A-Z0-9]*$/, 'Prefix must be uppercase letters and numbers only')
+    .optional()
+    .nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -74,6 +79,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       contact_phone: '',
       notes: '',
       preferred_currency: 'SAR',
+      template_code_prefix: '',
     },
   });
 
@@ -93,6 +99,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         contact_phone: tenant.contact_phone || '',
         notes: tenant.notes || '',
         preferred_currency: tenant.preferred_currency || 'SAR',
+        template_code_prefix: tenant.template_code_prefix || '',
       });
     } else {
       form.reset({
@@ -109,6 +116,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
         contact_phone: '',
         notes: '',
         preferred_currency: 'SAR',
+        template_code_prefix: '',
       });
     }
   }, [tenant, form]);
@@ -128,6 +136,7 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
       contact_phone: values.contact_phone || null,
       notes: values.notes || null,
       preferred_currency: values.preferred_currency || 'SAR',
+      template_code_prefix: values.template_code_prefix || null,
     };
     onSubmit(cleanedValues);
   };
@@ -351,6 +360,30 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isSubmi
                         onChange={field.onChange} 
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Template Code Prefix */}
+              <FormField
+                control={form.control}
+                name="template_code_prefix"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('tenantManagement.fields.templateCodePrefix', 'Template Code Prefix')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        value={field.value || ''} 
+                        placeholder={t('tenantManagement.placeholders.templateCodePrefix', 'e.g., GS')}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        maxLength={10}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      {t('tenantManagement.descriptions.templateCodePrefix', 'Optional prefix for auto-generated inspection template codes (e.g., GS-ASSET-001)')}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

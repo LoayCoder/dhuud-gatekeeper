@@ -112,11 +112,30 @@ export function InspectionTemplateForm({
 
   const templateType = form.watch('template_type');
 
+  // Fetch tenant's template code prefix
+  const { data: tenantData } = useQuery({
+    queryKey: ['tenant-prefix', profile?.tenant_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('template_code_prefix')
+        .eq('id', profile!.tenant_id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.tenant_id && !template && open,
+  });
+
+  const tenantPrefix = tenantData?.template_code_prefix;
+
   // Fetch the next available code for the selected template type
   const { data: nextCodeNumber } = useQuery({
-    queryKey: ['next-template-code', templateType, profile?.tenant_id],
+    queryKey: ['next-template-code', templateType, profile?.tenant_id, tenantPrefix],
     queryFn: async () => {
-      const prefix = templateType.toUpperCase();
+      const typePrefix = templateType.toUpperCase();
+      const fullPrefix = tenantPrefix ? `${tenantPrefix}-${typePrefix}` : typePrefix;
       
       const { data, error } = await supabase
         .from('inspection_templates')
@@ -124,7 +143,7 @@ export function InspectionTemplateForm({
         .eq('tenant_id', profile!.tenant_id)
         .eq('template_type', templateType)
         .is('deleted_at', null)
-        .ilike('code', `${prefix}-%`)
+        .ilike('code', `${fullPrefix}-%`)
         .order('code', { ascending: false })
         .limit(1);
       
@@ -132,7 +151,10 @@ export function InspectionTemplateForm({
       
       if (data && data.length > 0) {
         const lastCode = data[0].code;
-        const match = lastCode.match(new RegExp(`^${prefix}-(\\d+)$`));
+        const pattern = tenantPrefix 
+          ? `^${tenantPrefix}-${typePrefix}-(\\d+)$`
+          : `^${typePrefix}-(\\d+)$`;
+        const match = lastCode.match(new RegExp(pattern));
         if (match) {
           return parseInt(match[1], 10) + 1;
         }
@@ -145,12 +167,13 @@ export function InspectionTemplateForm({
   // Auto-generate template code when template type changes (only for new templates)
   useEffect(() => {
     if (!template && open && nextCodeNumber !== undefined) {
-      const prefix = templateType.toUpperCase();
+      const typePrefix = templateType.toUpperCase();
+      const fullPrefix = tenantPrefix ? `${tenantPrefix}-${typePrefix}` : typePrefix;
       const paddedNumber = String(nextCodeNumber).padStart(3, '0');
-      const generatedCode = `${prefix}-${paddedNumber}`;
+      const generatedCode = `${fullPrefix}-${paddedNumber}`;
       form.setValue('code', generatedCode);
     }
-  }, [templateType, nextCodeNumber, template, open, form]);
+  }, [templateType, nextCodeNumber, tenantPrefix, template, open, form]);
 
   // Reset form when dialog opens with template data
   useEffect(() => {
