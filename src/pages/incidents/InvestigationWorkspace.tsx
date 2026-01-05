@@ -680,17 +680,17 @@ export default function InvestigationWorkspace() {
 
           {/* Warning if investigation not yet allowed */}
           {!investigationAllowed && (
-            <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+            <Card className="border-warning/30 bg-warning/5">
               <CardContent className="py-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <div className="p-2 rounded-lg bg-warning/10">
+                    <AlertCircle className="h-5 w-5 text-warning" />
                   </div>
                   <div>
-                    <p className="font-medium text-amber-800 dark:text-amber-200">
+                    <p className="font-medium text-foreground">
                       {t('investigation.workflow.pendingApproval', 'Pending Approval')}
                     </p>
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                    <p className="text-sm text-muted-foreground">
                       {t('investigation.workflow.completeWorkflowFirst', 'Complete the approval workflow above before accessing investigation tools.')}
                     </p>
                   </div>
@@ -701,9 +701,9 @@ export default function InvestigationWorkspace() {
 
           {/* Read-only oversight banner */}
           {investigationAllowed && editAccess.isReadOnly && !editAccess.isClosed && (
-            <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-950/20">
-              <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertDescription className="text-blue-800 dark:text-blue-200">
+            <Alert className="border-info/30 bg-info/5">
+              <Eye className="h-4 w-4 text-info" />
+              <AlertDescription className="text-foreground">
                 {editAccess.isOversightRole 
                   ? t('investigation.readOnly.oversightBanner', 'You have read-only access to monitor this investigation. Only the assigned investigator can make changes.')
                   : t('investigation.readOnly.notAssigned', 'You are not the assigned investigator. Investigation data is read-only.')}
@@ -713,16 +713,16 @@ export default function InvestigationWorkspace() {
 
           {/* Closed incident banner with reopen option */}
           {editAccess.isClosed && (
-            <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
-              <Lock className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertDescription className="flex items-center justify-between text-green-800 dark:text-green-200">
+            <Alert className="border-success/30 bg-success/5">
+              <Lock className="h-4 w-4 text-success" />
+              <AlertDescription className="flex items-center justify-between text-foreground">
                 <span>{t('investigation.readOnly.closedBanner', 'This incident is closed and all data is locked.')}</span>
                 {editAccess.canReopen && (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => setShowReopenDialog(true)}
-                    className="ms-4 border-green-500/50 hover:bg-green-100 dark:hover:bg-green-900/50"
+                    className="ms-4 border-success/30 hover:bg-success/10"
                   >
                     <RotateCcw className="h-4 w-4 me-2" />
                     {t('investigation.reopen.button', 'Reopen Investigation')}

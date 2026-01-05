@@ -65,7 +65,7 @@ export function ActionsStatusWidget({ data }: Props) {
             </Badge>
           )}
           {data.high_priority_actions > 0 && (
-            <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+            <Badge variant="secondary" className="bg-warning/10 text-warning border border-warning/20">
               {data.high_priority_actions} {t('hsseDashboard.highPriority')}
             </Badge>
           )}

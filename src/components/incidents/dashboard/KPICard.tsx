@@ -20,18 +20,34 @@ export function KPICard({
   variant = 'default',
   onClick,
 }: KPICardProps) {
-  const bgClass = variant === 'danger' 
-    ? 'bg-gradient-to-br from-destructive/15 to-destructive/5 border-destructive/30' 
-    : variant === 'warning' 
-      ? 'bg-gradient-to-br from-warning/20 to-warning/5 border-warning/30'
-      : variant === 'success'
-        ? 'bg-gradient-to-br from-chart-3/20 to-chart-3/5 border-chart-3/30'
-        : 'bg-gradient-to-br from-card to-muted/30';
+  const variantStyles = {
+    danger: {
+      container: 'bg-destructive/5 border-destructive/20',
+      iconBg: 'bg-destructive/10',
+      iconColor: 'text-destructive',
+    },
+    warning: {
+      container: 'bg-warning/5 border-warning/20',
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
+    },
+    success: {
+      container: 'bg-success/5 border-success/20',
+      iconBg: 'bg-success/10',
+      iconColor: 'text-success',
+    },
+    default: {
+      container: 'bg-card border-border',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+    },
+  };
 
+  const styles = variantStyles[variant];
   const Component = onClick ? 'button' : 'div';
 
   return (
-    <Card className={`${bgClass} ${onClick ? 'cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]' : ''}`}>
+    <Card className={`${styles.container} ${onClick ? 'cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]' : ''}`}>
       <Component onClick={onClick} className="w-full">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
@@ -43,26 +59,16 @@ export function KPICard({
                   {trend >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-destructive" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-chart-3" />
+                    <TrendingDown className="h-3 w-3 text-success" />
                   )}
-                  <span className={`text-xs ${trend >= 0 ? 'text-destructive' : 'text-chart-3'}`}>
+                  <span className={`text-xs ${trend >= 0 ? 'text-destructive' : 'text-success'}`}>
                     {Math.abs(trend)}% {trendLabel}
                   </span>
                 </div>
               )}
             </div>
-            <div className={`p-2.5 rounded-xl shadow-sm ${
-              variant === 'danger' ? 'bg-destructive/20' : 
-              variant === 'warning' ? 'bg-warning/20' : 
-              variant === 'success' ? 'bg-chart-3/20' :
-              'bg-primary/10'
-            }`}>
-              <Icon className={`h-5 w-5 ${
-                variant === 'danger' ? 'text-destructive' : 
-                variant === 'warning' ? 'text-warning' : 
-                variant === 'success' ? 'text-chart-3' :
-                'text-primary'
-              }`} />
+            <div className={`p-2.5 rounded-xl shadow-sm ${styles.iconBg}`}>
+              <Icon className={`h-5 w-5 ${styles.iconColor}`} />
             </div>
           </div>
         </CardContent>

@@ -100,10 +100,15 @@ export function CriticalAlertBanner({ summary, actionStats }: CriticalAlertBanne
             variant={alert.severity === 'critical' ? 'destructive' : 'default'}
             className={cn(
               "animate-in slide-in-from-top-2",
-              alert.severity === 'critical' && "border-destructive/50 bg-destructive/5"
+              alert.severity === 'critical' 
+                ? "border-destructive/30 bg-destructive/5"
+                : "border-warning/30 bg-warning/5"
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className={cn(
+              "h-4 w-4",
+              alert.severity === 'critical' ? 'text-destructive' : 'text-warning'
+            )} />
             <AlertTitle className="flex items-center justify-between">
               <span>{alert.title}</span>
               <Button
