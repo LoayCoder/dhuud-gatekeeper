@@ -55,8 +55,8 @@ export function NearMissWidget({ nearMissCount, incidentCount, previousNearMissC
             </div>
             <div className={cn(
               "flex items-center gap-1 px-2 py-1 rounded-full text-xs",
-              isHealthyRatio && "bg-green-500/10 text-green-500",
-              isWarningRatio && "bg-yellow-500/10 text-yellow-500",
+              isHealthyRatio && "bg-success/10 text-success",
+              isWarningRatio && "bg-warning/10 text-warning",
               isPoorRatio && "bg-destructive/10 text-destructive"
             )}>
               <TrendIcon className="h-3 w-3" />
@@ -80,8 +80,8 @@ export function NearMissWidget({ nearMissCount, incidentCount, previousNearMissC
               <div 
                 className={cn(
                   "h-full rounded-full transition-all",
-                  isHealthyRatio && "bg-green-500",
-                  isWarningRatio && "bg-yellow-500",
+                  isHealthyRatio && "bg-success",
+                  isWarningRatio && "bg-warning",
                   isPoorRatio && "bg-destructive"
                 )}
                 style={{ width: `${Math.min(ratio * 10, 100)}%` }}

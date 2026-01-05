@@ -54,11 +54,11 @@ interface IncidentCardEnhancedProps {
 // Severity indicator colors for visual reference inside the card
 const getSeverityIndicatorColor = (severity: string | null): string => {
   switch (severity) {
-    case 'level_5': return 'bg-red-500';
-    case 'level_4': return 'bg-orange-500';
-    case 'level_3': return 'bg-amber-500';
-    case 'level_2': return 'bg-yellow-500';
-    case 'level_1': return 'bg-green-500';
+    case 'level_5': return 'bg-destructive';
+    case 'level_4': return 'bg-warning';
+    case 'level_3': return 'bg-warning/70';
+    case 'level_2': return 'bg-warning/50';
+    case 'level_1': return 'bg-success';
     default: return 'bg-muted';
   }
 };
@@ -82,7 +82,7 @@ export function IncidentCardEnhanced({
       className={cn(
         "group relative overflow-hidden transition-all hover:shadow-lg border-s-4",
         getStatusBorderColor(incident.status),
-        isOverdue && "ring-1 ring-amber-500/50"
+        isOverdue && "ring-1 ring-warning/50"
       )}
     >
       <CardContent className="p-4 space-y-3">

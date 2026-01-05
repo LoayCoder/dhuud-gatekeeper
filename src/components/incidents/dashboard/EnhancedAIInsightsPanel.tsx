@@ -46,9 +46,9 @@ function getRiskLevelColor(level: string) {
 function getRiskLevelBgColor(level: string) {
   switch (level) {
     case 'critical': return 'bg-destructive/10 border-destructive/30';
-    case 'high': return 'bg-orange-500/10 border-orange-500/30';
-    case 'medium': return 'bg-yellow-500/10 border-yellow-500/30';
-    case 'low': return 'bg-green-500/10 border-green-500/30';
+    case 'high': return 'bg-warning/10 border-warning/30';
+    case 'medium': return 'bg-warning/5 border-warning/20';
+    case 'low': return 'bg-success/10 border-success/30';
     default: return 'bg-muted/50';
   }
 }
@@ -71,7 +71,7 @@ function getPriorityColor(priority: string) {
 
 function getTrendIcon(trend: string) {
   switch (trend) {
-    case 'improving': return <TrendingDown className="h-4 w-4 text-green-500" />;
+    case 'improving': return <TrendingDown className="h-4 w-4 text-success" />;
     case 'declining': return <TrendingUp className="h-4 w-4 text-destructive" />;
     default: return <Minus className="h-4 w-4 text-muted-foreground" />;
   }
@@ -232,7 +232,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 <AccordionItem value="branch_risks">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-blue-500" />
+                      <Building2 className="h-4 w-4 text-info" />
                       <span>{t('hsseDashboard.branchRiskScores')}</span>
                       <Badge variant="secondary">{insights.branch_risk_scores.length}</Badge>
                     </div>
@@ -330,7 +330,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 <AccordionItem value="patterns">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-blue-500" />
+                      <TrendingUp className="h-4 w-4 text-info" />
                       <span>{t('hsseDashboard.patternsDetected')}</span>
                       <Badge variant="secondary">{insights.patterns.length}</Badge>
                     </div>
@@ -359,7 +359,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 <AccordionItem value="anomalies">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <AlertTriangle className="h-4 w-4 text-warning" />
                       <span>{t('hsseDashboard.anomaliesDetected')}</span>
                       <Badge variant="secondary">{insights.anomalies.length}</Badge>
                     </div>
@@ -385,7 +385,7 @@ export function EnhancedAIInsightsPanel({ insights, isLoading, onRefresh, lastUp
                 <AccordionItem value="recommendations">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <Lightbulb className="h-4 w-4 text-green-500" />
+                      <Lightbulb className="h-4 w-4 text-success" />
                       <span>{t('hsseDashboard.recommendations')}</span>
                       <Badge variant="secondary">{insights.recommendations.length}</Badge>
                     </div>

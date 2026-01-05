@@ -42,32 +42,32 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
   };
 
   return (
-    <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20" dir={direction}>
-      <RotateCcw className="h-5 w-5 text-amber-600" />
-      <AlertTitle className="text-amber-800 dark:text-amber-200">
+    <Alert className="border-warning/50 bg-warning/5" dir={direction}>
+      <RotateCcw className="h-5 w-5 text-warning" />
+      <AlertTitle className="text-foreground">
         {t('workflow.correction.title', 'Correction Required')}
       </AlertTitle>
       <AlertDescription className="mt-2 space-y-3">
         {extendedIncident.return_reason && (
           <div>
-            <p className="font-medium text-amber-800 dark:text-amber-200">
+            <p className="font-medium text-foreground">
               {t('workflow.correction.reason', 'Reason')}:
             </p>
-            <p className="text-amber-700 dark:text-amber-300">{extendedIncident.return_reason}</p>
+            <p className="text-muted-foreground">{extendedIncident.return_reason}</p>
           </div>
         )}
         
         {extendedIncident.return_instructions && (
           <div>
-            <p className="font-medium text-amber-800 dark:text-amber-200">
+            <p className="font-medium text-foreground">
               {t('workflow.correction.instructions', 'Instructions')}:
             </p>
-            <p className="text-amber-700 dark:text-amber-300">{extendedIncident.return_instructions}</p>
+            <p className="text-muted-foreground">{extendedIncident.return_instructions}</p>
           </div>
         )}
         
         {extendedIncident.resubmission_count && extendedIncident.resubmission_count > 0 && (
-          <p className="text-sm text-amber-600 dark:text-amber-400">
+          <p className="text-sm text-warning">
             {t('workflow.correction.previousSubmissions', 'Previous submissions')}: {extendedIncident.resubmission_count}
           </p>
         )}
@@ -77,7 +77,7 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
             size="sm"
             variant="outline"
             onClick={onEdit}
-            className="border-amber-500 text-amber-700 hover:bg-amber-100"
+            className="border-warning/50 text-warning hover:bg-warning/10"
           >
             <Edit className="h-4 w-4 me-2" />
             {t('workflow.correction.edit', 'Edit Report')}
@@ -86,7 +86,7 @@ export function ReporterCorrectionBanner({ incident, onEdit, onComplete }: Repor
             size="sm"
             onClick={handleResubmit}
             disabled={reporterResponse.isPending}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
+            className="bg-warning hover:bg-warning/90 text-warning-foreground"
           >
             {reporterResponse.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />

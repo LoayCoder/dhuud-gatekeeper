@@ -136,14 +136,14 @@ export function ExecutiveSummaryCard({
   };
 
   const statusColors = {
-    green: 'bg-emerald-500',
-    amber: 'bg-amber-500',
+    green: 'bg-success',
+    amber: 'bg-warning',
     red: 'bg-destructive',
   };
 
   const statusBgColors = {
-    green: 'bg-emerald-500/10 border-emerald-500/30',
-    amber: 'bg-amber-500/10 border-amber-500/30',
+    green: 'bg-success/10 border-success/30',
+    amber: 'bg-warning/10 border-warning/30',
     red: 'bg-destructive/10 border-destructive/30',
   };
 
@@ -165,8 +165,8 @@ export function ExecutiveSummaryCard({
             variant="outline" 
             className={cn(
               "font-semibold",
-              status === 'green' && "border-emerald-500 text-emerald-600",
-              status === 'amber' && "border-amber-500 text-amber-600",
+              status === 'green' && "border-success text-success",
+              status === 'amber' && "border-warning text-warning",
               status === 'red' && "border-destructive text-destructive"
             )}
           >

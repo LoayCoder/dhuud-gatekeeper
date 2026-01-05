@@ -51,8 +51,8 @@ export function LeadingIndicatorsCard({ data, isLoading }: LeadingIndicatorsCard
   const getTarget = (code: string) => targets?.find((t) => t.kpi_code === code);
 
   const statusColors = {
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
+    success: 'bg-success',
+    warning: 'bg-warning',
     critical: 'bg-destructive',
     neutral: 'bg-primary',
   };

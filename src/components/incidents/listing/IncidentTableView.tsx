@@ -145,7 +145,7 @@ export function IncidentTableView({
                 key={incident.id}
                 className={cn(
                   "hover:bg-muted/50 transition-colors",
-                  isOverdue ? "bg-amber-50/50 dark:bg-amber-950/20" : getStatusBackgroundColor(incident.status)
+                  isOverdue ? "bg-warning/5" : getStatusBackgroundColor(incident.status)
                 )}
               >
                 <TableCell>
@@ -166,7 +166,7 @@ export function IncidentTableView({
                       {incident.title}
                     </Link>
                     {isOverdue && (
-                      <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500">
+                      <div className="flex items-center gap-1 text-xs text-warning">
                         <Clock className="h-3 w-3" />
                         {t('common.overdue', 'Overdue')}
                       </div>

@@ -24,7 +24,7 @@ export function PositiveObservationCard({ data, isLoading }: PositiveObservation
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-chart-3" />
+            <Trophy className="h-5 w-5 text-success" />
             {t('positiveObservation.totalPositive')}
           </CardTitle>
         </CardHeader>
@@ -56,10 +56,10 @@ export function PositiveObservationCard({ data, isLoading }: PositiveObservation
   const positivePercent = total > 0 ? Math.round((totalPositive / total) * 100) : 0;
 
   return (
-    <Card className="border-chart-3/30 bg-gradient-to-br from-chart-3/5 to-background">
+    <Card className="border-success/30 bg-success/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-chart-3" />
+          <Trophy className="h-5 w-5 text-success" />
           {t('positiveObservation.totalPositive')}
         </CardTitle>
       </CardHeader>
@@ -67,14 +67,14 @@ export function PositiveObservationCard({ data, isLoading }: PositiveObservation
         {/* Main Stats */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-3xl font-bold text-chart-3">{totalPositive}</p>
+            <p className="text-3xl font-bold text-success">{totalPositive}</p>
             <p className="text-xs text-muted-foreground">{t('positiveObservation.totalPositive')}</p>
           </div>
           <Badge 
             variant="outline" 
             className={cn(
               "text-sm px-3 py-1",
-              positivePercent >= 50 ? "border-chart-3 text-chart-3" : "border-warning text-warning"
+              positivePercent >= 50 ? "border-success text-success" : "border-warning text-warning"
             )}
           >
             {positivePercent}% {t('hsseDashboard.observations')}
@@ -83,16 +83,16 @@ export function PositiveObservationCard({ data, isLoading }: PositiveObservation
 
         {/* Breakdown */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-chart-3/10 rounded-lg">
+          <div className="p-3 bg-success/10 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
-              <ThumbsUp className="h-4 w-4 text-chart-3" />
+              <ThumbsUp className="h-4 w-4 text-success" />
               <span className="text-sm font-medium">{t('positiveObservation.safeActs')}</span>
             </div>
             <p className="text-xl font-bold">{safeActs}</p>
           </div>
-          <div className="p-3 bg-chart-3/10 rounded-lg">
+          <div className="p-3 bg-success/10 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
-              <Shield className="h-4 w-4 text-chart-3" />
+              <Shield className="h-4 w-4 text-success" />
               <span className="text-sm font-medium">{t('positiveObservation.safeConditions')}</span>
             </div>
             <p className="text-xl font-bold">{safeConditions}</p>
