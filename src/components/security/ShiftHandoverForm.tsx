@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Loader2, CheckCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { SignaturePad, SignaturePadRef } from '@/components/ui/signature-pad';
 import { useCreateShiftHandover } from '@/hooks/use-shift-handovers';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
   const { t } = useTranslation();
   const createHandover = useCreateShiftHandover();
   const { data: zones } = useSecurityZones();
+  const signaturePadRef = useRef<SignaturePadRef>(null);
 
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [issues, setIssues] = useState<OutstandingIssue[]>([]);
@@ -54,6 +56,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
   const [visitorInfo, setVisitorInfo] = useState('');
   const [priorities, setPriorities] = useState('');
   const [notes, setNotes] = useState('');
+  const [signatureError, setSignatureError] = useState(false);
 
   const handleAddIssue = () => {
     if (!newIssue.trim()) return;
@@ -82,6 +85,14 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate signature
+    const signature = signaturePadRef.current?.getSignatureDataUrl();
+    if (!signature) {
+      setSignatureError(true);
+      return;
+    }
+    setSignatureError(false);
+
     await createHandover.mutateAsync({
       zone_id: selectedZone || undefined,
       outstanding_issues: issues,
@@ -90,6 +101,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
       visitor_info: visitorInfo || undefined,
       next_shift_priorities: priorities || undefined,
       notes: notes || undefined,
+      outgoing_signature: signature,
     });
 
     // Reset form
@@ -99,6 +111,7 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
     setVisitorInfo('');
     setPriorities('');
     setNotes('');
+    signaturePadRef.current?.clear();
     onSuccess?.();
   };
 
@@ -288,6 +301,31 @@ export function ShiftHandoverForm({ onSuccess }: ShiftHandoverFormProps) {
           rows={2}
         />
       </div>
+
+      {/* Outgoing Guard Signature */}
+      <Card className={cn(signatureError && 'border-destructive')}>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
+            {t('security.outgoingSignature', 'Outgoing Guard Signature')} *
+          </CardTitle>
+          <CardDescription>
+            {t('security.signatureRequired', 'Your signature is required to submit this handover')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SignaturePad 
+            ref={signaturePadRef}
+            onSignatureChange={(isEmpty) => {
+              if (!isEmpty) setSignatureError(false);
+            }}
+          />
+          {signatureError && (
+            <p className="text-sm text-destructive mt-2">
+              {t('security.signatureRequired', 'Signature is required')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Button type="submit" className="w-full" disabled={createHandover.isPending}>
         {createHandover.isPending ? (

@@ -14,74 +14,61 @@ export interface DrilldownEvent {
   branch_name: string | null;
 }
 
+const SELECT_INCIDENT_FIELDS = `
+  id, reference_id, title, event_type, severity, status, occurred_at,
+  reporter:profiles!incidents_reporter_id_fkey(full_name),
+  branch:branches(name)
+`;
+
+function mapToEvent(item: Record<string, unknown>): DrilldownEvent {
+  return {
+    id: item.id as string,
+    reference_id: item.reference_id as string,
+    title: item.title as string,
+    event_type: item.event_type as string,
+    severity: item.severity as string | null,
+    status: item.status as string,
+    occurred_at: item.occurred_at as string,
+    reporter_name: (item.reporter as { full_name?: string } | null)?.full_name || null,
+    branch_name: (item.branch as { name?: string } | null)?.name || null,
+  };
+}
+
 export function useDrilldownEvents(filters: DrillDownFilter, enabled: boolean) {
   return useQuery({
     queryKey: ["drilldown-events", filters],
     queryFn: async () => {
-      // If filtering by root cause category, we need a different approach
       if (filters.rootCauseCategory) {
         return fetchIncidentsByRootCause(filters.rootCauseCategory);
       }
-
-      let query = supabase
+      
+      // Use type assertion to avoid deep type instantiation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      let query = db
         .from("incidents")
-        .select(`
-          id,
-          reference_id,
-          title,
-          event_type,
-          severity,
-          status,
-          occurred_at,
-          reporter:profiles!incidents_reporter_id_fkey(full_name),
-          branch:branches(name)
-        `)
+        .select(SELECT_INCIDENT_FIELDS)
         .is("deleted_at", null)
         .order("occurred_at", { ascending: false })
         .limit(50);
 
-      if (filters.eventType) {
-        query = query.eq("event_type", filters.eventType as "incident" | "observation");
-      }
-      if (filters.severity) {
-        query = query.eq("severity", filters.severity as "critical" | "high" | "medium" | "low");
-      }
-      if (filters.status) {
-        query = query.eq("status", filters.status as "submitted" | "closed" | "investigation_in_progress");
-      }
-      if (filters.branchId) {
-        query = query.eq("branch_id", filters.branchId);
-      }
-      if (filters.siteId) {
-        query = query.eq("site_id", filters.siteId);
-      }
-      if (filters.departmentId) {
-        query = query.eq("department_id", filters.departmentId);
-      }
+      if (filters.eventType) query = query.eq("event_type", filters.eventType);
+      if (filters.severity) query = query.eq("severity", filters.severity);
+      if (filters.status) query = query.eq("status", filters.status);
+      if (filters.branchId) query = query.eq("branch_id", filters.branchId);
+      if (filters.siteId) query = query.eq("site_id", filters.siteId);
+      if (filters.departmentId) query = query.eq("department_id", filters.departmentId);
 
       const { data, error } = await query;
-
       if (error) throw error;
 
-      return (data || []).map((item) => ({
-        id: item.id,
-        reference_id: item.reference_id,
-        title: item.title,
-        event_type: item.event_type,
-        severity: item.severity,
-        status: item.status,
-        occurred_at: item.occurred_at,
-        reporter_name: (item.reporter as { full_name: string } | null)?.full_name || null,
-        branch_name: (item.branch as { name: string } | null)?.name || null,
-      })) as DrilldownEvent[];
+      return (data || []).map(mapToEvent);
     },
     enabled,
   });
 }
 
-// Separate function to fetch incidents by root cause category
 async function fetchIncidentsByRootCause(category: string): Promise<DrilldownEvent[]> {
-  // First, get incident IDs that have this root cause category from investigations
   const { data: investigationsData, error: investigationsError } = await supabase
     .from("investigations")
     .select("incident_id, root_causes")
@@ -89,7 +76,6 @@ async function fetchIncidentsByRootCause(category: string): Promise<DrilldownEve
 
   if (investigationsError) throw investigationsError;
 
-  // Filter investigations that have the matching root cause category
   const matchingIncidentIds = (investigationsData || [])
     .filter((inv) => {
       const rootCauses = inv.root_causes as Array<{ category?: string }> | null;
@@ -102,20 +88,11 @@ async function fetchIncidentsByRootCause(category: string): Promise<DrilldownEve
     return [];
   }
 
-  // Fetch the incidents with those IDs
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { data, error } = await db
     .from("incidents")
-    .select(`
-      id,
-      reference_id,
-      title,
-      event_type,
-      severity,
-      status,
-      occurred_at,
-      reporter:profiles!incidents_reporter_id_fkey(full_name),
-      branch:branches(name)
-    `)
+    .select(SELECT_INCIDENT_FIELDS)
     .in("id", matchingIncidentIds)
     .is("deleted_at", null)
     .order("occurred_at", { ascending: false })
@@ -123,15 +100,5 @@ async function fetchIncidentsByRootCause(category: string): Promise<DrilldownEve
 
   if (error) throw error;
 
-  return (data || []).map((item) => ({
-    id: item.id,
-    reference_id: item.reference_id,
-    title: item.title,
-    event_type: item.event_type,
-    severity: item.severity,
-    status: item.status,
-    occurred_at: item.occurred_at,
-    reporter_name: (item.reporter as { full_name: string } | null)?.full_name || null,
-    branch_name: (item.branch as { name: string } | null)?.name || null,
-  })) as DrilldownEvent[];
+  return (data || []).map(mapToEvent);
 }
