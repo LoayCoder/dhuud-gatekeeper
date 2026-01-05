@@ -51,9 +51,9 @@ export function OfflineStatusBadge() {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           className={cn(
-            "relative h-9 w-9 p-0 rounded-full",
+            "relative h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full",
             !isOnline && "text-destructive",
             hasPendingChanges && isOnline && "text-warning"
           )}

@@ -197,7 +197,7 @@ export function HSSENotificationCenter() {
       </PopoverTrigger>
       
       <PopoverContent 
-        className="w-96 p-0" 
+        className="w-[calc(100vw-1rem)] sm:w-96 max-w-96 p-0" 
         align="end"
         sideOffset={8}
       >
