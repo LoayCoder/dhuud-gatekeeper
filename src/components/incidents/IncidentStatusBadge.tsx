@@ -27,86 +27,86 @@ const statusConfig: Record<string, {
   icon: React.ElementType;
   colorClass: string;
 }> = {
-  // Initial submission stages
+  // Initial submission stages - Info
   submitted: {
     icon: FileText,
-    colorClass: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+    colorClass: 'bg-info/10 text-info border-info/30'
   },
   pending_review: {
     icon: Clock,
-    colorClass: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+    colorClass: 'bg-info/10 text-info border-info/30'
   },
   expert_screening: {
     icon: Search,
-    colorClass: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-300 dark:border-cyan-800'
+    colorClass: 'bg-info/10 text-info border-info/30'
   },
   
-  // Return/Rejection stages (needs attention)
+  // Return/Rejection stages - Destructive
   returned_to_reporter: {
     icon: RotateCcw,
-    colorClass: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
   expert_rejected: {
     icon: XCircle,
-    colorClass: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
   },
   manager_rejected: {
     icon: XCircle,
-    colorClass: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
+    colorClass: 'bg-destructive/10 text-destructive border-destructive/30'
   },
   
-  // Approval stages
+  // Approval stages - Warning
   pending_manager_approval: {
     icon: UserCheck,
-    colorClass: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
   hsse_manager_escalation: {
     icon: ArrowUpCircle,
-    colorClass: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
   pending_dept_rep_approval: {
     icon: ClipboardCheck,
-    colorClass: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
+    colorClass: 'bg-warning/10 text-warning border-warning/30'
   },
   
-  // Observation with pending actions (awaiting action verification)
+  // Observation with pending actions - Pending
   observation_actions_pending: {
     icon: Timer,
-    colorClass: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
   },
   
-  // Investigation stages
+  // Investigation stages - Info variant
   investigation_pending: {
     icon: Timer,
-    colorClass: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800'
+    colorClass: 'bg-info/10 text-info border-info/30'
   },
   investigation_in_progress: {
     icon: Search,
-    colorClass: 'bg-violet-100 text-violet-700 border-violet-300 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800'
+    colorClass: 'bg-info/10 text-info border-info/30'
   },
   
-  // Closure workflow stages
+  // Closure workflow stages - Pending
   pending_closure: {
     icon: FileCheck,
-    colorClass: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800'
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
   },
   investigation_closed: {
     icon: ShieldCheck,
-    colorClass: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800'
+    colorClass: 'bg-success/10 text-success border-success/30'
   },
   pending_final_closure: {
     icon: FileCheck,
-    colorClass: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800'
+    colorClass: 'bg-pending/10 text-pending border-pending/30'
   },
   
-  // Completed stages
+  // Completed stages - Success/Muted
   closed: {
     icon: Lock,
-    colorClass: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600'
+    colorClass: 'bg-muted text-muted-foreground border-border'
   },
   no_investigation_required: {
     icon: CheckCircle2,
-    colorClass: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600'
+    colorClass: 'bg-muted text-muted-foreground border-border'
   }
 };
 
