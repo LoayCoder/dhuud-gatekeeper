@@ -1,20 +1,21 @@
-import React from 'react';
 import { useSessionManagement } from '@/hooks/use-session-management';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 
 /**
  * Internal component that uses the session management hook.
  * Separated to allow error boundary to catch hook errors.
+ * Renders nothing - only runs the hook logic.
  */
-function SessionManagementCore({ children }: { children: React.ReactNode }) {
+function SessionManagementCore() {
   // Initialize session management - the hook handles all logic internally
   useSessionManagement();
-  return <>{children}</>;
+  return null;
 }
 
 /**
- * Provider component that initializes session management for authenticated users.
+ * Self-contained component that initializes session management for authenticated users.
  * Wrapped with error boundary to prevent hook errors from crashing the app.
+ * Does NOT wrap children - it's a standalone component.
  * 
  * Handles:
  * - Session registration on login
@@ -22,12 +23,10 @@ function SessionManagementCore({ children }: { children: React.ReactNode }) {
  * - IP country change detection and session invalidation
  * - Periodic heartbeats to keep sessions alive
  */
-export function SessionManagementProvider({ children }: { children: React.ReactNode }) {
+export function SessionManagementProvider() {
   return (
     <SessionErrorBoundary>
-      <SessionManagementCore>
-        {children}
-      </SessionManagementCore>
+      <SessionManagementCore />
     </SessionErrorBoundary>
   );
 }

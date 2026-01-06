@@ -12,6 +12,7 @@ import { SessionTimeoutProvider } from "./contexts/SessionTimeoutContext";
 import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 import { SessionManagementProvider } from "./components/SessionManagementProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { PageLoadErrorBoundary } from "./components/PageLoadErrorBoundary";
 import { SessionFallbackUI } from "./components/SessionFallbackUI";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -231,9 +232,10 @@ const App = () => (
               <AuthProvider>
                 <SessionTimeoutProvider>
                   <ErrorBoundary fallback={<SessionFallbackUI />}>
-                    <SessionManagementProvider>
-                      <SessionTimeoutWarning />
-                <Suspense fallback={<PageLoader />}>
+                    <SessionManagementProvider />
+                    <SessionTimeoutWarning />
+                    <PageLoadErrorBoundary>
+                      <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Legal Pages - Public */}
                     <Route path="/terms" element={<TermsOfService />} />
@@ -716,10 +718,10 @@ const App = () => (
 
                     {/* Catch-all */}
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-                    </SessionManagementProvider>
-                  </ErrorBoundary>
+                      </Routes>
+                    </Suspense>
+                  </PageLoadErrorBoundary>
+                </ErrorBoundary>
                 </SessionTimeoutProvider>
             </AuthProvider>
           </BrowserRouter>
