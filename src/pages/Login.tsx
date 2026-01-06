@@ -8,10 +8,11 @@ import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { useTrustedDevice } from '@/hooks/use-trusted-device';
 import { useVerifiedDevice } from '@/hooks/use-verified-device';
 import { getDeviceFingerprint } from '@/hooks/use-device-fingerprint';
+import { useWebAuthn } from '@/hooks/use-webauthn';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, AlertTriangle } from 'lucide-react';
+import { Shield, Fingerprint, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
 import { z } from 'zod';
@@ -36,6 +37,8 @@ export default function Login() {
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
   const { verifyDevice } = useVerifiedDevice();
+  const { isSupported: isBiometricSupported, authenticate: biometricAuth } = useWebAuthn();
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   // Determine the logo to display with fallback
   const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
@@ -414,9 +417,61 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" className="h-12 w-full text-lg" disabled={loading}>
+            <Button type="submit" className="h-12 w-full text-lg" disabled={loading || biometricLoading}>
               {loading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
+
+            {/* Biometric Login */}
+            {isBiometricSupported && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      {t('auth.or')}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 w-full"
+                  disabled={loading || biometricLoading || !email}
+                  onClick={async () => {
+                    if (!email) {
+                      toast({
+                        title: t('biometric.emailRequired'),
+                        description: t('biometric.emailRequiredDesc'),
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                    setBiometricLoading(true);
+                    try {
+                      const success = await biometricAuth(email);
+                      if (success) {
+                        await refreshTenantData();
+                        startSessionTracking();
+                        await logUserActivity({ eventType: 'login' });
+                        clearInvitationData();
+                        navigate(returnTo);
+                      }
+                    } finally {
+                      setBiometricLoading(false);
+                    }
+                  }}
+                >
+                  {biometricLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin me-2" />
+                  ) : (
+                    <Fingerprint className="h-5 w-5 me-2" />
+                  )}
+                  {t('biometric.loginWith')}
+                </Button>
+              </>
+            )}
 
             <div className="flex flex-col items-center gap-2">
               <Button

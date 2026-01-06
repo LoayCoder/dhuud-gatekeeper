@@ -20196,6 +20196,86 @@ export type Database = {
           },
         ]
       }
+      webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          email: string | null
+          expires_at: string
+          id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          counter: number
+          created_at: string
+          credential_id: string
+          deleted_at: string | null
+          device_name: string | null
+          id: string
+          last_used_at: string | null
+          public_key: string
+          tenant_id: string
+          transports: string[] | null
+          user_id: string
+        }
+        Insert: {
+          counter?: number
+          created_at?: string
+          credential_id: string
+          deleted_at?: string | null
+          device_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          public_key: string
+          tenant_id: string
+          transports?: string[] | null
+          user_id: string
+        }
+        Update: {
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          deleted_at?: string | null
+          device_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          public_key?: string
+          tenant_id?: string
+          transports?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webauthn_credentials_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_request_logs: {
         Row: {
           created_at: string
@@ -21772,6 +21852,7 @@ export type Database = {
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
+      cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
       contract_controller_approve_violation: {
         Args: {
           p_decision: string
