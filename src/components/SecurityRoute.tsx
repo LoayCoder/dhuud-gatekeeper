@@ -9,6 +9,13 @@ interface SecurityRouteProps {
   children: React.ReactNode;
 }
 
+interface MenuAccessItem {
+  menu_code: string;
+  menu_url: string | null;
+  parent_code: string | null;
+  sort_order: number;
+}
+
 export function SecurityRoute({ children }: SecurityRouteProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -28,7 +35,7 @@ export function SecurityRoute({ children }: SecurityRouteProps) {
 
         setAuthenticated(true);
 
-        // Check if user is admin
+        // Check if user is admin first
         const { data: isAdmin } = await supabase.rpc('is_admin', { p_user_id: session.user.id });
 
         if (isAdmin) {
@@ -37,19 +44,27 @@ export function SecurityRoute({ children }: SecurityRouteProps) {
           return;
         }
 
-        // Check if user has security roles via user_role_assignments
-        const { data: roles } = await supabase
-          .from('user_role_assignments')
-          .select('role:roles(code)')
-          .eq('user_id', session.user.id)
-          .is('deleted_at', null);
+        // Check if user has access to security section via menu access configuration
+        const { data: menuItems, error } = await supabase.rpc('get_accessible_menu_items', {
+          _user_id: session.user.id
+        });
 
-        const roleCodes = roles?.map(r => (r.role as { code: string })?.code) || [];
-        const hasSecurityRole = roleCodes.some(code => 
-          code === 'security_officer' || code === 'security_supervisor' || code === 'security_manager'
+        if (error) {
+          console.error('Error fetching menu items:', error);
+          setHasAccess(false);
+          setLoading(false);
+          return;
+        }
+
+        // User has security access if they can access the 'security' parent menu or any security-related menu
+        const hasSecurityAccess = (menuItems as MenuAccessItem[] || []).some(
+          (item) => 
+            item.menu_code === 'security' || 
+            item.parent_code === 'security' ||
+            item.menu_code.startsWith('security_')
         );
 
-        setHasAccess(hasSecurityRole);
+        setHasAccess(hasSecurityAccess);
       } catch (error) {
         console.error('Error checking security access:', error);
         setHasAccess(false);
