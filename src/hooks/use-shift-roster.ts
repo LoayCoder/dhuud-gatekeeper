@@ -51,7 +51,10 @@ export function useCreateRosterAssignment() {
 
   return useMutation({
     mutationFn: async (assignment: { guard_id: string; zone_id: string; shift_id: string; roster_date: string; notes?: string; status?: string }) => {
-      const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase

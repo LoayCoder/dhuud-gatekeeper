@@ -320,8 +320,15 @@ export function AppSidebar() {
                         location.pathname.startsWith("/security/zones") ||
                         location.pathname.startsWith("/security/shifts") ||
                         location.pathname.startsWith("/security/roster") ||
+                        location.pathname.startsWith("/security/team") ||
                         location.pathname.startsWith("/security/my-location"),
               subItems: [
+                {
+                  title: t('security.menu.securityTeam', 'Security Team'),
+                  url: "/security/team",
+                  icon: Users,
+                  menuCode: 'security_team',
+                },
                 {
                   title: t('security.menu.commandCenter', 'Command Center'),
                   url: "/security/command-center",
