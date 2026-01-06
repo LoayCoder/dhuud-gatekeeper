@@ -1102,6 +1102,8 @@ export type Database = {
           color: string | null
           created_at: string | null
           deleted_at: string | null
+          hsse_category: string | null
+          hsse_type: string | null
           icon: string | null
           id: string
           is_active: boolean | null
@@ -1117,6 +1119,8 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          hsse_category?: string | null
+          hsse_type?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
@@ -1132,6 +1136,8 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          hsse_category?: string | null
+          hsse_type?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null

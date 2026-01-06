@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateAssetCategory } from '@/hooks/use-asset-category-management';
 import { generateCodeFromName } from '@/lib/utils/generate-code';
-
+import { supabase } from '@/integrations/supabase/client';
 // HSSE Classification options
 const HSSE_CATEGORIES = [
   { value: 'fire_safety', labelEn: 'Fire Safety', labelAr: 'السلامة من الحرائق' },
@@ -56,6 +57,24 @@ export function AddAssetCategoryDialog({ open, onOpenChange }: AddAssetCategoryD
   const isRtl = direction === 'rtl';
   const createCategory = useCreateAssetCategory();
 
+  // Fetch max sort_order for auto-generation
+  const { data: maxSortOrder } = useQuery({
+    queryKey: ['max-asset-category-sort-order'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('asset_categories')
+        .select('sort_order')
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return (data?.sort_order || 0) + 1;
+    },
+    enabled: open,
+  });
+
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -64,7 +83,6 @@ export function AddAssetCategoryDialog({ open, onOpenChange }: AddAssetCategoryD
       name_ar: '',
       icon: '',
       color: '',
-      sort_order: 0,
       hsse_category: '',
       hsse_type: '',
     },
@@ -87,7 +105,7 @@ export function AddAssetCategoryDialog({ open, onOpenChange }: AddAssetCategoryD
         name_ar: values.name_ar || null,
         icon: values.icon || null,
         color: values.color || null,
-        sort_order: values.sort_order || 0,
+        sort_order: maxSortOrder || 100,
         is_active: true,
         hsse_category: values.hsse_category || null,
         hsse_type: values.hsse_type || null,
@@ -241,19 +259,7 @@ export function AddAssetCategoryDialog({ open, onOpenChange }: AddAssetCategoryD
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="sort_order"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('assetCategories.fields.sortOrder')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="number" min="0" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Sort order is auto-generated */}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
