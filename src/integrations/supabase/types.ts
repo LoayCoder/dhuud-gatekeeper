@@ -19670,6 +19670,59 @@ export type Database = {
           },
         ]
       }
+      verified_devices: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          device_name: string | null
+          device_token: string
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          last_used_at: string | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          device_name?: string | null
+          device_token: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          device_name?: string | null
+          device_token?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verified_devices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       violation_types: {
         Row: {
           created_at: string
