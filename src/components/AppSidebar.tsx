@@ -455,6 +455,12 @@ export function AppSidebar() {
           icon: Workflow,
           menuCode: 'approval_workflows',
         },
+        {
+          title: t('navigation.assetCategorySettings', 'Category Settings'),
+          url: "/admin/asset-categories",
+          icon: FolderTree,
+          menuCode: 'admin_asset_categories',
+        },
       ],
     },
     {

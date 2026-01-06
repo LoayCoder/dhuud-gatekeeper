@@ -8,10 +8,31 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUpdateAssetCategory } from '@/hooks/use-asset-category-management';
 import type { Database } from '@/integrations/supabase/types';
 
 type AssetCategory = Database['public']['Tables']['asset_categories']['Row'];
+
+// HSSE Classification options
+const HSSE_CATEGORIES = [
+  { value: 'fire_safety', labelEn: 'Fire Safety', labelAr: 'السلامة من الحرائق' },
+  { value: 'ppe', labelEn: 'Personal Protective Equipment', labelAr: 'معدات الحماية الشخصية' },
+  { value: 'emergency_equipment', labelEn: 'Emergency Equipment', labelAr: 'معدات الطوارئ' },
+  { value: 'first_aid', labelEn: 'First Aid', labelAr: 'الإسعافات الأولية' },
+  { value: 'environmental', labelEn: 'Environmental', labelAr: 'البيئة' },
+  { value: 'security', labelEn: 'Security', labelAr: 'الأمن' },
+  { value: 'industrial_hygiene', labelEn: 'Industrial Hygiene', labelAr: 'النظافة الصناعية' },
+  { value: 'fall_protection', labelEn: 'Fall Protection', labelAr: 'الحماية من السقوط' },
+  { value: 'electrical_safety', labelEn: 'Electrical Safety', labelAr: 'السلامة الكهربائية' },
+  { value: 'other', labelEn: 'Other', labelAr: 'أخرى' },
+];
+
+const HSSE_TYPES = [
+  { value: 'critical', labelEn: 'Critical', labelAr: 'حرج' },
+  { value: 'standard', labelEn: 'Standard', labelAr: 'قياسي' },
+  { value: 'auxiliary', labelEn: 'Auxiliary', labelAr: 'مساعد' },
+];
 
 const categorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -19,6 +40,8 @@ const categorySchema = z.object({
   icon: z.string().optional(),
   color: z.string().optional(),
   sort_order: z.coerce.number().int().optional(),
+  hsse_category: z.string().optional(),
+  hsse_type: z.string().optional(),
 });
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
@@ -32,6 +55,7 @@ interface EditAssetCategoryDialogProps {
 export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAssetCategoryDialogProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
+  const isRtl = direction === 'rtl';
   const updateCategory = useUpdateAssetCategory();
 
   const form = useForm<CategoryFormValues>({
@@ -42,6 +66,8 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
       icon: category.icon || '',
       color: category.color || '',
       sort_order: category.sort_order || 0,
+      hsse_category: (category as any).hsse_category || '',
+      hsse_type: (category as any).hsse_type || '',
     },
   });
 
@@ -53,6 +79,8 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
         icon: category.icon || '',
         color: category.color || '',
         sort_order: category.sort_order || 0,
+        hsse_category: (category as any).hsse_category || '',
+        hsse_type: (category as any).hsse_type || '',
       });
     }
   }, [open, category, form]);
@@ -66,6 +94,8 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
         icon: values.icon || null,
         color: values.color || null,
         sort_order: values.sort_order || 0,
+        hsse_category: values.hsse_category || null,
+        hsse_type: values.hsse_type || null,
       });
       onOpenChange(false);
     } catch (error) {
@@ -109,6 +139,59 @@ export function EditAssetCategoryDialog({ open, onOpenChange, category }: EditAs
                     <FormControl>
                       <Input {...field} dir="rtl" placeholder="السلامة من الحرائق" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* HSSE Classification Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="hsse_category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetCategories.fields.hsseCategory', 'HSSE Category')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('assetCategories.fields.selectHsseCategory', 'Select HSSE Category')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {HSSE_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {isRtl ? cat.labelAr : cat.labelEn}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hsse_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetCategories.fields.hsseType', 'HSSE Type')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('assetCategories.fields.selectHsseType', 'Select HSSE Type')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {HSSE_TYPES.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {isRtl ? type.labelAr : type.labelEn}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
