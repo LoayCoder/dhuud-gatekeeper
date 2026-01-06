@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTheme as useNextTheme } from 'next-themes';
 import { usePasswordBreachCheck } from '@/hooks/use-password-breach-check';
 import { useTrustedDevice } from '@/hooks/use-trusted-device';
+import { useVerifiedDevice } from '@/hooks/use-verified-device';
 import { getDeviceFingerprint } from '@/hooks/use-device-fingerprint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,7 @@ export default function Login() {
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
+  const { verifyDevice } = useVerifiedDevice();
 
   // Determine the logo to display with fallback
   const fallbackLogo = resolvedTheme === 'dark' ? DHUUD_LOGO_DARK : DHUUD_LOGO_LIGHT;
@@ -168,6 +170,20 @@ export default function Login() {
     startSessionTracking();
     await logUserActivity({ eventType: 'login' });
 
+    // Verify device for invitation bypass on future logins
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.tenant_id) {
+        verifyDevice(user.id, profile.tenant_id);
+      }
+    }
+
     // Clear invitation data
     clearInvitationData();
 
@@ -254,6 +270,19 @@ export default function Login() {
       // Detect suspicious login (non-blocking)
       const { data: { user: loggedInUser } } = await supabase.auth.getUser();
       detectSuspiciousLogin(loggedInUser?.id, true);
+      
+      // Verify device for invitation bypass on future logins
+      if (loggedInUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', loggedInUser.id)
+          .single();
+        
+        if (profile?.tenant_id) {
+          verifyDevice(loggedInUser.id, profile.tenant_id);
+        }
+      }
       
       clearInvitationData();
 

@@ -37,6 +37,13 @@ export default function InviteGatekeeper() {
   });
 
   useEffect(() => {
+    // Check if device is already verified - redirect to login instead
+    const verifiedToken = localStorage.getItem('invitation_verified_device_token');
+    if (verifiedToken) {
+      navigate('/login');
+      return;
+    }
+    
     // Check if already logged in, redirect to dashboard
     supabase.auth.getSession().then(({
       data: {
