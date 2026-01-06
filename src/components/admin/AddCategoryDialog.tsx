@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import {
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateEventCategory } from '@/hooks/use-active-event-categories';
 import { generateCodeFromName } from '@/lib/utils/generate-code';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AddCategoryDialog() {
   const { t, i18n } = useTranslation();
@@ -24,9 +26,25 @@ export default function AddCategoryDialog() {
   const [nameEn, setNameEn] = useState('');
   const [code, setCode] = useState('');
   const [icon, setIcon] = useState('');
-  const [sortOrder, setSortOrder] = useState(100);
 
   const createCategory = useCreateEventCategory();
+
+  // Fetch max sort_order for auto-generation
+  const { data: maxSortOrder } = useQuery({
+    queryKey: ['max-category-sort-order'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hsse_event_categories')
+        .select('sort_order')
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return (data?.sort_order || 0) + 1;
+    },
+    enabled: open,
+  });
 
   // Auto-generate code from name
   useEffect(() => {
@@ -51,7 +69,7 @@ export default function AddCategoryDialog() {
         code: code || nameEn.trim().toLowerCase().replace(/\s+/g, '_'),
         name_key: `hsse.categories.custom.${code || nameEn.trim().toLowerCase().replace(/\s+/g, '_')}`,
         icon: icon.trim() || undefined,
-        sort_order: sortOrder,
+        sort_order: maxSortOrder || 100,
       });
       
       toast.success(t('settings.eventCategories.crud.categoryCreated'));
@@ -66,7 +84,6 @@ export default function AddCategoryDialog() {
     setNameEn('');
     setCode('');
     setIcon('');
-    setSortOrder(100);
   };
 
   return (
@@ -119,16 +136,6 @@ export default function AddCategoryDialog() {
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="sortOrder">{t('settings.eventCategories.crud.sortOrder')}</Label>
-              <Input
-                id="sortOrder"
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
-                min={1}
-              />
-            </div>
           </div>
           
           <DialogFooter>
