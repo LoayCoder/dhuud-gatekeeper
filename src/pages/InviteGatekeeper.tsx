@@ -95,13 +95,14 @@ export default function InviteGatekeeper() {
       // Store invitation data in context
       setInvitationData(inviteData.email, code.trim(), inviteData.tenant_id);
 
-      // Check if user already exists
+      // Check if user already exists - MULTI-TENANT: must include tenant_id
       const {
         data: checkData,
         error: checkError
       } = await supabase.functions.invoke('check-user-exists', {
         body: {
-          email: inviteData.email
+          email: inviteData.email,
+          tenant_id: inviteData.tenant_id // Required for multi-tenant check
         }
       });
       if (checkError) {
@@ -109,12 +110,27 @@ export default function InviteGatekeeper() {
         throw new Error(t('invite.failedToVerifyUser'));
       }
 
-      // Redirect based on user existence
-      if (checkData.exists) {
-        toast({
-          title: t('invite.welcomeBack'),
-          description: t('invite.welcomeBackMessage')
-        });
+      // Route based on auth existence (not tenant profile existence)
+      // If user has auth account: go to LOGIN (they'll get a new profile in this tenant)
+      // If user has no auth account: go to SIGNUP (create auth + profile)
+      if (checkData.should_login || checkData.exists_in_auth) {
+        // Check if user was deleted from this tenant - show different message
+        if (checkData.can_be_reactivated) {
+          toast({
+            title: t('invite.welcomeBack'),
+            description: t('invite.reactivatingAccess', 'Your access is being restored.')
+          });
+        } else if (checkData.exists_in_tenant) {
+          toast({
+            title: t('invite.welcomeBack'),
+            description: t('invite.welcomeBackMessage')
+          });
+        } else {
+          toast({
+            title: t('invite.welcome'),
+            description: t('invite.newTenantAccess', 'You will be added to this organization.')
+          });
+        }
         navigate('/login');
       } else {
         toast({

@@ -50,7 +50,9 @@ export function useCachedProfile() {
           branches:assigned_branch_id(name, location),
           sites:assigned_site_id(name, address)
         `)
-        .eq('id', user.id)
+        .eq('user_id', user.id) // Multi-tenant: use user_id
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .maybeSingle();
 
       if (error) throw error;

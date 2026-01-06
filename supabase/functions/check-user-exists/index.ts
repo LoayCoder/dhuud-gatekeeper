@@ -1,15 +1,16 @@
 /**
  * check-user-exists Edge Function
  * 
- * TENANT-AWARE user existence check for the invitation flow.
+ * MULTI-TENANT AWARE user existence check for the invitation flow.
  * 
- * Now checks:
- * 1. If user exists in auth.users
- * 2. If user has an ACTIVE profile in the TARGET tenant (not deleted, not inactive)
+ * Checks:
+ * 1. If user exists in auth.users (global auth account)
+ * 2. If user has a profile in the TARGET tenant (active, deleted, or inactive)
  * 
- * This ensures that:
- * - Deleted users are treated as "new" for re-invitation purposes
- * - Users from other tenants are treated as "new" for this tenant
+ * This enables:
+ * - Same email to be invited to multiple tenants
+ * - Deleted users to be re-invited to the same tenant
+ * - Proper routing to login vs signup based on auth existence
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
@@ -49,15 +50,26 @@ function getClientIP(req: Request): string {
 
 interface CheckUserRequest {
   email: string;
-  tenant_id?: string; // Optional: check if user exists in specific tenant
+  tenant_id: string; // REQUIRED: Must specify which tenant to check
 }
 
 interface CheckUserResponse {
-  exists: boolean;
-  exists_in_auth: boolean;        // User exists in auth.users
-  exists_in_tenant: boolean;      // User has active profile in target tenant
-  is_deleted_in_tenant: boolean;  // User was deleted from target tenant
-  is_inactive_in_tenant: boolean; // User is inactive in target tenant
+  // Auth status
+  exists_in_auth: boolean;           // User has a Supabase Auth account
+  
+  // Tenant-specific profile status
+  exists_in_tenant: boolean;         // User has ANY profile in this tenant
+  is_active_in_tenant: boolean;      // User has ACTIVE profile in this tenant
+  is_deleted_in_tenant: boolean;     // User was deleted from this tenant
+  is_inactive_in_tenant: boolean;    // User is inactive in this tenant
+  
+  // Computed routing flags
+  should_login: boolean;             // Has auth account - route to login
+  should_signup: boolean;            // No auth account - route to signup
+  can_be_reactivated: boolean;       // Was deleted, can be re-invited
+  
+  // Legacy compatibility
+  exists: boolean;                   // Can actively access this tenant
 }
 
 Deno.serve(async (req) => {
@@ -87,6 +99,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!tenant_id) {
+      return new Response(
+        JSON.stringify({ error: 'tenant_id is required for multi-tenant check' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Input validation - prevent email enumeration attacks
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email) || email.length > 254) {
@@ -96,12 +115,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Checking if user exists (rate-limited):', email.substring(0, 3) + '***', 'Tenant:', tenant_id || 'any');
+    console.log('Checking user existence:', email.substring(0, 3) + '***', 'Tenant:', tenant_id);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    // Create Supabase admin client for user lookup
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -109,7 +127,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Check auth.users
+    // Check auth.users for this email
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers();
 
     if (authError) {
@@ -123,54 +141,56 @@ Deno.serve(async (req) => {
     const authUser = authData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     const existsInAuth = !!authUser;
 
-    // Default response
+    // Build response
     const response: CheckUserResponse = {
-      exists: false,
       exists_in_auth: existsInAuth,
       exists_in_tenant: false,
+      is_active_in_tenant: false,
       is_deleted_in_tenant: false,
-      is_inactive_in_tenant: false
+      is_inactive_in_tenant: false,
+      should_login: existsInAuth,      // If auth exists, go to login
+      should_signup: !existsInAuth,    // If no auth, go to signup
+      can_be_reactivated: false,
+      exists: false,                   // Legacy: true only if actively accessible
     };
 
-    // If tenant_id provided, check tenant-specific status
-    if (tenant_id && authUser) {
-      const { data: profile } = await supabaseAdmin
+    // Check for profile in THIS SPECIFIC TENANT
+    if (authUser) {
+      // Use user_id (multi-tenant) not id to find the profile
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
-        .select('id, is_deleted, is_active, deleted_at')
-        .eq('id', authUser.id)
+        .select('id, user_id, is_deleted, is_active, deleted_at')
+        .eq('user_id', authUser.id)
         .eq('tenant_id', tenant_id)
-        .single();
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error checking profile:', profileError);
+      }
 
       if (profile) {
         response.exists_in_tenant = true;
         response.is_deleted_in_tenant = profile.is_deleted === true || profile.deleted_at !== null;
         response.is_inactive_in_tenant = profile.is_active === false;
+        response.is_active_in_tenant = !response.is_deleted_in_tenant && !response.is_inactive_in_tenant;
+        response.can_be_reactivated = response.is_deleted_in_tenant;
         
-        // User "exists" for login purposes only if active and not deleted in this tenant
-        response.exists = !response.is_deleted_in_tenant && !response.is_inactive_in_tenant;
+        // Legacy: user "exists" for active access only if profile is active and not deleted
+        response.exists = response.is_active_in_tenant;
       } else {
-        // User exists in auth but NOT in this tenant - treat as new for this tenant
-        response.exists = false;
+        // User has auth but NO profile in this tenant yet
+        // They need to be invited/added to this tenant
+        response.exists_in_tenant = false;
       }
-    } else if (existsInAuth) {
-      // No tenant specified - check if user has ANY active profile
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('id, is_deleted, is_active, deleted_at')
-        .eq('id', authUser.id)
-        .is('deleted_at', null)
-        .eq('is_deleted', false)
-        .eq('is_active', true)
-        .single();
-
-      response.exists = !!profile;
     }
 
-    // Log without revealing the full email
-    console.log('User check completed:', email.substring(0, 3) + '***', 
-      'AuthExists:', response.exists_in_auth, 
-      'TenantExists:', response.exists_in_tenant,
-      'CanLogin:', response.exists);
+    console.log('User check result:', email.substring(0, 3) + '***', {
+      auth: response.exists_in_auth,
+      tenant: response.exists_in_tenant,
+      active: response.is_active_in_tenant,
+      deleted: response.is_deleted_in_tenant,
+      route: response.should_login ? 'LOGIN' : 'SIGNUP'
+    });
 
     return new Response(
       JSON.stringify(response),

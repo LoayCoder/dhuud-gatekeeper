@@ -173,10 +173,13 @@ export default function Login() {
     // Verify device for invitation bypass on future logins
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      // MULTI-TENANT: Use user_id to fetch profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .single();
       
       if (profile?.tenant_id) {
@@ -308,10 +311,13 @@ export default function Login() {
       
       // Verify device for invitation bypass on future logins
       if (loggedInUser) {
+        // MULTI-TENANT: Use user_id to fetch profile
         const { data: profile } = await supabase
           .from('profiles')
           .select('tenant_id')
-          .eq('id', loggedInUser.id)
+          .eq('user_id', loggedInUser.id)
+          .eq('is_deleted', false)
+          .eq('is_active', true)
           .single();
         
         if (profile?.tenant_id) {

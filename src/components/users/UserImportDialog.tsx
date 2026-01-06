@@ -176,10 +176,13 @@ export function UserImportDialog({ open, onOpenChange, onImportComplete }: UserI
       
       try {
         // Create profile (without auth user for now - just profile)
+        // For imported users without login, we create a placeholder profile
+        const profileId = crypto.randomUUID();
         const { data: newProfile, error: profileError } = await supabase
           .from('profiles')
           .insert({
-            id: crypto.randomUUID(),
+            id: profileId,
+            user_id: profileId, // For non-login users, user_id = id (will be updated when they get login)
             tenant_id: profile.tenant_id,
             full_name: importUser.full_name,
             phone_number: importUser.phone_number,

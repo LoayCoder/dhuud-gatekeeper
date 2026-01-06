@@ -13986,6 +13986,7 @@ export type Database = {
           preferred_language: string | null
           tenant_id: string
           updated_at: string | null
+          user_id: string
           user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
@@ -14026,6 +14027,7 @@ export type Database = {
           preferred_language?: string | null
           tenant_id: string
           updated_at?: string | null
+          user_id: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
@@ -14066,6 +14068,7 @@ export type Database = {
           preferred_language?: string | null
           tenant_id?: string
           updated_at?: string | null
+          user_id?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: [
