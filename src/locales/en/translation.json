@@ -2202,7 +2202,11 @@
       "enterPassword": "Enter your deletion password to delete this closed event",
       "invalidPassword": "Invalid deletion password",
       "notConfiguredError": "Please configure your deletion password in Profile Settings first"
-    }
+    },
+    "myManager": "My Manager",
+    "myManagerDescription": "Your direct manager",
+    "myTeam": "My Team",
+    "myTeamDescription": "Team members reporting to you"
   },
   "sidebar": {
     "myAccount": "My Account",
