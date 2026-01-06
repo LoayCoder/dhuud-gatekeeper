@@ -11,6 +11,7 @@ import { Loader2, Lock, CheckCircle2, XCircle, Eye, EyeOff, AlertTriangle } from
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { TwoFactorSetup } from "./TwoFactorSetup";
+import { BiometricSettings } from "./BiometricSettings";
 import { TrustedDevicesSection } from "./TrustedDevicesSection";
 import { NotificationPreferences } from "./NotificationPreferences";
 import { HSSEManagerSettings } from "./HSSEManagerSettings";
@@ -125,6 +126,9 @@ export function SecuritySettings() {
       <TrustedDevicesSection />
 
       <Separator />
+
+      {/* Biometric Settings */}
+      <BiometricSettings />
 
       {/* Notification Preferences Section */}
       <NotificationPreferences />

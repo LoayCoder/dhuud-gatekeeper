@@ -311,3 +311,15 @@ verify_jwt = true
 
 [functions.broadcast-update-notification]
 verify_jwt = false
+
+[functions.webauthn-registration-options]
+verify_jwt = true
+
+[functions.webauthn-registration-verify]
+verify_jwt = true
+
+[functions.webauthn-auth-options]
+verify_jwt = false
+
+[functions.webauthn-auth-verify]
+verify_jwt = false
