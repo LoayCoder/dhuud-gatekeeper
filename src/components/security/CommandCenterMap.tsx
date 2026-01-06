@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Radio, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
+import { useMapStyle } from '@/hooks/use-map-style';
 
 interface GuardLocation {
   id: string;
@@ -72,7 +74,9 @@ export function CommandCenterMap({
   const map = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const zonesLayer = useRef<L.LayerGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('command-center-map-style');
 
   // Initialize map
   useEffect(() => {
@@ -87,9 +91,9 @@ export function CommandCenterMap({
       zoomControl: true,
     });
 
-    // Use OpenStreetMap tiles (self-hosted compatible for Zero Trust)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+    // Add initial tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
       maxZoom: 19,
     }).addTo(map.current);
 
@@ -239,6 +243,22 @@ export function CommandCenterMap({
     });
   }, [guardLocations, alerts, onGuardClick, onAlertClick]);
 
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Remove old tile layer
+    if (tileLayerRef.current) {
+      map.current.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
+    }).addTo(map.current);
+  }, [tileLayerConfig]);
+
   return (
     <Card className={cn(isExpanded && "fixed inset-4 z-50")}>
       <CardHeader className="pb-2">
@@ -251,6 +271,7 @@ export function CommandCenterMap({
             <Badge variant="outline" className="text-xs">
               {guardLocations.length} {t('security.commandCenter.guardsActive', 'active')}
             </Badge>
+            <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} compact />
             <Button
               variant="ghost"
               size="icon"

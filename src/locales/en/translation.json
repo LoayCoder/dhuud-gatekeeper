@@ -8321,5 +8321,15 @@
     "subtypeEnabled": "Subtype enabled",
     "subtypeDisabled": "Subtype disabled",
     "subtypeToggleError": "Failed to toggle subtype"
+  },
+  "map": {
+    "style": "Map Style",
+    "styles": {
+      "street": "Street",
+      "satellite": "Satellite",
+      "terrain": "Terrain",
+      "dark": "Dark",
+      "light": "Light"
+    }
   }
 }

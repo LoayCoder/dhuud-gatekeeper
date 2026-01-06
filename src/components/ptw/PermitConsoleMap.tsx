@@ -18,6 +18,8 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link } from "react-router-dom";
+import { MapStyleSwitcher } from "@/components/maps/MapStyleSwitcher";
+import { useMapStyle } from "@/hooks/use-map-style";
 
 interface PermitConsoleMapProps {
   permits: Array<{
@@ -89,8 +91,10 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPermit, setSelectedPermit] = useState<string | null>(null);
+  const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('permit-console-map-style');
 
   // Default center (Riyadh, Saudi Arabia)
   const defaultCenter: [number, number] = [24.7136, 46.6753];
@@ -109,9 +113,9 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
         zoomControl: !isRTL,
       });
 
-      // Add OpenStreetMap tiles (self-hosted compliant)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      // Add initial tile layer
+      tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+        attribution: tileLayerConfig.attribution,
         maxZoom: 19,
       }).addTo(mapInstance.current);
 
@@ -182,6 +186,22 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
     }
   }, [isFullscreen]);
 
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Remove old tile layer
+    if (tileLayerRef.current) {
+      mapInstance.current.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
+    }).addTo(mapInstance.current);
+  }, [tileLayerConfig]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -196,6 +216,7 @@ export function PermitConsoleMap({ permits }: PermitConsoleMapProps) {
     <Card className={`relative overflow-hidden ${isFullscreen ? "fixed inset-4 z-50" : ""}`}>
       {/* Toolbar */}
       <div className="absolute top-4 end-4 z-[1000] flex gap-2">
+        <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} compact />
         <Button
           variant="secondary"
           size="icon"

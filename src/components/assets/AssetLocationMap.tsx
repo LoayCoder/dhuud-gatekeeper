@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Package, Maximize2, X, Filter } from 'lucide-react';
 import { useAssetsWithGPS } from '@/hooks/use-asset-location';
 import { cn } from '@/lib/utils';
+import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
+import { useMapStyle } from '@/hooks/use-map-style';
 
 const STATUS_COLORS: Record<string, string> = {
   active: '#22c55e',
@@ -71,9 +73,11 @@ export function AssetLocationMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   const [localSiteFilter, setLocalSiteFilter] = useState(siteFilter || 'all');
   const [localStatusFilter, setLocalStatusFilter] = useState(statusFilter || 'all');
+  const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('asset-map-style');
 
   const { data: assets, isLoading } = useAssetsWithGPS({
     siteId: localSiteFilter !== 'all' ? localSiteFilter : undefined,
@@ -90,8 +94,10 @@ export function AssetLocationMap({
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
+    // Add initial tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
     }).addTo(mapInstance.current);
 
     return () => {
@@ -159,6 +165,22 @@ export function AssetLocationMap({
     }
   }, [assets, direction, t]);
 
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Remove old tile layer
+    if (tileLayerRef.current) {
+      mapInstance.current.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
+    }).addTo(mapInstance.current);
+  }, [tileLayerConfig]);
+
   // Get unique sites for filter
   const sites = assets?.reduce((acc, asset) => {
     if (asset.site && !acc.find((s) => s.id === asset.site!.id)) {
@@ -214,6 +236,8 @@ export function AssetLocationMap({
             <SelectItem value="out_of_service">{t('assets.status.out_of_service')}</SelectItem>
           </SelectContent>
         </Select>
+
+        <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} />
 
         <Badge variant="outline" className="h-9 px-3 flex items-center gap-1">
           <Package className="h-3 w-3" />

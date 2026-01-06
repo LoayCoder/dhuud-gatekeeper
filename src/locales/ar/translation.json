@@ -8077,5 +8077,15 @@
     "subtypeEnabled": "تم تفعيل النوع الفرعي",
     "subtypeDisabled": "تم تعطيل النوع الفرعي",
     "subtypeToggleError": "فشل في تبديل حالة النوع الفرعي"
+  },
+  "map": {
+    "style": "نمط الخريطة",
+    "styles": {
+      "street": "شارع",
+      "satellite": "قمر صناعي",
+      "terrain": "تضاريس",
+      "dark": "داكن",
+      "light": "فاتح"
+    }
   }
 }

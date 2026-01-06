@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Trash2, Undo2, Check, Pencil, Ruler } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
+import { useMapStyle } from '@/hooks/use-map-style';
 
 interface ZonePolygonEditorProps {
   polygonCoords: [number, number][] | null;
@@ -69,11 +71,13 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
   const markersRef = useRef<L.CircleMarker[]>([]);
   const previewLineRef = useRef<L.Polyline | null>(null);
   const radiusLayerRef = useRef<L.LayerGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingPoints, setDrawingPoints] = useState<[number, number][]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showRadiusBuffer, setShowRadiusBuffer] = useState(false);
+  const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('zone-editor-map-style');
 
   const zoneColor = ZONE_COLORS[zoneType] || '#3b82f6';
   
@@ -92,8 +96,9 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
+    // Add initial tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
       maxZoom: 19,
     }).addTo(map);
 
@@ -235,6 +240,22 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
     }
   }, [drawingPoints, isDrawing, zoneColor]);
 
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Remove old tile layer
+    if (tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
+    }).addTo(mapInstanceRef.current);
+  }, [tileLayerConfig]);
+
   const startDrawing = () => {
     setIsDrawing(true);
     setIsEditing(false);
@@ -326,19 +347,22 @@ export default function ZonePolygonEditor({ polygonCoords, onChange, zoneType = 
         </p>
       )}
 
-      {/* Radius buffer toggle */}
-      {hasPolygon && (
-        <div className="flex items-center gap-2">
-          <Checkbox 
-            id="show-radius" 
-            checked={showRadiusBuffer}
-            onCheckedChange={(checked) => setShowRadiusBuffer(checked === true)}
-          />
-          <Label htmlFor="show-radius" className="text-sm text-muted-foreground cursor-pointer">
-            {t('security.zones.showRadiusBuffer')} ({geofenceRadius}m)
-          </Label>
-        </div>
-      )}
+      {/* Radius buffer toggle and Map Style Switcher */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        {hasPolygon && (
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              id="show-radius" 
+              checked={showRadiusBuffer}
+              onCheckedChange={(checked) => setShowRadiusBuffer(checked === true)}
+            />
+            <Label htmlFor="show-radius" className="text-sm text-muted-foreground cursor-pointer">
+              {t('security.zones.showRadiusBuffer')} ({geofenceRadius}m)
+            </Label>
+          </div>
+        )}
+        <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} />
+      </div>
 
       <div ref={mapRef} className="h-[300px] w-full rounded-lg border border-border overflow-hidden" />
     </div>
