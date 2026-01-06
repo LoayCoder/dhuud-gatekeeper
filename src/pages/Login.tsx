@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -28,6 +28,8 @@ export default function Login() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const passwordRef = useRef<string>('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/';
   const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
@@ -79,7 +81,7 @@ export default function Login() {
         const isTrusted = await checkTrustedDevice(user.id);
         if (isTrusted) {
           // Device is trusted, skip MFA
-          navigate('/');
+          navigate(returnTo);
           return;
         }
       }
@@ -98,7 +100,7 @@ export default function Login() {
     
     // No MFA required or already at AAL2
     if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
-      navigate('/');
+      navigate(returnTo);
     }
   };
 
@@ -178,7 +180,7 @@ export default function Login() {
     checkPasswordBreach(passwordRef.current);
     passwordRef.current = '';
 
-    navigate('/');
+    navigate(returnTo);
   };
 
   const handleMFACancel = () => {
@@ -226,7 +228,7 @@ export default function Login() {
               description: t('auth.loginSuccess'),
             });
             checkPasswordBreach(password);
-            navigate('/');
+            navigate(returnTo);
             return;
           }
         }

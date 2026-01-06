@@ -308,7 +308,7 @@ export function NotificationPreferences() {
                     asChild
                     className="flex-shrink-0"
                   >
-                    <Link to="/login">
+                    <Link to="/login?returnTo=/profile">
                       {t('common.signIn', 'Sign In')}
                     </Link>
                   </Button>
