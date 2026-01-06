@@ -142,21 +142,42 @@ export function useUserRoles() {
       ? [...roleIds, normalUserRole.id]
       : roleIds;
 
-    // Delete ALL existing non-normal_user assignments
+    // Determine which roles to preserve (never delete these)
+    const rolesToPreserve: string[] = [];
     if (normalUserRole) {
-      await supabase
+      rolesToPreserve.push(normalUserRole.id);
+    }
+    // CRITICAL: If editing self AND keeping admin role, preserve it to avoid RLS lockout
+    const selfKeepingAdmin = isEditingSelf && hasAdminRole && adminRole && roleIds.includes(adminRole.id);
+    if (selfKeepingAdmin) {
+      rolesToPreserve.push(adminRole.id);
+    }
+
+    // Delete existing assignments EXCEPT preserved roles
+    if (rolesToPreserve.length > 0) {
+      let deleteQuery = supabase
         .from('user_role_assignments')
         .delete()
         .eq('user_id', userId)
-        .eq('tenant_id', tenantId) // CRITICAL: tenant isolation
-        .neq('role_id', normalUserRole.id);
+        .eq('tenant_id', tenantId);
+
+      // Chain .neq() for each preserved role
+      for (const preservedRoleId of rolesToPreserve) {
+        deleteQuery = deleteQuery.neq('role_id', preservedRoleId);
+      }
+      
+      await deleteQuery;
     }
 
-    // Insert all selected roles (skip normal_user only if it already exists)
+    // Insert all selected roles (skip roles that were preserved/already exist)
     const newAssignments = finalRoleIds
       .filter(roleId => {
-        // Skip normal_user if it already exists (we didn't delete it)
+        // Skip normal_user if it already exists
         if (normalUserRole && roleId === normalUserRole.id && normalUserAlreadyExists) {
+          return false;
+        }
+        // Skip admin if we preserved it during self-edit
+        if (selfKeepingAdmin && roleId === adminRole.id) {
           return false;
         }
         return true;
