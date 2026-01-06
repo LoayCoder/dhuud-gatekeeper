@@ -4198,7 +4198,11 @@
     "department_representative": "Department Representative",
     "cannotRemoveOwnAdmin": "Cannot Remove Admin Role",
     "cannotRemoveOwnAdminDescription": "You cannot remove your own admin role. Please ask another admin to do this.",
-    "selfProtected": "Protected role"
+    "selfProtected": "Protected role",
+    "removingAdminWarning": "Removing Admin Role",
+    "removingAdminWarningDescription": "Warning: This will remove admin access from this user.",
+    "lastAdminError": "Cannot Remove Last Admin",
+    "lastAdminErrorDescription": "This is the last admin in the organization. At least one admin must remain."
   },
   "roleCategories": {
     "general": "General",

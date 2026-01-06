@@ -4012,7 +4012,11 @@
     "department_representative": "ممثل القسم",
     "cannotRemoveOwnAdmin": "لا يمكن إزالة دور المسؤول",
     "cannotRemoveOwnAdminDescription": "لا يمكنك إزالة دور المسؤول الخاص بك. يرجى طلب ذلك من مسؤول آخر.",
-    "selfProtected": "دور محمي"
+    "selfProtected": "دور محمي",
+    "removingAdminWarning": "إزالة صلاحية المشرف",
+    "removingAdminWarningDescription": "تحذير: سيؤدي هذا إلى إزالة صلاحيات المشرف من هذا المستخدم.",
+    "lastAdminError": "لا يمكن إزالة آخر مشرف",
+    "lastAdminErrorDescription": "هذا هو آخر مشرف في المنظمة. يجب أن يبقى مشرف واحد على الأقل."
   },
   "roleCategories": {
     "general": "عام",

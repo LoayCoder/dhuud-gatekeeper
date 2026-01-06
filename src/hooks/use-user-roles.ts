@@ -121,6 +121,21 @@ export function useUserRoles() {
     if (isRemovingOwnAdminRole) {
       throw new Error('Cannot remove your own admin role');
     }
+
+    // CRITICAL: Prevent removing the last admin in the tenant
+    if (adminRole && existingRoleIds.includes(adminRole.id) && !roleIds.includes(adminRole.id)) {
+      const { count } = await supabase
+        .from('user_role_assignments')
+        .select('*', { count: 'exact', head: true })
+        .eq('role_id', adminRole.id)
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .neq('user_id', userId);
+
+      if (count === 0) {
+        throw new Error('Cannot remove the last admin from the organization');
+      }
+    }
     
     // Ensure normal_user is always included in final selection
     const finalRoleIds = normalUserRole && !roleIds.includes(normalUserRole.id)
