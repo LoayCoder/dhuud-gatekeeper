@@ -72,6 +72,15 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled, userId }: Ro
       return;
     }
 
+    // Show warning when removing admin role from ANY user
+    if (role?.code === 'admin' && selectedRoleIds.includes(roleId)) {
+      toast({
+        title: t('roles.removingAdminWarning', 'Removing Admin Role'),
+        description: t('roles.removingAdminWarningDescription', 'Warning: This will remove admin access from this user.'),
+        variant: 'destructive'
+      });
+    }
+
     if (selectedRoleIds.includes(roleId)) {
       onChange(selectedRoleIds.filter(id => id !== roleId));
     } else {
