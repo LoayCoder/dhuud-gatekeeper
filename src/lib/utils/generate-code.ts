@@ -14,5 +14,6 @@ export function generateCodeFromName(name: string, allowNumbers = false): string
     .replace(regex, '')      // Remove invalid chars
     .replace(/\s+/g, '_')    // Replace spaces with underscores
     .replace(/_+/g, '_')     // Remove duplicate underscores
-    .replace(/^_|_$/g, '');  // Trim leading/trailing underscores
+    .replace(/^_|_$/g, '')   // Trim leading/trailing underscores
+    .toLowerCase();          // Convert to lowercase
 }
