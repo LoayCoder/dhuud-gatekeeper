@@ -170,7 +170,6 @@ export function useTemplateItems(templateId: string | undefined) {
 
 export function useCreateTemplate() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
   const { t } = useTranslation();
   
   return useMutation({
@@ -193,12 +192,24 @@ export function useCreateTemplate() {
       site_id?: string;
       is_active?: boolean;
     }) => {
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
       const { data: result, error } = await supabase
         .from('inspection_templates')
         .insert({
           ...data,
-          tenant_id: profile!.tenant_id,
-          created_by: (profile as any).id,
+          tenant_id: profile.tenant_id,
+          created_by: profile.id,
         })
         .select()
         .single();
@@ -301,7 +312,6 @@ export function useDeleteTemplate() {
 
 export function useCreateTemplateItem() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
   
   return useMutation({
     mutationFn: async (data: {
@@ -318,11 +328,23 @@ export function useCreateTemplateItem() {
       instructions?: string;
       instructions_ar?: string;
     }) => {
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
       const { data: result, error } = await supabase
         .from('inspection_template_items')
         .insert({
           ...data,
-          tenant_id: profile!.tenant_id,
+          tenant_id: profile.tenant_id,
         })
         .select()
         .single();
@@ -475,7 +497,6 @@ export function useInspectionResponses(inspectionId: string | undefined) {
 
 export function useStartInspection() {
   const queryClient = useQueryClient();
-  const { user, profile } = useAuth();
   const { t } = useTranslation();
   
   return useMutation({
@@ -484,7 +505,17 @@ export function useStartInspection() {
       template_id: string;
       inspection_date?: string;
     }) => {
-      if (!user?.id || !profile?.tenant_id) throw new Error('User not authenticated');
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
       
       const { data: result, error } = await supabase
         .from('asset_inspections')
@@ -512,7 +543,6 @@ export function useStartInspection() {
 
 export function useSaveInspectionResponse() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
   
   return useMutation({
     mutationFn: async (data: {
@@ -548,11 +578,23 @@ export function useSaveInspectionResponse() {
         if (error) throw error;
         return result;
       } else {
+        // Fetch tenant_id at mutation time to avoid race condition
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile?.tenant_id) throw new Error('No tenant found');
+
         const { data: result, error } = await supabase
           .from('inspection_responses')
           .insert({
             ...data,
-            tenant_id: profile!.tenant_id,
+            tenant_id: profile.tenant_id,
           })
           .select()
           .single();
