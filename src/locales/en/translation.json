@@ -4309,6 +4309,8 @@
     "syncNotificationsDescription": "Get notified when offline changes are synced to the server.",
     "periodicSync": "Background Updates",
     "periodicSyncDescription": "Automatically check for updates every few hours in the background.",
+    "pushDescription": "Enable to receive push notifications on this device",
+    "signInRequired": "Please sign in to enable push notifications and receive important alerts.",
     "blockedInstructions": "Notifications are currently blocked. To enable them, click the lock icon in your browser's address bar and change the notification setting to 'Allow'.",
     "history": "Notification History",
     "historyDescription": "View your past notifications.",

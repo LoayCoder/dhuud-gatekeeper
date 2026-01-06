@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, BellOff, AlertCircle, RefreshCw, Smartphone, Loader2, Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Bell, BellOff, AlertCircle, RefreshCw, Smartphone, Loader2, Send, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export function NotificationPreferences() {
   const isRTL = RTL_LANGUAGES.includes(i18n.language);
   const direction = isRTL ? 'rtl' : 'ltr';
   const { permission, isSupported, isGranted, isDenied, requestPermission } = useNotificationPermission();
-  const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError } = usePushSubscription();
+  const { isSubscribed, isLoading: isPushLoading, subscribe, unsubscribe, error: pushError, isAuthenticated } = usePushSubscription();
   const { user } = useAuth();
   const [isToggling, setIsToggling] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
@@ -281,16 +282,41 @@ export function NotificationPreferences() {
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-3">
             <Smartphone className="h-5 w-5 text-muted-foreground" />
-            <div>
+            <div className="flex-1">
               <Label htmlFor="push-subscription" className="font-medium">
                 {t('notifications.pushSubscription', 'Push Notifications')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                {isSubscribed 
-                  ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
-                  : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device')}
+                {isAuthenticated
+                  ? (isSubscribed 
+                      ? t('notifications.pushSubscriptionActive', 'Receiving push notifications on this device')
+                      : t('notifications.pushSubscriptionInactive', 'Enable to receive push notifications on this device'))
+                  : t('notifications.pushDescription', 'Enable to receive push notifications on this device')
+                }
               </p>
-              {pushError && (
+              
+              {/* Info message when not authenticated - NOT red */}
+              {!isAuthenticated && (
+                <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-muted/50 border border-border">
+                  <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground flex-1">
+                    {t('notifications.signInRequired', 'Please sign in to enable push notifications and receive important alerts.')}
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild
+                    className="flex-shrink-0"
+                  >
+                    <Link to="/auth">
+                      {t('common.signIn', 'Sign In')}
+                    </Link>
+                  </Button>
+                </div>
+              )}
+              
+              {/* Only show errors when authenticated */}
+              {isAuthenticated && pushError && (
                 <p className="text-sm text-destructive mt-1">
                   {pushError}
                 </p>
@@ -304,6 +330,7 @@ export function NotificationPreferences() {
               id="push-subscription"
               checked={isSubscribed}
               onCheckedChange={handlePushToggle}
+              disabled={!isAuthenticated}
             />
           )}
         </div>
@@ -325,7 +352,7 @@ export function NotificationPreferences() {
             variant="outline"
             size="sm"
             onClick={handleTestPushNotification}
-            disabled={isSendingTest || !isSubscribed}
+            disabled={isSendingTest || !isSubscribed || !user?.id}
           >
             {isSendingTest ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />

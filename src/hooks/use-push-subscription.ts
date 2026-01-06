@@ -91,6 +91,23 @@ interface PushSubscriptionState {
 }
 
 /**
+ * Get device type and browser name for subscription tracking
+ */
+function getDeviceInfo(): { device_type: string; browser_name: string } {
+  const ua = navigator.userAgent;
+  const device_type = /Mobile|Android|iPhone|iPad|iPod/i.test(ua) ? 'mobile' : 'desktop';
+  
+  let browser_name = 'unknown';
+  if (ua.includes('Edg')) browser_name = 'Edge';
+  else if (ua.includes('Chrome')) browser_name = 'Chrome';
+  else if (ua.includes('Firefox')) browser_name = 'Firefox';
+  else if (ua.includes('Safari')) browser_name = 'Safari';
+  else if (ua.includes('Opera') || ua.includes('OPR')) browser_name = 'Opera';
+  
+  return { device_type, browser_name };
+}
+
+/**
  * Save subscription to Supabase database
  */
 async function saveSubscriptionToDatabase(
@@ -99,6 +116,8 @@ async function saveSubscriptionToDatabase(
   subscription: PushSubscriptionJSON
 ): Promise<boolean> {
   try {
+    const { device_type, browser_name } = getDeviceInfo();
+    
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
@@ -107,6 +126,8 @@ async function saveSubscriptionToDatabase(
         endpoint: subscription.endpoint,
         p256dh_key: subscription.keys?.p256dh,
         auth_key: subscription.keys?.auth,
+        device_type,
+        browser_name,
         is_active: true,
         updated_at: new Date().toISOString(),
       }, {
@@ -380,11 +401,28 @@ export function usePushSubscription() {
     }
   }, [user?.id, profile?.tenant_id, state.subscription, state.isLoading, syncSubscriptionWithDatabase]);
 
+  // Listen for permission changes (e.g., user re-enables after revoking)
+  useEffect(() => {
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'notifications' as PermissionName })
+        .then(permissionStatus => {
+          permissionStatus.onchange = () => {
+            console.log('[Push] Permission status changed:', permissionStatus.state);
+            checkSubscription();
+          };
+        })
+        .catch(console.debug);
+    }
+  }, [checkSubscription]);
+
+  const isAuthenticated = !!user?.id && !!profile?.tenant_id;
+
   return {
     ...state,
     subscribe,
     unsubscribe,
     refresh: checkSubscription,
+    isAuthenticated,
     isMobile: typeof window !== 'undefined' && (
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
       ('ontouchstart' in window)
