@@ -118,7 +118,7 @@ export function useCreateEventCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { code: string; name_key: string; name_ar?: string; icon?: string; sort_order?: number }) => {
+    mutationFn: async (data: { code: string; name_key: string; icon?: string; sort_order?: number }) => {
       if (!tenantId) throw new Error('No tenant ID');
       
       const { error } = await supabase
@@ -126,11 +126,9 @@ export function useCreateEventCategory() {
         .insert({
           code: data.code,
           name_key: data.name_key,
-          name_ar: data.name_ar || null,
           icon: data.icon || null,
           sort_order: data.sort_order || 100,
           is_active: true,
-          tenant_id: tenantId,
         });
 
       if (error) throw error;

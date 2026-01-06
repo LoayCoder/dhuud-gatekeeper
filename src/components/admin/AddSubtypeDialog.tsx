@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import {
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateEventSubtype } from '@/hooks/use-active-event-subtypes';
 import { generateCodeFromName } from '@/lib/utils/generate-code';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddSubtypeDialogProps {
   categoryId: string;
@@ -28,9 +30,26 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
   const [open, setOpen] = useState(false);
   const [nameEn, setNameEn] = useState('');
   const [code, setCode] = useState('');
-  const [sortOrder, setSortOrder] = useState(100);
 
   const createSubtype = useCreateEventSubtype();
+
+  // Fetch max sort_order for this category for auto-generation
+  const { data: maxSortOrder } = useQuery({
+    queryKey: ['max-subtype-sort-order', categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hsse_event_subtypes')
+        .select('sort_order')
+        .eq('category_id', categoryId)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return (data?.sort_order || 0) + 1;
+    },
+    enabled: open,
+  });
 
   // Auto-generate code from name
   useEffect(() => {
@@ -55,7 +74,7 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
         category_id: categoryId,
         code: code || nameEn.trim().toLowerCase().replace(/\s+/g, '_'),
         name_key: `hsse.subtypes.custom.${code || nameEn.trim().toLowerCase().replace(/\s+/g, '_')}`,
-        sort_order: sortOrder,
+        sort_order: maxSortOrder || 100,
       });
       
       toast.success(t('settings.eventCategories.crud.subtypeCreated'));
@@ -69,7 +88,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
   const resetForm = () => {
     setNameEn('');
     setCode('');
-    setSortOrder(100);
   };
 
   return (
@@ -112,16 +130,6 @@ export default function AddSubtypeDialog({ categoryId, categoryName }: AddSubtyp
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="sortOrder">{t('settings.eventCategories.crud.sortOrder')}</Label>
-              <Input
-                id="sortOrder"
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
-                min={1}
-              />
-            </div>
           </div>
           
           <DialogFooter>
