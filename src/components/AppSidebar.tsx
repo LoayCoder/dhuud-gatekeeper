@@ -819,7 +819,8 @@ export function AppSidebar() {
                     location.pathname === '/admin/modules' ||
                     location.pathname === '/admin/plans' ||
                     location.pathname === '/admin/billing' ||
-                    location.pathname === '/admin/support',
+                    location.pathname === '/admin/support' ||
+                    location.pathname === '/admin/app-updates',
           subItems: [
             {
               title: t('navigation.tenantManagement'),
@@ -856,6 +857,12 @@ export function AppSidebar() {
               url: "/admin/support",
               icon: HelpCircle,
               menuCode: 'admin_support',
+            },
+            {
+              title: t('navigation.appUpdates', 'App Updates'),
+              url: "/admin/app-updates",
+              icon: Bell,
+              menuCode: 'admin_app_updates',
             },
           ],
         },
