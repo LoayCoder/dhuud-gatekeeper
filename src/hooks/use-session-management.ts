@@ -54,18 +54,18 @@ export function useSessionManagement() {
     isRegistering.current = true;
 
     try {
-      // First verify we have a valid session with access token before attempting to register
-      // Use getUser() which validates the token server-side, not just checks local state
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !validatedUser) {
-        console.log('No valid authenticated user, skipping session registration:', userError?.message);
-        return;
-      }
-
-      // Double-check we have an access token in the session
+      // First check we have a valid session with access token before making edge function call
+      // getSession() is synchronous and doesn't make network calls - it reads from local storage
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         console.log('No access token available, skipping session registration');
+        return;
+      }
+
+      // Then validate the token is actually valid server-side
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !validatedUser) {
+        console.log('No valid authenticated user, skipping session registration:', userError?.message);
         return;
       }
 
@@ -79,10 +79,11 @@ export function useSessionManagement() {
 
       if (error) {
         // Handle 401 errors gracefully - session may have expired during the call
-        const isAuthExpired = error.message?.includes('401') || 
-                              error.message?.includes('Invalid token') ||
-                              error.message?.includes('auth_session_expired') ||
-                              error.message?.includes('AUTH_SESSION_EXPIRED');
+        const errorMsg = error.message || '';
+        const isAuthExpired = errorMsg.includes('401') || 
+                              errorMsg.includes('Invalid token') ||
+                              errorMsg.includes('auth_session_expired') ||
+                              errorMsg.includes('AUTH_SESSION_EXPIRED');
         if (isAuthExpired) {
           console.log('Auth session expired during registration, clearing local state');
           localStorage.removeItem(SESSION_TOKEN_KEY);

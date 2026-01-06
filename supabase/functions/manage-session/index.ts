@@ -135,22 +135,20 @@ Deno.serve(async (req) => {
 
     // Create Supabase client with service role for admin operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Create user client with their token
-    const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } }
-    });
 
-    // Verify user - don't pass token as parameter, it's already in the header
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-    if (authError || !user) {
-      const errorMessage = authError?.message || 'No user found';
+    // Verify user using getClaims for better token validation
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAdmin.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims?.sub) {
+      const errorMessage = claimsError?.message || 'Invalid or missing token claims';
       console.error('Auth verification failed:', errorMessage);
       
       // Return specific error for session_not_found so client can handle it
       const isSessionExpired = errorMessage.includes('session_not_found') || 
                                errorMessage.includes('Session from session_id') ||
-                               errorMessage.includes('missing sub claim');
+                               errorMessage.includes('missing sub claim') ||
+                               errorMessage.includes('expired');
       
       return new Response(
         JSON.stringify({ 
@@ -161,6 +159,8 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
       );
     }
+    
+    const user = { id: claimsData.claims.sub as string };
 
     // Defensive JSON parsing
     const { data: body, error: parseError } = await safeParseJSON<SessionRequest>(req);
