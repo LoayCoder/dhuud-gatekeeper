@@ -41,11 +41,20 @@ export function useAllAssetCategories() {
 export function useCreateAssetCategory() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (category: Omit<AssetCategoryInsert, 'tenant_id'> & { hsse_category?: string | null; hsse_type?: string | null }) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { hsse_category, hsse_type, ...rest } = category;
       
@@ -79,12 +88,9 @@ export function useCreateAssetCategory() {
 export function useUpdateAssetCategory() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, hsse_category, hsse_type, ...updates }: AssetCategoryUpdate & { id: string; hsse_category?: string | null; hsse_type?: string | null }) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
-
       const { data, error } = await supabase
         .from('asset_categories')
         .update({
@@ -189,11 +195,20 @@ export function useAllAssetTypes(categoryId?: string | null) {
 export function useCreateAssetType() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (type: Omit<AssetTypeInsert, 'tenant_id'>) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase
         .from('asset_types')
@@ -326,11 +341,20 @@ export function useAllAssetSubtypes(typeId?: string | null) {
 export function useCreateAssetSubtype() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (subtype: Omit<AssetSubtypeInsert, 'tenant_id'>) => {
-      if (!profile?.tenant_id) throw new Error('No tenant');
+      // Fetch tenant_id at mutation time to avoid race condition
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase
         .from('asset_subtypes')
