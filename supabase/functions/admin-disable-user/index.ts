@@ -28,6 +28,7 @@ interface DisableRequest {
   tenant_id?: string;    // Optional: specific tenant to remove from
   reason?: string;
   full_ban?: boolean;    // If true, ban from all tenants (dangerous)
+  delete_permanently?: boolean; // If true, permanently delete auth account (use with caution)
 }
 
 Deno.serve(async (req) => {
@@ -181,29 +182,43 @@ Deno.serve(async (req) => {
 
     let accountBanned = false;
 
-    // Only ban the global auth account if:
+    // Only ban/delete the global auth account if:
     // - User has NO other active profiles, OR
     // - full_ban is explicitly requested (dangerous operation)
     if ((!otherProfiles || otherProfiles.length === 0) || body.full_ban === true) {
-      console.log('No other active profiles found for user:', targetUserId, '- Banning auth account');
-      
-      const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
-        targetUserId,
-        {
-          ban_duration: 'none', // Permanent ban
-          user_metadata: {
-            disabled: true,
-            disabled_at: new Date().toISOString(),
-            disabled_by: caller.id,
-            disabled_reason: reason
-          }
-        }
-      );
+      // If delete_permanently is true, permanently delete the auth account
+      if (body.delete_permanently === true) {
+        console.log('Permanently deleting auth account for user:', targetUserId);
+        
+        const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
 
-      if (banError) {
-        console.error('Failed to ban auth account:', banError);
+        if (deleteAuthError) {
+          console.error('Failed to permanently delete auth account:', deleteAuthError);
+        } else {
+          accountBanned = true; // Reuse flag to indicate account was removed
+          console.log('Auth account permanently deleted for user:', targetUserId);
+        }
       } else {
-        accountBanned = true;
+        console.log('No other active profiles found for user:', targetUserId, '- Banning auth account');
+        
+        const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
+          targetUserId,
+          {
+            ban_duration: 'none', // Permanent ban
+            user_metadata: {
+              disabled: true,
+              disabled_at: new Date().toISOString(),
+              disabled_by: caller.id,
+              disabled_reason: reason
+            }
+          }
+        );
+
+        if (banError) {
+          console.error('Failed to ban auth account:', banError);
+        } else {
+          accountBanned = true;
+        }
       }
     } else {
       console.log('User', targetUserId, 'still has', otherProfiles.length, 'active profiles in other tenants - NOT banning auth account');
