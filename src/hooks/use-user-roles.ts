@@ -109,8 +109,18 @@ export function useUserRoles() {
       .eq('tenant_id', tenantId); // CRITICAL: tenant isolation
 
     const normalUserRole = roles.find(r => r.code === 'normal_user');
+    const adminRole = roles.find(r => r.code === 'admin');
     const existingRoleIds = (existingAssignments || []).map(a => a.role_id);
     const normalUserAlreadyExists = normalUserRole && existingRoleIds.includes(normalUserRole.id);
+    
+    // CRITICAL: Self-protection - prevent admin from removing their own admin role
+    const isEditingSelf = user?.id === userId;
+    const hasAdminRole = adminRole && existingRoleIds.includes(adminRole.id);
+    const isRemovingOwnAdminRole = isEditingSelf && hasAdminRole && adminRole && !roleIds.includes(adminRole.id);
+    
+    if (isRemovingOwnAdminRole) {
+      throw new Error('Cannot remove your own admin role');
+    }
     
     // Ensure normal_user is always included in final selection
     const finalRoleIds = normalUserRole && !roleIds.includes(normalUserRole.id)

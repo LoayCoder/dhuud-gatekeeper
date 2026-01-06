@@ -19,11 +19,14 @@ import { cn } from '@/lib/utils';
 import { Role, RoleCategory, useUserRoles } from '@/hooks/use-user-roles';
 import { RoleBadge, RoleCategoryBadge } from './RoleBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoleSelectorProps {
   selectedRoleIds: string[];
   onChange: (roleIds: string[]) => void;
   disabled?: boolean;
+  userId?: string; // The user ID being edited (for self-protection)
 }
 
 const categoryOrder: RoleCategory[] = [
@@ -36,20 +39,36 @@ const categoryOrder: RoleCategory[] = [
   'food_safety',
 ];
 
-export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelectorProps) {
+export function RoleSelector({ selectedRoleIds, onChange, disabled, userId }: RoleSelectorProps) {
   const { t, i18n } = useTranslation();
   const { roles, rolesByCategory, isLoading } = useUserRoles();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const direction = i18n.dir();
 
-  // Find the normal_user role to prevent its removal
+  // Check if editing self
+  const isEditingSelf = userId && user?.id === userId;
+
+  // Find protected roles
   const normalUserRole = roles.find(r => r.code === 'normal_user');
+  const adminRole = roles.find(r => r.code === 'admin');
 
   const handleToggleRole = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
     
     // Prevent removing normal_user
     if (role?.code === 'normal_user' && selectedRoleIds.includes(roleId)) {
+      return;
+    }
+
+    // Prevent admin from removing their own admin role
+    if (isEditingSelf && role?.code === 'admin' && selectedRoleIds.includes(roleId)) {
+      toast({
+        title: t('roles.cannotRemoveOwnAdmin', 'Cannot Remove Admin Role'),
+        description: t('roles.cannotRemoveOwnAdminDescription', 'You cannot remove your own admin role. Please ask another admin to do this.'),
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -118,6 +137,10 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                       {categoryRoles.map(role => {
                         const isSelected = selectedRoleIds.includes(role.id);
                         const isNormalUser = role.code === 'normal_user';
+                        const isAdminRole = role.code === 'admin';
+                        // Role is protected if: normal_user OR (editing self AND admin role AND selected)
+                        const isProtected = (isNormalUser && isSelected) || 
+                          (isEditingSelf && isAdminRole && isSelected);
 
                         return (
                           <CommandItem
@@ -126,14 +149,14 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                             onSelect={() => handleToggleRole(role.id)}
                             className={cn(
                               "cursor-pointer",
-                              isNormalUser && isSelected && "opacity-60"
+                              isProtected && "opacity-60"
                             )}
                           >
                             <div className="flex items-center gap-2 flex-1">
                               <div className={cn(
                                 "w-4 h-4 border rounded flex items-center justify-center",
                                 isSelected ? "bg-primary border-primary" : "border-input",
-                                isNormalUser && isSelected && "cursor-not-allowed"
+                                isProtected && "cursor-not-allowed"
                               )}>
                                 {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                               </div>
@@ -147,8 +170,10 @@ export function RoleSelector({ selectedRoleIds, onChange, disabled }: RoleSelect
                                   </span>
                                 )}
                               </div>
-                              {isNormalUser && (
-                                <Shield className="h-3 w-3 text-muted-foreground ms-auto" />
+                              {isProtected && (
+                                <div className="flex items-center gap-1 ms-auto" title={t('roles.selfProtected', 'Protected role')}>
+                                  <Shield className="h-3 w-3 text-muted-foreground" />
+                                </div>
                               )}
                             </div>
                           </CommandItem>
