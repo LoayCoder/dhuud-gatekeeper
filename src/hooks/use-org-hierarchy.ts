@@ -34,6 +34,13 @@ export interface Department {
   division_name?: string;
 }
 
+export interface Section {
+  id: string;
+  name: string;
+  department_id: string;
+  department_name?: string;
+}
+
 export function useTenantSites() {
   const { profile } = useAuth();
 
@@ -139,6 +146,39 @@ export function useTenantDepartments() {
         division_id: dept.division_id,
         division_name: dept.divisions?.name ?? null,
       })) as Department[];
+    },
+    enabled: !!profile?.tenant_id,
+  });
+}
+
+export function useTenantSections() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['tenant-sections', profile?.tenant_id],
+    queryFn: async () => {
+      if (!profile?.tenant_id) return [];
+
+      const { data, error } = await supabase
+        .from('sections')
+        .select(`
+          id,
+          name,
+          department_id,
+          departments!sections_department_id_fkey (name)
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null)
+        .order('name');
+
+      if (error) throw error;
+
+      return data.map((sec) => ({
+        id: sec.id,
+        name: sec.name,
+        department_id: sec.department_id,
+        department_name: sec.departments?.name ?? null,
+      })) as Section[];
     },
     enabled: !!profile?.tenant_id,
   });

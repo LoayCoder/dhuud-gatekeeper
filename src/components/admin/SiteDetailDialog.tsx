@@ -22,7 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Trash2, Star, Plus, Circle } from 'lucide-react';
 import { SiteLocationPicker } from './SiteLocationPicker';
 import { useSiteDepartments } from '@/hooks/use-site-departments';
-import { useTenantDepartments } from '@/hooks/use-org-hierarchy';
+import { useSiteSections } from '@/hooks/use-site-sections';
+import { useTenantDepartments, useTenantSections } from '@/hooks/use-org-hierarchy';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -65,10 +66,12 @@ export function SiteDetailDialog({
   const [geofenceRadius, setGeofenceRadius] = useState(100);
   const [saving, setSaving] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
+  const [selectedSectionId, setSelectedSectionId] = useState('');
   const [showMap, setShowMap] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force fresh map mount
 
   const { data: allDepartments, isLoading: loadingDepartments } = useTenantDepartments();
+  const { data: allSections, isLoading: loadingSections } = useTenantSections();
   const {
     departments: assignedDepartments,
     isLoading: loadingAssigned,
@@ -76,6 +79,12 @@ export function SiteDetailDialog({
     removeDepartment,
     setPrimaryDepartment,
   } = useSiteDepartments(site?.id);
+  const {
+    sections: assignedSections,
+    isLoading: loadingAssignedSections,
+    assignSection,
+    removeSection,
+  } = useSiteSections(site?.id);
 
   // Delay map rendering until dialog is fully open, and generate new key for fresh mount
   useEffect(() => {
@@ -104,6 +113,7 @@ export function SiteDetailDialog({
       setGeofenceRadius(100);
     }
     setSelectedDepartmentId('');
+    setSelectedSectionId('');
   }, [site]);
 
   const handleLocationChange = (lat: number, lng: number) => {
@@ -156,9 +166,27 @@ export function SiteDetailDialog({
     setSelectedDepartmentId('');
   };
 
+  const handleAssignSection = () => {
+    if (!selectedSectionId || !site) return;
+    
+    assignSection.mutate({
+      siteId: site.id,
+      sectionId: selectedSectionId,
+    });
+    setSelectedSectionId('');
+  };
+
   // Filter out already assigned departments
   const availableDepartments = allDepartments?.filter(
     (dept) => !assignedDepartments.some((ad) => ad.department_id === dept.id)
+  ) ?? [];
+
+  // Filter sections: only show sections whose parent department is assigned and not already assigned
+  const assignedDepartmentIds = assignedDepartments.map((ad) => ad.department_id);
+  const availableSections = allSections?.filter(
+    (sec) =>
+      assignedDepartmentIds.includes(sec.department_id) &&
+      !assignedSections.some((as) => as.section_id === sec.id)
   ) ?? [];
 
   return (
@@ -318,6 +346,108 @@ export function SiteDetailDialog({
                     </div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Section Assignment */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-start">
+                {t('orgStructure.assignedSections')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Assign New Section */}
+              {assignedDepartments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {t('orgStructure.selectDepartmentFirst')}
+                </p>
+              ) : (
+                <>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Select
+                        value={selectedSectionId}
+                        onValueChange={setSelectedSectionId}
+                        disabled={loadingSections || availableSections.length === 0}
+                      >
+                        <SelectTrigger className="text-start" dir={isRTL ? 'rtl' : 'ltr'}>
+                          <SelectValue placeholder={t('orgStructure.assignSection')} />
+                        </SelectTrigger>
+                        <SelectContent dir={isRTL ? 'rtl' : 'ltr'}>
+                          {availableSections.map((sec) => (
+                            <SelectItem key={sec.id} value={sec.id} className="text-start">
+                              {sec.name}
+                              {sec.department_name && (
+                                <span className="text-muted-foreground text-xs ms-2">
+                                  ({sec.department_name})
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      onClick={handleAssignSection}
+                      disabled={!selectedSectionId || assignSection.isPending}
+                      size="sm"
+                    >
+                      {assignSection.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
+                      )}
+                      {t('orgStructure.add')}
+                    </Button>
+                  </div>
+
+                  {/* Assigned Sections List */}
+                  {loadingAssignedSections ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  ) : assignedSections.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t('orgStructure.noSectionsAssigned')}
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {assignedSections.map((assignment) => {
+                        const sectionData = (assignment as any).sections;
+                        const deptName = allDepartments?.find(
+                          (d) => d.id === sectionData?.department_id
+                        )?.name;
+                        return (
+                          <div
+                            key={assignment.id}
+                            className="flex items-center justify-between p-2 rounded-lg border bg-muted/30"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">
+                                {sectionData?.name ?? 'Unknown'}
+                              </span>
+                              {deptName && (
+                                <span className="text-muted-foreground text-xs">
+                                  ({deptName})
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSection.mutate(assignment.id)}
+                              disabled={removeSection.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

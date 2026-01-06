@@ -17955,6 +17955,58 @@ export type Database = {
           },
         ]
       }
+      site_sections: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          section_id: string
+          site_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          section_id: string
+          site_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          section_id?: string
+          site_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_sections_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_sections_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_sections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_stakeholders: {
         Row: {
           created_at: string | null
