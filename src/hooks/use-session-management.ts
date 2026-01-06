@@ -54,10 +54,18 @@ export function useSessionManagement() {
     isRegistering.current = true;
 
     try {
-      // First verify we have a valid session before attempting to register
+      // First verify we have a valid session with access token before attempting to register
+      // Use getUser() which validates the token server-side, not just checks local state
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !validatedUser) {
+        console.log('No valid authenticated user, skipping session registration:', userError?.message);
+        return;
+      }
+
+      // Double-check we have an access token in the session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        console.log('No valid session, skipping session registration');
+        console.log('No access token available, skipping session registration');
         return;
       }
 
@@ -118,7 +126,14 @@ export function useSessionManagement() {
     }
 
     try {
-      // Check if we still have a valid auth session first
+      // Use getUser() to validate token server-side, not just check local state
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !validatedUser) {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        return { valid: false, reason: 'auth_session_expired' };
+      }
+
+      // Also check we have an access token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         localStorage.removeItem(SESSION_TOKEN_KEY);
@@ -211,10 +226,17 @@ export function useSessionManagement() {
     if (!sessionToken) return;
 
     try {
-      // Check if we still have a valid auth session first
+      // Use getUser() to validate token server-side before making edge function call
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !validatedUser) {
+        console.log('Auth session expired, skipping heartbeat');
+        return;
+      }
+
+      // Also check we have an access token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        console.log('Auth session expired, skipping heartbeat');
+        console.log('No access token, skipping heartbeat');
         return;
       }
 
