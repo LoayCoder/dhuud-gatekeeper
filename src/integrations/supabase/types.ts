@@ -21785,6 +21785,7 @@ export type Database = {
         }[]
       }
       get_auth_tenant_id: { Args: never; Returns: string }
+      get_auth_tenant_id_bypass: { Args: never; Returns: string }
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_dashboard_module_stats: { Args: never; Returns: Json }
       get_dashboard_quick_action_counts: { Args: never; Returns: Json }
