@@ -31,6 +31,7 @@ import { MajorEventsTab } from "@/components/admin/MajorEventsTab";
 import { SiteDetailDialog } from "@/components/admin/SiteDetailDialog";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRoles } from "@/hooks/use-user-roles";
 
 interface Branch { 
   id: string; 
@@ -62,8 +63,12 @@ type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites'
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
+  const { hasRole } = useUserRoles();
   const [loading, setLoading] = useState(true);
   const direction = i18n.dir();
+  
+  // Only admins can delete - data_entry users can only add/edit
+  const canDelete = hasRole('admin');
   
   // Data State
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -439,9 +444,11 @@ export default function OrgStructure() {
               <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name, item.latitude, item.longitude)}>
                 <Pencil className="h-4 w-4 text-muted-foreground" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete('branches', item.id)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="sm" onClick={() => handleDelete('branches', item.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -485,9 +492,11 @@ export default function OrgStructure() {
               <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
                 <Pencil className="h-4 w-4 text-muted-foreground" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -536,9 +545,11 @@ export default function OrgStructure() {
               <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
                 <Pencil className="h-4 w-4 text-muted-foreground" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(table, item.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -627,9 +638,11 @@ export default function OrgStructure() {
               }}>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete('sites', item.id)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="sm" onClick={() => handleDelete('sites', item.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
             </>
           )}
         </div>
