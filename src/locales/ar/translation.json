@@ -1924,6 +1924,7 @@
     "assetList": "قائمة الأصول",
     "registerAsset": "تسجيل أصل",
     "scanAsset": "مسح الأصل",
+    "assetCategorySettings": "إعدادات الفئات",
     "administration": "الإدارة",
     "brandManagement": "إدارة الهوية البصرية",
     "userManagement": "إدارة المستخدمين",
@@ -8043,7 +8044,11 @@
       "inspectionInterval": "فترة الفحص (أيام)",
       "inspectionIntervalHint": "تكرار الفحص الافتراضي للأصول من هذا النوع",
       "requiresCertification": "يتطلب شهادة",
-      "requiresCertificationHint": "أصول هذا النوع تتطلب شهادة صالحة"
+      "requiresCertificationHint": "أصول هذا النوع تتطلب شهادة صالحة",
+      "hsseCategory": "فئة الصحة والسلامة والأمن والبيئة",
+      "hsseType": "نوع HSSE",
+      "selectHsseCategory": "اختر فئة HSSE",
+      "selectHsseType": "اختر نوع HSSE"
     },
     "createSuccess": "تم إنشاء الفئة بنجاح",
     "createError": "فشل في إنشاء الفئة",

@@ -1795,6 +1795,7 @@
     "assetList": "Asset List",
     "registerAsset": "Register Asset",
     "scanAsset": "Scan Asset",
+    "assetCategorySettings": "Category Settings",
     "administration": "Administration",
     "brandManagement": "Brand Management",
     "userManagement": "User Management",
@@ -8287,7 +8288,11 @@
       "inspectionInterval": "Inspection Interval (days)",
       "inspectionIntervalHint": "Default inspection frequency for assets of this type",
       "requiresCertification": "Requires Certification",
-      "requiresCertificationHint": "Assets of this type require valid certification"
+      "requiresCertificationHint": "Assets of this type require valid certification",
+      "hsseCategory": "HSSE Category",
+      "hsseType": "HSSE Type",
+      "selectHsseCategory": "Select HSSE Category",
+      "selectHsseType": "Select HSSE Type"
     },
     "createSuccess": "Category created successfully",
     "createError": "Failed to create category",

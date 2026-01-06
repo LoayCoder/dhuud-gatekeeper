@@ -44,15 +44,20 @@ export function useCreateAssetCategory() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (category: Omit<AssetCategoryInsert, 'tenant_id'>) => {
+    mutationFn: async (category: Omit<AssetCategoryInsert, 'tenant_id'> & { hsse_category?: string | null; hsse_type?: string | null }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
+      const { hsse_category, hsse_type, ...rest } = category;
+      
+      // Insert with extra HSSE fields (they exist in DB but not in generated types yet)
       const { data, error } = await supabase
         .from('asset_categories')
         .insert({
-          ...category,
+          ...rest,
           tenant_id: profile.tenant_id,
-        })
+          ...(hsse_category !== undefined && { hsse_category }),
+          ...(hsse_type !== undefined && { hsse_type }),
+        } as any)
         .select()
         .single();
 
@@ -77,7 +82,7 @@ export function useUpdateAssetCategory() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: AssetCategoryUpdate & { id: string }) => {
+    mutationFn: async ({ id, hsse_category, hsse_type, ...updates }: AssetCategoryUpdate & { id: string; hsse_category?: string | null; hsse_type?: string | null }) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
       const { data, error } = await supabase
@@ -85,7 +90,9 @@ export function useUpdateAssetCategory() {
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
-        })
+          ...(hsse_category !== undefined && { hsse_category }),
+          ...(hsse_type !== undefined && { hsse_type }),
+        } as any)
         .eq('id', id)
         .select()
         .single();
