@@ -19032,6 +19032,44 @@ export type Database = {
           },
         ]
       }
+      tenant_user_mfa_status: {
+        Row: {
+          created_at: string
+          id: string
+          mfa_verified_at: string | null
+          requires_setup: boolean
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mfa_verified_at?: string | null
+          requires_setup?: boolean
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mfa_verified_at?: string | null
+          requires_setup?: boolean
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_user_mfa_status_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           app_icon_dark_url: string | null

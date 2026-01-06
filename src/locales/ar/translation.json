@@ -1530,7 +1530,18 @@
     "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
     "validationError": "خطأ في التحقق",
     "error": "خطأ",
-    "failedToLogin": "فشل تسجيل الدخول"
+    "failedToLogin": "فشل تسجيل الدخول",
+    "accessDenied": "تم رفض الوصول",
+    "accountDeleted": "تم إلغاء تفعيل الحساب",
+    "accountDeletedDesc": "تم إلغاء تفعيل حسابك. يرجى التواصل مع المسؤول إذا كنت تعتقد أن هذا خطأ.",
+    "accountInactive": "الحساب غير نشط",
+    "accountInactiveDesc": "حسابك غير نشط حاليًا. يرجى التواصل مع المسؤول.",
+    "noProfile": "لا يوجد وصول",
+    "noProfileDesc": "ليس لديك صلاحية الوصول إلى هذه المنظمة.",
+    "tenantAccessDenied": "ليس لديك صلاحية الوصول إلى هذه المنظمة",
+    "sessionInvalidated": "انتهت الجلسة",
+    "sessionInvalidatedDesc": "تم إنهاء جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "mfaRequiredForTenant": "المصادقة الثنائية مطلوبة لهذه المنظمة"
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور",

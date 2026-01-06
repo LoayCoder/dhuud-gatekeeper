@@ -187,10 +187,10 @@ Deno.serve(async (req) => {
 
     console.log(`Session action: ${action} for user ${user.id} from IP ${clientIP} (${geoData.countryCode || 'unknown'})`);
 
-    // Get user's profile for tenant_id
+    // Get user's profile for tenant_id - also check if user is deleted/inactive
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('tenant_id')
+      .select('tenant_id, is_deleted, is_active, deleted_at')
       .eq('id', user.id)
       .single();
 
@@ -198,6 +198,23 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: 'User profile not found' }),
         { status: 400, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Block deleted or inactive users from session operations
+    if (profile.is_deleted === true || profile.deleted_at !== null) {
+      console.warn('Deleted user attempted session operation:', user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: 'user_deleted', code: 'USER_DELETED' }),
+        { status: 403, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (profile.is_active === false) {
+      console.warn('Inactive user attempted session operation:', user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: 'user_inactive', code: 'USER_INACTIVE' }),
+        { status: 403, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
       );
     }
 

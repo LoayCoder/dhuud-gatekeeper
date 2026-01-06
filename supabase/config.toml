@@ -1,5 +1,11 @@
 project_id = "xdlowvfzhvjzbtgvurzj"
 
+[functions.validate-user-access]
+verify_jwt = false
+
+[functions.admin-disable-user]
+verify_jwt = true
+
 [functions.check-user-exists]
 verify_jwt = false
 
