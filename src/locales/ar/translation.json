@@ -2266,7 +2266,11 @@
       "enterPassword": "أدخل كلمة مرور الحذف لحذف هذا الحدث المغلق",
       "invalidPassword": "كلمة مرور الحذف غير صحيحة",
       "notConfiguredError": "يرجى تكوين كلمة مرور الحذف في إعدادات الملف الشخصي أولاً"
-    }
+    },
+    "myManager": "مديري",
+    "myManagerDescription": "مديرك المباشر",
+    "myTeam": "فريقي",
+    "myTeamDescription": "أعضاء الفريق التابعين لك"
   },
   "sidebar": {
     "myAccount": "حسابي",

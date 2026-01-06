@@ -7,6 +7,7 @@ export interface TeamMember {
   depth: number;
   full_name: string | null;
   email?: string;
+  phone_number?: string | null;
   job_title?: string | null;
   user_type?: string | null;
   is_active?: boolean;
@@ -56,7 +57,7 @@ export function useManagerTeam(managerId?: string) {
       // Fetch profile details for team members
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, job_title, user_type, is_active')
+        .select('id, full_name, job_title, user_type, is_active, phone_number, email')
         .in('id', userIds);
 
       if (profilesError) throw profilesError;
@@ -77,6 +78,8 @@ export function useManagerTeam(managerId?: string) {
           user_id: h.user_id,
           depth: h.depth,
           full_name: profile?.full_name || null,
+          email: profile?.email,
+          phone_number: profile?.phone_number,
           job_title: profile?.job_title,
           user_type: profile?.user_type,
           is_active: profile?.is_active,

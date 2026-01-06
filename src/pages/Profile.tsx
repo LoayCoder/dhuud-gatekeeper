@@ -7,6 +7,8 @@ import { SecuritySettings } from "@/components/profile/SecuritySettings";
 import { TenantInfo } from "@/components/profile/TenantInfo";
 import { AssignmentInfo } from "@/components/profile/AssignmentInfo";
 import { RoleInfo } from "@/components/profile/RoleInfo";
+import { ManagerInfo } from "@/components/profile/ManagerInfo";
+import { TeamInfo } from "@/components/profile/TeamInfo";
 import { ProfileData } from "@/components/profile/types";
 import { RTLWrapper } from "@/components/RTLWrapper";
 import { useAuth } from "@/contexts/AuthContext";
@@ -92,6 +94,8 @@ export default function Profile() {
           <TenantInfo memberSince={profile?.created_at || null} />
           <AssignmentInfo profile={profile} />
           <RoleInfo roles={userRoles} />
+          <ManagerInfo />
+          <TeamInfo />
         </div>
       </div>
     </RTLWrapper>
