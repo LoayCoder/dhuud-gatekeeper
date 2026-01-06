@@ -3053,7 +3053,12 @@
     "setupCompleteMessage": "Two-factor authentication is now enabled on your account.",
     "continueToDashboard": "Continue to Dashboard",
     "twoFactorEnabled": "2FA Enabled",
-    "twoFactorEnabledMessage": "Two-factor authentication has been enabled for your account."
+    "twoFactorEnabledMessage": "Two-factor authentication has been enabled for your account.",
+    "verifyIdentity": "Verify Your Identity",
+    "tenantVerifyDescription": "Enter the 6-digit code from your authenticator app to confirm your identity for this organization.",
+    "openAuthenticatorApp": "Open your authenticator app and enter the code for this account",
+    "verificationComplete": "Verification Complete",
+    "tenantVerificationCompleteMessage": "Your identity has been verified for this organization."
   },
   "invite": {
     "enterCodeToContinue": "Enter your invitation code to continue",

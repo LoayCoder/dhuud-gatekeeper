@@ -13,7 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { logUserActivity } from '@/lib/activity-logger';
 import { AuthHeroImage } from '@/components/ui/optimized-image';
 
-type Step = 'intro' | 'qrcode' | 'verify' | 'success';
+type Step = 'intro' | 'qrcode' | 'verify' | 'tenant-verify' | 'success';
 
 interface EnrollData {
   id: string;
@@ -30,11 +30,12 @@ export default function MFASetup() {
   const [copied, setCopied] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isTenantVerification, setIsTenantVerification] = useState(false);
+  const [existingFactorId, setExistingFactorId] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const location = useLocation();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
-  const { enroll, challenge, verify, isEnabled, refreshFactors } = useMFA();
+  const { enroll, challenge, verify, isEnabled, refreshFactors, factors } = useMFA();
 
   useEffect(() => {
     // Check if this is a tenant-specific MFA verification
@@ -65,7 +66,13 @@ export default function MFASetup() {
     if (!checkingAuth && isEnabled && !isTenantVerification) {
       navigate('/');
     }
-  }, [isEnabled, checkingAuth, navigate, isTenantVerification]);
+    
+    // If user has MFA enabled and needs tenant verification, skip to verification step
+    if (!checkingAuth && isEnabled && isTenantVerification && factors.length > 0) {
+      setExistingFactorId(factors[0].id);
+      setStep('tenant-verify');
+    }
+  }, [isEnabled, checkingAuth, navigate, isTenantVerification, factors]);
 
   const handleStartEnrollment = async () => {
     setLoading(true);
@@ -108,6 +115,36 @@ export default function MFASetup() {
       toast({
         title: t('mfaSetup.twoFactorEnabled'),
         description: t('mfaSetup.twoFactorEnabledMessage'),
+      });
+    }
+  };
+
+  // Handle tenant verification for users with existing MFA
+  const handleTenantVerify = async () => {
+    if (!existingFactorId || code.length !== 6) return;
+
+    setLoading(true);
+    
+    // Challenge the existing factor
+    const challengeId = await challenge(existingFactorId);
+    
+    if (!challengeId) {
+      setLoading(false);
+      return;
+    }
+
+    // Verify the code
+    const success = await verify(existingFactorId, challengeId, code);
+    setLoading(false);
+
+    if (success) {
+      // Mark MFA as verified for this tenant
+      await markTenantMfaVerified();
+      
+      setStep('success');
+      toast({
+        title: t('mfaSetup.verificationComplete'),
+        description: t('mfaSetup.tenantVerificationCompleteMessage'),
       });
     }
   };
@@ -352,6 +389,52 @@ export default function MFASetup() {
                       {t('common.verify')}
                     </Button>
                   </div>
+                </CardContent>
+              </>
+            )}
+
+            {step === 'tenant-verify' && (
+              <>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-primary" />
+                    {t('mfaSetup.verifyIdentity')}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('mfaSetup.tenantVerifyDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg bg-muted p-4 text-sm text-center">
+                    <Smartphone className="h-8 w-8 mx-auto mb-2 text-primary" />
+                    <p>{t('mfaSetup.openAuthenticatorApp')}</p>
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={code}
+                      onChange={setCode}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  <Button
+                    onClick={handleTenantVerify}
+                    disabled={code.length !== 6 || loading}
+                    className="w-full"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
+                    {t('common.verify')}
+                  </Button>
                 </CardContent>
               </>
             )}

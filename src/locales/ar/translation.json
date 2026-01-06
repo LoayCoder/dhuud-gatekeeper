@@ -1585,7 +1585,12 @@
     "setupCompleteMessage": "تم تفعيل المصادقة الثنائية لحسابك.",
     "continueToDashboard": "المتابعة إلى لوحة المعلومات",
     "twoFactorEnabled": "تم تفعيل المصادقة الثنائية",
-    "twoFactorEnabledMessage": "تم تفعيل المصادقة الثنائية لحسابك."
+    "twoFactorEnabledMessage": "تم تفعيل المصادقة الثنائية لحسابك.",
+    "verifyIdentity": "تحقق من هويتك",
+    "tenantVerifyDescription": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة لتأكيد هويتك لهذه المنظمة.",
+    "openAuthenticatorApp": "افتح تطبيق المصادقة وأدخل الرمز لهذا الحساب",
+    "verificationComplete": "اكتمل التحقق",
+    "tenantVerificationCompleteMessage": "تم التحقق من هويتك لهذه المنظمة."
   },
   "invite": {
     "title": "أدخل رمز الدعوة",
