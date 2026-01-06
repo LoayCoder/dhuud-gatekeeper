@@ -53,15 +53,12 @@ export default function MainLayout() {
           </header>
 
           {/* Main Page Content with responsive top padding to account for flexible header */}
-          <main 
-            className="flex flex-1 flex-col gap-4 p-3 sm:p-4 min-w-0 overflow-auto"
-            style={{
-              paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
-            }}
-          >
-            <TrialBanner />
-            <HSSEAlertBanner />
-            <Outlet />
+          <main className="flex flex-1 flex-col gap-4 p-3 sm:p-4 min-w-0 overflow-auto pt-14 sm:pt-16 md:pt-20">
+            <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+              <TrialBanner />
+              <HSSEAlertBanner />
+              <Outlet />
+            </div>
           </main>
         </SidebarInset>
       </div>
