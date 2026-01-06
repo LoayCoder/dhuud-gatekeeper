@@ -4005,7 +4005,10 @@
     "food_safety_officer": "مسؤول سلامة الغذاء",
     "food_safety_supervisor": "مشرف سلامة الغذاء",
     "food_safety_manager": "مدير سلامة الغذاء",
-    "department_representative": "ممثل القسم"
+    "department_representative": "ممثل القسم",
+    "cannotRemoveOwnAdmin": "لا يمكن إزالة دور المسؤول",
+    "cannotRemoveOwnAdminDescription": "لا يمكنك إزالة دور المسؤول الخاص بك. يرجى طلب ذلك من مسؤول آخر.",
+    "selfProtected": "دور محمي"
   },
   "roleCategories": {
     "general": "عام",

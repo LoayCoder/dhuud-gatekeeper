@@ -4191,7 +4191,10 @@
     "food_safety_officer": "Food Safety Officer",
     "food_safety_supervisor": "Food Safety Supervisor",
     "food_safety_manager": "Food Safety Manager",
-    "department_representative": "Department Representative"
+    "department_representative": "Department Representative",
+    "cannotRemoveOwnAdmin": "Cannot Remove Admin Role",
+    "cannotRemoveOwnAdminDescription": "You cannot remove your own admin role. Please ask another admin to do this.",
+    "selfProtected": "Protected role"
   },
   "roleCategories": {
     "general": "General",

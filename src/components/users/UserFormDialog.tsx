@@ -550,6 +550,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSave }: UserFormDia
                 <RoleSelector
                   selectedRoleIds={selectedRoleIds}
                   onChange={setSelectedRoleIds}
+                  userId={user?.id}
                 />
               </div>
             )}
