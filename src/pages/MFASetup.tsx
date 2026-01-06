@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMFA } from '@/hooks/useMFA';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,7 @@ export default function MFASetup() {
   const location = useLocation();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors, factors } = useMFA();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     // Check if this is a tenant-specific MFA verification
@@ -109,6 +111,8 @@ export default function MFASetup() {
     if (success) {
       // Mark MFA as verified for this tenant
       await markTenantMfaVerified();
+      // Refresh auth state so ProtectedRoute sees updated tenantMfaVerified
+      await refreshProfile();
       
       setStep('success');
       await logUserActivity({ eventType: 'mfa_enabled' });
@@ -140,6 +144,8 @@ export default function MFASetup() {
     if (success) {
       // Mark MFA as verified for this tenant
       await markTenantMfaVerified();
+      // Refresh auth state so ProtectedRoute sees updated tenantMfaVerified
+      await refreshProfile();
       
       setStep('success');
       toast({
