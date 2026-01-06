@@ -15940,9 +15940,11 @@ export type Database = {
       push_subscriptions: {
         Row: {
           auth_key: string
+          browser_name: string | null
           created_at: string | null
           deleted_at: string | null
           device_name: string | null
+          device_type: string | null
           endpoint: string
           expires_at: string | null
           id: string
@@ -15954,9 +15956,11 @@ export type Database = {
         }
         Insert: {
           auth_key: string
+          browser_name?: string | null
           created_at?: string | null
           deleted_at?: string | null
           device_name?: string | null
+          device_type?: string | null
           endpoint: string
           expires_at?: string | null
           id?: string
@@ -15968,9 +15972,11 @@ export type Database = {
         }
         Update: {
           auth_key?: string
+          browser_name?: string | null
           created_at?: string | null
           deleted_at?: string | null
           device_name?: string | null
+          device_type?: string | null
           endpoint?: string
           expires_at?: string | null
           id?: string
