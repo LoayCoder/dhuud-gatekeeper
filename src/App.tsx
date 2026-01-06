@@ -201,6 +201,7 @@ const AppUpdates = lazyWithRetry(() => import("./pages/admin/AppUpdates"));
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
 const HSSEValidationDashboard = lazyWithRetry(() => import("./pages/admin/HSSEValidationDashboard"));
+const AssetCategorySettings = lazyWithRetry(() => import("./pages/admin/AssetCategorySettings"));
 
 const queryClient = new QueryClient();
 
@@ -708,6 +709,7 @@ const App = () => (
                       <Route path="/settings/subscription" element={<SubscriptionManagement />} />
                       <Route path="/settings/usage-billing" element={<UsageBilling />} />
                       <Route path="/admin/event-categories" element={<AdminRoute><EventCategorySettings /></AdminRoute>} />
+                      <Route path="/admin/asset-categories" element={<AdminRoute><AssetCategorySettings /></AdminRoute>} />
                       <Route path="/admin/hsse-validation" element={<HSSERoute><HSSEValidationDashboard /></HSSERoute>} />
                       <Route path="/admin/app-updates" element={<AdminRoute><AppUpdates /></AdminRoute>} />
                     </Route>

@@ -1,0 +1,128 @@
+import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useCreateAssetSubtype } from '@/hooks/use-asset-category-management';
+
+const subtypeSchema = z.object({
+  code: z.string().min(1, 'Code is required').max(30).regex(/^[A-Z0-9_]+$/, 'Code must be uppercase letters, numbers and underscores'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name_ar: z.string().optional(),
+});
+
+type SubtypeFormValues = z.infer<typeof subtypeSchema>;
+
+interface AddAssetSubtypeDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  typeId: string;
+}
+
+export function AddAssetSubtypeDialog({ open, onOpenChange, typeId }: AddAssetSubtypeDialogProps) {
+  const { t, i18n } = useTranslation();
+  const direction = i18n.dir();
+  const createSubtype = useCreateAssetSubtype();
+
+  const form = useForm<SubtypeFormValues>({
+    resolver: zodResolver(subtypeSchema),
+    defaultValues: {
+      code: '',
+      name: '',
+      name_ar: '',
+    },
+  });
+
+  const onSubmit = async (values: SubtypeFormValues) => {
+    try {
+      await createSubtype.mutateAsync({
+        type_id: typeId,
+        code: values.code,
+        name: values.name,
+        name_ar: values.name_ar || null,
+        is_active: true,
+      });
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      // Error handled in mutation
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md" dir={direction}>
+        <DialogHeader>
+          <DialogTitle>{t('assetCategories.addSubtypeTitle')}</DialogTitle>
+          <DialogDescription>{t('assetCategories.addSubtypeDescription')}</DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('assetCategories.fields.code')} *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="CO2_6KG"
+                      onChange={(e) => field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetCategories.fields.nameEn')} *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="CO2 6kg" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="name_ar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('assetCategories.fields.nameAr')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} dir="rtl" placeholder="ثاني أكسيد الكربون 6 كجم" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={createSubtype.isPending}>
+                {createSubtype.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                {t('common.create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
