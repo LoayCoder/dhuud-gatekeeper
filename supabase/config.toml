@@ -302,3 +302,6 @@ verify_jwt = false
 
 [functions.anpr-recognize]
 verify_jwt = true
+
+[functions.broadcast-update-notification]
+verify_jwt = false

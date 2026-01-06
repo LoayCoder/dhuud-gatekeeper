@@ -196,6 +196,7 @@ const PageContentEditor = lazyWithRetry(() => import("./pages/admin/PageContentE
 const EmergencyInstructionsSettings = lazyWithRetry(() => import("./pages/admin/EmergencyInstructionsSettings"));
 const VisitorSettings = lazyWithRetry(() => import("./pages/admin/VisitorSettings"));
 const TrainingCenter = lazyWithRetry(() => import("./pages/admin/TrainingCenter"));
+const AppUpdates = lazyWithRetry(() => import("./pages/admin/AppUpdates"));
 
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
@@ -708,6 +709,7 @@ const App = () => (
                       <Route path="/settings/usage-billing" element={<UsageBilling />} />
                       <Route path="/admin/event-categories" element={<AdminRoute><EventCategorySettings /></AdminRoute>} />
                       <Route path="/admin/hsse-validation" element={<HSSERoute><HSSEValidationDashboard /></HSSERoute>} />
+                      <Route path="/admin/app-updates" element={<AdminRoute><AppUpdates /></AdminRoute>} />
                     </Route>
 
                     {/* Catch-all */}
