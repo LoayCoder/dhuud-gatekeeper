@@ -152,8 +152,10 @@ export default function Signup() {
 
       if (authData.user) {
         // 3. Create the Profile with pre-filled metadata from invitation
+        // For new signups, id and user_id are the same (profile id = auth user id)
         const profileData = {
           id: authData.user.id,
+          user_id: authData.user.id, // Required for multi-tenant support
           tenant_id: inviteData.tenant_id,
           email: invitationEmail,
           has_login: true,

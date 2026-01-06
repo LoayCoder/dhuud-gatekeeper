@@ -65,12 +65,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+  const fetchProfile = async (userId: string, targetTenantId?: string) => {
+    // MULTI-TENANT: Query by user_id (not id) and optionally filter by tenant
+    let query = supabase
       .from('profiles')
-      .select('full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
-      .eq('id', userId)
-      .single();
+      .select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
+      .eq('user_id', userId) // Multi-tenant: use user_id
+      .eq('is_deleted', false)
+      .eq('is_active', true);
+    
+    if (targetTenantId) {
+      query = query.eq('tenant_id', targetTenantId);
+    }
+    
+    const { data } = await query.single();
     
     if (data) {
       // SECURITY: Check if user is deleted or inactive

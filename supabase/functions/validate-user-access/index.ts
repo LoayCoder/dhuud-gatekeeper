@@ -1,9 +1,10 @@
 /**
  * validate-user-access Edge Function
  * 
- * Validates if a user can access the system after Supabase Auth succeeds.
+ * MULTI-TENANT AWARE access validation after Supabase Auth succeeds.
+ * 
  * Checks:
- * 1. Profile exists for this user in the target tenant
+ * 1. Profile exists for this user in the target tenant (using user_id + tenant_id)
  * 2. Profile is NOT deleted (is_deleted = false)
  * 3. Profile is active (is_active = true)
  * 4. Returns tenant-scoped MFA status
@@ -30,6 +31,7 @@ interface ValidationResponse {
   tenant_name?: string;
   requires_mfa_setup?: boolean;
   user_id?: string;
+  profile_id?: string; // The actual profile ID in this tenant
 }
 
 Deno.serve(async (req) => {
@@ -81,16 +83,35 @@ Deno.serve(async (req) => {
     // Create admin client for profile lookup
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch user's profile - explicitly select only needed columns (data minimization)
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // MULTI-TENANT: Fetch user's profile using user_id, optionally filtered by tenant
+    let profileQuery = supabaseAdmin
       .from('profiles')
-      .select('id, tenant_id, is_deleted, is_active, full_name')
-      .eq('id', user.id)
-      .is('deleted_at', null) // Extra safety check
-      .single();
+      .select('id, user_id, tenant_id, is_deleted, is_active, full_name, deleted_at')
+      .eq('user_id', user.id); // Use user_id for multi-tenant lookup
 
-    if (profileError || !profile) {
-      console.warn('Profile not found for user:', user.id);
+    // If target tenant specified, only check that tenant
+    if (body.target_tenant_id) {
+      profileQuery = profileQuery.eq('tenant_id', body.target_tenant_id);
+    }
+
+    // Filter to non-deleted first, but we'll check status explicitly
+    const { data: profiles, error: profileError } = await profileQuery;
+
+    if (profileError) {
+      console.error('Profile query error:', profileError);
+      return new Response(
+        JSON.stringify({ 
+          allowed: false, 
+          reason: 'server_error',
+          user_id: user.id
+        } as ValidationResponse),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // If no profiles found at all
+    if (!profiles || profiles.length === 0) {
+      console.warn('No profile found for user:', user.id, 'Target tenant:', body.target_tenant_id);
       return new Response(
         JSON.stringify({ 
           allowed: false, 
@@ -101,61 +122,68 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user is deleted
-    if (profile.is_deleted === true) {
-      console.warn('Deleted user attempted login:', user.id);
+    // Find an active, non-deleted profile (prefer target tenant if specified)
+    let profile = profiles.find(p => !p.is_deleted && p.is_active && !p.deleted_at);
+    
+    // If no active profile, check if user has deleted/inactive profiles for better error messages
+    if (!profile) {
+      const deletedProfile = profiles.find(p => p.is_deleted || p.deleted_at);
+      const inactiveProfile = profiles.find(p => !p.is_active);
       
-      // Log security event
-      await supabaseAdmin.from('security_audit_logs').insert({
-        tenant_id: profile.tenant_id,
-        actor_id: user.id,
-        action: 'deleted_user_login_blocked',
-        table_name: 'profiles',
-        record_id: user.id,
-        new_value: { email: user.email, blocked_at: new Date().toISOString() }
-      });
+      if (deletedProfile) {
+        console.warn('Deleted user attempted login:', user.id);
+        
+        // Log security event
+        await supabaseAdmin.from('security_audit_logs').insert({
+          tenant_id: deletedProfile.tenant_id,
+          actor_id: user.id,
+          action: 'deleted_user_login_blocked',
+          table_name: 'profiles',
+          record_id: deletedProfile.id,
+          new_value: { email: user.email, blocked_at: new Date().toISOString() }
+        });
 
-      return new Response(
-        JSON.stringify({ 
-          allowed: false, 
-          reason: 'user_deleted',
-          user_id: user.id
-        } as ValidationResponse),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        return new Response(
+          JSON.stringify({ 
+            allowed: false, 
+            reason: 'user_deleted',
+            user_id: user.id
+          } as ValidationResponse),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (inactiveProfile) {
+        console.warn('Inactive user attempted login:', user.id);
+        
+        // Log security event
+        await supabaseAdmin.from('security_audit_logs').insert({
+          tenant_id: inactiveProfile.tenant_id,
+          actor_id: user.id,
+          action: 'inactive_user_login_blocked',
+          table_name: 'profiles',
+          record_id: inactiveProfile.id,
+          new_value: { email: user.email, blocked_at: new Date().toISOString() }
+        });
+
+        return new Response(
+          JSON.stringify({ 
+            allowed: false, 
+            reason: 'user_inactive',
+            user_id: user.id
+          } as ValidationResponse),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
-    // Check if user is inactive
-    if (profile.is_active === false) {
-      console.warn('Inactive user attempted login:', user.id);
-      
-      // Log security event
-      await supabaseAdmin.from('security_audit_logs').insert({
-        tenant_id: profile.tenant_id,
-        actor_id: user.id,
-        action: 'inactive_user_login_blocked',
-        table_name: 'profiles',
-        record_id: user.id,
-        new_value: { email: user.email, blocked_at: new Date().toISOString() }
-      });
-
+    // We have an active profile
+    if (!profile) {
+      // Shouldn't reach here, but safety check
       return new Response(
         JSON.stringify({ 
           allowed: false, 
-          reason: 'user_inactive',
-          user_id: user.id
-        } as ValidationResponse),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // If target tenant specified, validate it matches
-    if (body.target_tenant_id && body.target_tenant_id !== profile.tenant_id) {
-      console.warn('Tenant mismatch for user:', user.id, 'Expected:', body.target_tenant_id, 'Got:', profile.tenant_id);
-      return new Response(
-        JSON.stringify({ 
-          allowed: false, 
-          reason: 'tenant_mismatch',
+          reason: 'profile_not_found',
           user_id: user.id
         } as ValidationResponse),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -180,7 +208,7 @@ Deno.serve(async (req) => {
     // If no MFA status record exists for this tenant, user needs to set up MFA
     const requiresMfaSetup = !mfaStatus || mfaStatus.requires_setup === true;
 
-    console.log('User access validated:', user.id, 'Tenant:', profile.tenant_id, 'MFA required:', requiresMfaSetup);
+    console.log('User access validated:', user.id, 'Profile:', profile.id, 'Tenant:', profile.tenant_id, 'MFA required:', requiresMfaSetup);
 
     return new Response(
       JSON.stringify({ 
@@ -188,7 +216,8 @@ Deno.serve(async (req) => {
         tenant_id: profile.tenant_id,
         tenant_name: tenant?.name || 'Unknown',
         requires_mfa_setup: requiresMfaSetup,
-        user_id: user.id
+        user_id: user.id,
+        profile_id: profile.id
       } as ValidationResponse),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

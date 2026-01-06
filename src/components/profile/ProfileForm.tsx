@@ -107,7 +107,7 @@ export function ProfileForm({
       } = await supabase.from('profiles').update({
         avatar_url: url,
         updated_at: new Date().toISOString()
-      }).eq('id', user.id);
+      }).eq('user_id', user.id);
       if (updateError) {
         toast({
           title: t('auth.error'),
@@ -149,7 +149,7 @@ export function ProfileForm({
         emergency_contact_name: emergencyContactName.trim() || null,
         emergency_contact_phone: emergencyContactPhone.trim() || null,
         updated_at: new Date().toISOString()
-      }).eq('id', user.id);
+      }).eq('user_id', user.id);
       if (error) throw error;
       toast({
         title: t('profile.profileUpdated'),

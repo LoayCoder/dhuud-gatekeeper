@@ -416,44 +416,44 @@ export default function UserManagement() {
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     try {
-      // 1. Mark profile as deleted
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          deleted_at: new Date().toISOString(), 
-          is_deleted: true,
-          is_active: false
-        })
-        .eq('id', userId);
+      // MULTI-TENANT: The admin-disable-user edge function now handles everything
+      // - Soft-deletes profile for THIS tenant only
+      // - Invalidates sessions for this tenant
+      // - Clears MFA status for this tenant
+      // - Only bans auth account if user has NO other active profiles
       
-      if (error) throw error;
-
-      // 2. Invalidate all active sessions (trigger will also do this, but be explicit)
-      await supabase
-        .from('user_sessions')
-        .update({
-          is_active: false,
-          invalidated_at: new Date().toISOString(),
-          invalidation_reason: 'user_deleted'
-        })
-        .eq('user_id', userId)
-        .eq('is_active', true);
-
-      // 3. Call admin-disable-user edge function to fully disable the account
-      const { error: disableError } = await supabase.functions.invoke('admin-disable-user', {
+      const { data, error: disableError } = await supabase.functions.invoke('admin-disable-user', {
         body: { 
           user_id: userId,
+          tenant_id: profile?.tenant_id, // Explicitly specify which tenant
           reason: 'admin_deleted'
         }
       });
 
       if (disableError) {
-        console.error('Failed to disable user account:', disableError);
-        // Don't throw - the profile is already marked as deleted
+        console.error('Failed to disable user:', disableError);
+        throw new Error(disableError.message || 'Failed to delete user');
       }
 
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to delete user');
+      }
+
+      // Log and notify based on what happened
       await logUserDeleted(userId, userName);
-      toast({ title: t('userManagement.userDeleted') });
+      
+      if (data.account_banned) {
+        toast({ 
+          title: t('userManagement.userDeleted'),
+          description: t('userManagement.accountFullyDisabled', 'Account fully disabled (no other tenant access)')
+        });
+      } else {
+        toast({ 
+          title: t('userManagement.userDeleted'),
+          description: t('userManagement.removedFromTenant', 'User removed from this organization')
+        });
+      }
+      
       refetchUsers();
       refetchQuota();
     } catch (err: any) {
