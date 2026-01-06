@@ -390,6 +390,79 @@ export type Database = {
           },
         ]
       }
+      app_updates: {
+        Row: {
+          broadcast_at: string | null
+          broadcast_by: string | null
+          created_at: string | null
+          deleted_at: string | null
+          error_details: Json | null
+          failed_sends: number | null
+          id: string
+          priority: string | null
+          release_notes: string[] | null
+          successful_sends: number | null
+          tenant_id: string | null
+          total_recipients: number | null
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          broadcast_at?: string | null
+          broadcast_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_details?: Json | null
+          failed_sends?: number | null
+          id?: string
+          priority?: string | null
+          release_notes?: string[] | null
+          successful_sends?: number | null
+          tenant_id?: string | null
+          total_recipients?: number | null
+          updated_at?: string | null
+          version: string
+        }
+        Update: {
+          broadcast_at?: string | null
+          broadcast_by?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_details?: Json | null
+          failed_sends?: number | null
+          id?: string
+          priority?: string | null
+          release_notes?: string[] | null
+          successful_sends?: number | null
+          tenant_id?: string | null
+          total_recipients?: number | null
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_updates_broadcast_by_fkey"
+            columns: ["broadcast_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_updates_broadcast_by_fkey"
+            columns: ["broadcast_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_updates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_delegations: {
         Row: {
           approval_types: string[]

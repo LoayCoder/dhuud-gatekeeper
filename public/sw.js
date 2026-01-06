@@ -158,15 +158,32 @@ self.addEventListener('notificationclick', (event) => {
   if (event.action === 'retry') {
     event.waitUntil(processMutationQueue());
   } else if (event.action === 'update' || notificationData.type === 'update') {
-    // Handle update notification - activate new service worker
+    // Handle update notification - activate new service worker and clear caches
     event.waitUntil(
-      self.registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
-    );
-    // Reload all clients
-    event.waitUntil(
-      self.clients.matchAll({ type: 'window' }).then((clients) => {
-        clients.forEach(client => client.navigate(client.url));
-      })
+      (async () => {
+        // First, try to skip waiting on any waiting service worker
+        if (self.registration.waiting) {
+          self.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        
+        // Clear all app caches to ensure fresh content
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames
+            .filter(name => name.startsWith('dhuud-'))
+            .map(name => {
+              console.log('[SW] Clearing cache for update:', name);
+              return caches.delete(name);
+            })
+        );
+        
+        // Reload all clients
+        const clients = await self.clients.matchAll({ type: 'window' });
+        for (const client of clients) {
+          // Navigate to current URL to force fresh load
+          await client.navigate(client.url);
+        }
+      })()
     );
   } else if (notificationData.type === 'sla_escalation') {
     // Navigate to SLA dashboard for urgent SLA escalation notifications
@@ -180,13 +197,14 @@ self.addEventListener('notificationclick', (event) => {
       })
     );
   } else {
-    // Open or focus the app
+    // Open or focus the app - use action_url if provided
+    const targetUrl = notificationData.action_url || '/';
     event.waitUntil(
       self.clients.matchAll({ type: 'window' }).then((clients) => {
         if (clients.length > 0) {
-          return clients[0].focus();
+          return clients[0].navigate(targetUrl).then(client => client.focus());
         }
-        return self.clients.openWindow('/');
+        return self.clients.openWindow(targetUrl);
       })
     );
   }
