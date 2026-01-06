@@ -9,6 +9,8 @@ import { MapPin, Trash2, RotateCcw, Check, Pencil, Navigation, Loader2 } from 'l
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useGPSCapture } from '@/hooks/use-gps-capture';
+import { MapStyleSwitcher } from '@/components/maps/MapStyleSwitcher';
+import { useMapStyle } from '@/hooks/use-map-style';
 
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -53,6 +55,7 @@ export function SiteLocationPicker({
   const markerRef = useRef<L.Marker | null>(null);
   const polygonRef = useRef<L.Polygon | null>(null);
   const tempMarkersRef = useRef<L.LayerGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   
   const [mode, setMode] = useState<DrawMode>('marker');
   const [polygonPoints, setPolygonPoints] = useState<Coordinate[]>(boundaryPolygon ?? []);
@@ -60,6 +63,7 @@ export function SiteLocationPicker({
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
   const [boundaryConfirmed, setBoundaryConfirmed] = useState(false);
+  const { mapStyle, setMapStyle, tileLayerConfig } = useMapStyle('site-picker-map-style');
 
   const handleUseCurrentLocation = async () => {
     const coords = await captureGPS();
@@ -92,8 +96,9 @@ export function SiteLocationPicker({
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+    // Add initial tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
       maxZoom: 19,
     }).addTo(mapInstance.current);
 
@@ -232,6 +237,22 @@ export function SiteLocationPicker({
     }
   }, [polygonPoints, boundaryConfirmed]);
 
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Remove old tile layer
+    if (tileLayerRef.current) {
+      mapInstance.current.removeLayer(tileLayerRef.current);
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileLayerConfig.url, {
+      attribution: tileLayerConfig.attribution,
+      maxZoom: 19,
+    }).addTo(mapInstance.current);
+  }, [tileLayerConfig]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -275,6 +296,7 @@ export function SiteLocationPicker({
                 )}
                 {t('location.useCurrentLocation')}
               </Button>
+              <MapStyleSwitcher value={mapStyle} onChange={setMapStyle} />
             </div>
           )}
         </div>
