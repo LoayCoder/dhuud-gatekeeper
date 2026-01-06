@@ -9,6 +9,13 @@ interface HSSERouteProps {
   children: React.ReactNode;
 }
 
+interface MenuAccessItem {
+  menu_code: string;
+  menu_url: string | null;
+  parent_code: string | null;
+  sort_order: number;
+}
+
 export function HSSERoute({ children }: HSSERouteProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -28,16 +35,39 @@ export function HSSERoute({ children }: HSSERouteProps) {
 
         setAuthenticated(true);
 
-        // Check if user has HSSE access or is admin
-        const [hsseResult, adminResult] = await Promise.all([
-          supabase.rpc('has_hsse_incident_access', { _user_id: session.user.id }),
-          supabase.rpc('is_admin', { p_user_id: session.user.id })
-        ]);
+        // Check if user is admin first
+        const { data: isAdmin } = await supabase.rpc('is_admin', { p_user_id: session.user.id });
 
-        const hasHSSE = hsseResult.data === true;
-        const isAdmin = adminResult.data === true;
+        if (isAdmin) {
+          setHasAccess(true);
+          setLoading(false);
+          return;
+        }
 
-        setHasAccess(hasHSSE || isAdmin);
+        // Check if user has access to HSSE section via menu access configuration
+        const { data: menuItems, error } = await supabase.rpc('get_accessible_menu_items', {
+          _user_id: session.user.id
+        });
+
+        if (error) {
+          console.error('Error fetching menu items:', error);
+          setHasAccess(false);
+          setLoading(false);
+          return;
+        }
+
+        // User has HSSE access if they can access HSSE-related menu items
+        const hasHSSEAccess = (menuItems as MenuAccessItem[] || []).some(
+          (item) => 
+            item.menu_code === 'hsse' || 
+            item.parent_code === 'hsse' ||
+            item.menu_code.startsWith('hsse_') ||
+            item.menu_code === 'incidents' ||
+            item.menu_code === 'investigations' ||
+            item.parent_code === 'incidents'
+        );
+
+        setHasAccess(hasHSSEAccess);
       } catch (error) {
         console.error('Error checking HSSE access:', error);
         setHasAccess(false);
