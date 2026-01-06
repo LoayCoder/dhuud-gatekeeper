@@ -415,21 +415,54 @@ export default function UserManagement() {
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        deleted_at: new Date().toISOString(), 
-        is_deleted: true 
-      })
-      .eq('id', userId);
-    
-    if (!error) {
+    try {
+      // 1. Mark profile as deleted
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          deleted_at: new Date().toISOString(), 
+          is_deleted: true,
+          is_active: false
+        })
+        .eq('id', userId);
+      
+      if (error) throw error;
+
+      // 2. Invalidate all active sessions (trigger will also do this, but be explicit)
+      await supabase
+        .from('user_sessions')
+        .update({
+          is_active: false,
+          invalidated_at: new Date().toISOString(),
+          invalidation_reason: 'user_deleted'
+        })
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      // 3. Call admin-disable-user edge function to fully disable the account
+      const { error: disableError } = await supabase.functions.invoke('admin-disable-user', {
+        body: { 
+          user_id: userId,
+          reason: 'admin_deleted'
+        }
+      });
+
+      if (disableError) {
+        console.error('Failed to disable user account:', disableError);
+        // Don't throw - the profile is already marked as deleted
+      }
+
       await logUserDeleted(userId, userName);
       toast({ title: t('userManagement.userDeleted') });
       refetchUsers();
       refetchQuota();
-    } else {
-      toast({ title: t('common.error'), variant: 'destructive' });
+    } catch (err: any) {
+      console.error('Error deleting user:', err);
+      toast({ 
+        title: t('common.error'), 
+        description: err.message,
+        variant: 'destructive' 
+      });
     }
   };
 

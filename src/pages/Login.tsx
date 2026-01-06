@@ -221,6 +221,41 @@ export default function Login() {
 
       if (error) throw error;
 
+      // SECURITY: Validate user access immediately after auth succeeds
+      const { data: accessValidation, error: accessError } = await supabase.functions.invoke('validate-user-access');
+      
+      if (accessError || !accessValidation?.allowed) {
+        // User is deleted, inactive, or has no profile - sign out immediately
+        console.warn('User access validation failed:', accessValidation?.reason || accessError?.message);
+        await supabase.auth.signOut();
+        
+        // Show appropriate error message based on reason
+        const reason = accessValidation?.reason;
+        let errorTitle = t('auth.error');
+        let errorDesc = t('auth.accessDenied', 'Access denied');
+        
+        if (reason === 'user_deleted') {
+          errorTitle = t('auth.accountDeleted', 'Account Deactivated');
+          errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
+        } else if (reason === 'user_inactive') {
+          errorTitle = t('auth.accountInactive', 'Account Inactive');
+          errorDesc = t('auth.accountInactiveDesc', 'Your account is currently inactive. Please contact your administrator.');
+        } else if (reason === 'profile_not_found') {
+          errorTitle = t('auth.noProfile', 'No Access');
+          errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
+        }
+        
+        toast({
+          title: errorTitle,
+          description: errorDesc,
+          variant: 'destructive',
+          duration: 10000,
+        });
+        
+        setLoading(false);
+        return;
+      }
+
       // Check if MFA is required
       const { data: { user } } = await supabase.auth.getUser();
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

@@ -1,6 +1,6 @@
 // MFA Setup Page - Two-Factor Authentication enrollment
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -29,12 +29,20 @@ export default function MFASetup() {
   const [code, setCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isTenantVerification, setIsTenantVerification] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors } = useMFA();
 
   useEffect(() => {
+    // Check if this is a tenant-specific MFA verification
+    const state = location.state as { tenantVerification?: boolean } | null;
+    if (state?.tenantVerification) {
+      setIsTenantVerification(true);
+    }
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -49,14 +57,15 @@ export default function MFASetup() {
     };
 
     checkAuth();
-  }, [navigate, refreshFactors]);
+  }, [navigate, refreshFactors, location.state]);
 
   useEffect(() => {
-    // If MFA is already enabled, redirect to home
-    if (!checkingAuth && isEnabled) {
+    // If MFA is already enabled AND this is not a tenant verification, redirect to home
+    // For tenant verification, we still need to mark MFA as verified for this tenant
+    if (!checkingAuth && isEnabled && !isTenantVerification) {
       navigate('/');
     }
-  }, [isEnabled, checkingAuth, navigate]);
+  }, [isEnabled, checkingAuth, navigate, isTenantVerification]);
 
   const handleStartEnrollment = async () => {
     setLoading(true);
@@ -91,12 +100,48 @@ export default function MFASetup() {
     setLoading(false);
 
     if (success) {
+      // Mark MFA as verified for this tenant
+      await markTenantMfaVerified();
+      
       setStep('success');
       await logUserActivity({ eventType: 'mfa_enabled' });
       toast({
         title: t('mfaSetup.twoFactorEnabled'),
         description: t('mfaSetup.twoFactorEnabledMessage'),
       });
+    }
+  };
+
+  // Record tenant-specific MFA verification
+  const markTenantMfaVerified = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) return;
+
+      // Upsert the tenant MFA status
+      await supabase
+        .from('tenant_user_mfa_status')
+        .upsert({
+          user_id: user.id,
+          tenant_id: profile.tenant_id,
+          requires_setup: false,
+          mfa_verified_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,tenant_id'
+        });
+
+      console.log('Tenant MFA status recorded for:', profile.tenant_id);
+    } catch (error) {
+      console.error('Failed to record tenant MFA status:', error);
     }
   };
 

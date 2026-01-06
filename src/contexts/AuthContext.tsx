@@ -18,6 +18,8 @@ interface Profile {
   assigned_site_id: string | null;
   assigned_department_id: string | null;
   contractor_company_name: string | null;
+  is_deleted?: boolean;
+  is_active?: boolean;
 }
 
 type UserRole = 'admin' | 'user';
@@ -29,9 +31,12 @@ interface AuthContextType {
   userRole: UserRole | null;
   isAdmin: boolean;
   mfaEnabled: boolean;
+  tenantMfaVerified: boolean; // NEW: Tenant-scoped MFA verification status
   isLoading: boolean;
   isAuthenticated: boolean;
+  currentTenantId: string | null; // NEW: Current tenant context
   refreshProfile: () => Promise<void>;
+  validateTenantAccess: () => Promise<boolean>; // NEW: Validate access for current tenant
 }
 
 // Create context outside of component to ensure singleton across HMR
@@ -43,6 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [tenantMfaVerified, setTenantMfaVerified] = useState(false);
+  const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserRole = async (userId: string) => {
@@ -61,24 +68,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name')
+      .select('full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
       .eq('id', userId)
       .single();
     
     if (data) {
+      // SECURITY: Check if user is deleted or inactive
+      if (data.is_deleted === true || data.is_active === false) {
+        console.warn('Deleted/inactive user detected in profile fetch:', userId);
+        // Sign out the user immediately
+        await supabase.auth.signOut();
+        setProfile(null);
+        setCurrentTenantId(null);
+        return;
+      }
+      
       setProfile(data);
+      setCurrentTenantId(data.tenant_id);
       
       // Apply user's preferred language if set
       if (data.preferred_language && data.preferred_language !== i18n.language) {
         i18n.changeLanguage(data.preferred_language);
       }
+
+      // Check tenant-scoped MFA status
+      await checkTenantMfaStatus(userId, data.tenant_id);
     }
+  };
+
+  const checkTenantMfaStatus = async (userId: string, tenantId: string) => {
+    const { data } = await supabase
+      .from('tenant_user_mfa_status')
+      .select('requires_setup, mfa_verified_at')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .single();
+    
+    // MFA is verified for this tenant if record exists and requires_setup is false
+    setTenantMfaVerified(data ? !data.requires_setup : false);
   };
 
   const checkMFA = async () => {
     const { data: mfaData } = await supabase.auth.mfa.listFactors();
     const hasVerifiedMFA = (mfaData?.totp || []).some(f => f.status === 'verified');
     setMfaEnabled(hasVerifiedMFA);
+  };
+
+  // Validate that user can access their current tenant
+  const validateTenantAccess = async (): Promise<boolean> => {
+    if (!user?.id || !currentTenantId) return false;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-user-access', {
+        body: { target_tenant_id: currentTenantId }
+      });
+      
+      if (error || !data?.allowed) {
+        console.warn('Tenant access validation failed:', data?.reason || error?.message);
+        // Sign out if user is deleted or inactive
+        if (data?.reason === 'user_deleted' || data?.reason === 'user_inactive') {
+          await supabase.auth.signOut();
+        }
+        return false;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Error validating tenant access:', err);
+      return false;
+    }
   };
 
   const refreshProfile = async () => {
@@ -111,6 +169,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
           setUserRole(null);
           setMfaEnabled(false);
+          setTenantMfaVerified(false);
+          setCurrentTenantId(null);
         }
       }
     );
@@ -146,9 +206,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userRole,
     isAdmin: userRole === 'admin',
     mfaEnabled,
+    tenantMfaVerified,
     isLoading,
     isAuthenticated: !!session,
+    currentTenantId,
     refreshProfile,
+    validateTenantAccess,
   };
 
   // Watch for email changes from admin actions

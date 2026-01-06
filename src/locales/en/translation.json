@@ -1663,7 +1663,18 @@
     "passwordsDoNotMatch": "Passwords don't match",
     "validationError": "Validation Error",
     "error": "Error",
-    "failedToLogin": "Failed to log in"
+    "failedToLogin": "Failed to log in",
+    "accessDenied": "Access denied",
+    "accountDeleted": "Account Deactivated",
+    "accountDeletedDesc": "Your account has been deactivated. Please contact your administrator if you believe this is an error.",
+    "accountInactive": "Account Inactive",
+    "accountInactiveDesc": "Your account is currently inactive. Please contact your administrator.",
+    "noProfile": "No Access",
+    "noProfileDesc": "You do not have access to this organization.",
+    "tenantAccessDenied": "You don't have access to this organization",
+    "sessionInvalidated": "Session Ended",
+    "sessionInvalidatedDesc": "Your session has been terminated. Please log in again.",
+    "mfaRequiredForTenant": "Two-factor authentication is required for this organization"
   },
   "hsseNotifications": {
     "title": "Notifications",
