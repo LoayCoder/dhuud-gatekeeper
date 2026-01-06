@@ -22392,6 +22392,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      is_admin_safe: { Args: { check_user_id: string }; Returns: boolean }
       is_contractor_rep_for_company: {
         Args: { p_company_id: string }
         Returns: boolean
