@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download } from 'lucide-react';
+import { Plus, Search, Package, Filter, Grid, List, AlertTriangle, Calendar, Upload, Download, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,12 +45,14 @@ const CONDITION_COLORS: Record<string, string> = {
 interface AssetCardProps {
   asset: AssetWithRelations;
   onClick: () => void;
+  onEdit: () => void;
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   selectionMode: boolean;
+  canManage: boolean;
 }
 
-function AssetCard({ asset, onClick, isSelected, onSelect, selectionMode }: AssetCardProps) {
+function AssetCard({ asset, onClick, onEdit, isSelected, onSelect, selectionMode, canManage }: AssetCardProps) {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
   
@@ -94,11 +96,26 @@ function AssetCard({ asset, onClick, isSelected, onSelect, selectionMode }: Asse
               <CardDescription className="text-xs">{asset.asset_code}</CardDescription>
             </div>
           </div>
-          {!selectionMode && (
-            <Badge variant="outline" className={cn('text-xs', STATUS_COLORS[asset.status || 'active'])}>
-              {t(`assets.status.${asset.status || 'active'}`)}
-            </Badge>
-          )}
+          <div className="flex items-center gap-1">
+            {!selectionMode && canManage && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {!selectionMode && (
+              <Badge variant="outline" className={cn('text-xs', STATUS_COLORS[asset.status || 'active'])}>
+                {t(`assets.status.${asset.status || 'active'}`)}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-2">
@@ -534,9 +551,11 @@ function AssetListContent() {
               key={asset.id} 
               asset={asset} 
               onClick={() => navigate(`/assets/${asset.id}`)}
+              onEdit={() => navigate(`/assets/register?edit=${asset.id}`)}
               isSelected={selectedAssetIds.has(asset.id)}
               onSelect={(checked) => toggleAssetSelection(asset.id, checked)}
               selectionMode={selectionMode || canManage}
+              canManage={canManage}
             />
           ))}
         </div>
@@ -578,6 +597,19 @@ function AssetListContent() {
                     <div className="hidden sm:block text-sm text-muted-foreground">
                       {i18n.language === 'ar' && asset.category?.name_ar ? asset.category.name_ar : asset.category?.name}
                     </div>
+                    {canManage && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/assets/register?edit=${asset.id}`);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Badge variant="outline" className={cn('text-xs shrink-0', STATUS_COLORS[asset.status || 'active'])}>
                       {t(`assets.status.${asset.status || 'active'}`)}
                     </Badge>
