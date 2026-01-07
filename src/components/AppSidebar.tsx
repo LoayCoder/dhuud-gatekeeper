@@ -72,6 +72,7 @@ import {
   Languages,
   GraduationCap,
   BookOpen,
+  History,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -468,6 +469,12 @@ export function AppSidebar() {
           url: "/admin/asset-categories",
           icon: FolderTree,
           menuCode: 'admin_asset_categories',
+        },
+        {
+          title: t('assets.auditLog.title', 'Asset Audit Log'),
+          url: "/assets/audit-log",
+          icon: History,
+          menuCode: 'asset_audit_log',
         },
       ],
     },

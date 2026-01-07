@@ -4861,6 +4861,52 @@
     "incidentHistoryDescription": "أحداث السلامة المرتبطة بهذا الأصل",
     "auditDescription": "تاريخ التغييرات على هذا الأصل",
     "noAuditLogs": "لا يوجد سجل تدقيق",
+    "auditLog": {
+      "title": "سجل تدقيق الأصول",
+      "description": "تتبع جميع تغييرات الأصول والحذف والتعديلات",
+      "export": "تصدير إلى Excel",
+      "noLogs": "لا توجد سجلات تدقيق",
+      "filters": {
+        "action": "نوع الإجراء",
+        "dateFrom": "من تاريخ",
+        "dateTo": "إلى تاريخ",
+        "search": "البحث في الأصول...",
+        "actor": "تم التغيير بواسطة",
+        "allActions": "جميع الإجراءات",
+        "allActors": "جميع المستخدمين"
+      },
+      "actions": {
+        "created": "تم الإنشاء",
+        "updated": "تم التحديث",
+        "deleted": "تم الحذف",
+        "location_changed": "تغيير الموقع",
+        "linked_records_deleted": "حذف السجلات المرتبطة"
+      },
+      "stats": {
+        "totalChanges": "إجمالي التغييرات (7 أيام)",
+        "created": "تم الإنشاء",
+        "updated": "تم التحديث",
+        "deleted": "تم الحذف",
+        "locationChanged": "تغيير الموقع"
+      },
+      "table": {
+        "timestamp": "الوقت",
+        "asset": "الأصل",
+        "action": "الإجراء",
+        "actor": "تم التغيير بواسطة",
+        "viewDetails": "عرض التفاصيل"
+      },
+      "details": {
+        "title": "تفاصيل التغيير",
+        "changes": "التغييرات",
+        "field": "الحقل",
+        "before": "قبل",
+        "after": "بعد",
+        "noChanges": "لم يتم تسجيل تغييرات",
+        "ipAddress": "عنوان IP",
+        "system": "النظام"
+      }
+    },
     "photos": {
       "dragDrop": "اسحب وأفلت الصور هنا",
       "dragDropHint": "أو انقر لاختيار الملفات (PNG, JPG, WebP, حد أقصى 10 ميجابايت)",
