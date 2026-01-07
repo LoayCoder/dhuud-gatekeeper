@@ -28,7 +28,7 @@ const assetSchema = z.object({
   category_id: z.string().min(1, 'Category is required'),
   type_id: z.string().min(1, 'Type is required'),
   subtype_id: z.string().optional().nullable(),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z.string().optional(), // Auto-generated from category + type + code
   description: z.string().optional(),
   asset_code: z.string().min(1, 'Asset code is required'),
   
@@ -225,13 +225,18 @@ function AssetRegisterContent() {
 
   const onSubmit = async (values: AssetFormValues) => {
     try {
+      // Auto-generate the name from category + type + code
+      const category = categories?.find(c => c.id === values.category_id);
+      const type = types?.find(t => t.id === values.type_id);
+      const autoName = `${category?.name || 'Asset'} - ${type?.name || ''} (${values.asset_code})`.trim();
+      
       // Zod validation ensures these are present
       const assetData = {
         ...values,
         asset_code: values.asset_code!,
         category_id: values.category_id!,
         type_id: values.type_id!,
-        name: values.name!,
+        name: autoName,
       };
       
       if (editId) {
@@ -493,19 +498,7 @@ function AssetRegisterContent() {
                     </Card>
                   )}
 
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('assets.name')} *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder={t('assets.namePlaceholder')} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Asset Name is auto-generated from Category + Type + Code */}
 
                   <FormField
                     control={form.control}

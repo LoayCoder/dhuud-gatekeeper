@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search, Trophy, Settings } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Check, X, MapPin, Navigation, Building2, Search, Trophy, Settings, Layers } from "lucide-react";
 import { MajorEventsTab } from "@/components/admin/MajorEventsTab";
 import { SiteDetailDialog } from "@/components/admin/SiteDetailDialog";
 import { useTranslation } from 'react-i18next';
@@ -57,8 +57,27 @@ interface Site {
   boundary_polygon?: Coordinate[] | null;
   branches?: { name: string } | null; 
 }
+interface Building {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  site_id: string;
+  floor_count: number | null;
+  is_active: boolean | null;
+  sites?: { name: string } | null;
+}
+interface FloorZone {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  building_id: string;
+  zone_type: string | null;
+  level_number: number | null;
+  is_active: boolean | null;
+  buildings?: { name: string } | null;
+}
 
-type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites';
+type TableType = 'branches' | 'divisions' | 'departments' | 'sections' | 'sites' | 'buildings' | 'floors_zones';
 
 export default function OrgStructure() {
   const { t, i18n } = useTranslation();
@@ -76,6 +95,17 @@ export default function OrgStructure() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [floorsZones, setFloorsZones] = useState<FloorZone[]>([]);
+
+  // Building form state
+  const [selectedSiteForBuilding, setSelectedSiteForBuilding] = useState<string>("");
+  const [newBuildingNameAr, setNewBuildingNameAr] = useState("");
+  
+  // Floor/Zone form state
+  const [selectedBuildingForFloor, setSelectedBuildingForFloor] = useState<string>("");
+  const [newFloorZoneNameAr, setNewFloorZoneNameAr] = useState("");
+  const [newLevelNumber, setNewLevelNumber] = useState("");
 
   // Form State
   const [newItemName, setNewItemName] = useState("");
@@ -113,7 +143,7 @@ export default function OrgStructure() {
     setLoading(true);
     
     try {
-      const [b, d, dep, sec, sit] = await Promise.all([
+      const [b, d, dep, sec, sit, bldg, fz] = await Promise.all([
         supabase.from('branches')
           .select('id, name, location, latitude, longitude')
           .eq('tenant_id', tenantId)
@@ -139,6 +169,16 @@ export default function OrgStructure() {
           .eq('tenant_id', tenantId)
           .is('deleted_at', null)
           .order('name'),
+        supabase.from('buildings')
+          .select('id, name, name_ar, site_id, floor_count, is_active, sites(name)')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('name'),
+        supabase.from('floors_zones')
+          .select('id, name, name_ar, building_id, zone_type, level_number, is_active, buildings(name)')
+          .eq('tenant_id', tenantId)
+          .is('deleted_at', null)
+          .order('level_number'),
       ]);
 
       if (b.data) setBranches(b.data);
@@ -146,6 +186,8 @@ export default function OrgStructure() {
       if (dep.data) setDepartments(dep.data as Department[]);
       if (sec.data) setSections(sec.data as Section[]);
       if (sit.data) setSites(sit.data as unknown as Site[]);
+      if (bldg.data) setBuildings(bldg.data as unknown as Building[]);
+      if (fz.data) setFloorsZones(fz.data as unknown as FloorZone[]);
     } catch (error) {
       console.error("Error fetching org structure:", error);
     } finally {

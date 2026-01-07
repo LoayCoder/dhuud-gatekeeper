@@ -416,7 +416,9 @@ export function useAssetAuditLogs(assetId: string | undefined) {
 export function generateAssetCode(categoryCode: string, sequence: number): string {
   const year = new Date().getFullYear();
   const paddedSeq = String(sequence).padStart(4, '0');
-  return `${categoryCode}-${year}-${paddedSeq}`;
+  // Strip TEST- prefix if present (for production-safe codes)
+  const cleanCode = categoryCode.replace(/^TEST-/i, '');
+  return `${cleanCode}-${year}-${paddedSeq}`;
 }
 
 // Generate sequential codes from a base code
