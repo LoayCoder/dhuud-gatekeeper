@@ -2370,6 +2370,9 @@
     },
     "menu": {
       "securityDashboard": "لوحة معلومات الأمن",
+      "accessDashboard": "لوحة التحكم بالوصول",
+      "gateOperations": "عمليات البوابة",
+      "securityTeam": "فريق الأمن",
       "workforceCommand": "قيادة القوى العاملة",
       "commandCenter": "مركز القيادة",
       "securityZones": "مناطق الأمن",
@@ -2388,6 +2391,9 @@
       "shiftHandover": "تسليم الوردية",
       "guardPerformance": "أداء الحراس",
       "guardMobileApp": "تطبيق الحارس"
+    },
+    "blacklist": {
+      "title": "إدارة القائمة السوداء"
     },
     "guardAttendance": "حضور الحراس",
     "guardAttendanceDesc": "تتبع تسجيل دخول وخروج الحراس ومقاييس الحضور",

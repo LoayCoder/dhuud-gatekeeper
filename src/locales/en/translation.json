@@ -2301,6 +2301,9 @@
     },
     "menu": {
       "securityDashboard": "Security Dashboard",
+      "accessDashboard": "Access Dashboard",
+      "gateOperations": "Gate Operations",
+      "securityTeam": "Security Team",
       "workforceCommand": "Workforce Command",
       "commandCenter": "Command Center",
       "securityZones": "Security Zones",
@@ -2319,6 +2322,9 @@
       "shiftHandover": "Shift Handover",
       "guardPerformance": "Guard Performance",
       "guardMobileApp": "Guard Mobile"
+    },
+    "blacklist": {
+      "title": "Blacklist Management"
     },
     "guardAttendance": "Guard Attendance",
     "guardAttendanceDesc": "Track guard check-ins, check-outs, and attendance metrics",
