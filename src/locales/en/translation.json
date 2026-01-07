@@ -130,7 +130,14 @@
       "linkedRecordsWarning": "This zone is linked to active records",
       "cannotDelete": "Cannot Delete Zone",
       "deactivateInstead": "Deactivate Zone",
-      "deleteWarning": "{{count}} linked records will be affected"
+      "deleteWarning": "{{count}} linked records will be affected",
+      "detectMyZone": "Detect Zone",
+      "zoneDetected": "Zone Detected",
+      "nearestZone": "Nearest Zone",
+      "notInAnyZone": "You are not in any defined zone",
+      "distanceMeters": "{{distance}}m away",
+      "locationError": "Location Error",
+      "deactivateInsteadMessage": "Deactivate the zone to keep historical records intact."
     },
     "team": {
       "hierarchy": "Team Hierarchy",

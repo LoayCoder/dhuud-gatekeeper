@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Shield, AlertTriangle } from 'lucide-react';
+import { MapPin, Shield, AlertTriangle, Locate, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useSecurityZones } from '@/hooks/use-security-zones';
+import { useCurrentZone } from '@/hooks/use-current-zone';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const ZONE_STORAGE_KEY = 'gate_selected_zone';
@@ -12,12 +15,15 @@ interface ZoneSelectorProps {
   siteId?: string;
   onZoneChange?: (zoneId: string | null) => void;
   className?: string;
+  showDetectButton?: boolean;
 }
 
-export function ZoneSelector({ siteId, onZoneChange, className }: ZoneSelectorProps) {
+export function ZoneSelector({ siteId, onZoneChange, className, showDetectButton = true }: ZoneSelectorProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: zones = [], isLoading } = useSecurityZones({ siteId, isActive: true });
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const { currentZone, nearestZone, isLocating, error, detectZone } = useCurrentZone();
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -27,6 +33,32 @@ export function ZoneSelector({ siteId, onZoneChange, className }: ZoneSelectorPr
       onZoneChange?.(stored);
     }
   }, []);
+
+  // Auto-select detected zone
+  useEffect(() => {
+    if (currentZone?.zone) {
+      handleZoneChange(currentZone.zone.id);
+      toast({
+        title: t('security.zones.zoneDetected', 'Zone Detected'),
+        description: currentZone.zone.zone_name,
+      });
+    } else if (nearestZone?.zone) {
+      toast({
+        title: t('security.zones.nearestZone', 'Nearest Zone'),
+        description: `${nearestZone.zone.zone_name} (${Math.round(nearestZone.distanceToCenter)}m)`,
+      });
+    }
+  }, [currentZone, nearestZone]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: t('security.zones.locationError', 'Location Error'),
+        description: error,
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
 
   const handleZoneChange = (value: string) => {
     const zoneId = value === 'all' ? null : value;
@@ -104,10 +136,26 @@ export function ZoneSelector({ siteId, onZoneChange, className }: ZoneSelectorPr
         </SelectContent>
       </Select>
       {selectedZoneData && getRiskBadge(selectedZoneData.risk_level)}
+      
+      {showDetectButton && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={detectZone} 
+          disabled={isLocating}
+          className="h-8 px-2"
+          title={t('security.zones.detectMyZone', 'Detect Zone')}
+        >
+          {isLocating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Locate className="h-4 w-4" />
+          )}
+        </Button>
+      )}
     </div>
   );
 }
-
 // Hook to get current selected zone
 export function useSelectedZone() {
   const [zoneId, setZoneId] = useState<string | null>(null);
