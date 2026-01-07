@@ -2340,11 +2340,21 @@
       "refresh": "Refresh",
       "guardOnDuty": "Guard on Duty",
       "shift": "Shift",
+      "supervisor": "Supervisor",
+      "onDuty": "On Duty",
+      "myNumber": "My Number",
+      "callSupervisor": "Call Supervisor",
+      "callGuard": "Call Guard",
+      "quickScan": "Quick Scan",
+      "noShiftToday": "No shift scheduled today",
+      "exit": "Exit",
       "tabs": {
         "visitors": "Visitors",
         "workers": "Workers",
         "gatePasses": "Gate Passes",
-        "activityLog": "Activity Log"
+        "activityLog": "Activity Log",
+        "approvals": "Approvals",
+        "material": "Material"
       },
       "stats": {
         "onSite": "On Site",
@@ -2352,6 +2362,7 @@
         "activeWorkers": "Active Workers",
         "openAlerts": "Open Alerts"
       },
+      "activeAlerts": "Active Alerts",
       "alerts": {
         "title": "Active Alerts",
         "expiredPermit": "Expired Permit",
@@ -2379,6 +2390,7 @@
         "notFound": "Visitor not found"
       },
       "activeVisitors": "Active Visitors",
+      "noActiveVisitors": "No active visitors on site",
       "activeVisitorsDetails": {
         "title": "Active Visitors",
         "name": "Name",

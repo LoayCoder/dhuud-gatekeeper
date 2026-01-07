@@ -2409,11 +2409,21 @@
       "refresh": "تحديث",
       "guardOnDuty": "الحارس المناوب",
       "shift": "الوردية",
+      "supervisor": "المشرف",
+      "onDuty": "مناوب",
+      "myNumber": "رقمي",
+      "callSupervisor": "اتصل بالمشرف",
+      "callGuard": "اتصل بالحارس",
+      "quickScan": "مسح سريع",
+      "noShiftToday": "لا توجد وردية مجدولة اليوم",
+      "exit": "خروج",
       "tabs": {
         "visitors": "الزوار",
         "workers": "العمال",
         "gatePasses": "تصاريح البوابة",
-        "activityLog": "سجل النشاط"
+        "activityLog": "سجل النشاط",
+        "approvals": "الموافقات",
+        "material": "المواد"
       },
       "stats": {
         "onSite": "في الموقع",
@@ -2421,6 +2431,7 @@
         "activeWorkers": "العمال النشطون",
         "openAlerts": "التنبيهات المفتوحة"
       },
+      "activeAlerts": "التنبيهات النشطة",
       "alerts": {
         "title": "التنبيهات النشطة",
         "expiredPermit": "تصريح منتهي",
@@ -2446,7 +2457,9 @@
         "blacklisted": "في القائمة السوداء",
         "notFound": "لم يتم العثور على الزائر"
       },
-      "activeVisitors": {
+      "activeVisitors": "الزوار النشطون",
+      "noActiveVisitors": "لا يوجد زوار نشطون في الموقع",
+      "activeVisitorsDetails": {
         "title": "الزوار النشطون",
         "name": "الاسم",
         "company": "الشركة",

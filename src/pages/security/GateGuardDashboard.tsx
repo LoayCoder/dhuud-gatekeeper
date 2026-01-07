@@ -28,6 +28,8 @@ import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/cont
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
 import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
+import { GuardDutyHeader } from '@/components/security/GuardDutyHeader';
+import { GateScanFAB } from '@/components/security/GateScanFAB';
 import { cn } from '@/lib/utils';
 import { GateScanProvider } from '@/contexts/GateScanContext';
 
@@ -171,16 +173,19 @@ const GateGuardDashboard = () => {
 
   return (
     <GateScanProvider>
-    <div className="container mx-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6 space-y-3 sm:space-y-4 min-w-0">
+    <div className="container mx-auto py-2 sm:py-4 px-2 sm:px-4 md:px-6 space-y-2 sm:space-y-4 min-w-0 pb-24 sm:pb-6">
       {/* Offline Status Bar - Important for PWA users */}
       <GateOfflineStatusBar 
         lastSyncTime={lastSyncTime}
         onRefresh={handleRefresh}
       />
       
+      {/* Guard Duty Header - Mobile first */}
+      <GuardDutyHeader className="sm:hidden" />
+      
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0 hidden sm:block">
           <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
             <span className="truncate">{t('security.gateDashboard.title', 'Gate Guard Dashboard')}</span>
@@ -189,11 +194,11 @@ const GateGuardDashboard = () => {
             {t('security.gateDashboard.description', 'Central control for gate operations')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between sm:justify-end w-full sm:w-auto">
           {/* Zone Selector for zone-level access control */}
           <ZoneSelector 
             onZoneChange={setSelectedZoneId}
-            className="hidden sm:flex"
+            className="flex-1 sm:flex-none"
           />
           <Button 
             variant="outline" 
@@ -207,27 +212,22 @@ const GateGuardDashboard = () => {
         </div>
       </div>
 
-      {/* Mobile Zone Selector */}
-      <div className="sm:hidden">
-        <ZoneSelector onZoneChange={setSelectedZoneId} />
-      </div>
-
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+      {/* KPI Summary Cards - More compact on mobile */}
+      <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-3">
         {statCards.map((stat) => (
           <Card key={stat.label} className="overflow-hidden">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className={cn('p-1.5 sm:p-2 rounded-lg flex-shrink-0', stat.bgColor)}>
-                  <stat.icon className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color)} />
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-start">
+                <div className={cn('p-1 sm:p-2 rounded-lg flex-shrink-0', stat.bgColor)}>
+                  <stat.icon className={cn('h-3.5 w-3.5 sm:h-5 sm:w-5', stat.color)} />
                 </div>
                 <div className="min-w-0">
                   {statsLoading ? (
-                    <Skeleton className="h-6 sm:h-7 w-10 sm:w-12" />
+                    <Skeleton className="h-5 sm:h-7 w-8 sm:w-12 mx-auto sm:mx-0" />
                   ) : (
-                    <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+                    <p className="text-lg sm:text-2xl font-bold">{stat.value}</p>
                   )}
-                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{stat.label}</p>
+                  <p className="text-[9px] sm:text-xs text-muted-foreground line-clamp-1">{stat.label}</p>
                 </div>
               </div>
             </CardContent>
@@ -420,6 +420,9 @@ const GateGuardDashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Mobile Scan FAB */}
+      <GateScanFAB />
     </div>
     </GateScanProvider>
   );
