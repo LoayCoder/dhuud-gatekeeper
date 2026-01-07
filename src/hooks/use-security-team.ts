@@ -12,6 +12,7 @@ export interface SecurityTeamMember {
   job_title: string | null;
   assigned_site_id: string | null;
   role: string;
+  role_name: string | null;
   sites?: { name: string } | null;
 }
 
@@ -29,16 +30,26 @@ export function useSecurityTeam(filters?: { role?: string; isActive?: boolean })
         .single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
-      // Get user roles for security personnel
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'user', 'security_guard', 'security_supervisor', 'security_manager']);
+      // Get user role assignments for security personnel from the correct tables
+      const { data: roleAssignments, error: rolesError } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          user_id,
+          role:roles!inner (
+            id,
+            code,
+            name,
+            category
+          )
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('roles.category', 'security');
 
       if (rolesError) throw rolesError;
 
-      const userIds = userRoles?.map(r => r.user_id) || [];
-      if (userIds.length === 0) return [];
+      if (!roleAssignments?.length) return [];
+
+      const userIds = roleAssignments.map(r => r.user_id);
 
       // Get profiles for those users within the tenant
       let query = supabase
@@ -67,10 +78,12 @@ export function useSecurityTeam(filters?: { role?: string; isActive?: boolean })
 
       // Merge role info with profile data
       const teamMembers: SecurityTeamMember[] = (profiles || []).map(p => {
-        const userRole = userRoles?.find(r => r.user_id === p.id);
+        const userRole = roleAssignments.find(r => r.user_id === p.id);
+        const roleData = userRole?.role as { id: string; code: string; name: string; category: string } | null;
         return {
           ...p,
-          role: userRole?.role || 'user',
+          role: roleData?.code || 'user',
+          role_name: roleData?.name || null,
         };
       });
 
@@ -101,6 +114,7 @@ export function useUpdateSecurityTeamMember() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-team'] });
+      queryClient.invalidateQueries({ queryKey: ['security-team-hierarchy'] });
       toast({ title: 'Team member updated' });
     },
     onError: (error) => {
