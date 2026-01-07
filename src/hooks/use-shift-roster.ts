@@ -2,13 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface RosterAssignment {
+  id: string;
+  guard_id: string;
+  zone_id: string;
+  shift_id: string;
+  roster_date: string;
+  supervisor_id: string | null;
+  status: string | null;
+  notes: string | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  guard?: { full_name: string | null };
+  supervisor?: { full_name: string | null };
+  zone?: { zone_name: string | null; zone_code: string | null };
+  shift?: { shift_name: string | null; start_time: string | null; end_time: string | null };
+}
+
 export function useShiftRoster(filters?: { date?: string; zoneId?: string; shiftId?: string }) {
   return useQuery({
     queryKey: ['shift-roster', filters],
     queryFn: async () => {
       let query = supabase
         .from('shift_roster')
-        .select('*')
+        .select(`
+          id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
+          check_in_time, check_out_time, check_in_lat, check_in_lng, check_out_lat, check_out_lng,
+          guard:profiles!shift_roster_guard_id_fkey(full_name),
+          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name),
+          zone:security_zones(zone_name, zone_code),
+          shift:security_shifts(shift_name, start_time, end_time)
+        `)
         .is('deleted_at', null)
         .order('roster_date', { ascending: false });
 
@@ -18,7 +42,7 @@ export function useShiftRoster(filters?: { date?: string; zoneId?: string; shift
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return (data || []) as RosterAssignment[];
     },
   });
 }
@@ -33,7 +57,13 @@ export function useMyRosterAssignment() {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('shift_roster')
-        .select('*')
+        .select(`
+          id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
+          check_in_time, check_out_time,
+          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name),
+          zone:security_zones(zone_name, zone_code),
+          shift:security_shifts(shift_name, start_time, end_time)
+        `)
         .eq('guard_id', user.id)
         .eq('roster_date', today)
         .is('deleted_at', null)
@@ -45,12 +75,62 @@ export function useMyRosterAssignment() {
   });
 }
 
+export function useSupervisors() {
+  return useQuery({
+    queryKey: ['security-supervisors'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      if (!profile?.tenant_id) return [];
+
+      // Get users with supervisor or manager roles
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['security_supervisor', 'security_manager', 'admin']);
+
+      if (error) throw error;
+      
+      // Get profile info for these users
+      const userIds = [...new Set(data?.map(r => r.user_id) || [])];
+      if (!userIds.length) return [];
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
+      
+      // Map with roles
+      const roleMap = new Map<string, string>();
+      data?.forEach(r => roleMap.set(r.user_id, r.role));
+      
+      return (profiles || []).map(p => ({
+        id: p.id,
+        full_name: p.full_name || 'Unknown',
+        role: roleMap.get(p.id) || 'supervisor'
+      }));
+    },
+  });
+}
+
 export function useCreateRosterAssignment() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (assignment: { guard_id: string; zone_id: string; shift_id: string; roster_date: string; notes?: string; status?: string }) => {
+    mutationFn: async (assignment: { 
+      guard_id: string; 
+      zone_id: string; 
+      shift_id: string; 
+      roster_date: string; 
+      supervisor_id?: string;
+      notes?: string; 
+      status?: string 
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
@@ -71,6 +151,39 @@ export function useCreateRosterAssignment() {
     },
     onError: (error) => {
       toast({ title: 'Failed to create assignment', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useUpdateRosterAssignment() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { 
+      id: string; 
+      guard_id?: string; 
+      zone_id?: string; 
+      shift_id?: string; 
+      supervisor_id?: string;
+      notes?: string; 
+      status?: string 
+    }) => {
+      const { data, error } = await supabase
+        .from('shift_roster')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
+      toast({ title: 'Assignment updated' });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to update assignment', description: error.message, variant: 'destructive' });
     },
   });
 }

@@ -9,18 +9,18 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MapPin, Shield, Pencil, Trash2, Search, Map } from 'lucide-react';
-import { useSecurityZones, useCreateSecurityZone, useUpdateSecurityZone, useDeleteSecurityZone } from '@/hooks/use-security-zones';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, MapPin, Shield, Pencil, Trash2, Search, Map, AlertTriangle, Power } from 'lucide-react';
+import { useSecurityZones, useCreateSecurityZone, useUpdateSecurityZone, useDeleteSecurityZone, useCheckZoneDependencies, useDeactivateSecurityZone } from '@/hooks/use-security-zones';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ZonePolygonEditor from '@/components/security/ZonePolygonEditor';
 import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/hooks/use-toast';
 
 const ZONE_TYPES = ['perimeter', 'building', 'restricted', 'parking', 'entrance', 'exit'];
 const RISK_LEVELS = ['low', 'medium', 'high', 'critical'];
 
 interface FormData {
   zone_name: string;
-  zone_code: string;
   zone_type: string;
   risk_level: string;
   is_active: boolean;
@@ -30,7 +30,6 @@ interface FormData {
 
 const initialFormData: FormData = {
   zone_name: '',
-  zone_code: '',
   zone_type: 'building',
   risk_level: 'medium',
   is_active: true,
@@ -38,26 +37,38 @@ const initialFormData: FormData = {
   geofence_radius_meters: 50,
 };
 
+// Generate zone code preview from name
+function generateZoneCodePreview(name: string): string {
+  if (!name.trim()) return 'ZONE-...';
+  return 'ZONE-' + name.trim().toUpperCase().replace(/\s+/g, '-');
+}
+
 export default function SecurityZones() {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const { t } = useTranslation();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [deleteZoneId, setDeleteZoneId] = useState<string | null>(null);
+  const [dependencies, setDependencies] = useState<{ total: number } | null>(null);
 
   const { data: zones, isLoading } = useSecurityZones();
   const createZone = useCreateSecurityZone();
   const updateZone = useUpdateSecurityZone();
   const deleteZone = useDeleteSecurityZone();
+  const checkDependencies = useCheckZoneDependencies();
+  const deactivateZone = useDeactivateSecurityZone();
 
-  const filteredZones = zones?.filter(z => z.zone_name?.toLowerCase().includes(search.toLowerCase()) || z.zone_code?.toLowerCase().includes(search.toLowerCase()));
+  const filteredZones = zones?.filter(z => 
+    z.zone_name?.toLowerCase().includes(search.toLowerCase()) || 
+    z.zone_code?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
       zone_name: formData.zone_name,
-      zone_code: formData.zone_code,
       zone_type: formData.zone_type,
       risk_level: formData.risk_level,
       is_active: formData.is_active,
@@ -78,7 +89,6 @@ export default function SecurityZones() {
     setEditingZone(zone.id);
     setFormData({
       zone_name: zone.zone_name || '',
-      zone_code: zone.zone_code || '',
       zone_type: zone.zone_type || 'building',
       risk_level: zone.risk_level || 'medium',
       is_active: zone.is_active ?? true,
@@ -94,6 +104,40 @@ export default function SecurityZones() {
       setEditingZone(null);
       setFormData(initialFormData);
     }
+  };
+
+  const handleDeleteClick = async (zoneId: string) => {
+    setDeleteZoneId(zoneId);
+    try {
+      const deps = await checkDependencies.mutateAsync(zoneId);
+      setDependencies(deps);
+    } catch {
+      setDependencies(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteZoneId) return;
+    
+    if (dependencies && dependencies.total > 0) {
+      toast({
+        title: t('security.zones.cannotDelete', 'Cannot Delete Zone'),
+        description: t('security.zones.hasLinkedRecords', 'This zone has linked records. Deactivating instead.'),
+        variant: 'destructive',
+      });
+      await deactivateZone.mutateAsync(deleteZoneId);
+    } else {
+      await deleteZone.mutateAsync(deleteZoneId);
+    }
+    setDeleteZoneId(null);
+    setDependencies(null);
+  };
+
+  const handleDeactivate = async () => {
+    if (!deleteZoneId) return;
+    await deactivateZone.mutateAsync(deleteZoneId);
+    setDeleteZoneId(null);
+    setDependencies(null);
   };
 
   return (
@@ -122,11 +166,24 @@ export default function SecurityZones() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>{t('security.zones.zoneName', 'Zone Name')}</Label>
-                      <Input value={formData.zone_name} onChange={(e) => setFormData({ ...formData, zone_name: e.target.value })} required />
+                      <Input 
+                        value={formData.zone_name} 
+                        onChange={(e) => setFormData({ ...formData, zone_name: e.target.value })} 
+                        required 
+                        placeholder={t('security.zones.zoneNamePlaceholder', 'e.g., Main Entrance')}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>{t('security.zones.zoneCode', 'Zone Code')}</Label>
-                      <Input value={formData.zone_code} onChange={(e) => setFormData({ ...formData, zone_code: e.target.value })} placeholder="Z-001" />
+                      <Label className="flex items-center gap-2">
+                        {t('security.zones.zoneCode', 'Zone Code')}
+                        <Badge variant="outline" className="text-xs font-normal">{t('security.zones.autoGenerated', 'Auto')}</Badge>
+                      </Label>
+                      <Input 
+                        value={generateZoneCodePreview(formData.zone_name)} 
+                        disabled 
+                        className="bg-muted text-muted-foreground"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('security.zones.codeAutoGenerated', 'Code is auto-generated from zone name')}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -152,7 +209,6 @@ export default function SecurityZones() {
                 </TabsContent>
                 
                 <TabsContent value="boundary" className="mt-4 space-y-4">
-                  {/* Geofence Radius Configuration */}
                   <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
                     <div className="flex items-center justify-between">
                       <Label className="font-medium">{t('security.zones.geofenceRadius', 'Geofence Radius')}</Label>
@@ -208,15 +264,19 @@ export default function SecurityZones() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{zone.zone_name}</CardTitle>
-                    <CardDescription>{zone.zone_code}</CardDescription>
+                    <CardDescription className="font-mono text-xs">{zone.zone_code}</CardDescription>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <Badge variant={zone.risk_level === 'critical' || zone.risk_level === 'high' ? 'destructive' : 'secondary'}>
                       {zone.risk_level}
                     </Badge>
-                    {zone.polygon_coords && (
-                      <Badge variant="outline" className="text-xs">
-                        <Map className="h-3 w-3 me-1" />{t('security.zones.hasBoundary', 'Mapped')}
+                    {zone.is_active ? (
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                        {t('common.active', 'Active')}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500">
+                        {t('common.inactive', 'Inactive')}
                       </Badge>
                     )}
                   </div>
@@ -225,22 +285,55 @@ export default function SecurityZones() {
               <CardContent>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                   <Shield className="h-3 w-3" />{zone.zone_type}
+                  {zone.polygon_coords ? (
+                    <Badge variant="outline" className="text-xs ms-auto">
+                      <Map className="h-3 w-3 me-1" />{t('security.zones.hasBoundary', 'Mapped')}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-xs ms-auto text-muted-foreground">
+                      {t('security.zones.noBoundary', 'No Boundary')}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(zone)}><Pencil className="h-4 w-4" /></Button>
-                  <AlertDialog>
+                  <AlertDialog open={deleteZoneId === zone.id} onOpenChange={(open) => !open && setDeleteZoneId(null)}>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteClick(zone.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>{t('security.zones.deleteConfirm', 'Delete Zone?')}</AlertDialogTitle>
+                        {dependencies && dependencies.total > 0 ? (
+                          <AlertDialogDescription className="space-y-2">
+                            <div className="flex items-center gap-2 text-amber-600">
+                              <AlertTriangle className="h-4 w-4" />
+                              {t('security.zones.linkedRecordsWarning', 'This zone is linked to active records')}
+                            </div>
+                            <p className="text-sm">
+                              {t('security.zones.cannotDeleteMessage', 'You must deactivate it instead of deleting.')}
+                            </p>
+                          </AlertDialogDescription>
+                        ) : (
+                          <AlertDialogDescription>
+                            {t('security.zones.deleteMessage', 'This action cannot be undone.')}
+                          </AlertDialogDescription>
+                        )}
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteZone.mutate(zone.id)} className="bg-destructive text-destructive-foreground">
-                          {t('common.delete', 'Delete')}
-                        </AlertDialogAction>
+                        {dependencies && dependencies.total > 0 ? (
+                          <Button onClick={handleDeactivate} variant="secondary" className="gap-1">
+                            <Power className="h-4 w-4" />
+                            {t('security.zones.deactivateInstead', 'Deactivate Zone')}
+                          </Button>
+                        ) : (
+                          <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
+                            {t('common.delete', 'Delete')}
+                          </AlertDialogAction>
+                        )}
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
