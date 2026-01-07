@@ -1892,7 +1892,9 @@
     "violationSettings": "Violation Settings",
     "emergencyInstructions": "Emergency Instructions",
     "visitorSettings": "Visitor Settings",
-    "pageContentEditor": "Page Content Editor"
+    "pageContentEditor": "Page Content Editor",
+    "pendingApprovalsOverride": "Pending Approvals Override",
+    "testPushNotifications": "Test Push Notifications"
   },
   "actions": {
     "sessionActions": "Session Actions",
