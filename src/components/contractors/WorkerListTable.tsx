@@ -4,12 +4,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat } from "lucide-react";
+import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 import { WorkerDetailDialog } from "./WorkerDetailDialog";
-import { WorkerActionsDropdown } from "./WorkerActionsDropdown";
+import { WorkerActionsDropdown, WorkerActionsPermissions } from "./WorkerActionsDropdown";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { 
@@ -21,7 +21,7 @@ import { formatDate } from "@/lib/date-utils";
 import { getNationalityLabel } from "@/lib/nationalities";
 
 interface WorkerListTableProps {
-  workers: ContractorWorker[];
+  workers: (ContractorWorker & { edit_pending_approval?: boolean })[];
   isLoading: boolean;
   onEdit: (worker: ContractorWorker) => void;
   onStatusChange: (worker: ContractorWorker, status: string) => void;
@@ -32,6 +32,7 @@ interface WorkerListTableProps {
   showSelection?: boolean;
   blacklistedIds?: string[];
   blacklistReasons?: Record<string, string>;
+  permissions?: WorkerActionsPermissions;
 }
 
 export function WorkerListTable({ 
@@ -46,6 +47,7 @@ export function WorkerListTable({
   showSelection = false,
   blacklistedIds = [],
   blacklistReasons = {},
+  permissions,
 }: WorkerListTableProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === 'rtl';
@@ -274,8 +276,23 @@ export function WorkerListTable({
                 <TableCell>{worker.company?.company_name || "-"}</TableCell>
                 <TableCell>{getNationalityLabel(worker.nationality, isRTL ? 'ar' : 'en') || "-"}</TableCell>
                 <TableCell>{getInductionBadge(inductionStatus, daysRemaining)}</TableCell>
-                <TableCell>{getStatusBadge(worker.approval_status, isBlacklisted)}</TableCell>
-                <TableCell>{getStatusBadge(worker.approval_status, isBlacklisted)}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {getStatusBadge(worker.approval_status, isBlacklisted)}
+                    {worker.edit_pending_approval && worker.approval_status === 'approved' && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 gap-1 text-xs">
+                            <Clock className="h-3 w-3" />
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t("contractors.workers.editsPending", "Edits pending review")}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-end">
                   <WorkerActionsDropdown
                     worker={worker}
@@ -284,6 +301,7 @@ export function WorkerListTable({
                     onStatusChange={(status) => onStatusChange(worker, status)}
                     onAddToBlacklist={() => onAddToBlacklist(worker)}
                     onDelete={() => onDelete(worker)}
+                    permissions={permissions}
                   />
                 </TableCell>
               </TableRow>

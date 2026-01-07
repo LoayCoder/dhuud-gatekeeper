@@ -4727,6 +4727,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          edit_pending_approval: boolean | null
+          edited_at: string | null
+          edited_by: string | null
           full_name: string
           full_name_ar: string | null
           id: string
@@ -4749,6 +4752,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          edit_pending_approval?: boolean | null
+          edited_at?: string | null
+          edited_by?: string | null
           full_name: string
           full_name_ar?: string | null
           id?: string
@@ -4771,6 +4777,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          edit_pending_approval?: boolean | null
+          edited_at?: string | null
+          edited_by?: string | null
           full_name?: string
           full_name_ar?: string | null
           id?: string
@@ -22693,6 +22702,10 @@ export type Database = {
         Returns: boolean
       }
       has_dept_rep_role: { Args: { _user_id: string }; Returns: boolean }
+      has_document_controller_access: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       has_hsse_incident_access: { Args: { _user_id: string }; Returns: boolean }
       has_ptw_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {

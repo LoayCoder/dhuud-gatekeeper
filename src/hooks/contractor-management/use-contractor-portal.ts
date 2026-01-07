@@ -74,7 +74,8 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
         .from("contractor_workers")
         .select(`
           id, full_name, full_name_ar, national_id, nationality, mobile_number,
-          preferred_language, approval_status, approved_at, created_at
+          preferred_language, approval_status, approved_at, created_at,
+          edit_pending_approval, edited_by, edited_at
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)

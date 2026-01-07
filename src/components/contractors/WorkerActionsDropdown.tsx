@@ -25,6 +25,13 @@ import {
 } from "lucide-react";
 import { ContractorWorker } from "@/hooks/contractor-management/use-contractor-workers";
 
+export interface WorkerActionsPermissions {
+  canEdit?: boolean;
+  canChangeStatus?: boolean;
+  canBlacklist?: boolean;
+  canDelete?: boolean;
+}
+
 interface WorkerActionsDropdownProps {
   worker: ContractorWorker;
   onView: () => void;
@@ -32,6 +39,7 @@ interface WorkerActionsDropdownProps {
   onStatusChange: (status: string) => void;
   onAddToBlacklist: () => void;
   onDelete: () => void;
+  permissions?: WorkerActionsPermissions;
 }
 
 const STATUS_OPTIONS = [
@@ -49,6 +57,12 @@ export function WorkerActionsDropdown({
   onStatusChange,
   onAddToBlacklist,
   onDelete,
+  permissions = {
+    canEdit: true,
+    canChangeStatus: true,
+    canBlacklist: true,
+    canDelete: true,
+  },
 }: WorkerActionsDropdownProps) {
   const { t } = useTranslation();
 
@@ -65,58 +79,70 @@ export function WorkerActionsDropdown({
           <Eye className="h-4 w-4 me-2" />
           {t("common.view", "View Details")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onEdit}>
-          <Pencil className="h-4 w-4 me-2" />
-          {t("common.edit", "Edit")}
-        </DropdownMenuItem>
         
-        <DropdownMenuSeparator />
+        {permissions.canEdit && (
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil className="h-4 w-4 me-2" />
+            {t("common.edit", "Edit")}
+          </DropdownMenuItem>
+        )}
         
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <RefreshCw className="h-4 w-4 me-2" />
-            {t("contractors.workers.changeStatus", "Change Status")}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            {STATUS_OPTIONS.map((option) => {
-              const Icon = option.icon;
-              const isCurrentStatus = worker.approval_status === option.value;
-              return (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => onStatusChange(option.value)}
-                  disabled={isCurrentStatus}
-                  className={isCurrentStatus ? "opacity-50" : ""}
-                >
-                  <Icon className="h-4 w-4 me-2" />
-                  {t(option.labelKey, option.value)}
-                  {isCurrentStatus && (
-                    <span className="ms-auto text-xs text-muted-foreground">
-                      {t("common.current", "(current)")}
-                    </span>
-                  )}
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {permissions.canChangeStatus && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <RefreshCw className="h-4 w-4 me-2" />
+                {t("contractors.workers.changeStatus", "Change Status")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {STATUS_OPTIONS.map((option) => {
+                  const Icon = option.icon;
+                  const isCurrentStatus = worker.approval_status === option.value;
+                  return (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => onStatusChange(option.value)}
+                      disabled={isCurrentStatus}
+                      className={isCurrentStatus ? "opacity-50" : ""}
+                    >
+                      <Icon className="h-4 w-4 me-2" />
+                      {t(option.labelKey, option.value)}
+                      {isCurrentStatus && (
+                        <span className="ms-auto text-xs text-muted-foreground">
+                          {t("common.current", "(current)")}
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        )}
         
-        <DropdownMenuSeparator />
+        {permissions.canBlacklist && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onAddToBlacklist}>
+              <ShieldBan className="h-4 w-4 me-2" />
+              {t("contractors.workers.addToBlacklist", "Add to Blacklist")}
+            </DropdownMenuItem>
+          </>
+        )}
         
-        <DropdownMenuItem onClick={onAddToBlacklist}>
-          <ShieldBan className="h-4 w-4 me-2" />
-          {t("contractors.workers.addToBlacklist", "Add to Blacklist")}
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuItem 
-          onClick={onDelete}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash2 className="h-4 w-4 me-2" />
-          {t("common.delete", "Delete")}
-        </DropdownMenuItem>
+        {permissions.canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={onDelete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 me-2" />
+              {t("common.delete", "Delete")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
