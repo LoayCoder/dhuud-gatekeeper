@@ -536,20 +536,38 @@ export default function UserManagement() {
     
     try {
       if (bulkActionType === 'delete') {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ deleted_at: new Date().toISOString(), is_deleted: true })
-          .in('id', userIds);
+        // Use edge function for proper MFA cleanup on each user
+        let successCount = 0;
+        const errors: string[] = [];
         
-        if (error) throw error;
-        
-        // Log each deletion
         for (const userId of userIds) {
-          const user = users.find(u => u.id === userId);
-          if (user) await logUserDeleted(userId, user.full_name || '');
+          const targetUser = users.find(u => u.id === userId);
+          const { data, error } = await supabase.functions.invoke('admin-disable-user', {
+            body: { 
+              user_id: userId,
+              tenant_id: profile?.tenant_id,
+              reason: 'bulk_admin_deleted'
+            }
+          });
+          
+          if (error || !data?.success) {
+            errors.push(targetUser?.full_name || userId);
+            console.error('Failed to delete user:', userId, error || data?.error);
+          } else {
+            successCount++;
+            if (targetUser) await logUserDeleted(userId, targetUser.full_name || '');
+          }
         }
         
-        toast({ title: t('userManagement.bulkDeleteSuccess', { count: userIds.length }) });
+        if (errors.length > 0) {
+          toast({ 
+            title: t('userManagement.bulkDeletePartial', { success: successCount, failed: errors.length }),
+            description: errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : ''),
+            variant: 'destructive'
+          });
+        } else {
+          toast({ title: t('userManagement.bulkDeleteSuccess', { count: successCount }) });
+        }
       } else {
         const newStatus = bulkActionType === 'activate';
         const { error } = await supabase

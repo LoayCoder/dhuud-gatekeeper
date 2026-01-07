@@ -272,7 +272,9 @@ Deno.serve(async (req) => {
               tenant_id: profile.tenant_id,
               actor_id: user.id,
               action: 'sessions_invalidated_on_login',
-              table_name: 'user_sessions',
+              action_category: 'session_management',
+              result: 'success',
+              entity_type: 'user_session',
               new_value: { 
                 invalidated_count: activeCount,
                 reason: 'new_login_session_limit',
@@ -384,7 +386,9 @@ Deno.serve(async (req) => {
               tenant_id: session.tenant_id,
               actor_id: session.user_id,
               action: 'session_invalidated_ip_country_change',
-              table_name: 'user_sessions',
+              action_category: 'session_management',
+              result: 'success',
+              entity_type: 'user_session',
               old_value: { ip_country: session.ip_country, ip_address: session.ip_address },
               new_value: { ip_country: geoData.countryCode, ip_address: clientIP }
             });
