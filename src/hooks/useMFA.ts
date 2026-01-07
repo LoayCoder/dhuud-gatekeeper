@@ -58,12 +58,36 @@ export function useMFA(): UseMFAReturn {
     }
   }, []);
 
+  // Clean up any unverified factors to prevent enrollment conflicts
+  const cleanupUnverifiedFactors = useCallback(async (): Promise<void> => {
+    try {
+      const { data } = await supabase.auth.mfa.listFactors();
+      if (!data?.totp) return;
+      
+      // Find all unverified factors (cast to avoid type narrowing issues)
+      const unverifiedFactors = (data.totp as Array<{ id: string; status: string }>).filter(
+        f => f.status === 'unverified'
+      );
+      
+      // Unenroll each unverified factor
+      for (const factor of unverifiedFactors) {
+        console.log('Cleaning up unverified factor:', factor.id);
+        await supabase.auth.mfa.unenroll({ factorId: factor.id });
+      }
+    } catch (err) {
+      console.error('Error cleaning up unverified factors:', err);
+    }
+  }, []);
+
   useEffect(() => {
     refreshFactors();
   }, [refreshFactors]);
 
   const enroll = async (issuer?: string): Promise<EnrollResult | null> => {
     try {
+      // Clean up any unverified factors first to prevent name conflicts
+      await cleanupUnverifiedFactors();
+      
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'Authenticator App',
@@ -71,11 +95,20 @@ export function useMFA(): UseMFAReturn {
       });
 
       if (error) {
-        toast({
-          title: 'Enrollment Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
+        // Handle specific error for factor name conflict
+        if (error.message?.includes('already exists')) {
+          toast({
+            title: 'Setup Issue',
+            description: 'Please wait a moment and try again.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Enrollment Failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+        }
         return null;
       }
 
