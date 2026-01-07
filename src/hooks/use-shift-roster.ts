@@ -279,3 +279,68 @@ export function useGuardCheckOut() {
     },
   });
 }
+
+export function useAssignTeamToShift() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: {
+      team_id: string;
+      zone_id: string;
+      shift_id: string;
+      roster_date: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      if (!profile?.tenant_id) throw new Error('No tenant found');
+
+      // Fetch team with supervisor
+      const { data: team, error: teamError } = await supabase
+        .from('security_teams')
+        .select('id, supervisor_id')
+        .eq('id', data.team_id)
+        .single();
+
+      if (teamError) throw teamError;
+
+      // Fetch team members
+      const { data: members, error: membersError } = await supabase
+        .from('security_team_members')
+        .select('guard_id')
+        .eq('team_id', data.team_id)
+        .is('deleted_at', null);
+
+      if (membersError) throw membersError;
+      if (!members || members.length === 0) throw new Error('No team members found');
+
+      // Create roster entries for each member
+      const rosterEntries = members.map(m => ({
+        guard_id: m.guard_id,
+        zone_id: data.zone_id,
+        shift_id: data.shift_id,
+        roster_date: data.roster_date,
+        supervisor_id: team.supervisor_id,
+        tenant_id: profile.tenant_id,
+        status: 'scheduled',
+      }));
+
+      const { error: insertError } = await supabase
+        .from('shift_roster')
+        .insert(rosterEntries);
+
+      if (insertError) throw insertError;
+
+      return { count: members.length };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['shift-roster'] });
+      toast({ title: `${result.count} team members assigned to shift` });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to assign team', description: error.message, variant: 'destructive' });
+    },
+  });
+}
