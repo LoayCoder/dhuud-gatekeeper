@@ -8979,6 +8979,10 @@ export type Database = {
       }
       incidents: {
         Row: {
+          admin_override_at: string | null
+          admin_override_by: string | null
+          admin_override_original_approver: string | null
+          admin_override_reason: string | null
           ai_analysis_result: Json | null
           all_actions_verified: boolean | null
           approval_manager_id: string | null
@@ -9064,6 +9068,7 @@ export type Database = {
           investigation_approved_at: string | null
           investigation_approved_by: string | null
           investigation_complete: boolean | null
+          is_admin_override: boolean | null
           is_recordable: boolean | null
           latitude: number | null
           legal_decision: string | null
@@ -9184,6 +9189,10 @@ export type Database = {
           worker_type: string | null
         }
         Insert: {
+          admin_override_at?: string | null
+          admin_override_by?: string | null
+          admin_override_original_approver?: string | null
+          admin_override_reason?: string | null
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
@@ -9269,6 +9278,7 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
           legal_decision?: string | null
@@ -9389,6 +9399,10 @@ export type Database = {
           worker_type?: string | null
         }
         Update: {
+          admin_override_at?: string | null
+          admin_override_by?: string | null
+          admin_override_original_approver?: string | null
+          admin_override_reason?: string | null
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
@@ -9474,6 +9488,7 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
           legal_decision?: string | null
@@ -9594,6 +9609,20 @@ export type Database = {
           worker_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "incidents_admin_override_by_fkey"
+            columns: ["admin_override_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_admin_override_by_fkey"
+            columns: ["admin_override_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "incidents_approval_manager_id_fkey"
             columns: ["approval_manager_id"]
@@ -21682,6 +21711,16 @@ export type Database = {
       }
     }
     Functions: {
+      admin_override_approval: {
+        Args: {
+          _admin_id: string
+          _decision?: string
+          _incident_id: string
+          _original_approver: string
+          _override_reason: string
+        }
+        Returns: Json
+      }
       append_notification_webhook_event: {
         Args: { p_event: Json; p_provider_message_id: string }
         Returns: string
