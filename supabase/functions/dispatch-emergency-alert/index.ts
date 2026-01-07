@@ -231,20 +231,67 @@ function generateEmailContent(
 }
 
 /**
- * Generate push notification payload
+ * Generate enhanced push notification payload for background notifications
+ * Includes all data needed for service worker to handle actions
  */
 function generatePushPayload(
   lang: SupportedLanguage,
   alert: EmergencyAlert,
   locationText: string
-): { title: string; body: string } {
+): { 
+  title: string; 
+  body: string; 
+  data: Record<string, unknown>;
+  actions: Array<{ action: string; title: string }>;
+  requireInteraction: boolean;
+  vibrate: number[];
+  tag: string;
+} {
   const alertLabel = ALERT_TYPE_LABELS[alert.alert_type]?.[lang] || ALERT_TYPE_LABELS['panic'][lang];
   const priorityEmoji = PRIORITY_EMOJI[alert.priority] || '🚨';
   
   const title = `${priorityEmoji} ${alertLabel}`;
   const body = `📍 ${locationText}${alert.details ? ` - ${alert.details.substring(0, 50)}` : ''}`;
 
-  return { title, body };
+  // Localized action labels
+  const acknowledgeLabel = lang === 'ar' ? 'إقرار' : 'Acknowledge';
+  const viewLabel = lang === 'ar' ? 'عرض' : 'View';
+  const mapLabel = lang === 'ar' ? '🗺️ خريطة' : '🗺️ Map';
+
+  // Build actions array
+  const actions: Array<{ action: string; title: string }> = [
+    { action: 'acknowledge', title: acknowledgeLabel },
+    { action: 'view', title: viewLabel },
+  ];
+
+  // Add map action if GPS coordinates available
+  if (alert.gps_lat && alert.gps_lng) {
+    actions.push({ action: 'map', title: mapLabel });
+  }
+
+  return { 
+    title, 
+    body,
+    data: {
+      type: 'emergency_alert',
+      alert_id: alert.id,
+      alert_type: alert.alert_type,
+      priority: alert.priority,
+      tenant_id: alert.tenant_id,
+      action_url: `/security/emergency-alerts?id=${alert.id}`,
+      gps_lat: alert.gps_lat,
+      gps_lng: alert.gps_lng,
+      location: locationText,
+      lang,
+    },
+    actions,
+    // Emergency alerts require user interaction - won't auto-dismiss
+    requireInteraction: true,
+    // Urgent vibration pattern: 5 long pulses
+    vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500],
+    // Unique tag per alert
+    tag: `emergency-${alert.id}`,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -370,6 +417,7 @@ Deno.serve(async (req) => {
       const safeLang: SupportedLanguage = validLangs.includes(lang) ? lang : 'en';
 
       // Send Push Notification (highest priority for emergencies)
+      // Enhanced with full payload for background notification handling
       try {
         const pushPayload = generatePushPayload(safeLang, alert, locationText);
         
@@ -382,6 +430,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (pushSub) {
+          // Send enhanced push notification with all required data for background handling
           const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
             method: 'POST',
             headers: {
@@ -392,11 +441,16 @@ Deno.serve(async (req) => {
               user_id: recipient.user_id,
               title: pushPayload.title,
               body: pushPayload.body,
-              data: { 
-                type: 'emergency_alert', 
-                alert_id: alert.id,
-                alert_type: alert.alert_type
-              }
+              // Pass full data for service worker to use in background
+              data: pushPayload.data,
+              // Pass actions for notification buttons
+              actions: pushPayload.actions,
+              // Emergency alerts should not auto-dismiss
+              requireInteraction: pushPayload.requireInteraction,
+              // Urgent vibration pattern
+              vibrate: pushPayload.vibrate,
+              // Unique tag for this alert
+              tag: pushPayload.tag,
             })
           });
 
@@ -407,7 +461,7 @@ Deno.serve(async (req) => {
             error: pushResponse.ok ? undefined : await pushResponse.text()
           });
 
-          console.log(`[EmergencyDispatch] Push sent to ${recipient.full_name}`);
+          console.log(`[EmergencyDispatch] Push sent to ${recipient.full_name} with enhanced payload`);
         }
       } catch (pushError) {
         console.error('[EmergencyDispatch] Push error:', pushError);
