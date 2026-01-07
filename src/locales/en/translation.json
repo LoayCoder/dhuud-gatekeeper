@@ -5033,6 +5033,52 @@
     "incidentHistoryDescription": "HSSE events linked to this asset",
     "auditDescription": "History of changes to this asset",
     "noAuditLogs": "No audit history available",
+    "auditLog": {
+      "title": "Asset Audit Log",
+      "description": "Track all asset changes, deletions, and modifications",
+      "export": "Export to Excel",
+      "noLogs": "No audit logs found",
+      "filters": {
+        "action": "Action Type",
+        "dateFrom": "From Date",
+        "dateTo": "To Date",
+        "search": "Search assets...",
+        "actor": "Changed By",
+        "allActions": "All Actions",
+        "allActors": "All Users"
+      },
+      "actions": {
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "location_changed": "Location Changed",
+        "linked_records_deleted": "Linked Records Deleted"
+      },
+      "stats": {
+        "totalChanges": "Total Changes (7 days)",
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "locationChanged": "Location Changed"
+      },
+      "table": {
+        "timestamp": "Timestamp",
+        "asset": "Asset",
+        "action": "Action",
+        "actor": "Changed By",
+        "viewDetails": "View Details"
+      },
+      "details": {
+        "title": "Change Details",
+        "changes": "Changes",
+        "field": "Field",
+        "before": "Before",
+        "after": "After",
+        "noChanges": "No field changes recorded",
+        "ipAddress": "IP Address",
+        "system": "System"
+      }
+    },
     "photos": {
       "dragDrop": "Drag & drop photos here",
       "dragDropHint": "or click to select files (PNG, JPG, WebP, max 10MB)",

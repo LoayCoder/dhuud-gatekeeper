@@ -82,6 +82,7 @@ const AssetMap = lazyWithRetry(() => import("./pages/assets/AssetMap"));
 const AssetReportBuilder = lazyWithRetry(() => import("./pages/assets/AssetReportBuilder"));
 const ApprovalWorkflowConfigPage = lazyWithRetry(() => import("./pages/assets/ApprovalWorkflowConfigPage"));
 const PurchaseRequestsPage = lazyWithRetry(() => import("./pages/assets/PurchaseRequestsPage"));
+const AssetAuditLog = lazyWithRetry(() => import("./pages/assets/AssetAuditLog"));
 const PartsInventoryPage = lazyWithRetry(() => import("./pages/parts/PartsInventoryPage"));
 const InspectionSessionsDashboard = lazyWithRetry(() => import("./pages/inspections/InspectionSessionsDashboard"));
 const SessionWorkspace = lazyWithRetry(() => import("./pages/inspections/SessionWorkspace"));
@@ -376,6 +377,7 @@ const App = () => (
                       <Route path="/assets/map" element={<AssetMap />} />
                       <Route path="/assets/approval-workflows" element={<AdminRoute><ApprovalWorkflowConfigPage /></AdminRoute>} />
                       <Route path="/assets/purchase-requests" element={<HSSERoute><PurchaseRequestsPage /></HSSERoute>} />
+                      <Route path="/assets/audit-log" element={<HSSERoute><AssetAuditLog /></HSSERoute>} />
                       {/* Parts Inventory Routes */}
                       <Route path="/parts/inventory" element={<HSSERoute><PartsInventoryPage /></HSSERoute>} />
 
