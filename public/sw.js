@@ -149,24 +149,26 @@ async function showSyncNotification(result) {
   }
 }
 
-// Handle notification click
+// Handle notification click with security-specific actions
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const notificationData = event.notification.data || {};
+  const action = event.action;
 
-  if (event.action === 'retry') {
+  // Handle retry action for sync
+  if (action === 'retry') {
     event.waitUntil(processMutationQueue());
-  } else if (event.action === 'update' || notificationData.type === 'update') {
-    // Handle update notification - activate new service worker and clear caches
+    return;
+  }
+
+  // Handle update action
+  if (action === 'update' || notificationData.type === 'update') {
     event.waitUntil(
       (async () => {
-        // First, try to skip waiting on any waiting service worker
         if (self.registration.waiting) {
           self.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
-        
-        // Clear all app caches to ensure fresh content
         const cacheNames = await caches.keys();
         await Promise.all(
           cacheNames
@@ -176,17 +178,75 @@ self.addEventListener('notificationclick', (event) => {
               return caches.delete(name);
             })
         );
-        
-        // Reload all clients
         const clients = await self.clients.matchAll({ type: 'window' });
         for (const client of clients) {
-          // Navigate to current URL to force fresh load
           await client.navigate(client.url);
         }
       })()
     );
-  } else if (notificationData.type === 'sla_escalation') {
-    // Navigate to SLA dashboard for urgent SLA escalation notifications
+    return;
+  }
+
+  // Handle emergency alert actions
+  if (notificationData.type === 'emergency_alert') {
+    const alertId = notificationData.alert_id;
+    const tenantId = notificationData.tenant_id;
+    
+    if (action === 'acknowledge') {
+      // Acknowledge the alert via API call
+      event.waitUntil(
+        (async () => {
+          try {
+            // Try to acknowledge via edge function
+            const response = await fetch(
+              `https://xdlowvfzhvjzbtgvurzj.supabase.co/functions/v1/acknowledge-emergency-alert`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alert_id: alertId })
+              }
+            );
+            console.log('[SW] Emergency alert acknowledged:', response.ok);
+          } catch (err) {
+            console.error('[SW] Failed to acknowledge alert:', err);
+          }
+          
+          // Navigate to alert details
+          const clients = await self.clients.matchAll({ type: 'window' });
+          const targetUrl = notificationData.action_url || `/security/emergency-alerts?id=${alertId}`;
+          if (clients.length > 0) {
+            return clients[0].navigate(targetUrl).then(client => client.focus());
+          }
+          return self.clients.openWindow(targetUrl);
+        })()
+      );
+      return;
+    }
+    
+    if (action === 'view' || !action) {
+      // Navigate to emergency alert details
+      const targetUrl = notificationData.action_url || `/security/emergency-alerts?id=${alertId}`;
+      event.waitUntil(
+        self.clients.matchAll({ type: 'window' }).then((clients) => {
+          if (clients.length > 0) {
+            return clients[0].navigate(targetUrl).then(client => client.focus());
+          }
+          return self.clients.openWindow(targetUrl);
+        })
+      );
+      return;
+    }
+    
+    if (action === 'map' && notificationData.gps_lat && notificationData.gps_lng) {
+      // Open Google Maps with location
+      const mapsUrl = `https://maps.google.com/?q=${notificationData.gps_lat},${notificationData.gps_lng}`;
+      event.waitUntil(self.clients.openWindow(mapsUrl));
+      return;
+    }
+  }
+
+  // Handle SLA escalation
+  if (notificationData.type === 'sla_escalation') {
     event.waitUntil(
       self.clients.matchAll({ type: 'window' }).then((clients) => {
         const url = '/admin/sla-dashboard';
@@ -196,18 +256,19 @@ self.addEventListener('notificationclick', (event) => {
         return self.clients.openWindow(url);
       })
     );
-  } else {
-    // Open or focus the app - use action_url if provided
-    const targetUrl = notificationData.action_url || '/';
-    event.waitUntil(
-      self.clients.matchAll({ type: 'window' }).then((clients) => {
-        if (clients.length > 0) {
-          return clients[0].navigate(targetUrl).then(client => client.focus());
-        }
-        return self.clients.openWindow(targetUrl);
-      })
-    );
+    return;
   }
+
+  // Default: Open or focus the app with action_url if provided
+  const targetUrl = notificationData.action_url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      if (clients.length > 0) {
+        return clients[0].navigate(targetUrl).then(client => client.focus());
+      }
+      return self.clients.openWindow(targetUrl);
+    })
+  );
 });
 
 // Show urgent SLA escalation notification
@@ -273,6 +334,7 @@ self.addEventListener('message', (event) => {
 });
 
 // Push event handler - receive and display server push notifications
+// Enhanced with security-specific handling for emergency alerts
 self.addEventListener('push', (event) => {
   if (!event.data) {
     console.log('[SW] Push received but no data');
@@ -290,6 +352,8 @@ self.addEventListener('push', (event) => {
     };
   }
 
+  console.log('[SW] Push received:', payload.type || 'unknown');
+
   const {
     title = 'DHUUD Platform',
     body = 'You have a new notification',
@@ -302,7 +366,8 @@ self.addEventListener('push', (event) => {
     vibrate = [100, 50, 100],
   } = payload;
 
-  const notificationOptions = {
+  // Build notification options
+  let notificationOptions = {
     body,
     icon,
     badge,
@@ -313,10 +378,69 @@ self.addEventListener('push', (event) => {
     vibrate,
   };
 
+  // SECURITY ENHANCEMENT: Special handling for emergency alerts
+  if (data.type === 'emergency_alert') {
+    console.log('[SW] Processing emergency alert:', data.alert_id);
+    
+    // Override with security-specific options
+    notificationOptions = {
+      ...notificationOptions,
+      // Urgent vibration pattern - 5 pulses
+      vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500],
+      // Keep on screen until user interacts
+      requireInteraction: true,
+      // Unique tag per alert to allow multiple emergency notifications
+      tag: `emergency-${data.alert_id || Date.now()}`,
+      // Allow re-notification for same tag (updated alerts)
+      renotify: true,
+      // Security-specific actions
+      actions: [
+        { action: 'acknowledge', title: data.lang === 'ar' ? 'إقرار' : 'Acknowledge' },
+        { action: 'view', title: data.lang === 'ar' ? 'عرض' : 'View Details' },
+        // Add map action if GPS available
+        ...(data.gps_lat && data.gps_lng ? [
+          { action: 'map', title: data.lang === 'ar' ? '🗺️ خريطة' : '🗺️ Map' }
+        ] : [])
+      ],
+      // Store all alert data for click handler
+      data: {
+        ...data,
+        timestamp: Date.now(),
+        type: 'emergency_alert',
+      },
+    };
+  }
+
+  // SECURITY ENHANCEMENT: Special handling for SLA escalations
+  if (data.type === 'sla_escalation') {
+    notificationOptions = {
+      ...notificationOptions,
+      vibrate: [200, 100, 200, 100, 200],
+      requireInteraction: true,
+      tag: `sla-escalation-${data.action_id || Date.now()}`,
+      actions: [
+        { action: 'view', title: data.lang === 'ar' ? 'عرض' : 'View Dashboard' },
+        { action: 'dismiss', title: data.lang === 'ar' ? 'إغلاق' : 'Dismiss' }
+      ],
+    };
+  }
+
   event.waitUntil(
     self.registration.showNotification(title, notificationOptions).then(() => {
       // Store in notification history via client
       storeNotificationInHistory(title, body, data.type || 'info');
+      
+      // For emergency alerts, also notify open clients for in-app handling
+      if (data.type === 'emergency_alert') {
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'EMERGENCY_ALERT_RECEIVED',
+              alert: data
+            });
+          });
+        });
+      }
     })
   );
 });
