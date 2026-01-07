@@ -229,9 +229,17 @@ Deno.serve(async (req) => {
       tenant_id: targetTenantId,
       actor_id: caller.id,
       action: accountBanned ? 'user_account_disabled' : 'user_tenant_access_removed',
-      table_name: 'profiles',
-      record_id: targetProfile.id,
-      old_value: { email: targetProfile.email, full_name: targetProfile.full_name },
+      action_category: 'user_management',
+      result: 'success',
+      entity_type: 'profile',
+      entity_id: targetProfile.id,
+      entity_identifier: targetProfile.email,
+      old_value: { 
+        email: targetProfile.email, 
+        full_name: targetProfile.full_name,
+        is_active: true,
+        is_deleted: false
+      },
       new_value: { 
         profile_deleted: true,
         auth_banned: accountBanned,
