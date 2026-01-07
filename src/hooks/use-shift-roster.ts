@@ -60,7 +60,7 @@ export function useMyRosterAssignment() {
         .select(`
           id, guard_id, zone_id, shift_id, roster_date, supervisor_id, status, notes,
           check_in_time, check_out_time,
-          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name),
+          supervisor:profiles!shift_roster_supervisor_id_fkey(full_name, phone_number),
           zone:security_zones(zone_name, zone_code),
           shift:security_shifts(shift_name, start_time, end_time)
         `)
@@ -71,6 +71,58 @@ export function useMyRosterAssignment() {
 
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useMySupervisor() {
+  return useQuery({
+    queryKey: ['my-supervisor'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const today = new Date().toISOString().split('T')[0];
+
+      // 1. Try to get supervisor from today's roster assignment
+      const { data: roster } = await supabase
+        .from('shift_roster')
+        .select(`
+          supervisor_id,
+          supervisor:profiles!shift_roster_supervisor_id_fkey(id, full_name, phone_number)
+        `)
+        .eq('guard_id', user.id)
+        .eq('roster_date', today)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (roster?.supervisor) {
+        const sup = roster.supervisor as { id: string; full_name: string | null; phone_number: string | null };
+        return { id: sup.id, full_name: sup.full_name, phone_number: sup.phone_number };
+      }
+
+      // 2. Fallback: Get supervisor from security team membership
+      const { data: teamMembership } = await supabase
+        .from('security_team_members')
+        .select(`
+          team:security_teams!inner(
+            supervisor_id,
+            supervisor:profiles!security_teams_supervisor_id_fkey(id, full_name, phone_number)
+          )
+        `)
+        .eq('guard_id', user.id)
+        .is('deleted_at', null)
+        .limit(1)
+        .maybeSingle();
+
+      if (teamMembership?.team) {
+        const team = teamMembership.team as { supervisor_id: string | null; supervisor: { id: string; full_name: string | null; phone_number: string | null } | null };
+        if (team.supervisor) {
+          return { id: team.supervisor.id, full_name: team.supervisor.full_name, phone_number: team.supervisor.phone_number };
+        }
+      }
+
+      return null;
     },
   });
 }
