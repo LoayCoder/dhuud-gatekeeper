@@ -31,17 +31,27 @@ export function useCreateSecurityZone() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (zone: { 
-      zone_name: string; 
-      zone_code?: string; 
-      zone_type?: string; 
-      risk_level?: string; 
-      site_id?: string; 
+    mutationFn: async (zone: {
+      zone_name: string;
+      zone_code?: string;
+      zone_type?: string;
+      risk_level?: string;
+      site_id?: string;
       is_active?: boolean;
       polygon_coords?: [number, number][] | null;
       geofence_radius_meters?: number;
     }) => {
-      const { data: profile } = await supabase.from('profiles').select('tenant_id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
+        .single();
+
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase

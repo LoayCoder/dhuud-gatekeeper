@@ -163,7 +163,16 @@ export function useCompleteProtocolStep() {
       notes?: string;
       photoPath?: string;
     }) => {
-      const { data: profile } = await supabase.from('profiles').select('id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
+        .single();
 
       // Get current execution
       const { data: execution, error: fetchError } = await supabase
@@ -215,7 +224,16 @@ export function useEscalateProtocol() {
       reason: string;
       escalateTo?: string;
     }) => {
-      const { data: profile } = await supabase.from('profiles').select('id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
+        .single();
 
       const { error } = await supabase
         .from('emergency_protocol_executions')
@@ -253,7 +271,16 @@ export function useCloseProtocol() {
       alertId: string;
       notes?: string;
     }) => {
-      const { data: profile } = await supabase.from('profiles').select('id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
+        .single();
       const now = new Date().toISOString();
 
       // Update protocol execution status

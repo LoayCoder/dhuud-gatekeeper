@@ -98,7 +98,17 @@ export function useTrackMyLocation() {
 
   return useMutation({
     mutationFn: async ({ lat, lng, accuracy, batteryLevel }: { lat: number; lng: number; accuracy?: number; batteryLevel?: number }) => {
-      const { data: profile } = await supabase.from('profiles').select('id, tenant_id').single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, tenant_id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
+        .single();
+
       if (!profile) throw new Error('Profile not found');
 
       const { data, error } = await supabase
