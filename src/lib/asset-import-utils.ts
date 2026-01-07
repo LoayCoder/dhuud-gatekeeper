@@ -752,5 +752,7 @@ export function mapAssetToIds(
 export function generateAssetCode(categoryCode: string, sequence: number): string {
   const year = new Date().getFullYear();
   const paddedSequence = String(sequence).padStart(4, '0');
-  return `${categoryCode}-${year}-${paddedSequence}`;
+  // Strip TEST- prefix if present (for production-safe codes)
+  const cleanCode = categoryCode.replace(/^TEST-/i, '');
+  return `${cleanCode}-${year}-${paddedSequence}`;
 }
