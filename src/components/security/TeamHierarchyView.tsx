@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Shield, User, ChevronDown, Phone, Mail, MapPin } from 'lucide-react';
+import { Users, Shield, User, ChevronDown, Phone, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,7 +32,7 @@ export function TeamHierarchyView() {
 
   // Get current user's role and info
   const { data: currentUser } = useQuery({
-    queryKey: ['current-user-with-role'],
+    queryKey: ['current-user-with-security-role'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
@@ -45,12 +45,23 @@ export function TeamHierarchyView() {
 
       const { data: isAdmin } = await supabase.rpc('is_admin');
 
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+      // Get user's security roles from user_role_assignments + roles tables
+      const { data: roleAssignments } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          role:roles!inner (
+            code,
+            category
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('roles.category', 'security');
 
-      const userRoles = roles?.map(r => r.role) || [];
+      const userRoles = roleAssignments?.map(r => {
+        const roleData = r.role as { code: string; category: string } | null;
+        return roleData?.code;
+      }).filter(Boolean) || [];
+
       const isManager = isAdmin || userRoles.includes('security_manager');
       const isSupervisor = userRoles.includes('security_supervisor');
 
@@ -69,15 +80,23 @@ export function TeamHierarchyView() {
     queryFn: async () => {
       if (!currentUser?.tenant_id) return { managers: [], supervisorGroups: [] };
 
-      // Get all security team members
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['security_manager', 'security_supervisor', 'security_guard']);
+      // Get all security team members from user_role_assignments + roles
+      const { data: roleAssignments } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          user_id,
+          role:roles!inner (
+            code,
+            name,
+            category
+          )
+        `)
+        .eq('tenant_id', currentUser.tenant_id)
+        .eq('roles.category', 'security');
 
-      if (!roles?.length) return { managers: [], supervisorGroups: [] };
+      if (!roleAssignments?.length) return { managers: [], supervisorGroups: [] };
 
-      const userIds = roles.map(r => r.user_id);
+      const userIds = roleAssignments.map(r => r.user_id);
 
       const { data: profiles } = await supabase
         .from('profiles')
@@ -93,10 +112,15 @@ export function TeamHierarchyView() {
         .is('deleted_at', null);
 
       // Build team members with roles
-      const members: TeamMember[] = (profiles || []).map(p => ({
-        ...p,
-        role: roles.find(r => r.user_id === p.id)?.role || 'user',
-      }));
+      const members: TeamMember[] = (profiles || []).map(p => {
+        const userRole = roleAssignments.find(r => r.user_id === p.id);
+        const roleData = userRole?.role as { code: string; name: string; category: string } | null;
+        return {
+          ...p,
+          is_active: p.is_active ?? false,
+          role: roleData?.code || 'user',
+        };
+      });
 
       // Categorize members
       const managers = members.filter(m => m.role === 'security_manager');

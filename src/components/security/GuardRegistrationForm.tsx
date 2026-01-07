@@ -51,13 +51,27 @@ export function GuardRegistrationForm({ onSuccess, onCancel }: GuardRegistration
     },
   });
 
-  // Get current user's tenant
+  // Get current user's tenant and info
   const { data: currentProfile } = useQuery({
-    queryKey: ['current-user-profile'],
+    queryKey: ['current-user-profile-for-guard-registration'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      const { data } = await supabase.from('profiles').select('id, tenant_id').eq('id', user.id).single();
+      return { ...data, userId: user.id };
+    },
+  });
+
+  // Fetch the security_guard role ID
+  const { data: securityGuardRole } = useQuery({
+    queryKey: ['security-guard-role'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('roles')
+        .select('id, code, name')
+        .eq('code', 'security_guard')
+        .eq('is_active', true)
+        .single();
       return data;
     },
   });
@@ -65,6 +79,7 @@ export function GuardRegistrationForm({ onSuccess, onCancel }: GuardRegistration
   const createGuard = useMutation({
     mutationFn: async (data: FormData) => {
       if (!currentProfile?.tenant_id) throw new Error('No tenant found');
+      if (!securityGuardRole?.id) throw new Error('Security guard role not found');
 
       // Create auth user first
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -98,12 +113,14 @@ export function GuardRegistrationForm({ onSuccess, onCancel }: GuardRegistration
 
       if (profileError) throw profileError;
 
-      // Assign security_guard role
+      // Assign security_guard role using user_role_assignments table (correct table!)
       const { error: roleError } = await supabase
-        .from('user_roles')
+        .from('user_role_assignments')
         .insert({
           user_id: userId,
-          role: 'security_guard',
+          role_id: securityGuardRole.id,
+          tenant_id: currentProfile.tenant_id,
+          assigned_by: currentProfile.userId,
         });
 
       if (roleError) throw roleError;
@@ -112,6 +129,7 @@ export function GuardRegistrationForm({ onSuccess, onCancel }: GuardRegistration
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-team'] });
+      queryClient.invalidateQueries({ queryKey: ['security-team-hierarchy'] });
       toast({ title: t('security.guards.registrationSuccess', 'Guard registered successfully') });
       onSuccess?.();
     },

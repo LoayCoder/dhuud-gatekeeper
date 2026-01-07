@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Search, Filter, Pencil, UserCheck, UserX, Shield, Phone, MapPin, Briefcase, Plus, Network } from 'lucide-react';
+import { Users, Search, Filter, Pencil, UserCheck, UserX, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye } from 'lucide-react';
 import { useSecurityTeam, useUpdateSecurityTeamMember, type SecurityTeamMember } from '@/hooks/use-security-team';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,7 @@ export default function SecurityTeam() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
   const [editingMember, setEditingMember] = useState<SecurityTeamMember | null>(null);
   const [editForm, setEditForm] = useState({ is_active: true, job_title: '' });
   const [showAddGuard, setShowAddGuard] = useState(false);
@@ -40,12 +41,19 @@ export default function SecurityTeam() {
     },
   });
 
-  const filteredMembers = teamMembers?.filter(m =>
-    !searchQuery || 
-    m.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.employee_id?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  // Apply filters
+  const filteredMembers = teamMembers?.filter(m => {
+    const matchesSearch = !searchQuery || 
+      m.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.employee_id?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'all' || m.role === roleFilter;
+    return matchesSearch && matchesRole;
+  }) || [];
 
+  // Calculate stats by role
+  const managersCount = teamMembers?.filter(m => m.role === 'security_manager').length || 0;
+  const supervisorsCount = teamMembers?.filter(m => m.role === 'security_supervisor').length || 0;
+  const guardsCount = teamMembers?.filter(m => m.role === 'security_guard').length || 0;
   const activeCount = teamMembers?.filter(m => m.is_active).length || 0;
   const totalCount = teamMembers?.length || 0;
 
@@ -68,15 +76,16 @@ export default function SecurityTeam() {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'admin': return 'default';
+      case 'security_manager': return 'default';
       case 'security_supervisor': return 'secondary';
+      case 'security_guard': return 'outline';
       default: return 'outline';
     }
   };
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'admin': return t('security.team.roles.admin', 'Admin');
+      case 'security_manager': return t('security.team.roles.manager', 'Manager');
       case 'security_supervisor': return t('security.team.roles.supervisor', 'Supervisor');
       case 'security_guard': return t('security.team.roles.guard', 'Guard');
       default: return t('security.team.roles.member', 'Member');
@@ -97,9 +106,9 @@ export default function SecurityTeam() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      {/* Stats Cards - Role-based */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setRoleFilter('all')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-primary/10">
@@ -112,28 +121,41 @@ export default function SecurityTeam() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:border-blue-500/50 transition-colors" onClick={() => setRoleFilter('security_manager')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-green-500/10">
-                <UserCheck className="h-6 w-6 text-green-500" />
+              <div className="p-3 rounded-full bg-blue-500/10">
+                <Crown className="h-6 w-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{activeCount}</p>
-                <p className="text-sm text-muted-foreground">{t('security.team.activeMembers', 'Active Members')}</p>
+                <p className="text-2xl font-bold">{managersCount}</p>
+                <p className="text-sm text-muted-foreground">{t('security.team.managers', 'Managers')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:border-purple-500/50 transition-colors" onClick={() => setRoleFilter('security_supervisor')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-muted">
-                <UserX className="h-6 w-6 text-muted-foreground" />
+              <div className="p-3 rounded-full bg-purple-500/10">
+                <Eye className="h-6 w-6 text-purple-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalCount - activeCount}</p>
-                <p className="text-sm text-muted-foreground">{t('security.team.inactiveMembers', 'Inactive Members')}</p>
+                <p className="text-2xl font-bold">{supervisorsCount}</p>
+                <p className="text-sm text-muted-foreground">{t('security.team.supervisors', 'Supervisors')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:border-green-500/50 transition-colors" onClick={() => setRoleFilter('security_guard')}>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-green-500/10">
+                <Shield className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{guardsCount}</p>
+                <p className="text-sm text-muted-foreground">{t('security.team.guards', 'Guards')}</p>
               </div>
             </div>
           </CardContent>
@@ -161,11 +183,20 @@ export default function SecurityTeam() {
                   <Shield className="h-5 w-5" />
                   {t('security.team.teamList', 'Team Members')}
                 </CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <div className="relative">
                     <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input placeholder={t('common.search', 'Search...')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="ps-10 w-[200px]" />
                   </div>
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-[160px]"><Shield className="h-4 w-4 me-2" /><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('security.team.allRoles', 'All Roles')}</SelectItem>
+                      <SelectItem value="security_manager">{t('security.team.roles.manager', 'Manager')}</SelectItem>
+                      <SelectItem value="security_supervisor">{t('security.team.roles.supervisor', 'Supervisor')}</SelectItem>
+                      <SelectItem value="security_guard">{t('security.team.roles.guard', 'Guard')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[140px]"><Filter className="h-4 w-4 me-2" /><SelectValue /></SelectTrigger>
                     <SelectContent>
