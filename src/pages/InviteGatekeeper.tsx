@@ -120,6 +120,14 @@ export default function InviteGatekeeper() {
             title: t('invite.welcomeBack'),
             description: t('invite.reactivatingAccess', 'Your access is being restored.')
           });
+          
+          // For reactivated users, store flag to trigger MFA reset after login
+          // This ensures they can set up MFA fresh without "factor already exists" errors
+          sessionStorage.setItem('pending_mfa_reset', JSON.stringify({
+            user_id: checkData.user_id,
+            tenant_id: inviteData.tenant_id,
+            reason: 'user_reactivation'
+          }));
         } else if (checkData.exists_in_tenant) {
           toast({
             title: t('invite.welcomeBack'),

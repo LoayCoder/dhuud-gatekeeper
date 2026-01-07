@@ -190,6 +190,97 @@ Deno.serve(async (req) => {
       if (body.delete_permanently === true) {
         console.log('Permanently deleting auth account for user:', targetUserId);
         
+        // === COMPREHENSIVE MFA & CREDENTIAL CLEANUP ===
+        console.log('Cleaning up MFA factors and credentials for user:', targetUserId);
+        
+        // 1. Delete all MFA factors from auth.mfa_factors via Admin API
+        try {
+          const { data: mfaFactors } = await supabaseAdmin.auth.admin.mfa.listFactors({ userId: targetUserId });
+          if (mfaFactors?.factors && mfaFactors.factors.length > 0) {
+            for (const factor of mfaFactors.factors) {
+              console.log('Deleting MFA factor:', factor.id, 'type:', factor.factor_type);
+              await supabaseAdmin.auth.admin.mfa.deleteFactor({ id: factor.id, userId: targetUserId });
+            }
+            console.log('Deleted', mfaFactors.factors.length, 'MFA factors');
+          }
+        } catch (mfaError) {
+          console.error('Error cleaning MFA factors:', mfaError);
+        }
+        
+        // 2. Delete WebAuthn credentials (soft delete)
+        const { error: webauthnError } = await supabaseAdmin
+          .from('webauthn_credentials')
+          .update({ deleted_at: new Date().toISOString() })
+          .eq('user_id', targetUserId);
+        if (webauthnError) {
+          console.error('Error deleting WebAuthn credentials:', webauthnError);
+        } else {
+          console.log('Soft-deleted WebAuthn credentials for user:', targetUserId);
+        }
+        
+        // 3. Delete WebAuthn challenges
+        await supabaseAdmin
+          .from('webauthn_challenges')
+          .delete()
+          .eq('user_id', targetUserId);
+        console.log('Deleted WebAuthn challenges for user:', targetUserId);
+        
+        // 4. Delete tenant MFA status for ALL tenants (not just current)
+        const { error: mfaStatusError } = await supabaseAdmin
+          .from('tenant_user_mfa_status')
+          .delete()
+          .eq('user_id', targetUserId);
+        if (mfaStatusError) {
+          console.error('Error deleting tenant MFA status:', mfaStatusError);
+        } else {
+          console.log('Deleted tenant MFA status for user:', targetUserId);
+        }
+        
+        // 5. Delete trusted devices
+        const { error: trustedDevicesError } = await supabaseAdmin
+          .from('trusted_devices')
+          .delete()
+          .eq('user_id', targetUserId);
+        if (trustedDevicesError) {
+          console.error('Error deleting trusted devices:', trustedDevicesError);
+        } else {
+          console.log('Deleted trusted devices for user:', targetUserId);
+        }
+        
+        // 6. Delete all user sessions (not just tenant-specific)
+        const { error: allSessionsError } = await supabaseAdmin
+          .from('user_sessions')
+          .update({
+            is_active: false,
+            invalidated_at: new Date().toISOString(),
+            invalidation_reason: 'user_permanently_deleted'
+          })
+          .eq('user_id', targetUserId)
+          .eq('is_active', true);
+        if (allSessionsError) {
+          console.error('Error invalidating all sessions:', allSessionsError);
+        } else {
+          console.log('Invalidated all sessions for user:', targetUserId);
+        }
+        
+        // 7. Mark invitations as deleted for this user's email in this tenant
+        if (targetProfile.email) {
+          const { error: inviteError } = await supabaseAdmin
+            .from('invitations')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('email', targetProfile.email)
+            .eq('tenant_id', targetTenantId)
+            .is('deleted_at', null);
+          if (inviteError) {
+            console.error('Error deleting invitations:', inviteError);
+          } else {
+            console.log('Soft-deleted invitations for email:', targetProfile.email, 'in tenant:', targetTenantId);
+          }
+        }
+        
+        // === END CLEANUP ===
+        
+        // Now permanently delete the auth account
         const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
 
         if (deleteAuthError) {

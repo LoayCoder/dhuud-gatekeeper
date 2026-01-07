@@ -323,3 +323,6 @@ verify_jwt = false
 
 [functions.webauthn-auth-verify]
 verify_jwt = false
+
+[functions.reset-user-mfa]
+verify_jwt = true

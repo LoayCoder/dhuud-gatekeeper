@@ -138,8 +138,11 @@ Deno.serve(async (req) => {
           tenant_id: deletedProfile.tenant_id,
           actor_id: user.id,
           action: 'deleted_user_login_blocked',
-          table_name: 'profiles',
-          record_id: deletedProfile.id,
+          action_category: 'authentication',
+          result: 'blocked',
+          entity_type: 'profile',
+          entity_id: deletedProfile.id,
+          entity_identifier: user.email,
           new_value: { email: user.email, blocked_at: new Date().toISOString() }
         });
 
@@ -161,8 +164,11 @@ Deno.serve(async (req) => {
           tenant_id: inactiveProfile.tenant_id,
           actor_id: user.id,
           action: 'inactive_user_login_blocked',
-          table_name: 'profiles',
-          record_id: inactiveProfile.id,
+          action_category: 'authentication',
+          result: 'blocked',
+          entity_type: 'profile',
+          entity_id: inactiveProfile.id,
+          entity_identifier: user.email,
           new_value: { email: user.email, blocked_at: new Date().toISOString() }
         });
 

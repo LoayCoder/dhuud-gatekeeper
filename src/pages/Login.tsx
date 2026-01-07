@@ -262,6 +262,36 @@ export default function Login() {
         return;
       }
 
+      // Check if there's a pending MFA reset (for reactivated users)
+      const pendingMfaReset = sessionStorage.getItem('pending_mfa_reset');
+      if (pendingMfaReset) {
+        try {
+          const resetData = JSON.parse(pendingMfaReset);
+          console.log('Pending MFA reset detected for reactivated user:', resetData);
+          
+          // Call the reset-user-mfa edge function to clear any old MFA data
+          const { error: resetError } = await supabase.functions.invoke('reset-user-mfa', {
+            body: {
+              user_id: accessValidation.user_id || resetData.user_id,
+              tenant_id: accessValidation.tenant_id || resetData.tenant_id,
+              reason: resetData.reason || 'user_reactivation'
+            }
+          });
+          
+          if (resetError) {
+            console.warn('MFA reset for reactivated user failed (non-blocking):', resetError);
+          } else {
+            console.log('MFA reset successful for reactivated user');
+          }
+          
+          // Clear the pending reset flag
+          sessionStorage.removeItem('pending_mfa_reset');
+        } catch (parseError) {
+          console.error('Failed to parse pending MFA reset data:', parseError);
+          sessionStorage.removeItem('pending_mfa_reset');
+        }
+      }
+
       // Check if MFA is required
       const { data: { user } } = await supabase.auth.getUser();
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
