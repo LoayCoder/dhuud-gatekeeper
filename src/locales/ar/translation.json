@@ -2018,7 +2018,9 @@
     "violationSettings": "إعدادات المخالفات",
     "emergencyInstructions": "تعليمات الطوارئ",
     "visitorSettings": "إعدادات الزوار",
-    "pageContentEditor": "محرر محتوى الصفحات"
+    "pageContentEditor": "محرر محتوى الصفحات",
+    "pendingApprovalsOverride": "تجاوز الموافقات المعلقة",
+    "testPushNotifications": "اختبار الإشعارات الفورية"
   },
   "actions": {
     "sessionActions": "إجراءات الجلسة",

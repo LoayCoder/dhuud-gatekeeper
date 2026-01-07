@@ -41,6 +41,7 @@ import {
   FileStack,
   BarChart3,
   ShieldAlert,
+  ShieldCheck,
   FileCog,
   Package,
   List,
@@ -722,6 +723,12 @@ export function AppSidebar() {
             icon: Languages,
             menuCode: 'admin_page_content_editor',
           },
+          {
+            title: t('navigation.testPushNotifications', 'Test Push Notifications'),
+            url: "/admin/test-push",
+            icon: Bell,
+            menuCode: 'admin_test_push',
+          },
         ],
         },
         // Reporting & KPIs Sub-Group
@@ -819,6 +826,12 @@ export function AppSidebar() {
               url: "/admin/visitor-settings",
               icon: Users,
               menuCode: 'admin_visitor_settings',
+            },
+            {
+              title: t('navigation.pendingApprovalsOverride', 'Pending Approvals Override'),
+              url: "/admin/pending-approvals-override",
+              icon: ShieldCheck,
+              menuCode: 'admin_pending_approvals_override',
             },
           ],
         },
