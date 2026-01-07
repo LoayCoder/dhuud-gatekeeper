@@ -8390,5 +8390,33 @@
       "dark": "Dark",
       "light": "Light"
     }
+  },
+  "admin": {
+    "override": {
+      "title": "Pending Approvals Override",
+      "description": "Approve stuck incidents when original approvers are unavailable",
+      "cardTitle": "Admin Override Available",
+      "cardDescription": "You can bypass this approval step if the original approver is unavailable",
+      "currentStatus": "Current Status",
+      "willMoveTo": "Will move to",
+      "overrideApproval": "Override Approval",
+      "modalTitle": "Admin Override Approval",
+      "modalDescription": "This will bypass the current approval step and move the incident forward",
+      "originalApprover": "Original Approver",
+      "originalApproverPlaceholder": "Name of unavailable approver",
+      "reason": "Override Reason",
+      "reasonPlaceholder": "Explain why you are overriding (e.g., approver on leave, urgent matter)...",
+      "reasonMinLength": "Reason must be at least 10 characters",
+      "confirm": "Confirm Override",
+      "success": "Override Successful",
+      "successDescription": "Incident has been moved to the next stage",
+      "pendingItems": "pending items",
+      "filterByStatus": "Filter by Status",
+      "minDaysStuck": "Minimum Days Stuck",
+      "noItems": "No pending approval items found",
+      "stuckFor": "Stuck For",
+      "assignedTo": "Assigned To",
+      "override": "Override"
+    }
   }
 }

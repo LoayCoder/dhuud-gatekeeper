@@ -8147,5 +8147,33 @@
       "dark": "داكن",
       "light": "فاتح"
     }
+  },
+  "admin": {
+    "override": {
+      "title": "تجاوز الموافقات المعلقة",
+      "description": "الموافقة على الحوادث المتوقفة عند عدم توفر المعتمدين الأصليين",
+      "cardTitle": "تجاوز إداري متاح",
+      "cardDescription": "يمكنك تجاوز خطوة الموافقة هذه إذا كان المعتمد الأصلي غير متاح",
+      "currentStatus": "الحالة الحالية",
+      "willMoveTo": "سينتقل إلى",
+      "overrideApproval": "تجاوز الموافقة",
+      "modalTitle": "تجاوز الموافقة الإدارية",
+      "modalDescription": "سيتم تجاوز خطوة الموافقة الحالية ونقل الحادث للأمام",
+      "originalApprover": "المعتمد الأصلي",
+      "originalApproverPlaceholder": "اسم المعتمد غير المتاح",
+      "reason": "سبب التجاوز",
+      "reasonPlaceholder": "اشرح سبب التجاوز (مثال: المعتمد في إجازة، أمر عاجل)...",
+      "reasonMinLength": "يجب أن يكون السبب 10 أحرف على الأقل",
+      "confirm": "تأكيد التجاوز",
+      "success": "تم التجاوز بنجاح",
+      "successDescription": "تم نقل الحادث إلى المرحلة التالية",
+      "pendingItems": "عنصر معلق",
+      "filterByStatus": "تصفية حسب الحالة",
+      "minDaysStuck": "الحد الأدنى لأيام التوقف",
+      "noItems": "لا توجد عناصر موافقة معلقة",
+      "stuckFor": "متوقف منذ",
+      "assignedTo": "مسند إلى",
+      "override": "تجاوز"
+    }
   }
 }

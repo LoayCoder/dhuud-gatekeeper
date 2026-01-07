@@ -200,6 +200,7 @@ const VisitorSettings = lazyWithRetry(() => import("./pages/admin/VisitorSetting
 const TrainingCenter = lazyWithRetry(() => import("./pages/admin/TrainingCenter"));
 const AppUpdates = lazyWithRetry(() => import("./pages/admin/AppUpdates"));
 const TestPushNotifications = lazyWithRetry(() => import("./pages/admin/TestPushNotifications"));
+const PendingApprovalsOverride = lazyWithRetry(() => import("./pages/admin/PendingApprovalsOverride"));
 
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
@@ -697,6 +698,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <AdminSecurityDashboard />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/pending-approvals-override"
+                        element={
+                          <AdminRoute>
+                            <PendingApprovalsOverride />
                           </AdminRoute>
                         }
                       />
