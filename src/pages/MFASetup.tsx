@@ -63,21 +63,45 @@ export default function MFASetup() {
   }, [navigate, refreshFactors, location.state]);
 
   useEffect(() => {
-    // If MFA is already enabled AND this is not a tenant verification, redirect to home
-    // For tenant verification, we still need to mark MFA as verified for this tenant
-    if (!checkingAuth && isEnabled && !isTenantVerification) {
-      navigate('/');
-    }
-    
     // If user has MFA enabled and needs tenant verification, skip to verification step
     if (!checkingAuth && isEnabled && isTenantVerification && factors.length > 0) {
       setExistingFactorId(factors[0].id);
       setStep('tenant-verify');
+      return;
+    }
+    
+    // If MFA is already enabled AND this is not a tenant verification,
+    // record tenant status and redirect to home
+    if (!checkingAuth && isEnabled && !isTenantVerification && factors.length > 0) {
+      // User somehow has MFA but landed on setup page - fix their tenant status and redirect
+      markTenantMfaVerified().then(() => navigate('/'));
+      return;
     }
   }, [isEnabled, checkingAuth, navigate, isTenantVerification, factors]);
 
   const handleStartEnrollment = async () => {
     setLoading(true);
+    
+    // Defensive re-check: refresh factors and verify MFA isn't already enabled
+    await refreshFactors();
+    
+    // Re-check after refresh - query directly to be sure
+    const { data: currentFactors } = await supabase.auth.mfa.listFactors();
+    const verifiedFactors = (currentFactors?.totp || []).filter(
+      (f: { status: string }) => f.status === 'verified'
+    );
+    
+    if (verifiedFactors.length > 0) {
+      toast({
+        title: t('mfaSetup.alreadyEnabled'),
+        description: t('mfaSetup.alreadyEnabledMessage'),
+      });
+      await markTenantMfaVerified();
+      setLoading(false);
+      navigate('/');
+      return;
+    }
+    
     const result = await enroll(tenantName || 'DHUUD');
     setLoading(false);
 
