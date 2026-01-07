@@ -141,7 +141,10 @@ export function useWebAuthn(): UseWebAuthnReturn {
   // Authenticate with biometrics
   const authenticate = useCallback(async (email: string): Promise<boolean> => {
     try {
+      console.log('[WebAuthn] Starting authentication for:', email);
+      
       if (!isSupported) {
+        console.log('[WebAuthn] Browser does not support WebAuthn');
         toast({
           title: t('biometric.notSupported'),
           description: t('biometric.notSupportedDesc'),
@@ -151,6 +154,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }
 
       // Get authentication options from server
+      console.log('[WebAuthn] Fetching auth options...');
       const { data: optionsData, error: optionsError } = await supabase.functions.invoke(
         'webauthn-auth-options',
         {
@@ -158,7 +162,20 @@ export function useWebAuthn(): UseWebAuthnReturn {
         }
       );
 
-      if (optionsError || !optionsData?.options) {
+      console.log('[WebAuthn] Auth options response:', { optionsData, optionsError });
+
+      if (optionsError) {
+        console.error('[WebAuthn] Auth options error:', optionsError);
+        toast({
+          title: t('biometric.authFailed'),
+          description: optionsError.message || t('biometric.authFailedDesc'),
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      if (!optionsData?.options) {
+        console.error('[WebAuthn] No options in response:', optionsData);
         toast({
           title: t('biometric.noCredentials'),
           description: t('biometric.noCredentialsDesc'),
