@@ -18,7 +18,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMyRosterAssignment } from '@/hooks/use-shift-roster';
+import { useMyRosterAssignment, useMySupervisor } from '@/hooks/use-shift-roster';
 import { cn } from '@/lib/utils';
 
 interface GuardDutyHeaderProps {
@@ -29,18 +29,15 @@ export function GuardDutyHeader({ className }: GuardDutyHeaderProps) {
   const { t } = useTranslation();
   const { profile, user } = useAuth();
   const { data: rosterAssignment, isLoading } = useMyRosterAssignment();
+  const { data: supervisor, isLoading: supervisorLoading } = useMySupervisor();
   
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
-  const [phoneDialogData, setPhoneDialogData] = useState<{
-    name: string;
-    phone: string;
-    role: string;
-  } | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleShowPhone = (name: string, phone: string, role: string) => {
-    setPhoneDialogData({ name, phone, role });
-    setShowPhoneDialog(true);
+  const handleShowSupervisor = () => {
+    if (supervisor) {
+      setShowPhoneDialog(true);
+    }
   };
 
   const handleCall = (phone: string) => {
@@ -65,12 +62,6 @@ export function GuardDutyHeader({ className }: GuardDutyHeaderProps) {
 
   const guardName = profile?.full_name || user?.email?.split('@')[0] || t('common.unknown', 'Unknown');
   const guardInitials = guardName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  // Phone is optional and may come from extended profile data
-  const guardPhone = (profile as any)?.mobile_number || (profile as any)?.phone || '';
-  
-  // Mock supervisor data - in production, fetch from roster assignment's zone supervisor
-  const supervisorName = t('security.gateDashboard.supervisor', 'Supervisor');
-  const supervisorPhone = '+966500000000';
 
   // Get shift info from roster assignment
   const shiftInfo = rosterAssignment ? {
@@ -127,27 +118,24 @@ export function GuardDutyHeader({ className }: GuardDutyHeaderProps) {
 
           <CollapsibleContent>
             <div className="px-2.5 pb-2.5 sm:px-3 sm:pb-3 pt-0 border-t border-primary/10">
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {/* My Phone */}
+              <div className="mt-2">
+                {/* Call Supervisor - Full Width */}
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 text-xs justify-start gap-2"
-                  onClick={() => handleShowPhone(guardName, guardPhone, t('security.gateDashboard.guardOnDuty', 'Guard on Duty'))}
+                  className="h-10 w-full text-xs justify-start gap-2 text-primary"
+                  onClick={handleShowSupervisor}
+                  disabled={supervisorLoading || !supervisor}
                 >
-                  <Phone className="h-3.5 w-3.5" />
-                  <span className="truncate">{t('security.gateDashboard.myNumber', 'My Number')}</span>
-                </Button>
-
-                {/* Call Supervisor */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 text-xs justify-start gap-2 text-primary"
-                  onClick={() => handleShowPhone(supervisorName, supervisorPhone, t('security.gateDashboard.supervisor', 'Supervisor'))}
-                >
-                  <User className="h-3.5 w-3.5" />
-                  <span className="truncate">{t('security.gateDashboard.callSupervisor', 'Call Supervisor')}</span>
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">
+                    {supervisorLoading 
+                      ? t('common.loading', 'Loading...') 
+                      : supervisor?.full_name || t('security.gateDashboard.noSupervisor', 'No Supervisor Assigned')}
+                  </span>
+                  {supervisor?.phone_number && (
+                    <Phone className="h-3.5 w-3.5 ms-auto flex-shrink-0" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -155,24 +143,24 @@ export function GuardDutyHeader({ className }: GuardDutyHeaderProps) {
         </Collapsible>
       </Card>
 
-      {/* Phone Dialog */}
+      {/* Supervisor Phone Dialog */}
       <Dialog open={showPhoneDialog} onOpenChange={setShowPhoneDialog}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
-            <DialogTitle className="text-center">{phoneDialogData?.name}</DialogTitle>
+            <DialogTitle className="text-center">{supervisor?.full_name}</DialogTitle>
           </DialogHeader>
           <div className="text-center space-y-4 py-4">
             <Badge variant="secondary" className="text-xs">
-              {phoneDialogData?.role}
+              {t('security.gateDashboard.supervisor', 'Supervisor')}
             </Badge>
             <p className="text-2xl font-mono font-bold tracking-wider" dir="ltr">
-              {phoneDialogData?.phone || t('common.noPhoneNumber', 'No phone number')}
+              {supervisor?.phone_number || t('common.noPhoneNumber', 'No phone number')}
             </p>
-            {phoneDialogData?.phone && (
+            {supervisor?.phone_number && (
               <Button 
                 size="lg" 
                 className="w-full gap-2"
-                onClick={() => handleCall(phoneDialogData.phone)}
+                onClick={() => handleCall(supervisor.phone_number!)}
               >
                 <Phone className="h-5 w-5" />
                 {t('common.call', 'Call')}
