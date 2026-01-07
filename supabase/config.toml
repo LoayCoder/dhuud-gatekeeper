@@ -326,3 +326,15 @@ verify_jwt = false
 
 [functions.reset-user-mfa]
 verify_jwt = true
+
+[functions.manage-session]
+verify_jwt = false
+
+[functions.generate-session-report]
+verify_jwt = true
+
+[functions.auto-expire-visits]
+verify_jwt = false
+
+[functions.delete-auth-user]
+verify_jwt = true
