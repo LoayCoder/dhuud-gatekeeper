@@ -17444,7 +17444,7 @@ export type Database = {
           is_active: boolean | null
           max_occupancy: number | null
           polygon_coords: Json | null
-          polygon_geojson: Json
+          polygon_geojson: Json | null
           requires_escort: boolean | null
           risk_level: string | null
           site_id: string | null
@@ -17468,7 +17468,7 @@ export type Database = {
           is_active?: boolean | null
           max_occupancy?: number | null
           polygon_coords?: Json | null
-          polygon_geojson: Json
+          polygon_geojson?: Json | null
           requires_escort?: boolean | null
           risk_level?: string | null
           site_id?: string | null
@@ -17492,7 +17492,7 @@ export type Database = {
           is_active?: boolean | null
           max_occupancy?: number | null
           polygon_coords?: Json | null
-          polygon_geojson?: Json
+          polygon_geojson?: Json | null
           requires_escort?: boolean | null
           risk_level?: string | null
           site_id?: string | null
