@@ -105,7 +105,14 @@
       "linkedRecordsWarning": "هذه المنطقة مرتبطة بسجلات نشطة",
       "cannotDelete": "لا يمكن حذف المنطقة",
       "deactivateInstead": "تعطيل المنطقة",
-      "deleteWarning": "{{count}} سجلات مرتبطة ستتأثر"
+      "deleteWarning": "{{count}} سجلات مرتبطة ستتأثر",
+      "detectMyZone": "اكتشاف المنطقة",
+      "zoneDetected": "تم اكتشاف المنطقة",
+      "nearestZone": "أقرب منطقة",
+      "notInAnyZone": "أنت لست في أي منطقة محددة",
+      "distanceMeters": "{{distance}} متر",
+      "locationError": "خطأ في الموقع",
+      "deactivateInsteadMessage": "قم بتعطيل المنطقة للحفاظ على السجلات التاريخية."
     },
     "team": {
       "hierarchy": "التسلسل الهرمي للفريق",
