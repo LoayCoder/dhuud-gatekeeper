@@ -293,6 +293,35 @@ export default function OrgStructure() {
         payload.department_id = parentId;
       }
 
+      // Add building-specific fields
+      if (table === 'buildings') {
+        if (!selectedSiteForBuilding) {
+          toast({ title: t('common.error'), description: t('orgStructure.siteRequired'), variant: "destructive" });
+          setCreating(false);
+          return;
+        }
+        payload.site_id = selectedSiteForBuilding;
+        if (newBuildingNameAr.trim()) {
+          payload.name_ar = newBuildingNameAr.trim();
+        }
+      }
+
+      // Add floor/zone-specific fields
+      if (table === 'floors_zones') {
+        if (!selectedBuildingForFloor) {
+          toast({ title: t('common.error'), description: t('orgStructure.buildingRequired'), variant: "destructive" });
+          setCreating(false);
+          return;
+        }
+        payload.building_id = selectedBuildingForFloor;
+        if (newFloorZoneNameAr.trim()) {
+          payload.name_ar = newFloorZoneNameAr.trim();
+        }
+        if (newLevelNumber) {
+          payload.level_number = parseInt(newLevelNumber);
+        }
+      }
+
       const { error } = await supabase.from(table).insert([payload] as never);
       if (error) throw error;
 
@@ -304,6 +333,11 @@ export default function OrgStructure() {
       setNewBranchLongitude("");
       setNewSiteLatitude("");
       setNewSiteLongitude("");
+      setSelectedSiteForBuilding("");
+      setNewBuildingNameAr("");
+      setSelectedBuildingForFloor("");
+      setNewFloorZoneNameAr("");
+      setNewLevelNumber("");
       fetchData();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
@@ -704,6 +738,8 @@ export default function OrgStructure() {
         <TabsList className="flex flex-wrap h-auto gap-1 w-full lg:w-[900px]">
           <TabsTrigger value="branches">{t('orgStructure.branches')}</TabsTrigger>
           <TabsTrigger value="sites" className="flex items-center gap-1"><Building2 className="h-4 w-4" />{t('orgStructure.sites')}</TabsTrigger>
+          <TabsTrigger value="buildings" className="flex items-center gap-1"><Building2 className="h-4 w-4" />{t('orgStructure.buildings')}</TabsTrigger>
+          <TabsTrigger value="floorsZones" className="flex items-center gap-1"><Layers className="h-4 w-4" />{t('orgStructure.floorsZones')}</TabsTrigger>
           <TabsTrigger value="divisions">{t('orgStructure.divisions')}</TabsTrigger>
           <TabsTrigger value="departments">{t('orgStructure.departments')}</TabsTrigger>
           <TabsTrigger value="sections">{t('orgStructure.sections')}</TabsTrigger>
@@ -999,6 +1035,283 @@ export default function OrgStructure() {
                       }
                       return filteredSites.map((item) => renderSiteRow(item));
                     })()}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* BUILDINGS TAB */}
+        <TabsContent value="buildings">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-start">{t('orgStructure.manageBuildings')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Building Creation Form */}
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="grid gap-4 md:grid-cols-2 text-start">
+                  {/* Parent Site */}
+                  <div className="space-y-2">
+                    <Label className="text-start">{t('orgStructure.parentSite')}</Label>
+                    <Select onValueChange={setSelectedSiteForBuilding} value={selectedSiteForBuilding}>
+                      <SelectTrigger className="text-start" dir={direction}>
+                        <SelectValue placeholder={t('orgStructure.selectSite')} />
+                      </SelectTrigger>
+                      <SelectContent dir={direction}>
+                        {sites.map(s => (
+                          <SelectItem key={s.id} value={s.id} className="text-start">{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Building Name */}
+                  <div className="space-y-2">
+                    <Label className="text-start">{t('orgStructure.buildingName')}</Label>
+                    <Input 
+                      placeholder={t('orgStructure.newBuildingPlaceholder')}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className="text-start"
+                      dir={direction}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 text-start">
+                  <Label className="text-start">{t('orgStructure.buildingNameAr')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.newBuildingPlaceholder')}
+                    value={newBuildingNameAr}
+                    onChange={(e) => setNewBuildingNameAr(e.target.value)}
+                    className="text-start"
+                    dir="rtl"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleCreate('buildings')} 
+                  disabled={creating || !selectedSiteForBuilding || !newItemName.trim()} 
+                  className="w-full md:w-auto"
+                >
+                  <Plus className="h-4 w-4 me-2" />
+                  {t('orgStructure.addBuilding')}
+                </Button>
+              </div>
+
+              {/* Buildings Table */}
+              <div className="rounded-md border" dir={direction}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-start">{t('orgStructure.buildingName')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.parentSite')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {buildings.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          {t('orgStructure.noItems')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      buildings.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-start">
+                            {editingId === item.id ? (
+                              <Input
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className="h-8 text-start"
+                                dir={direction}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleUpdate('buildings', item.id);
+                                  if (e.key === 'Escape') cancelEditing();
+                                }}
+                              />
+                            ) : (
+                              <div className="flex flex-col">
+                                <span>{item.name}</span>
+                                {item.name_ar && <span className="text-xs text-muted-foreground" dir="rtl">{item.name_ar}</span>}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-start">{item.sites?.name || '-'}</TableCell>
+                          <TableCell className="text-end">
+                            <div className="flex gap-1 justify-end">
+                              {editingId === item.id ? (
+                                <>
+                                  <Button variant="ghost" size="sm" onClick={() => handleUpdate('buildings', item.id)} disabled={saving}>
+                                    <Check className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                                    <X className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
+                                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                  {canDelete && (
+                                    <Button variant="ghost" size="sm" onClick={() => handleDelete('buildings', item.id)}>
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* FLOORS/ZONES TAB */}
+        <TabsContent value="floorsZones">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-start">{t('orgStructure.manageFloorsZones')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Floor/Zone Creation Form */}
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="grid gap-4 md:grid-cols-3 text-start">
+                  {/* Parent Building */}
+                  <div className="space-y-2">
+                    <Label className="text-start">{t('orgStructure.parentBuilding')}</Label>
+                    <Select onValueChange={setSelectedBuildingForFloor} value={selectedBuildingForFloor}>
+                      <SelectTrigger className="text-start" dir={direction}>
+                        <SelectValue placeholder={t('orgStructure.selectBuilding')} />
+                      </SelectTrigger>
+                      <SelectContent dir={direction}>
+                        {buildings.map(b => (
+                          <SelectItem key={b.id} value={b.id} className="text-start">{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Floor/Zone Name */}
+                  <div className="space-y-2">
+                    <Label className="text-start">{t('orgStructure.floorZoneName')}</Label>
+                    <Input 
+                      placeholder={t('orgStructure.newFloorZonePlaceholder')}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className="text-start"
+                      dir={direction}
+                    />
+                  </div>
+                  {/* Level Number */}
+                  <div className="space-y-2">
+                    <Label className="text-start">{t('orgStructure.levelNumber')}</Label>
+                    <Input 
+                      placeholder="0"
+                      value={newLevelNumber}
+                      onChange={(e) => setNewLevelNumber(e.target.value)}
+                      type="number"
+                      className="text-start"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 text-start">
+                  <Label className="text-start">{t('orgStructure.floorZoneNameAr')}</Label>
+                  <Input 
+                    placeholder={t('orgStructure.newFloorZonePlaceholder')}
+                    value={newFloorZoneNameAr}
+                    onChange={(e) => setNewFloorZoneNameAr(e.target.value)}
+                    className="text-start"
+                    dir="rtl"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleCreate('floors_zones')} 
+                  disabled={creating || !selectedBuildingForFloor || !newItemName.trim()} 
+                  className="w-full md:w-auto"
+                >
+                  <Plus className="h-4 w-4 me-2" />
+                  {t('orgStructure.addFloorZone')}
+                </Button>
+              </div>
+
+              {/* Floors/Zones Table */}
+              <div className="rounded-md border" dir={direction}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-start">{t('orgStructure.floorZoneName')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.levelNumber')}</TableHead>
+                      <TableHead className="text-start">{t('orgStructure.parentBuilding')}</TableHead>
+                      <TableHead className="text-end">{t('orgStructure.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {floorsZones.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                          {t('orgStructure.noItems')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      floorsZones.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-start">
+                            {editingId === item.id ? (
+                              <Input
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className="h-8 text-start"
+                                dir={direction}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleUpdate('floors_zones', item.id);
+                                  if (e.key === 'Escape') cancelEditing();
+                                }}
+                              />
+                            ) : (
+                              <div className="flex flex-col">
+                                <span>{item.name}</span>
+                                {item.name_ar && <span className="text-xs text-muted-foreground" dir="rtl">{item.name_ar}</span>}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-start">{item.level_number ?? '-'}</TableCell>
+                          <TableCell className="text-muted-foreground text-start">{item.buildings?.name || '-'}</TableCell>
+                          <TableCell className="text-end">
+                            <div className="flex gap-1 justify-end">
+                              {editingId === item.id ? (
+                                <>
+                                  <Button variant="ghost" size="sm" onClick={() => handleUpdate('floors_zones', item.id)} disabled={saving}>
+                                    <Check className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                                    <X className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button variant="ghost" size="sm" onClick={() => startEditing(item.id, item.name)}>
+                                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                  {canDelete && (
+                                    <Button variant="ghost" size="sm" onClick={() => handleDelete('floors_zones', item.id)}>
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
