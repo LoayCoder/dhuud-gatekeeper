@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Calendar as CalendarIcon, Users, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, UserCheck } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Users, ChevronLeft, ChevronRight, Trash2, ArrowLeftRight, UserCheck, UsersRound } from 'lucide-react';
 import { useShiftRoster, useCreateRosterAssignment, useDeleteRosterAssignment, useSupervisors } from '@/hooks/use-shift-roster';
+import { TeamShiftAssignmentDialog } from '@/components/security/TeamShiftAssignmentDialog';
 import { useSecurityZones } from '@/hooks/use-security-zones';
 import { useSecurityShifts } from '@/hooks/use-security-shifts';
 import { ShiftSwapRequestsList } from '@/components/security/ShiftSwapRequestsList';
@@ -23,8 +24,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function ShiftRoster() {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
-  const [formData, setFormData] = useState({ 
+  const [formData, setFormData] = useState({
     guard_id: '', 
     zone_id: '', 
     shift_id: '', 
@@ -111,10 +113,15 @@ export default function ShiftRoster() {
           <h1 className="text-2xl font-bold">{t('security.roster.title', 'Shift Roster')}</h1>
           <p className="text-muted-foreground">{t('security.roster.description', 'Manage guard assignments')}</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 me-2" />{t('security.roster.addAssignment', 'Add Assignment')}</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setTeamDialogOpen(true)}>
+            <UsersRound className="h-4 w-4 me-2" />
+            {t('security.roster.assignTeam', 'Assign Team')}
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 me-2" />{t('security.roster.addAssignment', 'Add Assignment')}</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>{t('security.roster.addAssignment', 'Add Assignment')}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,6 +193,9 @@ export default function ShiftRoster() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
+
+        <TeamShiftAssignmentDialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen} />
       </div>
 
       <Tabs defaultValue="schedule" className="space-y-4">
