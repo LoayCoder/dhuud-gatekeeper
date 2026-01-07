@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, Users } from 'lucide-react';
-import { useSecurityTeams } from '@/hooks/use-security-teams';
+import { useSecurityTeams, SecurityTeam } from '@/hooks/use-security-teams';
 import { TeamCard } from './TeamCard';
 import { TeamFormationPanel } from './TeamFormationPanel';
+import { TeamEditDialog } from './TeamEditDialog';
 
 export function TeamsTab() {
   const { t } = useTranslation();
   const { data: teams, isLoading, error } = useSecurityTeams();
+  const [editingTeam, setEditingTeam] = useState<SecurityTeam | null>(null);
 
   if (isLoading) {
     return (
@@ -41,7 +44,11 @@ export function TeamsTab() {
       {teams && teams.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
-            <TeamCard key={team.id} team={team} />
+            <TeamCard 
+              key={team.id} 
+              team={team} 
+              onEdit={(team) => setEditingTeam(team)}
+            />
           ))}
         </div>
       ) : (
@@ -54,6 +61,13 @@ export function TeamsTab() {
           <TeamFormationPanel />
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <TeamEditDialog 
+        team={editingTeam} 
+        open={!!editingTeam} 
+        onOpenChange={(open) => !open && setEditingTeam(null)} 
+      />
     </div>
   );
 }
