@@ -9,3 +9,6 @@ export * from "./use-induction-videos";
 export * from "./use-worker-inductions";
 export * from "./use-contractor-portal";
 export * from "./use-worker-onboarding";
+export * from "./use-document-controller-access";
+export * from "./use-contractor-rep-permissions";
+export * from "./use-contractor-audit-log";

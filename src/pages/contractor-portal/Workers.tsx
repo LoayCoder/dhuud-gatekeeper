@@ -1,20 +1,35 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Users, Search, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Plus, Users, Search, CheckCircle, Clock, XCircle, AlertTriangle, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorkerForm";
+import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
 import { useContractorPortalData } from "@/hooks/contractor-management";
+
+interface PortalWorker {
+  id: string;
+  full_name: string;
+  full_name_ar?: string | null;
+  national_id: string;
+  mobile_number: string;
+  nationality?: string | null;
+  preferred_language: string;
+  approval_status: string;
+  edit_pending_approval?: boolean;
+}
 
 export default function ContractorPortalWorkers() {
   const { t } = useTranslation();
   const { company, workers, isLoading } = useContractorPortalData();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
 
   const filteredWorkers = workers?.filter(worker => 
     worker.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -22,7 +37,17 @@ export default function ContractorPortalWorkers() {
     worker.mobile_number.includes(searchQuery)
   ) || [];
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, editPending?: boolean) => {
+    // Show edit pending badge if applicable
+    if (editPending && status === "approved") {
+      return (
+        <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          {t("contractorPortal.workers.changesPendingReview", "Changes Pending Review")}
+        </Badge>
+      );
+    }
+
     switch (status) {
       case "approved":
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
@@ -100,6 +125,7 @@ export default function ContractorPortalWorkers() {
                     <TableHead>{t("contractors.workers.mobile", "Mobile")}</TableHead>
                     <TableHead>{t("contractors.workers.nationality", "Nationality")}</TableHead>
                     <TableHead>{t("common.status", "Status")}</TableHead>
+                    <TableHead className="text-end">{t("common.actions", "Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -116,7 +142,23 @@ export default function ContractorPortalWorkers() {
                       <TableCell className="font-mono">{worker.national_id}</TableCell>
                       <TableCell>{worker.mobile_number}</TableCell>
                       <TableCell>{worker.nationality || "-"}</TableCell>
-                      <TableCell>{getStatusBadge(worker.approval_status)}</TableCell>
+                      <TableCell>{getStatusBadge(worker.approval_status, worker.edit_pending_approval)}</TableCell>
+                      <TableCell className="text-end">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingWorker(worker as PortalWorker)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {t("common.edit", "Edit")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -126,11 +168,19 @@ export default function ContractorPortalWorkers() {
         </Card>
 
         {company && (
-          <ContractorWorkerForm
-            open={isFormOpen}
-            onOpenChange={setIsFormOpen}
-            companyId={company.id}
-          />
+          <>
+            <ContractorWorkerForm
+              open={isFormOpen}
+              onOpenChange={setIsFormOpen}
+              companyId={company.id}
+            />
+            <ContractorWorkerEditForm
+              open={!!editingWorker}
+              onOpenChange={(open) => !open && setEditingWorker(null)}
+              worker={editingWorker}
+              companyId={company.id}
+            />
+          </>
         )}
       </div>
     </ContractorPortalLayout>
