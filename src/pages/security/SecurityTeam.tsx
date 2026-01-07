@@ -10,10 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Search, Filter, Pencil, UserCheck, UserX, Shield, Phone, MapPin, Briefcase } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Search, Filter, Pencil, UserCheck, UserX, Shield, Phone, MapPin, Briefcase, Plus, Network } from 'lucide-react';
 import { useSecurityTeam, useUpdateSecurityTeamMember, type SecurityTeamMember } from '@/hooks/use-security-team';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { GuardRegistrationForm } from '@/components/security/GuardRegistrationForm';
+import { TeamHierarchyView } from '@/components/security/TeamHierarchyView';
 
 export default function SecurityTeam() {
   const { t } = useTranslation();
@@ -21,6 +24,7 @@ export default function SecurityTeam() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingMember, setEditingMember] = useState<SecurityTeamMember | null>(null);
   const [editForm, setEditForm] = useState({ is_active: true, job_title: '' });
+  const [showAddGuard, setShowAddGuard] = useState(false);
 
   const { data: teamMembers, isLoading } = useSecurityTeam({
     isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
@@ -87,6 +91,10 @@ export default function SecurityTeam() {
           <h1 className="text-2xl font-bold">{t('security.team.title', 'Security Team')}</h1>
           <p className="text-muted-foreground">{t('security.team.description', 'Manage security personnel and assignments')}</p>
         </div>
+        <Button onClick={() => setShowAddGuard(true)}>
+          <Plus className="h-4 w-4 me-2" />
+          {t('security.guards.addGuard', 'Add Guard')}
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -132,154 +140,124 @@ export default function SecurityTeam() {
         </Card>
       </div>
 
-      {/* Team List */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              {t('security.team.teamList', 'Team Members')}
-            </CardTitle>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('common.search', 'Search...')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ps-10 w-[200px]"
-                />
+      {/* Tabs for List vs Hierarchy */}
+      <Tabs defaultValue="list" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <Users className="h-4 w-4" />
+            {t('security.team.teamList', 'Team List')}
+          </TabsTrigger>
+          <TabsTrigger value="hierarchy" className="gap-2">
+            <Network className="h-4 w-4" />
+            {t('security.team.hierarchy', 'Hierarchy')}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  {t('security.team.teamList', 'Team Members')}
+                </CardTitle>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder={t('common.search', 'Search...')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="ps-10 w-[200px]" />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[140px]"><Filter className="h-4 w-4 me-2" /><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+                      <SelectItem value="active">{t('common.active', 'Active')}</SelectItem>
+                      <SelectItem value="inactive">{t('common.inactive', 'Inactive')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="h-4 w-4 me-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                  <SelectItem value="active">{t('common.active', 'Active')}</SelectItem>
-                  <SelectItem value="inactive">{t('common.inactive', 'Inactive')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="animate-pulse space-y-2">
-              {[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-muted rounded" />)}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('security.team.member', 'Member')}</TableHead>
-                  <TableHead>{t('security.team.employeeId', 'Employee ID')}</TableHead>
-                  <TableHead>{t('security.team.role', 'Role')}</TableHead>
-                  <TableHead>{t('security.team.contact', 'Contact')}</TableHead>
-                  <TableHead>{t('security.team.site', 'Site')}</TableHead>
-                  <TableHead>{t('common.status', 'Status')}</TableHead>
-                  <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMembers.map(member => (
-                  <TableRow key={member.id} className={!member.is_active ? 'opacity-60' : ''}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={member.avatar_url || undefined} />
-                          <AvatarFallback>{member.full_name?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{member.full_name || t('common.unnamed', 'Unnamed')}</p>
-                          {member.job_title && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Briefcase className="h-3 w-3" />
-                              {member.job_title}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{member.employee_id || '-'}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(member.role)}>
-                        {getRoleLabel(member.role)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {member.phone_number ? (
-                        <span className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3" />
-                          {member.phone_number}
-                        </span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {member.sites?.name ? (
-                        <span className="flex items-center gap-1 text-sm">
-                          <MapPin className="h-3 w-3" />
-                          {member.sites.name}
-                        </span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={member.is_active ? 'default' : 'secondary'}>
-                        {member.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-end">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(member)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-          {!isLoading && !filteredMembers.length && (
-            <div className="flex flex-col items-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{t('security.team.noMembers', 'No team members found')}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="animate-pulse space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-muted rounded" />)}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('security.team.member', 'Member')}</TableHead>
+                      <TableHead>{t('security.team.employeeId', 'Employee ID')}</TableHead>
+                      <TableHead>{t('security.team.role', 'Role')}</TableHead>
+                      <TableHead>{t('security.team.contact', 'Contact')}</TableHead>
+                      <TableHead>{t('security.team.site', 'Site')}</TableHead>
+                      <TableHead>{t('common.status', 'Status')}</TableHead>
+                      <TableHead className="text-end">{t('common.actions', 'Actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMembers.map(member => (
+                      <TableRow key={member.id} className={!member.is_active ? 'opacity-60' : ''}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10"><AvatarImage src={member.avatar_url || undefined} /><AvatarFallback>{member.full_name?.charAt(0) || '?'}</AvatarFallback></Avatar>
+                            <div>
+                              <p className="font-medium">{member.full_name || t('common.unnamed', 'Unnamed')}</p>
+                              {member.job_title && <p className="text-xs text-muted-foreground flex items-center gap-1"><Briefcase className="h-3 w-3" />{member.job_title}</p>}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{member.employee_id || '-'}</TableCell>
+                        <TableCell><Badge variant={getRoleBadgeVariant(member.role)}>{getRoleLabel(member.role)}</Badge></TableCell>
+                        <TableCell>{member.phone_number ? <span className="flex items-center gap-1 text-sm"><Phone className="h-3 w-3" />{member.phone_number}</span> : '-'}</TableCell>
+                        <TableCell>{member.sites?.name ? <span className="flex items-center gap-1 text-sm"><MapPin className="h-3 w-3" />{member.sites.name}</span> : '-'}</TableCell>
+                        <TableCell><Badge variant={member.is_active ? 'default' : 'secondary'}>{member.is_active ? t('common.active', 'Active') : t('common.inactive', 'Inactive')}</Badge></TableCell>
+                        <TableCell className="text-end"><Button variant="ghost" size="sm" onClick={() => handleEditClick(member)}><Pencil className="h-4 w-4" /></Button></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {!isLoading && !filteredMembers.length && (
+                <div className="flex flex-col items-center py-12"><Users className="h-12 w-12 text-muted-foreground mb-4" /><p className="text-muted-foreground">{t('security.team.noMembers', 'No team members found')}</p></div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="hierarchy">
+          <TeamHierarchyView />
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Guard Dialog */}
+      <Dialog open={showAddGuard} onOpenChange={setShowAddGuard}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Shield className="h-5 w-5" />{t('security.guards.registration', 'Guard Registration')}</DialogTitle>
+            <DialogDescription>{t('security.guards.registrationDesc', 'Register a new security guard')}</DialogDescription>
+          </DialogHeader>
+          <GuardRegistrationForm onSuccess={() => setShowAddGuard(false)} onCancel={() => setShowAddGuard(false)} />
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('security.team.editMember', 'Edit Team Member')}</DialogTitle>
-            <DialogDescription>
-              {editingMember?.full_name}
-            </DialogDescription>
+            <DialogDescription>{editingMember?.full_name}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('security.team.jobTitle', 'Job Title')}</Label>
-              <Input
-                value={editForm.job_title}
-                onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
-                placeholder={t('security.team.jobTitlePlaceholder', 'e.g., Security Guard')}
-              />
+              <Input value={editForm.job_title} onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })} placeholder={t('security.team.jobTitlePlaceholder', 'e.g., Security Guard')} />
             </div>
             <div className="flex items-center justify-between">
               <Label>{t('common.active', 'Active')}</Label>
-              <Switch
-                checked={editForm.is_active}
-                onCheckedChange={(c) => setEditForm({ ...editForm, is_active: c })}
-              />
+              <Switch checked={editForm.is_active} onCheckedChange={(c) => setEditForm({ ...editForm, is_active: c })} />
             </div>
             <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setEditingMember(null)}>
-                {t('common.cancel', 'Cancel')}
-              </Button>
-              <Button onClick={handleEditSubmit} disabled={updateMember.isPending}>
-                {t('common.save', 'Save')}
-              </Button>
+              <Button variant="outline" onClick={() => setEditingMember(null)}>{t('common.cancel', 'Cancel')}</Button>
+              <Button onClick={handleEditSubmit} disabled={updateMember.isPending}>{t('common.save', 'Save')}</Button>
             </div>
           </div>
         </DialogContent>

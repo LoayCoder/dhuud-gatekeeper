@@ -33,7 +33,7 @@ export function useSecurityTeam(filters?: { role?: string; isActive?: boolean })
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role')
-        .in('role', ['admin', 'user']); // Will be security_guard, security_supervisor when those roles exist
+        .in('role', ['admin', 'user', 'security_guard', 'security_supervisor', 'security_manager']);
 
       if (rolesError) throw rolesError;
 

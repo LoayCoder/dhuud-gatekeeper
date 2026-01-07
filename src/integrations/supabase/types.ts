@@ -17537,11 +17537,15 @@ export type Database = {
       shift_handovers: {
         Row: {
           acknowledged_at: string | null
+          approved_at: string | null
+          approved_by: string | null
+          assigned_followup_guard_id: string | null
           attachments: Json | null
           created_at: string
           deleted_at: string | null
           equipment_checklist: Json | null
           handover_time: string
+          handover_type: string | null
           id: string
           incoming_guard_id: string | null
           incoming_signature: string | null
@@ -17551,6 +17555,8 @@ export type Database = {
           outgoing_guard_id: string
           outgoing_signature: string | null
           outstanding_issues: Json | null
+          rejection_reason: string | null
+          requires_approval: boolean | null
           shift_date: string
           signature_timestamp: string | null
           status: string
@@ -17561,11 +17567,15 @@ export type Database = {
         }
         Insert: {
           acknowledged_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_followup_guard_id?: string | null
           attachments?: Json | null
           created_at?: string
           deleted_at?: string | null
           equipment_checklist?: Json | null
           handover_time?: string
+          handover_type?: string | null
           id?: string
           incoming_guard_id?: string | null
           incoming_signature?: string | null
@@ -17575,6 +17585,8 @@ export type Database = {
           outgoing_guard_id: string
           outgoing_signature?: string | null
           outstanding_issues?: Json | null
+          rejection_reason?: string | null
+          requires_approval?: boolean | null
           shift_date?: string
           signature_timestamp?: string | null
           status?: string
@@ -17585,11 +17597,15 @@ export type Database = {
         }
         Update: {
           acknowledged_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_followup_guard_id?: string | null
           attachments?: Json | null
           created_at?: string
           deleted_at?: string | null
           equipment_checklist?: Json | null
           handover_time?: string
+          handover_type?: string | null
           id?: string
           incoming_guard_id?: string | null
           incoming_signature?: string | null
@@ -17599,6 +17615,8 @@ export type Database = {
           outgoing_guard_id?: string
           outgoing_signature?: string | null
           outstanding_issues?: Json | null
+          rejection_reason?: string | null
+          requires_approval?: boolean | null
           shift_date?: string
           signature_timestamp?: string | null
           status?: string
@@ -17608,6 +17626,34 @@ export type Database = {
           zone_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shift_handovers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_assigned_followup_guard_id_fkey"
+            columns: ["assigned_followup_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_assigned_followup_guard_id_fkey"
+            columns: ["assigned_followup_guard_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shift_handovers_incoming_guard_id_fkey"
             columns: ["incoming_guard_id"]
@@ -17673,6 +17719,7 @@ export type Database = {
           roster_date: string
           shift_id: string
           status: string | null
+          supervisor_id: string | null
           tenant_id: string
           updated_at: string | null
           zone_id: string
@@ -17697,6 +17744,7 @@ export type Database = {
           roster_date: string
           shift_id: string
           status?: string | null
+          supervisor_id?: string | null
           tenant_id: string
           updated_at?: string | null
           zone_id: string
@@ -17721,6 +17769,7 @@ export type Database = {
           roster_date?: string
           shift_id?: string
           status?: string | null
+          supervisor_id?: string | null
           tenant_id?: string
           updated_at?: string | null
           zone_id?: string
@@ -17773,6 +17822,20 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "security_shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_roster_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -21890,6 +21953,7 @@ export type Database = {
       }
       check_sla_breaches: { Args: never; Returns: undefined }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
+      check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
       cleanup_expired_webauthn_challenges: { Args: never; Returns: undefined }
       contract_controller_approve_violation: {
@@ -21941,6 +22005,7 @@ export type Database = {
         Args: { p_code_hashes: string[]; p_user_id: string }
         Returns: undefined
       }
+      generate_zone_code: { Args: { zone_name: string }; Returns: string }
       get_accessible_menu_items: {
         Args: { _user_id: string }
         Returns: {
@@ -22743,7 +22808,12 @@ export type Database = {
         | "user_activated"
         | "user_deleted"
         | "backup_code_used"
-      app_role: "admin" | "user"
+      app_role:
+        | "admin"
+        | "user"
+        | "security_manager"
+        | "security_supervisor"
+        | "security_guard"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -23051,7 +23121,13 @@ export const Constants = {
         "user_deleted",
         "backup_code_used",
       ],
-      app_role: ["admin", "user"],
+      app_role: [
+        "admin",
+        "user",
+        "security_manager",
+        "security_supervisor",
+        "security_guard",
+      ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
       asset_document_type: [
