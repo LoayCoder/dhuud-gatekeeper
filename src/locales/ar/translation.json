@@ -4598,7 +4598,16 @@
       "deleteTitle": "حذف الأصول",
       "deleteDescription": "هل أنت متأكد من حذف {{count}} أصول محددة؟ لا يمكن التراجع عن هذا الإجراء.",
       "deleteSuccess": "تم حذف {{count}} أصول بنجاح",
-      "deleteError": "فشل في حذف الأصول"
+      "deleteError": "فشل في حذف الأصول",
+      "checkingDependencies": "جاري التحقق من السجلات المرتبطة...",
+      "linkedRecordsWarning": "هذه الأصول مرتبطة بسجلات موجودة",
+      "linkedSchedules": "{{count}} جدول(جداول) صيانة",
+      "linkedCosts": "{{count}} معاملة(معاملات) تكلفة",
+      "linkedInspections": "{{count}} فحص(فحوصات)",
+      "linkedDocuments": "{{count}} مستند(مستندات)",
+      "linkedPhotos": "{{count}} صورة(صور)",
+      "linkedHistory": "{{count}} سجل(سجلات) صيانة",
+      "deleteWarningCascade": "إذا تابعت، سيتم حذف جميع السجلات المرتبطة أيضاً."
     },
     "bulkRegistration": "التسجيل المجمع",
     "quantity": "الكمية",

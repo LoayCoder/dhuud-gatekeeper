@@ -4758,7 +4758,16 @@
       "deleteTitle": "Delete Assets",
       "deleteDescription": "Are you sure you want to delete {{count}} selected assets? This action cannot be undone.",
       "deleteSuccess": "Successfully deleted {{count}} assets",
-      "deleteError": "Failed to delete assets"
+      "deleteError": "Failed to delete assets",
+      "checkingDependencies": "Checking linked records...",
+      "linkedRecordsWarning": "These assets are linked to existing records",
+      "linkedSchedules": "{{count}} maintenance schedule(s)",
+      "linkedCosts": "{{count}} cost transaction(s)",
+      "linkedInspections": "{{count}} inspection(s)",
+      "linkedDocuments": "{{count}} document(s)",
+      "linkedPhotos": "{{count}} photo(s)",
+      "linkedHistory": "{{count}} maintenance history record(s)",
+      "deleteWarningCascade": "If you proceed, all related records will also be deleted."
     },
     "bulkRegistration": "Bulk Registration",
     "quantity": "Quantity",

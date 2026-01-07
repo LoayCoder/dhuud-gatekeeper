@@ -113,11 +113,47 @@ export function useBulkDelete() {
       if (!profile?.tenant_id || !user?.id) throw new Error('No tenant or user');
       if (assetIds.length === 0) throw new Error('No assets selected');
 
-      // Soft delete
+      const deletedAt = new Date().toISOString();
+
+      // Step 1: Soft-delete all linked records in parallel
+      await Promise.all([
+        supabase
+          .from('asset_maintenance_schedules')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+        supabase
+          .from('asset_cost_transactions')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+        supabase
+          .from('asset_inspections')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+        supabase
+          .from('asset_documents')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+        supabase
+          .from('asset_photos')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+        supabase
+          .from('asset_maintenance_history')
+          .update({ deleted_at: deletedAt })
+          .in('asset_id', assetIds)
+          .is('deleted_at', null),
+      ]);
+
+      // Step 2: Soft-delete the assets themselves
       const { error } = await supabase
         .from('hsse_assets')
         .update({
-          deleted_at: new Date().toISOString(),
+          deleted_at: deletedAt,
           updated_by: user.id,
         })
         .in('id', assetIds)
