@@ -20,22 +20,22 @@ const LANGUAGES = [
 
 export function LanguageSelector() {
   const { t, i18n } = useTranslation();
-  const { user, refreshProfile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   const handleLanguageChange = async (langCode: string) => {
     // Change language immediately
     i18n.changeLanguage(langCode);
-    
+
     // Save to localStorage for persistence
     localStorage.setItem('i18nextLng', langCode);
-    
+
     // If user is authenticated, save to database
-    if (user?.id) {
+    if (profile?.id) {
       try {
         await supabase
           .from('profiles')
           .update({ preferred_language: langCode })
-          .eq('id', user.id);
+          .eq('id', profile.id);
         
         // Refresh profile to sync state
         await refreshProfile();

@@ -25,8 +25,8 @@ export function useCreateSecurityShift() {
     mutationFn: async (shift: { shift_name: string; shift_code: string; start_time: string; end_time: string; is_overnight?: boolean; break_duration_minutes?: number; is_active?: boolean }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      
-      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+
+      const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('user_id', user.id).eq('is_deleted', false).eq('is_active', true).single();
       if (!profile?.tenant_id) throw new Error('No tenant found');
 
       const { data, error } = await supabase

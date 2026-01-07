@@ -24,40 +24,40 @@ const TIMEZONE_OPTIONS = [
 ];
 
 export function useDigestPreferences() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: preferences, isLoading } = useQuery({
-    queryKey: ['digest-preferences', user?.id],
+    queryKey: ['digest-preferences', profile?.id],
     queryFn: async (): Promise<DigestPreferences | null> => {
-      if (!user?.id) return null;
+      if (!profile?.id) return null;
 
       const { data, error } = await supabase
         .from('profiles')
         .select('digest_opt_in, digest_preferred_time, digest_timezone')
-        .eq('id', user.id)
+        .eq('id', profile.id)
         .single();
 
       if (error) throw error;
       return data as DigestPreferences;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
     staleTime: 5 * 60 * 1000,
   });
 
   const updatePreferences = useMutation({
     mutationFn: async (newPrefs: Partial<DigestPreferences>) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!profile?.id) throw new Error('User not authenticated');
 
       const { error } = await supabase
         .from('profiles')
         .update(newPrefs)
-        .eq('id', user.id);
+        .eq('id', profile.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['digest-preferences', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['digest-preferences', profile?.id] });
       toast({
         title: 'Preferences updated',
         description: 'Your digest preferences have been saved.',

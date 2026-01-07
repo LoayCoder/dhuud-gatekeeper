@@ -276,7 +276,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', session.user.id)
+        .eq('user_id', session.user.id)
+        .eq('is_deleted', false)
+        .eq('is_active', true)
         .maybeSingle();
 
       if (profileError || !profile?.tenant_id) {

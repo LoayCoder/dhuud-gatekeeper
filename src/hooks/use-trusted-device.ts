@@ -17,7 +17,9 @@ async function getTenantTrustDuration(userId: string): Promise<number> {
     const { data: profile } = await supabase
       .from('profiles')
       .select('tenant_id')
-      .eq('id', userId)
+      .eq('user_id', userId)
+      .eq('is_deleted', false)
+      .eq('is_active', true)
       .single();
 
     if (!profile?.tenant_id) return DEFAULT_TRUST_DAYS;

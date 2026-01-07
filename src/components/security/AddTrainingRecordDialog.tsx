@@ -55,7 +55,7 @@ export function AddTrainingRecordDialog({ open, onOpenChange, guardId }: AddTrai
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
+      const { data } = await supabase.from('profiles').select('tenant_id').eq('user_id', user.id).eq('is_deleted', false).eq('is_active', true).single();
       return data;
     },
     enabled: !guardId,
