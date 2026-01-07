@@ -28,6 +28,7 @@ import { useMaterialGatePasses, usePendingGatePassApprovals } from '@/hooks/cont
 import { useContractorProjects } from '@/hooks/contractor-management/use-contractor-projects';
 import { GateOfflineStatusBar } from '@/components/security/GateOfflineStatusBar';
 import { EmergencyAlertBanner } from '@/components/security/EmergencyAlertBanner';
+import { EmergencyPanicButton } from '@/components/security/EmergencyPanicButton';
 import { GuardDutyHeader } from '@/components/security/GuardDutyHeader';
 import { GateScanFAB } from '@/components/security/GateScanFAB';
 import { cn } from '@/lib/utils';
@@ -173,19 +174,38 @@ const GateGuardDashboard = () => {
 
   return (
     <GateScanProvider>
-    <div className="container mx-auto py-2 sm:py-4 px-2 sm:px-4 md:px-6 space-y-2 sm:space-y-4 min-w-0 pb-24 sm:pb-6">
-      {/* Offline Status Bar - Important for PWA users */}
-      <GateOfflineStatusBar 
-        lastSyncTime={lastSyncTime}
-        onRefresh={handleRefresh}
-      />
+    <div className="container mx-auto py-2 sm:py-4 px-2 sm:px-4 md:px-6 space-y-2 sm:space-y-4 min-w-0 pb-32 sm:pb-6">
+      {/* Offline Status Bar - Compact on mobile, full on desktop */}
+      <div className="hidden sm:block">
+        <GateOfflineStatusBar 
+          lastSyncTime={lastSyncTime}
+          onRefresh={handleRefresh}
+        />
+      </div>
       
-      {/* Guard Duty Header - Mobile first */}
-      <GuardDutyHeader className="sm:hidden" />
+      {/* Guard Duty Header with compact status - Mobile only */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <GateOfflineStatusBar compact />
+          <ZoneSelector 
+            onZoneChange={setSelectedZoneId}
+            className="flex-1"
+          />
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh} 
+            size="icon"
+            className="h-8 w-8 flex-shrink-0"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <GuardDutyHeader />
+      </div>
       
-      {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="min-w-0 hidden sm:block">
+      {/* Desktop Header */}
+      <div className="hidden sm:flex flex-row items-center justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
             <span className="truncate">{t('security.gateDashboard.title', 'Gate Guard Dashboard')}</span>
@@ -194,20 +214,18 @@ const GateGuardDashboard = () => {
             {t('security.gateDashboard.description', 'Central control for gate operations')}
           </p>
         </div>
-        <div className="flex items-center gap-2 justify-between sm:justify-end w-full sm:w-auto">
-          {/* Zone Selector for zone-level access control */}
+        <div className="flex items-center gap-2">
           <ZoneSelector 
             onZoneChange={setSelectedZoneId}
-            className="flex-1 sm:flex-none"
           />
           <Button 
             variant="outline" 
             onClick={handleRefresh} 
-            className="gap-2 flex-shrink-0"
+            className="gap-2"
             size="sm"
           >
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('common.refresh', 'Refresh')}</span>
+            {t('common.refresh', 'Refresh')}
           </Button>
         </div>
       </div>
@@ -256,41 +274,58 @@ const GateGuardDashboard = () => {
         </div>
       )}
 
-      {/* Main Tabs */}
+      {/* Main Tabs - RTL aware with responsive icons */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-6 min-w-full sm:min-w-0">
-            <TabsTrigger value="visitors" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.visitors', 'Visitors')}
-            </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 relative">
-              <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.approvals', 'Approvals')}
-              {pendingVisitorApprovals.length > 0 && (
-                <Badge variant="destructive" className="ms-1 h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
-                  {pendingVisitorApprovals.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="workers" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-              <HardHat className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.workers', 'Workers')}
-            </TabsTrigger>
-            <TabsTrigger value="material" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-              <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.material', 'Material')}
-            </TabsTrigger>
-            <TabsTrigger value="gatePasses" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-              <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.gatePasses', 'Gate Passes')}
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4">
-              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 hidden xs:block sm:block" />
-              {t('security.gateDashboard.tabs.activityLog', 'Activity')}
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid grid-cols-6 w-full h-auto p-1 gap-0.5">
+          {/* Visitors Tab - First in RTL */}
+          <TabsTrigger 
+            value="visitors" 
+            className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Users className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.visitors', 'Visitors')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="approvals" 
+            className="relative flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <ClipboardCheck className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.approvals', 'Approvals')}</span>
+            {pendingVisitorApprovals.length > 0 && (
+              <Badge variant="destructive" className="absolute -top-1 -end-1 h-4 w-4 p-0 text-[9px] flex items-center justify-center rounded-full sm:relative sm:top-auto sm:end-auto sm:h-5 sm:w-auto sm:px-1.5">
+                {pendingVisitorApprovals.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="workers" 
+            className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <HardHat className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.workers', 'Workers')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="material" 
+            className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Package className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.material', 'Material')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="gatePasses" 
+            className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Truck className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.gatePasses', 'Passes')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="activity" 
+            className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-1.5 sm:py-2 px-1 sm:px-3 text-[10px] sm:text-sm min-h-[44px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            <Activity className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="truncate">{t('security.gateDashboard.tabs.activityLog', 'Activity')}</span>
+          </TabsTrigger>
+        </TabsList>
 
         {/* Visitors Tab */}
         <TabsContent value="visitors" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
@@ -423,6 +458,9 @@ const GateGuardDashboard = () => {
 
       {/* Mobile Scan FAB */}
       <GateScanFAB />
+      
+      {/* Emergency Panic Button FAB */}
+      <EmergencyPanicButton variant="floating" />
     </div>
     </GateScanProvider>
   );

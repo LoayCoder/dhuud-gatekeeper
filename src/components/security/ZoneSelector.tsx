@@ -83,20 +83,20 @@ export function ZoneSelector({ siteId, onZoneChange, className }: ZoneSelectorPr
         <span className="hidden sm:inline">{t('security.zones.currentZone', 'Zone')}:</span>
       </div>
       <Select value={selectedZone || 'all'} onValueChange={handleZoneChange}>
-        <SelectTrigger className="w-[180px] h-8 text-sm">
-          <SelectValue placeholder={t('security.zones.selectZone', 'Select zone')} />
+        <SelectTrigger className="w-auto min-w-[100px] max-w-[180px] h-8 text-sm">
+          <SelectValue placeholder={t('security.zones.selectZone', 'Select zone')} className="truncate" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background border shadow-lg z-50">
           <SelectItem value="all">
             <div className="flex items-center gap-2">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-              {t('security.zones.allZones', 'All Zones')}
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="truncate">{t('security.zones.allZones', 'All Zones')}</span>
             </div>
           </SelectItem>
           {zones.map((zone) => (
             <SelectItem key={zone.id} value={zone.id}>
-              <div className="flex items-center gap-2">
-                <span>{zone.zone_name}</span>
+              <div className="flex items-center gap-2 max-w-[200px]">
+                <span className="truncate flex-1">{zone.zone_name}</span>
                 {getRiskBadge(zone.risk_level)}
               </div>
             </SelectItem>
