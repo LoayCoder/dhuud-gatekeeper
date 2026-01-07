@@ -11,12 +11,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Search, Filter, Pencil, UserCheck, UserX, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye } from 'lucide-react';
+import { Users, Search, Filter, Pencil, Shield, Phone, MapPin, Briefcase, Plus, Network, Crown, Eye, UsersRound } from 'lucide-react';
 import { useSecurityTeam, useUpdateSecurityTeamMember, type SecurityTeamMember } from '@/hooks/use-security-team';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GuardRegistrationForm } from '@/components/security/GuardRegistrationForm';
 import { TeamHierarchyView } from '@/components/security/TeamHierarchyView';
+import { TeamsTab } from '@/components/security/TeamsTab';
 
 export default function SecurityTeam() {
   const { t } = useTranslation();
@@ -162,7 +163,7 @@ export default function SecurityTeam() {
         </Card>
       </div>
 
-      {/* Tabs for List vs Hierarchy */}
+      {/* Tabs for List vs Hierarchy vs Teams */}
       <Tabs defaultValue="list" className="space-y-4">
         <TabsList>
           <TabsTrigger value="list" className="gap-2">
@@ -172,6 +173,10 @@ export default function SecurityTeam() {
           <TabsTrigger value="hierarchy" className="gap-2">
             <Network className="h-4 w-4" />
             {t('security.team.hierarchy', 'Hierarchy')}
+          </TabsTrigger>
+          <TabsTrigger value="teams" className="gap-2">
+            <UsersRound className="h-4 w-4" />
+            {t('security.teams', 'Teams')}
           </TabsTrigger>
         </TabsList>
 
@@ -256,6 +261,10 @@ export default function SecurityTeam() {
 
         <TabsContent value="hierarchy">
           <TeamHierarchyView />
+        </TabsContent>
+
+        <TabsContent value="teams">
+          <TeamsTab />
         </TabsContent>
       </Tabs>
 

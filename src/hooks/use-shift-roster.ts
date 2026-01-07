@@ -85,18 +85,33 @@ export function useSupervisors() {
       const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single();
       if (!profile?.tenant_id) return [];
 
-      // Get users with supervisor or manager roles
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['security_supervisor', 'security_manager', 'admin']);
+      // Get users with supervisor or manager roles from user_role_assignments
+      const { data: roleAssignments, error } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          user_id,
+          role:roles!inner (
+            code,
+            name
+          )
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .is('deleted_at', null);
 
       if (error) throw error;
       
-      // Get profile info for these users
-      const userIds = [...new Set(data?.map(r => r.user_id) || [])];
+      // Filter to security supervisor/manager roles
+      const supervisorRoles = ['security_supervisor', 'security_manager'];
+      const supervisorAssignments = (roleAssignments || []).filter(ra => {
+        const roleCode = (ra.role as { code: string } | null)?.code;
+        return roleCode && supervisorRoles.includes(roleCode);
+      });
+
+      // Get unique user IDs
+      const userIds = [...new Set(supervisorAssignments.map(r => r.user_id))];
       if (!userIds.length) return [];
       
+      // Get profile info for these users
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name')
@@ -106,7 +121,10 @@ export function useSupervisors() {
       
       // Map with roles
       const roleMap = new Map<string, string>();
-      data?.forEach(r => roleMap.set(r.user_id, r.role));
+      supervisorAssignments.forEach(r => {
+        const roleCode = (r.role as { code: string } | null)?.code || 'supervisor';
+        roleMap.set(r.user_id, roleCode);
+      });
       
       return (profiles || []).map(p => ({
         id: p.id,
