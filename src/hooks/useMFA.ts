@@ -85,7 +85,23 @@ export function useMFA(): UseMFAReturn {
 
   const enroll = async (issuer?: string): Promise<EnrollResult | null> => {
     try {
-      // Clean up any unverified factors first to prevent name conflicts
+      // FIRST: Check if user already has a verified factor
+      const { data: existingFactors } = await supabase.auth.mfa.listFactors();
+      const verifiedFactors = (existingFactors?.totp || []).filter(
+        (f: { status: string }) => f.status === 'verified'
+      );
+      
+      if (verifiedFactors.length > 0) {
+        toast({
+          title: '2FA Already Enabled',
+          description: 'Two-factor authentication is already set up on your account.',
+        });
+        // Refresh factors to update UI state
+        await refreshFactors();
+        return null;
+      }
+
+      // Clean up any unverified factors to prevent name conflicts
       await cleanupUnverifiedFactors();
       
       const { data, error } = await supabase.auth.mfa.enroll({
