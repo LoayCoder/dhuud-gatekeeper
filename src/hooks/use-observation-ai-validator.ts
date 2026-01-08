@@ -30,6 +30,12 @@ export interface AnalysisResult {
   
   // Key Risks
   keyRisks: string[];
+  
+  // NEW: Classification
+  positiveNegative?: 'positive' | 'negative';
+  
+  // NEW: Tags
+  suggestedTags?: string[];
 }
 
 export type ValidationState = 

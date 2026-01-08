@@ -1,4 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { 
+  fetchAISettings, 
+  fetchAITags, 
+  matchTagsByKeywords,
+  getTenantFromAuth,
+  DEFAULT_OBSERVATION_SETTINGS,
+  type ObservationAISettings,
+  type AITag
+} from "../_shared/ai-settings.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +17,7 @@ const corsHeaders = {
 interface AnalysisRequest {
   description: string;
   responseLanguage?: string;
+  tenantId?: string; // Optional: can be passed directly or extracted from auth
 }
 
 interface AnalysisResult {
@@ -36,6 +46,12 @@ interface AnalysisResult {
   
   // Key Risks
   keyRisks: string[];
+  
+  // Classification (new)
+  positiveNegative?: 'positive' | 'negative';
+  
+  // Tags (new)
+  suggestedTags?: string[];
 }
 
 serve(async (req) => {
@@ -54,7 +70,24 @@ serve(async (req) => {
       );
     }
 
-    const { description, responseLanguage = 'en' }: AnalysisRequest = await req.json();
+    const { description, responseLanguage = 'en', tenantId: providedTenantId }: AnalysisRequest = await req.json();
+
+    // Get tenant ID from auth or use provided one
+    let tenantId: string | undefined = providedTenantId;
+    if (!tenantId) {
+      tenantId = (await getTenantFromAuth(req)) ?? undefined;
+    }
+
+    // Fetch dynamic settings and tags
+    let settings: ObservationAISettings = DEFAULT_OBSERVATION_SETTINGS;
+    let availableTags: AITag[] = [];
+    
+    if (tenantId) {
+      console.log('[analyze-observation] Fetching settings for tenant:', tenantId);
+      settings = await fetchAISettings<ObservationAISettings>(tenantId, 'observation', DEFAULT_OBSERVATION_SETTINGS);
+      availableTags = await fetchAITags(tenantId, 'observation');
+      console.log('[analyze-observation] Loaded', availableTags.length, 'tags');
+    }
 
     // Map language codes to full names for the AI
     const languageNames: Record<string, string> = {
@@ -64,7 +97,9 @@ serve(async (req) => {
       'hi': 'Hindi',
       'fil': 'Filipino'
     };
-    const targetLanguage = languageNames[responseLanguage] || 'English';
+    const targetLanguage = settings.rewrite_rules.enable_translation 
+      ? languageNames[settings.rewrite_rules.target_language] || 'English'
+      : languageNames[responseLanguage] || 'English';
 
     if (!description || description.trim().length === 0) {
       return new Response(
@@ -73,18 +108,26 @@ serve(async (req) => {
       );
     }
 
-    console.log('Analyzing observation description:', description.substring(0, 100) + '...');
+    console.log('[analyze-observation] Analyzing description:', description.substring(0, 100) + '...');
+
+    // Build tag list for AI prompt
+    const tagListForPrompt = availableTags.length > 0
+      ? `\n\nAVAILABLE TAGS FOR AUTO-TAGGING:\n${availableTags.map(t => `- "${t.name}": keywords=[${t.keywords.join(', ')}]`).join('\n')}\n\nSelect tags from this list that match the observation content.`
+      : '';
+
+    const positiveNegativeInstruction = settings.classification.enable_positive_negative
+      ? '\n8. **Positive/Negative Classification**: Determine if this is a positive observation (safe behavior) or negative (unsafe behavior/condition).'
+      : '';
 
     const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert AI assistant analyzing workplace observations. Your task is to:
 
 1. **Detect Language**: Identify the language of the input text.
-2. **Translate**: If not English, translate to professional English while preserving technical terms.
+2. **Translate**: If not ${targetLanguage}, translate to professional ${targetLanguage} while preserving technical terms.
 3. **Score Clarity**: Evaluate how clear and specific the description is (0-100 scale).
 4. **Identify Issues**: Find ambiguous terms ("some", "maybe", "probably", "few", "several") and missing context.
-5. **Classify Observation Type**: Determine if it's an unsafe_act, unsafe_condition, safe_act, or safe_condition.
-6. **Assess Severity**: Rate from level_1 (minor) to level_5 (catastrophic) based on potential harm.
-7. **Calculate Likelihood**: Rate as rare, unlikely, possible, likely, or almost_certain.
-8. **Identify Key Risks**: List specific hazards or risks mentioned.
+5. **Classify Observation Type**: Determine if it's an ${settings.classification.observation_types.join(', ')}.
+6. **Assess Severity**: Rate using: ${settings.classification.severity_levels.join(', ')}.
+7. **Calculate Likelihood**: Rate as rare, unlikely, possible, likely, or almost_certain.${positiveNegativeInstruction}
 
 Severity Guidelines (HSSE Standards):
 - level_1: Minor first aid, no lost time, minimal property damage
@@ -120,15 +163,15 @@ CRITICAL LANGUAGE INSTRUCTIONS:
 
 - Keep these values in English (system codes only):
   - missingSections: Use ONLY these exact English keys: "equipment", "activity" (NO location, personnel, timing)
-  - subtype: Use ONLY: "unsafe_act", "unsafe_condition", "safe_act", "safe_condition"
-  - severity: Use ONLY: "level_1", "level_2", "level_3", "level_4", "level_5"
-  - likelihood: Use ONLY: "rare", "unlikely", "possible", "likely", "almost_certain"
+  - subtype: Use ONLY: "${settings.classification.observation_types.join('", "')}"
+  - severity: Use ONLY: "${settings.classification.severity_levels.join('", "')}"
+  - likelihood: Use ONLY: "rare", "unlikely", "possible", "likely", "almost_certain"${tagListForPrompt}
 
 Required Output Format (JSON):
 {
   "originalLanguage": "detected language name in English (e.g., 'Arabic', 'English', 'Hindi')",
   "originalText": "the original input text",
-  "translatedText": "English translation (same as original if already English)",
+  "translatedText": "${targetLanguage} translation (same as original if already ${targetLanguage})",
   "translationRequired": boolean,
   "wordCount": number,
   "clarityScore": number (0-100),
@@ -137,13 +180,15 @@ Required Output Format (JSON):
   "ambiguousTerms": ["list in ${targetLanguage}"],
   "missingSections": ["English keys only: equipment, activity"],
   "improvementSuggestions": ["list in ${targetLanguage}"],
-  "subtype": "unsafe_act" | "unsafe_condition" | "safe_act" | "safe_condition",
+  "subtype": one of: "${settings.classification.observation_types.join('", "')}",
   "subtypeConfidence": number (0-100),
-  "severity": "level_1" | "level_2" | "level_3" | "level_4" | "level_5",
+  "severity": one of: "${settings.classification.severity_levels.join('", "')}",
   "severityConfidence": number (0-100),
   "likelihood": "rare" | "unlikely" | "possible" | "likely" | "almost_certain",
   "likelihoodConfidence": number (0-100),
-  "keyRisks": ["list in ${targetLanguage}"]
+  "keyRisks": ["list in ${targetLanguage}"],
+  "positiveNegative": "positive" | "negative",
+  "suggestedTags": ["list of tag names from available tags that match this observation"]
 }`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -215,11 +260,23 @@ Required Output Format (JSON):
       );
     }
 
-    console.log('Analysis complete:', {
+    // Enhance with keyword-based tag matching if AI didn't provide tags
+    if (settings.tagging.enabled && availableTags.length > 0) {
+      const keywordMatchedTags = matchTagsByKeywords(description, availableTags);
+      
+      // Merge AI-suggested tags with keyword-matched tags
+      const aiTags = result.suggestedTags || [];
+      const allTags = [...new Set([...aiTags, ...keywordMatchedTags])];
+      result.suggestedTags = allTags;
+    }
+
+    console.log('[analyze-observation] Analysis complete:', {
       language: result.originalLanguage,
       clarityScore: result.clarityScore,
       subtype: result.subtype,
-      severity: result.severity
+      severity: result.severity,
+      positiveNegative: result.positiveNegative,
+      suggestedTags: result.suggestedTags
     });
 
     return new Response(
