@@ -10,6 +10,7 @@ import { Pencil, Building2, Mail, Phone, MapPin, FolderOpen, Info, Users, Shield
 import { ContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
+import { useContractorSiteRep } from "@/hooks/contractor-management/use-contractor-site-rep";
 import { useSendContractorIdCard } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
@@ -27,6 +28,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { t } = useTranslation();
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
   const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
+  const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
   const sendIdCard = useSendContractorIdCard();
   const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
 
@@ -55,6 +57,14 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
 
   // Use whichever source has data - prefer contractor_safety_officers table
   const safetyOfficers = safetyOfficersFromTable.length > 0 ? safetyOfficersFromTable : workerOfficers;
+  
+  // Site rep: prefer new table, fallback to legacy details
+  const siteRep = siteRepFromTable || (details?.contractor_site_rep_name ? {
+    full_name: details.contractor_site_rep_name,
+    phone: details.contractor_site_rep_phone,
+    email: details.contractor_site_rep_email,
+    mobile_number: details.contractor_site_rep_mobile,
+  } : null);
 
   if (!company) return null;
 
@@ -69,7 +79,11 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   };
 
   const handleResendSiteRepCard = async () => {
-    if (!details?.contractor_site_rep_name || !details?.contractor_site_rep_phone) return;
+    const phone = siteRep?.mobile_number || siteRep?.phone || details?.contractor_site_rep_phone;
+    const name = siteRep?.full_name || details?.contractor_site_rep_name;
+    const email = siteRep?.email || details?.contractor_site_rep_email;
+    
+    if (!name || !phone) return;
     
     setSendingPersonId('site_rep');
     try {
@@ -77,11 +91,11 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
         company_id: company.id,
         tenant_id: company.tenant_id,
         person_type: 'site_rep',
-        person_name: details.contractor_site_rep_name,
-        person_phone: details.contractor_site_rep_phone,
-        person_email: details.contractor_site_rep_email || undefined,
+        person_name: name,
+        person_phone: phone,
+        person_email: email || undefined,
         company_name: company.company_name,
-        contract_end_date: details.contract_end_date || undefined,
+        contract_end_date: details?.contract_end_date || undefined,
       });
     } finally {
       setSendingPersonId(null);
@@ -260,17 +274,22 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                 <CardTitle className="text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
                   {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+                  {siteRep && (
+                    <Badge variant="default" className="ms-auto text-xs">
+                      {t("common.active", "Active")}
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {details?.contractor_site_rep_name ? (
+                {siteRep ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {details.contractor_site_rep_name}
+                        {siteRep.full_name}
                       </div>
-                      {details.contractor_site_rep_phone && (
+                      {(siteRep.phone || siteRep.mobile_number) && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -286,17 +305,24 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         </Button>
                       )}
                     </div>
-                    {details.contractor_site_rep_phone && (
-                      <div className="flex items-center gap-2 ps-6">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        {details.contractor_site_rep_phone}
-                      </div>
+                    {(siteRep.mobile_number || siteRep.phone) && (
+                      <button
+                        type="button"
+                        onClick={() => window.location.href = `tel:${siteRep.mobile_number || siteRep.phone}`}
+                        className="flex items-center gap-2 ps-6 text-primary hover:underline"
+                      >
+                        <Phone className="h-4 w-4" />
+                        {siteRep.mobile_number || siteRep.phone}
+                      </button>
                     )}
-                    {details.contractor_site_rep_email && (
-                      <div className="flex items-center gap-2 ps-6">
+                    {siteRep.email && (
+                      <a
+                        href={`mailto:${siteRep.email}`}
+                        className="flex items-center gap-2 ps-6 hover:text-primary"
+                      >
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        {details.contractor_site_rep_email}
-                      </div>
+                        {siteRep.email}
+                      </a>
                     )}
                   </>
                 ) : (
