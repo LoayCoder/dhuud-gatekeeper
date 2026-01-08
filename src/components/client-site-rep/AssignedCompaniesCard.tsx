@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import type { ClientSiteRepCompany } from "@/hooks/contractor-management/use-client-site-rep-data";
 
@@ -16,11 +17,25 @@ const statusColors: Record<string, string> = {
   suspended: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   expired: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   pending: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  blacklisted: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
 export function AssignedCompaniesCard({ companies, onViewAll }: AssignedCompaniesCardProps) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isRTL = i18n.dir() === "rtl";
+
+  const handleCompanyClick = (companyId: string) => {
+    navigate(`/contractors/companies/${companyId}`);
+  };
+
+  const handleViewAll = () => {
+    if (onViewAll) {
+      onViewAll();
+    } else {
+      navigate("/contractors/companies");
+    }
+  };
 
   return (
     <Card>
@@ -29,8 +44,8 @@ export function AssignedCompaniesCard({ companies, onViewAll }: AssignedCompanie
           <Building2 className="h-5 w-5 text-primary" />
           {t("clientSiteRep.myCompanies", "My Companies")} ({companies.length})
         </CardTitle>
-        {companies.length > 3 && onViewAll && (
-          <Button variant="ghost" size="sm" onClick={onViewAll}>
+        {companies.length > 3 && (
+          <Button variant="ghost" size="sm" onClick={handleViewAll}>
             {t("common.viewAll", "View All")}
           </Button>
         )}
@@ -44,7 +59,11 @@ export function AssignedCompaniesCard({ companies, onViewAll }: AssignedCompanie
           companies.slice(0, 3).map((company) => (
             <div
               key={company.id}
-              className="border rounded-lg p-3 space-y-2 hover:bg-muted/50 transition-colors"
+              className="border rounded-lg p-3 space-y-2 hover:bg-muted/50 transition-colors cursor-pointer"
+              onClick={() => handleCompanyClick(company.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleCompanyClick(company.id)}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -55,12 +74,10 @@ export function AssignedCompaniesCard({ companies, onViewAll }: AssignedCompanie
                     {t(`contractors.status.${company.status}`, company.status)}
                   </Badge>
                 </div>
-                {company.total_workers && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    {company.total_workers}
-                  </div>
-                )}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  {company.total_workers}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
