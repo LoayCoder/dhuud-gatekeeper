@@ -585,6 +585,8 @@ export default function IncidentReport() {
       location_formatted: locationAddress?.formatted_address || undefined,
       // Include active major event if detected
       special_event_id: activeEventId || undefined,
+      // Report against contractor
+      related_contractor_company_id: !isObs && values.is_against_contractor ? values.related_contractor_company_id : undefined,
     };
 
     createIncident.mutate(formData, {
