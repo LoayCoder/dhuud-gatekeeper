@@ -190,15 +190,25 @@ ${settings.damage_extraction.auto_fill_category ? '- Categorize the damage type'
 - Extract estimated cost if mentioned (in numbers only)`
       : '';
 
-    const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
-Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety).
-Also extract injury and damage details from the description.
+const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
+Your tasks:
+1. Translate non-English input to English if needed
+2. Professionally rewrite the title and description for clarity
+3. Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety)
+4. Extract injury and damage details from the description
+5. Assess the clarity/quality of the description
 
 CRITICAL LANGUAGE RULES:
 - You MUST respond ONLY in English or Arabic
 - The input appears to be in ${responseLanguage} - respond in ${responseLanguage}
 - NEVER respond in any other language (no Telugu, Hindi, Urdu, Tamil, or any other script)
-- All text fields (injuryDescription, damageDescription, reasoning) MUST be in ${responseLanguage}
+- All text fields (injuryDescription, damageDescription, reasoning, rewrittenDescription) MUST be in ${responseLanguage}
+
+REWRITING GUIDELINES:
+- Keep the original meaning intact
+- Use professional HSSE terminology
+- Make the description clear and actionable
+- Remove grammatical errors and improve readability
 
 EVENT CATEGORIES:
 - "observation": Unsafe acts or conditions observed but no actual harm occurred. Also includes positive safety observations (safe acts/conditions).
@@ -237,20 +247,24 @@ Be precise and consistent in your classifications.`;
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Analyze this HSSE event description and classify it:
+            content: `Analyze this HSSE event and provide a professionally rewritten version plus classification:
 
-"${description}"
+TITLE: "${body.title || ''}"
+DESCRIPTION: "${description}"
 
-Determine:
-1. Event type (observation or incident)
-2. If incident: the incident type category
-3. Specific subtype within that category
-4. Severity level
-5. Key risks identified
-6. Any injuries mentioned (count, description, type)
-7. Any damage mentioned (description, estimated cost)
-8. Suggest 1-5 immediate corrective actions that should/could have been taken
-9. Suggested tags from the available list`
+Tasks:
+1. Rewrite the title professionally (keep it concise, under 120 chars)
+2. Rewrite the description professionally (improve clarity, grammar, use HSSE terminology)
+3. Assess clarity quality (0-100 score)
+4. Event type (observation or incident)
+5. If incident: the incident type category
+6. Specific subtype within that category
+7. Severity level
+8. Key risks identified
+9. Any injuries mentioned (count, description, type)
+10. Any damage mentioned (description, estimated cost)
+11. Suggest 1-5 immediate corrective actions that should/could have been taken
+12. Suggested tags from the available list`
           }
         ],
         tools: [
@@ -258,10 +272,22 @@ Determine:
             type: "function",
             function: {
               name: "classify_incident",
-              description: "Classify an HSSE event with type, severity, risk assessment, and extract injury/damage details",
+              description: "Rewrite and classify an HSSE event with type, severity, risk assessment, extract injury/damage details, and assess quality",
               parameters: {
                 type: "object",
                 properties: {
+                  rewrittenTitle: {
+                    type: "string",
+                    description: "Professionally rewritten title (concise, under 120 chars, proper HSSE terminology). MUST be in English or Arabic ONLY."
+                  },
+                  rewrittenDescription: {
+                    type: "string",
+                    description: "Professionally rewritten description with improved clarity, grammar, and HSSE terminology. MUST be in English or Arabic ONLY."
+                  },
+                  clarityScore: {
+                    type: "number",
+                    description: "Quality/clarity score of the original description (0-100). 0-40=poor, 40-70=fair, 70-85=good, 85-100=excellent"
+                  },
                   eventType: {
                     type: "string",
                     enum: ["observation", "incident"],
@@ -337,7 +363,7 @@ Determine:
                     description: "List of tag names from the available tags that match this incident"
                   }
                 },
-                required: ["eventType", "subtype", "severity", "keyRisks", "confidence", "hasInjury", "hasDamage"],
+                required: ["rewrittenTitle", "rewrittenDescription", "clarityScore", "eventType", "subtype", "severity", "keyRisks", "confidence", "hasInjury", "hasDamage"],
                 additionalProperties: false
               }
             }
@@ -393,6 +419,11 @@ Determine:
 
     return new Response(
       JSON.stringify({
+        // Rewritten content
+        rewrittenTitle: result.rewrittenTitle || null,
+        rewrittenDescription: result.rewrittenDescription || null,
+        clarityScore: result.clarityScore || 75,
+        // Classification
         eventType: result.eventType,
         incidentType: result.incidentType || null,
         subtype: result.subtype,
@@ -400,6 +431,7 @@ Determine:
         keyRisks: result.keyRisks || [],
         confidence: result.confidence || 0.8,
         reasoning: result.reasoning,
+        // Injury/Damage
         hasInjury: result.hasInjury || false,
         injuryCount: result.injuryCount || null,
         injuryType: result.injuryType || null,
@@ -407,6 +439,7 @@ Determine:
         hasDamage: result.hasDamage || false,
         damageDescription: result.damageDescription || null,
         estimatedCost: result.estimatedCost || null,
+        // Actions & Tags
         immediateActions: result.immediateActions || [],
         suggestedTags: result.suggestedTags || []
       }),
