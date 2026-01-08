@@ -487,7 +487,7 @@ export function AppSidebar() {
       title: t('navigation.contractors', 'Contractors'),
       icon: Briefcase,
       menuCode: 'contractors_module',
-      isActive: location.pathname.startsWith("/contractors"),
+      isActive: location.pathname.startsWith("/contractors") || location.pathname.startsWith("/client-site-rep"),
       items: [
         {
           title: t('contractors.nav.dashboard', 'Dashboard'),
@@ -536,6 +536,12 @@ export function AppSidebar() {
           url: "/contractors/settings",
           icon: Settings2,
           menuCode: 'contractor_settings',
+        },
+        {
+          title: t('contractors.nav.siteRepDashboard', 'Site Rep Dashboard'),
+          url: "/client-site-rep",
+          icon: Building2,
+          menuCode: 'client_site_rep_dashboard',
         },
       ],
     },
