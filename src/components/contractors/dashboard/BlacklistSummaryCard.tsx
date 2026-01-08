@@ -27,23 +27,17 @@ export function BlacklistSummaryCard({ total, recentCount }: BlacklistSummaryCar
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch blacklist entries
+  // Fetch blacklist entries - use correct columns: full_name, reason, severity, listed_at, entity_type
   const { data: entries = [] } = useQuery({
     queryKey: ["contractor-dashboard-blacklist", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("security_blacklist")
-        .select(`
-          id, 
-          reason, 
-          blacklist_type, 
-          created_at,
-          worker:contractor_workers(full_name, employee_id)
-        `)
+        .select("id, full_name, reason, severity, listed_at, entity_type")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false })
+        .order("listed_at", { ascending: false })
         .limit(50);
       return data || [];
     },
@@ -65,7 +59,7 @@ export function BlacklistSummaryCard({ total, recentCount }: BlacklistSummaryCar
 
   const filteredEntries = useMemo(() => {
     if (activeFilter === "recent") {
-      return entries.filter((e) => isAfter(new Date(e.created_at), sevenDaysAgo));
+      return entries.filter((e) => e.listed_at && isAfter(new Date(e.listed_at), sevenDaysAgo));
     }
     return entries;
   }, [entries, activeFilter, sevenDaysAgo]);
@@ -158,7 +152,7 @@ export function BlacklistSummaryCard({ total, recentCount }: BlacklistSummaryCar
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
-                          {entry.worker?.full_name || t("common.unknown", "Unknown")}
+                          {entry.full_name || t("common.unknown", "Unknown")}
                         </p>
                         <p className="text-sm text-muted-foreground truncate">
                           {entry.reason}
@@ -166,11 +160,13 @@ export function BlacklistSummaryCard({ total, recentCount }: BlacklistSummaryCar
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge variant="destructive" className="text-xs">
-                          {entry.blacklist_type || "permanent"}
+                          {entry.severity || entry.entity_type || "permanent"}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(entry.created_at), "dd/MM/yyyy")}
-                        </span>
+                        {entry.listed_at && (
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(entry.listed_at), "dd/MM/yyyy")}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -36,23 +36,14 @@ export function RiskAssessmentCard({
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch risk assessments
+  // Fetch risk assessments - use correct columns: activity_name, assessment_number, overall_risk_rating, valid_until
   const { data: assessments = [] } = useQuery({
     queryKey: ["contractor-dashboard-risk-assessments", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("risk_assessments")
-        .select(`
-          id, 
-          reference_id, 
-          title, 
-          status, 
-          risk_level, 
-          expiry_date,
-          assessment_date,
-          site:sites(name)
-        `)
+        .select("id, assessment_number, activity_name, status, overall_risk_rating, valid_until, assessment_date")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
         .order("assessment_date", { ascending: false })
@@ -79,8 +70,8 @@ export function RiskAssessmentCard({
     if (!activeFilter) return assessments;
     
     return assessments.filter((r) => {
-      const isExpiredByDate = r.expiry_date && isBefore(new Date(r.expiry_date), now);
-      const isHighRisk = r.risk_level === "high" || r.risk_level === "critical";
+      const isExpiredByDate = r.valid_until && isBefore(new Date(r.valid_until), now);
+      const isHighRisk = r.overall_risk_rating === "high" || r.overall_risk_rating === "critical";
       
       switch (activeFilter) {
         case "approved":
@@ -134,7 +125,8 @@ export function RiskAssessmentCard({
     },
   ];
 
-  const getRiskBadge = (riskLevel: string) => {
+  const getRiskBadge = (riskLevel: string | null) => {
+    if (!riskLevel) return null;
     const riskColors: Record<string, string> = {
       critical: "bg-destructive text-destructive-foreground",
       high: "bg-destructive/80 text-destructive-foreground",
@@ -148,8 +140,8 @@ export function RiskAssessmentCard({
     );
   };
 
-  const getStatusBadge = (status: string, expiryDate: string | null) => {
-    const isExpiredByDate = expiryDate && isBefore(new Date(expiryDate), now);
+  const getStatusBadge = (status: string | null, validUntil: string | null) => {
+    const isExpiredByDate = validUntil && isBefore(new Date(validUntil), now);
     
     if (status === "expired" || isExpiredByDate) {
       return <Badge variant="destructive">{t("common.expired", "Expired")}</Badge>;
@@ -230,17 +222,17 @@ export function RiskAssessmentCard({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{assessment.title}</p>
+                        <p className="font-medium truncate">{assessment.activity_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {assessment.reference_id} • {assessment.site?.name || "—"}
+                          {assessment.assessment_number}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {assessment.expiry_date && `Expires: ${format(new Date(assessment.expiry_date), "dd/MM/yyyy")}`}
+                          {assessment.valid_until && `Expires: ${format(new Date(assessment.valid_until), "dd/MM/yyyy")}`}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        {getStatusBadge(assessment.status, assessment.expiry_date)}
-                        {assessment.risk_level && getRiskBadge(assessment.risk_level)}
+                        {getStatusBadge(assessment.status, assessment.valid_until)}
+                        {getRiskBadge(assessment.overall_risk_rating)}
                       </div>
                     </div>
                   </div>

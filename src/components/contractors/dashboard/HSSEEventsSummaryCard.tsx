@@ -34,17 +34,17 @@ export function HSSEEventsSummaryCard({
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch incidents for inline display
+  // Fetch incidents for inline display - use occurred_at instead of incident_date
   const { data: incidents = [] } = useQuery({
     queryKey: ["contractor-dashboard-incidents", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("incidents")
-        .select("id, reference_id, title, status, incident_type, severity, incident_date, site:sites(name)")
+        .select("id, reference_id, title, status, incident_type, severity, occurred_at, site_id")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
-        .order("incident_date", { ascending: false })
+        .order("occurred_at", { ascending: false })
         .limit(50);
       return data || [];
     },
@@ -75,7 +75,7 @@ export function HSSEEventsSummaryCard({
       closed: closedStatuses,
     };
     
-    return incidents.filter((i) => statusMap[activeFilter]?.includes(i.status));
+    return incidents.filter((i) => statusMap[activeFilter]?.includes(i.status || ""));
   }, [incidents, activeFilter]);
 
   const visibleIncidents = filteredIncidents.slice(0, visibleCount);
@@ -107,17 +107,18 @@ export function HSSEEventsSummaryCard({
     },
   ];
 
-  const getStatusBadge = (status: string) => {
-    if (openStatuses.includes(status)) {
+  const getStatusBadge = (status: string | null) => {
+    if (openStatuses.includes(status || "")) {
       return <Badge variant="destructive">{t("common.open", "Open")}</Badge>;
     }
-    if (investigatingStatuses.includes(status)) {
+    if (investigatingStatuses.includes(status || "")) {
       return <Badge variant="outline" className="border-warning text-warning">{t("common.investigating", "Investigating")}</Badge>;
     }
     return <Badge variant="outline" className="border-success text-success">{t("common.closed", "Closed")}</Badge>;
   };
 
-  const getSeverityBadge = (severity: string) => {
+  const getSeverityBadge = (severity: string | null) => {
+    if (!severity) return null;
     const severityColors: Record<string, string> = {
       critical: "bg-destructive text-destructive-foreground",
       high: "bg-destructive/80 text-destructive-foreground",
@@ -203,15 +204,15 @@ export function HSSEEventsSummaryCard({
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{incident.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {incident.reference_id} • {incident.site?.name || "—"}
+                          {incident.reference_id}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {incident.incident_date && format(new Date(incident.incident_date), "dd/MM/yyyy")}
+                          {incident.occurred_at && format(new Date(incident.occurred_at), "dd/MM/yyyy")}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         {getStatusBadge(incident.status)}
-                        {incident.severity && getSeverityBadge(incident.severity)}
+                        {getSeverityBadge(incident.severity)}
                       </div>
                     </div>
                   </div>
