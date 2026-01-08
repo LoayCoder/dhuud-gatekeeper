@@ -11,7 +11,7 @@ export interface ExportColumn {
 /**
  * Export data to CSV format
  */
-export function exportToCSV<T extends Record<string, unknown>>(
+export function exportToCSV<T extends object>(
   data: T[],
   filename: string,
   columns: ExportColumn[]
@@ -22,7 +22,7 @@ export function exportToCSV<T extends Record<string, unknown>>(
   // Create CSV rows
   const rows = data.map(row => {
     return columns.map(col => {
-      const value = row[col.key];
+      const value = (row as Record<string, unknown>)[col.key];
       const formatted = col.formatter ? col.formatter(value) : String(value ?? '');
       // Escape quotes and wrap in quotes
       return `"${formatted.replace(/"/g, '""')}"`;
@@ -41,7 +41,7 @@ export function exportToCSV<T extends Record<string, unknown>>(
 /**
  * Export data to Excel (XLSX) format using simple XML structure
  */
-export function exportToExcel<T extends Record<string, unknown>>(
+export function exportToExcel<T extends object>(
   data: T[],
   filename: string,
   columns: ExportColumn[]
@@ -74,7 +74,7 @@ export function exportToExcel<T extends Record<string, unknown>>(
   // Create data rows
   const dataRows = data.map(row => {
     const cells = columns.map(col => {
-      const value = row[col.key];
+      const value = (row as Record<string, unknown>)[col.key];
       const formatted = col.formatter ? col.formatter(value) : String(value ?? '');
       return `<Cell><Data ss:Type="String">${escapeXml(formatted)}</Data></Cell>`;
     }).join('\n        ');
