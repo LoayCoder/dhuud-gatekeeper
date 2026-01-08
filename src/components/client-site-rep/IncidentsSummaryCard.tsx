@@ -1,4 +1,4 @@
-import { AlertTriangle, FileWarning, Search, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CircleDot, Search, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -16,12 +16,17 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
     navigate(`/incidents?status=${status}`);
   };
 
+  const handleCardClick = () => {
+    navigate("/incidents");
+  };
+
   const stats = [
     {
       label: t("clientSiteRep.open", "Open"),
       value: summary.open,
-      icon: FileWarning,
+      icon: CircleDot,
       color: "text-red-600 dark:text-red-400",
+      bg: "bg-red-100 dark:bg-red-900/30",
       status: "open",
     },
     {
@@ -29,6 +34,7 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
       value: summary.under_investigation,
       icon: Search,
       color: "text-yellow-600 dark:text-yellow-400",
+      bg: "bg-yellow-100 dark:bg-yellow-900/30",
       status: "investigation_in_progress",
     },
     {
@@ -36,16 +42,20 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
       value: summary.closed,
       icon: CheckCircle2,
       color: "text-green-600 dark:text-green-400",
+      bg: "bg-green-100 dark:bg-green-900/30",
       status: "closed",
     },
   ];
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader 
+        className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg"
+        onClick={handleCardClick}
+      >
         <CardTitle className="flex items-center gap-2 text-lg">
           <AlertTriangle className="h-5 w-5 text-primary" />
-          {t("clientSiteRep.incidents", "Incidents")}
+          {t("clientSiteRep.hsseEvents", "HSSE Events")}
           <span className="text-muted-foreground font-normal">({summary.total})</span>
         </CardTitle>
       </CardHeader>
@@ -54,15 +64,15 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+              className={`${stat.bg} rounded-lg p-3 text-center cursor-pointer hover:opacity-80 transition-opacity`}
               onClick={() => handleStatusClick(stat.status)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && handleStatusClick(stat.status)}
             >
-              <stat.icon className={`h-6 w-6 ${stat.color} mb-1`} />
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground text-center">{stat.label}</p>
+              <stat.icon className={`h-5 w-5 mx-auto ${stat.color}`} />
+              <p className="text-2xl font-bold mt-1">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
             </div>
           ))}
         </div>

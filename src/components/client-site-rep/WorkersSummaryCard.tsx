@@ -1,4 +1,4 @@
-import { Users, CheckCircle, Clock, XCircle, Ban } from "lucide-react";
+import { Users, CheckCircle, Clock, XCircle, Ban, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -6,15 +6,25 @@ import type { ClientSiteRepWorkerSummary } from "@/hooks/contractor-management/u
 
 interface WorkersSummaryCardProps {
   summary: ClientSiteRepWorkerSummary;
+  safetyOfficerCount?: number;
 }
 
-export function WorkersSummaryCard({ summary }: WorkersSummaryCardProps) {
+export function WorkersSummaryCard({ summary, safetyOfficerCount = 0 }: WorkersSummaryCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleStatusClick = (status: string) => {
     navigate(`/contractors/workers?status=${status}`);
   };
+
+  const handleCardClick = () => {
+    navigate("/contractors/workers");
+  };
+
+  // Calculate safety ratio
+  const safetyRatio = safetyOfficerCount > 0 && summary.total > 0
+    ? Math.ceil(summary.total / safetyOfficerCount)
+    : 0;
 
   const stats = [
     {
@@ -53,14 +63,17 @@ export function WorkersSummaryCard({ summary }: WorkersSummaryCardProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader 
+        className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg"
+        onClick={handleCardClick}
+      >
         <CardTitle className="flex items-center gap-2 text-lg">
           <Users className="h-5 w-5 text-primary" />
           {t("clientSiteRep.workers", "Workers")}
           <span className="text-muted-foreground font-normal">({summary.total})</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat) => (
             <div
@@ -78,6 +91,30 @@ export function WorkersSummaryCard({ summary }: WorkersSummaryCardProps) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Safety Officer Ratio */}
+        <div className="border-t pt-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="font-medium">
+              {t("clientSiteRep.safetyCoverage", "Safety Coverage")}:
+            </span>
+            {safetyOfficerCount > 0 ? (
+              <span className={safetyRatio > 25 ? "text-destructive font-medium" : "text-green-600 dark:text-green-400 font-medium"}>
+                1 : {safetyRatio}
+              </span>
+            ) : (
+              <span className="text-destructive font-medium">
+                {t("clientSiteRep.noSafetyOfficerAssigned", "No Safety Officer")}
+              </span>
+            )}
+          </div>
+          {safetyOfficerCount > 0 && (
+            <p className="text-xs text-muted-foreground mt-1 ps-6">
+              ({safetyOfficerCount} {t("clientSiteRep.safetyOfficers", "Safety Officers")} : {summary.total} {t("clientSiteRep.workers", "Workers")})
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

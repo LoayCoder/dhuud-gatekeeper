@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { Ticket, Plus, Search, Filter, Clock, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +28,22 @@ import { useContractorProjects } from "@/hooks/contractor-management/use-contrac
 
 export default function GatePasses() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const initialStatus = searchParams.get("status") || "all";
+  
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  
+  // Sync status filter with URL params
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    if (urlStatus && urlStatus !== statusFilter) {
+      setStatusFilter(urlStatus);
+    }
+  }, [searchParams]);
 
   const { data: gatePasses = [], isLoading } = useMaterialGatePasses({
     search: search || undefined,
