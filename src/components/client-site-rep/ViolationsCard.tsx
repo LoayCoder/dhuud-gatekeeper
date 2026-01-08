@@ -1,7 +1,9 @@
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import type { ClientSiteRepViolation } from "@/hooks/contractor-management/use-client-site-rep-data";
 
@@ -25,15 +27,30 @@ const statusColors: Record<string, string> = {
 
 export function ViolationsCard({ violations }: ViolationsCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleViewAll = () => {
+    navigate("/contractors/violations");
+  };
+
+  const handleViolationClick = (violationId: string) => {
+    navigate(`/contractors/violations/${violationId}`);
+  };
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <ShieldAlert className="h-5 w-5 text-primary" />
           {t("clientSiteRep.recentViolations", "Recent Violations")}
           <span className="text-muted-foreground font-normal">({violations.length})</span>
         </CardTitle>
+        {violations.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={handleViewAll}>
+            {t("common.viewAll", "View All")}
+            <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {violations.length === 0 ? (
@@ -45,7 +62,11 @@ export function ViolationsCard({ violations }: ViolationsCardProps) {
             {violations.map((violation) => (
               <div
                 key={violation.id}
-                className="flex items-start justify-between gap-2 p-2 rounded-lg bg-muted/50"
+                className="flex items-start justify-between gap-2 p-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                onClick={() => handleViolationClick(violation.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handleViolationClick(violation.id)}
               >
                 <div className="space-y-1">
                   <p className="font-medium text-sm">{violation.violation_type}</p>

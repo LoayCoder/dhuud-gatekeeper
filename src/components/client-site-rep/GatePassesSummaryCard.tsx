@@ -1,6 +1,7 @@
 import { Ticket, Clock, CheckCircle, XCircle, TimerOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { ClientSiteRepGatePassSummary } from "@/hooks/contractor-management/use-client-site-rep-data";
 
 interface GatePassesSummaryCardProps {
@@ -9,6 +10,11 @@ interface GatePassesSummaryCardProps {
 
 export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleStatusClick = (status: string) => {
+    navigate(`/contractors/gate-passes?status=${status}`);
+  };
 
   const stats = [
     {
@@ -17,6 +23,7 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
       icon: Clock,
       color: "text-yellow-600 dark:text-yellow-400",
       bg: "bg-yellow-100 dark:bg-yellow-900/30",
+      status: "pending",
     },
     {
       label: t("clientSiteRep.approved", "Approved"),
@@ -24,6 +31,7 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
       icon: CheckCircle,
       color: "text-green-600 dark:text-green-400",
       bg: "bg-green-100 dark:bg-green-900/30",
+      status: "approved",
     },
     {
       label: t("clientSiteRep.rejected", "Rejected"),
@@ -31,6 +39,7 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
       icon: XCircle,
       color: "text-red-600 dark:text-red-400",
       bg: "bg-red-100 dark:bg-red-900/30",
+      status: "rejected",
     },
     {
       label: t("clientSiteRep.expired", "Expired"),
@@ -38,6 +47,7 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
       icon: TimerOff,
       color: "text-gray-600 dark:text-gray-400",
       bg: "bg-gray-100 dark:bg-gray-900/30",
+      status: "expired",
     },
   ];
 
@@ -55,7 +65,11 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className={`${stat.bg} rounded-lg p-3 flex items-center gap-3`}
+              className={`${stat.bg} rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity`}
+              onClick={() => handleStatusClick(stat.status)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleStatusClick(stat.status)}
             >
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
               <div>

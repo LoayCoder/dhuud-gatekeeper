@@ -1,6 +1,7 @@
 import { AlertTriangle, FileWarning, Search, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { ClientSiteRepIncidentSummary } from "@/hooks/contractor-management/use-client-site-rep-data";
 
 interface IncidentsSummaryCardProps {
@@ -9,6 +10,11 @@ interface IncidentsSummaryCardProps {
 
 export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleStatusClick = (status: string) => {
+    navigate(`/incidents?status=${status}`);
+  };
 
   const stats = [
     {
@@ -16,18 +22,21 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
       value: summary.open,
       icon: FileWarning,
       color: "text-red-600 dark:text-red-400",
+      status: "open",
     },
     {
       label: t("clientSiteRep.underInvestigation", "Under Investigation"),
       value: summary.under_investigation,
       icon: Search,
       color: "text-yellow-600 dark:text-yellow-400",
+      status: "investigation_in_progress",
     },
     {
       label: t("clientSiteRep.closed", "Closed"),
       value: summary.closed,
       icon: CheckCircle2,
       color: "text-green-600 dark:text-green-400",
+      status: "closed",
     },
   ];
 
@@ -45,7 +54,11 @@ export function IncidentsSummaryCard({ summary }: IncidentsSummaryCardProps) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50"
+              className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+              onClick={() => handleStatusClick(stat.status)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleStatusClick(stat.status)}
             >
               <stat.icon className={`h-6 w-6 ${stat.color} mb-1`} />
               <p className="text-2xl font-bold">{stat.value}</p>
