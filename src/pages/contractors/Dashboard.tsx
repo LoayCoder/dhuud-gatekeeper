@@ -13,6 +13,7 @@ import { PTWStatusCard } from "@/components/contractors/dashboard/PTWStatusCard"
 import { RiskAssessmentCard } from "@/components/contractors/dashboard/RiskAssessmentCard";
 import { OnsiteWorkersCard } from "@/components/contractors/dashboard/OnsiteWorkersCard";
 import { ProjectStatusCard } from "@/components/contractors/dashboard/ProjectStatusCard";
+import { CompanyStatusChart } from "@/components/contractors/CompanyStatusChart";
 
 export default function ContractorDashboard() {
   const { t } = useTranslation();
@@ -163,7 +164,7 @@ export default function ContractorDashboard() {
       {/* Section 5: Workforce & Projects */}
       <section className="space-y-3">
         <SectionHeader title={t("contractors.dashboard.workforceProjects", "Workforce & Projects")} />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <OnsiteWorkersCard count={stats?.onsiteWorkers?.count ?? 0} />
           <ProjectStatusCard
             active={stats?.projects?.active ?? 0}
@@ -171,6 +172,16 @@ export default function ContractorDashboard() {
             completed={stats?.projects?.completed ?? 0}
             suspended={stats?.projects?.suspended ?? 0}
             total={stats?.projects?.total ?? 0}
+          />
+          <CompanyStatusChart
+            data={[
+              { name: t("contractors.status.active", "Active"), value: stats?.companies?.active ?? 0, fill: "hsl(var(--success))" },
+              { name: t("contractors.status.suspended", "Suspended"), value: stats?.companies?.suspended ?? 0, fill: "hsl(var(--warning))" },
+              { name: t("contractors.status.inactive", "Inactive"), value: stats?.companies?.inactive ?? 0, fill: "hsl(var(--muted-foreground))" },
+              { name: t("contractors.status.expired", "Expired"), value: stats?.companies?.expired ?? 0, fill: "hsl(var(--destructive))" },
+            ].filter(d => d.value > 0)}
+            totalCompanies={stats?.companies?.total ?? 0}
+            isLoading={isLoading}
           />
         </div>
       </section>
