@@ -13,8 +13,11 @@ import { useBranches, useDepartments, useSections, useClientRepresentatives, use
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
 import { useSendIdCardsForCompany } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { useSyncPersonnelToWorkers } from "@/hooks/contractor-management/use-sync-personnel-to-workers";
-import { SiteRepWorkerForm, SiteRepFormData } from "./SiteRepWorkerForm";
-import { SafetyOfficerFullFormList, SafetyOfficerFullFormData } from "./SafetyOfficerFullForm";
+import { SiteRepFormData } from "./SiteRepWorkerForm";
+import { SafetyOfficerFullFormData } from "./SafetyOfficerFullForm";
+import { SiteRepLockedCard } from "./SiteRepLockedCard";
+import { SafetyOfficerCards } from "./SafetyOfficerCards";
+import { useContractorSiteRep } from "@/hooks/contractor-management/use-contractor-site-rep";
 import { useAuth } from "@/contexts/AuthContext";
 import { Building, Users, Briefcase, Info, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +103,9 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   // Fetch full company details (includes all site rep columns) when editing
   const { data: companyDetails } = useContractorCompanyDetails(company?.id ?? null);
   
+  // Fetch site rep from new dedicated table
+  const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
+  
   // Fallback: fetch safety officers from contractor_workers if contractor_safety_officers is empty
   const { data: workerOfficers = [] } = useQuery({
     queryKey: ["worker-safety-officers", company?.id],
@@ -138,16 +144,30 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         assigned_department_id: companyDetails.assigned_department_id || "",
         assigned_section_id: companyDetails.assigned_section_id || "",
       });
-      // Load existing site rep data (including new columns from companyDetails)
-      setSiteRepData({
-        full_name: companyDetails.contractor_site_rep_name || "",
-        national_id: companyDetails.contractor_site_rep_national_id || "",
-        mobile_number: companyDetails.contractor_site_rep_mobile || "",
-        nationality: companyDetails.contractor_site_rep_nationality || "",
-        photo_path: companyDetails.contractor_site_rep_photo || null,
-        phone: companyDetails.contractor_site_rep_phone || "",
-        email: companyDetails.contractor_site_rep_email || "",
-      });
+      
+      // Prefer site rep from new dedicated table, fallback to company details
+      if (siteRepFromTable) {
+        setSiteRepData({
+          full_name: siteRepFromTable.full_name || "",
+          national_id: siteRepFromTable.national_id || "",
+          mobile_number: siteRepFromTable.mobile_number || "",
+          nationality: siteRepFromTable.nationality || "",
+          photo_path: siteRepFromTable.photo_path || null,
+          phone: siteRepFromTable.phone || "",
+          email: siteRepFromTable.email || "",
+        });
+      } else {
+        // Fallback to legacy columns in contractor_companies
+        setSiteRepData({
+          full_name: companyDetails.contractor_site_rep_name || "",
+          national_id: companyDetails.contractor_site_rep_national_id || "",
+          mobile_number: companyDetails.contractor_site_rep_mobile || "",
+          nationality: companyDetails.contractor_site_rep_nationality || "",
+          photo_path: companyDetails.contractor_site_rep_photo || null,
+          phone: companyDetails.contractor_site_rep_phone || "",
+          email: companyDetails.contractor_site_rep_email || "",
+        });
+      }
       setCurrentStep("basic");
     } else if (!open) {
       setFormData(initialFormData);
@@ -155,7 +175,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       setSafetyOfficers([]);
       setCurrentStep("basic");
     }
-  }, [companyDetails, open]);
+  }, [companyDetails, siteRepFromTable, open]);
 
   // Load existing safety officers when editing - with fallback to contractor_workers
   useEffect(() => {
@@ -532,14 +552,15 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
 
             {/* Personnel Tab */}
             <TabsContent value="personnel" className="mt-4 space-y-6">
-              {/* Contractor Site Representative - Full Form */}
-              <SiteRepWorkerForm 
+              {/* Contractor Site Representative - Locked Card with Edit */}
+              <SiteRepLockedCard 
                 data={siteRepData}
                 onChange={setSiteRepData}
+                isNew={!isEditing}
               />
 
-              {/* Contractor Safety Officers List - Full Form */}
-              <SafetyOfficerFullFormList 
+              {/* Contractor Safety Officers - Cards with Edit/Deactivate */}
+              <SafetyOfficerCards 
                 officers={safetyOfficers} 
                 onChange={setSafetyOfficers} 
               />

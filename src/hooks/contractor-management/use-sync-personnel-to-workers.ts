@@ -16,42 +16,103 @@ export function useSyncPersonnelToWorkers() {
 
   return useMutation({
     mutationFn: async ({ companyId, tenantId, siteRep, safetyOfficers }: SyncPersonnelParams) => {
-      const results: { siteRepWorkerId?: string; officerWorkerIds: string[] } = {
+      const results: { siteRepWorkerId?: string; siteRepId?: string; officerWorkerIds: string[] } = {
         officerWorkerIds: [],
       };
 
-      // Sync Site Representative to contractor_workers
+      // Sync Site Representative to BOTH contractor_site_representatives AND contractor_workers
       if (siteRep && siteRep.full_name && siteRep.national_id) {
-        // Check if worker with this national_id already exists
-        const { data: existingSiteRep } = await supabase
-          .from("contractor_workers")
+        // 1. Sync to contractor_site_representatives table (new primary source)
+        const { data: existingSiteRepRecord } = await supabase
+          .from("contractor_site_representatives")
           .select("id")
-          .eq("tenant_id", tenantId)
-          .eq("national_id", siteRep.national_id)
+          .eq("company_id", companyId)
           .is("deleted_at", null)
           .maybeSingle();
 
-        if (existingSiteRep) {
+        if (existingSiteRepRecord) {
+          // Update existing site rep record
+          const { error: updateError } = await supabase
+            .from("contractor_site_representatives")
+            .update({
+              full_name: siteRep.full_name,
+              national_id: siteRep.national_id,
+              mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
+              phone: siteRep.phone || null,
+              email: siteRep.email || null,
+              nationality: siteRep.nationality || null,
+              photo_path: siteRep.photo_path,
+              status: 'active',
+            })
+            .eq("id", existingSiteRepRecord.id);
+
+          if (updateError) {
+            console.error("[useSyncPersonnelToWorkers] Error updating site rep record:", updateError);
+          } else {
+            results.siteRepId = existingSiteRepRecord.id;
+          }
+        } else {
+          // Create new site rep record
+          const { data: newSiteRepRecord, error: insertError } = await supabase
+            .from("contractor_site_representatives")
+            .insert({
+              tenant_id: tenantId,
+              company_id: companyId,
+              full_name: siteRep.full_name,
+              national_id: siteRep.national_id,
+              mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
+              phone: siteRep.phone || null,
+              email: siteRep.email || null,
+              nationality: siteRep.nationality || null,
+              photo_path: siteRep.photo_path,
+              status: 'active',
+            })
+            .select("id")
+            .single();
+
+          if (insertError) {
+            console.error("[useSyncPersonnelToWorkers] Error creating site rep record:", insertError);
+          } else {
+            results.siteRepId = newSiteRepRecord.id;
+          }
+        }
+
+        // 2. Also sync to contractor_workers table for gate pass integration
+        const { data: existingWorker } = await supabase
+          .from("contractor_workers")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("worker_type", "site_representative")
+          .is("deleted_at", null)
+          .maybeSingle();
+
+        if (existingWorker) {
           // Update existing worker
           const { error: updateError } = await supabase
             .from("contractor_workers")
             .update({
-              company_id: companyId,
               full_name: siteRep.full_name,
+              national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone,
               nationality: siteRep.nationality || null,
               photo_path: siteRep.photo_path,
-              worker_type: "site_representative",
               approval_status: "approved",
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingSiteRep.id);
+            .eq("id", existingWorker.id);
 
           if (updateError) {
-            console.error("[useSyncPersonnelToWorkers] Error updating site rep:", updateError);
+            console.error("[useSyncPersonnelToWorkers] Error updating site rep worker:", updateError);
           } else {
-            results.siteRepWorkerId = existingSiteRep.id;
+            results.siteRepWorkerId = existingWorker.id;
+            // Link worker to site rep record
+            if (results.siteRepId) {
+              await supabase
+                .from("contractor_site_representatives")
+                .update({ worker_id: existingWorker.id })
+                .eq("id", results.siteRepId);
+            }
           }
         } else {
           // Create new worker
@@ -76,6 +137,13 @@ export function useSyncPersonnelToWorkers() {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep worker:", insertError);
           } else {
             results.siteRepWorkerId = newWorker.id;
+            // Link worker to site rep record
+            if (results.siteRepId) {
+              await supabase
+                .from("contractor_site_representatives")
+                .update({ worker_id: newWorker.id })
+                .eq("id", results.siteRepId);
+            }
           }
         }
       }
@@ -184,8 +252,10 @@ export function useSyncPersonnelToWorkers() {
 
       return results;
     },
-    onSuccess: () => {
+    onSuccess: (_, { companyId }) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-site-rep", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-safety-officers", companyId] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
     },
     onError: (error) => {
