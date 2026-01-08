@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ContractorCompany, useCreateContractorCompany, useUpdateContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
 import { useBranches, useDepartments, useSections, useClientRepresentatives } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
@@ -95,6 +96,23 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   const { data: sections = [] } = useSections(formData.assigned_department_id || null);
   const { data: representatives = [] } = useClientRepresentatives();
   const { data: existingOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
+  
+  // Fallback: fetch safety officers from contractor_workers if contractor_safety_officers is empty
+  const { data: workerOfficers = [] } = useQuery({
+    queryKey: ["worker-safety-officers", company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .select("id, full_name, national_id, mobile_number, nationality, photo_path")
+        .eq("company_id", company.id)
+        .eq("worker_type", "safety_officer")
+        .is("deleted_at", null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!company?.id && open,
+  });
 
   useEffect(() => {
     if (company && open) {
@@ -116,7 +134,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         assigned_department_id: (company as any).assigned_department_id || "",
         assigned_section_id: (company as any).assigned_section_id || "",
       });
-      // Load existing site rep data
+      // Load existing site rep data (including new columns)
       setSiteRepData({
         full_name: (company as any).contractor_site_rep_name || "",
         national_id: (company as any).contractor_site_rep_national_id || "",
@@ -135,12 +153,15 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     }
   }, [company, open]);
 
-  // Load existing safety officers when editing
+  // Load existing safety officers when editing - with fallback to contractor_workers
   useEffect(() => {
-    if (existingOfficers.length > 0 && open) {
+    if (!open) return;
+    
+    // Prefer contractor_safety_officers table
+    if (existingOfficers.length > 0) {
       setSafetyOfficers(existingOfficers.map(o => ({
         id: o.id,
-        full_name: o.name, // Map from legacy name field
+        full_name: o.name,
         national_id: (o as any).national_id || "",
         mobile_number: (o as any).mobile_number || o.phone || "",
         nationality: (o as any).nationality || "",
@@ -149,8 +170,21 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
         email: o.email || "",
         is_primary: o.is_primary,
       })));
+    } else if (workerOfficers.length > 0) {
+      // Fallback: load from contractor_workers
+      setSafetyOfficers(workerOfficers.map(w => ({
+        id: w.id,
+        full_name: w.full_name || "",
+        national_id: w.national_id || "",
+        mobile_number: w.mobile_number || "",
+        nationality: w.nationality || "",
+        photo_path: w.photo_path || null,
+        phone: w.mobile_number || "",
+        email: "",
+        is_primary: false,
+      })));
     }
-  }, [existingOfficers, open]);
+  }, [existingOfficers, workerOfficers, open]);
 
   const currentStepIndex = STEPS.indexOf(currentStep);
   const isFirstStep = currentStepIndex === 0;
@@ -180,10 +214,14 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       contract_start_date: formData.contract_start_date || null,
       contract_end_date: formData.contract_end_date || null,
       safety_officers_count: safetyOfficers.length,
-      // Site rep fields for backward compatibility
+      // Full site rep fields (including new columns)
       contractor_site_rep_name: siteRepData.full_name,
-      contractor_site_rep_phone: siteRepData.phone,
+      contractor_site_rep_phone: siteRepData.phone || siteRepData.mobile_number,
       contractor_site_rep_email: siteRepData.email,
+      contractor_site_rep_national_id: siteRepData.national_id,
+      contractor_site_rep_mobile: siteRepData.mobile_number,
+      contractor_site_rep_nationality: siteRepData.nationality,
+      contractor_site_rep_photo: siteRepData.photo_path,
     };
 
     let companyId: string;

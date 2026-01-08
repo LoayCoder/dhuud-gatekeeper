@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { useSendContractorIdCard } from "@/hooks/contractor-management/use-contr
 import { ContractorDocumentUpload } from "./ContractorDocumentUpload";
 import { SafetyRatioAlert } from "./SafetyRatioAlert";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompanyDetailDialogProps {
   company: ContractorCompany | null;
@@ -24,9 +26,35 @@ interface CompanyDetailDialogProps {
 export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: CompanyDetailDialogProps) {
   const { t } = useTranslation();
   const { data: details } = useContractorCompanyDetails(company?.id ?? null);
-  const { data: safetyOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
+  const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const sendIdCard = useSendContractorIdCard();
   const [sendingPersonId, setSendingPersonId] = useState<string | null>(null);
+
+  // Fallback: fetch safety officers from contractor_workers if contractor_safety_officers is empty
+  const { data: workerOfficers = [] } = useQuery({
+    queryKey: ["worker-safety-officers-display", company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+      const { data, error } = await supabase
+        .from("contractor_workers")
+        .select("id, full_name, mobile_number, nationality")
+        .eq("company_id", company.id)
+        .eq("worker_type", "safety_officer")
+        .is("deleted_at", null);
+      if (error) throw error;
+      return (data || []).map(w => ({
+        id: w.id,
+        name: w.full_name || "",
+        phone: w.mobile_number || null,
+        email: null as string | null,
+        is_primary: false,
+      }));
+    },
+    enabled: !!company?.id && open,
+  });
+
+  // Use whichever source has data - prefer contractor_safety_officers table
+  const safetyOfficers = safetyOfficersFromTable.length > 0 ? safetyOfficersFromTable : workerOfficers;
 
   if (!company) return null;
 

@@ -80,12 +80,12 @@ export function useSyncPersonnelToWorkers() {
         }
       }
 
-      // Sync Safety Officers to contractor_workers
+      // Sync Safety Officers to BOTH contractor_workers AND contractor_safety_officers
       for (const officer of safetyOfficers) {
         if (!officer.full_name || !officer.national_id) continue;
 
-        // Check if worker with this national_id already exists
-        const { data: existingOfficer } = await supabase
+        // 1. Sync to contractor_workers table
+        const { data: existingWorker } = await supabase
           .from("contractor_workers")
           .select("id")
           .eq("tenant_id", tenantId)
@@ -93,7 +93,8 @@ export function useSyncPersonnelToWorkers() {
           .is("deleted_at", null)
           .maybeSingle();
 
-        if (existingOfficer) {
+        let workerId: string;
+        if (existingWorker) {
           // Update existing worker
           const { error: updateError } = await supabase
             .from("contractor_workers")
@@ -109,13 +110,13 @@ export function useSyncPersonnelToWorkers() {
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingOfficer.id);
+            .eq("id", existingWorker.id);
 
           if (updateError) {
-            console.error("[useSyncPersonnelToWorkers] Error updating safety officer:", updateError);
-          } else {
-            results.officerWorkerIds.push(existingOfficer.id);
+            console.error("[useSyncPersonnelToWorkers] Error updating safety officer worker:", updateError);
           }
+          workerId = existingWorker.id;
+          results.officerWorkerIds.push(workerId);
         } else {
           // Create new worker
           const { data: newWorker, error: insertError } = await supabase
@@ -139,8 +140,45 @@ export function useSyncPersonnelToWorkers() {
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating safety officer worker:", insertError);
           } else {
-            results.officerWorkerIds.push(newWorker.id);
+            workerId = newWorker.id;
+            results.officerWorkerIds.push(workerId);
           }
+        }
+
+        // 2. Also sync to contractor_safety_officers table for consistency
+        const { data: existingOfficerRecord } = await supabase
+          .from("contractor_safety_officers")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("tenant_id", tenantId)
+          .or(`name.eq.${officer.full_name},id.eq.${officer.id || 'no-id'}`)
+          .is("deleted_at", null)
+          .maybeSingle();
+
+        if (existingOfficerRecord) {
+          // Update existing safety officer record
+          await supabase
+            .from("contractor_safety_officers")
+            .update({
+              name: officer.full_name,
+              phone: officer.mobile_number || officer.phone,
+              email: officer.email || null,
+              is_primary: officer.is_primary || false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingOfficerRecord.id);
+        } else {
+          // Create new safety officer record
+          await supabase
+            .from("contractor_safety_officers")
+            .insert({
+              tenant_id: tenantId,
+              company_id: companyId,
+              name: officer.full_name,
+              phone: officer.mobile_number || officer.phone,
+              email: officer.email || null,
+              is_primary: officer.is_primary || false,
+            });
         }
       }
 
