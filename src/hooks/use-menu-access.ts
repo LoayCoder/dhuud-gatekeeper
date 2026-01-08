@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,10 +10,13 @@ interface MenuAccessItem {
 }
 
 export function useMenuAccess() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [accessibleMenus, setAccessibleMenus] = useState<Set<string>>(new Set());
   const [menuItems, setMenuItems] = useState<MenuAccessItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Check if user is admin based on userRole from AuthContext
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     const fetchAccess = async () => {
@@ -23,6 +26,7 @@ export function useMenuAccess() {
       }
 
       try {
+        // Use the RPC function which now handles admin bypass server-side
         const { data, error } = await supabase.rpc('get_accessible_menu_items', {
           _user_id: user.id
         });
@@ -48,24 +52,29 @@ export function useMenuAccess() {
   }, [user?.id]);
 
   const canAccess = useCallback((menuCode: string) => {
+    // Admins have access to everything
+    if (isAdmin) return true;
     // While loading, allow access to prevent flash of empty menus
     if (isLoading) return true;
     return accessibleMenus.has(menuCode);
-  }, [accessibleMenus, isLoading]);
+  }, [accessibleMenus, isLoading, isAdmin]);
 
   // Check if a parent group should be visible (has any accessible children)
   const hasAccessibleChildren = useCallback((parentCode: string) => {
+    // Admins can see all children
+    if (isAdmin) return true;
     if (isLoading) return true;
     return menuItems.some(item => 
       item.parent_code === parentCode && accessibleMenus.has(item.menu_code)
     );
-  }, [menuItems, accessibleMenus, isLoading]);
+  }, [menuItems, accessibleMenus, isLoading, isAdmin]);
 
   return { 
     canAccess, 
     hasAccessibleChildren,
     accessibleMenus, 
     menuItems,
-    isLoading 
+    isLoading,
+    isAdmin 
   };
 }
