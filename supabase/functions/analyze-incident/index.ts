@@ -99,9 +99,10 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(origin);
 
   try {
-    // Secret token validation
-    if (!validateEdgeSecret(req)) {
-      console.warn('[analyze-incident] Invalid or missing edge function secret');
+    // Validate Authorization header instead of edge secret for browser requests
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.warn('[analyze-incident] Missing or invalid Authorization header');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
