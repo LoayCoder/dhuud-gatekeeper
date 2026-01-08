@@ -10,7 +10,10 @@ import {
   ChevronDown,
   ChevronUp,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  Tags,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +32,8 @@ interface AIAnalysisPanelProps {
   blockingReason: string | null;
   onConfirmTranslation: () => void;
   onConfirmAnalysis?: () => void;
+  suggestedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
   className?: string;
 }
 

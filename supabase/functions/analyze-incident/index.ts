@@ -1,5 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders, handleCorsPrelight, validateEdgeSecret, sanitizeInput, getClientIP } from "../_shared/cors.ts";
+import { 
+  fetchAISettings, 
+  fetchAITags, 
+  matchTagsByKeywords,
+  getTenantFromAuth,
+  DEFAULT_INCIDENT_SETTINGS,
+  type IncidentAISettings,
+  type AITag
+} from "../_shared/ai-settings.ts";
 
 // In-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -113,6 +122,7 @@ serve(async (req) => {
     
     // Sanitize input to prevent XSS
     const description = sanitizeInput(body.description || '');
+    const providedTenantId = body.tenantId;
     
     if (!description || description.length < 20) {
       return new Response(
@@ -134,11 +144,51 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Get tenant ID from auth or use provided one
+    let tenantId: string | undefined = providedTenantId;
+    if (!tenantId) {
+      tenantId = (await getTenantFromAuth(req)) ?? undefined;
+    }
+
+    // Fetch dynamic settings and tags
+    let settings: IncidentAISettings = DEFAULT_INCIDENT_SETTINGS;
+    let availableTags: AITag[] = [];
+    
+    if (tenantId) {
+      console.log('[analyze-incident] Fetching settings for tenant:', tenantId);
+      settings = await fetchAISettings<IncidentAISettings>(tenantId, 'incident', DEFAULT_INCIDENT_SETTINGS);
+      availableTags = await fetchAITags(tenantId, 'incident');
+      console.log('[analyze-incident] Loaded', availableTags.length, 'tags');
+    }
+
     console.log("[analyze-incident] Analyzing incident description:", description.substring(0, 100));
 
     // Detect input language for response
     const isArabicInput = /[\u0600-\u06FF]/.test(description);
-    const responseLanguage = isArabicInput ? 'Arabic' : 'English';
+    const responseLanguage = isArabicInput ? 'Arabic' : 
+      (settings.rewrite_rules.target_language === 'ar' ? 'Arabic' : 'English');
+
+    // Build tag list for AI prompt
+    const tagListForPrompt = availableTags.length > 0
+      ? `\n\nAVAILABLE TAGS FOR AUTO-TAGGING:\n${availableTags.map(t => `- "${t.name}": keywords=[${t.keywords.join(', ')}]`).join('\n')}\n\nSelect tags from this list that match the incident content.`
+      : '';
+
+    // Build injury/damage extraction instructions based on settings
+    const injuryInstructions = settings.injury_extraction.enabled
+      ? `\n\nINJURY EXTRACTION:
+- Detect if any injuries are mentioned (worker hurt, hospitalized, first aid, etc.)
+${settings.injury_extraction.auto_fill_count ? '- Count the number of injured persons if mentioned' : ''}
+${settings.injury_extraction.auto_fill_type ? '- Determine injury type (minor, medical_treatment, lost_time, fatality)' : ''}
+- Summarize the injury details in ${responseLanguage} ONLY`
+      : '';
+
+    const damageInstructions = settings.damage_extraction.enabled
+      ? `\n\nDAMAGE EXTRACTION:
+- Detect if property/equipment/environmental damage is mentioned
+${settings.damage_extraction.auto_fill_category ? '- Categorize the damage type' : ''}
+- Summarize the damage details in ${responseLanguage} ONLY
+- Extract estimated cost if mentioned (in numbers only)`
+      : '';
 
     const systemPrompt = `You are an HSSE (Health, Safety, Security, Environment) expert analyzing incident reports.
 Classify the incident according to industry standards (ISO 45001, OSHA, API RP 754 for process safety).
@@ -171,17 +221,7 @@ INCIDENT TYPES (for incidents only):
 - quality_service: Quality/service impacts (interruptions, nonconformance)
 - community_third_party: Community/third-party impacts (visitor injury, complaints)
 - compliance_regulatory: Regulatory/compliance breaches (PTW, permits, SOPs)
-- emergency_crisis: Emergency response activations (ERP triggered)
-
-INJURY EXTRACTION:
-- Detect if any injuries are mentioned (worker hurt, hospitalized, first aid, etc.)
-- Count the number of injured persons if mentioned
-- Summarize the injury details in ${responseLanguage} ONLY
-
-DAMAGE EXTRACTION:
-- Detect if property/equipment/environmental damage is mentioned
-- Summarize the damage details in ${responseLanguage} ONLY
-- Extract estimated cost if mentioned (in numbers only)
+- emergency_crisis: Emergency response activations (ERP triggered)${injuryInstructions}${damageInstructions}${tagListForPrompt}
 
 Be precise and consistent in your classifications.`;
 
@@ -207,9 +247,10 @@ Determine:
 3. Specific subtype within that category
 4. Severity level
 5. Key risks identified
-6. Any injuries mentioned (count, description)
+6. Any injuries mentioned (count, description, type)
 7. Any damage mentioned (description, estimated cost)
-8. Suggest 1-5 immediate corrective actions that should/could have been taken`
+8. Suggest 1-5 immediate corrective actions that should/could have been taken
+9. Suggested tags from the available list`
           }
         ],
         tools: [
@@ -238,7 +279,7 @@ Determine:
                   },
                   severity: {
                     type: "string",
-                    enum: ["low", "medium", "high", "critical"],
+                    enum: settings.classification.severity_levels,
                     description: "Severity level. low=no injury/minor hazard, medium=minor injury/property damage, high=serious injury/hospitalization, critical=fatality/major disaster"
                   },
                   keyRisks: {
@@ -262,6 +303,11 @@ Determine:
                     type: "number",
                     description: "Number of injured persons mentioned (if applicable)"
                   },
+                  injuryType: {
+                    type: "string",
+                    enum: ["minor", "medical_treatment", "lost_time", "fatality"],
+                    description: "Type/severity of injury if detected"
+                  },
                   injuryDescription: {
                     type: "string",
                     description: "Summary of injury details. MUST be in English or Arabic ONLY - never use Telugu, Hindi, or other languages."
@@ -284,6 +330,11 @@ Determine:
                     description: "1-5 immediate corrective actions that should be taken based on the incident. Each action should be concise (1 sentence). Examples: 'Cordoned off the area', 'Provided first aid to injured worker', 'Stopped equipment operation', 'Placed warning signs'. MUST be in English or Arabic ONLY.",
                     minItems: 1,
                     maxItems: 5
+                  },
+                  suggestedTags: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "List of tag names from the available tags that match this incident"
                   }
                 },
                 required: ["eventType", "subtype", "severity", "keyRisks", "confidence", "hasInjury", "hasDamage"],
@@ -324,7 +375,21 @@ Determine:
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log("[analyze-incident] Classification result:", result);
+    
+    // Enhance with keyword-based tag matching if AI didn't provide tags
+    if (settings.tagging.enabled && availableTags.length > 0) {
+      const keywordMatchedTags = matchTagsByKeywords(description, availableTags);
+      
+      // Merge AI-suggested tags with keyword-matched tags
+      const aiTags = result.suggestedTags || [];
+      const allTags = [...new Set([...aiTags, ...keywordMatchedTags])];
+      result.suggestedTags = allTags;
+    }
+    
+    console.log("[analyze-incident] Classification result:", {
+      ...result,
+      suggestedTags: result.suggestedTags
+    });
 
     return new Response(
       JSON.stringify({
@@ -337,11 +402,13 @@ Determine:
         reasoning: result.reasoning,
         hasInjury: result.hasInjury || false,
         injuryCount: result.injuryCount || null,
+        injuryType: result.injuryType || null,
         injuryDescription: result.injuryDescription || null,
         hasDamage: result.hasDamage || false,
         damageDescription: result.damageDescription || null,
         estimatedCost: result.estimatedCost || null,
-        immediateActions: result.immediateActions || []
+        immediateActions: result.immediateActions || [],
+        suggestedTags: result.suggestedTags || []
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

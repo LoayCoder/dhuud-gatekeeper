@@ -1493,6 +1493,16 @@ export const routeRegistry: RouteDefinition[] = [
     parentCode: "admin_system_config",
     sortOrder: 9,
   },
+  {
+    path: "/admin/ai-settings",
+    menuCode: "admin_ai_settings",
+    title: { en: "AI Settings", ar: "إعدادات الذكاء الاصطناعي" },
+    icon: Settings2,
+    component: lazyWithRetry(() => import("@/pages/admin/AISettings")),
+    protection: "admin",
+    parentCode: "admin_system_config",
+    sortOrder: 10,
+  },
 
   // Inspection & Asset Config
   {
