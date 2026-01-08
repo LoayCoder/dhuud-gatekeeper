@@ -20,10 +20,15 @@ export interface ContractorCompanyDetails {
   contract_end_date: string | null;
   total_workers: number;
   safety_officers_count: number;
-  // Contractor personnel
+  // Contractor personnel - site rep
   contractor_site_rep_name: string | null;
   contractor_site_rep_phone: string | null;
   contractor_site_rep_email: string | null;
+  contractor_site_rep_national_id: string | null;
+  contractor_site_rep_mobile: string | null;
+  contractor_site_rep_nationality: string | null;
+  contractor_site_rep_photo: string | null;
+  // Contractor personnel - safety officer (legacy single)
   contractor_safety_officer_name: string | null;
   contractor_safety_officer_phone: string | null;
   contractor_safety_officer_email: string | null;
@@ -59,6 +64,7 @@ export function useContractorCompanyDetails(companyId: string | null) {
           scope_of_work, contract_start_date, contract_end_date,
           total_workers, safety_officers_count,
           contractor_site_rep_name, contractor_site_rep_phone, contractor_site_rep_email,
+          contractor_site_rep_national_id, contractor_site_rep_mobile, contractor_site_rep_nationality, contractor_site_rep_photo,
           contractor_safety_officer_name, contractor_safety_officer_phone, contractor_safety_officer_email,
           client_site_rep_id, assigned_branch_id, assigned_department_id, assigned_section_id,
           created_at, updated_at
