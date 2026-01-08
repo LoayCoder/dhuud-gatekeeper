@@ -147,13 +147,12 @@ export function useContractorDashboardStats() {
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
 
-        // Safety Officers - cast to avoid deep type instantiation
+        // Safety Officers (all non-deleted are considered active)
         supabase
           .from("contractor_safety_officers")
-          .select("id, status")
+          .select("id")
           .eq("tenant_id", tenantId)
-          .is("deleted_at", null)
-          .eq("status", "active") as unknown as Promise<{ data: { id: string; status: string }[] | null; error: unknown }>,
+          .is("deleted_at", null),
 
         // Incidents (HSSE Events) - contractor related
         supabase
