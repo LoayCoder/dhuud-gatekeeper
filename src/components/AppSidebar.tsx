@@ -94,6 +94,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { prefetchRoute, prefetchRoutes } from "@/hooks/use-prefetch";
 import { useMenuAccess } from "@/hooks/use-menu-access";
 import { usePWAInstall } from "@/hooks/use-pwa-install";
+import { useRegistryMenu, type RegistryMenuItem } from "@/hooks/use-registry-menu";
 import { DHUUD_APP_ICON } from "@/constants/branding";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -107,6 +108,10 @@ export function AppSidebar() {
   const { canAccess, hasAccessibleChildren, isLoading: menuLoading } = useMenuAccess();
   const { canInstall, canPromptNatively, isIOS, isInstalled, promptInstall } = usePWAInstall();
   const { setOpenMobile, isMobile } = useSidebar();
+  
+  // Route registry menu items (for future full migration)
+  // TODO: Replace hardcoded menuItems with registryMenuItems when ready
+  const { menuItems: registryMenuItems } = useRegistryMenu();
   
   // Get app icon for PWA install button
   const appIcon = activeSidebarIconUrl || DHUUD_APP_ICON;
