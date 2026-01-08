@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Users, Search, CheckCircle, Clock, XCircle, AlertTriangle, Pencil } from "lucide-react";
+import { Plus, Users, Search, CheckCircle, Clock, XCircle, AlertTriangle, Pencil, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import ContractorWorkerForm from "@/components/contractor-portal/ContractorWorkerForm";
 import ContractorWorkerEditForm from "@/components/contractor-portal/ContractorWorkerEditForm";
+import ContractorWorkerBulkImport from "@/components/contractor-portal/ContractorWorkerBulkImport";
 import { useContractorPortalData } from "@/hooks/contractor-management";
 
 interface PortalWorker {
@@ -28,6 +29,7 @@ export default function ContractorPortalWorkers() {
   const { t } = useTranslation();
   const { company, workers, isLoading } = useContractorPortalData();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
 
@@ -85,10 +87,16 @@ export default function ContractorPortalWorkers() {
               </p>
             </div>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 me-2" />
-            {t("contractorPortal.workers.addWorker", "Add Worker")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
+              <Upload className="h-4 w-4 me-2" />
+              {t("contractorPortal.workers.bulkImport", "Bulk Import")}
+            </Button>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 me-2" />
+              {t("contractorPortal.workers.addWorker", "Add Worker")}
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -178,6 +186,11 @@ export default function ContractorPortalWorkers() {
               open={!!editingWorker}
               onOpenChange={(open) => !open && setEditingWorker(null)}
               worker={editingWorker}
+              companyId={company.id}
+            />
+            <ContractorWorkerBulkImport
+              open={isBulkImportOpen}
+              onOpenChange={setIsBulkImportOpen}
               companyId={company.id}
             />
           </>
