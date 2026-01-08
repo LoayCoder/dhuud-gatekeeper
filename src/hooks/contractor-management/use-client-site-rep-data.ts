@@ -371,7 +371,7 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
 
       type IncidentRow = {
         id: string;
-        incident_number: string;
+        reference_id: string;
         description: string | null;
         status: string;
         event_type: string;
@@ -380,7 +380,7 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
 
       const { data, error } = await supabase
         .from("incidents")
-        .select("id, incident_number, description, status, event_type, occurred_at")
+        .select("id, reference_id, description, status, event_type, occurred_at")
         .in("related_contractor_company_id", companyIds)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -405,7 +405,7 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
 
       const recentIncidents: ClientSiteRepIncidentDetail[] = rows.slice(0, 5).map(i => ({
         id: i.id,
-        incident_number: i.incident_number,
+        incident_number: i.reference_id,
         description: i.description,
         status: i.status,
         event_type: i.event_type || "incident",
