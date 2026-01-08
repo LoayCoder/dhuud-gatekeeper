@@ -12,3 +12,4 @@ export * from "./use-worker-onboarding";
 export * from "./use-document-controller-access";
 export * from "./use-contractor-rep-permissions";
 export * from "./use-contractor-audit-log";
+export * from "./use-client-site-rep-data";

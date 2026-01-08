@@ -144,6 +144,8 @@ const ContractorPortalWorkers = lazyWithRetry(() => import("./pages/contractor-p
 const ContractorPortalProjects = lazyWithRetry(() => import("./pages/contractor-portal/Projects"));
 const ContractorPortalGatePasses = lazyWithRetry(() => import("./pages/contractor-portal/GatePasses"));
 
+// Client Site Representative pages
+const ClientSiteRepDashboard = lazyWithRetry(() => import("./pages/client-site-rep/Dashboard"));
 // PTW (Permit to Work) pages - lazy loaded with retry
 const PTWDashboard = lazyWithRetry(() => import("./pages/ptw/PTWDashboard"));
 const ProjectMobilization = lazyWithRetry(() => import("./pages/ptw/ProjectMobilization"));
@@ -344,6 +346,9 @@ const App = () => (
                       <Route path="/contractor-portal/workers" element={<ContractorPortalWorkers />} />
                       <Route path="/contractor-portal/projects" element={<ContractorPortalProjects />} />
                       <Route path="/contractor-portal/gate-passes" element={<ContractorPortalGatePasses />} />
+
+                      {/* Client Site Representative Routes */}
+                      <Route path="/client-site-rep" element={<ClientSiteRepDashboard />} />
 
                       {/* PTW (Permit to Work) Routes */}
                       <Route path="/ptw" element={<HSSERoute><PTWDashboard /></HSSERoute>} />

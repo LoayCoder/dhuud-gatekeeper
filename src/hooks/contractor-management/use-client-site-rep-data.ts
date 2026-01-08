@@ -172,29 +172,29 @@ export function useClientSiteRepGatePasses(companyIds: string[]) {
 
   return useQuery({
     queryKey: ["client-site-rep-gate-passes", companyIds],
-    queryFn: async () => {
+    queryFn: async (): Promise<ClientSiteRepGatePassSummary> => {
       if (!companyIds.length || !tenantId) {
         return { total: 0, pending: 0, approved: 0, rejected: 0, expired: 0 };
       }
 
-      const { data, error } = await supabase
-        .from("material_gate_passes")
-        .select("id, status")
-        .in("contractor_company_id", companyIds)
+      // Build query with explicit typing to avoid deep instantiation
+      type GatePassRow = { id: string; status: string };
+      const query = supabase.from("material_gate_passes").select("id, status");
+      const { data, error } = await query
+        .filter("contractor_company_id", "in", `(${companyIds.join(",")})`)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null);
-
+      
       if (error) throw error;
+      const rows = (data || []) as GatePassRow[];
 
-      const summary: ClientSiteRepGatePassSummary = {
-        total: data.length,
-        pending: data.filter(g => g.status === "pending").length,
-        approved: data.filter(g => g.status === "approved").length,
-        rejected: data.filter(g => g.status === "rejected").length,
-        expired: data.filter(g => g.status === "expired").length,
+      return {
+        total: rows.length,
+        pending: rows.filter(g => g.status === "pending").length,
+        approved: rows.filter(g => g.status === "approved").length,
+        rejected: rows.filter(g => g.status === "rejected").length,
+        expired: rows.filter(g => g.status === "expired").length,
       };
-
-      return summary;
     },
     enabled: companyIds.length > 0 && !!tenantId,
   });
@@ -216,15 +216,16 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
         .select("id, status")
         .in("related_contractor_company_id", companyIds)
         .eq("tenant_id", tenantId)
-        .is("deleted_at", null);
+        .is("deleted_at", null) as { data: { id: string; status: string }[] | null; error: any };
 
       if (error) throw error;
+      const rows = data || [];
 
       const summary: ClientSiteRepIncidentSummary = {
-        total: data.length,
-        open: data.filter(i => i.status === "submitted" || i.status === "pending_acknowledgment").length,
-        under_investigation: data.filter(i => i.status === "investigation_in_progress").length,
-        closed: data.filter(i => i.status === "closed" || i.status === "investigation_closed").length,
+        total: rows.length,
+        open: rows.filter(i => i.status === "submitted" || i.status === "pending_review").length,
+        under_investigation: rows.filter(i => i.status === "investigation_in_progress").length,
+        closed: rows.filter(i => i.status === "closed" || i.status === "investigation_closed").length,
       };
 
       return summary;
