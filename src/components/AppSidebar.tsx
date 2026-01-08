@@ -73,6 +73,7 @@ import {
   GraduationCap,
   BookOpen,
   History,
+  Sparkles,
 } from "lucide-react";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -850,6 +851,12 @@ export function AppSidebar() {
               url: "/admin/pending-approvals-override",
               icon: ShieldCheck,
               menuCode: 'admin_pending_approvals_override',
+            },
+            {
+              title: t('navigation.aiSettings', 'AI Settings'),
+              url: "/admin/ai-settings",
+              icon: Sparkles,
+              menuCode: 'admin_ai_settings',
             },
           ],
         },
