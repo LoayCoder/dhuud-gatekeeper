@@ -91,6 +91,7 @@ import {
   Wallet,
   Camera,
   Search,
+  Sparkles,
 } from "lucide-react";
 import type { RouteDefinition } from "./route-registry-types";
 import { lazyWithRetry } from "@/lib/lazy-with-retry";
@@ -1497,7 +1498,7 @@ export const routeRegistry: RouteDefinition[] = [
     path: "/admin/ai-settings",
     menuCode: "admin_ai_settings",
     title: { en: "AI Settings", ar: "إعدادات الذكاء الاصطناعي" },
-    icon: Settings2,
+    icon: Sparkles,
     component: lazyWithRetry(() => import("@/pages/admin/AISettings")),
     protection: "admin",
     parentCode: "admin_system_config",
