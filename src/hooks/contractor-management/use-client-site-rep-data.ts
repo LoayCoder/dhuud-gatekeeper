@@ -94,6 +94,11 @@ export interface ClientSiteRepPersonnel {
   safetyOfficers: {
     id: string;
     full_name: string;
+    phone: string | null;
+    email: string | null;
+    is_primary: boolean;
+    is_onsite: boolean;
+    last_entry_at: string | null;
     company_name: string;
   }[];
   contractorReps: {
@@ -101,6 +106,9 @@ export interface ClientSiteRepPersonnel {
     name: string;
     email: string | null;
     phone: string | null;
+    is_primary: boolean;
+    is_onsite: boolean;
+    last_entry_at: string | null;
     company_name: string;
   }[];
 }
@@ -465,35 +473,26 @@ export function useClientSiteRepPersonnel(companyIds: string[]) {
         return { safetyOfficers: [], contractorReps: [] };
       }
 
-      // Fetch safety officers - workers with safety_officer_id set (they ARE the safety officer)
-      // or workers linked to companies' safety officers
-      const { data: workers, error: workersError } = await supabase
-        .from("contractor_workers")
+      // Fetch safety officers from the dedicated contractor_safety_officers table
+      const { data: safetyOfficers, error: soError } = await supabase
+        .from("contractor_safety_officers")
         .select(`
-          id, full_name, worker_type,
-          company:contractor_companies!contractor_workers_company_id_fkey(company_name)
+          id, name, phone, email, is_primary, is_onsite, last_entry_at,
+          company:contractor_companies!contractor_safety_officers_company_id_fkey(company_name)
         `)
         .in("company_id", companyIds)
         .eq("tenant_id", tenantId)
-        .eq("approval_status", "approved")
         .is("deleted_at", null);
 
-      if (workersError) {
-        console.error("Error fetching workers:", workersError);
+      if (soError) {
+        console.error("Error fetching safety officers:", soError);
       }
 
-      // Filter for safety-related worker types
-      const safetyWorkers = (workers || []).filter(w => 
-        w.worker_type === 'safety_officer' || 
-        w.worker_type === 'hse_officer' ||
-        (w.worker_type && w.worker_type.toLowerCase().includes('safety'))
-      );
-
-      // Fetch contractor representatives
+      // Fetch contractor representatives with onsite status
       const { data: reps, error: repsError } = await supabase
         .from("contractor_representatives")
         .select(`
-          id, full_name, email, mobile_number,
+          id, full_name, email, mobile_number, is_primary, is_onsite, last_entry_at,
           company:contractor_companies!contractor_representatives_company_id_fkey(company_name)
         `)
         .in("company_id", companyIds)
@@ -505,16 +504,24 @@ export function useClientSiteRepPersonnel(companyIds: string[]) {
       }
 
       return {
-        safetyOfficers: safetyWorkers.map(w => ({
-          id: w.id,
-          full_name: w.full_name,
-          company_name: (w.company as { company_name?: string })?.company_name || "Unknown",
+        safetyOfficers: (safetyOfficers || []).map(so => ({
+          id: so.id,
+          full_name: so.name || "Unknown",
+          phone: so.phone,
+          email: so.email,
+          is_primary: so.is_primary ?? false,
+          is_onsite: so.is_onsite ?? false,
+          last_entry_at: so.last_entry_at,
+          company_name: (so.company as { company_name?: string })?.company_name || "Unknown",
         })),
         contractorReps: (reps || []).map(r => ({
           id: r.id,
           name: r.full_name,
           email: r.email,
           phone: r.mobile_number,
+          is_primary: r.is_primary ?? false,
+          is_onsite: r.is_onsite ?? false,
+          last_entry_at: r.last_entry_at,
           company_name: (r.company as { company_name?: string })?.company_name || "Unknown",
         })),
       };

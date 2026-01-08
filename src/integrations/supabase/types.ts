@@ -4357,13 +4357,17 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          current_gate_entry_id: string | null
           deleted_at: string | null
           email: string | null
           full_name: string
           full_name_ar: string | null
           id: string
+          is_onsite: boolean | null
           is_primary: boolean
           is_safety_officer_eligible: boolean
+          last_entry_at: string | null
+          last_exit_at: string | null
           mobile_number: string
           national_id: string | null
           tenant_id: string
@@ -4374,13 +4378,17 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          current_gate_entry_id?: string | null
           deleted_at?: string | null
           email?: string | null
           full_name: string
           full_name_ar?: string | null
           id?: string
+          is_onsite?: boolean | null
           is_primary?: boolean
           is_safety_officer_eligible?: boolean
+          last_entry_at?: string | null
+          last_exit_at?: string | null
           mobile_number: string
           national_id?: string | null
           tenant_id: string
@@ -4391,13 +4399,17 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          current_gate_entry_id?: string | null
           deleted_at?: string | null
           email?: string | null
           full_name?: string
           full_name_ar?: string | null
           id?: string
+          is_onsite?: boolean | null
           is_primary?: boolean
           is_safety_officer_eligible?: boolean
+          last_entry_at?: string | null
+          last_exit_at?: string | null
           mobile_number?: string
           national_id?: string | null
           tenant_id?: string
@@ -4427,6 +4439,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contractor_representatives_current_gate_entry_id_fkey"
+            columns: ["current_gate_entry_id"]
+            isOneToOne: false
+            referencedRelation: "gate_entry_logs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contractor_representatives_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -4453,10 +4472,14 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string | null
+          current_gate_entry_id: string | null
           deleted_at: string | null
           email: string | null
           id: string
+          is_onsite: boolean | null
           is_primary: boolean | null
+          last_entry_at: string | null
+          last_exit_at: string | null
           name: string
           phone: string | null
           tenant_id: string
@@ -4465,10 +4488,14 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string | null
+          current_gate_entry_id?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
+          is_onsite?: boolean | null
           is_primary?: boolean | null
+          last_entry_at?: string | null
+          last_exit_at?: string | null
           name: string
           phone?: string | null
           tenant_id: string
@@ -4477,10 +4504,14 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string | null
+          current_gate_entry_id?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
+          is_onsite?: boolean | null
           is_primary?: boolean | null
+          last_entry_at?: string | null
+          last_exit_at?: string | null
           name?: string
           phone?: string | null
           tenant_id?: string
@@ -4492,6 +4523,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_safety_officers_current_gate_entry_id_fkey"
+            columns: ["current_gate_entry_id"]
+            isOneToOne: false
+            referencedRelation: "gate_entry_logs"
             referencedColumns: ["id"]
           },
           {
@@ -6309,6 +6347,8 @@ export type Database = {
           project_id: string | null
           purpose: string | null
           qr_code_token: string | null
+          representative_id: string | null
+          safety_officer_id: string | null
           site_id: string | null
           tenant_id: string
           validation_errors: Json | null
@@ -6352,6 +6392,8 @@ export type Database = {
           project_id?: string | null
           purpose?: string | null
           qr_code_token?: string | null
+          representative_id?: string | null
+          safety_officer_id?: string | null
           site_id?: string | null
           tenant_id: string
           validation_errors?: Json | null
@@ -6395,6 +6437,8 @@ export type Database = {
           project_id?: string | null
           purpose?: string | null
           qr_code_token?: string | null
+          representative_id?: string | null
+          safety_officer_id?: string | null
           site_id?: string | null
           tenant_id?: string
           validation_errors?: Json | null
@@ -6427,6 +6471,20 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_representative_id_fkey"
+            columns: ["representative_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_representatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_entry_logs_safety_officer_id_fkey"
+            columns: ["safety_officer_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_safety_officers"
             referencedColumns: ["id"]
           },
           {

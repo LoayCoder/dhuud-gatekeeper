@@ -122,10 +122,12 @@ export function useCreateGateEntry() {
       host_mobile?: string; 
       notify_host?: boolean;
       visit_duration_hours?: number;
+      safety_officer_id?: string | null;
+      representative_id?: string | null;
     }) => {
       if (!tenantId) throw new Error('No tenant ID');
 
-      const { host_mobile, notify_host, visit_duration_hours, ...entryData } = entry;
+      const { host_mobile, notify_host, visit_duration_hours, safety_officer_id, representative_id, ...entryData } = entry;
 
       const { data, error } = await supabase
         .from('gate_entry_logs')
@@ -136,6 +138,8 @@ export function useCreateGateEntry() {
           host_mobile,
           notify_host: notify_host ?? true,
           visit_duration_hours: visit_duration_hours ?? 1,
+          safety_officer_id: safety_officer_id || null,
+          representative_id: representative_id || null,
         } as GateEntryInsert)
         .select()
         .single();
@@ -164,6 +168,16 @@ export function useRecordExit() {
 
   return useMutation({
     mutationFn: async (entryId: string) => {
+      // First, get the entry to check for linked personnel
+      const { data: entry, error: fetchError } = await supabase
+        .from('gate_entry_logs')
+        .select('id, safety_officer_id, representative_id')
+        .eq('id', entryId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update the exit time
       const { data, error } = await supabase
         .from('gate_entry_logs')
         .update({ exit_time: new Date().toISOString() })
@@ -172,10 +186,36 @@ export function useRecordExit() {
         .single();
 
       if (error) throw error;
+
+      // If linked to a safety officer, update their onsite status
+      if (entry?.safety_officer_id) {
+        await supabase
+          .from('contractor_safety_officers')
+          .update({ 
+            is_onsite: false, 
+            last_exit_at: new Date().toISOString(),
+            current_gate_entry_id: null 
+          })
+          .eq('id', entry.safety_officer_id);
+      }
+
+      // If linked to a contractor representative, update their onsite status
+      if (entry?.representative_id) {
+        await supabase
+          .from('contractor_representatives')
+          .update({ 
+            is_onsite: false, 
+            last_exit_at: new Date().toISOString(),
+            current_gate_entry_id: null 
+          })
+          .eq('id', entry.representative_id);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gate-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['client-site-rep-personnel'] });
       toast({ title: t('security.gate.exitRecorded', 'Exit recorded successfully') });
     },
     onError: (error) => {

@@ -156,8 +156,23 @@ export function AssignedCompaniesCard({ companies, personnel, onViewAll }: Assig
                           </div>
                           <div className="space-y-2 ps-6">
                             {companyPersonnel.contractorReps.map((rep) => (
-                              <div key={rep.id} className="text-sm space-y-1">
-                                <p className="font-medium">{rep.name}</p>
+                              <div key={rep.id} className="text-sm p-2 rounded border bg-background space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-medium">{rep.name}</p>
+                                  {rep.is_primary && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {t("common.primary", "Primary")}
+                                    </Badge>
+                                  )}
+                                  <Badge 
+                                    variant={rep.is_onsite ? "default" : "secondary"} 
+                                    className={`text-xs ${rep.is_onsite ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                  >
+                                    {rep.is_onsite 
+                                      ? t("clientSiteRep.onsite", "Onsite") 
+                                      : t("clientSiteRep.offsite", "Offsite")}
+                                  </Badge>
+                                </div>
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
                                   {rep.phone && (
                                     <a 
@@ -196,9 +211,49 @@ export function AssignedCompaniesCard({ companies, personnel, onViewAll }: Assig
                               {t("clientSiteRep.safetyOfficers", "Safety Officers")}
                             </span>
                           </div>
-                          <div className="space-y-1 ps-6">
+                          <div className="space-y-2 ps-6">
                             {companyPersonnel.safetyOfficers.map((officer) => (
-                              <p key={officer.id} className="text-sm">{officer.full_name}</p>
+                              <div key={officer.id} className="text-sm p-2 rounded border bg-background space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-medium">{officer.full_name}</p>
+                                  {officer.is_primary && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {t("common.primary", "Primary")}
+                                    </Badge>
+                                  )}
+                                  <Badge 
+                                    variant={officer.is_onsite ? "default" : "secondary"} 
+                                    className={`text-xs ${officer.is_onsite ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                  >
+                                    {officer.is_onsite 
+                                      ? t("clientSiteRep.onsite", "Onsite") 
+                                      : t("clientSiteRep.offsite", "Offsite")}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+                                  {officer.phone && (
+                                    <a 
+                                      href={`tel:${officer.phone}`}
+                                      className="text-primary hover:underline flex items-center gap-1"
+                                      dir="ltr"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Phone className="h-3 w-3" />
+                                      {officer.phone}
+                                    </a>
+                                  )}
+                                  {officer.email && (
+                                    <a 
+                                      href={`mailto:${officer.email}`}
+                                      className="text-primary hover:underline flex items-center gap-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Mail className="h-3 w-3" />
+                                      {officer.email}
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
