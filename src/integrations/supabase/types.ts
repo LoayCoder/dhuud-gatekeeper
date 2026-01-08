@@ -390,6 +390,97 @@ export type Database = {
           },
         ]
       }
+      ai_settings: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          setting_type: string
+          settings: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          setting_type: string
+          settings?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          setting_type?: string
+          settings?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          keywords: string[] | null
+          name: string
+          name_ar: string | null
+          sort_order: number | null
+          tag_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          name: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tag_type: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          name?: string
+          name_ar?: string | null
+          sort_order?: number | null
+          tag_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_tags_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_updates: {
         Row: {
           broadcast_at: string | null
@@ -9352,6 +9443,7 @@ export type Database = {
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
           subtype: string | null
+          tags: string[] | null
           tenant_id: string
           title: string
           updated_at: string | null
@@ -9562,6 +9654,7 @@ export type Database = {
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
+          tags?: string[] | null
           tenant_id: string
           title: string
           updated_at?: string | null
@@ -9772,6 +9865,7 @@ export type Database = {
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
+          tags?: string[] | null
           tenant_id?: string
           title?: string
           updated_at?: string | null
