@@ -1,22 +1,30 @@
-import { Ticket, Clock, CheckCircle, XCircle, TimerOff } from "lucide-react";
+import { useState } from "react";
+import { Ticket, Clock, CheckCircle, XCircle, TimerOff, ChevronDown, ChevronUp, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import type { ClientSiteRepGatePassSummary } from "@/hooks/contractor-management/use-client-site-rep-data";
+import { format } from "date-fns";
+import type { ClientSiteRepGatePassSummary, ClientSiteRepGatePassDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
 
 interface GatePassesSummaryCardProps {
   summary: ClientSiteRepGatePassSummary;
+  recentGatePasses?: ClientSiteRepGatePassDetail[];
 }
 
-export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
+export function GatePassesSummaryCard({ summary, recentGatePasses = [] }: GatePassesSummaryCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleStatusClick = (status: string) => {
-    navigate(`/contractors/gate-passes?status=${status}`);
+  const handleStatusClick = (e: React.MouseEvent, status: string) => {
+    e.stopPropagation();
+    setIsExpanded(true);
   };
 
-  const handleCardClick = () => {
+  const handleViewAll = () => {
     navigate("/contractors/gate-passes");
   };
 
@@ -55,38 +63,106 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
     },
   ];
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "approved": return "default";
+      case "pending": return "secondary";
+      case "rejected": return "destructive";
+      case "expired": return "outline";
+      default: return "secondary";
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader 
-        className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg"
-        onClick={handleCardClick}
-      >
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Ticket className="h-5 w-5 text-primary" />
-          {t("clientSiteRep.gatePasses", "Gate Passes")}
-          <span className="text-muted-foreground font-normal">({summary.total})</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className={`${stat.bg} rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity`}
-              onClick={() => handleStatusClick(stat.status)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleStatusClick(stat.status)}
-            >
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              <div>
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+            <CardTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-5 w-5 text-primary" />
+                {t("clientSiteRep.gatePasses", "Gate Passes")}
+                <span className="text-muted-foreground font-normal">({summary.total})</span>
               </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+              {isExpanded ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              )}
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={`${stat.bg} rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity`}
+                onClick={(e) => handleStatusClick(e, stat.status)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handleStatusClick(e as unknown as React.MouseEvent, stat.status)}
+              >
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                <div>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+
+        <CollapsibleContent>
+          <div className="border-t px-4 pb-4 pt-3 space-y-2">
+            <p className="text-sm font-medium text-muted-foreground mb-3">
+              {t("clientSiteRep.recentGatePasses", "Recent Gate Passes")}
+            </p>
+            
+            {recentGatePasses.length > 0 ? (
+              recentGatePasses.map((gatePass) => (
+                <div
+                  key={gatePass.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <p className="font-medium truncate">{gatePass.pass_number}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {gatePass.material_description || gatePass.company_name}
+                    </p>
+                    {gatePass.pass_date && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(gatePass.pass_date), "dd MMM yyyy")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="ms-3">
+                    <Badge variant={getStatusBadgeVariant(gatePass.status)}>
+                      {gatePass.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {t("clientSiteRep.noGatePassesFound", "No gate passes found")}
+              </p>
+            )}
+
+            <Button 
+              variant="outline" 
+              className="w-full mt-3"
+              onClick={handleViewAll}
+            >
+              {t("clientSiteRep.viewAllGatePasses", "View All Gate Passes")}
+            </Button>
+          </div>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
