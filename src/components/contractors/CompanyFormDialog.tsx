@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ContractorCompany, useCreateContractorCompany, useUpdateContractorCompany } from "@/hooks/contractor-management/use-contractor-companies";
-import { useBranches, useDepartments, useSections, useClientRepresentatives } from "@/hooks/contractor-management/use-contractor-company-details";
+import { useBranches, useDepartments, useSections, useClientRepresentatives, useContractorCompanyDetails } from "@/hooks/contractor-management/use-contractor-company-details";
 import { useContractorSafetyOfficers } from "@/hooks/contractor-management/use-contractor-safety-officers";
 import { useSendIdCardsForCompany } from "@/hooks/contractor-management/use-contractor-id-cards";
 import { useSyncPersonnelToWorkers } from "@/hooks/contractor-management/use-sync-personnel-to-workers";
@@ -97,6 +97,9 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
   const { data: representatives = [] } = useClientRepresentatives();
   const { data: existingOfficers = [] } = useContractorSafetyOfficers(company?.id ?? null);
   
+  // Fetch full company details (includes all site rep columns) when editing
+  const { data: companyDetails } = useContractorCompanyDetails(company?.id ?? null);
+  
   // Fallback: fetch safety officers from contractor_workers if contractor_safety_officers is empty
   const { data: workerOfficers = [] } = useQuery({
     queryKey: ["worker-safety-officers", company?.id],
@@ -114,35 +117,36 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
     enabled: !!company?.id && open,
   });
 
+  // Load form data from companyDetails (which has all fields) when editing
   useEffect(() => {
-    if (company && open) {
+    if (companyDetails && open) {
       setFormData({
-        company_name: company.company_name || "",
-        company_name_ar: company.company_name_ar || "",
-        email: company.email || "",
-        phone: company.phone || "",
-        address: company.address || "",
-        city: company.city || "",
-        commercial_registration_number: company.commercial_registration_number || "",
-        vat_number: company.vat_number || "",
-        scope_of_work: (company as any).scope_of_work || "",
-        contract_start_date: (company as any).contract_start_date || "",
-        contract_end_date: (company as any).contract_end_date || "",
-        total_workers: (company as any).total_workers || 0,
-        client_site_rep_id: (company as any).client_site_rep_id || "",
-        assigned_branch_id: (company as any).assigned_branch_id || "",
-        assigned_department_id: (company as any).assigned_department_id || "",
-        assigned_section_id: (company as any).assigned_section_id || "",
+        company_name: companyDetails.company_name || "",
+        company_name_ar: companyDetails.company_name_ar || "",
+        email: companyDetails.email || "",
+        phone: companyDetails.phone || "",
+        address: companyDetails.address || "",
+        city: companyDetails.city || "",
+        commercial_registration_number: companyDetails.commercial_registration_number || "",
+        vat_number: companyDetails.vat_number || "",
+        scope_of_work: companyDetails.scope_of_work || "",
+        contract_start_date: companyDetails.contract_start_date || "",
+        contract_end_date: companyDetails.contract_end_date || "",
+        total_workers: companyDetails.total_workers || 0,
+        client_site_rep_id: companyDetails.client_site_rep_id || "",
+        assigned_branch_id: companyDetails.assigned_branch_id || "",
+        assigned_department_id: companyDetails.assigned_department_id || "",
+        assigned_section_id: companyDetails.assigned_section_id || "",
       });
-      // Load existing site rep data (including new columns)
+      // Load existing site rep data (including new columns from companyDetails)
       setSiteRepData({
-        full_name: (company as any).contractor_site_rep_name || "",
-        national_id: (company as any).contractor_site_rep_national_id || "",
-        mobile_number: (company as any).contractor_site_rep_mobile || "",
-        nationality: (company as any).contractor_site_rep_nationality || "",
-        photo_path: (company as any).contractor_site_rep_photo || null,
-        phone: (company as any).contractor_site_rep_phone || "",
-        email: (company as any).contractor_site_rep_email || "",
+        full_name: companyDetails.contractor_site_rep_name || "",
+        national_id: companyDetails.contractor_site_rep_national_id || "",
+        mobile_number: companyDetails.contractor_site_rep_mobile || "",
+        nationality: companyDetails.contractor_site_rep_nationality || "",
+        photo_path: companyDetails.contractor_site_rep_photo || null,
+        phone: companyDetails.contractor_site_rep_phone || "",
+        email: companyDetails.contractor_site_rep_email || "",
       });
       setCurrentStep("basic");
     } else if (!open) {
@@ -151,7 +155,7 @@ export function CompanyFormDialog({ open, onOpenChange, company }: CompanyFormDi
       setSafetyOfficers([]);
       setCurrentStep("basic");
     }
-  }, [company, open]);
+  }, [companyDetails, open]);
 
   // Load existing safety officers when editing - with fallback to contractor_workers
   useEffect(() => {
