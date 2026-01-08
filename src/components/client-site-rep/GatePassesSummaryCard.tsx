@@ -16,6 +16,10 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
     navigate(`/contractors/gate-passes?status=${status}`);
   };
 
+  const handleCardClick = () => {
+    navigate("/contractors/gate-passes");
+  };
+
   const stats = [
     {
       label: t("clientSiteRep.pending", "Pending"),
@@ -53,7 +57,10 @@ export function GatePassesSummaryCard({ summary }: GatePassesSummaryCardProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader 
+        className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg"
+        onClick={handleCardClick}
+      >
         <CardTitle className="flex items-center gap-2 text-lg">
           <Ticket className="h-5 w-5 text-primary" />
           {t("clientSiteRep.gatePasses", "Gate Passes")}
