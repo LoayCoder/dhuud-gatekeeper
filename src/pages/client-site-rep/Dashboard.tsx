@@ -8,6 +8,7 @@ import { GatePassesSummaryCard } from "@/components/client-site-rep/GatePassesSu
 import { IncidentsSummaryCard } from "@/components/client-site-rep/IncidentsSummaryCard";
 import { PersonnelCard } from "@/components/client-site-rep/PersonnelCard";
 import { ViolationsCard } from "@/components/client-site-rep/ViolationsCard";
+import { ClientSiteRepExport } from "@/components/client-site-rep/ClientSiteRepExport";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ClientSiteRepDashboard() {
@@ -15,6 +16,7 @@ export default function ClientSiteRepDashboard() {
   const { profile } = useAuth();
   const {
     companies,
+    companyIds,
     workerSummary,
     projectSummary,
     gatePassSummary,
@@ -36,10 +38,13 @@ export default function ClientSiteRepDashboard() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-primary" />
-          {t("clientSiteRep.dashboard", "Site Representative Dashboard")}
-        </h1>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            {t("clientSiteRep.dashboard", "Site Representative Dashboard")}
+          </h1>
+          <ClientSiteRepExport companyIds={companyIds} />
+        </div>
         <p className="text-muted-foreground">
           {t("clientSiteRep.welcome", "Welcome")}, {profile?.full_name || t("common.user", "User")} — 
           {t("clientSiteRep.managingCompanies", "You manage {{count}} contractor companies", { count: companies.length })}
