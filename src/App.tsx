@@ -204,6 +204,7 @@ const TrainingCenter = lazyWithRetry(() => import("./pages/admin/TrainingCenter"
 const AppUpdates = lazyWithRetry(() => import("./pages/admin/AppUpdates"));
 const TestPushNotifications = lazyWithRetry(() => import("./pages/admin/TestPushNotifications"));
 const PendingApprovalsOverride = lazyWithRetry(() => import("./pages/admin/PendingApprovalsOverride"));
+const AISettings = lazyWithRetry(() => import("./pages/admin/AISettings"));
 
 const EventCategorySettings = lazyWithRetry(() => import("./pages/admin/EventCategorySettings"));
 const InspectionCategorySettings = lazyWithRetry(() => import("./pages/admin/InspectionCategorySettings"));
@@ -713,6 +714,14 @@ const App = () => (
                         element={
                           <AdminRoute>
                             <PendingApprovalsOverride />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/ai-settings"
+                        element={
+                          <AdminRoute>
+                            <AISettings />
                           </AdminRoute>
                         }
                       />
