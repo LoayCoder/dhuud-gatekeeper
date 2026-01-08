@@ -60,6 +60,10 @@ export interface IncidentFormData {
   recognized_contractor_worker_id?: string;
   // Report against contractor
   related_contractor_company_id?: string;
+  // AI Tags - linked to contractor or department
+  tags?: string[];
+  tag_contractor_id?: string;
+  tag_department_id?: string;
 }
 
 export function useCreateIncident() {
@@ -181,6 +185,18 @@ export function useCreateIncident() {
       // Add related contractor company for negative observations AND incidents
       if (data.related_contractor_company_id) {
         (insertData as Record<string, unknown>).related_contractor_company_id = data.related_contractor_company_id;
+      }
+
+      // Add AI tags and link to contractor or department
+      if (data.tags && data.tags.length > 0) {
+        (insertData as Record<string, unknown>).tags = data.tags;
+      }
+      // Link tags to contractor if contractor is involved
+      if (data.related_contractor_company_id) {
+        (insertData as Record<string, unknown>).tag_contractor_id = data.related_contractor_company_id;
+      } else if (data.department_id) {
+        // Otherwise link to department
+        (insertData as Record<string, unknown>).tag_department_id = data.department_id;
       }
 
       const { data: incident, error } = await supabase

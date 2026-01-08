@@ -9443,6 +9443,8 @@ export type Database = {
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
           subtype: string | null
+          tag_contractor_id: string | null
+          tag_department_id: string | null
           tags: string[] | null
           tenant_id: string
           title: string
@@ -9654,6 +9656,8 @@ export type Database = {
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
+          tag_contractor_id?: string | null
+          tag_department_id?: string | null
           tags?: string[] | null
           tenant_id: string
           title: string
@@ -9865,6 +9869,8 @@ export type Database = {
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
           subtype?: string | null
+          tag_contractor_id?: string | null
+          tag_department_id?: string | null
           tags?: string[] | null
           tenant_id?: string
           title?: string
@@ -10269,6 +10275,20 @@ export type Database = {
             columns: ["special_event_id"]
             isOneToOne: false
             referencedRelation: "special_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_tag_contractor_id_fkey"
+            columns: ["tag_contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_tag_department_id_fkey"
+            columns: ["tag_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {

@@ -24,6 +24,8 @@ import { useState } from 'react';
 import { AnalysisResult, ValidationState } from '@/hooks/use-observation-ai-validator';
 import { ConfidenceIndicator } from './ConfidenceIndicator';
 import { ClarityScoreIndicator } from './ClarityScoreIndicator';
+import { AITagsSelector } from '@/components/ai/AITagsSelector';
+import type { AITag } from '@/hooks/use-ai-tags';
 
 interface AIAnalysisPanelProps {
   validationState: ValidationState;
@@ -32,6 +34,9 @@ interface AIAnalysisPanelProps {
   blockingReason: string | null;
   onConfirmTranslation: () => void;
   onConfirmAnalysis?: () => void;
+  // Tags support
+  availableTags?: AITag[];
+  selectedTags?: string[];
   suggestedTags?: string[];
   onTagsChange?: (tags: string[]) => void;
   className?: string;
@@ -44,6 +49,10 @@ export function AIAnalysisPanel({
   blockingReason,
   onConfirmTranslation,
   onConfirmAnalysis,
+  availableTags = [],
+  selectedTags = [],
+  suggestedTags = [],
+  onTagsChange,
   className
 }: AIAnalysisPanelProps) {
   const { t, i18n } = useTranslation();
@@ -302,6 +311,22 @@ export function AIAnalysisPanel({
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          )}
+
+          {/* Tags Section */}
+          {availableTags.length > 0 && onTagsChange && (
+            <div className="pt-2 border-t">
+              <div className="flex items-center gap-2 mb-2">
+                <Tags className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium">{t('admin.ai.observationTags', 'Observation Tags')}</span>
+              </div>
+              <AITagsSelector
+                availableTags={availableTags}
+                selectedTags={selectedTags}
+                suggestedTags={suggestedTags}
+                onTagsChange={onTagsChange}
+              />
+            </div>
           )}
         </>
       )}
