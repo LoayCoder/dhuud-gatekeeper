@@ -30,11 +30,13 @@ export function ViolationsCard({ violations }: ViolationsCardProps) {
   const navigate = useNavigate();
 
   const handleViewAll = () => {
-    navigate("/contractors/violations");
+    // Navigate to incidents filtered by violation type
+    navigate("/incidents?type=violation");
   };
 
   const handleViolationClick = (violationId: string) => {
-    navigate(`/contractors/violations/${violationId}`);
+    // Navigate to incident detail (violations are tracked via incidents)
+    navigate(`/incidents/${violationId}`);
   };
 
   return (
