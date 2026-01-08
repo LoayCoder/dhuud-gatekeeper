@@ -23159,6 +23159,7 @@ export type Database = {
         | "security"
         | "audit"
         | "food_safety"
+        | "contractor"
       severity_level: "low" | "medium" | "high" | "critical"
       severity_level_v2:
         | "level_1"
@@ -23483,6 +23484,7 @@ export const Constants = {
         "security",
         "audit",
         "food_safety",
+        "contractor",
       ],
       severity_level: ["low", "medium", "high", "critical"],
       severity_level_v2: [
