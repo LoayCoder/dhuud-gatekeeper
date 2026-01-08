@@ -18,13 +18,13 @@ export default function ClientSiteRepDashboard() {
     companies,
     companyIds,
     workerSummary,
-    recentWorkers,
+    allWorkers,
     projectSummary,
-    recentProjects,
+    allProjects,
     gatePassSummary,
-    recentGatePasses,
+    allGatePasses,
     incidentSummary,
-    recentIncidents,
+    allIncidents,
     violations,
     personnel,
     isLoading,
@@ -66,25 +66,25 @@ export default function ClientSiteRepDashboard() {
         <WorkersSummaryCard 
           summary={workerSummary} 
           safetyOfficerCount={personnel.safetyOfficers.length}
-          recentWorkers={recentWorkers}
+          allWorkers={allWorkers}
         />
 
         {/* Gate Passes Summary */}
         <GatePassesSummaryCard 
           summary={gatePassSummary}
-          recentGatePasses={recentGatePasses}
+          allGatePasses={allGatePasses}
         />
 
         {/* Projects Summary */}
         <ProjectsSummaryCard 
           summary={projectSummary}
-          recentProjects={recentProjects}
+          allProjects={allProjects}
         />
 
         {/* HSSE Events Summary */}
         <IncidentsSummaryCard 
           summary={incidentSummary}
-          recentIncidents={recentIncidents}
+          allIncidents={allIncidents}
         />
 
         {/* Personnel Overview */}

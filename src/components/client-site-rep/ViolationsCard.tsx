@@ -1,9 +1,10 @@
-import { ShieldAlert, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import type { ClientSiteRepViolation } from "@/hooks/contractor-management/use-client-site-rep-data";
 
@@ -25,34 +26,28 @@ const statusColors: Record<string, string> = {
   dismissed: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 };
 
+const ITEMS_PER_PAGE = 5;
+
 export function ViolationsCard({ violations }: ViolationsCardProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const [expandedViolationId, setExpandedViolationId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  const handleViewAll = () => {
-    // Navigate to incidents filtered by violation type
-    navigate("/incidents?type=violation");
+  const toggleViolationDetails = (violationId: string) => {
+    setExpandedViolationId(prev => prev === violationId ? null : violationId);
   };
 
-  const handleViolationClick = (violationId: string) => {
-    // Navigate to incident detail (violations are tracked via incidents)
-    navigate(`/incidents/${violationId}`);
-  };
+  const visibleViolations = violations.slice(0, visibleCount);
+  const hasMore = violations.length > visibleCount;
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <ShieldAlert className="h-5 w-5 text-primary" />
           {t("clientSiteRep.recentViolations", "Recent Violations")}
           <span className="text-muted-foreground font-normal">({violations.length})</span>
         </CardTitle>
-        {violations.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={handleViewAll}>
-            {t("common.viewAll", "View All")}
-            <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {violations.length === 0 ? (
@@ -61,32 +56,84 @@ export function ViolationsCard({ violations }: ViolationsCardProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {violations.map((violation) => (
-              <div
+            {visibleViolations.map((violation) => (
+              <Collapsible 
                 key={violation.id}
-                className="flex items-start justify-between gap-2 p-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                onClick={() => handleViolationClick(violation.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleViolationClick(violation.id)}
+                open={expandedViolationId === violation.id}
+                onOpenChange={() => toggleViolationDetails(violation.id)}
               >
-                <div className="space-y-1">
-                  <p className="font-medium text-sm">{violation.violation_type}</p>
-                  <p className="text-xs text-muted-foreground">{violation.company_name}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge className={severityColors[violation.severity] || "bg-muted"} variant="secondary">
-                      {t(`violations.severity.${violation.severity}`, violation.severity)}
-                    </Badge>
-                    <Badge className={statusColors[violation.status] || "bg-muted"} variant="secondary">
-                      {t(`violations.status.${violation.status}`, violation.status)}
-                    </Badge>
+                <CollapsibleTrigger asChild>
+                  <div
+                    className="flex items-start justify-between gap-2 p-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{violation.violation_type}</p>
+                        {expandedViolationId === violation.id ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{violation.company_name}</p>
+                      <div className="flex items-center gap-2">
+                        <Badge className={severityColors[violation.severity] || "bg-muted"} variant="secondary">
+                          {t(`violations.severity.${violation.severity}`, violation.severity)}
+                        </Badge>
+                        <Badge className={statusColors[violation.status] || "bg-muted"} variant="secondary">
+                          {t(`violations.status.${violation.status}`, violation.status)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {format(new Date(violation.reported_at), "dd/MM/yyyy")}
+                    </span>
                   </div>
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {format(new Date(violation.reported_at), "dd/MM/yyyy")}
-                </span>
-              </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 p-3 rounded-lg border bg-card text-sm space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-muted-foreground text-xs">{t("violations.type", "Type")}</p>
+                        <p className="font-medium">{violation.violation_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">{t("violations.company", "Company")}</p>
+                        <p className="font-medium">{violation.company_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">{t("violations.severity", "Severity")}</p>
+                        <Badge className={severityColors[violation.severity] || "bg-muted"} variant="secondary">
+                          {violation.severity}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">{t("violations.status", "Status")}</p>
+                        <Badge className={statusColors[violation.status] || "bg-muted"} variant="secondary">
+                          {violation.status}
+                        </Badge>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground text-xs">{t("violations.reportedAt", "Reported At")}</p>
+                        <p className="font-medium">{format(new Date(violation.reported_at), "dd MMM yyyy, HH:mm")}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
+
+            {hasMore && (
+              <Button 
+                variant="outline" 
+                className="w-full mt-3"
+                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+              >
+                {t("common.loadMore", "Load More")} ({violations.length - visibleCount} {t("common.remaining", "remaining")})
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

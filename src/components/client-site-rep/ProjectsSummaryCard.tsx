@@ -1,31 +1,40 @@
-import { useState } from "react";
-import { FolderKanban, PlayCircle, Calendar, CheckCircle2, PauseCircle, ChevronDown, ChevronUp, Building2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FolderKanban, PlayCircle, Calendar, CheckCircle2, PauseCircle, ChevronDown, ChevronUp, Building2, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import type { ClientSiteRepProjectSummary, ClientSiteRepProjectDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
 
 interface ProjectsSummaryCardProps {
   summary: ClientSiteRepProjectSummary;
-  recentProjects?: ClientSiteRepProjectDetail[];
+  allProjects?: ClientSiteRepProjectDetail[];
 }
 
-export function ProjectsSummaryCard({ summary, recentProjects = [] }: ProjectsSummaryCardProps) {
+const ITEMS_PER_PAGE = 10;
+
+export function ProjectsSummaryCard({ summary, allProjects = [] }: ProjectsSummaryCardProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const handleStatusClick = (e: React.MouseEvent, status: string) => {
     e.stopPropagation();
+    if (activeFilter === status) {
+      setActiveFilter(null);
+    } else {
+      setActiveFilter(status);
+    }
     setIsExpanded(true);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
-  const handleViewAll = () => {
-    navigate("/contractors/projects");
+  const clearFilter = () => {
+    setActiveFilter(null);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
   // Show empty state if no projects
@@ -90,6 +99,19 @@ export function ProjectsSummaryCard({ summary, recentProjects = [] }: ProjectsSu
     }
   };
 
+  // Filter projects based on active filter
+  const filteredProjects = useMemo(() => {
+    if (!activeFilter) return allProjects;
+    // Handle on_hold which also includes suspended
+    if (activeFilter === "on_hold") {
+      return allProjects.filter(p => p.status === "on_hold" || p.status === "suspended");
+    }
+    return allProjects.filter(p => p.status === activeFilter);
+  }, [allProjects, activeFilter]);
+
+  const visibleProjects = filteredProjects.slice(0, visibleCount);
+  const hasMore = filteredProjects.length > visibleCount;
+
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card>
@@ -115,7 +137,9 @@ export function ProjectsSummaryCard({ summary, recentProjects = [] }: ProjectsSu
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${
+                  activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2 bg-muted/50" : ""
+                }`}
                 onClick={(e) => handleStatusClick(e, stat.status)}
                 role="button"
                 tabIndex={0}
@@ -133,12 +157,26 @@ export function ProjectsSummaryCard({ summary, recentProjects = [] }: ProjectsSu
 
         <CollapsibleContent>
           <div className="border-t px-4 pb-4 pt-3 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground mb-3">
-              {t("clientSiteRep.recentProjects", "Recent Projects")}
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                {activeFilter 
+                  ? t("clientSiteRep.showingFilteredProjects", "Showing {{status}} projects ({{count}})", { 
+                      status: activeFilter.replace(/_/g, " "), 
+                      count: filteredProjects.length 
+                    })
+                  : t("clientSiteRep.allProjects", "All Projects ({{count}})", { count: allProjects.length })
+                }
+              </p>
+              {activeFilter && (
+                <Button variant="ghost" size="sm" onClick={clearFilter} className="h-8 px-2">
+                  <X className="h-4 w-4 me-1" />
+                  {t("common.clearFilter", "Clear Filter")}
+                </Button>
+              )}
+            </div>
             
-            {recentProjects.length > 0 ? (
-              recentProjects.map((project) => (
+            {visibleProjects.length > 0 ? (
+              visibleProjects.map((project) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
@@ -164,17 +202,22 @@ export function ProjectsSummaryCard({ summary, recentProjects = [] }: ProjectsSu
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {t("clientSiteRep.noProjectsFound", "No projects found")}
+                {activeFilter 
+                  ? t("clientSiteRep.noProjectsMatchFilter", "No projects match this filter")
+                  : t("clientSiteRep.noProjectsFound", "No projects found")
+                }
               </p>
             )}
 
-            <Button 
-              variant="outline" 
-              className="w-full mt-3"
-              onClick={handleViewAll}
-            >
-              {t("clientSiteRep.viewAllProjects", "View All Projects")}
-            </Button>
+            {hasMore && (
+              <Button 
+                variant="outline" 
+                className="w-full mt-3"
+                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+              >
+                {t("common.loadMore", "Load More")} ({filteredProjects.length - visibleCount} {t("common.remaining", "remaining")})
+              </Button>
+            )}
           </div>
         </CollapsibleContent>
       </Card>
