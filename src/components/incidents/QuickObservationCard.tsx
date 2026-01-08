@@ -29,6 +29,9 @@ import { UploadProgressOverlay } from '@/components/ui/upload-progress';
 import { HSSE_SEVERITY_LEVELS, canCloseOnSpot, type SeverityLevelV2 } from '@/lib/hsse-severity-levels';
 import { useObservationAIValidator } from '@/hooks/use-observation-ai-validator';
 import { AIAnalysisPanel } from '@/components/observations/AIAnalysisPanel';
+import { useAITags } from '@/hooks/use-ai-tags';
+import { AITagsSelector } from '@/components/ai/AITagsSelector';
+import { Tags } from 'lucide-react';
 
 const OBSERVATION_TYPES = [
   { value: 'unsafe_act', labelKey: 'incidents.observationTypes.unsafeAct', isPositive: false },
@@ -92,6 +95,10 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
   
   // AI Validation hook
   const aiValidator = useObservationAIValidator();
+  
+  // AI Tags for observations
+  const { tags: availableObservationTags = [] } = useAITags('observation');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   const createIncident = useCreateIncident();
   const { data: sites = [] } = useTenantSites();
@@ -286,12 +293,14 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
       recognition_type: values.recognition_type,
       recognized_user_id: values.recognition_type === 'individual' ? values.recognized_user_id : undefined,
       recognized_contractor_worker_id: values.recognition_type === 'contractor' ? values.recognized_contractor_worker_id : undefined,
-      // Store department_id for department recognition
-      department_id: values.recognition_type === 'department' ? values.recognized_department_id : undefined,
+      // Store department_id for department recognition or reporter's department
+      department_id: values.recognition_type === 'department' ? values.recognized_department_id : profile?.assigned_department_id,
       // Link to active special event
       special_event_id: activeEvent?.id || undefined,
       // Report against contractor for negative observations
       related_contractor_company_id: values.is_against_contractor ? values.related_contractor_company_id : undefined,
+      // AI Tags - linked to contractor or department
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
     };
     
     createIncident.mutate(formData, {
@@ -496,7 +505,27 @@ export function QuickObservationCard({ onCancel }: QuickObservationCardProps) {
                 blockingReason={aiValidator.blockingReason}
                 onConfirmTranslation={handleConfirmTranslation}
                 onConfirmAnalysis={handleConfirmAnalysis}
+                availableTags={availableObservationTags}
+                selectedTags={selectedTags}
+                suggestedTags={aiValidator.analysisResult?.suggestedTags}
+                onTagsChange={setSelectedTags}
               />
+
+              {/* Tags Section - Always visible for manual tag management */}
+              {availableObservationTags.length > 0 && (
+                <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Tags className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{t('admin.ai.observationTags', 'Observation Tags')}</span>
+                  </div>
+                  <AITagsSelector
+                    availableTags={availableObservationTags}
+                    selectedTags={selectedTags}
+                    suggestedTags={aiValidator.analysisResult?.suggestedTags}
+                    onTagsChange={setSelectedTags}
+                  />
+                </div>
+              )}
               
               {/* Observation Type */}
               <FormField

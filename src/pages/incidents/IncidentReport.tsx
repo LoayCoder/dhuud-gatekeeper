@@ -37,6 +37,7 @@ import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
 import { useIncidentAIValidator } from '@/hooks/use-incident-ai-validator';
 import { AIIncidentAnalysisPanel } from '@/components/incidents/AIIncidentAnalysisPanel';
+import { AITagsSelector } from '@/components/ai/AITagsSelector';
 import { useAITags } from '@/hooks/use-ai-tags';
 import { useReverseGeocode, type LocationAddress } from '@/hooks/use-reverse-geocode';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
@@ -587,6 +588,8 @@ export default function IncidentReport() {
       special_event_id: activeEventId || undefined,
       // Report against contractor
       related_contractor_company_id: !isObs && values.is_against_contractor ? values.related_contractor_company_id : undefined,
+      // AI Tags - linked to contractor or department
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
     };
 
     createIncident.mutate(formData, {
@@ -943,6 +946,22 @@ export default function IncidentReport() {
                     selectedTags={selectedTags}
                     onTagsChange={setSelectedTags}
                   />
+
+                  {/* Tags Section - Always visible for manual tag management */}
+                  {availableIncidentTags.length > 0 && (
+                    <div className="space-y-2 p-4 border rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{t('admin.ai.incidentTags', 'Incident Tags')}</span>
+                      </div>
+                      <AITagsSelector
+                        availableTags={availableIncidentTags}
+                        selectedTags={selectedTags}
+                        suggestedTags={aiValidator.analysisResult?.suggestedTags}
+                        onTagsChange={setSelectedTags}
+                      />
+                    </div>
+                  )}
 
                   {/* HSSE Event Type (Top-Level Category) - event_type is auto-set to 'incident' */}
                   {eventType === 'incident' && (
