@@ -223,7 +223,8 @@ export function useClientSiteRepWorkers(companyIds: string[]) {
         blacklisted: rows.filter(w => w.approval_status === "blacklisted").length,
       };
 
-      const recentWorkers: ClientSiteRepWorkerDetail[] = rows.slice(0, 5).map(w => ({
+      // Return ALL workers for inline filtering (not just 5)
+      const allWorkers: ClientSiteRepWorkerDetail[] = rows.map(w => ({
         id: w.id,
         full_name: w.full_name,
         worker_id: w.national_id,
@@ -232,7 +233,7 @@ export function useClientSiteRepWorkers(companyIds: string[]) {
         company_name: w.company?.company_name || "Unknown",
       }));
 
-      return { summary, recentWorkers };
+      return { summary, allWorkers };
     },
     enabled: companyIds.length > 0 && !!tenantId,
   });
@@ -274,7 +275,8 @@ export function useClientSiteRepProjects(companyIds: string[]) {
         on_hold: data.filter(p => p.status === "on_hold" || p.status === "suspended").length,
       };
 
-      const recentProjects: ClientSiteRepProjectDetail[] = data.slice(0, 5).map(p => ({
+      // Return ALL projects for inline filtering (not just 5)
+      const allProjects: ClientSiteRepProjectDetail[] = data.map(p => ({
         id: p.id,
         project_name: p.project_name,
         status: p.status,
@@ -282,7 +284,7 @@ export function useClientSiteRepProjects(companyIds: string[]) {
         company_name: (p.company as { company_name?: string })?.company_name || "Unknown",
       }));
 
-      return { summary, recentProjects };
+      return { summary, allProjects };
     },
     enabled: companyIds.length > 0 && !!tenantId,
   });
@@ -340,7 +342,8 @@ export function useClientSiteRepGatePasses(companyIds: string[]) {
         expired: expiredCount,
       };
 
-      const recentGatePasses: ClientSiteRepGatePassDetail[] = rows.slice(0, 5).map(g => ({
+      // Return ALL gate passes for inline filtering (not just 5)
+      const allGatePasses: ClientSiteRepGatePassDetail[] = rows.map(g => ({
         id: g.id,
         pass_number: g.reference_number,
         status: g.status,
@@ -349,7 +352,7 @@ export function useClientSiteRepGatePasses(companyIds: string[]) {
         company_name: g.company?.company_name || "Unknown",
       }));
 
-      return { summary, recentGatePasses };
+      return { summary, allGatePasses };
     },
     enabled: companyIds.length > 0 && !!tenantId,
   });
@@ -403,7 +406,8 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
         closed: rows.filter(i => i.status === "closed" || i.status === "investigation_closed").length,
       };
 
-      const recentIncidents: ClientSiteRepIncidentDetail[] = rows.slice(0, 5).map(i => ({
+      // Return ALL incidents for inline filtering (not just 5)
+      const allIncidents: ClientSiteRepIncidentDetail[] = rows.map(i => ({
         id: i.id,
         incident_number: i.reference_id,
         description: i.description,
@@ -412,7 +416,7 @@ export function useClientSiteRepIncidents(companyIds: string[]) {
         occurred_at: i.occurred_at,
       }));
 
-      return { summary, recentIncidents };
+      return { summary, allIncidents };
     },
     enabled: companyIds.length > 0 && !!tenantId,
   });
@@ -561,22 +565,22 @@ export function useClientSiteRepData() {
     }
   }, [companies, workerData, projectData, gatePassData, incidentData, violations, personnel, companiesLoading, workersLoading, projectsLoading, gatePassesLoading, incidentsLoading, violationsLoading, personnelLoading]);
 
-  const defaultWorkerData = { summary: { total: 0, approved: 0, pending: 0, rejected: 0, blacklisted: 0 }, recentWorkers: [] as ClientSiteRepWorkerDetail[] };
-  const defaultProjectData = { summary: { total: 0, active: 0, planned: 0, completed: 0, on_hold: 0 }, recentProjects: [] as ClientSiteRepProjectDetail[] };
-  const defaultGatePassData = { summary: { total: 0, pending: 0, approved: 0, rejected: 0, expired: 0 }, recentGatePasses: [] as ClientSiteRepGatePassDetail[] };
-  const defaultIncidentData = { summary: { total: 0, open: 0, under_investigation: 0, closed: 0 }, recentIncidents: [] as ClientSiteRepIncidentDetail[] };
+  const defaultWorkerData = { summary: { total: 0, approved: 0, pending: 0, rejected: 0, blacklisted: 0 }, allWorkers: [] as ClientSiteRepWorkerDetail[] };
+  const defaultProjectData = { summary: { total: 0, active: 0, planned: 0, completed: 0, on_hold: 0 }, allProjects: [] as ClientSiteRepProjectDetail[] };
+  const defaultGatePassData = { summary: { total: 0, pending: 0, approved: 0, rejected: 0, expired: 0 }, allGatePasses: [] as ClientSiteRepGatePassDetail[] };
+  const defaultIncidentData = { summary: { total: 0, open: 0, under_investigation: 0, closed: 0 }, allIncidents: [] as ClientSiteRepIncidentDetail[] };
 
   return {
     companies,
     companyIds,
     workerSummary: workerData?.summary || defaultWorkerData.summary,
-    recentWorkers: workerData?.recentWorkers || defaultWorkerData.recentWorkers,
+    allWorkers: workerData?.allWorkers || defaultWorkerData.allWorkers,
     projectSummary: projectData?.summary || defaultProjectData.summary,
-    recentProjects: projectData?.recentProjects || defaultProjectData.recentProjects,
+    allProjects: projectData?.allProjects || defaultProjectData.allProjects,
     gatePassSummary: gatePassData?.summary || defaultGatePassData.summary,
-    recentGatePasses: gatePassData?.recentGatePasses || defaultGatePassData.recentGatePasses,
+    allGatePasses: gatePassData?.allGatePasses || defaultGatePassData.allGatePasses,
     incidentSummary: incidentData?.summary || defaultIncidentData.summary,
-    recentIncidents: incidentData?.recentIncidents || defaultIncidentData.recentIncidents,
+    allIncidents: incidentData?.allIncidents || defaultIncidentData.allIncidents,
     violations,
     personnel: personnel || { safetyOfficers: [], contractorReps: [] },
     isLoading: companiesLoading || workersLoading || projectsLoading || gatePassesLoading || incidentsLoading || violationsLoading || personnelLoading,

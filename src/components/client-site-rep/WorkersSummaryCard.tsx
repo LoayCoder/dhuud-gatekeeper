@@ -1,31 +1,40 @@
-import { useState } from "react";
-import { Users, CheckCircle, Clock, XCircle, Ban, Shield, Phone, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Users, CheckCircle, Clock, XCircle, Ban, Shield, Phone, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import type { ClientSiteRepWorkerSummary, ClientSiteRepWorkerDetail } from "@/hooks/contractor-management/use-client-site-rep-data";
 
 interface WorkersSummaryCardProps {
   summary: ClientSiteRepWorkerSummary;
   safetyOfficerCount?: number;
-  recentWorkers?: ClientSiteRepWorkerDetail[];
+  allWorkers?: ClientSiteRepWorkerDetail[];
 }
 
-export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, recentWorkers = [] }: WorkersSummaryCardProps) {
+const ITEMS_PER_PAGE = 10;
+
+export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, allWorkers = [] }: WorkersSummaryCardProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const handleStatusClick = (e: React.MouseEvent, status: string) => {
     e.stopPropagation();
+    if (activeFilter === status) {
+      setActiveFilter(null);
+    } else {
+      setActiveFilter(status);
+    }
     setIsExpanded(true);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
-  const handleViewAll = () => {
-    navigate("/contractors/workers");
+  const clearFilter = () => {
+    setActiveFilter(null);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
   // Calculate safety ratio
@@ -78,6 +87,15 @@ export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, recentWork
     }
   };
 
+  // Filter workers based on active filter
+  const filteredWorkers = useMemo(() => {
+    if (!activeFilter) return allWorkers;
+    return allWorkers.filter(w => w.approval_status === activeFilter);
+  }, [allWorkers, activeFilter]);
+
+  const visibleWorkers = filteredWorkers.slice(0, visibleCount);
+  const hasMore = filteredWorkers.length > visibleCount;
+
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card>
@@ -103,7 +121,9 @@ export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, recentWork
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`${stat.bg} rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity`}
+                className={`${stat.bg} rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-all ${
+                  activeFilter === stat.status ? "ring-2 ring-primary ring-offset-2" : ""
+                }`}
                 onClick={(e) => handleStatusClick(e, stat.status)}
                 role="button"
                 tabIndex={0}
@@ -145,12 +165,26 @@ export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, recentWork
 
         <CollapsibleContent>
           <div className="border-t px-4 pb-4 pt-3 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground mb-3">
-              {t("clientSiteRep.recentWorkers", "Recent Workers")}
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                {activeFilter 
+                  ? t("clientSiteRep.showingFiltered", "Showing {{status}} workers ({{count}})", { 
+                      status: activeFilter, 
+                      count: filteredWorkers.length 
+                    })
+                  : t("clientSiteRep.allWorkers", "All Workers ({{count}})", { count: allWorkers.length })
+                }
+              </p>
+              {activeFilter && (
+                <Button variant="ghost" size="sm" onClick={clearFilter} className="h-8 px-2">
+                  <X className="h-4 w-4 me-1" />
+                  {t("common.clearFilter", "Clear Filter")}
+                </Button>
+              )}
+            </div>
             
-            {recentWorkers.length > 0 ? (
-              recentWorkers.map((worker) => (
+            {visibleWorkers.length > 0 ? (
+              visibleWorkers.map((worker) => (
                 <div
                   key={worker.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
@@ -180,17 +214,22 @@ export function WorkersSummaryCard({ summary, safetyOfficerCount = 0, recentWork
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {t("clientSiteRep.noWorkersFound", "No workers found")}
+                {activeFilter 
+                  ? t("clientSiteRep.noWorkersMatchFilter", "No workers match this filter")
+                  : t("clientSiteRep.noWorkersFound", "No workers found")
+                }
               </p>
             )}
 
-            <Button 
-              variant="outline" 
-              className="w-full mt-3"
-              onClick={handleViewAll}
-            >
-              {t("clientSiteRep.viewAllWorkers", "View All Workers")}
-            </Button>
+            {hasMore && (
+              <Button 
+                variant="outline" 
+                className="w-full mt-3"
+                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+              >
+                {t("common.loadMore", "Load More")} ({filteredWorkers.length - visibleCount} {t("common.remaining", "remaining")})
+              </Button>
+            )}
           </div>
         </CollapsibleContent>
       </Card>
