@@ -55,11 +55,14 @@ export default function ClientSiteRepDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Companies Card - Full width on mobile */}
         <div className="md:col-span-2 lg:col-span-1">
-          <AssignedCompaniesCard companies={companies} />
+          <AssignedCompaniesCard companies={companies} personnel={personnel} />
         </div>
 
-        {/* Workers Summary */}
-        <WorkersSummaryCard summary={workerSummary} />
+        {/* Workers Summary with Safety Ratio */}
+        <WorkersSummaryCard 
+          summary={workerSummary} 
+          safetyOfficerCount={personnel.safetyOfficers.length} 
+        />
 
         {/* Gate Passes Summary */}
         <GatePassesSummaryCard summary={gatePassSummary} />
@@ -67,7 +70,7 @@ export default function ClientSiteRepDashboard() {
         {/* Projects Summary */}
         <ProjectsSummaryCard summary={projectSummary} />
 
-        {/* Incidents Summary */}
+        {/* HSSE Events Summary */}
         <IncidentsSummaryCard summary={incidentSummary} />
 
         {/* Personnel Overview */}

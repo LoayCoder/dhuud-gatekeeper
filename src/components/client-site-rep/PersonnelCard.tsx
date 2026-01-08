@@ -1,4 +1,4 @@
-import { HardHat, UserCheck } from "lucide-react";
+import { HardHat, UserCheck, Phone, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
@@ -63,11 +63,34 @@ export function PersonnelCard({ personnel }: PersonnelCardProps) {
               {t("clientSiteRep.noContractorReps", "No contractor representatives found")}
             </p>
           ) : (
-            <div className="grid gap-2 ps-6">
+            <div className="grid gap-3 ps-6">
               {personnel.contractorReps.slice(0, 3).map((rep) => (
-                <div key={rep.id} className="flex items-center justify-between text-sm">
-                  <span>{rep.name}</span>
-                  <span className="text-muted-foreground">{rep.company_name}</span>
+                <div key={rep.id} className="text-sm space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{rep.name}</span>
+                    <span className="text-muted-foreground text-xs">{rep.company_name}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+                    {rep.phone && (
+                      <a 
+                        href={`tel:${rep.phone}`}
+                        className="text-primary hover:underline flex items-center gap-1 text-xs"
+                        dir="ltr"
+                      >
+                        <Phone className="h-3 w-3" />
+                        {rep.phone}
+                      </a>
+                    )}
+                    {rep.email && (
+                      <a 
+                        href={`mailto:${rep.email}`}
+                        className="text-primary hover:underline flex items-center gap-1 text-xs"
+                      >
+                        <Mail className="h-3 w-3" />
+                        {rep.email}
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
               {personnel.contractorReps.length > 3 && (
