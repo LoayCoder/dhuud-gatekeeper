@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,11 +13,13 @@ import { VisitorIdScanner } from '@/components/visitors/VisitorIdScanner';
 import { VisitorPhotoCapture } from '@/components/security/VisitorPhotoCapture';
 import { ANPRCaptureWidget } from '@/components/security/ANPRCaptureWidget';
 import { useCreateGateEntry, useSendWhatsAppNotification } from '@/hooks/use-gate-entries';
+import { useRecordPersonnelEntry } from '@/hooks/use-personnel-onsite';
 import { useSites } from '@/hooks/use-sites';
-import { Car, User, Phone, Building2, MessageSquare, Users } from 'lucide-react';
+import { Car, User, Phone, Building2, MessageSquare, Users, HardHat, UserCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VISIT_DURATION_OPTIONS = [
   { value: 1, labelKey: 'security.gate.duration1h', label: '1 hour' },
@@ -40,6 +42,8 @@ const formSchema = z.object({
   visit_duration_hours: z.number().min(1).max(24).default(1),
   notes: z.string().optional(),
   send_whatsapp: z.boolean().default(false),
+  safety_officer_id: z.string().optional(),
+  representative_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -52,14 +56,25 @@ const ENTRY_TYPES = [
   { value: 'employee', labelKey: 'security.entryTypes.employee' },
 ];
 
+interface PersonnelOption {
+  id: string;
+  name: string;
+  company_name: string;
+}
+
 export function GateEntryForm() {
   const { t } = useTranslation();
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
   const createEntry = useCreateGateEntry();
   const sendWhatsApp = useSendWhatsAppNotification();
+  const recordPersonnelEntry = useRecordPersonnelEntry();
   const { data: sites } = useSites();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [visitorPhoto, setVisitorPhoto] = useState<Blob | null>(null);
   const [visitorPhotoPreview, setVisitorPhotoPreview] = useState<string | null>(null);
+  const [safetyOfficers, setSafetyOfficers] = useState<PersonnelOption[]>([]);
+  const [representatives, setRepresentatives] = useState<PersonnelOption[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -76,8 +91,53 @@ export function GateEntryForm() {
       visit_duration_hours: 1,
       notes: '',
       send_whatsapp: false,
+      safety_officer_id: '',
+      representative_id: '',
     },
   });
+
+  const entryType = form.watch('entry_type');
+
+  // Fetch personnel options when entry_type is 'contractor'
+  useEffect(() => {
+    if (entryType === 'contractor' && tenantId) {
+      // Fetch safety officers
+      supabase
+        .from('contractor_safety_officers')
+        .select(`
+          id, name,
+          company:contractor_companies!contractor_safety_officers_company_id_fkey(company_name)
+        `)
+        .eq('tenant_id', tenantId)
+        .eq('is_onsite', false)
+        .is('deleted_at', null)
+        .then(({ data }) => {
+          setSafetyOfficers((data || []).map(so => ({
+            id: so.id,
+            name: so.name || 'Unknown',
+            company_name: (so.company as { company_name?: string })?.company_name || 'Unknown',
+          })));
+        });
+
+      // Fetch contractor representatives
+      supabase
+        .from('contractor_representatives')
+        .select(`
+          id, full_name,
+          company:contractor_companies!contractor_representatives_company_id_fkey(company_name)
+        `)
+        .eq('tenant_id', tenantId)
+        .eq('is_onsite', false)
+        .is('deleted_at', null)
+        .then(({ data }) => {
+          setRepresentatives((data || []).map(rep => ({
+            id: rep.id,
+            name: rep.full_name || 'Unknown',
+            company_name: (rep.company as { company_name?: string })?.company_name || 'Unknown',
+          })));
+        });
+    }
+  }, [entryType, tenantId]);
 
   const handleIdScan = (scannedValue: string) => {
     // Parse scanned ID - format varies by country
@@ -123,6 +183,8 @@ export function GateEntryForm() {
         passenger_count: values.passenger_count,
         visit_duration_hours: values.visit_duration_hours,
         notes: values.notes || null,
+        safety_officer_id: values.safety_officer_id || null,
+        representative_id: values.representative_id || null,
       });
 
       // Upload visitor photo if captured
@@ -135,6 +197,23 @@ export function GateEntryForm() {
             .update({ visitor_photo_url: photoPath })
             .eq('id', entry.id);
         }
+      }
+
+      // Update personnel onsite status if linked
+      if (values.safety_officer_id && entry.id) {
+        await recordPersonnelEntry.mutateAsync({
+          type: 'safety_officer',
+          personnelId: values.safety_officer_id,
+          gateEntryId: entry.id,
+        });
+      }
+
+      if (values.representative_id && entry.id) {
+        await recordPersonnelEntry.mutateAsync({
+          type: 'representative',
+          personnelId: values.representative_id,
+          gateEntryId: entry.id,
+        });
       }
 
       if (values.send_whatsapp && values.mobile_number) {
@@ -233,7 +312,72 @@ export function GateEntryForm() {
                 )}
               />
 
-              {/* Car Plate with ANPR */}
+              {/* Personnel Selection - Only shown for contractor entry type */}
+              {entryType === 'contractor' && (
+                <>
+                  {/* Safety Officer Selection */}
+                  <FormField
+                    control={form.control}
+                    name="safety_officer_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <HardHat className="h-4 w-4" />
+                          {t('security.gate.safetyOfficer', 'Safety Officer')}
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('security.gate.selectSafetyOfficer', 'Select safety officer...')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">{t('common.none', 'None')}</SelectItem>
+                            {safetyOfficers.map(so => (
+                              <SelectItem key={so.id} value={so.id}>
+                                {so.name} ({so.company_name})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Contractor Representative Selection */}
+                  <FormField
+                    control={form.control}
+                    name="representative_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <UserCheck className="h-4 w-4" />
+                          {t('security.gate.contractorRep', 'Contractor Representative')}
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('security.gate.selectContractorRep', 'Select representative...')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">{t('common.none', 'None')}</SelectItem>
+                            {representatives.map(rep => (
+                              <SelectItem key={rep.id} value={rep.id}>
+                                {rep.name} ({rep.company_name})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+
               <FormField
                 control={form.control}
                 name="car_plate"
