@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Wand2, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, AlertTriangle, CheckCircle2, FileText, Info, Navigation, Camera, ChevronRight, ChevronLeft, Check, Trophy, Eye, Siren, Building2 } from 'lucide-react';
 import { useContractorCompanies } from '@/hooks/contractor-management/use-contractor-companies';
 import { QuickObservationCard } from '@/components/incidents/QuickObservationCard';
 import {
@@ -35,12 +35,9 @@ import { cn } from '@/lib/utils';
 import { useCreateIncident, type IncidentFormData, type ClosedOnSpotPayload } from '@/hooks/use-incidents';
 import { useTenantSites, useTenantBranches, useTenantDepartments } from '@/hooks/use-org-hierarchy';
 import { useLinkAssetToIncident } from '@/hooks/use-incident-assets';
-import { 
-  analyzeIncidentWithAI,
-  type AISuggestion,
-  type AIAnalysisResult
-} from '@/lib/incident-ai-assistant';
-import { useIncidentAI } from '@/hooks/use-incident-ai';
+import { useIncidentAIValidator } from '@/hooks/use-incident-ai-validator';
+import { AIIncidentAnalysisPanel } from '@/components/incidents/AIIncidentAnalysisPanel';
+import { useAITags } from '@/hooks/use-ai-tags';
 import { useReverseGeocode, type LocationAddress } from '@/hooks/use-reverse-geocode';
 import { findNearestSite, type NearestSiteResult } from '@/lib/geo-utils';
 import { GPSLocationConfirmCard } from '@/components/incidents/GPSLocationConfirmCard';
@@ -135,17 +132,15 @@ export default function IncidentReport() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isRewritingTitle, setIsRewritingTitle] = useState(false);
-  const [isRewritingDesc, setIsRewritingDesc] = useState(false);
+  
+  // AI Analysis state - new unified hook
+  const aiValidator = useIncidentAIValidator();
+  const { tags: availableIncidentTags = [] } = useAITags('incident');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   // AI Analysis state - prevents Select handlers from clearing AI-set values
   const [isApplyingAISuggestions, setIsApplyingAISuggestions] = useState(false);
   const [pendingAISubtype, setPendingAISubtype] = useState<string | null>(null);
-  
-  // Real AI hook for translate & rewrite
-  const incidentAI = useIncidentAI();
-  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [autoDetectedBranch, setAutoDetectedBranch] = useState(false);
   const [autoDetectedSite, setAutoDetectedSite] = useState(false);
   const [gpsDetectedSite, setGpsDetectedSite] = useState<NearestSiteResult | null>(null);
@@ -423,108 +418,92 @@ export default function IncidentReport() {
     setGpsDetectedBranch(false);
   };
 
-  const handleAnalyzeDescription = async () => {
+  // Unified AI Analysis handler - single button approach
+  const handleAnalyzeDescription = useCallback(async () => {
     if (description.length < 20) return;
     
-    setIsAnalyzing(true);
-    setIsApplyingAISuggestions(true); // Prevent Select handlers from clearing values
+    setIsApplyingAISuggestions(true);
+    await aiValidator.analyzeIncident(title, description);
+  }, [description, title, aiValidator]);
+
+  // Handle translation confirmation
+  const handleConfirmTranslation = useCallback(() => {
+    aiValidator.confirmTranslation();
+  }, [aiValidator]);
+
+  // Handle analysis confirmation - auto-apply values to form
+  const handleConfirmAnalysis = useCallback(() => {
+    const result = aiValidator.analysisResult;
+    if (!result) return;
     
-    try {
-      const result = await analyzeIncidentWithAI(description);
-      
-      // Map AI severity to form severity levels
-      const severityMap: Record<string, SeverityLevelV2> = {
-        'low': 'level_1',
-        'medium': 'level_2', 
-        'high': 'level_3',
-        'critical': 'level_4',
-      };
-      
-      // event_type is already set to 'incident' in wizard mode
-      // Auto-populate incident type (event category) for incidents
-      if (result.incidentType) {
-        form.setValue('incident_type', result.incidentType);
-      }
-        
-      // Store subtype for deferred application (wait for dynamicSubtypes to load)
-      if (result.subtype) {
-        // For incidents, defer until dynamicSubtypes loads
-        setPendingAISubtype(result.subtype);
-      }
-      
-      // Auto-populate severity for incidents
-      if (result.severity) {
-        const mappedSeverity = severityMap[result.severity] || 'level_2';
-        form.setValue('severity', mappedSeverity);
-      }
-      
-      // Auto-populate injury details
-      if (result.hasInjury) {
-        form.setValue('has_injury', true);
-        if (result.injuryCount) {
-          form.setValue('injury_count', result.injuryCount);
-        }
-        if (result.injuryDescription) {
-          form.setValue('injury_description', result.injuryDescription);
-        }
-      }
-      
-      // Auto-populate damage details
-      if (result.hasDamage) {
-        form.setValue('has_damage', true);
-        if (result.damageDescription) {
-          form.setValue('damage_description', result.damageDescription);
-        }
-        if (result.estimatedCost) {
-          form.setValue('damage_cost', result.estimatedCost);
-        }
-      }
-      
-      // Auto-populate immediate actions (1-5 points)
-      if (result.immediateActions && result.immediateActions.length > 0) {
-        const actionsText = result.immediateActions
-          .map((action, i) => `${i + 1}. ${action}`)
-          .join('\n');
-        form.setValue('immediate_actions', actionsText);
-      }
-      
-      // Create suggestion object for the AI panel
-      const suggestion: AISuggestion = {
-        suggestedSeverity: result.severity || 'low',
-        suggestedEventType: result.eventType || undefined,
-        suggestedIncidentType: result.incidentType || undefined,
-        suggestedSubtype: result.subtype || undefined,
-        refinedDescription: description,
-        keyRisks: result.keyRisks,
-        confidence: result.confidence,
-      };
-      setAiSuggestion(suggestion);
-      
-      // Build populated fields list for toast
-      const populatedFields: string[] = [];
-      if (result.eventType) populatedFields.push(t('incidents.eventType'));
-      if (result.incidentType) populatedFields.push(t('incidents.incidentType'));
-      if (result.subtype) populatedFields.push(t('incidents.subtype'));
-      if (result.severity) populatedFields.push(t('incidents.severity'));
-      if (result.hasInjury) populatedFields.push(t('incidents.injuryDetails'));
-      if (result.hasDamage) populatedFields.push(t('incidents.damageDetails'));
-      if (result.immediateActions?.length) populatedFields.push(t('incidents.immediateActions'));
-      
-      toast.success(t('incidents.ai.analysisComplete'), {
-        description: populatedFields.length > 0 
-          ? `${t('incidents.ai.fieldsPopulated')}: ${populatedFields.join(', ')}`
-          : undefined
-      });
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      toast.error(t('incidents.ai.detectionError'));
-      setIsApplyingAISuggestions(false);
-    } finally {
-      setIsAnalyzing(false);
-      // Reset flag after a short delay to allow React to process the form updates
-      setTimeout(() => setIsApplyingAISuggestions(false), 100);
+    // Map AI severity to form severity levels
+    const severityMap: Record<string, SeverityLevelV2> = {
+      'low': 'level_1',
+      'medium': 'level_2', 
+      'high': 'level_3',
+      'critical': 'level_4',
+    };
+    
+    // Auto-populate incident type
+    if (result.incidentType) {
+      form.setValue('incident_type', result.incidentType);
     }
-  };
+    
+    // Store subtype for deferred application
+    if (result.subtype) {
+      setPendingAISubtype(result.subtype);
+    }
+    
+    // Auto-populate severity
+    if (result.severity) {
+      const mappedSeverity = severityMap[result.severity] || 'level_2';
+      form.setValue('severity', mappedSeverity);
+    }
+    
+    // Auto-populate injury details
+    if (result.hasInjury) {
+      form.setValue('has_injury', true);
+      if (result.injuryCount) {
+        form.setValue('injury_count', result.injuryCount);
+      }
+      if (result.injuryDescription) {
+        form.setValue('injury_description', result.injuryDescription);
+      }
+    }
+    
+    // Auto-populate damage details
+    if (result.hasDamage) {
+      form.setValue('has_damage', true);
+      if (result.damageDescription) {
+        form.setValue('damage_description', result.damageDescription);
+      }
+      if (result.estimatedCost) {
+        form.setValue('damage_cost', result.estimatedCost);
+      }
+    }
+    
+    // Auto-populate immediate actions
+    if (result.immediateActions && result.immediateActions.length > 0) {
+      const actionsText = result.immediateActions
+        .map((action, i) => `${i + 1}. ${action}`)
+        .join('\n');
+      form.setValue('immediate_actions', actionsText);
+    }
+    
+    // Set selected tags
+    if (result.suggestedTags && result.suggestedTags.length > 0) {
+      setSelectedTags(result.suggestedTags);
+    }
+    
+    // Confirm the analysis
+    aiValidator.confirmAnalysis();
+    
+    // Show success toast
+    toast.success(t('incidents.ai.analysisComplete'));
+    
+    // Reset flag
+    setTimeout(() => setIsApplyingAISuggestions(false), 100);
+  }, [aiValidator, form, t]);
 
   // Apply pending AI subtype once dynamicSubtypes are loaded
   useEffect(() => {
@@ -536,63 +515,6 @@ export default function IncidentReport() {
       setPendingAISubtype(null);
     }
   }, [dynamicSubtypes, pendingAISubtype, form]);
-
-  const handleRewriteTitle = async () => {
-    if (title.length < 5) {
-      toast.info(t('incidents.ai.titleTooShort', 'Please enter at least 5 characters'));
-      return;
-    }
-    
-    setIsRewritingTitle(true);
-    try {
-      const result = await incidentAI.translateAndRewrite(title, 'title');
-      if (result) {
-        form.setValue('title', result);
-        toast.success(t('incidents.ai.titleImproved', 'Title improved with AI'));
-      }
-    } finally {
-      setIsRewritingTitle(false);
-    }
-  };
-
-  const handleRewriteDescription = async () => {
-    if (description.length < 20) {
-      toast.info(t('incidents.ai.descriptionTooShort', 'Please enter at least 20 characters'));
-      return;
-    }
-    
-    setIsRewritingDesc(true);
-    try {
-      const result = await incidentAI.translateAndRewrite(description, 'description');
-      if (result) {
-        form.setValue('description', result);
-        toast.success(t('incidents.ai.descriptionImproved', 'Description improved with AI'));
-      }
-    } finally {
-      setIsRewritingDesc(false);
-    }
-  };
-
-  const handleApplySuggestions = () => {
-    if (!aiSuggestion) return;
-    // Map old severity to new 5-level system
-    const severityMap: Record<string, SeverityLevelV2> = {
-      'low': 'level_1',
-      'medium': 'level_2', 
-      'high': 'level_3',
-      'critical': 'level_4',
-    };
-    const mappedSeverity = severityMap[aiSuggestion.suggestedSeverity] || 'level_2';
-    form.setValue('severity', mappedSeverity);
-    form.setValue('description', aiSuggestion.refinedDescription);
-    if (aiSuggestion.suggestedEventType) {
-      form.setValue('event_type', aiSuggestion.suggestedEventType);
-    }
-    if (aiSuggestion.suggestedSubtype) {
-      form.setValue('subtype', aiSuggestion.suggestedSubtype);
-    }
-    setAiSuggestion(null);
-  };
 
   // Handle observation with "Closed on the Spot" - show confirmation dialog
   const handleObservationSubmit = async (values: FormValues) => {
@@ -955,43 +877,27 @@ export default function IncidentReport() {
                   <CardTitle>{t('incidents.basicInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Title with AI Rewrite */}
+                  {/* Title */}
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('incidents.title')}</FormLabel>
-                        <div className="flex gap-2">
-                          <FormControl>
-                            <Input 
-                              placeholder={t('incidents.titlePlaceholder')} 
-                              maxLength={120}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={handleRewriteTitle}
-                            disabled={isRewritingTitle || field.value.length < 5}
-                            title={t('incidents.rewriteWithAI')}
-                          >
-                            {isRewritingTitle ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Wand2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
+                        <FormControl>
+                          <Input 
+                            placeholder={t('incidents.titlePlaceholder')} 
+                            maxLength={120}
+                            {...field} 
+                          />
+                        </FormControl>
                         <FormDescription>{field.value.length}/120</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* Description with AI Assistant */}
+                  {/* Description with single AI Analyze button */}
                   <FormField
                     control={form.control}
                     name="description"
@@ -1007,86 +913,34 @@ export default function IncidentReport() {
                         </FormControl>
                         <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
                           <span>{field.value.length} / 5000</span>
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleRewriteDescription}
-                              disabled={isRewritingDesc || field.value.length < 20}
-                              className="gap-1"
-                            >
-                              {isRewritingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
-                              {t('incidents.rewriteWithAI')}
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleAnalyzeDescription}
-                              disabled={isAnalyzing || field.value.length < 20}
-                              className="gap-1"
-                            >
-                              {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                              {t('incidents.aiAnalyze')}
-                            </Button>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAnalyzeDescription}
+                            disabled={aiValidator.isAnalyzing || field.value.length < 20}
+                            className="gap-1"
+                          >
+                            {aiValidator.isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                            {t('incidents.aiAnalyze')}
+                          </Button>
                         </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* AI Suggestion Panel */}
-                  {aiSuggestion && (
-                    <div className="rounded-lg border bg-muted/50 p-4 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        <span className="font-medium">{t('incidents.aiAssistant')}</span>
-                        <Badge variant="outline" className="ms-auto">
-                          {t('incidents.confidence')}: {Math.round(aiSuggestion.confidence * 100)}%
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">{t('incidents.suggestedSeverity')}:</span>
-                          <Badge variant={getSeverityBadgeVariant(aiSuggestion.suggestedSeverity)}>
-                            {t(`incidents.severityLevels.${aiSuggestion.suggestedSeverity}`)}
-                          </Badge>
-                        </div>
-                        
-                        {aiSuggestion.suggestedEventType && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">{t('incidents.suggestedType')}:</span>
-                            <Badge variant="secondary">
-                              {t(`incidents.eventCategories.${aiSuggestion.suggestedEventType}`)}
-                              {aiSuggestion.suggestedSubtype && ` → ${aiSuggestion.suggestedSubtype}`}
-                            </Badge>
-                          </div>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-1">
-                          {aiSuggestion.keyRisks.map((risk, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {risk}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleApplySuggestions}
-                        className="w-full gap-2"
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        {t('incidents.applyAiSuggestions')}
-                      </Button>
-                    </div>
-                  )}
+                  {/* AI Analysis Panel */}
+                  <AIIncidentAnalysisPanel
+                    validationState={aiValidator.validationState}
+                    analysisResult={aiValidator.analysisResult}
+                    processingTime={aiValidator.processingTime}
+                    onConfirmTranslation={handleConfirmTranslation}
+                    onConfirmAnalysis={handleConfirmAnalysis}
+                    availableTags={availableIncidentTags}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                  />
 
                   {/* HSSE Event Type (Top-Level Category) - event_type is auto-set to 'incident' */}
                   {eventType === 'incident' && (
