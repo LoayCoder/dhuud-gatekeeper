@@ -147,13 +147,13 @@ export function useContractorDashboardStats() {
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
 
-        // Safety Officers
+        // Safety Officers - cast to avoid deep type instantiation
         supabase
           .from("contractor_safety_officers")
           .select("id, status")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null)
-          .eq("status", "active"),
+          .eq("status", "active") as unknown as Promise<{ data: { id: string; status: string }[] | null; error: unknown }>,
 
         // Incidents (HSSE Events) - contractor related
         supabase
@@ -162,17 +162,17 @@ export function useContractorDashboardStats() {
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
 
-        // PTW Permits
+        // PTW Permits - use correct columns: planned_end_time instead of valid_until
         supabase
           .from("ptw_permits")
-          .select("id, status, valid_until")
+          .select("id, status, planned_end_time")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
 
-        // Risk Assessments
+        // Risk Assessments - use correct columns: overall_risk_rating, valid_until
         supabase
           .from("risk_assessments")
-          .select("id, status, risk_level, expiry_date")
+          .select("id, status, overall_risk_rating, valid_until")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
 
@@ -183,10 +183,10 @@ export function useContractorDashboardStats() {
           .eq("tenant_id", tenantId)
           .is("exit_time", null),
 
-        // Blacklist
+        // Blacklist - use listed_at instead of created_at
         supabase
           .from("security_blacklist")
-          .select("id, created_at")
+          .select("id, listed_at")
           .eq("tenant_id", tenantId)
           .is("deleted_at", null),
       ]);
@@ -287,25 +287,25 @@ export function useContractorDashboardStats() {
 
       const hsseEventsStats = {
         total: incidents.length,
-        open: incidents.filter((i) => openStatuses.includes(i.status)).length,
-        investigating: incidents.filter((i) => investigatingStatuses.includes(i.status)).length,
-        closed: incidents.filter((i) => closedStatuses.includes(i.status)).length,
+        open: incidents.filter((i) => openStatuses.includes(i.status || "")).length,
+        investigating: incidents.filter((i) => investigatingStatuses.includes(i.status || "")).length,
+        closed: incidents.filter((i) => closedStatuses.includes(i.status || "")).length,
       };
 
-      // Process PTW permits
+      // Process PTW permits - use planned_end_time
       const permits = permitsResult.data || [];
       const permitsStats = {
         total: permits.length,
         active: permits.filter((p) => p.status === "active" || p.status === "approved").length,
         pending: permits.filter((p) => p.status === "pending" || p.status === "draft").length,
         expired: permits.filter((p) => {
-          if (p.status === "expired") return true;
-          if (p.valid_until && new Date(p.valid_until) < now) return true;
+          if (p.status === "expired" || p.status === "closed") return true;
+          if (p.planned_end_time && new Date(p.planned_end_time) < now) return true;
           return false;
         }).length,
       };
 
-      // Process risk assessments
+      // Process risk assessments - use overall_risk_rating, valid_until
       const riskAssessments = riskAssessmentsResult.data || [];
       const riskAssessmentsStats = {
         total: riskAssessments.length,
@@ -313,10 +313,10 @@ export function useContractorDashboardStats() {
         pending: riskAssessments.filter((r) => r.status === "draft" || r.status === "pending_review").length,
         expired: riskAssessments.filter((r) => {
           if (r.status === "expired") return true;
-          if (r.expiry_date && new Date(r.expiry_date) < now) return true;
+          if (r.valid_until && new Date(r.valid_until) < now) return true;
           return false;
         }).length,
-        highRisk: riskAssessments.filter((r) => r.risk_level === "high" || r.risk_level === "critical").length,
+        highRisk: riskAssessments.filter((r) => r.overall_risk_rating === "high" || r.overall_risk_rating === "critical").length,
       };
 
       // Process onsite workers
@@ -324,14 +324,14 @@ export function useContractorDashboardStats() {
         count: onsiteResult.data?.length || 0,
       };
 
-      // Process blacklist
+      // Process blacklist - use listed_at
       const blacklist = blacklistResult.data || [];
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const blacklistStats = {
         total: blacklist.length,
-        recentCount: blacklist.filter((b) => new Date(b.created_at) > sevenDaysAgo).length,
+        recentCount: blacklist.filter((b) => b.listed_at && new Date(b.listed_at) > sevenDaysAgo).length,
       };
 
       // Update workers blacklisted count

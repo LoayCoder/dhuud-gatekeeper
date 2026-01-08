@@ -36,23 +36,14 @@ export function ProjectStatusCard({
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch projects
+  // Fetch projects - use correct columns: project_code instead of reference_id
   const { data: projects = [] } = useQuery({
     queryKey: ["contractor-dashboard-projects", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("contractor_projects")
-        .select(`
-          id, 
-          project_name, 
-          reference_id, 
-          status, 
-          start_date, 
-          end_date,
-          company:contractor_companies(company_name),
-          site:sites(name)
-        `)
+        .select("id, project_name, project_code, status, start_date, end_date, company_id, site_id")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
@@ -217,7 +208,7 @@ export function ProjectStatusCard({
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{project.project_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {project.company?.company_name} • {project.site?.name || "—"}
+                          {project.project_code}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {project.start_date && format(new Date(project.start_date), "dd/MM/yyyy")}

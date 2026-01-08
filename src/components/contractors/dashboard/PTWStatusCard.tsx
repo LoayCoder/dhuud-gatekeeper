@@ -29,23 +29,14 @@ export function PTWStatusCard({ active, pending, expired, total }: PTWStatusCard
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch permits
+  // Fetch permits - use correct columns: reference_id, planned_start_time, planned_end_time, work_scope
   const { data: permits = [] } = useQuery({
     queryKey: ["contractor-dashboard-permits", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("ptw_permits")
-        .select(`
-          id, 
-          permit_number, 
-          permit_type, 
-          status, 
-          valid_from, 
-          valid_until,
-          site:sites(name),
-          requested_by_profile:profiles!ptw_permits_requested_by_fkey(full_name)
-        `)
+        .select("id, reference_id, work_scope, status, planned_start_time, planned_end_time, site_id")
         .eq("tenant_id", profile.tenant_id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
@@ -72,7 +63,7 @@ export function PTWStatusCard({ active, pending, expired, total }: PTWStatusCard
     if (!activeFilter) return permits;
     
     return permits.filter((p) => {
-      const isExpiredByDate = p.valid_until && isBefore(new Date(p.valid_until), now);
+      const isExpiredByDate = p.planned_end_time && isBefore(new Date(p.planned_end_time), now);
       
       switch (activeFilter) {
         case "active":
@@ -80,7 +71,7 @@ export function PTWStatusCard({ active, pending, expired, total }: PTWStatusCard
         case "pending":
           return p.status === "pending" || p.status === "draft";
         case "expired":
-          return p.status === "expired" || isExpiredByDate;
+          return p.status === "expired" || p.status === "closed" || isExpiredByDate;
         default:
           return true;
       }
@@ -116,10 +107,10 @@ export function PTWStatusCard({ active, pending, expired, total }: PTWStatusCard
     },
   ];
 
-  const getStatusBadge = (status: string, validUntil: string | null) => {
-    const isExpiredByDate = validUntil && isBefore(new Date(validUntil), now);
+  const getStatusBadge = (status: string | null, plannedEndTime: string | null) => {
+    const isExpiredByDate = plannedEndTime && isBefore(new Date(plannedEndTime), now);
     
-    if (status === "expired" || isExpiredByDate) {
+    if (status === "expired" || status === "closed" || isExpiredByDate) {
       return <Badge variant="destructive">{t("common.expired", "Expired")}</Badge>;
     }
     if (status === "active" || status === "approved") {
@@ -198,16 +189,16 @@ export function PTWStatusCard({ active, pending, expired, total }: PTWStatusCard
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium">{permit.permit_number}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {permit.permit_type} • {permit.site?.name || "—"}
+                        <p className="font-medium">{permit.reference_id}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {permit.work_scope || "—"}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {permit.valid_from && format(new Date(permit.valid_from), "dd/MM")} - {permit.valid_until && format(new Date(permit.valid_until), "dd/MM/yyyy")}
+                          {permit.planned_start_time && format(new Date(permit.planned_start_time), "dd/MM")} - {permit.planned_end_time && format(new Date(permit.planned_end_time), "dd/MM/yyyy")}
                         </p>
                       </div>
                       <div className="flex-shrink-0">
-                        {getStatusBadge(permit.status, permit.valid_until)}
+                        {getStatusBadge(permit.status, permit.planned_end_time)}
                       </div>
                     </div>
                   </div>

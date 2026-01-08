@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,26 +22,14 @@ export function OnsiteWorkersCard({ count }: OnsiteWorkersCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Fetch onsite workers (gate entries without exit)
+  // Fetch onsite workers (gate entries without exit) - use correct columns
   const { data: onsiteWorkers = [] } = useQuery({
     queryKey: ["contractor-dashboard-onsite-workers", profile?.tenant_id],
     queryFn: async () => {
       if (!profile?.tenant_id) return [];
       const { data } = await supabase
         .from("gate_entry_logs")
-        .select(`
-          id, 
-          entry_time, 
-          entry_method,
-          worker:contractor_workers(
-            id,
-            full_name,
-            employee_id,
-            company:contractor_companies(company_name)
-          ),
-          site:sites(name),
-          project:contractor_projects(project_name)
-        `)
+        .select("id, entry_time, person_name, worker_id, site_id, project_id")
         .eq("tenant_id", profile.tenant_id)
         .is("exit_time", null)
         .order("entry_time", { ascending: false })
@@ -105,20 +92,14 @@ export function OnsiteWorkersCard({ count }: OnsiteWorkersCardProps) {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">
-                          {entry.worker?.full_name || t("common.unknown", "Unknown")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {entry.worker?.company?.company_name || "—"}
+                          {entry.person_name || t("common.unknown", "Unknown")}
                         </p>
                         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          {entry.site?.name && (
+                          {entry.site_id && (
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              {entry.site.name}
+                              Site
                             </span>
-                          )}
-                          {entry.project?.project_name && (
-                            <span>• {entry.project.project_name}</span>
                           )}
                         </div>
                       </div>
