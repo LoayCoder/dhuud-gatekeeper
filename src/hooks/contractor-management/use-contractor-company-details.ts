@@ -76,6 +76,14 @@ export function useContractorCompanyDetails(companyId: string | null) {
 
       if (error) throw error;
 
+      // Count actual workers from contractor_workers table (excluding site_rep and safety_officer types)
+      const { count: actualWorkerCount } = await supabase
+        .from("contractor_workers")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .is("deleted_at", null)
+        .not("worker_type", "in", '("site_rep","safety_officer")');
+
       // Fetch related data
       let clientRep = null;
       let branch = null;
@@ -120,6 +128,8 @@ export function useContractorCompanyDetails(companyId: string | null) {
 
       return {
         ...data,
+        // Use actual count if available, otherwise fallback to stored value
+        total_workers: actualWorkerCount ?? data.total_workers ?? 0,
         client_site_rep: clientRep,
         branch,
         department,
