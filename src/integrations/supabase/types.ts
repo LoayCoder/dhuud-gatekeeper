@@ -4492,10 +4492,16 @@ export type Database = {
           is_primary: boolean | null
           last_entry_at: string | null
           last_exit_at: string | null
+          mobile_number: string | null
           name: string
+          national_id: string | null
+          nationality: string | null
           phone: string | null
+          photo_path: string | null
           tenant_id: string
           updated_at: string | null
+          user_id: string | null
+          worker_id: string | null
         }
         Insert: {
           company_id: string
@@ -4508,10 +4514,16 @@ export type Database = {
           is_primary?: boolean | null
           last_entry_at?: string | null
           last_exit_at?: string | null
+          mobile_number?: string | null
           name: string
+          national_id?: string | null
+          nationality?: string | null
           phone?: string | null
+          photo_path?: string | null
           tenant_id: string
           updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
         }
         Update: {
           company_id?: string
@@ -4524,10 +4536,16 @@ export type Database = {
           is_primary?: boolean | null
           last_entry_at?: string | null
           last_exit_at?: string | null
+          mobile_number?: string | null
           name?: string
+          national_id?: string | null
+          nationality?: string | null
           phone?: string | null
+          photo_path?: string | null
           tenant_id?: string
           updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
         }
         Relationships: [
           {
@@ -4549,6 +4567,106 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_safety_officers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_site_representatives: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          mobile_number: string
+          national_id: string
+          nationality: string | null
+          phone: string | null
+          photo_path: string | null
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+          user_id: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          mobile_number: string
+          national_id: string
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          mobile_number?: string
+          national_id?: string
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_site_representatives_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_site_representatives_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_site_representatives_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_site_representatives_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_secure"
             referencedColumns: ["id"]
           },
         ]
