@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, FileCheck, Clock, TrendingUp, CheckCircle, AlertTriangle, BarChart3 } from "lucide-react";
+import { Building2, Users, FileCheck, CheckCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { useContractorCompanies } from "@/hooks/contractor-management/use-contractor-companies";
 import { useContractorWorkers } from "@/hooks/contractor-management/use-contractor-workers";
 import { useMaterialGatePasses } from "@/hooks/contractor-management/use-material-gate-passes";
+import { useContractorAnalyticsTrend } from "@/hooks/contractor-management/use-contractor-analytics-trend";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted))"];
 
@@ -17,8 +17,9 @@ export default function ContractorAnalytics() {
   const { data: companies = [], isLoading: loadingCompanies } = useContractorCompanies();
   const { data: workers = [], isLoading: loadingWorkers } = useContractorWorkers();
   const { data: gatePasses = [], isLoading: loadingPasses } = useMaterialGatePasses();
+  const { data: monthlyTrend = [], isLoading: loadingTrend } = useContractorAnalyticsTrend(6);
 
-  const isLoading = loadingCompanies || loadingWorkers || loadingPasses;
+  const isLoading = loadingCompanies || loadingWorkers || loadingPasses || loadingTrend;
 
   // Calculate metrics
   const activeCompanies = companies.filter(c => c.status === "active").length;
@@ -53,14 +54,8 @@ export default function ContractorAnalytics() {
     .sort((a, b) => b.workers - a.workers)
     .slice(0, 5);
 
-  // Monthly gate pass trend (last 6 months simulation)
-  const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
-    const date = subDays(new Date(), (5 - i) * 30);
-    return {
-      month: format(date, "MMM"),
-      passes: Math.floor(Math.random() * 50) + 10 + gatePasses.length / 6,
-    };
-  });
+  // Check if trend data has any activity
+  const hasTrendData = monthlyTrend.some(m => m.passes > 0);
 
   if (isLoading) {
     return (
@@ -221,21 +216,27 @@ export default function ContractorAnalytics() {
                 <CardTitle className="text-base">{t("contractors.analytics.monthlyTrend", "Monthly Activity Trend")}</CardTitle>
               </CardHeader>
               <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: "hsl(var(--popover))", 
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "var(--radius)"
-                      }}
-                    />
-                    <Line type="monotone" dataKey="passes" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {hasTrendData ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: "hsl(var(--popover))", 
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "var(--radius)"
+                        }}
+                      />
+                      <Line type="monotone" dataKey="passes" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    {t("contractors.analytics.noTrendData", "No gate pass activity in the last 6 months")}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
