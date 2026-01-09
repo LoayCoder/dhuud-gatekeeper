@@ -145,7 +145,7 @@ export function ObservationAISettingsTab() {
                   key={level}
                   className="rounded-full bg-background px-3 py-1 text-xs border"
                 >
-                  {t(`severity.${level}`, level.replace(/_/g, " "))}
+                  {t(`severity.${level}.label`, level.replace(/_/g, " "))}
                 </span>
               ))}
             </div>
