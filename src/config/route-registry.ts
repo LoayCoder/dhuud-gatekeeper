@@ -388,8 +388,8 @@ export const routeRegistry: RouteDefinition[] = [
     icon: ClipboardCheck,
     component: lazyWithRetry(() => import("@/pages/incidents/MyActions")),
     protection: "protected",
-    parentCode: "hsse_events",
-    sortOrder: 5,
+    // No parentCode - this is now a top-level menu item
+    sortOrder: 1,
   },
 
   // -------------------------------------------------------------------------
