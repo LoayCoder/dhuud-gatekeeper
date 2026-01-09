@@ -6196,6 +6196,197 @@ export type Database = {
           },
         ]
       }
+      environmental_contamination_entries: {
+        Row: {
+          applicable_regulation: string | null
+          area_affected_sqm: number | null
+          authority_notified: string[] | null
+          cleanup_contractor_cost: number | null
+          containment_capacity_unit: string | null
+          containment_design_capacity: number | null
+          containment_failure_percentage: number | null
+          containment_failure_reason: string | null
+          containment_failure_reason_other: string | null
+          containment_retained_volume: number | null
+          contaminant_name: string
+          contaminant_type: string | null
+          contaminated_volume_m3: number | null
+          contamination_types: string[] | null
+          cost_currency: string | null
+          cost_severity: string | null
+          created_at: string | null
+          deleted_at: string | null
+          depth_cm: number | null
+          exposure_duration_minutes: number | null
+          exposure_type: string | null
+          hazard_classification: string | null
+          id: string
+          impacted_receptors: string[] | null
+          incident_id: string
+          notification_date: string | null
+          notification_reference: string | null
+          population_affected_count: number | null
+          population_exposed: boolean | null
+          population_proximity: string | null
+          recorded_by: string | null
+          recovery_potential: string | null
+          regulatory_breach_flagged: boolean | null
+          regulatory_fines: number | null
+          regulatory_notification_required: boolean | null
+          release_cause: string | null
+          release_cause_justification: string | null
+          release_source: string | null
+          release_source_description: string | null
+          secondary_containment_exists: boolean | null
+          soil_remediation_cost: number | null
+          spill_severity: string | null
+          tenant_id: string
+          testing_analysis_cost: number | null
+          total_environmental_cost: number | null
+          updated_at: string | null
+          volume_released: number | null
+          volume_unit: string | null
+          waste_disposal_cost: number | null
+          weight_released: number | null
+          weight_unit: string | null
+        }
+        Insert: {
+          applicable_regulation?: string | null
+          area_affected_sqm?: number | null
+          authority_notified?: string[] | null
+          cleanup_contractor_cost?: number | null
+          containment_capacity_unit?: string | null
+          containment_design_capacity?: number | null
+          containment_failure_percentage?: number | null
+          containment_failure_reason?: string | null
+          containment_failure_reason_other?: string | null
+          containment_retained_volume?: number | null
+          contaminant_name: string
+          contaminant_type?: string | null
+          contaminated_volume_m3?: number | null
+          contamination_types?: string[] | null
+          cost_currency?: string | null
+          cost_severity?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          depth_cm?: number | null
+          exposure_duration_minutes?: number | null
+          exposure_type?: string | null
+          hazard_classification?: string | null
+          id?: string
+          impacted_receptors?: string[] | null
+          incident_id: string
+          notification_date?: string | null
+          notification_reference?: string | null
+          population_affected_count?: number | null
+          population_exposed?: boolean | null
+          population_proximity?: string | null
+          recorded_by?: string | null
+          recovery_potential?: string | null
+          regulatory_breach_flagged?: boolean | null
+          regulatory_fines?: number | null
+          regulatory_notification_required?: boolean | null
+          release_cause?: string | null
+          release_cause_justification?: string | null
+          release_source?: string | null
+          release_source_description?: string | null
+          secondary_containment_exists?: boolean | null
+          soil_remediation_cost?: number | null
+          spill_severity?: string | null
+          tenant_id: string
+          testing_analysis_cost?: number | null
+          total_environmental_cost?: number | null
+          updated_at?: string | null
+          volume_released?: number | null
+          volume_unit?: string | null
+          waste_disposal_cost?: number | null
+          weight_released?: number | null
+          weight_unit?: string | null
+        }
+        Update: {
+          applicable_regulation?: string | null
+          area_affected_sqm?: number | null
+          authority_notified?: string[] | null
+          cleanup_contractor_cost?: number | null
+          containment_capacity_unit?: string | null
+          containment_design_capacity?: number | null
+          containment_failure_percentage?: number | null
+          containment_failure_reason?: string | null
+          containment_failure_reason_other?: string | null
+          containment_retained_volume?: number | null
+          contaminant_name?: string
+          contaminant_type?: string | null
+          contaminated_volume_m3?: number | null
+          contamination_types?: string[] | null
+          cost_currency?: string | null
+          cost_severity?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          depth_cm?: number | null
+          exposure_duration_minutes?: number | null
+          exposure_type?: string | null
+          hazard_classification?: string | null
+          id?: string
+          impacted_receptors?: string[] | null
+          incident_id?: string
+          notification_date?: string | null
+          notification_reference?: string | null
+          population_affected_count?: number | null
+          population_exposed?: boolean | null
+          population_proximity?: string | null
+          recorded_by?: string | null
+          recovery_potential?: string | null
+          regulatory_breach_flagged?: boolean | null
+          regulatory_fines?: number | null
+          regulatory_notification_required?: boolean | null
+          release_cause?: string | null
+          release_cause_justification?: string | null
+          release_source?: string | null
+          release_source_description?: string | null
+          secondary_containment_exists?: boolean | null
+          soil_remediation_cost?: number | null
+          spill_severity?: string | null
+          tenant_id?: string
+          testing_analysis_cost?: number | null
+          total_environmental_cost?: number | null
+          updated_at?: string | null
+          volume_released?: number | null
+          volume_unit?: string | null
+          waste_disposal_cost?: number | null
+          weight_released?: number | null
+          weight_unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "environmental_contamination_entries_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environmental_contamination_entries_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environmental_contamination_entries_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environmental_contamination_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       environmental_incident_details: {
         Row: {
           actual_cleanup_cost_sar: number | null
