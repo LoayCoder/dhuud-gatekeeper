@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface HSSEValidationStats {
   pending_validation: number;
@@ -36,10 +37,16 @@ interface UseHSSEValidationDashboardParams {
 
 export function useHSSEValidationDashboard(params: UseHSSEValidationDashboardParams = {}) {
   const { severityFilter, siteId } = params;
+  const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ['hsse-validation-dashboard', severityFilter, siteId],
+    queryKey: ['hsse-validation-dashboard', severityFilter, siteId, profile?.tenant_id],
     queryFn: async (): Promise<HSSEValidationDashboardData> => {
+      // CRITICAL: Tenant isolation - must have tenant_id
+      if (!profile?.tenant_id) {
+        return { stats: null, pending_validations: null };
+      }
+
       const { data, error } = await supabase.rpc('get_hsse_validation_dashboard', {
         p_severity_filter: severityFilter || null,
         p_site_id: siteId || null,
@@ -50,5 +57,6 @@ export function useHSSEValidationDashboard(params: UseHSSEValidationDashboardPar
     },
     staleTime: 30 * 1000, // 30 seconds - more frequent for pending tasks
     refetchInterval: 60 * 1000, // Auto-refresh every minute
+    enabled: !!profile?.tenant_id,
   });
 }

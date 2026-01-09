@@ -168,10 +168,10 @@ export default function PendingApprovalsOverride() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('common.reference')}</TableHead>
+                    <TableHead>{t('common.type')}</TableHead>
                     <TableHead>{t('common.title')}</TableHead>
                     <TableHead>{t('common.status')}</TableHead>
                     <TableHead>{t('common.department')}</TableHead>
-                    <TableHead>{t('admin.override.assignedTo')}</TableHead>
                     <TableHead>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
@@ -185,6 +185,11 @@ export default function PendingApprovalsOverride() {
                   {filteredIncidents.map((incident) => (
                     <TableRow key={incident.id}>
                       <TableCell className="font-mono text-sm">{incident.reference_id}</TableCell>
+                      <TableCell>
+                        <Badge variant={incident.event_type === 'incident' ? 'destructive' : 'secondary'}>
+                          {t(`incident.eventTypes.${incident.event_type}`)}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="max-w-[200px] truncate">{incident.title}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(incident.status) as any}>
@@ -192,7 +197,6 @@ export default function PendingApprovalsOverride() {
                         </Badge>
                       </TableCell>
                       <TableCell>{incident.department_name || '-'}</TableCell>
-                      <TableCell>{incident.assigned_to_name || '-'}</TableCell>
                       <TableCell>
                         <span className={getDaysStuckColor(incident.days_stuck)}>
                           {incident.days_stuck} {t('common.days')}
