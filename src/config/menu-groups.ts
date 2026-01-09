@@ -25,6 +25,7 @@ import {
   Layers,
   Users,
   Clock,
+  Database,
 } from "lucide-react";
 
 export interface MenuGroup {
@@ -200,6 +201,14 @@ export const menuGroups: MenuGroup[] = [
     icon: Layers,
     parentCode: "administration",
     sortOrder: 6,
+  },
+  {
+    code: "admin_database_health",
+    title: { en: "Database Health", ar: "صحة قاعدة البيانات" },
+    translationKey: "navigation.databaseHealth",
+    icon: Database,
+    parentCode: "administration",
+    sortOrder: 7,
   },
   
   // Training

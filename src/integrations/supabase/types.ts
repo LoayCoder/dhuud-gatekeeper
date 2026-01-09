@@ -22852,6 +22852,17 @@ export type Database = {
         Returns: boolean
       }
       can_view_visitor_pii: { Args: never; Returns: boolean }
+      check_data_integrity: {
+        Args: never
+        Returns: {
+          check_name: string
+          description: string
+          issue_count: number
+          sample_data: Json
+          severity: string
+          table_name: string
+        }[]
+      }
       check_incident_closure_prerequisites: {
         Args: { p_incident_id: string }
         Returns: Json
@@ -22891,6 +22902,18 @@ export type Database = {
         }[]
       }
       check_sla_breaches: { Args: never; Returns: undefined }
+      check_tenant_isolation_status: {
+        Args: never
+        Returns: {
+          has_rls_enabled: boolean
+          has_tenant_id: boolean
+          is_properly_isolated: boolean
+          recommendation: string
+          table_name: string
+          total_rows: number
+          unique_tenants: number
+        }[]
+      }
       check_user_limit: { Args: { p_tenant_id: string }; Returns: boolean }
       check_zone_dependencies: { Args: { p_zone_id: string }; Returns: Json }
       cleanup_expired_trusted_devices: { Args: never; Returns: number }
@@ -22929,6 +22952,16 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      find_orphaned_records: {
+        Args: never
+        Returns: {
+          column_name: string
+          orphaned_count: number
+          sample_ids: string[]
+          severity: string
+          table_name: string
+        }[]
       }
       find_site_by_location: {
         Args: { p_lat: number; p_lng: number; p_tenant_id: string }
@@ -23017,6 +23050,19 @@ export type Database = {
       get_current_month_usage: { Args: { p_tenant_id: string }; Returns: Json }
       get_dashboard_module_stats: { Args: never; Returns: Json }
       get_dashboard_quick_action_counts: { Args: never; Returns: Json }
+      get_database_health_summary: {
+        Args: never
+        Returns: {
+          category: string
+          critical_count: number
+          high_count: number
+          issue_count: number
+          last_checked_at: string
+          low_count: number
+          medium_count: number
+          status: string
+        }[]
+      }
       get_days_since_last_recordable: {
         Args: { p_branch_id?: string; p_site_id?: string }
         Returns: number
