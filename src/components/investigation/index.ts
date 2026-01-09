@@ -58,3 +58,5 @@ export { IncidentClosurePrerequisitesCard } from './IncidentClosurePrerequisites
 export { HSSEIncidentValidationCard } from './HSSEIncidentValidationCard';
 // Injury Tab Components
 export { InjuryPanel } from './InjuryPanel';
+// Environmental Impact Tab Components
+export { EnvironmentalImpactPanel } from './environmental-impact';

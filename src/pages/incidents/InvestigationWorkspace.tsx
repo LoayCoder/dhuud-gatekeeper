@@ -27,7 +27,8 @@ import {
   Wrench,
   ArrowLeft,
   UserCheck,
-  HeartPulse
+  HeartPulse,
+  Leaf
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +75,7 @@ import {
 import { ReopenIncidentDialog } from "@/components/investigation/ReopenIncidentDialog";
 import { InjuryPanel } from "@/components/investigation/InjuryPanel";
 import { PropertyDamagePanel } from "@/components/investigation/property-damage";
+import { EnvironmentalImpactPanel } from "@/components/investigation/environmental-impact";
 import { IncidentStatusBadge } from "@/components/incidents/IncidentStatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -785,6 +787,17 @@ export default function InvestigationWorkspace() {
                       label={t('investigation.tabs.propertyDamage', 'Property Damage')} 
                     />
                   )}
+                  {/* Environmental Impact Tab - Only shows for environmental incidents */}
+                  {(selectedIncident?.event_type === 'environmental' || 
+                    selectedIncident?.event_type === 'environment' ||
+                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 
+                     'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) && (
+                    <LockedTabTrigger 
+                      value="environmental-impact" 
+                      icon={Leaf} 
+                      label={t('investigation.tabs.environmentalImpact', 'Environmental Impact')} 
+                    />
+                  )}
                 </TabsList>
               </div>
 
@@ -870,6 +883,19 @@ export default function InvestigationWorkspace() {
                 <TabsContent value="property-damage" className="mt-0">
                   {investigationAllowed && selectedIncident?.has_damage ? (
                     <PropertyDamagePanel 
+                      incidentId={selectedIncidentId!}
+                      canEdit={editAccess.canEdit}
+                    />
+                  ) : null}
+                </TabsContent>
+
+                {/* Environmental Impact Tab Content */}
+                <TabsContent value="environmental-impact" className="mt-0">
+                  {investigationAllowed && (selectedIncident?.event_type === 'environmental' || 
+                    selectedIncident?.event_type === 'environment' ||
+                    ['oil_chemical_spill_land', 'spill_to_water', 'air_emission', 'soil_contamination', 
+                     'waste_mismanagement', 'wildlife_impact', 'non_compliant_discharge'].includes(selectedIncident?.subtype || '')) ? (
+                    <EnvironmentalImpactPanel 
                       incidentId={selectedIncidentId!}
                       canEdit={editAccess.canEdit}
                     />

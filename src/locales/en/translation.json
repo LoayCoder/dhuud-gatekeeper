@@ -794,7 +794,8 @@
       "rca": "Root Cause Analysis",
       "actions": "Corrective Actions",
       "propertyDamage": "Property Damage",
-      "injuries": "Injuries"
+      "injuries": "Injuries",
+      "environmentalImpact": "Environmental Impact"
     },
     "propertyDamage": {
       "title": "Property Damage",
@@ -880,6 +881,117 @@
         "in_progress": "In Progress",
         "completed": "Completed",
         "not_repairable": "Not Repairable"
+      }
+    },
+    "environmentalImpact": {
+      "title": "Environmental Impact Assessment",
+      "addEntry": "Add Contamination Entry",
+      "editEntry": "Edit Contamination Entry",
+      "noEntries": "No environmental contamination records",
+      "noEntriesDescription": "No environmental contamination records have been added for this incident yet.",
+      "addFirstEntry": "Add First Contamination Record",
+      "created": "Environmental contamination record created",
+      "updated": "Environmental contamination record updated",
+      "deleted": "Environmental contamination record deleted",
+      "deleteConfirmTitle": "Delete Contamination Record",
+      "deleteConfirmDescription": "Are you sure you want to delete this environmental contamination record?",
+      "entryNumber": "Entry #{{number}}",
+      "summary": {
+        "totalEntries": "Total Entries",
+        "estimatedCost": "Total Environmental Cost",
+        "regulatoryBreaches": "Regulatory Breaches",
+        "bySeverity": "By Severity"
+      },
+      "alerts": {
+        "breachTitle": "Regulatory Compliance Alert",
+        "breachCount": "{{count}} regulatory breach(es) flagged"
+      },
+      "sections": {
+        "contaminantInfo": "A. Contaminant Information",
+        "releaseQuantification": "B. Release Quantification",
+        "environmentalMetrics": "C. Environmental Metrics",
+        "regulatoryExposure": "D. Regulatory & Exposure Flags",
+        "costAnalysis": "E. Cost Analysis",
+        "calculations": "F. Auto-Calculations"
+      },
+      "fields": {
+        "contaminantName": "Contaminant Name",
+        "contaminantNamePlaceholder": "e.g., Diesel, Produced Water, H₂S",
+        "contaminantCasNumber": "CAS Number",
+        "contaminantCasNumberPlaceholder": "e.g., 68476-34-6",
+        "contaminantMaterialGroup": "Material Group",
+        "selectMaterialGroup": "Select material group",
+        "contaminationTypes": "Contamination Types",
+        "hazardClassification": "Hazard Classification",
+        "selectHazardClassification": "Select classification",
+        "volumeReleased": "Volume Released (m³)",
+        "volumeRecovered": "Volume Recovered (m³)",
+        "areaAffectedSqm": "Area Affected (m²)",
+        "contaminatedVolume": "Contaminated Volume (m³)",
+        "depthOfContamination": "Depth of Contamination (m)",
+        "concentrationMgPerL": "Concentration (mg/L)",
+        "backgroundLevel": "Background Level (mg/L)",
+        "spillSeverity": "Spill Severity",
+        "selectSpillSeverity": "Select severity",
+        "containmentPercentage": "Containment Success (%)",
+        "containmentFailurePercentage": "Containment Failure (%)",
+        "regulatoryBreachFlagged": "Regulatory Breach Flagged",
+        "populationExposed": "Population Exposed",
+        "sensitiveReceptorNearby": "Sensitive Receptor Nearby",
+        "remediationCost": "Remediation Cost",
+        "finesPenalties": "Fines & Penalties",
+        "legalLiability": "Legal Liability Estimate",
+        "productionLoss": "Production Loss",
+        "cleanupManHours": "Cleanup Man-Hours",
+        "netVolumeReleased": "Net Volume Released",
+        "totalEnvironmentalCost": "Total Environmental Cost",
+        "costSeverity": "Cost Severity"
+      },
+      "materialGroups": {
+        "petroleum": "Petroleum Products",
+        "chemical": "Chemicals",
+        "produced_water": "Produced Water",
+        "drilling_mud": "Drilling Mud",
+        "gas": "Gases",
+        "radioactive": "Radioactive Materials",
+        "other": "Other"
+      },
+      "contaminationTypes": {
+        "soil": "Soil Contamination",
+        "groundwater": "Groundwater Contamination",
+        "surface_water": "Surface Water Contamination",
+        "air": "Air Emission",
+        "marine": "Marine Environment"
+      },
+      "hazardClassifications": {
+        "none": "None",
+        "low": "Low Hazard",
+        "moderate": "Moderate Hazard",
+        "high": "High Hazard",
+        "extreme": "Extreme Hazard"
+      },
+      "spillSeverityLevels": {
+        "tier_1_minor": "Tier 1 - Minor (<1 bbl)",
+        "tier_2_moderate": "Tier 2 - Moderate (1-100 bbl)",
+        "tier_3_major": "Tier 3 - Major (>100 bbl)"
+      },
+      "costSeverityLevels": {
+        "low": "Low (<$10K)",
+        "moderate": "Moderate ($10K-$100K)",
+        "high": "High ($100K-$1M)",
+        "critical": "Critical (>$1M)"
+      },
+      "calculations": {
+        "netVolumeFormula": "Net Volume = Released - Recovered",
+        "totalCostFormula": "Total Cost = Remediation + Fines + Legal + Production Loss"
+      },
+      "messages": {
+        "createSuccess": "Environmental contamination record created successfully",
+        "updateSuccess": "Environmental contamination record updated successfully",
+        "deleteSuccess": "Environmental contamination record deleted successfully",
+        "createError": "Failed to create environmental contamination record",
+        "updateError": "Failed to update environmental contamination record",
+        "deleteError": "Failed to delete environmental contamination record"
       }
     },
     "evidence": {

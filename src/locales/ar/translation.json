@@ -726,7 +726,8 @@
       "rca": "تحليل السبب الجذري",
       "actions": "الإجراءات التصحيحية",
       "propertyDamage": "أضرار الممتلكات",
-      "injuries": "الإصابات"
+      "injuries": "الإصابات",
+      "environmentalImpact": "الأثر البيئي"
     },
     "propertyDamage": {
       "title": "أضرار الممتلكات",
@@ -812,6 +813,117 @@
         "in_progress": "جاري الإصلاح",
         "completed": "مكتمل",
         "not_repairable": "غير قابل للإصلاح"
+      }
+    },
+    "environmentalImpact": {
+      "title": "تقييم الأثر البيئي",
+      "addEntry": "إضافة سجل تلوث",
+      "editEntry": "تعديل سجل التلوث",
+      "noEntries": "لا توجد سجلات تلوث بيئي",
+      "noEntriesDescription": "لم يتم إضافة أي سجلات تلوث بيئي لهذا الحادث بعد.",
+      "addFirstEntry": "إضافة أول سجل تلوث",
+      "created": "تم إنشاء سجل التلوث البيئي",
+      "updated": "تم تحديث سجل التلوث البيئي",
+      "deleted": "تم حذف سجل التلوث البيئي",
+      "deleteConfirmTitle": "حذف سجل التلوث",
+      "deleteConfirmDescription": "هل أنت متأكد من حذف سجل التلوث البيئي هذا؟",
+      "entryNumber": "السجل #{{number}}",
+      "summary": {
+        "totalEntries": "إجمالي السجلات",
+        "estimatedCost": "إجمالي التكلفة البيئية",
+        "regulatoryBreaches": "مخالفات تنظيمية",
+        "bySeverity": "حسب الخطورة"
+      },
+      "alerts": {
+        "breachTitle": "تنبيه الامتثال التنظيمي",
+        "breachCount": "{{count}} مخالفة(مخالفات) تنظيمية مُبَلَّغ عنها"
+      },
+      "sections": {
+        "contaminantInfo": "أ. معلومات الملوث",
+        "releaseQuantification": "ب. قياس التسرب",
+        "environmentalMetrics": "ج. المقاييس البيئية",
+        "regulatoryExposure": "د. العلامات التنظيمية والتعرض",
+        "costAnalysis": "هـ. تحليل التكلفة",
+        "calculations": "و. الحسابات التلقائية"
+      },
+      "fields": {
+        "contaminantName": "اسم الملوث",
+        "contaminantNamePlaceholder": "مثال: ديزل، مياه إنتاجية، كبريتيد الهيدروجين",
+        "contaminantCasNumber": "رقم CAS",
+        "contaminantCasNumberPlaceholder": "مثال: 68476-34-6",
+        "contaminantMaterialGroup": "مجموعة المواد",
+        "selectMaterialGroup": "اختر مجموعة المواد",
+        "contaminationTypes": "أنواع التلوث",
+        "hazardClassification": "تصنيف الخطورة",
+        "selectHazardClassification": "اختر التصنيف",
+        "volumeReleased": "الحجم المتسرب (م³)",
+        "volumeRecovered": "الحجم المستعاد (م³)",
+        "areaAffectedSqm": "المساحة المتأثرة (م²)",
+        "contaminatedVolume": "الحجم الملوث (م³)",
+        "depthOfContamination": "عمق التلوث (م)",
+        "concentrationMgPerL": "التركيز (ملغ/لتر)",
+        "backgroundLevel": "المستوى الخلفي (ملغ/لتر)",
+        "spillSeverity": "شدة التسرب",
+        "selectSpillSeverity": "اختر الشدة",
+        "containmentPercentage": "نسبة نجاح الاحتواء (%)",
+        "containmentFailurePercentage": "نسبة فشل الاحتواء (%)",
+        "regulatoryBreachFlagged": "مخالفة تنظيمية مُبَلَّغ عنها",
+        "populationExposed": "تعرض السكان",
+        "sensitiveReceptorNearby": "مستقبل حساس قريب",
+        "remediationCost": "تكلفة المعالجة",
+        "finesPenalties": "الغرامات والعقوبات",
+        "legalLiability": "تقدير المسؤولية القانونية",
+        "productionLoss": "خسارة الإنتاج",
+        "cleanupManHours": "ساعات عمل التنظيف",
+        "netVolumeReleased": "صافي الحجم المتسرب",
+        "totalEnvironmentalCost": "إجمالي التكلفة البيئية",
+        "costSeverity": "شدة التكلفة"
+      },
+      "materialGroups": {
+        "petroleum": "منتجات بترولية",
+        "chemical": "مواد كيميائية",
+        "produced_water": "مياه إنتاجية",
+        "drilling_mud": "سوائل الحفر",
+        "gas": "غازات",
+        "radioactive": "مواد مشعة",
+        "other": "أخرى"
+      },
+      "contaminationTypes": {
+        "soil": "تلوث التربة",
+        "groundwater": "تلوث المياه الجوفية",
+        "surface_water": "تلوث المياه السطحية",
+        "air": "انبعاثات هوائية",
+        "marine": "البيئة البحرية"
+      },
+      "hazardClassifications": {
+        "none": "لا يوجد",
+        "low": "خطورة منخفضة",
+        "moderate": "خطورة متوسطة",
+        "high": "خطورة عالية",
+        "extreme": "خطورة قصوى"
+      },
+      "spillSeverityLevels": {
+        "tier_1_minor": "المستوى 1 - طفيف (<1 برميل)",
+        "tier_2_moderate": "المستوى 2 - متوسط (1-100 برميل)",
+        "tier_3_major": "المستوى 3 - كبير (>100 برميل)"
+      },
+      "costSeverityLevels": {
+        "low": "منخفض (<10 آلاف دولار)",
+        "moderate": "متوسط (10-100 ألف دولار)",
+        "high": "مرتفع (100 ألف - 1 مليون دولار)",
+        "critical": "حرج (>1 مليون دولار)"
+      },
+      "calculations": {
+        "netVolumeFormula": "صافي الحجم = المتسرب - المستعاد",
+        "totalCostFormula": "إجمالي التكلفة = المعالجة + الغرامات + القانونية + خسارة الإنتاج"
+      },
+      "messages": {
+        "createSuccess": "تم إنشاء سجل التلوث البيئي بنجاح",
+        "updateSuccess": "تم تحديث سجل التلوث البيئي بنجاح",
+        "deleteSuccess": "تم حذف سجل التلوث البيئي بنجاح",
+        "createError": "فشل في إنشاء سجل التلوث البيئي",
+        "updateError": "فشل في تحديث سجل التلوث البيئي",
+        "deleteError": "فشل في حذف سجل التلوث البيئي"
       }
     },
     "evidence": {

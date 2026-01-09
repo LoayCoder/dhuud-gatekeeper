@@ -183,6 +183,22 @@ interface PropertyDamageData {
   safety_hazard_description: string | null;
 }
 
+interface EnvironmentalContaminationData {
+  contaminant_name: string;
+  contamination_types: string[] | null;
+  hazard_classification: string | null;
+  volume_released: number | null;
+  area_affected_sqm: number | null;
+  contaminated_volume_m3: number | null;
+  spill_severity: string | null;
+  containment_failure_percentage: number | null;
+  regulatory_breach_flagged: boolean | null;
+  population_exposed: boolean | null;
+  total_environmental_cost: number | null;
+  cost_severity: string | null;
+  regulatory_fines: number | null;
+}
+
 // ============= Data Fetching Functions =============
 
 async function fetchTenantInfo(tenantId: string): Promise<TenantInfo | null> {
@@ -555,6 +571,16 @@ async function fetchPropertyDamages(incidentId: string): Promise<PropertyDamageD
     .is('deleted_at', null)
     .order('created_at', { ascending: true });
   return (data || []) as PropertyDamageData[];
+}
+
+async function fetchEnvironmentalContaminations(incidentId: string): Promise<EnvironmentalContaminationData[]> {
+  const { data } = await supabase
+    .from('environmental_contamination_entries')
+    .select('contaminant_name, contamination_types, hazard_classification, volume_released, area_affected_sqm, contaminated_volume_m3, spill_severity, containment_failure_percentage, regulatory_breach_flagged, population_exposed, total_environmental_cost, cost_severity, regulatory_fines')
+    .eq('incident_id', incidentId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+  return (data || []) as EnvironmentalContaminationData[];
 }
 
 async function fetchWitnessStatements(incidentId: string): Promise<WitnessStatement[]> {
@@ -1494,6 +1520,80 @@ function getSeverityBadgeStyle(severity: string | null): string {
     case 'minor': return 'background: #fef3c7; color: #d97706;';
     default: return 'background: #e2e8f0; color: #475569;';
   }
+}
+
+function buildEnvironmentalContaminationsHtml(entries: EnvironmentalContaminationData[], isRTL: boolean): string {
+  if (entries.length === 0) return '';
+  
+  const textAlign = isRTL ? 'right' : 'left';
+  const totalCost = entries.reduce((sum, e) => sum + (e.total_environmental_cost || 0), 0);
+  const breachCount = entries.filter(e => e.regulatory_breach_flagged).length;
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', { 
+      style: 'currency', 
+      currency: 'SAR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  return `
+    <h3 style="margin: 24px 0 10px; font-size: 14px; font-weight: 600; color: #16a34a; border-top: 2px solid #e5e7eb; padding-top: 16px;">
+      🌿 ${isRTL ? 'الأثر البيئي' : 'Environmental Impact'} (${entries.length})
+    </h3>
+    
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; text-align: center;">
+        <div style="font-size: 18px; font-weight: 700; color: #166534;">${entries.length}</div>
+        <div style="font-size: 10px; color: #14532d;">${isRTL ? 'سجلات التلوث' : 'Contamination Records'}</div>
+      </div>
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; text-align: center;">
+        <div style="font-size: 14px; font-weight: 700; color: #dc2626;">${formatCurrency(totalCost)}</div>
+        <div style="font-size: 10px; color: #991b1b;">${isRTL ? 'التكلفة البيئية' : 'Environmental Cost'}</div>
+      </div>
+      ${breachCount > 0 ? `
+      <div style="flex: 1; min-width: 120px; padding: 10px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; text-align: center;">
+        <div style="font-size: 18px; font-weight: 700; color: #d97706;">${breachCount}</div>
+        <div style="font-size: 10px; color: #92400e;">${isRTL ? 'مخالفات تنظيمية' : 'Regulatory Breaches'}</div>
+      </div>
+      ` : ''}
+    </div>
+    
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 5%;">#</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: ${textAlign}; width: 25%;">${isRTL ? 'الملوث' : 'Contaminant'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'الحجم' : 'Volume'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'المساحة' : 'Area'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'الشدة' : 'Severity'}</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">${isRTL ? 'التكلفة' : 'Cost'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${entries.map((e, i) => `
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: 600;">${i + 1}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">
+              <div style="font-weight: 600;">${e.contaminant_name}</div>
+              ${e.contamination_types?.length ? `<div style="font-size: 10px; color: #6b7280;">${e.contamination_types.join(', ')}</div>` : ''}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${e.volume_released ? `${e.volume_released} m³` : '-'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${e.area_affected_sqm ? `${e.area_affected_sqm} m²` : '-'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+              <span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; ${
+                e.spill_severity === 'tier_3_major' ? 'background: #fecaca; color: #991b1b;' :
+                e.spill_severity === 'tier_2_moderate' ? 'background: #ffedd5; color: #ea580c;' :
+                'background: #fef3c7; color: #d97706;'
+              }">${e.spill_severity?.replace(/_/g, ' ') || '-'}</span>
+              ${e.regulatory_breach_flagged ? `<div style="margin-top: 4px; font-size: 9px; color: #dc2626;">⚠️ ${isRTL ? 'مخالفة' : 'Breach'}</div>` : ''}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: 500;">${e.total_environmental_cost ? formatCurrency(e.total_environmental_cost) : '-'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 function buildPropertyDamagesHtml(damages: PropertyDamageData[], isRTL: boolean): string {
