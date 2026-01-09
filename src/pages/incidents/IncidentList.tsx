@@ -29,6 +29,7 @@ import { useIncidents, useDeleteIncident, useUpdateIncidentStatus } from '@/hook
 import { useDeletionPassword } from '@/hooks/use-deletion-password';
 import { useUserRoles } from '@/hooks/use-user-roles';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAITags } from '@/hooks/use-ai-tags';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -49,10 +50,15 @@ export default function IncidentList() {
   const { data: incidents, isLoading, refetch } = useIncidents();
   const { user, isAdmin } = useAuth();
   const { hasRole } = useUserRoles();
+  const { tags: incidentTags } = useAITags('incident');
   const [hasHSSEAccess, setHasHSSEAccess] = useState(false);
   
   // View mode state (persisted in URL)
   const viewMode = (searchParams.get('view') as 'cards' | 'table') || 'cards';
+  
+  // Parse tags from URL
+  const urlTags = searchParams.get('tags');
+  const initialTags = urlTags ? urlTags.split(',').filter(Boolean) : [];
   
   // Filters state
   const [filters, setFilters] = useState<IncidentFilters>({
@@ -62,6 +68,7 @@ export default function IncidentList() {
     eventType: searchParams.get('type') || '',
     branchId: searchParams.get('branch') || '',
     dateRange: undefined,
+    tags: initialTags,
   });
   
   // Regular delete dialog (for non-closed incidents by admin)
@@ -127,6 +134,14 @@ export default function IncidentList() {
         const from = filters.dateRange.from;
         const to = filters.dateRange.to || filters.dateRange.from;
         if (!isWithinInterval(occurredAt, { start: from, end: to })) return false;
+      }
+      
+      // Tags filter - incident must have ALL selected tags
+      if (filters.tags.length > 0) {
+        const incidentTags = (incident as any).tags as string[] | null;
+        if (!incidentTags || !Array.isArray(incidentTags)) return false;
+        const hasAllTags = filters.tags.every(tag => incidentTags.includes(tag));
+        if (!hasAllTags) return false;
       }
       
       return true;
@@ -211,6 +226,8 @@ export default function IncidentList() {
     else newParams.delete('type');
     if (newFilters.branchId) newParams.set('branch', newFilters.branchId);
     else newParams.delete('branch');
+    if (newFilters.tags.length > 0) newParams.set('tags', newFilters.tags.join(','));
+    else newParams.delete('tags');
     setSearchParams(newParams);
   };
 
@@ -308,6 +325,7 @@ export default function IncidentList() {
         filters={filters}
         onFiltersChange={handleFiltersChange}
         branches={branches}
+        availableTags={incidentTags}
       />
 
       {/* Content */}

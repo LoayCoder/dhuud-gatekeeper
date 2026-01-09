@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, ChevronUp, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +16,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
+import { useAITags, type AITag } from '@/hooks/use-ai-tags';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export interface IncidentFilters {
   search: string;
@@ -26,12 +34,14 @@ export interface IncidentFilters {
   eventType: string;
   branchId: string;
   dateRange: DateRange | undefined;
+  tags: string[];
 }
 
 interface IncidentFilterPanelProps {
   filters: IncidentFilters;
   onFiltersChange: (filters: IncidentFilters) => void;
   branches?: Array<{ id: string; name: string }>;
+  availableTags?: AITag[];
 }
 
 const STATUS_OPTIONS = [
@@ -60,11 +70,13 @@ const EVENT_TYPE_OPTIONS = [
 export function IncidentFilterPanel({ 
   filters, 
   onFiltersChange,
-  branches = []
+  branches = [],
+  availableTags = []
 }: IncidentFilterPanelProps) {
   const { t, i18n } = useTranslation();
   const direction = i18n.dir();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [tagSearchQuery, setTagSearchQuery] = useState('');
 
   const activeFilterCount = [
     filters.status,
@@ -72,6 +84,7 @@ export function IncidentFilterPanel({
     filters.eventType,
     filters.branchId,
     filters.dateRange,
+    filters.tags.length > 0,
   ].filter(Boolean).length;
 
   const handleClearFilters = () => {
@@ -82,12 +95,32 @@ export function IncidentFilterPanel({
       eventType: '',
       branchId: '',
       dateRange: undefined,
+      tags: [],
     });
   };
 
-  const updateFilter = (key: keyof IncidentFilters, value: string | DateRange | undefined) => {
+  const updateFilter = (key: keyof IncidentFilters, value: string | DateRange | string[] | undefined) => {
     onFiltersChange({ ...filters, [key]: value });
   };
+
+  const handleTagToggle = (tagName: string) => {
+    const currentTags = filters.tags || [];
+    const newTags = currentTags.includes(tagName)
+      ? currentTags.filter(t => t !== tagName)
+      : [...currentTags, tagName];
+    updateFilter('tags', newTags);
+  };
+
+  const getTagLabel = (tag: AITag) => {
+    return i18n.language === 'ar' && tag.name_ar ? tag.name_ar : tag.name;
+  };
+
+  const filteredTags = availableTags.filter(tag => {
+    if (!tagSearchQuery) return true;
+    const searchLower = tagSearchQuery.toLowerCase();
+    return tag.name.toLowerCase().includes(searchLower) || 
+           (tag.name_ar && tag.name_ar.includes(tagSearchQuery));
+  });
 
   return (
     <div className="space-y-3">
@@ -204,6 +237,69 @@ export function IncidentFilterPanel({
               onDateChange={(range) => updateFilter('dateRange', range)}
             />
 
+            {/* Tag Filter */}
+            {availableTags.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2 min-w-[140px]">
+                    <Tag className="h-4 w-4" />
+                    {t('ai.tags.label', 'Tags')}
+                    {filters.tags.length > 0 && (
+                      <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center text-xs">
+                        {filters.tags.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="start" dir={direction}>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder={t('common.searchTags', 'Search tags...')}
+                      value={tagSearchQuery}
+                      onChange={(e) => setTagSearchQuery(e.target.value)}
+                      className="h-8"
+                    />
+                    <ScrollArea className="h-48">
+                      <div className="space-y-1">
+                        {filteredTags.map((tag) => (
+                          <div
+                            key={tag.id}
+                            className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleTagToggle(tag.name)}
+                          >
+                            <Checkbox
+                              checked={filters.tags.includes(tag.name)}
+                              onCheckedChange={() => handleTagToggle(tag.name)}
+                            />
+                            <span
+                              className="w-3 h-3 rounded-full shrink-0"
+                              style={{ backgroundColor: tag.color || '#6b7280' }}
+                            />
+                            <span className="text-sm truncate">{getTagLabel(tag)}</span>
+                          </div>
+                        ))}
+                        {filteredTags.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-4">
+                            {t('common.noTagsFound', 'No tags found')}
+                          </p>
+                        )}
+                      </div>
+                    </ScrollArea>
+                    {filters.tags.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => updateFilter('tags', [])}
+                      >
+                        {t('common.clearTags', 'Clear selected tags')}
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
             {activeFilterCount > 0 && (
               <Button 
                 variant="ghost" 
@@ -267,6 +363,26 @@ export function IncidentFilterPanel({
               />
             </Badge>
           )}
+          {filters.tags.length > 0 && filters.tags.map(tagName => {
+            const tag = availableTags.find(t => t.name === tagName);
+            return (
+              <Badge 
+                key={tagName} 
+                variant="secondary" 
+                className="gap-1"
+                style={{ 
+                  backgroundColor: tag?.color ? `${tag.color}20` : undefined,
+                  borderColor: tag?.color || undefined 
+                }}
+              >
+                {tag ? getTagLabel(tag) : tagName}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => handleTagToggle(tagName)}
+                />
+              </Badge>
+            );
+          })}
         </div>
       )}
     </div>
