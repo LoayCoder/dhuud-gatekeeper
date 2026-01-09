@@ -41,6 +41,27 @@ export function useSessionManagement() {
     };
   }, []);
 
+  // Helper to check if we have a valid auth session before making edge function calls
+  const hasValidAuthSession = useCallback(async (): Promise<boolean> => {
+    try {
+      // First check local session state (fast, no network)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return false;
+      }
+      
+      // Then validate the token is actually valid server-side
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !validatedUser) {
+        return false;
+      }
+      
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Register a new session on login
   const registerSession = useCallback(async () => {
     if (isRegistering.current) return;
@@ -54,18 +75,10 @@ export function useSessionManagement() {
     isRegistering.current = true;
 
     try {
-      // First check we have a valid session with access token before making edge function call
-      // getSession() is synchronous and doesn't make network calls - it reads from local storage
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.log('No access token available, skipping session registration');
-        return;
-      }
-
-      // Then validate the token is actually valid server-side
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !validatedUser) {
-        console.log('No valid authenticated user, skipping session registration:', userError?.message);
+      // Validate we have a valid auth session before calling edge function
+      const isValid = await hasValidAuthSession();
+      if (!isValid) {
+        console.log('No valid auth session, skipping session registration');
         return;
       }
 
@@ -127,16 +140,9 @@ export function useSessionManagement() {
     }
 
     try {
-      // Use getUser() to validate token server-side, not just check local state
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !validatedUser) {
-        localStorage.removeItem(SESSION_TOKEN_KEY);
-        return { valid: false, reason: 'auth_session_expired' };
-      }
-
-      // Also check we have an access token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      // Validate we have a valid auth session before calling edge function
+      const isValid = await hasValidAuthSession();
+      if (!isValid) {
         localStorage.removeItem(SESSION_TOKEN_KEY);
         return { valid: false, reason: 'auth_session_expired' };
       }
@@ -169,7 +175,7 @@ export function useSessionManagement() {
       console.error('Session validation error:', err);
       return { valid: false, reason: 'network_error' };
     }
-  }, [isAuthenticated, user?.id]);
+  }, [hasValidAuthSession, isAuthenticated, user?.id]);
 
   // Handle session invalidation (forced logout)
   const handleSessionInvalid = useCallback(async (reason: string, details?: Record<string, string>) => {
@@ -227,17 +233,10 @@ export function useSessionManagement() {
     if (!sessionToken) return;
 
     try {
-      // Use getUser() to validate token server-side before making edge function call
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !validatedUser) {
-        console.log('Auth session expired, skipping heartbeat');
-        return;
-      }
-
-      // Also check we have an access token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.log('No access token, skipping heartbeat');
+      // Validate we have a valid auth session before calling edge function
+      const isValid = await hasValidAuthSession();
+      if (!isValid) {
+        console.log('No valid auth session, skipping heartbeat');
         return;
       }
 
@@ -272,7 +271,7 @@ export function useSessionManagement() {
     } catch (err) {
       console.error('Session heartbeat error:', err);
     }
-  }, [handleSessionInvalid, isAuthenticated, user?.id]);
+  }, [handleSessionInvalid, hasValidAuthSession, isAuthenticated, user?.id]);
 
   // Invalidate session on logout
   const invalidateSession = useCallback(async () => {
