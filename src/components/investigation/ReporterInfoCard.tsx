@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Briefcase, Building2, MapPin, Phone, BadgeCheck } from "lucide-react";
+import { User, Briefcase, Building2, MapPin, Phone, BadgeCheck, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { IncidentWithDetails } from "@/hooks/use-incidents";
 
 interface ReporterInfoCardProps {
@@ -14,7 +15,7 @@ export function ReporterInfoCard({ incident }: ReporterInfoCardProps) {
   const { t } = useTranslation();
 
   // Fetch full reporter profile with organizational details
-  const { data: reporter, isLoading } = useQuery({
+  const { data: reporter, isLoading, error } = useQuery({
     queryKey: ['reporter-profile', incident.reporter_id],
     queryFn: async () => {
       if (!incident.reporter_id) return null;
@@ -30,12 +31,16 @@ export function ReporterInfoCard({ incident }: ReporterInfoCardProps) {
           section:sections!profiles_assigned_section_id_fkey(name)
         `)
         .eq('id', incident.reporter_id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to fetch reporter profile:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!incident.reporter_id,
+    retry: 1, // Only retry once to avoid excessive requests
   });
 
   const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | null | undefined }) => (
@@ -57,7 +62,14 @@ export function ReporterInfoCard({ incident }: ReporterInfoCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {t('investigation.overview.reporterLoadError', 'Unable to load reporter information. You may not have permission to view this data.')}
+            </AlertDescription>
+          </Alert>
+        ) : isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map(i => (
               <Skeleton key={i} className="h-10 w-full" />
