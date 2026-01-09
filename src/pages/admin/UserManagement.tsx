@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -32,10 +32,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw, Filter, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +57,9 @@ import { RoleBadge } from "@/components/roles/RoleBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useUsersPaginated, UserWithRoles, UseUsersPaginatedFilters } from "@/hooks/use-users-paginated";
 import { exportToCSV, exportToExcel, ExportColumn } from "@/lib/export-utils";
+import { UserStatsCards } from "@/components/users/UserStatsCards";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface HierarchyItem {
   id: string;
@@ -100,6 +108,9 @@ export default function UserManagement() {
   const { quota, breakdown, isLoading: quotaLoading, refetch: refetchQuota } = useLicensedUserQuota();
   const { logUserCreated, logUserUpdated, logUserDeactivated, logUserActivated, logUserDeleted } = useAdminAuditLog();
   const { roles, assignRoles } = useUserRoles();
+  
+  // Filters panel state
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -664,6 +675,44 @@ export default function UserManagement() {
   const hierarchyArrow = direction === 'rtl' ? '←' : '↳';
   const allSelected = users.length > 0 && users.every(u => selectedUsers.has(u.id));
   const someSelected = users.some(u => selectedUsers.has(u.id)) && !allSelected;
+  
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (userTypeFilter !== 'all') count++;
+    if (statusFilter !== 'all') count++;
+    if (branchFilter !== 'all') count++;
+    if (divisionFilter !== 'all') count++;
+    if (roleFilter !== 'all') count++;
+    return count;
+  }, [userTypeFilter, statusFilter, branchFilter, divisionFilter, roleFilter]);
+  
+  const clearAllFilters = () => {
+    setUserTypeFilter('all');
+    setStatusFilter('all');
+    setBranchFilter('all');
+    setDivisionFilter('all');
+    setRoleFilter('all');
+    setSearchInput('');
+  };
+  
+  // Calculate user stats
+  const userStats = useMemo(() => {
+    const activeUsers = users.filter(u => u.is_active).length;
+    return {
+      total: totalCount,
+      active: activeUsers,
+      inactive: totalCount - activeUsers,
+    };
+  }, [users, totalCount]);
+
+  // Get user initials for avatar
+  const getUserInitials = (name: string | null) => {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
 
   return (
     <div className="container py-8 space-y-6" dir={direction}>
@@ -700,97 +749,130 @@ export default function UserManagement() {
         </div>
       </div>
 
+      {/* User Stats Cards */}
+      <UserStatsCards 
+        totalUsers={userStats.total}
+        activeUsers={userStats.active}
+        inactiveUsers={userStats.inactive}
+        isLoading={loading}
+      />
+
       <LicensedUserQuotaCard quota={quota} breakdown={breakdown} isLoading={quotaLoading} showUpgradeCta={true} />
 
       <EmailSyncBanner onSyncComplete={refetchUsers} />
 
+      {/* Search and Filters */}
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg text-start">{t('userManagement.filters')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-6 space-y-4">
           {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t('userManagement.searchPlaceholder')}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="ps-10"
-            />
-            {searchInput && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                onClick={() => setSearchInput('')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('userManagement.searchPlaceholder')}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="ps-10"
+              />
+              {searchInput && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  onClick={() => setSearchInput('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <div className="flex items-center gap-2">
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    {t('userManagement.filters')}
+                    {activeFilterCount > 0 && (
+                      <Badge variant="secondary" className="h-5 min-w-5 px-1.5">
+                        {activeFilterCount}
+                      </Badge>
+                    )}
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", filtersOpen && "rotate-180")} />
+                  </Button>
+                </CollapsibleTrigger>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-muted-foreground">
+                    {t('userManagement.clearFilters', 'Clear all')}
+                  </Button>
+                )}
+              </div>
+            </Collapsible>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="space-y-2 text-start">
-              <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
-              <Select value={userTypeFilter} onValueChange={setUserTypeFilter} dir={direction}>
-                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction} className="bg-background">
-                  <SelectItem value="all">{t('userManagement.allTypes')}</SelectItem>
-                  <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
-                  <SelectItem value="contractor_longterm">{t('userTypes.contractorLongterm')}</SelectItem>
-                  <SelectItem value="contractor_shortterm">{t('userTypes.contractorShortterm')}</SelectItem>
-                  <SelectItem value="member">{t('userTypes.member')}</SelectItem>
-                  <SelectItem value="visitor">{t('userTypes.visitor')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <CollapsibleContent className="pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="space-y-2 text-start">
+                  <label className="text-sm font-medium">{t('userManagement.filterByType')}</label>
+                  <Select value={userTypeFilter} onValueChange={setUserTypeFilter} dir={direction}>
+                    <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
+                    <SelectContent dir={direction} className="bg-background">
+                      <SelectItem value="all">{t('userManagement.allTypes')}</SelectItem>
+                      <SelectItem value="employee">{t('userTypes.employee')}</SelectItem>
+                      <SelectItem value="contractor_longterm">{t('userTypes.contractorLongterm')}</SelectItem>
+                      <SelectItem value="contractor_shortterm">{t('userTypes.contractorShortterm')}</SelectItem>
+                      <SelectItem value="member">{t('userTypes.member')}</SelectItem>
+                      <SelectItem value="visitor">{t('userTypes.visitor')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2 text-start">
-              <label className="text-sm font-medium">{t('userManagement.filterByStatus')}</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
-                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction} className="bg-background">
-                  <SelectItem value="all">{t('userManagement.allStatuses')}</SelectItem>
-                  <SelectItem value="active">{t('userManagement.active')}</SelectItem>
-                  <SelectItem value="inactive">{t('userManagement.inactive')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2 text-start">
+                  <label className="text-sm font-medium">{t('userManagement.filterByStatus')}</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter} dir={direction}>
+                    <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
+                    <SelectContent dir={direction} className="bg-background">
+                      <SelectItem value="all">{t('userManagement.allStatuses')}</SelectItem>
+                      <SelectItem value="active">{t('userManagement.active')}</SelectItem>
+                      <SelectItem value="inactive">{t('userManagement.inactive')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2 text-start">
-              <label className="text-sm font-medium">{t('userManagement.filterByBranch')}</label>
-              <Select value={branchFilter} onValueChange={setBranchFilter} dir={direction}>
-                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction} className="bg-background">
-                  <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
-                  {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2 text-start">
+                  <label className="text-sm font-medium">{t('userManagement.filterByBranch')}</label>
+                  <Select value={branchFilter} onValueChange={setBranchFilter} dir={direction}>
+                    <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
+                    <SelectContent dir={direction} className="bg-background">
+                      <SelectItem value="all">{t('userManagement.allBranches')}</SelectItem>
+                      {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2 text-start">
-              <label className="text-sm font-medium">{t('userManagement.filterByDivision')}</label>
-              <Select value={divisionFilter} onValueChange={setDivisionFilter} dir={direction}>
-                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction} className="bg-background">
-                  <SelectItem value="all">{t('userManagement.allDivisions')}</SelectItem>
-                  {divisions.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2 text-start">
+                  <label className="text-sm font-medium">{t('userManagement.filterByDivision')}</label>
+                  <Select value={divisionFilter} onValueChange={setDivisionFilter} dir={direction}>
+                    <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
+                    <SelectContent dir={direction} className="bg-background">
+                      <SelectItem value="all">{t('userManagement.allDivisions')}</SelectItem>
+                      {divisions.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2 text-start">
-              <label className="text-sm font-medium">{t('userManagement.filterByRole')}</label>
-              <Select value={roleFilter} onValueChange={setRoleFilter} dir={direction}>
-                <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
-                <SelectContent dir={direction} className="bg-background">
-                  <SelectItem value="all">{t('userManagement.allRoles')}</SelectItem>
-                  {roles.map(r => <SelectItem key={r.id} value={r.code}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="space-y-2 text-start">
+                  <label className="text-sm font-medium">{t('userManagement.filterByRole')}</label>
+                  <Select value={roleFilter} onValueChange={setRoleFilter} dir={direction}>
+                    <SelectTrigger className="text-start"><SelectValue /></SelectTrigger>
+                    <SelectContent dir={direction} className="bg-background">
+                      <SelectItem value="all">{t('userManagement.allRoles')}</SelectItem>
+                      {roles.map(r => <SelectItem key={r.id} value={r.code}>{r.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
 
@@ -874,7 +956,13 @@ export default function UserManagement() {
                   </TableRow>
                 ) : (
                   users.map((user) => (
-                    <TableRow key={user.id} className={selectedUsers.has(user.id) ? 'bg-muted/50' : ''}>
+                    <TableRow 
+                      key={user.id} 
+                      className={cn(
+                        "transition-colors hover:bg-muted/30",
+                        selectedUsers.has(user.id) && 'bg-muted/50'
+                      )}
+                    >
                       <TableCell>
                         <Checkbox
                           checked={selectedUsers.has(user.id)}
@@ -883,12 +971,24 @@ export default function UserManagement() {
                         />
                       </TableCell>
                       <TableCell className="font-medium text-start">
-                        <UserDetailPopover
-                          user={user}
-                          onEdit={() => handleEditUser(user)}
-                          onToggleStatus={() => handleToggleUserStatus(user)}
-                          onDelete={() => handleDeleteUser(user.id, user.full_name || '')}
-                        />
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className={cn(
+                              "text-xs font-medium",
+                              user.is_active 
+                                ? "bg-primary/10 text-primary" 
+                                : "bg-muted text-muted-foreground"
+                            )}>
+                              {getUserInitials(user.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <UserDetailPopover
+                            user={user}
+                            onEdit={() => handleEditUser(user)}
+                            onToggleStatus={() => handleToggleUserStatus(user)}
+                            onDelete={() => handleDeleteUser(user.id, user.full_name || '')}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="text-start">
                         <Badge variant={getUserTypeBadgeVariant(user.user_type)}>
@@ -896,9 +996,18 @@ export default function UserManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-start">
-                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                          {user.is_active ? t('userManagement.active') : t('userManagement.inactive')}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "h-2 w-2 rounded-full",
+                            user.is_active ? "bg-green-500" : "bg-muted-foreground"
+                          )} />
+                          <span className={cn(
+                            "text-sm",
+                            user.is_active ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {user.is_active ? t('userManagement.active') : t('userManagement.inactive')}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="text-start">
                         {user.branch_name || '-'}
