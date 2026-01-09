@@ -61,8 +61,6 @@ export function useCreateEnvironmentalContamination() {
         .insert(insertData as any)
         .select()
         .single();
-        .select()
-        .single();
       
       if (error) throw error;
       return result;
