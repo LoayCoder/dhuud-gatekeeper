@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface PendingApprovalIncident {
   id: string;
@@ -30,27 +31,44 @@ const APPROVAL_STATUSES = [
 ] as const;
 
 export function usePendingApprovals(minDaysStuck = 0) {
+  const { profile } = useAuth();
+
   return useQuery({
-    queryKey: ['admin-pending-approvals', minDaysStuck],
+    queryKey: ['admin-pending-approvals', minDaysStuck, profile?.tenant_id],
     queryFn: async () => {
+      // CRITICAL: Tenant isolation - must have tenant_id
+      if (!profile?.tenant_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('incidents')
-        .select(`
-          id,
-          reference_id,
-          title,
-          status,
-          event_type,
-          created_at,
-          updated_at,
-          department_id,
-          reporter_id
-        `)
+        .select('id, reference_id, title, status, event_type, created_at, updated_at, department_id, reporter_id')
+        // Tenant isolation filter
+        .eq('tenant_id', profile.tenant_id)
         .or(APPROVAL_STATUSES.map(s => `status.eq.${s}`).join(','))
         .is('deleted_at', null)
         .order('updated_at', { ascending: true });
 
       if (error) throw error;
+
+      // Fetch department names separately for better type safety
+      const departmentIds = [...new Set((data || []).map(i => i.department_id).filter(Boolean))] as string[];
+      let departmentMap: Record<string, string> = {};
+      
+      if (departmentIds.length > 0) {
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('id, name')
+          .in('id', departmentIds);
+        
+        if (depts) {
+          departmentMap = depts.reduce((acc, d) => {
+            acc[d.id] = d.name || '';
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      }
 
       const now = new Date();
       const incidents: PendingApprovalIncident[] = ((data || []) as any[]).map((incident) => {
@@ -66,6 +84,7 @@ export function usePendingApprovals(minDaysStuck = 0) {
           created_at: incident.created_at,
           updated_at: incident.updated_at,
           department_id: incident.department_id || '',
+          department_name: departmentMap[incident.department_id] || '',
           days_stuck: daysStuck,
         };
       });
@@ -73,6 +92,7 @@ export function usePendingApprovals(minDaysStuck = 0) {
       // Filter by minimum days stuck
       return incidents.filter(i => i.days_stuck >= minDaysStuck);
     },
+    enabled: !!profile?.tenant_id,
   });
 }
 
