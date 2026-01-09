@@ -163,6 +163,8 @@ export default function IncidentReport() {
   const [pendingSubmitData, setPendingSubmitData] = useState<FormValues | null>(null);
   // Prevent double-submission on confirmation dialog
   const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
+  // Prevent any re-submission after successful submit
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   // Asset selection state
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
   // Success dialog state
@@ -554,6 +556,14 @@ export default function IncidentReport() {
   };
 
   const performSubmit = async (values: FormValues) => {
+    // Prevent double-submission
+    if (hasSubmitted) {
+      console.log('[Incident Submit] Blocked - already submitted');
+      return;
+    }
+    setHasSubmitted(true);
+    console.log('[Incident Submit] Lock acquired, proceeding...');
+    
     const isObs = values.event_type === 'observation';
     
     // Build closed_on_spot_data for observations
@@ -610,6 +620,7 @@ export default function IncidentReport() {
 
     createIncident.mutate(formData, {
       onSuccess: async (data) => {
+        console.log('[Incident Submit] Success - incident created:', data.id, data.reference_id);
         // Upload media attachments in parallel with compression
         if ((uploadedPhotos.length > 0 || uploadedVideo || closedOnSpotPhotos.length > 0) && profile?.tenant_id && data?.id) {
           setIsUploading(true);
@@ -619,83 +630,84 @@ export default function IncidentReport() {
             if (uploadedPhotos.length > 0) {
               console.log(`Uploading ${uploadedPhotos.length} photos for incident ${data.id}`);
               await uploadFilesParallel(
-                uploadedPhotos,
+                uploadedPhotos, 
                 async (file, index) => {
                   const fileName = `${Date.now()}-${index}-${file.name}`;
                   const uploadPath = `${profile.tenant_id}/${data.id}/photos/${fileName}`;
-                  console.log(`Uploading photo to: ${uploadPath}`);
-                  const { error: uploadError } = await supabase.storage
+                  const { error } = await supabase.storage
                     .from('incident-attachments')
                     .upload(uploadPath, file);
-                  if (uploadError) {
-                    console.error(`Photo upload failed: ${file.name}`, uploadError);
-                    throw new Error(`Failed to upload photo: ${file.name} - ${uploadError.message}`);
-                  }
-                  console.log(`Photo uploaded successfully: ${fileName}`);
+                  if (error) throw error;
+                  uploadedPaths.push(uploadPath);
                 },
                 { compressImages: true, maxWidth: 1920, quality: 0.85 }
               );
             }
-            
-            // Upload video (no compression)
+
+            // Upload video separately (no compression)
             if (uploadedVideo) {
-              const fileName = `${Date.now()}-${uploadedVideo.name}`;
-              const uploadPath = `${profile.tenant_id}/${data.id}/video/${fileName}`;
-              console.log(`Uploading video to: ${uploadPath}`);
-              const { error: videoError } = await supabase.storage
-                .from('incident-attachments')
-                .upload(uploadPath, uploadedVideo);
-              if (videoError) {
-                console.error(`Video upload failed: ${uploadedVideo.name}`, videoError);
-                toast.error(t('incidents.videoUploadFailed', 'Failed to upload video'));
-              } else {
-                console.log(`Video uploaded successfully: ${fileName}`);
-              }
+              console.log(`Uploading video for incident ${data.id}`);
+              await uploadFilesParallel(
+                [uploadedVideo], 
+                async (file, index) => {
+                  const fileName = `${Date.now()}-${index}-${file.name}`;
+                  const uploadPath = `${profile.tenant_id}/${data.id}/videos/${fileName}`;
+                  const { error } = await supabase.storage
+                    .from('incident-attachments')
+                    .upload(uploadPath, file);
+                  if (error) throw error;
+                  uploadedPaths.push(uploadPath);
+                },
+                { compressImages: false }
+              );
             }
 
-            // Upload "Closed on the Spot" photos in parallel
-            if (closedOnSpotPhotos.length > 0) {
-              console.log(`Uploading ${closedOnSpotPhotos.length} closed-on-spot photos`);
-              const paths = await uploadFilesParallel(
+            // Upload closed-on-spot evidence photos with compression
+            if (closedOnSpot && closedOnSpotPhotos.length > 0) {
+              console.log(`Uploading ${closedOnSpotPhotos.length} closed-on-spot photos for incident ${data.id}`);
+              const closedOnSpotPaths: string[] = [];
+              await uploadFilesParallel(
                 closedOnSpotPhotos,
                 async (file, index) => {
                   const fileName = `${Date.now()}-${index}-${file.name}`;
-                  const photoPath = `${profile.tenant_id}/${data.id}/closed-on-spot/${fileName}`;
-                  const { error: cosError } = await supabase.storage
+                  const uploadPath = `${profile.tenant_id}/${data.id}/closed-on-spot/${fileName}`;
+                  const { error } = await supabase.storage
                     .from('incident-attachments')
-                    .upload(photoPath, file);
-                  if (cosError) {
-                    console.error(`Closed-on-spot photo upload failed: ${file.name}`, cosError);
-                    throw new Error(`Failed to upload photo: ${file.name}`);
-                  }
-                  return photoPath;
+                    .upload(uploadPath, file);
+                  if (error) throw error;
+                  closedOnSpotPaths.push(uploadPath);
+                  uploadedPaths.push(uploadPath);
                 },
                 { compressImages: true, maxWidth: 1920, quality: 0.85 }
               );
-              uploadedPaths.push(...paths);
-            }
 
-            // Update the incident with the photo paths if we have any
-            if (uploadedPaths.length > 0 && closedOnSpotData) {
-              await supabase
-                .from('incidents')
-                .update({
-                  immediate_actions_data: {
-                    closed_on_spot: true,
-                    photo_paths: uploadedPaths,
-                  }
-                })
-                .eq('id', data.id);
+              // Update incident with closed_on_spot photo paths in immediate_actions_data
+              if (closedOnSpotPaths.length > 0) {
+                try {
+                  await supabase
+                    .from('incidents')
+                    .update({
+                      immediate_actions_data: {
+                        closed_on_spot: true,
+                        photo_paths: closedOnSpotPaths,
+                      }
+                    })
+                    .eq('id', data.id);
+                } catch (updateError) {
+                  console.error('Failed to update immediate_actions_data:', updateError);
+                }
+              }
             }
-          } catch (error) {
-            console.error('Media upload error:', error);
-            toast.error(t('incidents.mediaUploadFailed', 'Failed to upload some media files'));
+          } catch (uploadError) {
+            console.error('Media upload error:', uploadError);
+            // Don't show error toast - incident was created successfully
+            // Media upload failure shouldn't block the success flow
           } finally {
             setIsUploading(false);
           }
         }
         
-        // Link selected asset to the incident
+        // Link asset if one was selected
         if (selectedAsset && data?.id) {
           try {
             await linkAsset.mutateAsync({
@@ -717,6 +729,11 @@ export default function IncidentReport() {
         setTimeout(() => {
           navigate(`/incidents/${data.id}`);
         }, 3000);
+      },
+      onError: (error) => {
+        console.log('[Incident Submit] Error - resetting lock:', error);
+        setHasSubmitted(false);
+        setIsConfirmSubmitting(false);
       },
     });
   };
@@ -1699,21 +1716,28 @@ export default function IncidentReport() {
                 <ChevronRight className="h-4 w-4 rtl:rotate-180" />
               </Button>
             ) : (
-              <Button
-                type="button"
-                onClick={() => setShowConfirmation(true)}
-                disabled={createIncident.isPending || isUploading || uploadedPhotos.length === 0}
-                className="min-w-[150px]"
-              >
-                {(createIncident.isPending || isUploading) ? (
-                  <>
-                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                    {t('common.submitting')}
-                  </>
-                ) : (
-                  t('incidents.submitIncident')
-                )}
-              </Button>
+              !hasSubmitted ? (
+                <Button
+                  type="button"
+                  onClick={() => setShowConfirmation(true)}
+                  disabled={createIncident.isPending || isUploading || uploadedPhotos.length === 0}
+                  className="min-w-[150px]"
+                >
+                  {(createIncident.isPending || isUploading) ? (
+                    <>
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      {t('common.submitting')}
+                    </>
+                  ) : (
+                    t('incidents.submitIncident')
+                  )}
+                </Button>
+              ) : (
+                <Button disabled className="min-w-[150px]">
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  {t('common.submitting')}
+                </Button>
+              )
             )}
           </div>
         </form>
@@ -1736,29 +1760,30 @@ export default function IncidentReport() {
             <AlertDialogAction 
               onClick={async (e) => {
                 e.preventDefault();
-                if (isConfirmSubmitting || createIncident.isPending) return;
+                if (hasSubmitted || isConfirmSubmitting || createIncident.isPending) return;
                 setIsConfirmSubmitting(true);
                 setShowConfirmation(false); // Close dialog immediately to prevent re-click
-                try {
-                  await form.handleSubmit(
-                    onSubmit,
-                    // Handle validation errors - show toast with first error
-                    (errors) => {
-                      console.error('Form validation errors:', errors);
-                      const firstError = Object.values(errors)[0];
-                      toast.error(
-                        t('incidents.validation.formIncomplete', 'Please complete all required fields'),
-                        { description: firstError?.message as string || t('incidents.validation.checkFields', 'Check the form for errors') }
-                      );
-                    }
-                  )();
-                } finally {
-                  setIsConfirmSubmitting(false);
+                
+                // Validate first
+                const isValid = await form.trigger();
+                if (!isValid) {
+                  // Validation failed - show errors and allow retry
+                  const errors = form.formState.errors;
+                  const firstError = Object.values(errors)[0];
+                  toast.error(
+                    t('incidents.validation.formIncomplete', 'Please complete all required fields'),
+                    { description: firstError?.message as string || t('incidents.validation.checkFields', 'Check the form for errors') }
+                  );
+                  setIsConfirmSubmitting(false); // Only reset on validation failure
+                  return;
                 }
+                
+                // Validation passed - submit (don't reset isConfirmSubmitting - onError will handle)
+                await onSubmit(form.getValues());
               }}
-              disabled={isConfirmSubmitting || createIncident.isPending}
+              disabled={hasSubmitted || isConfirmSubmitting || createIncident.isPending}
             >
-              {isConfirmSubmitting ? (
+              {(hasSubmitted || isConfirmSubmitting) ? (
                 <>
                   <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   {t('common.submitting')}
